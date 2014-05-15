@@ -857,6 +857,21 @@ var Command = {
         return sendObj(obj, callback);
     },
     /**
+     * Send a LIST_ACTIVE_ELEMENTS command to the server.
+     *
+     * The server will return a result set containing all active elements
+     * in the given page.
+     *
+     * The optional callback function will be executed for each node in the result set.
+     */
+    listActiveElements: function(pageId, callback) {
+        var obj = {};
+        obj.command = 'LIST_ACTIVE_ELEMENTS';
+        obj.id = pageId;
+        log('list_active_elements()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
      * Send a LIST_COMPONENTS command to the server.
      *
      * The server will return a result set containing all element nodes

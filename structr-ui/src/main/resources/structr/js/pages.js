@@ -119,7 +119,7 @@ var _Pages = {
 
         main.prepend(
                 '<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
-                + '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div></div>'
+                + '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="inner"></div></div>'
                 + '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
                 + '<div id="previews"></div>'
                 + '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
@@ -445,6 +445,14 @@ var _Pages = {
 
         log('store active tab', activeTab);
         localStorage.setItem(activeTabKey, activeTab);
+
+        var activeElementsTab = $('#activeElements div.inner');
+        activeElementsTab.empty();
+        activeElements = {};
+
+        Command.listActiveElements(id, function(activeElement) {
+            _Entities.handleActiveElement(activeElement);
+        });
 
     },
     reloadIframe: function(id, name) {

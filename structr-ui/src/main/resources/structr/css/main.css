@@ -1651,6 +1651,33 @@ button.add_property {
 }
 
 /**
+ * Active Elements slideout
+ */
+#activeElements .inner {
+    margin-left: 36px;
+    margin-right: 12px;
+}
+
+#activeElements h3 {
+    font-size: 11pt;
+    margin-bottom: 0px;
+}
+
+#activeElements textarea {
+    font-size: 8pt;
+    width: 90%;
+}
+
+#activeElements input {
+    font-size: 8pt;
+    width: 90%;
+}
+
+#activeElements div.inner p {
+    margin: 0px;
+}
+
+/**
  * Data Binding Wizard slideout
  */
 #dataBinding .inner {

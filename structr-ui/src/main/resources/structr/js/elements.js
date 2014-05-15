@@ -301,10 +301,6 @@ var _Elements = {
 
         // store active nodes in special place..
         var isActiveNode = entity.hideOnIndex || entity.hideOnDetail || entity.hideConditions || entity.showConditions || entity.dataKey;
-        if (isActiveNode) {
-
-            _Entities.handleActiveElement(entity);
-        }
 
         var parent;
         if (refNodeIsParent) {

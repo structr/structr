@@ -314,6 +314,20 @@ function wsConnect() {
 
                 StructrModel.clearCallback(data.callback);
 
+            } else if (command.startsWith('LIST_ACTIVE_ELEMENTS')) { /*********************** LIST_ACTIVE_ELEMENTS ************************/
+
+                console.log(data);
+
+                log('LIST_ACTIVE_ELEMENTS', result, data);
+
+                $(result).each(function(i, entity) {
+
+                    StructrModel.callCallback(data.callback, entity);
+
+                });
+
+                StructrModel.clearCallback(data.callback);
+
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
                 log('LIST', result, data);

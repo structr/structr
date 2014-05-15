@@ -1037,16 +1037,30 @@ var _Entities = {
     },
     handleActiveElement : function(entity) {
 
-//        var idString = "id_" + entity.id;
-//
-//        if (!activeElements.hasOwnProperty(idString)) {
-//
-//            activeElements[idString] = entity;
-//
-//            var activeElementsSlideout = $('#activeElements');
-//            activeElementsSlideout.append('<div style="padding-left:30px;">' + entity.type + '</div>');
-//        }
+        if (entity) {
 
+            var idString = "id_" + entity.id;
+
+            if (!activeElements.hasOwnProperty(idString)) {
+
+                activeElements[idString] = entity;
+
+                var activeElementsTab = $('#activeElements div.inner');
+
+                if (entity.dataKey) {
+
+                    activeElementsTab.append(
+                        '<h3>' + entity.dataKey + '</h3>'
+                        + '<p><textarea>' + (entity.restQuery !== "" ? entity.restQuery : entity.cypherQuery ? entity.cypherQuery : entity.xpathQuery ? entity.xpathQuery : "") + '</textarea></p>'
+                    );
+
+                } else {
+
+                    activeElementsTab.append('<p><input type="text" value="' + entity.content + '"></p>');
+
+                }
+            }
+        }
     }
 
 

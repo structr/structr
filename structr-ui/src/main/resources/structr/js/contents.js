@@ -41,10 +41,6 @@ var _Contents = {
         if (!parent) return false;
 
         var isActiveNode = content.hideOnIndex || content.hideOnDetail || content.hideConditions || content.showConditions || content.dataKey;
-        if (isActiveNode) {
-            
-            _Entities.handleActiveElement(content);
-        }
 
         var html = '<div id="id_' + content.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
         + '<img class="typeIcon" src="'+ (content.type === 'Comment' ? _Contents.comment_icon : _Contents.icon) + '">'
