@@ -1056,7 +1056,11 @@ var _Entities = {
 
                 } else {
 
-                    activeElementsTab.append('<p><input type="text" value="' + entity.content + '"></p>');
+                    activeElementsTab.append('<p id="' + idString + '"><input type="text" value="' + entity.content + '"></p>');
+
+                    var paragraph = $('#' + idString);
+
+                    _Entities.setMouseOver(paragraph, undefined, undefined);
 
                 }
             }
