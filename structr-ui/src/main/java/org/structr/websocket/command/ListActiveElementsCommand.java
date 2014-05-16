@@ -39,6 +39,9 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.relationship.DOMChildren;
+import org.structr.web.entity.html.Input;
+import org.structr.web.entity.html.Link;
+import org.structr.web.entity.html.Script;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -161,8 +164,32 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			return true;
 		}
 
+		/*
+		 attributes to check for !isEmpty:
+		  - data-structr-action
+		*/
+		if (node.getProperty(DOMElement._action) != null) {
+			return true;
+		}
+
 		if (node.getProperty(Content.content) != null && dataKey != null) {
 			return node.getProperty(Content.content).contains(dataKey);
+		}
+
+		if (node.getProperty(DOMElement._id) != null && dataKey != null) {
+			return node.getProperty(DOMElement._id).contains(dataKey);
+		}
+
+		if (node.getProperty(Link._href) != null && dataKey != null) {
+			return node.getProperty(Link._href).contains(dataKey);
+		}
+
+		if (node.getProperty(Script._src) != null && dataKey != null) {
+			return node.getProperty(Script._src).contains(dataKey);
+		}
+
+		if (node.getProperty(Input._value) != null && dataKey != null) {
+			return node.getProperty(Input._value).contains(dataKey);
 		}
 
 		return false;
