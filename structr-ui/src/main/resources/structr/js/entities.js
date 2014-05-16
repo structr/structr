@@ -1039,6 +1039,8 @@ var _Entities = {
 
         if (entity) {
 
+            console.log(entity);
+
             var idString = "id_" + entity.id;
 
             if (!activeElements.hasOwnProperty(idString)) {
@@ -1049,19 +1051,66 @@ var _Entities = {
 
                 if (entity.dataKey) {
 
-                    activeElementsTab.append(
-                        '<h3>' + entity.dataKey + '</h3>'
-                        + '<p><textarea>' + (entity.restQuery !== "" ? entity.restQuery : entity.cypherQuery ? entity.cypherQuery : entity.xpathQuery ? entity.xpathQuery : "") + '</textarea></p>'
+                    var parent = activeElementsTab;
+                    var id     = entity.id;
+
+                    if (entity.parentId) {
+                        parent = $('#active_' + entity.parentId);
+                    }
+
+                    parent.append('<div id="active_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+
+                    var div         = $('#active_' + id);
+                    var query       = (entity.dataKey.split(',')[entity.recursionDepth] || '');
+                    var expand      = entity.state === "Query";
+                    var bold        = expand;
+                    var icon        = _Elements.icon;
+                    var displayName = '';
+
+                    switch (entity.state) {
+                        case "Query":
+                            icon = _Elements.icon_repeater;
+                            displayName = query;
+                            break;
+                        case "Content":
+                            icon = _Contents.icon;
+                            displayName = entity.content;
+                            break;
+                        case "Button":
+                            displayName = '<b>Button</b>: ' + entity.action;
+                            break;
+                        case "Link":
+                            displayName = '<b>Link</b>: ' + entity.action;
+                            break;
+                        default:
+                            displayName = entity.state;
+                    }
+
+                    if (displayName.length > 50) {
+                        displayName = displayName.substring(0, 49) + '…';
+                    }
+
+
+                    if (bold) {
+                        displayName = '<b>' + displayName + '</b>';
+                    }
+
+                    div.append('<img class="typeIcon" src="' + icon + '">'
+                            + '<span title="' + displayName + '" class="tag_ name_">' + displayName + '</span><span class="id">' + entity.id + '</span>'
+                            + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
+                            + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
                     );
 
-                } else {
+                    var typeIcon = $(div.children('.typeIcon').first());
+                    var padding  = 0;
 
-                    activeElementsTab.append('<p id="' + idString + '"><input type="text" value="' + entity.content + '"></p>');
-
-                    var paragraph = $('#' + idString);
-
-                    _Entities.setMouseOver(paragraph, undefined, undefined);
-
+                    if (!expand) {
+                        padding = 11;
+                    } else {
+                        typeIcon.css({
+                            paddingRight: padding + 'px'
+                        }).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expanded_icon + '">');
+                    }
                 }
             }
         }

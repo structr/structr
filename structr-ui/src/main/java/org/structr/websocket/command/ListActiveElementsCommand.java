@@ -30,10 +30,14 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -41,7 +45,6 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.html.Input;
 import org.structr.web.entity.html.Link;
-import org.structr.web.entity.html.Script;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,11 +56,19 @@ import org.structr.web.entity.html.Script;
 public class ListActiveElementsCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(ListActiveElementsCommand.class.getName());
+	private static final Property<Integer> recursionDepthProperty = new IntProperty("recursionDepth");
+	private static final Property<String>  parentIdProperty       = new StringProperty("parentId");
+	private static final Property<String>  stateProperty          = new StringProperty("state");
+	private static final Property<String>  actionProperty         = new StringProperty("action");
 
 	static {
 
 		StructrWebSocket.addCommand(ListActiveElementsCommand.class);
 
+	}
+
+	public enum ActiveElementState {
+		None, Query, Content, Input, Button, Link
 	}
 
 	@Override
@@ -74,7 +85,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 			if (page != null) {
 
-				collectActiveElements(result, page, null);
+				collectActiveElements(result, page, Collections.EMPTY_SET, null, 0);
 
 				// set full result list
 				webSocketData.setResult(result);
@@ -103,65 +114,96 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	}
 
 	// ----- private methods -----
-	private void collectActiveElements(final List<GraphObject> resultList, final DOMNode root, final String parentDataKey) {
+	private void collectActiveElements(final List<GraphObject> resultList, final DOMNode root, final Set<String> parentDataKeys, final String parent, final int depth) {
 
-		final String childDataKey = root.getProperty(DOMElement.dataKey);
-		final String dataKey      = childDataKey != null ? childDataKey : parentDataKey;
+		final String childDataKey  = root.getProperty(DOMElement.dataKey);
+		final Set<String> dataKeys = new LinkedHashSet<>(parentDataKeys);
+		String parentId            = parent;
+		int dataCentricDepth       = depth;
 
-		if (isActive(root, dataKey)) {
-			resultList.add(root);
+		if (childDataKey != null) {
+
+			dataKeys.add(childDataKey);
+			dataCentricDepth++;
+		}
+
+		final ActiveElementState state = isActive(root, dataKeys);
+		if (!state.equals(ActiveElementState.None)) {
+
+			resultList.add(extractActiveElement(root, dataKeys, parentId, state, depth));
+			if (state.equals(ActiveElementState.Query)) {
+
+				parentId = root.getUuid();
+			}
 		}
 
 		for (final DOMChildren children : root.getChildRelationships()) {
 
 			final DOMNode child = children.getTargetNode();
-			collectActiveElements(resultList, child, dataKey);
+			collectActiveElements(resultList, child, dataKeys, parentId, dataCentricDepth);
 		}
 
 	}
 
-	private GraphObject extractActiveElement(final DOMNode node) {
+	private GraphObject extractActiveElement(final DOMNode node, final Set<String> dataKeys, final String parent, final ActiveElementState state, final int depth) {
 
 		final GraphObjectMap activeElement = new GraphObjectMap();
 
-		activeElement.put(GraphObject.id,     node.getUuid());
-		activeElement.put(DOMElement.restQuery, "query");
+		activeElement.put(GraphObject.id, node.getUuid());
+		activeElement.put(GraphObject.type, node.getType());
+		activeElement.put(DOMElement.dataKey, StringUtils.join(dataKeys, ","));
+		activeElement.put(Content.content, node.getProperty(Content.content));
+
+		switch (state) {
+
+			case Button:
+				activeElement.put(actionProperty, node.getProperty(DOMElement._action));
+				break;
+
+			case Link:
+				activeElement.put(actionProperty, node.getProperty(Link._href));
+				break;
+
+		}
+		activeElement.put(stateProperty, state.name());
+		activeElement.put(recursionDepthProperty, depth);
+		activeElement.put(parentIdProperty, parent);
 
 		return activeElement;
 	}
 
-	private boolean isActive(final DOMNode node, final String dataKey) {
+	private ActiveElementState isActive(final DOMNode node, final Set<String> dataKeys) {
 
 		if (node.getProperty(DOMElement.dataKey) != null) {
-			return true;
+			return ActiveElementState.Query;
 		}
 
 		if (node.getProperty(DOMElement.restQuery) != null) {
-			return true;
+			return ActiveElementState.Query;
 		}
 
 		if (node.getProperty(DOMElement.cypherQuery) != null) {
-			return true;
+			return ActiveElementState.Query;
 		}
 
 		if (node.getProperty(DOMElement.xpathQuery) != null) {
-			return true;
+			return ActiveElementState.Query;
 		}
 
 		if (node.getProperty(DOMNode.hideConditions) != null) {
-			return true;
+			return ActiveElementState.Content;
 		}
 
 		if (node.getProperty(DOMNode.showConditions) != null) {
-			return true;
+			return ActiveElementState.Content;
 		}
 
 		if (node.getProperty(DOMNode.hideOnIndex)) {
-			return true;
+			return ActiveElementState.Content;
 		}
 
 		if (node.getProperty(DOMNode.hideOnDetail)) {
-			return true;
+			return ActiveElementState.Content;
 		}
 
 		/*
@@ -169,29 +211,49 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		  - data-structr-action
 		*/
 		if (node.getProperty(DOMElement._action) != null) {
-			return true;
+			return ActiveElementState.Button;
 		}
 
-		if (node.getProperty(Content.content) != null && dataKey != null) {
-			return node.getProperty(Content.content).contains(dataKey);
+		if (node.getProperty(Content.content) != null && !dataKeys.isEmpty()) {
+
+			if (containsDataKeyReference(node.getProperty(Content.content), dataKeys)) {
+				return ActiveElementState.Content;
+			}
 		}
 
-		if (node.getProperty(DOMElement._id) != null && dataKey != null) {
-			return node.getProperty(DOMElement._id).contains(dataKey);
+		if (node.getProperty(DOMElement._id) != null && !dataKeys.isEmpty()) {
+
+			if (containsDataKeyReference(node.getProperty(DOMElement._id), dataKeys)) {
+				return ActiveElementState.Content;
+			}
 		}
 
-		if (node.getProperty(Link._href) != null && dataKey != null) {
-			return node.getProperty(Link._href).contains(dataKey);
+		if (node.getProperty(Link._href) != null && !dataKeys.isEmpty()) {
+
+			if (containsDataKeyReference(node.getProperty(Link._href), dataKeys)) {
+				return ActiveElementState.Link;
+			}
 		}
 
-		if (node.getProperty(Script._src) != null && dataKey != null) {
-			return node.getProperty(Script._src).contains(dataKey);
+		if (node.getProperty(Input._value) != null && !dataKeys.isEmpty()) {
+
+			if (containsDataKeyReference(node.getProperty(Input._value), dataKeys)) {
+				return ActiveElementState.Input;
+			}
 		}
 
-		if (node.getProperty(Input._value) != null && dataKey != null) {
-			return node.getProperty(Input._value).contains(dataKey);
+		return ActiveElementState.None;
+	}
+
+	private boolean containsDataKeyReference(final String value, final Set<String> dataKeys) {
+
+		boolean contains = false;
+
+		for (final String dataKey : dataKeys) {
+
+			contains |= value.contains(dataKey);
 		}
 
-		return false;
+		return contains;
 	}
 }
