@@ -1083,7 +1083,7 @@ var Structr = {
 
         return false;
     },
-    pullDialog: function() {
+    pullDialog: function(type) {
 
         Structr.dialog('Pull data from remote server', function() {
         },
@@ -1118,7 +1118,7 @@ var Structr = {
             syncables.empty();
             syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
 
-            Command.listSyncables(host, port, username, password, key, function(syncable) {
+            Command.listSyncables(host, port, username, password, key, type, function(syncable) {
 
                 syncables.append(
                       '<tr>'

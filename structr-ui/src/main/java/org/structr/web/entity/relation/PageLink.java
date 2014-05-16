@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -70,7 +69,7 @@ public class PageLink extends ManyToOne<DOMNode, Page> implements Syncable {
 	}
 
 	@Override
-	public List<Syncable> getSyncData(SyncState syncState) {
+	public List<Syncable> getSyncData() {
 		return Collections.emptyList();
 	}
 

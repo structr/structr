@@ -35,7 +35,6 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
@@ -559,7 +558,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData(SyncState syncState) {
+	public List<Syncable> getSyncData() {
 		return Collections.emptyList();
 	}
 

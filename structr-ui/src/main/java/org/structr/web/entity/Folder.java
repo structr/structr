@@ -23,7 +23,6 @@ import java.util.List;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.View;
 import org.structr.common.PropertyView;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -76,30 +75,30 @@ public class Folder extends AbstractFile implements Syncable {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData() {
 
 		final List<Syncable> data = new LinkedList<>();
 
 		// add full folder structure when resource sync is requested
-		if (state.hasFlag(SyncState.Flag.Images)) {
+		//if (state.hasFlag(SyncState.Flag.Images)) {
 
 			data.addAll(getProperty(images));
 			data.addAll(Iterables.toList(getOutgoingRelationships(Images.class)));
-		}
+		//}
 
 		// add full folder structure when resource sync is requested
-		if (state.hasFlag(SyncState.Flag.Files)) {
+		//if (state.hasFlag(SyncState.Flag.Files)) {
 
 			data.addAll(getProperty(files));
 			data.addAll(Iterables.toList(getOutgoingRelationships(Files.class)));
-		}
+		//}
 
 		// add full folder structure when resource sync is requested
-		if (state.hasFlag(SyncState.Flag.Folders)) {
+		//if (state.hasFlag(SyncState.Flag.Folders)) {
 
 			data.addAll(getProperty(folders));
 			data.addAll(Iterables.toList(getOutgoingRelationships(Folders.class)));
-		}
+		//}
 
 		// parent only
 		data.add(getProperty(parent));

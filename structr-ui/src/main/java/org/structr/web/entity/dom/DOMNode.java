@@ -33,7 +33,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.jsoup.Jsoup;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -1062,7 +1061,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData() {
 
 		final List<Syncable> data = new LinkedList<>();
 

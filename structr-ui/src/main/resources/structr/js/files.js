@@ -113,7 +113,7 @@ var _Files = {
 
         $('.pull_file_icon', main).on('click', function(e) {
             e.stopPropagation();
-            Structr.pullDialog();
+            Structr.pullDialog('File,Folder');
         });
 
         if (window.File && window.FileReader && window.FileList && window.Blob) {

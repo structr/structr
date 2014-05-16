@@ -30,7 +30,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
@@ -289,7 +288,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData(SyncState syncState) {
+	public List<Syncable> getSyncData() {
 		return Collections.emptyList();
 	}
 

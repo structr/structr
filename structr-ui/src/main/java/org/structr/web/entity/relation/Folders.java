@@ -20,7 +20,6 @@ package org.structr.web.entity.relation;
 
 import java.util.Collections;
 import java.util.List;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.AbstractChildren;
@@ -47,7 +46,7 @@ public class Folders extends AbstractChildren<Folder, Folder> implements Syncabl
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData() {
 		return Collections.emptyList();
 	}
 

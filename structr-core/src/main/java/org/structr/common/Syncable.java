@@ -20,6 +20,7 @@ package org.structr.common;
 
 import java.util.List;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
@@ -30,9 +31,9 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-public interface Syncable {
+public interface Syncable extends GraphObject {
 
-	public List<Syncable> getSyncData(final SyncState syncState);
+	public List<Syncable> getSyncData();
 
 	public boolean isNode();
 	public boolean isRelationship();

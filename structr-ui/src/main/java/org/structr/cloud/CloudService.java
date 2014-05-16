@@ -18,9 +18,6 @@
  */
 package org.structr.cloud;
 
-import org.structr.cloud.message.Begin;
-import org.structr.cloud.message.End;
-import org.structr.cloud.message.AuthenticationRequest;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -29,6 +26,9 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.Cipher;
+import org.structr.cloud.message.AuthenticationRequest;
+import org.structr.cloud.message.Begin;
+import org.structr.cloud.message.End;
 import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -187,9 +187,7 @@ public class CloudService extends Thread implements RunnableService {
 			client.close();
 
 			// notify listener
-			if (context != null) {
-				context.transmissionFinished();
-			}
+			context.transmissionFinished();
 
 		} catch (IOException  ioex) {
 

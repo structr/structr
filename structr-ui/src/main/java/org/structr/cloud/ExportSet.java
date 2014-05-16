@@ -2,7 +2,6 @@ package org.structr.cloud;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -65,27 +64,27 @@ public class ExportSet {
 	}
 
 	// ----- public static methods -----
-	public static ExportSet getInstance(final Syncable start, final SyncState state, final boolean recursive) {
+	public static ExportSet getInstance(final Syncable start, final boolean recursive) {
 
 		final ExportSet exportSet = new ExportSet();
 
-		exportSet.collectSyncables(start, state, recursive);
+		exportSet.collectSyncables(start, recursive);
 
 		return exportSet;
 	}
 
-	private void collectSyncables(final Syncable start, final SyncState state, boolean recursive) {
+	private void collectSyncables(final Syncable start, boolean recursive) {
 
 		add(start);
 
 		if (recursive) {
 
 			// collect children
-			for (final Syncable child : start.getSyncData(state)) {
+			for (final Syncable child : start.getSyncData()) {
 
 				if (child != null && add(child)) {
 
-					collectSyncables(child, state, recursive);
+					collectSyncables(child, recursive);
 				}
 			}
 		}

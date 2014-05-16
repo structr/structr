@@ -1046,8 +1046,8 @@ var _Entities = {
             if (!activeElements.hasOwnProperty(idString)) {
 
                 activeElements[idString] = entity;
-
                 var activeElementsTab = $('#activeElements div.inner');
+                console.log(entity);
 
                 if (entity.dataKey) {
 
@@ -1089,7 +1089,6 @@ var _Entities = {
                     if (displayName.length > 50) {
                         displayName = displayName.substring(0, 49) + '…';
                     }
-
 
                     if (bold) {
                         displayName = '<b>' + displayName + '</b>';

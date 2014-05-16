@@ -24,7 +24,6 @@ import java.util.UUID;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.cloud.ExportSet;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -83,7 +82,7 @@ public class PullNodeRequestContainer extends Message {
 
 			if (syncable != null) {
 
-				final ExportSet exportSet = ExportSet.getInstance(syncable, SyncState.all(), recursive);
+				final ExportSet exportSet = ExportSet.getInstance(syncable, recursive);
 
 				// collect export set
 				numNodes  = exportSet.getNodes().size();

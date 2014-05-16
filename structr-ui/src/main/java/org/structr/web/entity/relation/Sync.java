@@ -20,7 +20,6 @@ package org.structr.web.entity.relation;
 
 import java.util.Collections;
 import java.util.List;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.OneToMany;
@@ -51,7 +50,7 @@ public class Sync extends OneToMany<DOMElement, DOMElement> implements Syncable 
 	}
 
 	@Override
-	public List<Syncable> getSyncData(SyncState syncState) {
+	public List<Syncable> getSyncData() {
 		return Collections.emptyList();
 	}
 

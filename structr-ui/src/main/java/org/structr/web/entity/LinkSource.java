@@ -19,7 +19,6 @@
 package org.structr.web.entity;
 
 import java.util.List;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
@@ -43,9 +42,9 @@ public class LinkSource extends DOMElement {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData() {
 
-		final List<Syncable> data = super.getSyncData(state);
+		final List<Syncable> data = super.getSyncData();
 
 		data.add(getProperty(linkable));
 
