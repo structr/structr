@@ -11,7 +11,6 @@ import org.structr.cloud.message.FileNodeEndChunk;
 import org.structr.cloud.message.NodeDataContainer;
 import org.structr.cloud.message.PushNodeRequestContainer;
 import org.structr.cloud.message.RelationshipDataContainer;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
@@ -33,7 +32,7 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 
 		// create export set before first progress callback is called
 		// so the client gets the correct total from the beginning
-		exportSet = ExportSet.getInstance(sourceNode, SyncState.all(), recursive);
+		exportSet = ExportSet.getInstance(sourceNode, recursive);
 	}
 
 	@Override

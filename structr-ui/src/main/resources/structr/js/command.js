@@ -843,7 +843,7 @@ var Command = {
      *
      * The server gives no feedback on a LINK command.
      */
-    listSyncables: function(host, port, username, password, key, callback) {
+    listSyncables: function(host, port, username, password, key, type, callback) {
         var obj = {};
         obj.command = 'LIST_SYNCABLES';
         var data = {};
@@ -852,6 +852,7 @@ var Command = {
         data.username = username;
         data.password = password;
         data.key = key;
+        data.type = type;
         obj.data = data;
         log('list_syncables()', obj);
         return sendObj(obj, callback);

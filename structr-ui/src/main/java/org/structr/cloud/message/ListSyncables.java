@@ -1,11 +1,15 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
-import org.structr.common.SyncState;
+import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
+import org.structr.schema.SchemaHelper;
 
 /**
  *
@@ -14,13 +18,35 @@ import org.structr.common.error.FrameworkException;
 public class ListSyncables extends Message<List<SyncableInfo>> {
 
 	private List<SyncableInfo> syncables = null;
+	private String type = null;
 
-	public ListSyncables() {}
+	public ListSyncables(final String type) {
+		this.type = type;
+	}
 
 	@Override
 	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		this.syncables = serverConnection.listSyncables(SyncState.all());
+		final String[] rawTypes = StringUtils.split(type, ",");
+
+		final Set<Class<Syncable>> types = new HashSet();
+
+		if (type != null) {
+
+			for (final String rawType : rawTypes) {
+
+				Class entityClass = SchemaHelper.getEntityClassForRawType(rawType);
+
+				if (entityClass != null && Syncable.class.isAssignableFrom(entityClass)) {
+
+					types.add(entityClass);
+
+				}
+
+			}
+		}
+
+		this.syncables = serverConnection.listSyncables(types);
 		serverConnection.send(this);
 	}
 

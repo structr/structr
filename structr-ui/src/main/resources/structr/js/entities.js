@@ -1044,22 +1044,25 @@ var _Entities = {
             if (!activeElements.hasOwnProperty(idString)) {
 
                 activeElements[idString] = entity;
-
                 var activeElementsTab = $('#activeElements div.inner');
+                console.log(entity);
 
                 if (entity.dataKey) {
 
                     activeElementsTab.append(
                         '<h3>' + entity.dataKey + '</h3>'
-                        + '<p><textarea>' + (entity.restQuery !== "" ? entity.restQuery : entity.cypherQuery ? entity.cypherQuery : entity.xpathQuery ? entity.xpathQuery : "") + '</textarea></p>'
+                        + '<p><textarea>' + (entity.restQuery || entity.cypherQuery || entity.xpathQuery || '') + '</textarea></p>'
                     );
 
                 } else {
 
-                    activeElementsTab.append('<p id="' + idString + '"><input type="text" value="' + entity.content + '"></p>');
-
+                    if (entity.type === 'Content') {
+                        activeElementsTab.append('<p id="' + idString + '">Content: <input type="text" value="' + entity.content + '"></p>');
+                    } else if (entity.type === 'Button') {
+                        activeElementsTab.append('<p id="' + idString + '">Button: <input type="text" value="' + entity['data-structr-action'] + '"></p>');
+                    }
+                        
                     var paragraph = $('#' + idString);
-
                     _Entities.setMouseOver(paragraph, undefined, undefined);
 
                 }

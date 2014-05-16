@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -1068,9 +1067,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData() {
 
-		final List<Syncable> data = super.getSyncData(state);
+		final List<Syncable> data = super.getSyncData();
 
 		data.addAll(getProperty(Linkable.linkingElements));
 

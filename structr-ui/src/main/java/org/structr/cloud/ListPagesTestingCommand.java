@@ -18,10 +18,10 @@
  */
 package org.structr.cloud;
 
-import org.structr.cloud.message.ListSyncables;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.cloud.message.ListSyncables;
 import org.structr.cloud.transmission.SingleTransmission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.MaintenanceCommand;
@@ -44,7 +44,7 @@ public class ListPagesTestingCommand extends CloudServiceCommand implements Main
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
 		try {
-			System.out.println(CloudService.doRemote(new SingleTransmission(new ListSyncables(), "admin", "admin", "localhost", 54555), new LoggingListener()));
+			System.out.println(CloudService.doRemote(new SingleTransmission(new ListSyncables(null), "admin", "admin", "localhost", 54555), new LoggingListener()));
 
 		} catch (Throwable t) {
 			t.printStackTrace();

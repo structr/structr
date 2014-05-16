@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -83,7 +82,7 @@ public class ResourceLink extends ManyToOne<LinkSource, Linkable> implements Syn
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData() {
 		return Collections.emptyList();
 	}
 

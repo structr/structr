@@ -63,6 +63,7 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 		final String password                = (String)properties.get("password");
 		final String host                    = (String)properties.get("host");
 		final String key                     = (String)properties.get("key");
+		final String type                    = (String)properties.get("type");
 		final Long port                      = (Long)properties.get("port");
 
 		if (host != null && port != null && username != null && password != null && key != null) {
@@ -70,7 +71,7 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 			final App app    = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				final List<SyncableInfo> syncables = CloudService.doRemote(new SingleTransmission<>(new ListSyncables(), username, password, host, port.intValue()), new WebsocketProgressListener(getWebSocket(), key));
+				final List<SyncableInfo> syncables = CloudService.doRemote(new SingleTransmission<>(new ListSyncables(type), username, password, host, port.intValue()), new WebsocketProgressListener(getWebSocket(), key));
 				final StructrWebSocket webSocket   = getWebSocket();
 				if (syncables != null) {
 

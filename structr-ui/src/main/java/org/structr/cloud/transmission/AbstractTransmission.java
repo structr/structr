@@ -41,4 +41,5 @@ public abstract class AbstractTransmission<T> implements CloudTransmission<T> {
 	public int getRemotePort() {
 		return tcpPort;
 	}
+
 }
