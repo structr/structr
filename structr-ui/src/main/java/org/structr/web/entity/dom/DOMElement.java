@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
@@ -93,7 +94,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	private static final Logger logger = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();
-	private final static String STRUCTR_ACTION_PROPERTY = "data-structr-action";
+
+	private static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
 	public static final Property<DOMElement> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
@@ -402,7 +405,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * @throws FrameworkException
 	 */
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		if (renderContext.hasTimeout(RENDER_TIMEOUT)) {
+
+			logger.log(Level.WARNING, "Render timeout reached, aborting.");
+
+			return;
+		}
 
 		Result localResult = renderContext.getResult();
 
