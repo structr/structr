@@ -857,7 +857,11 @@ var _Entities = {
         var nodeId = getId(el), isComponent;
         if (nodeId === undefined) {
             nodeId = getComponentId(el);
-            isComponent = true;
+            if (nodeId) {
+                isComponent = true;
+            } else {
+                nodeId = getActiveElementId(el);
+            }
         }
 
         node.on({
@@ -865,8 +869,9 @@ var _Entities = {
                 e.stopPropagation();
                 var self = $(this);
                 $('#componentId_' + nodeId).addClass('nodeHover');
-                if (isComponent)
+                if (isComponent) {
                     $('#id_' + nodeId).addClass('nodeHover');
+                }
 
                 if (syncedNodes && syncedNodes.length) {
                     syncedNodes.forEach(function(s) {
@@ -907,7 +912,8 @@ var _Entities = {
         }
         var page = node.closest('.page');
         if (page.length) {
-            $('#preview_' + getId(page)).contents().find('[data-structr-id=' + getId(node) + ']').removeClass('nodeHover');
+            //$('#preview_' + getId(page)).contents().find('[data-structr-id=' + getId(node) + ']').removeClass('nodeHover');
+            $('#preview_' + getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
         }
     },
     ensureExpanded: function(element, callback) {
@@ -1039,19 +1045,15 @@ var _Entities = {
 
         if (entity) {
 
-            console.log(entity);
-
-            var idString = "id_" + entity.id;
+            var idString = 'id_' + entity.id;
 
             if (!activeElements.hasOwnProperty(idString)) {
 
                 activeElements[idString] = entity;
-                var activeElementsTab = $('#activeElements div.inner');
-                console.log(entity);
 
                 if (entity.dataKey) {
 
-                    var parent = activeElementsTab;
+                    var parent = $('#activeElements div.inner');
                     var id     = entity.id;
 
                     if (entity.parentId) {
@@ -1062,43 +1064,40 @@ var _Entities = {
 
                     var div         = $('#active_' + id);
                     var query       = (entity.dataKey.split(',')[entity.recursionDepth] || '');
-                    var expand      = entity.state === "Query";
-                    var bold        = expand;
+                    var expand      = entity.state === 'Query';
                     var icon        = _Elements.icon;
-                    var displayName = '';
+                    var name = '', content = '';
 
                     switch (entity.state) {
-                        case "Query":
+                        case 'Query':
                             icon = _Elements.icon_repeater;
-                            displayName = query;
+                            name = query;
                             break;
-                        case "Content":
+                        case 'Content':
                             icon = _Contents.icon;
-                            displayName = entity.content;
+                            content = entity.content;
                             break;
-                        case "Button":
-                            displayName = '<b>Button</b>: ' + entity.action;
+                        case 'Button':
+                            icon = 'icon/button.png';
+                            name = entity.action;
                             break;
-                        case "Link":
-                            displayName = '<b>Link</b>: ' + entity.action;
+                        case 'Link':
+                            icon = 'icon/link.png';
+                            content = entity.action;
                             break;
                         default:
-                            displayName = entity.state;
-                    }
-
-                    if (displayName.length > 50) {
-                        displayName = displayName.substring(0, 49) + '…';
-                    }
-
-                    if (bold) {
-                        displayName = '<b>' + displayName + '</b>';
+                            content = entity.state;
                     }
 
                     div.append('<img class="typeIcon" src="' + icon + '">'
-                            + '<span title="' + displayName + '" class="tag_ name_">' + displayName + '</span><span class="id">' + entity.id + '</span>'
+                            + '<b title="' + name + '" class="tag_ name_">' + fitStringToWidth(name, 200, 'slideOut') + '</b>'
+                            + '<span>' + content + '</span>'
+                            + '<span class="id">' + entity.id + '</span>'
                             + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
                             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
                     );
+            
+                    _Entities.setMouseOver(div);
 
                     var typeIcon = $(div.children('.typeIcon').first());
                     var padding  = 0;

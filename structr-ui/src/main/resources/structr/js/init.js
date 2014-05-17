@@ -769,8 +769,9 @@ var Structr = {
     parent: function(id) {
         return Structr.node(id) && Structr.node(id).parent().closest('.node');
     },
-    node: function(id) {
-        var node = $($('#id_' + id)[0]);
+    node: function(id, prefix) {
+        var p = prefix || '#id_';
+        var node = $($(p + id)[0]);
         //console.log('Structr.node', node);
         return node.length ? node : undefined;
     },
@@ -1320,14 +1321,18 @@ function getId(element) {
     return getIdFromIdString($(element).prop('id')) || undefined;
 }
 
-function getComponentIdFromIdString(idString) {
-    if (!idString || !idString.startsWith('componentId_'))
+function getIdFromPrefixIdString(idString, prefix) {
+    if (!idString || !idString.startsWith(prefix))
         return false;
-    return idString.substring(12);
+    return idString.substring(prefix.length);
 }
 
 function getComponentId(element) {
-    return getComponentIdFromIdString($(element).prop('id')) || undefined;
+    return getIdFromPrefixIdString($(element).prop('id'), 'componentId_') || undefined;
+}
+
+function getActiveElementId(element) {
+    return getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 }
 
 $(window).unload(function() {

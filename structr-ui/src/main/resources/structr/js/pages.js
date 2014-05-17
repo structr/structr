@@ -119,7 +119,7 @@ var _Pages = {
 
         main.prepend(
                 '<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
-                + '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="inner"></div></div>'
+                + '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
                 + '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
                 + '<div id="previews"></div>'
                 + '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
@@ -447,8 +447,7 @@ var _Pages = {
         log('store active tab', activeTab);
         localStorage.setItem(activeTabKey, activeTab);
 
-        var activeElementsTab = $('#activeElements div.inner');
-        activeElementsTab.empty();
+        $('#activeElements div.inner').empty().attr('id', 'id_' + id);
         activeElements = {};
 
         Command.listActiveElements(id, function(activeElement) {
@@ -674,13 +673,7 @@ var _Pages = {
                             e.stopPropagation();
                             var self = $(this);
                             self.addClass('structr-element-container-active');
-
-                            var node = Structr.node(structrId);
-                            if (node) {
-                                node.parent().removeClass('nodeHover');
-                                node.addClass('nodeHover');
-                            }
-
+                            _Pages.highlight(structrId);
                             var pos = self.position();
                             var header = self.children('.structr-element-container-header');
                             header.css({
@@ -697,10 +690,7 @@ var _Pages = {
                             self.removeClass('.structr-element-container');
                             var header = self.children('.structr-element-container-header');
                             header.remove();
-                            var node = Structr.node(structrId);
-                            if (node) {
-                                node.removeClass('nodeHover');
-                            }
+                            _Pages.unhighlight(structrId);
                         }
                     });
 
@@ -728,11 +718,7 @@ var _Pages = {
                             self.addClass('structr-editable-area');
                             //$('#hoverStatus').text('Editable content element: ' + self.attr('data-structr_content_id'));
                             var contentSourceId = self.attr('data-structr-id');
-                            var node = Structr.node(contentSourceId);
-                            if (node) {
-                                node.parent().removeClass('nodeHover');
-                                node.addClass('nodeHover');
-                            }
+                            _Pages.highlight(contentSourceId);
                         },
                         mouseout: function(e) {
                             e.stopPropagation();
@@ -742,10 +728,7 @@ var _Pages = {
                             //self.prop('contenteditable', false);
                             //$('#hoverStatus').text('-- non-editable --');
                             var contentSourceId = self.attr('data-structr-id');
-                            var node = Structr.node(contentSourceId);
-                            if (node) {
-                                node.removeClass('nodeHover');
-                            }
+                            _Pages.unhighlight(contentSourceId);
                         },
                         click: function(e) {
                             e.stopPropagation();
@@ -1100,5 +1083,27 @@ var _Pages = {
                 _Entities.expandAll(stack.reverse());
             }
         });
+    },
+    highlight: function(id) {
+        var node = Structr.node(id);
+        if (node) {
+            node.parent().removeClass('nodeHover');
+            node.addClass('nodeHover');
+        }
+        var activeNode = Structr.node(id, '#active_');
+        if (activeNode) {
+            activeNode.parent().removeClass('nodeHover');
+            activeNode.addClass('nodeHover');
+        }
+    },
+    unhighlight: function(id) {
+        var node = Structr.node(id);
+        if (node) {
+            node.removeClass('nodeHover');
+        }
+        var activeNode = Structr.node(id, '#active_');
+        if (activeNode) {
+            activeNode.removeClass('nodeHover');
+        }
     }
 };
