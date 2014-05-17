@@ -133,7 +133,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 			resultList.add(extractActiveElement(root, dataKeys, parentId, state, depth));
 			if (state.equals(ActiveElementState.Query)) {
-				
+
 				parentId = root.getUuid();
 			}
 		}
@@ -196,22 +196,6 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			return ActiveElementState.Query;
 		}
 
-		if (!StringUtils.isEmpty(node.getProperty(DOMNode.hideConditions))) {
-			return ActiveElementState.Content;
-		}
-
-		if (!StringUtils.isEmpty(node.getProperty(DOMNode.showConditions))) {
-			return ActiveElementState.Content;
-		}
-
-		if (node.getProperty(DOMNode.hideOnIndex)) {
-			return ActiveElementState.Content;
-		}
-
-		if (node.getProperty(DOMNode.hideOnDetail)) {
-			return ActiveElementState.Content;
-		}
-
 		/*
 		 attributes to check for !isEmpty:
 		  - data-structr-action
@@ -249,6 +233,23 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 				return ActiveElementState.Input;
 			}
+		}
+
+		// last option: just some hidden element..
+		if (!StringUtils.isEmpty(node.getProperty(DOMNode.hideConditions))) {
+			return ActiveElementState.Content;
+		}
+
+		if (!StringUtils.isEmpty(node.getProperty(DOMNode.showConditions))) {
+			return ActiveElementState.Content;
+		}
+
+		if (node.getProperty(DOMNode.hideOnIndex)) {
+			return ActiveElementState.Content;
+		}
+
+		if (node.getProperty(DOMNode.hideOnDetail)) {
+			return ActiveElementState.Content;
 		}
 
 		return ActiveElementState.None;
