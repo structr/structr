@@ -1062,7 +1062,7 @@ var _Entities = {
 
                 var div         = $('#active_' + id);
                 var query       = entity.query;
-                var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
+                // var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
                 var expand      = entity.state === 'Query';
                 var icon        = _Elements.icon;
                 var name = '', content = '';
@@ -1074,7 +1074,7 @@ var _Entities = {
                         break;
                     case 'Content':
                         icon = _Contents.icon;
-                        content = entity.content;
+                        content = entity.content ? entity.content : entity.type;
                         break;
                     case 'Button':
                         icon = 'icon/button.png';
