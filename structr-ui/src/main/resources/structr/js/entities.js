@@ -1063,7 +1063,8 @@ var _Entities = {
                     parent.append('<div id="active_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
 
                     var div         = $('#active_' + id);
-                    var query       = (entity.dataKey.split(',')[entity.recursionDepth] || '');
+                    var query       = entity.query;
+                    var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
                     var expand      = entity.state === 'Query';
                     var icon        = _Elements.icon;
                     var name = '', content = '';
@@ -1096,7 +1097,7 @@ var _Entities = {
                             + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
                             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
                     );
-            
+
                     _Entities.setMouseOver(div);
 
                     var typeIcon = $(div.children('.typeIcon').first());

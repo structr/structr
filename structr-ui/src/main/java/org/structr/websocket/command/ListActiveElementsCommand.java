@@ -60,6 +60,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	private static final Property<String>  parentIdProperty       = new StringProperty("parentId");
 	private static final Property<String>  stateProperty          = new StringProperty("state");
 	private static final Property<String>  actionProperty         = new StringProperty("action");
+	private static final Property<String>  queryProperty          = new StringProperty("query");
 
 	static {
 
@@ -121,7 +122,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		String parentId            = parent;
 		int dataCentricDepth       = depth;
 
-		if (childDataKey != null) {
+		if (!StringUtils.isEmpty(childDataKey)) {
 
 			dataKeys.add(childDataKey);
 			dataCentricDepth++;
@@ -164,6 +165,10 @@ public class ListActiveElementsCommand extends AbstractCommand {
 				activeElement.put(actionProperty, node.getProperty(Link._href));
 				break;
 
+			case Query:
+				extractQueries(activeElement, node);
+				break;
+
 		}
 		activeElement.put(stateProperty, state.name());
 		activeElement.put(recursionDepthProperty, depth);
@@ -174,27 +179,27 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 	private ActiveElementState isActive(final DOMNode node, final Set<String> dataKeys) {
 
-		if (node.getProperty(DOMElement.dataKey) != null) {
+		if (!StringUtils.isEmpty(node.getProperty(DOMElement.dataKey))) {
 			return ActiveElementState.Query;
 		}
 
-		if (node.getProperty(DOMElement.restQuery) != null) {
+		if (!StringUtils.isEmpty(node.getProperty(DOMElement.restQuery))) {
 			return ActiveElementState.Query;
 		}
 
-		if (node.getProperty(DOMElement.cypherQuery) != null) {
+		if (!StringUtils.isEmpty(node.getProperty(DOMElement.cypherQuery))) {
 			return ActiveElementState.Query;
 		}
 
-		if (node.getProperty(DOMElement.xpathQuery) != null) {
+		if (!StringUtils.isEmpty(node.getProperty(DOMElement.xpathQuery))) {
 			return ActiveElementState.Query;
 		}
 
-		if (node.getProperty(DOMNode.hideConditions) != null) {
+		if (!StringUtils.isEmpty(node.getProperty(DOMNode.hideConditions))) {
 			return ActiveElementState.Content;
 		}
 
-		if (node.getProperty(DOMNode.showConditions) != null) {
+		if (!StringUtils.isEmpty(node.getProperty(DOMNode.showConditions))) {
 			return ActiveElementState.Content;
 		}
 
@@ -209,8 +214,10 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		/*
 		 attributes to check for !isEmpty:
 		  - data-structr-action
+		  - data-structr-attributes
+		  - data-structr-raw-value
 		*/
-		if (node.getProperty(DOMElement._action) != null) {
+		if (node.getProperty(DOMElement._action) != null || node.getProperty(DOMElement._attributes) != null || node.getProperty(DOMElement._rawValue) != null) {
 			return ActiveElementState.Button;
 		}
 
@@ -238,6 +245,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		if (node.getProperty(Input._value) != null && !dataKeys.isEmpty()) {
 
 			if (containsDataKeyReference(node.getProperty(Input._value), dataKeys)) {
+
 				return ActiveElementState.Input;
 			}
 		}
@@ -255,5 +263,31 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		}
 
 		return contains;
+	}
+
+	private void extractQueries(final GraphObjectMap activeElement, final DOMNode node) {
+
+		if (extractQuery(activeElement, node, DOMElement.restQuery)) {
+			return;
+		}
+
+		if (extractQuery(activeElement, node, DOMElement.cypherQuery)) {
+			return;
+		}
+
+		if (extractQuery(activeElement, node, DOMElement.xpathQuery)) {
+			return;
+		}
+	}
+
+	private boolean extractQuery(final GraphObjectMap activeElement, final DOMNode node, final Property<String> queryKey) {
+
+		if (!StringUtils.isEmpty(node.getProperty(queryKey))) {
+
+			activeElement.put(queryProperty, node.getProperty(queryKey));
+			return true;
+		}
+
+		return false;
 	}
 }
