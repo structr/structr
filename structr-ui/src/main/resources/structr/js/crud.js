@@ -246,7 +246,8 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                if (!data) return;
+                if (!data)
+                    return;
 
                 //console.log(data);
                 var types = [];
@@ -508,7 +509,9 @@ var _Crud = {
                 th.append('<img src="icon/application_view_detail.png" alt="Configure columns" title="Configure columns" />');
                 $('img', th).on('click', function(event) {
 
-                    _Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {}, function() {});
+                    _Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {
+                    }, function() {
+                    });
 
                     $('div.dialogText').append('<table class="props" id="configure-' + type + '-columns"></table>');
 
@@ -526,14 +529,14 @@ var _Crud = {
                     $.each(_Crud.keys[type], function(k, key) {
 
                         var checkboxKey = 'column-' + type + '-' + key + '-visible';
-                        var hidden      = filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
+                        var hidden = filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
 
                         table.append(
-                              '<tr>'
-                            + '<td><b>' + key + '</b></td>'
-                            + '<td><input type="checkbox" id="' + checkboxKey + '" ' + (hidden ? '' : 'checked="checked"') + '/></td>'
-                            + '</tr>'
-                        );
+                                '<tr>'
+                                + '<td><b>' + key + '</b></td>'
+                                + '<td><input type="checkbox" id="' + checkboxKey + '" ' + (hidden ? '' : 'checked="checked"') + '/></td>'
+                                + '</tr>'
+                                );
 
                         $('#' + checkboxKey).on('click', function() {
                             _Crud.toggleColumn(type, key);
@@ -614,7 +617,8 @@ var _Crud = {
             //async: false,
             success: function(data) {
                 //console.log(data);
-                if (!data) return;
+                if (!data)
+                    return;
                 $.each(data.result, function(i, item) {
                     //console.log('calling appendRow', type, item);
                     _Crud.appendRow(type, item);
@@ -659,7 +663,8 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                if (!data) return;
+                if (!data)
+                    return;
                 $.each(data.result, function(i, item) {
                     _Crud.appendRowAsCSV(type, item, exportArea);
                 });
@@ -753,7 +758,8 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                if (!data) return;
+                if (!data)
+                    return;
                 if (callback) {
                     callback(data.result);
                 } else {
@@ -769,7 +775,8 @@ var _Crud = {
         return table;
     },
     crudEdit: function(id, type) {
-        var t = type || _Crud.type; console.log(t);
+        var t = type || _Crud.type;
+        console.log(t);
         $.ajax({
             url: rootUrl + id + (_Crud.view[t] ? '/' + _Crud.view[t] : ''),
             type: 'GET',
@@ -777,7 +784,8 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                if (!data) return;
+                if (!data)
+                    return;
                 //console.log('type', type);
                 _Crud.dialog('Edit ' + t + ' ' + id, function() {
                     //console.log('ok')
@@ -812,7 +820,9 @@ var _Crud = {
                         _Crud.activateList(type);
                         //document.location.reload();
                     }
-                    dialogCloseButton.remove();
+                    if (dialogCloseButton) {
+                        dialogCloseButton.remove();
+                    }
                 },
                 400: function(data, status, xhr) {
                     _Crud.error('Bad request: ' + data.responseText, true);
@@ -858,26 +868,25 @@ var _Crud = {
             //console.log(resp);
 
             $('.props input', dialogBox).css({
-               backgroundColor: '#fff',
-               borderColor: '#a5a5a5'
+                backgroundColor: '#fff',
+                borderColor: '#a5a5a5'
             });
 
             $('.props textarea', dialogBox).css({
-               backgroundColor: '#fff',
-               borderColor: '#a5a5a5'
+                backgroundColor: '#fff',
+                borderColor: '#a5a5a5'
             });
 
             $('.props td.value', dialogBox).css({
-               backgroundColor: '#fff',
-               borderColor: '#b5b5b5',
-
+                backgroundColor: '#fff',
+                borderColor: '#b5b5b5',
             });
 
             $.each(Object.keys(resp.errors[type]), function(i, key) {
                 var errorMsg = resp.errors[type][key][0];
                 //console.log(key, errorMsg);
                 var input = $('td [name="' + key + '"]', dialogText);
-                if (input.length)  {
+                if (input.length) {
                     input.prop('placeholder', errorMsg.splitAndTitleize('_')).css({
                         backgroundColor: '#fee',
                         borderColor: '#933'
@@ -905,7 +914,8 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                if (!data) return;
+                if (!data)
+                    return;
                 //console.log('refresh', id, key, data.result[key], data.result.type);
                 if (key) {
                     _Crud.refreshCell(id, key, data.result[key], data.result.type);
@@ -923,7 +933,8 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                if (!data) return;
+                if (!data)
+                    return;
                 //console.log('reset', id, key, data.result[key]);
                 _Crud.resetCell(id, key, data.result[key]);
             }
@@ -1226,7 +1237,7 @@ var _Crud = {
             blinkRed(cell);
         });
     },
-    refreshCell : function(id, key, newValue, type) {
+    refreshCell: function(id, key, newValue, type) {
         //    console.log('refreshCell', id, key, newValue, type);
         var cells = _Crud.cells(id, key);
         $.each(cells, function(i, cell) {
@@ -1235,7 +1246,7 @@ var _Crud = {
             blinkGreen(cell);
         });
     },
-    refreshRow : function(id, item, type) {
+    refreshRow: function(id, item, type) {
         //    console.log('refreshCell', id, key, newValue);
         var row = _Crud.row(id);
         row.empty();
@@ -1424,7 +1435,8 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                if (!data) return;
+                if (!data)
+                    return;
                 var node = data.result;
                 //console.log('node', node);
 
@@ -1547,7 +1559,8 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 statusCode: {
                     200: function(data) {
-                        if (!data) return;
+                        if (!data)
+                            return;
 
                         $('#placeholderFor' + type + '').remove();
                         if (data.result.length) {
@@ -1680,7 +1693,8 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 //async: false,
                 success: function(data) {
-                    if (!data) return;
+                    if (!data)
+                        return;
                     //console.log(key, data.result, data.result[key]);
                     $.each(data.result[key], function(i, obj) {
                         //console.log(obj, ' equals ', relatedObj);
@@ -1820,7 +1834,9 @@ var _Crud = {
                     $.unblockUI({
                         fadeOut: 25
                     });
-                    dialogCloseButton.remove();
+                    if (dialogCloseButton) {
+                        dialogCloseButton.remove();
+                    }
                     $('#saveProperties').remove();
                     searchField.focus();
                 });
@@ -2048,7 +2064,7 @@ var _Crud = {
             return filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
         }, true);
     },
-    toggleColumn : function(type, key) {
+    toggleColumn: function(type, key) {
 
         var table = _Crud.getTable(type);
         var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);

@@ -20,13 +20,11 @@
 var contents, editor, contentType;
 
 var _Contents = {
-
-    icon : 'icon/page_white.png',
-    comment_icon : 'icon/comment.png',
-    add_icon : 'icon/page_white_add.png',
-    delete_icon : 'icon/page_white_delete.png',
-
-    appendContentElement : function(content, refNode) {
+    icon: 'icon/page_white.png',
+    comment_icon: 'icon/comment.png',
+    add_icon: 'icon/page_white_add.png',
+    delete_icon: 'icon/page_white_delete.png',
+    appendContentElement: function(content, refNode) {
         log('Contents.appendContentElement', content, refNode);
 
         var parent;
@@ -38,14 +36,15 @@ var _Contents = {
             parent = elements;
         }
 
-        if (!parent) return false;
+        if (!parent)
+            return false;
 
         var isActiveNode = content.hideOnIndex || content.hideOnDetail || content.hideConditions || content.showConditions || content.dataKey;
 
         var html = '<div id="id_' + content.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
-        + '<img class="typeIcon" src="'+ (content.type === 'Comment' ? _Contents.comment_icon : _Contents.icon) + '">'
-        + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
-        + '</div>';
+                + '<img class="typeIcon" src="' + (content.type === 'Comment' ? _Contents.comment_icon : _Contents.icon) + '">'
+                + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
+                + '</div>';
 
         if (refNode) {
             refNode.before(html);
@@ -69,35 +68,33 @@ var _Contents = {
         div.append('<img title="Edit Content" alt="Edit Content of ' + content.id + '" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function(e) {
             e.stopPropagation();
-            var self = $(this);
-            var text = self.parent().find('.content_').text();
-            Structr.dialog('Edit content of ' + content.id, function() {
-                log('content saved')
-            }, function() {
-                log('cancelled')
-            });
-            _Contents.editContent(this, content, text, dialogText);
+            _Contents.openEditContentDialog(this, content);
+            return false;
         });
 
         $('.content_', div).on('click', function(e) {
             e.stopPropagation();
-            var self = $(this);
-            var text = self.parent().find('.content_').text();
-            Structr.dialog('Edit content of ' + content.id, function() {
-                log('content saved')
-            }, function() {
-                log('cancelled')
-            });
-            _Contents.editContent(this, content, text, dialogText);
+            _Contents.openEditContentDialog(this, content);
+            return false;
         });
 
         _Entities.appendEditPropertiesIcon(div, content);
 
         return div;
     },
-
-    editContent : function (button, entity, text, element) {
-        if (isDisabled(button)) return;
+    openEditContentDialog: function(btn, entity) {
+        var self = $(btn);
+        var text = self.parent().find('.content_').text();
+        Structr.dialog('Edit content of ' + entity.id, function() {
+            log('content saved')
+        }, function() {
+            log('cancelled')
+        });
+        _Contents.editContent(this, entity, text, dialogText);
+    },
+    editContent: function(button, entity, text, element) {
+        if (isDisabled(button))
+            return;
         var div = element.append('<div class="editor"></div>');
         log(div);
         var contentBox = $('.editor', element);
@@ -106,7 +103,7 @@ var _Contents = {
         var text1, text2, timer;
         editor = CodeMirror(contentBox.get(0), {
             value: text,
-            mode:  contentType,
+            mode: contentType,
             lineNumbers: true
         });
         editor.focus();
@@ -152,8 +149,10 @@ var _Contents = {
             text1 = $(contentNode).children('.content_').text();
             text2 = editor.getValue();
 
-            if (!text1) text1 = '';
-            if (!text2) text2 = '';
+            if (!text1)
+                text1 = '';
+            if (!text2)
+                text2 = '';
 
             if (debug) {
                 console.log('Element', contentNode);
@@ -161,7 +160,8 @@ var _Contents = {
                 console.log('text2', text2);
             }
 
-            if (text1 === text2) return;
+            if (text1 === text2)
+                return;
             Command.patch(entity.id, text1, text2, function() {
                 dialogMsg.html('<div class="infoBox success">Content saved.</div>');
                 $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
@@ -174,7 +174,7 @@ var _Contents = {
 
         //_Entities.appendBooleanSwitch(dialogMeta, entity, 'editable', 'Editable', 'If enabled, data fields in this content element are editable in edit mode.');
 
-        var values = [ 'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'];
+        var values = ['text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'];
 
         dialogMeta.append('<label for="contentTypeSelect">Content-Type:</label><select class="contentType_" id="contentTypeSelect"></select>');
         var select = $('#contentTypeSelect', dialogMeta);
