@@ -64,7 +64,7 @@ function escapeForHtmlAttributes(str, escapeWhitespace) {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
-    
+
     return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
 }
 
@@ -148,7 +148,7 @@ if (typeof String.prototype.extractVal !== 'function') {
 }
 /**
  * Clean text from contenteditable
- * 
+ *
  * This function will remove any HTML markup and convert
  * any <br> tag into a line feed ('\n').
  */
@@ -225,7 +225,7 @@ String.prototype.toUnderscore = function() {
 
 /**
  * Gratefully taken from https://gist.github.com/24261/7fdb113f1e26111bd78c0c6fe515f6c0bf418af5
- * 
+ *
  * The method trims the given string 'str' to fit nicely within a box of 'len' px width
  * without line break.
  */
@@ -252,7 +252,7 @@ String.prototype.toUnderscore = function() {
 //            // too wide (set new end) or too narrow (set new start).
 //            if ( span.offsetWidth > len ) posEnd = posMid; else posStart=posMid;
 //        }
-//        
+//
 //        //Escape < and >, eliminate trailing space and a widow character if one is present.
 //        result = str.substring(0,posStart).replace("<","&lt;").replace(">","&gt;").replace(/(\s.)?\s*$/,'') + '&hellip;';
 //    }
@@ -267,7 +267,9 @@ function fitStringToWidth(str, width, className) {
     // ----
     // _escTag is a helper to escape 'less than' and 'greater than'
     function _escTag(s) {
-        return s.replace("<", "&lt;").replace(">", "&gt;");
+        if (s) {
+            return s.replace("<", "&lt;").replace(">", "&gt;");
+        }
     }
 
     //Create a span element that will be used to get the width
