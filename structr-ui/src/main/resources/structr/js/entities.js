@@ -1051,65 +1051,62 @@ var _Entities = {
 
                 activeElements[idString] = entity;
 
-                if (entity.dataKey) {
+                var parent = $('#activeElements div.inner');
+                var id     = entity.id;
 
-                    var parent = $('#activeElements div.inner');
-                    var id     = entity.id;
+                if (entity.parentId) {
+                    parent = $('#active_' + entity.parentId);
+                }
 
-                    if (entity.parentId) {
-                        parent = $('#active_' + entity.parentId);
-                    }
+                parent.append('<div id="active_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
 
-                    parent.append('<div id="active_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+                var div         = $('#active_' + id);
+                var query       = entity.query;
+                var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
+                var expand      = entity.state === 'Query';
+                var icon        = _Elements.icon;
+                var name = '', content = '';
 
-                    var div         = $('#active_' + id);
-                    var query       = entity.query;
-                    var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
-                    var expand      = entity.state === 'Query';
-                    var icon        = _Elements.icon;
-                    var name = '', content = '';
+                switch (entity.state) {
+                    case 'Query':
+                        icon = _Elements.icon_repeater;
+                        name = query;
+                        break;
+                    case 'Content':
+                        icon = _Contents.icon;
+                        content = entity.content;
+                        break;
+                    case 'Button':
+                        icon = 'icon/button.png';
+                        name = entity.action;
+                        break;
+                    case 'Link':
+                        icon = 'icon/link.png';
+                        content = entity.action;
+                        break;
+                    default:
+                        content = entity.state;
+                }
 
-                    switch (entity.state) {
-                        case 'Query':
-                            icon = _Elements.icon_repeater;
-                            name = query;
-                            break;
-                        case 'Content':
-                            icon = _Contents.icon;
-                            content = entity.content;
-                            break;
-                        case 'Button':
-                            icon = 'icon/button.png';
-                            name = entity.action;
-                            break;
-                        case 'Link':
-                            icon = 'icon/link.png';
-                            content = entity.action;
-                            break;
-                        default:
-                            content = entity.state;
-                    }
+                div.append('<img class="typeIcon" src="' + icon + '">'
+                        + '<b title="' + name + '" class="tag_ name_">' + fitStringToWidth(name, 200, 'slideOut') + '</b>'
+                        + '<span>' + content + '</span>'
+                        + '<span class="id">' + entity.id + '</span>'
+                        + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
+                        + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
+                );
 
-                    div.append('<img class="typeIcon" src="' + icon + '">'
-                            + '<b title="' + name + '" class="tag_ name_">' + fitStringToWidth(name, 200, 'slideOut') + '</b>'
-                            + '<span>' + content + '</span>'
-                            + '<span class="id">' + entity.id + '</span>'
-                            + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
-                            + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
-                    );
+                _Entities.setMouseOver(div);
 
-                    _Entities.setMouseOver(div);
+                var typeIcon = $(div.children('.typeIcon').first());
+                var padding  = 0;
 
-                    var typeIcon = $(div.children('.typeIcon').first());
-                    var padding  = 0;
-
-                    if (!expand) {
-                        padding = 11;
-                    } else {
-                        typeIcon.css({
-                            paddingRight: padding + 'px'
-                        }).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expanded_icon + '">');
-                    }
+                if (!expand) {
+                    padding = 11;
+                } else {
+                    typeIcon.css({
+                        paddingRight: padding + 'px'
+                    }).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expanded_icon + '">');
                 }
             }
         }

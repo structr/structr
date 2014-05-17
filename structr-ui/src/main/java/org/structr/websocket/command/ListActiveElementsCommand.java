@@ -133,7 +133,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 			resultList.add(extractActiveElement(root, dataKeys, parentId, state, depth));
 			if (state.equals(ActiveElementState.Query)) {
-
+				
 				parentId = root.getUuid();
 			}
 		}
@@ -146,7 +146,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 	}
 
-	private GraphObject extractActiveElement(final DOMNode node, final Set<String> dataKeys, final String parent, final ActiveElementState state, final int depth) {
+	private GraphObject extractActiveElement(final DOMNode node, final Set<String> dataKeys, final String parentId, final ActiveElementState state, final int depth) {
 
 		final GraphObjectMap activeElement = new GraphObjectMap();
 
@@ -170,9 +170,10 @@ public class ListActiveElementsCommand extends AbstractCommand {
 				break;
 
 		}
+
 		activeElement.put(stateProperty, state.name());
 		activeElement.put(recursionDepthProperty, depth);
-		activeElement.put(parentIdProperty, parent);
+		activeElement.put(parentIdProperty, parentId);
 
 		return activeElement;
 	}
