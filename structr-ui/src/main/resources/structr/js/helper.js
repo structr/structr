@@ -267,9 +267,7 @@ function fitStringToWidth(str, width, className) {
     // ----
     // _escTag is a helper to escape 'less than' and 'greater than'
     function _escTag(s) {
-        if (s) {
-            return s.replace("<", "&lt;").replace(">", "&gt;");
-        }
+        return s ? s.replace("<", "&lt;").replace(">", "&gt;"):'';
     }
 
     //Create a span element that will be used to get the width

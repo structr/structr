@@ -316,8 +316,6 @@ function wsConnect() {
 
             } else if (command.startsWith('LIST_ACTIVE_ELEMENTS')) { /*********************** LIST_ACTIVE_ELEMENTS ************************/
 
-                console.log(data);
-
                 log('LIST_ACTIVE_ELEMENTS', result, data);
 
                 $(result).each(function(i, entity) {

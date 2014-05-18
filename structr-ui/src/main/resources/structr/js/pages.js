@@ -164,7 +164,6 @@ var _Pages = {
             if (activeElementsSlideout.position().left === -lsw) {
                 Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function() {
-                    console.log('active elements');
                 });
             } else {
                 Structr.closeLeftSlideOuts([activeElementsSlideout], activeTabLeftKey);
@@ -447,24 +446,32 @@ var _Pages = {
         log('store active tab', activeTab);
         localStorage.setItem(activeTabKey, activeTab);
 
+        _Pages.refreshActiveElements(id);
+
+    },
+    refreshActiveElements: function(id) {
         $('#activeElements div.inner').empty().attr('id', 'id_' + id);
         activeElements = {};
 
         Command.listActiveElements(id, function(activeElement) {
             _Entities.handleActiveElement(activeElement);
         });
-
     },
-    reloadIframe: function(id, name) {
+    reloadIframe: function(id) {
         _Pages.clearIframeDroppables();
-        var iframe = $('#preview_' + id);
-        if (iframe.parent().is(':hidden') || !localStorage.getItem(autoRefreshDisabledKey + id)) {
-            iframe.prop('src', viewRootUrl + name + '?edit=2');
-            iframe.parent().show();
-        }
-        _Pages.resize();
+        Command.get(id, function(obj) {
+            var iframe = $('#preview_' + id);
+            if (iframe.parent().is(':hidden') || !localStorage.getItem(autoRefreshDisabledKey + id)) {
+                iframe.prop('src', viewRootUrl + obj.name + '?edit=2');
+                iframe.parent().show();
+            }
+            _Pages.resize();
+
+            _Pages.refreshActiveElements(id);
+        });
     },
     reloadPreviews: function() {
+        console.log('all previews refreshed')
         _Pages.clearIframeDroppables();
         // add a small delay to avoid getting old data in very fast localhost envs
         window.setTimeout(function() {
@@ -472,11 +479,14 @@ var _Pages = {
                 var self = $(this);
                 var pageId = self.prop('id').substring('preview_'.length);
                 if (!localStorage.getItem(autoRefreshDisabledKey + pageId) && pageId === activeTab) {
-                    var doc = this.contentDocument;
-                    doc.location.reload(true);
+
+                    _Pages.reloadIframe(pageId);
+
+                    //var doc = this.contentDocument;
+                    //doc.location.reload(true);
                 }
             });
-        }, 100);
+        }, 200);
     },
     clearIframeDroppables: function() {
         var droppablesArray = [];

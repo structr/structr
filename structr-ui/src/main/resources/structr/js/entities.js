@@ -155,7 +155,8 @@ var _Entities = {
         _Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
         _Entities.appendTextarea($('#content-tab-xpath'), entity, 'xpathQuery', 'XPath Query', '');
 
-        _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+        _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
+                'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
 
 
 
@@ -177,7 +178,9 @@ var _Entities = {
                 content.show();
             });
         });
-        $(activeId).show();
+        var id = activeId.substring(9);
+        var tab = $('#' + id);
+        tab.click();
     },
     editSource: function(entity) {
 
@@ -1041,7 +1044,7 @@ var _Entities = {
         element.off('click');
 
     },
-    handleActiveElement : function(entity) {
+    handleActiveElement: function(entity) {
 
         if (entity) {
 
@@ -1052,7 +1055,7 @@ var _Entities = {
                 activeElements[idString] = entity;
 
                 var parent = $('#activeElements div.inner');
-                var id     = entity.id;
+                var id = entity.id;
 
                 if (entity.parentId) {
                     parent = $('#active_' + entity.parentId);
@@ -1060,17 +1063,17 @@ var _Entities = {
 
                 parent.append('<div id="active_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
 
-                var div         = $('#active_' + id);
-                var query       = entity.query;
-                // var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
-                var expand      = entity.state === 'Query';
-                var icon        = _Elements.icon;
-                var name = '', content = '';
+                var div = $('#active_' + id);
+                var query = entity.query;
+                //var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
+                var expand = entity.state === 'Query';
+                var icon = _Elements.icon;
+                var name = '', content = '', action = '';
 
                 switch (entity.state) {
                     case 'Query':
-                        icon = _Elements.icon_repeater;
-                        name = query;
+                        icon = 'icon/database_table.png';
+                        name = query || entity.dataKey.replace(',', '.');
                         break;
                     case 'Content':
                         icon = _Contents.icon;
@@ -1078,7 +1081,7 @@ var _Entities = {
                         break;
                     case 'Button':
                         icon = 'icon/button.png';
-                        name = entity.action;
+                        action = entity.action;
                         break;
                     case 'Link':
                         icon = 'icon/link.png';
@@ -1089,17 +1092,30 @@ var _Entities = {
                 }
 
                 div.append('<img class="typeIcon" src="' + icon + '">'
-                        + '<b title="' + name + '" class="tag_ name_">' + fitStringToWidth(name, 200, 'slideOut') + '</b>'
-                        + '<span>' + content + '</span>'
+                        + '<b title="' + name + '">' + fitStringToWidth(name, 180, 'slideOut') + '</b>'
+                        + '<b class="action">' + action   + '</b    >'
+                        + '<span class="content_">' + content + '</span>'
                         + '<span class="id">' + entity.id + '</span>'
                         + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
                         + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
-                );
+                        );
 
                 _Entities.setMouseOver(div);
 
+                $('b[title]', div).on('click', function() {
+                    _Entities.openQueryDialog(entity.id);
+                });
+
+                $('.content_', div).on('click', function() {
+                    _Contents.openEditContentDialog(this, entity);
+                });
+
+                $('.action', div).on('click', function() {
+                    _Entities.openEditModeBindingDialog(entity.id);
+                });
+
                 var typeIcon = $(div.children('.typeIcon').first());
-                var padding  = 0;
+                var padding = 0;
 
                 if (!expand) {
                     padding = 11;
@@ -1110,9 +1126,50 @@ var _Entities = {
                 }
             }
         }
+    },
+    openQueryDialog: function(id) {
+        Command.get(id, function(obj) {
+            
+            var entity = StructrModel.create(obj);
+            
+            Structr.dialog('Query and Data Binding of ' + (entity.name ? entity.name : entity.id), function() {
+                return true;
+            }, function() {
+                return true;
+            });
+
+            dialogText.append('<p></p>');
+
+            _Entities.queryDialog(entity, dialogText);
+
+            if (entity.restQuery) {
+                _Entities.activateTabs('#data-tabs', '#content-tab-rest');
+            } else if (entity.cypherQuery) {
+                _Entities.activateTabs('#data-tabs', '#content-tab-cypher');
+            } else if (entity.xpathQuery) {
+                _Entities.activateTabs('#data-tabs', '#content-tab-xpath');
+            } else {
+                _Entities.activateTabs('#data-tabs', '#content-tab-rest');
+            }
+        });
+    },
+    openEditModeBindingDialog: function(id) {
+        Command.get(id, function(obj) {
+            
+            var entity = StructrModel.create(obj);
+            
+            Structr.dialog('Edit mode binding for ' + (entity.name ? entity.name : entity.id), function() {
+                return true;
+            }, function() {
+                return true;
+            });
+
+            dialogText.append('<p></p>');
+
+            _Entities.dataBindingDialog(entity, dialogText);
+
+        });
     }
-
-
 };
 
 function addPrincipal(entity, principal, permissions) {
