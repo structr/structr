@@ -30,6 +30,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -53,6 +54,7 @@ import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
 import org.structr.schema.parser.FunctionPropertyParser;
+import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.PropertyParser;
@@ -67,7 +69,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function
+		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion
 	}
 
 	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
@@ -84,6 +86,7 @@ public class SchemaHelper {
 		parserMap.put(Type.Integer,     IntPropertyParser.class);
 		parserMap.put(Type.String,      StringPropertyParser.class);
 		parserMap.put(Type.Double,      DoublePropertyParser.class);
+		parserMap.put(Type.Notion,      NotionPropertyParser.class);
 		parserMap.put(Type.Long,        LongPropertyParser.class);
 		parserMap.put(Type.Enum,        EnumPropertyParser.class);
 		parserMap.put(Type.Date,        DatePropertyParser.class);
@@ -381,7 +384,7 @@ public class SchemaHelper {
 				if (parser != null) {
 
 					// append created source from parser
-					src.append(parser.getPropertySource(errorBuffer));
+					src.append(parser.getPropertySource(entity, errorBuffer));
 
 					// register global elements created by parser
 					validators.addAll(parser.getGlobalValidators());
@@ -548,14 +551,15 @@ public class SchemaHelper {
 	public static void formatImportStatements(final StringBuilder src, final Class baseType) {
 
 		src.append("import ").append(baseType.getName()).append(";\n");
-		src.append("import ").append(PropertyView.class.getName()).append(";\n");
-		src.append("import ").append(View.class.getName()).append(";\n");
+		src.append("import ").append(GraphObjectComparator.class.getName()).append(";\n");
+		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
 		src.append("import ").append(SecurityContext.class.getName()).append(";\n");
-		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
-		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(Actions.class.getName()).append(";\n");
+		src.append("import ").append(PropertyView.class.getName()).append(";\n");
+		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
 		src.append("import ").append(Export.class.getName()).append(";\n");
+		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import org.structr.rest.RestMethodResult;\n");
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");

@@ -56,16 +56,18 @@ import org.structr.schema.action.Actions;
  */
 public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 
-	public static final Property<List<SchemaNode>>  relatedTo    = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<List<SchemaNode>>  relatedFrom  = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<String>            extendsClass = new StringProperty("extendsClass").indexed();
+	public static final Property<List<SchemaNode>>  relatedTo        = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<List<SchemaNode>>  relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<String>            extendsClass     = new StringProperty("extendsClass").indexed();
+	public static final Property<String>            defaultSortKey   = new StringProperty("defaultSortKey");
+	public static final Property<String>            defaultSortOrder = new StringProperty("defaultSortOrder");
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		name, extendsClass, relatedTo, relatedFrom
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, relatedTo, relatedFrom
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder
 	);
 
 	private Set<String> dynamicViews = new LinkedHashSet<>();
@@ -162,6 +164,26 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 			}
 		}
 
+		if (getProperty(defaultSortKey) != null) {
+
+			String order = getProperty(defaultSortOrder);
+			if (order == null || "desc".equals(order)) {
+				order = "GraphObjectComparator.DESCENDING";
+			} else {
+				order = "GraphObjectComparator.ASCENDING";
+			}
+
+			src.append("\n\t@Override\n");
+			src.append("\tpublic PropertyKey getDefaultSortKey() {\n");
+			src.append("\t\treturn ").append(getProperty(defaultSortKey)).append("Property;\n");
+			src.append("\t}\n");
+
+			src.append("\n\t@Override\n");
+			src.append("\tpublic String getDefaultSortOrder() {\n");
+			src.append("\t\treturn ").append(order).append(";\n");
+			src.append("\t}\n");
+		}
+
 		formatValidators(src, validators);
 		formatSaveActions(src, saveActions);
 
@@ -182,6 +204,56 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 
 	}
 
+	@Override
+	public String getMultiplicity(final String propertyNameToCheck) {
+
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+		final String _className                 = getProperty(name);
+
+		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+
+			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
+				return outRel.getMultiplicity(true);
+			}
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+
+			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
+				return inRel.getMultiplicity(false);
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getRelatedType(final String propertyNameToCheck) {
+
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+		final String _className                 = getProperty(name);
+
+		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+
+			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
+				return outRel.getSchemaNodeTargetType();
+			}
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+
+			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
+				return inRel.getSchemaNodeSourceType();
+			}
+		}
+
+		return null;
+	}
+
+
+	// ----- private methods -----
 	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
 		SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
 		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);

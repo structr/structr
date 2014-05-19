@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -150,8 +151,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_EQUAL               = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
 	public static final String ERROR_MESSAGE_ADD                 = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
 	public static final String ERROR_MESSAGE_INT_SUM             = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
-	public static final String ERROR_MESSAGE_DOUBLE_SUM         = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
+	public static final String ERROR_MESSAGE_DOUBLE_SUM          = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
 	public static final String ERROR_MESSAGE_EXTRACT             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
+	public static final String ERROR_MESSAGE_MERGE               = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
+	public static final String ERROR_MESSAGE_SORT                = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
 	public static final String ERROR_MESSAGE_LT                  = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
 	public static final String ERROR_MESSAGE_GT                  = "Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}";
 	public static final String ERROR_MESSAGE_LTE                 = "Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}";
@@ -2056,6 +2059,75 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_EXTRACT;
+			}
+
+		});
+		functions.put("merge", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				final List list = new ArrayList();
+				for (final Object source : sources) {
+
+					if (source instanceof Collection) {
+
+						list.addAll((Collection)source);
+
+					} else {
+
+						list.add(source);
+					}
+				}
+
+				return list;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MERGE;
+			}
+
+		});
+		functions.put("sort", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					if (sources[0] instanceof List && sources[1] instanceof String) {
+
+						final List list         = (List)sources[0];
+						final String sortKey    = sources[1].toString();
+						final Iterator iterator = list.iterator();
+
+						if (iterator.hasNext()) {
+
+							final Object firstElement = iterator.next();
+							if (firstElement instanceof GraphObject) {
+
+								final Class type          = firstElement.getClass();
+								final PropertyKey key     = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
+								final boolean descending  = sources.length == 3 && sources[2] != null && "true".equals(sources[2].toString());
+
+								if (key != null) {
+
+									List<GraphObject> sortCollection = (List<GraphObject>)list;
+									Collections.sort(sortCollection, new GraphObjectComparator(key, descending));
+								}
+							}
+
+						}
+					}
+				}
+
+				return sources[0];
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SORT;
 			}
 
 		});

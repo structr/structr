@@ -189,6 +189,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		}
 	}
 
+	// ----- interface Schema -----
 	@Override
 	public String getClassName() {
 
@@ -205,7 +206,16 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return name;
 	}
 
-	// ----- interface PropertySchema -----
+	@Override
+	public String getMultiplicity(String propertyNameToCheck) {
+		return null;
+	}
+
+	@Override
+	public String getRelatedType(String propertyNameToCheck) {
+		return null;
+	}
+
 	public String getPropertySource(final String propertyName, final boolean outgoing) {
 
 		final StringBuilder buf          = new StringBuilder();
@@ -255,6 +265,18 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		}
 
 		return buf.toString();
+	}
+
+	public String getMultiplicity(final boolean outgoing) {
+
+		if (outgoing) {
+
+			return getProperty(targetMultiplicity);
+
+		} else {
+
+			return getProperty(sourceMultiplicity);
+		}
 	}
 
 	public String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing) {
@@ -421,15 +443,15 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return dynamicViews;
 	}
 
-	// ----- private methods -----
-	private String getSchemaNodeSourceType() {
+	public String getSchemaNodeSourceType() {
 		return getSourceNode().getProperty(SchemaNode.name);
 	}
 
-	private String getSchemaNodeTargetType() {
+	public String getSchemaNodeTargetType() {
 		return getTargetNode().getProperty(SchemaNode.name);
 	}
 
+	// ----- private methods -----
 	private String getNotion(final String _className, final String notionSource) {
 
 		final StringBuilder buf = new StringBuilder();

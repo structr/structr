@@ -1113,4 +1113,5 @@ var typeOptions = '<select class="property-type"><option value="">--Select type-
         + '<option value="Date">Date</option>'
         + '<option value="Counter">Counter</option>'
         + '<option value="Function">Function</option>'
+        + '<option value="Notion">Function</option>'
         + '<option value="del">--DELETE--</option></select>';

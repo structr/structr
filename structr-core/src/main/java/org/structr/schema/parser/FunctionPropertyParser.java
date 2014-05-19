@@ -21,6 +21,7 @@ package org.structr.schema.parser;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.FunctionProperty;
+import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
@@ -46,7 +47,7 @@ public class FunctionPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public String getAuxiliaryType() {
+	public String getPropertyParameters() {
 		return auxType;
 	}
 
@@ -56,7 +57,7 @@ public class FunctionPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void extractTypeValidation(String expression) throws FrameworkException {
+	public void extractTypeValidation(final Schema entity, String expression) throws FrameworkException {
 		auxType = ", \"" + expression + "\"";
 	}
 }

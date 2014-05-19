@@ -69,7 +69,7 @@ public abstract class Resource {
 	protected PropertyKey idProperty          = null;
 
 	public abstract Resource tryCombineWith(Resource next) throws FrameworkException;
-	
+
 	/**
 	 * Check and configure this instance with the given values. Please note that you need to set the security context of your class in this method.
 	 *
@@ -106,7 +106,7 @@ public abstract class Resource {
 
 			final Iterable<? extends GraphObject> finalResults = results;
 			final App app                                      = StructrApp.getInstance(securityContext);
-			
+
 			for (final GraphObject obj : finalResults) {
 
 				if (obj instanceof AbstractRelationship) {
@@ -141,7 +141,7 @@ public abstract class Resource {
 		if (results != null && !results.isEmpty()) {
 
 			final Class type = results.get(0).getClass();
-			
+
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
 			for (final GraphObject obj : results) {
@@ -219,10 +219,9 @@ public abstract class Resource {
 
 		if (!list.isEmpty()) {
 
-			PropertyKey finalSortKey = sortKey;
 			String finalSortOrder = sortDescending ? "desc" : "asc";
 
-			if (finalSortKey == null) {
+			if (sortKey == null) {
 
 				// Apply default sorting, if defined
 				final GraphObject obj = list.get(0);
@@ -231,13 +230,13 @@ public abstract class Resource {
 
 				if (defaultSort != null) {
 
-					finalSortKey = defaultSort;
+					sortKey = defaultSort;
 					finalSortOrder = obj.getDefaultSortOrder();
 				}
 			}
 
-			if (finalSortKey != null) {
-				Collections.sort(list, new GraphObjectComparator(finalSortKey, finalSortOrder));
+			if (sortKey != null) {
+				Collections.sort(list, new GraphObjectComparator(sortKey, finalSortOrder));
 			}
 		}
 	}
@@ -297,7 +296,7 @@ public abstract class Resource {
 							break;
 					}
 				}
-				
+
 				query.location(street, house, postalCode, city, state, country, dist);
 			}
 		}
@@ -326,19 +325,19 @@ public abstract class Resource {
 					}
 
 				} else if (!JsonRestServlet.commonRequestParameters.contains(name)) {
-				
+
 					// exclude common request parameters here (should not throw exception)
 					throw new FrameworkException(400, "Invalid search key " + name);
 				}
 			}
-			
+
 			// sort list of search keys according to their desired order
 			// so that querying search attributes can use other attributes
 			// to refine their partial results.
 			Collections.sort(searchKeys, new PropertyKeyProcessingOrderComparator());
-			
+
 			for (final PropertyKey key : searchKeys) {
-				
+
 				// hand list of search attributes over to key
 				key.extractSearchableAttribute(securityContext, request, query);
 			}
@@ -354,25 +353,25 @@ public abstract class Resource {
 	public void setSecurityContext(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
-	
+
 	// ----- private methods -----
 	/**
 	 * Returns the first part of the given source string when it contains a "."
-	 * 
+	 *
 	 * @param parameter
-	 * @return 
+	 * @return
 	 */
 	private String getFirstPartOfString(final String source) {
-		
+
 		final int pos = source.indexOf(".");
 		if (pos > -1) {
-			
+
 			return source.substring(0, pos);
 		}
-		
+
 		return source;
 	}
-	
+
 	// ----- nested classes -----
 	private static class PropertyKeyProcessingOrderComparator implements Comparator<PropertyKey> {
 
