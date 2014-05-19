@@ -1061,7 +1061,7 @@ var _Entities = {
                     parent = $('#active_' + entity.parentId);
                 }
 
-                parent.append('<div id="active_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+                parent.append('<div id="active_' + id + '" class="node active-element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
 
                 var div = $('#active_' + id);
                 var query = entity.query;
@@ -1096,11 +1096,39 @@ var _Entities = {
                         + '<b class="action">' + action   + '</b    >'
                         + '<span class="content_">' + content + '</span>'
                         + '<span class="id">' + entity.id + '</span>'
-                        + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
-                        + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
+//                        + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
+//                        + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
                         );
 
                 _Entities.setMouseOver(div);
+
+                var editIcon = $('.edit_icon', div);
+
+                if (!(editIcon && editIcon.length)) {
+                    div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+                    editIcon = $('.edit_icon', div);
+                }
+                editIcon.on('click', function(e) {
+                    e.stopPropagation();
+                    
+                    switch (entity.state) {
+                        case 'Query':
+                            _Entities.openQueryDialog(entity.id);
+                           break;
+                        case 'Content':
+                            _Contents.openEditContentDialog(this, entity);
+                            break;
+                        case 'Button':
+                            _Entities.openEditModeBindingDialog(entity.id);
+                            break;
+                        case 'Link':
+                            _Entities.showProperties(entity);
+                            break;
+                        default:
+                            _Entities.showProperties(entity);
+                    }
+                    
+                });
 
                 $('b[title]', div).on('click', function() {
                     _Entities.openQueryDialog(entity.id);
