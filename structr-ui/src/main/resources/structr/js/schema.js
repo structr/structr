@@ -512,17 +512,15 @@ var _Schema = {
 
                     // Add source property
                     var source = nodes[res.sourceId];
+                    var target = nodes[res.targetId];
 
-                    _Schema.getPropertyName(source.name, res.relationshipType, true, function(key) {
+                    _Schema.getPropertyName(source.name, res.relationshipType, target.name, true, function(key) {
                         _Schema.appendRelatedProperty($('#id_' + source.id + ' .related-attrs'), source.id, res, res.targetJsonName ? res.targetJsonName : key, true);
                         instance.repaintEverything();
                     });
 
-
                     // Add target property
-                    var target = nodes[res.targetId];
-
-                    _Schema.getPropertyName(target.name, res.relationshipType, false, function(key) {
+                    _Schema.getPropertyName(target.name, res.relationshipType, source.name, false, function(key) {
                         _Schema.appendRelatedProperty($('#id_' + target.id + ' .related-attrs'), target.id, res, res.sourceJsonName ? res.sourceJsonName : key, false);
                         instance.repaintEverything();
                     });
@@ -1031,7 +1029,7 @@ var _Schema = {
         });
 
     },
-    getPropertyName: function(type, relationshipType, out, callback) {
+    getPropertyName: function(type, relationshipType, relatedType, out, callback) {
         $.ajax({
             url: rootUrl + '_schema/' + type,
             type: 'GET',
@@ -1043,7 +1041,7 @@ var _Schema = {
                         var obj = properties[key];
                         var simpleClassName = obj.className.split('.')[obj.className.split('.').length - 1];
                         if (obj.relatedType && obj.relationshipType) {
-                            if (obj.relationshipType === relationshipType && ((simpleClassName.startsWith('EndNode') && out)
+                            if (obj.relatedType.endsWith(relatedType) && obj.relationshipType === relationshipType && ((simpleClassName.startsWith('EndNode') && out)
                                     || (simpleClassName.startsWith('StartNode') && !out))) {
                                 callback(key, obj.isCollection);
                             }
