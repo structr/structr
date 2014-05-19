@@ -696,6 +696,16 @@ span.id {
     position: relative;
 }
 
+.active-element .edit_icon {
+    right: 4px ! important;
+}
+
+.active-element b:hover,
+.active-element .content_:hover,
+.active-element .action:hover {
+    cursor: pointer;
+}
+
 .page, .widget, .user, .group, .folder, .file, .image,
 .ver-scrollable > .node {
     margin: 4px 0;
