@@ -23,6 +23,7 @@ var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 70;
 var win = $(window);
 var selectedElements = [];
+var activeFileId, fileContents = {};
 
 $(document).ready(function() {
     Structr.registerModule('files', _Files);
@@ -103,9 +104,9 @@ var _Files = {
     refreshFiles: function() {
         files.empty();
         files.append(
-                  '<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>'
+                '<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>'
                 + '<button class="pull_file_icon button"><img title="Pull File" alt="Pull File" src="' + _Files.pull_file_icon + '"> Pull File</button>'
-        );
+                );
         $('.add_file_icon', main).on('click', function(e) {
             e.stopPropagation();
             Command.create({'type': 'File', 'size': 0});
@@ -548,16 +549,49 @@ var _Files = {
             e.stopPropagation();
             //var self = $(this);
             //var text = self.parent().find('.file').text();
-            Structr.dialog('Edit ' + file.name, function() {
+
+            selectedElements = $('.node.selected');
+            if (selectedElements.length > 1) {
+                selectedElements.removeClass('selected');
+            } else {
+                selectedElements = parent;
+            }
+
+            Structr.dialog('Edit files', function() {
                 log('content saved')
             }, function() {
                 log('cancelled')
             });
-            _Files.editContent(this, file, $('#dialogBox .dialogText'));
+            
+            dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
+            $.each(selectedElements, function(i, el) {
+                var entity = StructrModel.obj(getId(el));
+                $('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
+                $('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
+                
+                
+                $('#tab-' + entity.id).on('click', function(tab) {
+                    
+                    // Store current editor text
+                    if (editor) {
+                        fileContents[activeFileId] = editor.getValue();
+                    }
+                    
+                    activeFileId = getIdFromPrefixIdString($(this).prop('id'), 'tab-');
+                    $('#content-tab-' + activeFileId).empty();
+                    _Files.editContent(null, entity, $('#content-tab-' + activeFileId));
+                });
+
+            });
+
+            _Entities.activateTabs('#files-tabs', '#content-tab-' + file.id);
+              
+            //_Files.editContent(this, file, dialogText);
         });
     },
     editContent: function(button, file, element) {
         //debug = true;
+        
         var url = viewRootUrl + file.id + '?edit=1';
         log('editContent', button, file, element, url);
         var text;
@@ -582,7 +616,7 @@ var _Files = {
             dataType: dataType,
             contentType: contentType,
             success: function(data) {
-                text = data;
+                text = fileContents[file.id] || data;
                 if (isDisabled(button))
                     return;
                 element.append('<div class="editor"></div>');
@@ -593,6 +627,7 @@ var _Files = {
                     lineNumbers: true
                 });
 
+                $('.CodeMirror').css({ 'height': 443 });
                 editor.id = file.id;
 
                 dialogBtn.children('#saveFile').remove();
@@ -610,7 +645,7 @@ var _Files = {
 
                     text2 = editor.getValue();
 
-                    if (text1 === text2) {
+                    if (text2 === data) {
                         dialogSaveButton.prop("disabled", true).addClass('disabled');
                         saveAndClose.prop("disabled", true).addClass('disabled');
                     } else {
@@ -619,11 +654,19 @@ var _Files = {
                     }
                 });
 
+                if (text1 === data) {
+                    dialogSaveButton.prop("disabled", true).addClass('disabled');
+                    saveAndClose.prop("disabled", true).addClass('disabled');
+                } else {
+                    dialogSaveButton.prop("disabled", false).removeClass('disabled');
+                    saveAndClose.prop("disabled", false).removeClass('disabled');
+                }
+
                 $('button#saveFile', dialogBtn).on('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     var newText = editor.getValue();
-                    if (text1 === newText) {
+                    if (data === newText) {
                         return;
                     }
                     _Files.updateTextFile(file, newText);
