@@ -52,6 +52,7 @@ import org.structr.schema.parser.CountPropertyParser;
 import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
+import org.structr.schema.parser.FunctionPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.PropertyParser;
@@ -66,7 +67,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count
+		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function
 	}
 
 	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
@@ -78,14 +79,15 @@ public class SchemaHelper {
 		//            because we look up the parsers using "startsWith"!
 
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
-		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
-		parserMap.put(Type.Integer, IntPropertyParser.class);
-		parserMap.put(Type.String, StringPropertyParser.class);
-		parserMap.put(Type.Double, DoublePropertyParser.class);
-		parserMap.put(Type.Long, LongPropertyParser.class);
-		parserMap.put(Type.Enum, EnumPropertyParser.class);
-		parserMap.put(Type.Date, DatePropertyParser.class);
-		parserMap.put(Type.Count, CountPropertyParser.class);
+		parserMap.put(Type.Function,    FunctionPropertyParser.class);
+		parserMap.put(Type.Boolean,     BooleanPropertyParser.class);
+		parserMap.put(Type.Integer,     IntPropertyParser.class);
+		parserMap.put(Type.String,      StringPropertyParser.class);
+		parserMap.put(Type.Double,      DoublePropertyParser.class);
+		parserMap.put(Type.Long,        LongPropertyParser.class);
+		parserMap.put(Type.Enum,        EnumPropertyParser.class);
+		parserMap.put(Type.Date,        DatePropertyParser.class);
+		parserMap.put(Type.Count,       CountPropertyParser.class);
 	}
 
 	/**

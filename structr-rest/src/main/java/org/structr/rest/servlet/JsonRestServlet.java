@@ -58,6 +58,7 @@ import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
@@ -336,6 +337,12 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			if (sortKeyName != null) {
 
 				Class<? extends GraphObject> type = resource.getEntityClass();
+				if (type == null) {
+
+					// fallback to default implementation
+					// if no type can be determined
+					type = AbstractNode.class;
+				}
 				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 			}
 

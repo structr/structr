@@ -161,6 +161,13 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		if (sortKeyName != null) {
 
 			Class<? extends GraphObject> type = resource.getEntityClass();
+			if (type == null) {
+
+				// fallback to default implementation
+				// if no type can be determined
+				type = AbstractNode.class;
+
+			}
 			sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 		}
 

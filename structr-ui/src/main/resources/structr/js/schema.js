@@ -221,22 +221,22 @@ var _Schema = {
                                     classSelect.append('<option ' + (res.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
                                 }
                             });
-                            
+
                         });
-                        
+
                         instance.repaintEverything();
                     });
-                    
+
                     classSelect.on('change', function() {
                         var value = $(this).val();
                         _Schema.putPropertyDefinition(res.id, ' {"extendsClass":"' + value +'"}');
 
                     });
-                    
+
                     $('#' + id + ' .toggle-view').on('click', function() {
-                       _Schema.toggleView(id); 
+                       _Schema.toggleView(id);
                     });
-                    
+
                     if (_Schema.getMode(id) === 'compact') {
                         _Schema.toggleView(id);
                     }
@@ -358,7 +358,7 @@ var _Schema = {
                                         + '"}');
                             }
                         });
-                        
+
                     });
 
                     $('.add-action-attribute', node).on('click', function() {
@@ -545,7 +545,7 @@ var _Schema = {
             width: w + 'px',
             height: h + 'px',
         });
-        
+
         $('body').css({
             position: 'relative',
 //            background: '#fff'
@@ -1056,33 +1056,33 @@ var _Schema = {
 
     },
     toggleView: function(id) {
-      
+
         var node = $('#' + id);
         var mode = node.attr('data-mode');
-        
+
         var classSelect = $('#' + id + ' .extends-class-select');
         if (mode === 'compact') {
-            
+
             var z = node.css('zIndex');
             node.attr('data-z-index', z);
             node.css({ zIndex: 999 });
-            
+
             $('.toggle-view', node).attr('src', 'icon/arrow_in.png');
-            
+
             $('.extends-class', classSelect.parent()).hide();
             classSelect.show();
-            
+
             node.removeAttr('data-mode');
             node.removeClass('compact');
             $('h3', node).show();
             $('th:first-child', node).parent().show();
-            
+
             _Schema.storeMode(id, 'expanded');
-            
+
         } else {
-        
+
             $('.toggle-view', node).attr('src', 'icon/arrow_out.png');
-            
+
             //classSelect.before('<span>' + $(':selected', classSelect).text() + '</span>').hide();
             $('.extends-class', classSelect.parent()).show();
             classSelect.hide();
@@ -1090,18 +1090,18 @@ var _Schema = {
             var z = node.attr('data-z-index');
             node.css({ zIndex: z });
             node.removeAttr('data-z-index');
-            
+
             node.attr('data-mode', 'compact');
             node.addClass('compact');
-            
+
             $('h3', node).hide();
             $('th:first-child', node).parent().hide();
-            
+
             _Schema.storeMode(id, 'compact');
         }
-        
+
         instance.repaintEverything();
-        
+
     }
 };
 
@@ -1113,4 +1113,6 @@ var typeOptions = '<select class="property-type"><option value="">--Select type-
         + '<option value="Boolean">Boolean</option>'
         + '<option value="Enum">Enum</option>'
         + '<option value="Date">Date</option>'
+        + '<option value="Counter">Counter</option>'
+        + '<option value="Function">Function</option>'
         + '<option value="del">--DELETE--</option></select>';

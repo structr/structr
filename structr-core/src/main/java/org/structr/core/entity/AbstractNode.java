@@ -149,6 +149,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_EMPTY               = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 	public static final String ERROR_MESSAGE_EQUAL               = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
 	public static final String ERROR_MESSAGE_ADD                 = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
+	public static final String ERROR_MESSAGE_INT_SUM             = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
+	public static final String ERROR_MESSAGE_DOUBLE_SUM         = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
+	public static final String ERROR_MESSAGE_EXTRACT             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_LT                  = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
 	public static final String ERROR_MESSAGE_GT                  = "Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}";
 	public static final String ERROR_MESSAGE_LTE                 = "Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}";
@@ -1940,6 +1943,122 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
+		functions.put("double_sum", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				double result = 0.0;
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof Collection) {
+
+						for (final Number num : (Collection<Number>)sources[0]) {
+
+							result += num.doubleValue();
+						}
+					}
+				}
+
+				return result;
+
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_DOUBLE_SUM;
+			}
+
+		});
+		functions.put("int_sum", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				int result = 0;
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof Collection) {
+
+						for (final Number num : (Collection<Number>)sources[0]) {
+
+							result += num.intValue();
+						}
+					}
+				}
+
+				return result;
+
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_INT_SUM;
+			}
+
+		});
+		functions.put("extract", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					// no property key given, maybe we should extract a list of lists?
+					if (sources[0] instanceof Collection) {
+
+						final List extraction = new LinkedList();
+
+						for (final Object obj : (Collection)sources[0]) {
+
+							if (obj instanceof Collection) {
+
+								extraction.addAll((Collection)obj);
+							}
+						}
+
+						return extraction;
+					}
+
+
+
+				} else if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					if (sources[0] instanceof Collection && sources[1] instanceof String) {
+
+						final ConfigurationProvider config = StructrApp.getConfiguration();
+						final List extraction              = new LinkedList();
+						final String keyName               = (String)sources[1];
+
+						for (final Object obj : (Collection)sources[0]) {
+
+							if (obj instanceof GraphObject) {
+
+								final PropertyKey key = config.getPropertyKeyForJSONName(obj.getClass(), keyName);
+								final Object value = ((GraphObject)obj).getProperty(key);
+								if (value != null) {
+
+									extraction.add(value);
+								}
+							}
+						}
+
+						return extraction;
+					}
+				}
+
+				return null;
+
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_EXTRACT;
+			}
+
+		});
 		functions.put("lt", new Function<Object, Object>() {
 
 			@Override
@@ -3302,7 +3421,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	}
 
-	protected Object extractFunctions(SecurityContext securityContext, ActionContext actionContext, String source) throws FrameworkException {
+	public Object extractFunctions(SecurityContext securityContext, ActionContext actionContext, String source) throws FrameworkException {
 
 		if ("null".equals(source)) {
 			return NULL_STRING;
