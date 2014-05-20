@@ -1421,7 +1421,7 @@ button.add_property {
 }
 
 .schema {
-    width: 600px;
+    /*width: 600px;*/
     /*height: 200px;*/
     padding-bottom: 6px ! important;
 }
@@ -1480,7 +1480,7 @@ button.add_property {
 .property-dbname,
 .property-format,
 .property-code,
-.default,
+.property-default,
 #relationship-label {
     width: 98%;
     font-size: 1em;
@@ -1488,27 +1488,40 @@ button.add_property {
     background: transparent;
 }
 
-.schema.compact .property-name,
-.schema.compact .property-type,
-.schema.compact .property-dbname,
-.schema.compact .property-format,
-.schema.compact .property-code,
-.default,
+
+.schema.expanded .property-name,
+.schema.expanded .property-type,
+.schema.expanded .property-dbname,
+.schema.expanded .property-format,
+.schema.expanded .property-code,
+.schema.expanded .property-default,
 #relationship-label {
     border: none;
     background: transparent;
 }
 
-.schema b {
+.schema.expanded tr, .schema.expanded .schema-props {
+    background: transparent ! important;
+}
+
+.schema.expanded td {
+    border: none ! important;
+}
+
+.schema b,
+.schema-details b {
     font-size: 1.5em;
     display: inline-block;
     /*margin: 2px 0;*/
 }
 
 .schema b:hover,
-.schema .property-name:hover,
-.schema .property-dbname:hover,
-.schema .property-code:hover {
+.schema-details b:hover,
+.schema-details .property-name:hover,
+.schema-details .property-dbname:hover,
+.schema-details .property-format:hover,
+.schema-details .property-default:hover,
+.schema-details .property-code:hover {
     cursor: text;
     box-shadow: 2px 0 #000;
     color: #222;
@@ -1522,6 +1535,7 @@ button.add_property {
     margin: 1px -1px 1px -1px;
 }*/
 
+.schema-details .new-name,
 .schema .new-name {
     font-size: 1.3em;
     margin: -2px 0 -2px 0;
@@ -1537,6 +1551,10 @@ button.add_property {
     right: 6px;
     top: 6px;
     cursor: pointer;
+}
+
+.schema .edit {
+    right: 46px;
 }
 
 #admin-tools {
@@ -1564,11 +1582,15 @@ button.add_property {
     padding-top: 10px;
 }
 
-.schema .add-icon {
+.schema-details th {
+    padding: 2px 4px;
+}
+
+.schema-details .add-icon {
     margin-top: 4px;
 }
 
-.schema .add-icon:hover,
+.schema-details .add-icon:hover,
 .schema .toggle-view:hover,
 .schema .remove-icon:hover{
     opacity: .6;
@@ -1581,10 +1603,18 @@ button.add_property {
     top: 6px;
 }
 
-.schema.compact b {
-    margin: 0 40px 0 40px;
+.schema b {
+    margin: 0 60px 0 60px;
     display: block;
     text-align: center;
+}
+
+.schema .icon {
+    display: none;
+}
+
+.schema:hover .icon {
+    display: inline-block;
 }
 
 .schema .extends-class {
@@ -1601,38 +1631,6 @@ button.add_property {
 }
 
 .schema hr {
-    display: none;
-}
-
-.schema.compact {
-    width: 220px;
-}
-
-.schema.compact hr {
-    display: block;
-    height: 0;
-    border: none;
-    border-top: 1px solid #a5a5a5;
-}
-
-.schema.compact .add-icon,
-.schema.compact .remove-icon {
-    display: none;
-}
-
-.schema.compact .schema-props,
-.schema.compact tr,
-.schema.compact td {
-    background: none ! important;
-    border: none;
-}
-
-.schema.compact .schema-props td:nth-child(2),
-.schema.compact .schema-props td:nth-child(4),
-.schema.compact .schema-props td:nth-child(5),
-.schema.compact .schema-props td:nth-child(6),
-.schema.compact .schema-props td:nth-child(7),
-.schema.compact .schema-props td:nth-child(8) {
     display: none;
 }
 
