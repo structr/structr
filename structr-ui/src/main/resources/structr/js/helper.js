@@ -59,6 +59,7 @@ function escapeForHtmlAttributes(str, escapeWhitespace) {
     if (!(typeof str === 'string'))
         return str;
     var escapedStr = str
+            .replace(/\\/g, '\\\\\\')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -108,7 +109,6 @@ if (typeof String.prototype.capitalize !== 'function') {
 if (typeof String.prototype.escapeForJSON !== 'function') {
     String.prototype.escapeForJSON = function() {
         return this
-                .replace(/\\/g, '\\\\')
                 .replace(/"/g, '\\"');
     };
 }

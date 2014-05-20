@@ -1480,6 +1480,7 @@ button.add_property {
 .property-dbname,
 .property-format,
 .property-code,
+.property-attrs,
 .property-default,
 #relationship-label {
     width: 98%;
@@ -1494,6 +1495,7 @@ button.add_property {
 .schema.expanded .property-dbname,
 .schema.expanded .property-format,
 .schema.expanded .property-code,
+.schema.expanded .property-attrs,
 .schema.expanded .property-default,
 #relationship-label {
     border: none;

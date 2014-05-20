@@ -471,7 +471,7 @@ var _Pages = {
         });
     },
     reloadPreviews: function() {
-        console.log('all previews refreshed')
+        log('all previews refreshed')
         _Pages.clearIframeDroppables();
         // add a small delay to avoid getting old data in very fast localhost envs
         window.setTimeout(function() {

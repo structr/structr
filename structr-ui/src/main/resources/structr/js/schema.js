@@ -409,7 +409,10 @@ var _Schema = {
                 + '<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">'
                 + '<h3>Actions</h3><table class="actions schema-props"><th>JSON Name</th><th>Code</th><th>Action</th></table>'
                 + '<img alt="Add action" class="add-icon add-action-attribute" src="icon/add.png">'
-                + '<h3>Remote Attributes</h3><table class="related-attrs schema-props"><th>JSON Name</th><th>Type and Direction</th></table></div>');
+                + '<h3>Views</h3><table class="views schema-props"><th>Name</th><th>Attributes</th><th>Action</th></table>'
+                + '<img alt="Add view" class="add-icon add-view" src="icon/add.png">'
+                + '<h3>Remote Attributes</h3><table class="related-attrs schema-props"><th>JSON Name</th><th>Type and Direction</th></table>'
+                + '</div>');
 
         var n = $('.schema-details', el);
         n.children('b').on('click', function() {
@@ -457,7 +460,23 @@ var _Schema = {
                 var self = $(this);
                 self.closest('tr').remove();
             });
+        });
 
+        var viewsTable = $('.views.schema-props', el);
+
+        $('.add-view', el).on('click', function() {
+            viewsTable.append('<tr class="new"><td><input size="15" type="text" class="view property-name" placeholder="Enter view name"></td>'
+                    + '<td><input size="15" type="text" class="view property-attrs" placeholder="Enter view attributes"></td><td><img alt="Remove" class="remove-icon remove-view" src="icon/delete.png"></td>'
+                    + '</div');
+
+            $('.new .property-attrs.view', el).on('blur', function() {
+                _Schema.saveViewDefinition(entity.id, 'new');
+            });
+
+            $('.new .remove-view', el).on('click', function() {
+                var self = $(this);
+                self.closest('tr').remove();
+            });
         });
 
     },
@@ -468,11 +487,13 @@ var _Schema = {
         if (compact) {
             el.append(
                     '<h3>Local Attributes</h3><table class="local schema-props"></table>'
-                    + '<h3>Actions</h3><table class="actions schema-props"></table>');
+                    + '<h3>Actions</h3><table class="actions schema-props"></table>'
+                    + '<h3>Views</h3><table class="views schema-props"></table>');
         }
 
         var propertiesTable = $('.local.schema-props', el);
         var actionsTable = $('.actions.schema-props', el);
+        var viewsTable = $('.views.schema-props', el);
 
         $.each(Object.keys(entity), function(i, key) {
             _Schema.appendLocalProperty(propertiesTable, id, entity, key, compact);
@@ -480,6 +501,10 @@ var _Schema = {
 
         $.each(Object.keys(entity), function(i, key) {
             _Schema.appendLocalAction(actionsTable, id, entity, key, compact);
+        });
+
+        $.each(Object.keys(entity), function(i, key) {
+            _Schema.appendView(viewsTable, id, entity, key, compact);
         });
 
         if (!compact) {
@@ -638,11 +663,11 @@ var _Schema = {
     },
     appendLocalProperty: function(el, id, res, key, compact) {
 
-        if (key.startsWith('___')) {
+        if (key.startsWith('___') || key.startsWith('__')) {
             return false;
         }
 
-        if (key.startsWith('_')) {
+        if (key.substring(0, 1) === '_') {
 
             var name = key.substring(1);
             var dbName = '';
@@ -666,24 +691,32 @@ var _Schema = {
             }
 
             var format;
-            if (type.indexOf('(') > -1) {
-                var parts = type.split('(');
-                type = parts[0];
-                format = parts[1].replace(')', '');
-            }
 
+            if (type.startsWith('Function')) {
+                var l = type.length;
+                format = type.substring(0,l-1).substring(9);
+                type = type.substring(0,8);
+            } else {
+
+                if (type.indexOf('(') > -1) {
+                    var parts = type.split('(');
+                    type = parts[0];
+                    format = parts[1].replace(')', '');
+                }
+            }
+            
             if (compact) {
 
                 el.append('<tr class="' + key + '"><td>' + name + '</td>'
                         + '<td>' + type + '</td>'
-                        + '<td>' + (format ? format : '') + '</td></div>');
+                        + '<td>' + (format ? escapeForHtmlAttributes(format) : '') + '</td></div>');
 
             } else {
 
                 el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(name) + '"></td><td>'
                         + '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(dbName) + '"></td><td>'
                         + typeOptions + '</td><td><input size="15" type="text" class="property-format" value="'
-                        + (format ? format : '') + '"></td><td><input class="not-null" type="checkbox"'
+                        + (format ? escapeForHtmlAttributes(format) : '') + '"></td><td><input class="not-null" type="checkbox"'
                         + (notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
                         + (unique ? ' checked="checked"' : '') + '</td><td>'
                         + '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(defaultValue) + '">' + '</td><td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"></td></div>');
@@ -750,6 +783,10 @@ var _Schema = {
     appendLocalAction: function(el, id, res, key, compact) {
 
         if (key.startsWith('___')) {
+            return false;
+        }
+
+        if (key.substring(0, 3) === '__') {
 
             var name = key.substring(3);
             var value = res[key];
@@ -783,6 +820,40 @@ var _Schema = {
             }
         }
     },
+    appendView: function(el, id, res, key, compact) {
+
+        if (key.substring(0, 2) === '__') {
+
+            var name = key.substring(2);
+            var value = res[key];
+
+            if (compact) {
+                el.append('<tr class="' + key + '"><td>' + name + '</td><td>' + value + '</td></tr>');
+            } else {
+
+                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name view" value="' + escapeForHtmlAttributes(name) + '"></td><td><input size="30" type="text" class="property-attrs view" value="' + escapeForHtmlAttributes(value) + '"></td><td><img alt="Remove" class="remove-icon remove-view" src="icon/delete.png"></td></tr>');
+
+                $('.' + key + ' .property-attrs.view').on('blur', function() {
+                    _Schema.saveViewDefinition(res.id, key);
+                });
+
+                $('.' + key + ' .property-name.view').on('blur', function() {
+                    _Schema.saveViewDefinition(res.id, key);
+                });
+
+                $('.' + key + ' .remove-view').on('click', function() {
+                    Structr.confirmation('<h3>Delete view ' + key + '?</h3>',
+                            function() {
+                                $.unblockUI({
+                                    fadeOut: 25
+                                });
+                                _Schema.removeActionDefinition(res.id, key);
+                            });
+
+                });
+            }
+        }
+    },
     removePropertyDefinition: function(entityId, key) {
         _Schema.putPropertyDefinition(entityId, ' {"' + key + '":null}');
     },
@@ -805,7 +876,7 @@ var _Schema = {
                         + (notNull ? '+' : '')
                         + (type === 'del' ? null : type)
                         + (unique ? '!' : '')
-                        + (format ? '(' + format.escapeForJSON() + ')' : '')
+                        + (format ? '(' + format + ')' : '')
                         + (defaultValue ? ':' + defaultValue.escapeForJSON() : '')
                         + '"}');
             }
@@ -822,6 +893,18 @@ var _Schema = {
 
             _Schema.putPropertyDefinition(entityId, ' {"'
                     + '___' + name + '": "' + (func ? func.escapeForJSON() : '')
+                    + '"}');
+        }
+
+    },
+    saveViewDefinition: function(entityId, key) {
+        var name = $('.' + key + ' .view.property-name').val();
+        var attrs = $('.' + key + ' .view.property-attrs').val();
+        //
+        if (name && name.length) {
+
+            _Schema.putPropertyDefinition(entityId, ' {"'
+                    + '__' + name + '": "' + (attrs ? attrs.escapeForJSON() : '')
                     + '"}');
         }
 
@@ -1154,7 +1237,7 @@ var _Schema = {
 
         var node = $('#id_' + id);
         var mode = _Schema.getMode(id);
-        
+
         if (mode === 'compact') {
 
             _Schema.expandView(id, node);
@@ -1165,9 +1248,7 @@ var _Schema = {
             $('.toggle-view', node).attr('src', 'icon/arrow_out.png');
 
             $('h3', node).remove();
-            $('.local.schema-props', node).remove();
-            $('.related-attrs.schema-props', node).remove();
-            $('.actions.schema-props', node).remove();
+            $('.schema-props', node).remove();
 
             node.addClass('compact');
             node.removeClass('expanded');
@@ -1179,7 +1260,7 @@ var _Schema = {
 
     },
     expandView: function(id) {
-        
+
         var node = $('#id_' + id);
         $('.toggle-view', node).attr('src', 'icon/arrow_in.png');
 
@@ -1192,7 +1273,7 @@ var _Schema = {
         node.addClass('expanded');
         node.removeClass('compact');
     }
-    
+
 };
 
 var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
