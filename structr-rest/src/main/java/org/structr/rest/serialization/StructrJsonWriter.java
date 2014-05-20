@@ -21,6 +21,7 @@ package org.structr.rest.serialization;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.Writer;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
 /**
@@ -29,20 +30,22 @@ import org.structr.core.GraphObject;
  */
 public class StructrJsonWriter implements RestWriter {
 
-	private JsonWriter writer = null;
-	
-	public StructrJsonWriter(final Writer writer) {
+	private SecurityContext securityContext = null;
+	private JsonWriter writer               = null;
+
+	public StructrJsonWriter(final SecurityContext securityContext, final Writer writer) {
+		this.securityContext = securityContext;
 		this.writer = new JsonWriter(writer);
 	}
-	
+
 	@Override
 	public void setIndent(String indent) {
 		writer.setIndent(indent);
 	}
 
 	@Override
-	public void flush() throws IOException {
-		writer.flush();
+	public SecurityContext getSecurityContext() {
+		return securityContext;
 	}
 
 	@Override

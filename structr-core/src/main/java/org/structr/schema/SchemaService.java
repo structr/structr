@@ -25,6 +25,8 @@ package org.structr.schema;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.StructrConf;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Command;
@@ -42,6 +44,8 @@ import org.structr.schema.compiler.NodeExtender;
  */
 public class SchemaService implements Service {
 
+	private static final Logger logger = Logger.getLogger(SchemaService.class.getName());
+
 	@Override
 	public void injectArguments(final Command command) {
 	}
@@ -50,7 +54,7 @@ public class SchemaService implements Service {
 	public void initialize(final StructrConf config) {
 		reloadSchema(new ErrorBuffer());
 	}
-	
+
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
 
 		final Set<String> dynamicViews  = new LinkedHashSet<>();
@@ -76,19 +80,21 @@ public class SchemaService implements Service {
 			}
 
 			success = !errorBuffer.hasError();
-			
+
 			// inject views in configuration provider
 			if (success) {
-				
+
 				Services.getInstance().getConfigurationProvider().registerDynamicViews(dynamicViews);
-				// TODO: add all views 
+				// TODO: add all views
 			}
-			
+
 		} catch (Throwable t) {
-			
+
+			logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
+
 			success = false;
 		}
-		
+
 		return success;
 	}
 

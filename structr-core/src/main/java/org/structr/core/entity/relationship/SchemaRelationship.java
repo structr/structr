@@ -375,8 +375,8 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		src.append("\tpublic static final Property<String> targetIdProperty = new TargetId(\"targetId\");\n");
 
 		// add sourceId and targetId to view properties
-		SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);
-		SchemaHelper.addPropertyToView(PropertyView.Public, "targetId", viewProperties);
+		//SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);
+		//SchemaHelper.addPropertyToView(PropertyView.Public, "targetId", viewProperties);
 
 		SchemaHelper.addPropertyToView(PropertyView.Ui, "sourceId", viewProperties);
 		SchemaHelper.addPropertyToView(PropertyView.Ui, "targetId", viewProperties);
