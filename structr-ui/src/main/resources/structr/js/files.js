@@ -580,6 +580,7 @@ var _Files = {
                     activeFileId = getIdFromPrefixIdString($(this).prop('id'), 'tab-');
                     $('#content-tab-' + activeFileId).empty();
                     _Files.editContent(null, entity, $('#content-tab-' + activeFileId));
+                    _Files.resize();
                 });
 
             });

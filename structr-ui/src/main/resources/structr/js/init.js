@@ -532,6 +532,12 @@ var Structr = {
         }
     },
     resize: function() {
+
+        if (isMax) {
+            Structr.maximize();
+            return;
+        }
+        
         var w = $(window).width();
         var h = $(window).height();
 
@@ -560,8 +566,10 @@ var Structr = {
             height: bh
         });
 
+        var tabsHeight = $('.files-tabs ul').height();
+        
         $('.CodeMirror').css({
-            height: (dh - 118 - 14) + 'px'
+            height: (dh - 118 - 14 - tabsHeight) + 'px'
         });
 
         $('.fit-to-height').css({
@@ -607,8 +615,10 @@ var Structr = {
             height: bh
         });
 
+        var tabsHeight = $('.files-tabs ul').height();
+
         $('.CodeMirror').css({
-            height: (dh - 118 - 14) + 'px'
+            height: (dh - 118 - 14 - tabsHeight) + 'px'
         });
 
         $('.fit-to-height').css({
@@ -618,6 +628,7 @@ var Structr = {
         isMax = true;
         $('#maximizeDialog').hide();
         $('#minimizeDialog').show().on('click', function() {
+            isMax = false;
             Structr.resize();
         });
 
