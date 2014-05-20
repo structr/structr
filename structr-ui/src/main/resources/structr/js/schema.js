@@ -1133,7 +1133,7 @@ var _Schema = {
             contentType: 'application/json',
             statusCode: {
                 200: function(data) {
-                    var properties = data.result[0].views.public;
+                    var properties = data.result[0].views.all;
                     Object.keys(properties).forEach(function(key) {
                         var obj = properties[key];
                         var simpleClassName = obj.className.split('.')[obj.className.split('.').length - 1];
@@ -1186,6 +1186,7 @@ var _Schema = {
         Command.get(id, function(entity) {
             _Schema.appendLocalPropertiesAndActions(node, entity, true);
             _Schema.appendRemoteProperties(node, entity.id, true);
+            instance.repaintEverything();
         });
 
         node.addClass('expanded');
