@@ -327,16 +327,16 @@ var _Pages = {
 
         });
 
-        previewTabs.append('<li id="add_page" title="Add page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
-        $('#add_page', previewTabs).on('click', function(e) {
-            e.stopPropagation();
-            Command.createSimplePage();
-        });
-
-        previewTabs.append('<li id="pull_page" title="Pull page from remote instance" class="button"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
+        $('#import_page', previewTabs).after('<li id="pull_page" title="Pull page from remote instance" class="button"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
         $('#pull_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
             Structr.pullDialog('Page');
+        });
+
+        $('#pull_page', previewTabs).after('<li id="add_page" title="Add page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
+        $('#add_page', previewTabs).on('click', function(e) {
+            e.stopPropagation();
+            Command.createSimplePage();
         });
 
     },

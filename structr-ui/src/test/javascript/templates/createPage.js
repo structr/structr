@@ -37,17 +37,17 @@
     if (name) {
 
         casper.then(function() {
-            s.moveMousePointerTo(casper, '#previewTabs li:nth-child(2)');
+            s.moveMousePointerTo(casper, '#previewTabs li:nth-child(3)');
         });
 
         casper.then(function() {
-            this.click('#previewTabs li:nth-child(2)');
+            this.click('#previewTabs li:nth-child(3)');
         });
 
         casper.wait(2000);
 
         casper.then(function() {
-            s.animatedType(this, '#previewTabs li:nth-child(2) .new-name', false, name, true);
+            s.animatedType(this, '#previewTabs li:nth-child(3) .new-name', false, name, true);
             //s.animatedType(this, '#previewTabs .page .name_', false, name, true);
         });
 
