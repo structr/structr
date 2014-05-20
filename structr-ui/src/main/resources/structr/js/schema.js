@@ -18,6 +18,7 @@
  */
 var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
 var radius = 20, stub = 30, offset = 0, maxZ = 0;
+var connectorStyle = localStorage.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
 
 $(document).ready(function() {
     Structr.registerModule('schema', _Schema);
@@ -73,6 +74,19 @@ var _Schema = {
                 btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
                 e.preventDefault();
                 _Schema.importGraphGist($('#ggist-url').val(), text);
+            });
+
+            var styles = ['Flowchart', 'Bezier', 'StateMachine', 'Straight'];
+
+            $('.schema-input-container').append('<select class="schema-input" id="connector-style"></select>');
+            $.each(styles, function(i, style) {
+                $('#connector-style').append('<option value="' + style + '" ' + (style === connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
+            });
+            $('#connector-style').on('change', function() {
+                var newStyle = $(this).val();
+                connectorStyle = newStyle;
+                localStorage.setItem(localStorageSuffix + 'connectorStyle', newStyle);
+                _Schema.reload();
             });
 
             $('.schema-input-container').append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Admin Tools</button>');
@@ -133,7 +147,7 @@ var _Schema = {
                                 $.unblockUI({
                                     fadeOut: 25
                                 });
-                                _Schema.detach(info.connection.getParameter('id'));
+                                _Schema.detach(info.connection.scope);
                                 _Schema.reload();
                             });
                     _Schema.reload();
@@ -308,8 +322,9 @@ var _Schema = {
                         source: nodes[sId + '_bottom'],
                         target: nodes[tId + '_top'],
                         deleteEndpointsOnDetach: false,
-                        connector: ["Flowchart", {cornerRadius: radius, stub: stub, gap: 6}],
-                        parameters: {'id': res.id},
+                        scope: res.id,
+                        //parameters: {'id': res.id},
+                        connector: [connectorStyle, {curviness: 200, cornerRadius: radius, stub: stub, gap: 6, alwaysRespectStubs: true}],
                         overlays: [
                             ["Label", {
                                     cssClass: "label multiplicity",
@@ -420,12 +435,14 @@ var _Schema = {
 
         classSelect.on('change', function() {
             var value = $(this).val();
-            _Schema.putPropertyDefinition(entity.id, ' {"extendsClass":"' + value + '"}');
+            _Schema.putPropertyDefinition(entity.id, ' {"extendsClass":"' + value.escapeForJSON() + '"}');
 
         });
 
         _Schema.appendLocalPropertiesAndActions(el, entity);
         _Schema.appendRemoteProperties(el, entity.id);
+
+        var actionsTable = $('.actions.schema-props', el);
 
         $('.add-action-attribute', el).on('click', function() {
             actionsTable.append('<tr class="new"><td><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
@@ -663,13 +680,13 @@ var _Schema = {
 
             } else {
 
-                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + name + '"></td><td>'
-                        + '<input size="15" type="text" class="property-dbname" value="' + dbName + '"></td><td>'
+                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(name) + '"></td><td>'
+                        + '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(dbName) + '"></td><td>'
                         + typeOptions + '</td><td><input size="15" type="text" class="property-format" value="'
                         + (format ? format : '') + '"></td><td><input class="not-null" type="checkbox"'
                         + (notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
                         + (unique ? ' checked="checked"' : '') + '</td><td>'
-                        + '<input type="text" size="10" class="property-default" value="' + defaultValue + '">' + '</td><td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"></td></div>');
+                        + '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(defaultValue) + '">' + '</td><td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"></td></div>');
 
                 $('.' + key + ' .property-type option[value="' + type + '"]', el).attr('selected', true);
 
@@ -743,7 +760,7 @@ var _Schema = {
             } else {
 
                 // append default actions
-                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name action" value="' + name + '"></td><td><input size="30" type="text" class="property-code action" value="' + value + '"></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td></tr>');
+                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name action" value="' + escapeForHtmlAttributes(name) + '"></td><td><input size="30" type="text" class="property-code action" value="' + escapeForHtmlAttributes(value) + '"></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td></tr>');
 
                 $('.' + key + ' .property-code.action').on('blur', function() {
                     _Schema.saveActionDefinition(res.id, key);
@@ -788,8 +805,8 @@ var _Schema = {
                         + (notNull ? '+' : '')
                         + (type === 'del' ? null : type)
                         + (unique ? '!' : '')
-                        + (format ? '(' + format + ')' : '')
-                        + (defaultValue ? ':' + defaultValue : '')
+                        + (format ? '(' + format.escapeForJSON() + ')' : '')
+                        + (defaultValue ? ':' + defaultValue.escapeForJSON() : '')
                         + '"}');
             }
         }
@@ -804,7 +821,7 @@ var _Schema = {
         if (name && name.length) {
 
             _Schema.putPropertyDefinition(entityId, ' {"'
-                    + '___' + name + '": "' + (func ? func : '')
+                    + '___' + name + '": "' + (func ? func.escapeForJSON() : '')
                     + '"}');
         }
 
