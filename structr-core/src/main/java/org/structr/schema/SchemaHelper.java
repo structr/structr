@@ -39,6 +39,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.Export;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DynamicResourceAccess;
@@ -50,6 +51,7 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
+import org.structr.schema.parser.CypherPropertyParser;
 import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
@@ -69,7 +71,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion
+		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher
 	}
 
 	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
@@ -87,6 +89,7 @@ public class SchemaHelper {
 		parserMap.put(Type.String,      StringPropertyParser.class);
 		parserMap.put(Type.Double,      DoublePropertyParser.class);
 		parserMap.put(Type.Notion,      NotionPropertyParser.class);
+		parserMap.put(Type.Cypher,      CypherPropertyParser.class);
 		parserMap.put(Type.Long,        LongPropertyParser.class);
 		parserMap.put(Type.Enum,        EnumPropertyParser.class);
 		parserMap.put(Type.Date,        DatePropertyParser.class);
@@ -372,11 +375,13 @@ public class SchemaHelper {
 				}
 
 				String defaultValue = null;
-				// detect and remove default value
-				if (rawType.contains(":")) {
 
-					defaultValue = rawType.substring(rawType.indexOf(":")+1);
-					rawType = rawType.substring(0, rawType.indexOf(":"));
+				// detect and remove default value
+				if (rawType.contains(":") && !rawType.startsWith(Type.Cypher.name())) {
+
+					final int lastIndex = rawType.lastIndexOf(":");
+					defaultValue = rawType.substring(lastIndex+1);
+					rawType = rawType.substring(0, lastIndex);
 
 				}
 
@@ -391,7 +396,7 @@ public class SchemaHelper {
 					enums.addAll(parser.getEnumDefinitions());
 
 					// register property in default view
-					addPropertyToView(PropertyView.Public, propertyName.substring(1), views);
+					//addPropertyToView(PropertyView.Public, propertyName.substring(1), views);
 					addPropertyToView(PropertyView.Ui, propertyName.substring(1), views);
 				}
 			}
@@ -555,11 +560,13 @@ public class SchemaHelper {
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
 		src.append("import ").append(SecurityContext.class.getName()).append(";\n");
+		src.append("import ").append(GraphObject.class.getName()).append(";\n");
 		src.append("import ").append(Actions.class.getName()).append(";\n");
 		src.append("import ").append(PropertyView.class.getName()).append(";\n");
 		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
 		src.append("import ").append(Export.class.getName()).append(";\n");
 		src.append("import ").append(View.class.getName()).append(";\n");
+		src.append("import ").append(List.class.getName()).append(";\n");
 		src.append("import org.structr.rest.RestMethodResult;\n");
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");

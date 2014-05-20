@@ -28,21 +28,17 @@ import java.io.PrintWriter;
 public class Document extends Tag {
 
 	private PrintWriter writer = null;
-	
+
 	public Document(final PrintWriter writer) {
 		super(null, "html", false, true);
-		
+
 		this.writer = writer;
 	}
-	
-	public void flush() {
-		writer.flush();
-	}
-	
+
 	public void render() throws IOException {
-		
+
 		writer.println("<!DOCTYPE html>");
-		
+
 		render(writer, 0);
 	}
 }
