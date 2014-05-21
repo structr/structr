@@ -89,7 +89,7 @@ var _Schema = {
                 _Schema.reload();
             });
 
-            $('.schema-input-container').append('<button class="btn" id="expand-all"><img src="icon/arrow_out.png"> Expand all</button>');
+            $('.schema-input-container').append('<button class="btn" id="expand-all"><img alt="Expand all" src="icon/arrow_out.png"></button>');
             $('#expand-all').on('click', function() {
                 $.each(Object.keys(nodes), function(i, id) {
                     if (_Schema.getMode(id) === 'compact') {
@@ -97,10 +97,9 @@ var _Schema = {
                         _Schema.storeMode(id, 'expanded');
                     }
                 });
-                instance.repaintEverything();
             });
 
-            $('.schema-input-container').append('<button class="btn" id="compact-all"><img src="icon/arrow_in.png"> Compact all</button>');
+            $('.schema-input-container').append('<button class="btn" id="compact-all"><img alt="Compact all" src="icon/arrow_in.png"></button>');
             $('#compact-all').on('click', function() {
                 $.each(Object.keys(nodes), function(i, id) {
                     if (_Schema.getMode(id) === 'expanded') {
@@ -111,7 +110,7 @@ var _Schema = {
                 instance.repaintEverything();
             });
 
-            $('.schema-input-container').append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Admin Tools</button>');
+            $('.schema-input-container').append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Tools</button>');
             $('#admin-tools').on('click', function() {
                 _Schema.openAdminTools();
             });
