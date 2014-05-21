@@ -116,7 +116,7 @@ var _Schema = {
             });
         }
 
-        $('#type-name').focus().on('keyup', function(e) {
+        $('#type-name').on('keyup', function(e) {
 
             if (e.keyCode === 13) {
                 e.preventDefault();
@@ -587,7 +587,7 @@ var _Schema = {
                     }
                 });
 
-                $('.new .property-format', el).on('change', function() {
+                $('.new .property-format', el).on('blur', function() {
                     var name = $('.new .property-name', el).val();
                     var dbName = $(' .new .property-dbname', el).val();
                     var type = $('.new .property-type', el).val();
@@ -931,10 +931,7 @@ var _Schema = {
 
     },
     putPropertyDefinition: function(id, data) {
-        
         var jsonData = JSON.parse(data);
-        console.log(jsonData);
-        
         log('putPropertyDefinition', id, data);
         $.ajax({
             url: rootUrl + 'schema_nodes/' + id,
