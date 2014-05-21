@@ -51,7 +51,7 @@ textarea {
 	border: 1px solid #b5b5b5;
 }
 
-button, textarea, input {
+button, textarea, input, select {
     font-family: Arial, Helvetica, Sans-serif ! important;
 }
 
@@ -1437,6 +1437,21 @@ button.add_property {
 .schema-input {
     border-radius: 3px;
     font-size: 1.5em;
+}
+
+#connector-style {
+    color: #222;
+    font-weight: bold;
+    padding: 3px 2px 3px 4px;
+    margin: 0 8px 3px 24px;
+    vertical-align: middle;
+    line-height: 1.5em;
+    border-radius: 3px;
+    border: 1px solid #999;
+    background-color: #e5e5e5;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ccc), to(#e7e7e7)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ccc, #e7e7e7) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
 .schema-props {

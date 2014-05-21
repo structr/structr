@@ -78,7 +78,7 @@ var _Schema = {
 
             var styles = ['Flowchart', 'Bezier', 'StateMachine', 'Straight'];
 
-            $('.schema-input-container').append('<select class="schema-input" id="connector-style"></select>');
+            $('.schema-input-container').append('<select id="connector-style"></select>');
             $.each(styles, function(i, style) {
                 $('#connector-style').append('<option value="' + style + '" ' + (style === connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
             });
@@ -87,6 +87,28 @@ var _Schema = {
                 connectorStyle = newStyle;
                 localStorage.setItem(localStorageSuffix + 'connectorStyle', newStyle);
                 _Schema.reload();
+            });
+
+            $('.schema-input-container').append('<button class="btn" id="expand-all"><img src="icon/arrow_out.png"> Expand all</button>');
+            $('#expand-all').on('click', function() {
+                $.each(Object.keys(nodes), function(i, id) {
+                    if (_Schema.getMode(id) === 'compact') {
+                        _Schema.expandView(id);
+                        _Schema.storeMode(id, 'expanded');
+                    }
+                });
+                instance.repaintEverything();
+            });
+
+            $('.schema-input-container').append('<button class="btn" id="compact-all"><img src="icon/arrow_in.png"> Compact all</button>');
+            $('#compact-all').on('click', function() {
+                $.each(Object.keys(nodes), function(i, id) {
+                    if (_Schema.getMode(id) === 'expanded') {
+                        _Schema.compactView(id);
+                        _Schema.storeMode(id, 'compact');
+                    }
+                });
+                instance.repaintEverything();
             });
 
             $('.schema-input-container').append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Admin Tools</button>');
@@ -694,8 +716,8 @@ var _Schema = {
 
             if (type.startsWith('Function')) {
                 var l = type.length;
-                format = type.substring(0,l-1).substring(9);
-                type = type.substring(0,8);
+                format = type.substring(0, l - 1).substring(9);
+                type = type.substring(0, 8);
             } else {
 
                 if (type.indexOf('(') > -1) {
@@ -704,7 +726,7 @@ var _Schema = {
                     format = parts[1].replace(')', '');
                 }
             }
-            
+
             if (compact) {
 
                 el.append('<tr class="' + key + '"><td>' + name + '</td>'
@@ -1235,31 +1257,44 @@ var _Schema = {
     },
     toggleView: function(id) {
 
-        var node = $('#id_' + id);
         var mode = _Schema.getMode(id);
 
         if (mode === 'compact') {
 
-            _Schema.expandView(id, node);
+            _Schema.expandView(id);
             _Schema.storeMode(id, 'expanded');
 
         } else {
 
-            $('.toggle-view', node).attr('src', 'icon/arrow_out.png');
-
-            $('h3', node).remove();
-            $('.schema-props', node).remove();
-
-            node.addClass('compact');
-            node.removeClass('expanded');
-
+            _Schema.compactView(id);
             _Schema.storeMode(id, 'compact');
         }
 
         instance.repaintEverything();
 
     },
+    compactView: function(id) {
+
+        var node = $('#id_' + id);
+
+        if (id.contains('_')) {
+            return;
+        }
+
+        $('.toggle-view', node).attr('src', 'icon/arrow_out.png');
+
+        $('h3', node).remove();
+        $('.schema-props', node).remove();
+
+        node.addClass('compact');
+        node.removeClass('expanded');
+
+    },
     expandView: function(id) {
+
+        if (id.contains('_')) {
+            return;
+        }
 
         var node = $('#id_' + id);
         $('.toggle-view', node).attr('src', 'icon/arrow_in.png');
