@@ -897,7 +897,7 @@ var _Schema = {
                         + (notNull ? '+' : '')
                         + (type === 'del' ? null : type)
                         + (unique ? '!' : '')
-                        + (format ? '(' + format + ')' : '')
+                        + (format ? '(' + format.escapeForJSON() + ')' : '')
                         + (defaultValue ? ':' + defaultValue.escapeForJSON() : '')
                         + '"}');
             }
@@ -931,13 +931,17 @@ var _Schema = {
 
     },
     putPropertyDefinition: function(id, data) {
+        
+        var jsonData = JSON.parse(data);
+        console.log(jsonData);
+        
         log('putPropertyDefinition', id, data);
         $.ajax({
             url: rootUrl + 'schema_nodes/' + id,
             type: 'PUT',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: data,
+            data: JSON.stringify(jsonData),
             statusCode: {
                 200: function() {
                     _Schema.reload();
