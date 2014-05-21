@@ -92,7 +92,16 @@ public class NotionPropertyParser extends PropertyParser {
 				buf.append(", ");
 				buf.append(baseProperty);
 				buf.append("Property,");
-				buf.append(" new PropertySetNotion(");
+
+				// use PropertyNotion when only a single element is given
+				if (parts.length == 2) {
+
+					buf.append(" new PropertyNotion(");
+
+				} else {
+
+					buf.append(" new PropertySetNotion(");
+				}
 
 				for (int i=1; i<parts.length; i++) {
 

@@ -25,6 +25,7 @@ package org.structr.schema;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.StructrConf;
@@ -44,7 +45,8 @@ import org.structr.schema.compiler.NodeExtender;
  */
 public class SchemaService implements Service {
 
-	private static final Logger logger = Logger.getLogger(SchemaService.class.getName());
+	private static final Logger logger           = Logger.getLogger(SchemaService.class.getName());
+	private static final AtomicBoolean compiling = new AtomicBoolean(false);
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -57,42 +59,55 @@ public class SchemaService implements Service {
 
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
 
-		final Set<String> dynamicViews  = new LinkedHashSet<>();
-		final NodeExtender nodeExtender = new NodeExtender();
-		boolean success                 = true;
+		boolean success = true;
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-			// collect node classes
-			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
-				nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
-				dynamicViews.addAll(schemaNode.getViews());
+		// compiling must only be done once
+		if (compiling.compareAndSet(false, true)) {
+
+			// this is a very critical section :)
+			synchronized (SchemaService.class) {
+
+				final Set<String> dynamicViews  = new LinkedHashSet<>();
+				final NodeExtender nodeExtender = new NodeExtender();
+
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+
+					// collect node classes
+					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+						nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
+						dynamicViews.addAll(schemaNode.getViews());
+					}
+
+					// collect relationship classes
+					for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
+						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
+						dynamicViews.addAll(schemaRelationship.getViews());
+					}
+
+					// compile all classes at once
+					for (final Class newType : nodeExtender.compile(errorBuffer).values()) {
+						Services.getInstance().getConfigurationProvider().registerEntityType(newType);
+					}
+
+					success = !errorBuffer.hasError();
+
+					// inject views in configuration provider
+					if (success) {
+
+						Services.getInstance().getConfigurationProvider().registerDynamicViews(dynamicViews);
+						// TODO: add all views
+					}
+
+				} catch (Throwable t) {
+
+					logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
+
+					success = false;
+				}
 			}
 
-			// collect relationship classes
-			for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
-				nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
-				dynamicViews.addAll(schemaRelationship.getViews());
-			}
-
-			// compile all classes at once
-			for (final Class newType : nodeExtender.compile(errorBuffer).values()) {
-				Services.getInstance().getConfigurationProvider().registerEntityType(newType);
-			}
-
-			success = !errorBuffer.hasError();
-
-			// inject views in configuration provider
-			if (success) {
-
-				Services.getInstance().getConfigurationProvider().registerDynamicViews(dynamicViews);
-				// TODO: add all views
-			}
-
-		} catch (Throwable t) {
-
-			logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
-
-			success = false;
+			// compiling done
+			compiling.set(false);
 		}
 
 		return success;

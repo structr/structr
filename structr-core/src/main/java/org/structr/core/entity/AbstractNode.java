@@ -2072,9 +2072,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					if (source instanceof Collection) {
 
-						list.addAll((Collection)source);
+						// filter null objects
+						for (Object obj : (Collection)source) {
+							if (obj != null) {
 
-					} else {
+								list.add(obj);
+							}
+						}
+
+					} else if (source != null) {
 
 						list.add(source);
 					}
