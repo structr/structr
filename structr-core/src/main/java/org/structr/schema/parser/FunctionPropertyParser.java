@@ -18,6 +18,7 @@
  */
 package org.structr.schema.parser;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.FunctionProperty;
@@ -58,6 +59,6 @@ public class FunctionPropertyParser extends PropertyParser {
 
 	@Override
 	public void extractTypeValidation(final Schema entity, String expression) throws FrameworkException {
-		auxType = ", \"" + expression + "\"";
+		auxType = ", \"" + StringEscapeUtils.escapeJava(expression) + "\"";
 	}
 }
