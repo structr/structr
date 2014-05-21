@@ -566,10 +566,6 @@ var Structr = {
             height: bh
         });
 
-        $('.CodeMirror').each(function(i, el) {
-            el.CodeMirror.refresh();
-        });
-
         var tabsHeight = $('.files-tabs ul').height();
         
         $('.CodeMirror').css({
@@ -578,6 +574,10 @@ var Structr = {
 
         $('.CodeMirror-gutters').css({
             height: (dh - 118 - 14 - tabsHeight) + 'px'
+        });
+
+        $('.CodeMirror').each(function(i, el) {
+            el.CodeMirror.refresh();
         });
 
         $('.fit-to-height').css({
@@ -620,10 +620,6 @@ var Structr = {
             height: bh
         });
 
-        $('.CodeMirror').each(function(i, el) {
-            el.CodeMirror.refresh();
-        });
-
         var tabsHeight = $('.files-tabs ul').height();
         
         $('.CodeMirror').css({
@@ -632,6 +628,10 @@ var Structr = {
 
         $('.CodeMirror-gutters').css({
             height: (dh - 118 - 14 - tabsHeight) + 'px'
+        });
+
+        $('.CodeMirror').each(function(i, el) {
+            el.CodeMirror.refresh();
         });
 
         $('.fit-to-height').css({
