@@ -74,7 +74,6 @@ var _Files = {
                 height: windowHeight - headerOffsetHeight + 'px'
             });
         }
-
         Structr.resize();
 
     },
@@ -570,7 +569,9 @@ var _Files = {
                 $('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
                 
                 
-                $('#tab-' + entity.id).on('click', function(tab) {
+                $('#tab-' + entity.id).on('click', function(e) {
+                    
+                    e.stopPropagation();
                     
                     // Store current editor text
                     if (editor) {
@@ -580,7 +581,8 @@ var _Files = {
                     activeFileId = getIdFromPrefixIdString($(this).prop('id'), 'tab-');
                     $('#content-tab-' + activeFileId).empty();
                     _Files.editContent(null, entity, $('#content-tab-' + activeFileId));
-                    _Files.resize();
+                    
+                    return false;
                 });
 
             });
@@ -628,7 +630,7 @@ var _Files = {
                     lineNumbers: true
                 });
 
-                $('.CodeMirror').css({ 'height': 443 });
+                //$('.CodeMirror').css({ 'height': 443 });
                 editor.id = file.id;
 
                 dialogBtn.children('#saveFile').remove();
@@ -685,6 +687,8 @@ var _Files = {
                         dialogCancelButton.click();
                     }, 500);
                 });
+                
+                _Files.resize();
 
             },
             error: function(xhr, statusText, error) {
