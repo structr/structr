@@ -572,6 +572,14 @@ var Structr = {
             height: (dh - 118 - 14 - tabsHeight) + 'px'
         });
 
+        $('.CodeMirror-gutters').css({
+            height: (dh - 118 - 14 - tabsHeight) + 'px'
+        });
+
+        $('.CodeMirror').each(function(i, el) {
+            el.CodeMirror.refresh();
+        });
+
         $('.fit-to-height').css({
             height: h - 74 + 'px'
         });
@@ -581,9 +589,6 @@ var Structr = {
             Structr.maximize();
         });
 
-        $('.CodeMirror').each(function(i, el) {
-            el.CodeMirror.refresh();
-        });
     },
     maximize: function() {
 
@@ -616,9 +621,17 @@ var Structr = {
         });
 
         var tabsHeight = $('.files-tabs ul').height();
-
+        
         $('.CodeMirror').css({
             height: (dh - 118 - 14 - tabsHeight) + 'px'
+        });
+
+        $('.CodeMirror-gutters').css({
+            height: (dh - 118 - 14 - tabsHeight) + 'px'
+        });
+
+        $('.CodeMirror').each(function(i, el) {
+            el.CodeMirror.refresh();
         });
 
         $('.fit-to-height').css({
@@ -632,9 +645,6 @@ var Structr = {
             Structr.resize();
         });
 
-        $('.CodeMirror').each(function(i, el) {
-            el.CodeMirror.refresh();
-        });
     },
     error: function(text, callback) {
         if (text)
