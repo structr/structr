@@ -19,6 +19,7 @@
 package org.structr.rest.serialization;
 
 import java.io.IOException;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
 /**
@@ -28,8 +29,7 @@ import org.structr.core.GraphObject;
 public interface RestWriter {
 
 	public void setIndent(final String indent);
-	
-	public void flush() throws IOException;
+	public SecurityContext getSecurityContext();
 
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException;
 	public RestWriter endDocument() throws IOException;

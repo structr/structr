@@ -26,14 +26,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -50,6 +56,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
@@ -64,6 +71,7 @@ import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.html.Body;
+import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.Attr;
@@ -84,10 +92,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	private static final Logger logger = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();
-	private final static String STRUCTR_ACTION_PROPERTY = "data-structr-action";
+
+	private static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMElement> syncedNode = new StartNode("syncedNode", Sync.class, new PropertyNotion(id));
+	public static final Property<DOMElement> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
@@ -195,11 +205,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _role = new HtmlProperty("role");
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-		name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, syncedNode
+		name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
-		restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, syncedNode,
+		restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent,
 		renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
 		_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 		_tabindex, _title, _translate, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
@@ -258,6 +268,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					&& !key.equals(GraphObject.id)
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
+					&& !key.equals(DOMElement.syncedNodes)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
 
 					try {
@@ -274,27 +285,45 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	@Override
-	public void updateFrom(final DOMNode source) throws FrameworkException {
+	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 
-		if (source instanceof DOMElement) {
+		if (newNode instanceof DOMElement) {
 
-			final DOMElement otherElement = (DOMElement) source;
-
+			final PropertyMap properties = new PropertyMap();
 			for (final Property key : htmlView.properties()) {
 
-				final Object value1 = this.getProperty(key);
-				final Object value2 = otherElement.getProperty(key);
-
-				if (value1 == null && value2 == null) {
-					continue;
-				}
-
-				// copy attributes
-				this.setProperty(key, otherElement.getProperty(key));
+				properties.put(key, newNode.getProperty(key));
 			}
 
+			// copy tag
+			properties.put(DOMElement.tag, newNode.getProperty(DOMElement.tag));
+
+			updateFromPropertyMap(properties);
+		}
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+
+		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
+
+			final PropertyKey key = entry.getKey();
+			final Object value1 = this.getProperty(key);
+			final Object value2 = entry.getValue();
+
+			if (value1 == null && value2 == null) {
+				continue;
+			}
+
+			// copy attributes
+			this.setProperty(key, properties.get(key));
+		}
+
+		final String tag = properties.get(DOMElement.tag);
+		if (tag != null) {
+
 			// overwrite tag with value from source node
-			this.setProperty(DOMElement.tag, otherElement.getProperty(DOMElement.tag));
+			this.setProperty(DOMElement.tag, tag);
 		}
 	}
 
@@ -374,7 +403,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * @throws FrameworkException
 	 */
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		if (renderContext.hasTimeout(RENDER_TIMEOUT)) {
+
+			logger.log(Level.WARNING, "Render timeout reached, aborting.");
+
+			return;
+		}
 
 		Result localResult = renderContext.getResult();
 
@@ -414,9 +450,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				List<DOMChildren> rels = getChildRelationships();
 				if (rels.isEmpty()) {
 
+					migrateSyncRels();
+
 					// No child relationships, maybe this node is in sync with another node
 					//Sync syncRel = getIncomingRelationship(Sync.class);
-					DOMElement _syncedNode = (DOMElement) getProperty(syncedNode);
+					DOMElement _syncedNode = (DOMElement) getProperty(sharedComponent);
 					if (_syncedNode != null) {
 						rels.addAll(_syncedNode.getChildRelationships());
 					}
@@ -1197,11 +1235,69 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 
 		return allProperties;
-
 	}
 
 	@Override
 	public boolean isSynced() {
 		return hasIncomingRelationships(Sync.class) || hasOutgoingRelationships(Sync.class);
+	}
+
+	private void migrateSyncRels() {
+		try {
+
+			org.neo4j.graphdb.Node n = getNode();
+
+			Iterable<Relationship> incomingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.INCOMING);
+			Iterable<Relationship> outgoingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.OUTGOING);
+
+			if (getOwnerDocument() instanceof ShadowDocument) {
+
+				// We are a shared component and must not have any incoming SYNC rels
+				for (Relationship r : incomingSyncRels) {
+					r.delete();
+				}
+
+			} else {
+
+				for (Relationship r : outgoingSyncRels) {
+					r.delete();
+				}
+
+				for (Relationship r : incomingSyncRels) {
+
+					DOMElement possibleSharedComp = StructrApp.getInstance().get(DOMElement.class, (String) r.getStartNode().getProperty("id"));
+
+					if (!(possibleSharedComp.getOwnerDocument() instanceof ShadowDocument)) {
+
+						r.delete();
+
+					}
+
+				}
+			}
+
+		} catch (FrameworkException ex) {
+			Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
+		}
+
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData() {
+
+		final List<Syncable> data = super.getSyncData();
+
+		data.add(getProperty(DOMElement.sharedComponent));
+		data.add(getIncomingRelationship(Sync.class));
+
+		if (isSynced()) {
+
+			// add parent
+			data.add(getProperty(ownerDocument));
+			data.add(getOutgoingRelationship(PageLink.class));
+		}
+
+		return data;
 	}
 }

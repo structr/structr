@@ -18,10 +18,17 @@
  */
 package org.structr.web.entity.relation;
 
+import java.util.Collections;
+import java.util.List;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
+import org.structr.common.Syncable;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.ManyToOne;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -32,14 +39,14 @@ import org.structr.web.entity.dom.Page;
  *
  * @author Christian Morgner
  */
-public class PageLink extends ManyToOne<DOMNode, Page> {
+public class PageLink extends ManyToOne<DOMNode, Page> implements Syncable {
 
 	public static final Property<String> linkType     = new StringProperty("linkType");
 
 	public static final View uiView = new View(PageLink.class, PropertyView.Ui,
-		 linkType	
+		 linkType
 	);
-	
+
 	static {
 
 		// StructrApp.getConfiguration().registerNamedRelation("resource_link", ResourceLink.class, Link.class, Linkable.class, RelType.LINK);
@@ -59,5 +66,34 @@ public class PageLink extends ManyToOne<DOMNode, Page> {
 	@Override
 	public String name() {
 		return "PAGE";
+	}
+
+	@Override
+	public List<Syncable> getSyncData() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return true;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return this;
+	}
+
+	@Override
+	public void updateFromPropertyMap(PropertyMap properties) throws FrameworkException {
 	}
 }

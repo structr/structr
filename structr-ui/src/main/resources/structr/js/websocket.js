@@ -261,7 +261,7 @@ function wsConnect() {
                     StructrModel.callCallback(data.callback, entity);
 
                 });
-                
+
                 StructrModel.clearCallback(data.callback);
 
             } else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
@@ -291,6 +291,32 @@ function wsConnect() {
             } else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
 
                 log('LIST_COMPONENTS', result, data);
+
+                $(result).each(function(i, entity) {
+
+                    StructrModel.callCallback(data.callback, entity);
+
+                });
+
+                StructrModel.clearCallback(data.callback);
+
+            } else if (command.startsWith('LIST_SYNCABLES')) { /*********************** LIST_SYNCABLES ************************/
+
+                console.log(data);
+
+                log('LIST_SYNCABLES', result, data);
+
+                $(result).each(function(i, entity) {
+
+                    StructrModel.callCallback(data.callback, entity);
+
+                });
+
+                StructrModel.clearCallback(data.callback);
+
+            } else if (command.startsWith('LIST_ACTIVE_ELEMENTS')) { /*********************** LIST_ACTIVE_ELEMENTS ************************/
+
+                log('LIST_ACTIVE_ELEMENTS', result, data);
 
                 $(result).each(function(i, entity) {
 
@@ -386,6 +412,17 @@ function wsConnect() {
                 if (!localStorage.getItem(autoRefreshDisabledKey + activeTab)) {
                     _Pages.reloadPreviews();
                 }
+            } else if (command === 'PROGRESS') { /*********************** PROGRESS ************************/
+
+                if (dialogMsg.is(':visible')) {
+                    var msgObj = JSON.parse(data.message);
+                    dialogMsg.html('<div class="infoBox info">Transferred ' + msgObj.current + ' of ' + msgObj.total + ' objects</div>');
+                }
+
+            } else if (command === 'FINISHED') { /*********************** FINISHED ************************/
+
+                StructrModel.callCallback(data.callback);
+                StructrModel.clearCallback(data.callback);
 
             } else {
                 console.log('Received unknown command: ' + command);

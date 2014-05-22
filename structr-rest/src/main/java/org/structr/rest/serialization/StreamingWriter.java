@@ -55,18 +55,16 @@ public abstract class StreamingWriter {
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
 	private final Property<String> id                    = new StringProperty("id");
+	private final DecimalFormat decimalFormat            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private final PropertyKey idProperty                 = GraphObject.id;
 	private int outputNestingDepth                       = 3;
-	private DecimalFormat decimalFormat                  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private PropertyKey idProperty                       = GraphObject.id;
-	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
-	protected boolean indent                               = true;
+	protected boolean indent                             = true;
 
-	public abstract RestWriter getRestWriter(final Writer writer);
-	
+	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
+
 	public StreamingWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
 
-		this.securityContext    = SecurityContext.getSuperUserInstance();
 		this.outputNestingDepth = outputNestingDepth;
 		this.propertyView       = propertyView;
 		this.indent             = indent;
@@ -75,7 +73,7 @@ public abstract class StreamingWriter {
 		serializers.put(PropertyMap.class, new PropertyMapSerializer());
 		serializers.put(Iterable.class,    new IterableSerializer());
 		serializers.put(Map.class,         new MapSerializer());
-		
+
 		nonSerializerClasses.add(Object.class);
 		nonSerializerClasses.add(String.class);
 		nonSerializerClasses.add(Integer.class);
@@ -86,21 +84,21 @@ public abstract class StreamingWriter {
 		nonSerializerClasses.add(Character.class);
 		nonSerializerClasses.add(StringBuffer.class);
 		nonSerializerClasses.add(Boolean.class);
-		
+
 		//this.writer = new StructrWriter(writer);
 		//this.writer.setIndent("   ");
 	}
-	
-	public void stream(final Writer output, final Result result, final String baseUrl) throws IOException {
-		
+
+	public void stream(final SecurityContext securityContext, final Writer output, final Result result, final String baseUrl) throws IOException {
+
 		long t0 = System.nanoTime();
-		
-		RestWriter writer = getRestWriter(output);
+
+		RestWriter writer = getRestWriter(securityContext, output);
 
 		if (indent) {
 			writer.setIndent("   ");
 		}
-		
+
 		// result fields in alphabetical order
 		List<? extends GraphObject> results = result.getResults();
 		Integer page = result.getPage();
@@ -112,15 +110,12 @@ public abstract class StreamingWriter {
 		String sortKey = result.getSortKey();
 		String sortOrder = result.getSortOrder();
 		GraphObject metaData = result.getMetaData();
-		
-		// flush after 20 elements by default
-		int flushSize = pageSize != null ? pageSize.intValue() : 20;
 
 		writer.beginDocument(baseUrl, propertyView.get(securityContext));
-		
+
 		// open result set
 		writer.beginObject();
-		
+
 		if (page != null) {
 			writer.name("page").value(page);
 		}
@@ -150,12 +145,12 @@ public abstract class StreamingWriter {
 			} else if (result.isPrimitiveArray()) {
 
 				writer.name("result").beginArray();
-				
+
 				for (GraphObject graphObject : results) {
-					
+
 					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
 					if (value != null) {
-						
+
 						writer.value(value.toString());
 					}
 				}
@@ -172,7 +167,6 @@ public abstract class StreamingWriter {
 				// keep track of serialization time
 				long startTime            = System.currentTimeMillis();
 				String localPropertyView  = propertyView.get(null);
-				int flushCounter          = 0;
 
 				if (result.isCollection()) {
 
@@ -180,20 +174,14 @@ public abstract class StreamingWriter {
 
 					// serialize list of results
 					for (GraphObject graphObject : results) {
-						
+
 						root.serialize(writer, graphObject, localPropertyView, 0);
 
-						// flush every once in a while
-						if ((++flushCounter % flushSize) == 0) {
-							writer.flush();
-						}
-						
 						// check for timeout
 						if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
 
 							logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
-							writer.flush();
-							
+
 							// TODO: create some output indicating that streaming was interrupted
 							break;
 						}
@@ -220,23 +208,20 @@ public abstract class StreamingWriter {
 		if (sortOrder != null) {
 			writer.name("sort_order").value(sortOrder);
 		}
-		
+
 		if (metaData != null) {
 
 			String localPropertyView  = propertyView.get(null);
-			
+
 			writer.name("meta_data");
 			root.serialize(writer, metaData, localPropertyView, 0);
 		}
-		
+
 		writer.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
 
 		// finished
 		writer.endObject();
 		writer.endDocument();
-
-		// flush
-		writer.flush();
 	}
 
 	private Serializer getSerializerForType(Class type) {
@@ -248,7 +233,7 @@ public abstract class StreamingWriter {
 
 			do {
 				serializer = serializers.get(localType);
-				
+
 				if (serializer == null) {
 
 					Set<Class> interfaces = new LinkedHashSet<>();
@@ -263,29 +248,29 @@ public abstract class StreamingWriter {
 						}
 					}
 				}
-				
+
 				localType = localType.getSuperclass();
 
 			} while (serializer == null && !localType.equals(Object.class));
-			
-			
+
+
 			// cache found serializer
 			if (serializer != null) {
 				serializerCache.put(type, serializer);
 			}
 		}
-		
+
 		return serializer;
 	}
-	
+
 	private void collectAllInterfaces(Class type, Set<Class> interfaces) {
 
 		if (interfaces.contains(type)) {
 			return;
 		}
-		
+
 		for (Class iface : type.getInterfaces()) {
-			
+
 			collectAllInterfaces(iface, interfaces);
 			interfaces.add(iface);
 		}
@@ -307,45 +292,45 @@ public abstract class StreamingWriter {
 
 				writer.value(value.toString());
 			}
-			
+
 		} else {
-		
+
 			writer.nullValue();
 		}
 	}
-	
+
 	public abstract class Serializer<T> {
-		
+
 		public abstract void serialize(RestWriter writer, T value, String localPropertyView, int depth) throws IOException;
-		
+
 		public void serializeRoot(RestWriter writer, Object value, String localPropertyView, int depth) throws IOException {
-			
+
 			if (value != null) {
-				
+
 				Serializer serializer = getSerializerForType(value.getClass());
 				if (serializer != null) {
 
 					serializer.serialize(writer, value, localPropertyView, depth);
-					
+
 					return;
 				}
 			}
-					
+
 			serializePrimitive(writer, value);
 		}
-		
+
 		public void serializeProperty(RestWriter writer, PropertyKey key, Object value, String localPropertyView, int depth) {
 
 			try {
-				PropertyConverter converter = key.inputConverter(securityContext);
+				PropertyConverter converter = key.inputConverter(writer.getSecurityContext());
 
 				if (converter != null) {
 
 					Object convertedValue = null;
-					
+
 					// ignore conversion errors
 					try { convertedValue = converter.revert(value); } catch (Throwable t) {}
-					
+
 					serializeRoot(writer, convertedValue, localPropertyView, depth);
 
 				} else {
@@ -369,18 +354,18 @@ public abstract class StreamingWriter {
 			}
 		}
 	}
-	
+
 	public class RootSerializer extends Serializer<GraphObject> {
 
 		@Override
 		public void serialize(RestWriter writer, GraphObject source, String localPropertyView, int depth) throws IOException {
-			
+
 			writer.beginObject(source);
 
 			// prevent endless recursion by pruning at depth n
 			if (depth <= outputNestingDepth) {
 
-				
+
 				/*
 				// id (only if idProperty is not set)
 				if (idProperty == null) {
@@ -397,7 +382,7 @@ public abstract class StreamingWriter {
 
 				}
 				*/
-				
+
 				// property keys
 				Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
 				if (keys != null) {
@@ -423,11 +408,11 @@ public abstract class StreamingWriter {
 					}
 				}
 			}
-			
+
 			writer.endObject(source);
 		}
 	}
-	
+
 	public class IterableSerializer extends Serializer<Iterable> {
 
 		@Override
@@ -447,7 +432,7 @@ public abstract class StreamingWriter {
 			writer.endArray();
 		}
 	}
-	
+
 	public class MapSerializer extends Serializer {
 
 		@Override
@@ -472,13 +457,13 @@ public abstract class StreamingWriter {
 					serializeRoot(writer, value, localPropertyView, depth+1);
 				}
 			}
-			
+
 			writer.endObject();
 		}
 	}
-	
+
 	public class PropertyMapSerializer extends Serializer<PropertyMap> {
-		
+
 		public PropertyMapSerializer() {}
 
 		@Override

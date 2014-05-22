@@ -20,6 +20,7 @@ package org.structr.web.entity.dom;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
 import org.w3c.dom.DOMException;
@@ -70,12 +71,17 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 	}
 
 	@Override
-	public boolean contentEquals(DOMNode otherNode) {
+	public boolean contentEquals(final DOMNode otherNode) {
 		return false;
 	}
 
 	@Override
-	public void updateFrom(final DOMNode source) throws FrameworkException {
+	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
+		// do nothing
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
 		// do nothing
 	}
 

@@ -18,7 +18,11 @@
  */
 package org.structr.web.entity;
 
+import java.util.List;
+import org.structr.common.Syncable;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityIdProperty;
@@ -35,5 +39,40 @@ public class LinkSource extends DOMElement {
 
 	public static final Property<Linkable> linkable = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
 	public static final Property<String> linkableId = new EntityIdProperty("linkableId", linkable);
+
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData() {
+
+		final List<Syncable> data = super.getSyncData();
+
+		data.add(getProperty(linkable));
+
+		for (final ResourceLink link : getRelationships(ResourceLink.class)) {
+			data.add(link);
+		}
+
+		return data;
+	}
+
+	@Override
+	public boolean isNode() {
+		return true;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return this;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return null;
+	}
 
 }

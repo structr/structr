@@ -16,24 +16,24 @@ public class UpdateOperation extends InvertibleModificationOperation {
 
 	private DOMNode existingNode = null;
 	private DOMNode newNode      = null;
-	
+
 	public UpdateOperation(final Map<String, DOMNode> hashMappedExistingNodes, final DOMNode existingNode, final DOMNode newNode) {
 
 		super(hashMappedExistingNodes);
-		
+
 		this.existingNode = existingNode;
 		this.newNode      = newNode;
 	}
 
 	@Override
 	public String toString() {
-		
+
 		if (existingNode instanceof Content) {
 
 			return "Update Content(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
-			
+
 		} else {
-			
+
 			return "Update " + newNode.getProperty(DOMElement.tag) + "(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
 		}
 	}
@@ -41,7 +41,7 @@ public class UpdateOperation extends InvertibleModificationOperation {
 	// ----- interface InvertibleModificationOperation -----
 	@Override
 	public void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException {
-		existingNode.updateFrom(newNode);
+		existingNode.updateFromNode(newNode);
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class UpdateOperation extends InvertibleModificationOperation {
 
 	@Override
 	public Integer getPosition() {
-		
+
 		// update operations should go last
 		return 400;
 	}

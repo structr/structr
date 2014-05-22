@@ -34,6 +34,14 @@ public class MessageBuilder {
 	}
 
 	// ----- static methods -----
+	public static MessageBuilder progress() {
+		return builder().command("PROGRESS");
+	}
+
+	public static MessageBuilder finished() {
+		return builder().command("FINISHED");
+	}
+
 	public static MessageBuilder status() {
 		return builder().command("STATUS");
 	}
@@ -48,6 +56,10 @@ public class MessageBuilder {
 
 	public static MessageBuilder update() {
 		return builder().command("UPDATE");
+	}
+
+	public static MessageBuilder forName(final String command) {
+		return builder().command(command);
 	}
 
 	// ----- non-static methods -----

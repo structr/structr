@@ -43,9 +43,9 @@ var _Dragndrop = {
             drop: function(e, ui) {
 
                 log('Drop event', e, ui);
-
+                
                 if (dropBlocked) {
-                    console.log('Drop in iframe was blocked');
+                    log('Drop in iframe was blocked');
                     dropBlocked = false;
                     return false;
                 }
@@ -179,7 +179,6 @@ var _Dragndrop = {
 
             if (shadowPage && source.pageId === shadowPage.id) {
 
-                log('clone component!');
                 Command.cloneComponent(source.id, target.id);
 
             } else {
@@ -230,33 +229,27 @@ var _Dragndrop = {
                         var key = tag.substring(tag.indexOf('.') + 1);
                         log('tag, key, subkey', tag, key, related.subKey)
                         if (related.isCollection) {
-                            Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}', function() {
-                                Command.setProperty(target.id, 'dataKey', key, false, function() {
-                                    _Pages.reloadPreviews();
-                                });
-                            });
+                            Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
+                            Command.setProperty(target.id, 'dataKey', key);
+                            $('#dataKey_').val(key);
                         } else {
-                            Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}', function() {
-                                _Pages.reloadPreviews();
-                            });
+                            Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}');
+                            Command.setProperty(target.id, 'dataKey', null);
+                            $('#dataKey_').val('');
                         }
                     } else {
-                        Command.setProperty(firstContentId, 'content', '${' + tag + '}', function() {
-                            _Pages.reloadPreviews();
-                        });
+                        Command.setProperty(firstContentId, 'content', '${' + tag + '}');
+                        Command.setProperty(target.id, 'dataKey', null);
+                        $('#dataKey_').val('');
                     }
                 });
 
             } else if (tag.indexOf(':') !== -1) {
-
                 var type = tag.substring(1);
-
                 Command.setProperty(target.id, 'restQuery', pluralize(type.toLowerCase()));
-
                 Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
                     _Pages.reloadPreviews();
                 });
-
             } else {
                 return _Dragndrop.htmlElementFromPaletteDropped(tag, target, pageId);
             }
@@ -441,4 +434,4 @@ var _Dragndrop = {
 
         return true;
     }
-}
+};

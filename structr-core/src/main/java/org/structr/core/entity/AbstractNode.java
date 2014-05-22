@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -145,9 +146,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_CLEAN               = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
 	public static final String ERROR_MESSAGE_URLENCODE           = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
 	public static final String ERROR_MESSAGE_IF                  = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
+	public static final String ERROR_MESSAGE_DO                  = "Usage: ${do(condition, trueStatement, falseStatement)}. Example: ${do(empty(this.name), \"print(\"empty\")\", \"print(\"not empty\")\")}";
 	public static final String ERROR_MESSAGE_EMPTY               = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 	public static final String ERROR_MESSAGE_EQUAL               = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
 	public static final String ERROR_MESSAGE_ADD                 = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
+	public static final String ERROR_MESSAGE_INT_SUM             = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
+	public static final String ERROR_MESSAGE_DOUBLE_SUM          = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
+	public static final String ERROR_MESSAGE_EXTRACT             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
+	public static final String ERROR_MESSAGE_MERGE               = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
+	public static final String ERROR_MESSAGE_SORT                = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
 	public static final String ERROR_MESSAGE_LT                  = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
 	public static final String ERROR_MESSAGE_GT                  = "Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}";
 	public static final String ERROR_MESSAGE_LTE                 = "Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}";
@@ -161,6 +168,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_CONFIG              = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
 	public static final String ERROR_MESSAGE_DATE_FORMAT         = "Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
 	public static final String ERROR_MESSAGE_NUMBER_FORMAT       = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+	public static final String ERROR_MESSAGE_TEMPLATE            = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
 	public static final String ERROR_MESSAGE_NOT                 = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_AND                 = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_OR                  = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
@@ -1815,6 +1823,36 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
+		functions.put("do", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources[0] == null || sources.length < 3) {
+
+					return "";
+				}
+
+				final AbstractNode node = (AbstractNode)entity;
+
+				if ("true".equals(sources[0]) || Boolean.TRUE.equals(sources[0])) {
+
+					node.extractFunctions(entity.getSecurityContext(), ctx, sources[1].toString());
+
+				} else {
+
+					node.extractFunctions(entity.getSecurityContext(), ctx, sources[2].toString());
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_DO;
+			}
+
+		});
 		functions.put("empty", new Function<Object, Object>() {
 
 			@Override
@@ -1905,6 +1943,197 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_ADD;
+			}
+
+		});
+		functions.put("double_sum", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				double result = 0.0;
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof Collection) {
+
+						for (final Number num : (Collection<Number>)sources[0]) {
+
+							result += num.doubleValue();
+						}
+					}
+				}
+
+				return result;
+
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_DOUBLE_SUM;
+			}
+
+		});
+		functions.put("int_sum", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				int result = 0;
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof Collection) {
+
+						for (final Number num : (Collection<Number>)sources[0]) {
+
+							result += num.intValue();
+						}
+					}
+				}
+
+				return result;
+
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_INT_SUM;
+			}
+
+		});
+		functions.put("extract", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					// no property key given, maybe we should extract a list of lists?
+					if (sources[0] instanceof Collection) {
+
+						final List extraction = new LinkedList();
+
+						for (final Object obj : (Collection)sources[0]) {
+
+							if (obj instanceof Collection) {
+
+								extraction.addAll((Collection)obj);
+							}
+						}
+
+						return extraction;
+					}
+
+
+
+				} else if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					if (sources[0] instanceof Collection && sources[1] instanceof String) {
+
+						final ConfigurationProvider config = StructrApp.getConfiguration();
+						final List extraction              = new LinkedList();
+						final String keyName               = (String)sources[1];
+
+						for (final Object obj : (Collection)sources[0]) {
+
+							if (obj instanceof GraphObject) {
+
+								final PropertyKey key = config.getPropertyKeyForJSONName(obj.getClass(), keyName);
+								final Object value = ((GraphObject)obj).getProperty(key);
+								if (value != null) {
+
+									extraction.add(value);
+								}
+							}
+						}
+
+						return extraction;
+					}
+				}
+
+				return null;
+
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_EXTRACT;
+			}
+
+		});
+		functions.put("merge", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				final List list = new ArrayList();
+				for (final Object source : sources) {
+
+					if (source instanceof Collection) {
+
+						// filter null objects
+						for (Object obj : (Collection)source) {
+							if (obj != null) {
+
+								list.add(obj);
+							}
+						}
+
+					} else if (source != null) {
+
+						list.add(source);
+					}
+				}
+
+				return list;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MERGE;
+			}
+
+		});
+		functions.put("sort", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					if (sources[0] instanceof List && sources[1] instanceof String) {
+
+						final List list         = (List)sources[0];
+						final String sortKey    = sources[1].toString();
+						final Iterator iterator = list.iterator();
+
+						if (iterator.hasNext()) {
+
+							final Object firstElement = iterator.next();
+							if (firstElement instanceof GraphObject) {
+
+								final Class type          = firstElement.getClass();
+								final PropertyKey key     = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
+								final boolean descending  = sources.length == 3 && sources[2] != null && "true".equals(sources[2].toString());
+
+								if (key != null) {
+
+									List<GraphObject> sortCollection = (List<GraphObject>)list;
+									Collections.sort(sortCollection, new GraphObjectComparator(key, descending));
+								}
+							}
+
+						}
+					}
+				}
+
+				return sources[0];
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SORT;
 			}
 
 		});
@@ -2328,6 +2557,42 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_NUMBER_FORMAT;
+			}
+		});
+		functions.put("template", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources == null || sources != null && sources.length != 3) {
+					return ERROR_MESSAGE_TEMPLATE;
+				}
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode) {
+
+					final App app                       = StructrApp.getInstance(entity.getSecurityContext());
+					final String name                   = sources[0].toString();
+					final String locale                 = sources[1].toString();
+					final MailTemplate template         = app.nodeQuery(MailTemplate.class).andName(name).and(MailTemplate.locale, locale).getFirst();
+					final AbstractNode templateInstance = (AbstractNode)sources[2];
+
+					if (template != null) {
+
+						final String text = template.getProperty(MailTemplate.text);
+						if (text != null) {
+
+							// recursive replacement call, be careful here
+							return templateInstance.replaceVariables(entity.getSecurityContext(), ctx, text);
+						}
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_TEMPLATE;
 			}
 		});
 		functions.put("not", new Function<Object, Object>() {
@@ -3234,7 +3499,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	}
 
-	protected Object extractFunctions(SecurityContext securityContext, ActionContext actionContext, String source) throws FrameworkException {
+	public Object extractFunctions(SecurityContext securityContext, ActionContext actionContext, String source) throws FrameworkException {
 
 		if ("null".equals(source)) {
 			return NULL_STRING;

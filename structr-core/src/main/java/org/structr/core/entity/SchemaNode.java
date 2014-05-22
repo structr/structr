@@ -18,23 +18,30 @@
  */
 package org.structr.core.entity;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.Schema;
@@ -47,18 +54,20 @@ import org.structr.schema.action.Actions;
  *
  * @author Christian Morgner
  */
-public class SchemaNode extends AbstractSchemaNode implements Schema {
+public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 
-	public static final Property<List<SchemaNode>>  relatedTo    = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<List<SchemaNode>>  relatedFrom  = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<String>            extendsClass = new StringProperty("extendsClass").indexed();
+	public static final Property<List<SchemaNode>>  relatedTo        = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<List<SchemaNode>>  relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<String>            extendsClass     = new StringProperty("extendsClass").indexed();
+	public static final Property<String>            defaultSortKey   = new StringProperty("defaultSortKey");
+	public static final Property<String>            defaultSortOrder = new StringProperty("defaultSortOrder");
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		name, extendsClass, relatedTo, relatedFrom
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, relatedTo, relatedFrom
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder
 	);
 
 	private Set<String> dynamicViews = new LinkedHashSet<>();
@@ -66,7 +75,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 
-		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Iterables.toList(super.getPropertyKeys(propertyView)));
+		final List<PropertyKey> propertyKeys = new LinkedList<>(Iterables.toList(super.getPropertyKeys(propertyView)));
 
 		// add "custom" property keys as String properties
 		for (final String key : SchemaHelper.getProperties(getNode())) {
@@ -77,7 +86,15 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 			propertyKeys.add(newKey);
 		}
 
-		return propertyKeys;
+		Collections.sort(propertyKeys, new Comparator<PropertyKey>() {
+
+			@Override
+			public int compare(PropertyKey o1, PropertyKey o2) {
+				return o1.jsonName().compareTo(o2.jsonName());
+			}
+		});
+
+		return new LinkedHashSet<>(propertyKeys);
 	}
 
 	@Override
@@ -147,6 +164,26 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 			}
 		}
 
+		if (getProperty(defaultSortKey) != null) {
+
+			String order = getProperty(defaultSortOrder);
+			if (order == null || "desc".equals(order)) {
+				order = "GraphObjectComparator.DESCENDING";
+			} else {
+				order = "GraphObjectComparator.ASCENDING";
+			}
+
+			src.append("\n\t@Override\n");
+			src.append("\tpublic PropertyKey getDefaultSortKey() {\n");
+			src.append("\t\treturn ").append(getProperty(defaultSortKey)).append("Property;\n");
+			src.append("\t}\n");
+
+			src.append("\n\t@Override\n");
+			src.append("\tpublic String getDefaultSortOrder() {\n");
+			src.append("\t\treturn ").append(order).append(";\n");
+			src.append("\t}\n");
+		}
+
 		formatValidators(src, validators);
 		formatSaveActions(src, saveActions);
 
@@ -163,12 +200,62 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		return ValidationHelper.checkStringMatchesRegex(this, name, "[A-Z][a-zA-Z_]+", errorBuffer);
+		return ValidationHelper.checkStringMatchesRegex(this, name, "[A-Z][a-zA-Z0-9_]+", errorBuffer);
 
 	}
 
+	@Override
+	public String getMultiplicity(final String propertyNameToCheck) {
+
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+		final String _className                 = getProperty(name);
+
+		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+
+			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
+				return outRel.getMultiplicity(true);
+			}
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+
+			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
+				return inRel.getMultiplicity(false);
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getRelatedType(final String propertyNameToCheck) {
+
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+		final String _className                 = getProperty(name);
+
+		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+
+			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
+				return outRel.getSchemaNodeTargetType();
+			}
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+
+			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
+				return inRel.getSchemaNodeSourceType();
+			}
+		}
+
+		return null;
+	}
+
+
+	// ----- private methods -----
 	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
-		SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
+		//SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
 		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
 	}
 
@@ -268,6 +355,38 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 		src.append("\n\t\treturn !error;\n");
 		src.append("\t}\n");
+
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean isNode() {
+		return true;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return this;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return null;
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+
 
 	}
 }

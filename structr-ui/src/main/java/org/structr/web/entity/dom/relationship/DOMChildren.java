@@ -18,14 +18,21 @@
  */
 package org.structr.web.entity.dom.relationship;
 
+import java.util.Collections;
+import java.util.List;
+import org.structr.common.Syncable;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.AbstractChildren;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
  * @author Christian Morgner
  */
-public class DOMChildren extends AbstractChildren<DOMNode, DOMNode> {
+public class DOMChildren extends AbstractChildren<DOMNode, DOMNode> implements Syncable {
 
 	@Override
 	public Class<DOMNode> getSourceType() {
@@ -35,5 +42,35 @@ public class DOMChildren extends AbstractChildren<DOMNode, DOMNode> {
 	@Override
 	public Class<DOMNode> getTargetType() {
 		return DOMNode.class;
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return true;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return this;
+	}
+
+	@Override
+	public void updateFromPropertyMap(PropertyMap properties) throws FrameworkException {
 	}
 }

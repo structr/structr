@@ -47,6 +47,7 @@ import org.structr.common.StructrConf;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -74,24 +75,24 @@ public class StructrCsvTest extends TestCase {
 	protected SecurityContext securityContext = null;
 	protected App app                         = null;
 	protected String basePath                 = null;
-	
+
 	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
 	protected static final String csvUrl = "/structr/csv";
 	protected static final String host = "127.0.0.1";
 	protected static final int httpPort = 8875;
-	
+
 	static {
 
 		// check character set
 		checkCharset();
-		
+
 		// configure RestAssured
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI = "http://" + host + ":" + httpPort;
 		RestAssured.port = httpPort;
 	}
-	
+
 
 	public void test00DbAvailable() {
 
@@ -104,7 +105,7 @@ public class StructrCsvTest extends TestCase {
 	protected void tearDown() throws Exception {
 
 		Services.getInstance().shutdown();
-		
+
 		File testDir = new File(basePath);
 		int count = 0;
 
@@ -181,7 +182,7 @@ public class StructrCsvTest extends TestCase {
 
 			tx.success();
 		}
-		
+
 		return nodes;
 	}
 
@@ -205,26 +206,26 @@ public class StructrCsvTest extends TestCase {
 
 		return rels;
 	}
-	
+
 	protected String concat(String... parts) {
 
 		StringBuilder buf = new StringBuilder();
-		
+
 		for (String part : parts) {
 			buf.append(part);
 		}
-		
+
 		return buf.toString();
 	}
-	
+
 	protected String createEntity(String resource, String... body) {
-		
+
 		StringBuilder buf = new StringBuilder();
-		
+
 		for (String part : body) {
 			buf.append(part);
 		}
-		
+
 		return getUuidFromLocation(RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(buf.toString())
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
@@ -277,12 +278,12 @@ public class StructrCsvTest extends TestCase {
 		final StructrConf config = Services.getBaseConfiguration();
 		final Date now           = new Date();
 		final long timestamp     = now.getTime();
-		
+
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		// enable "just testing" flag to avoid JAR resource scanning
 		config.setProperty(Services.TESTING, "true");
-		
+
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService HttpService");
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.TMP_PATH, "/tmp/");
@@ -294,7 +295,7 @@ public class StructrCsvTest extends TestCase {
 		config.setProperty(Services.UDP_PORT, "13466");
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-		
+
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(HttpService.APPLICATION_HOST, host);
 		config.setProperty(HttpService.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
@@ -318,7 +319,7 @@ public class StructrCsvTest extends TestCase {
 		config.setProperty("CsvServlet.user.autocreate", "false");
 		config.setProperty("CsvServlet.defaultview", PropertyView.Public);
 		config.setProperty("CsvServlet.outputdepth", "3");
-		
+
 		final Services services = Services.getInstance(config);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
@@ -327,31 +328,31 @@ public class StructrCsvTest extends TestCase {
 		// wait for service layer to be initialized
 		do {
 			try { Thread.sleep(100); } catch (Throwable t) {}
-			
+
 		} while (!services.isInitialized());
 	}
 
-	
+
 	protected String getUuidFromLocation(String location) {
 		return location.substring(location.lastIndexOf("/") + 1);
 	}
-	
+
 	protected static Matcher isEntity(Class<? extends AbstractNode> type) {
 		return new EntityMatcher(type);
 	}
-	
+
 	private static void checkCharset() {
-		
+
 		System.out.println("######### Charset settings ##############");
 		System.out.println("Default Charset=" + Charset.defaultCharset());
 		System.out.println("file.encoding=" + System.getProperty("file.encoding"));
 		System.out.println("Default Charset=" + Charset.defaultCharset());
 		System.out.println("Default Charset in Use=" + getEncodingInUse());
-		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");		
+		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");
 		System.out.println("#########################################");
-		
+
 	}
-	
+
 
 	private static String getEncodingInUse() {
 		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());

@@ -26,11 +26,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
@@ -62,6 +62,7 @@ public class ActionContextTest extends StructrTest {
 		final String numberString1        = numberFormat1.format(2.234);
 		final String numberString2        = numberFormat2.format(2.234);
 		final String numberString3        = numberFormat3.format(2.234);
+		MailTemplate template             = null;
 		TestOne testOne                   = null;
 		TestTwo testTwo                   = null;
 		TestThree testThree               = null;
@@ -75,6 +76,12 @@ public class ActionContextTest extends StructrTest {
 			testThree      = createTestNode(TestThree.class);
 			testFour       = createTestNode(TestFour.class);
 			testSixs       = createTestNodes(TestSix.class, 20);
+
+			// create mail template
+			template = createTestNode(MailTemplate.class);
+			template.setProperty(MailTemplate.name, "TEST");
+			template.setProperty(MailTemplate.locale, "en_EN");
+			template.setProperty(MailTemplate.text, "This is a template for ${this.name}");
 
 			// check existance
 			assertNotNull(testOne);
@@ -97,6 +104,8 @@ public class ActionContextTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
 
 			fail("Unexpected exception");
 		}
@@ -663,6 +672,16 @@ public class ActionContextTest extends StructrTest {
 
 			// find with null
 			assertEquals("Invalid usage message for find()", AbstractNode.ERROR_MESSAGE_FIND, testOne.replaceVariables(securityContext, ctx, "${find()}"));
+
+			// do
+			testOne.replaceVariables(securityContext, ctx, "${do(empty(this.alwaysNull), \"set(this, \"doResult\", true)\",\"set(this, \"doResult\", false)\")}");
+			assertEquals("Invalid do() result", "true", testOne.replaceVariables(securityContext, ctx, "${this.doResult}"));
+
+			testOne.replaceVariables(securityContext, ctx, "${do(empty(this.name), \"set(this, \"doResult\", true)\",\"set(this, \"doResult\", false)\")}");
+			assertEquals("Invalid do() result", "false", testOne.replaceVariables(securityContext, ctx, "${this.doResult}"));
+
+			// template method
+			assertEquals("Invalid template() result", "This is a template for A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${template(\"TEST\", \"en_EN\", this)}"));
 
 			// more complex tests
 			testOne.replaceVariables(securityContext, ctx, "${each(split(\"setTestInteger1,setTestInteger2,setTestInteger3\"), \"set(this, data, 1)\")}");

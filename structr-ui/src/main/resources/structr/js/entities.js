@@ -18,6 +18,7 @@
  */
 
 var buttonClicked;
+var activeElements = {};
 
 var _Entities = {
     booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'isAdmin', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser', 'hideOnIndex', 'hideOnEdit', 'hideOnNonEdit', 'hideOnDetail', 'renderDetails'],
@@ -154,7 +155,8 @@ var _Entities = {
         _Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
         _Entities.appendTextarea($('#content-tab-xpath'), entity, 'xpathQuery', 'XPath Query', '');
 
-        _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+        _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
+                'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
 
 
 
@@ -176,7 +178,9 @@ var _Entities = {
                 content.show();
             });
         });
-        $(activeId).show();
+        var id = activeId.substring(9);
+        var tab = $('#' + id);
+        tab.click();
     },
     editSource: function(entity) {
 
@@ -574,7 +578,7 @@ var _Entities = {
 
                 //('<div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
 
-                if (lastMenuEntry === 'pages' && !(entity.type === 'Content')) {
+                if (entity.type === 'Folder' || (lastMenuEntry === 'pages' && !(entity.type === 'Content'))) {
                     dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
                 }
 
@@ -645,6 +649,7 @@ var _Entities = {
             entity.setProperty(key, $('#' + key + '_', el).val(), false, function() {
                 log(key + ' successfully updated!', entity[key]);
                 blinkGreen(btn);
+                _Pages.reloadPreviews();
             });
         });
     },
@@ -655,9 +660,10 @@ var _Entities = {
         el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" id="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button id="save_' + key + '">Save</button></div>');
         var btn = $('#save_' + key, el);
         btn.on('click', function() {
-            entity.setProperty('dataKey', $('#' + key + '_', dialog).val(), false, function() {
+            entity.setProperty('dataKey', $('#' + key + '_').val(), false, function() {
                 log(key + ' successfully updated!', entity[key]);
                 blinkGreen(btn);
+                _Pages.reloadPreviews();
             });
         });
     },
@@ -854,7 +860,11 @@ var _Entities = {
         var nodeId = getId(el), isComponent;
         if (nodeId === undefined) {
             nodeId = getComponentId(el);
-            isComponent = true;
+            if (nodeId) {
+                isComponent = true;
+            } else {
+                nodeId = getActiveElementId(el);
+            }
         }
 
         node.on({
@@ -862,8 +872,9 @@ var _Entities = {
                 e.stopPropagation();
                 var self = $(this);
                 $('#componentId_' + nodeId).addClass('nodeHover');
-                if (isComponent)
+                if (isComponent) {
                     $('#id_' + nodeId).addClass('nodeHover');
+                }
 
                 if (syncedNodes && syncedNodes.length) {
                     syncedNodes.forEach(function(s) {
@@ -904,7 +915,8 @@ var _Entities = {
         }
         var page = node.closest('.page');
         if (page.length) {
-            $('#preview_' + getId(page)).contents().find('[data-structr-id=' + getId(node) + ']').removeClass('nodeHover');
+            //$('#preview_' + getId(page)).contents().find('[data-structr-id=' + getId(node) + ']').removeClass('nodeHover');
+            $('#preview_' + getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
         }
     },
     ensureExpanded: function(element, callback) {
@@ -1031,9 +1043,161 @@ var _Entities = {
 
         element.off('click');
 
+    },
+    handleActiveElement: function(entity) {
+
+        if (entity) {
+
+            var idString = 'id_' + entity.id;
+
+            if (!activeElements.hasOwnProperty(idString)) {
+
+                activeElements[idString] = entity;
+
+                var parent = $('#activeElements div.inner');
+                var id = entity.id;
+
+                if (entity.parentId) {
+                    parent = $('#active_' + entity.parentId);
+                }
+
+                parent.append('<div id="active_' + id + '" class="node active-element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+
+                var div = $('#active_' + id);
+                var query = entity.query;
+                //var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
+                var expand = entity.state === 'Query';
+                var icon = _Elements.icon;
+                var name = '', content = '', action = '';
+
+                switch (entity.state) {
+                    case 'Query':
+                        icon = 'icon/database_table.png';
+                        name = query || entity.dataKey.replace(',', '.');
+                        break;
+                    case 'Content':
+                        icon = _Contents.icon;
+                        content = entity.content ? entity.content : entity.type;
+                        break;
+                    case 'Button':
+                        icon = 'icon/button.png';
+                        action = entity.action;
+                        break;
+                    case 'Link':
+                        icon = 'icon/link.png';
+                        content = entity.action;
+                        break;
+                    default:
+                        content = entity.state;
+                }
+
+                div.append('<img class="typeIcon" src="' + icon + '">'
+                        + '<b title="' + name + '">' + fitStringToWidth(name, 180, 'slideOut') + '</b>'
+                        + '<b class="action">' + action   + '</b    >'
+                        + '<span class="content_">' + content + '</span>'
+                        + '<span class="id">' + entity.id + '</span>'
+//                        + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
+//                        + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
+                        );
+
+                _Entities.setMouseOver(div);
+
+                var editIcon = $('.edit_icon', div);
+
+                if (!(editIcon && editIcon.length)) {
+                    div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+                    editIcon = $('.edit_icon', div);
+                }
+                editIcon.on('click', function(e) {
+                    e.stopPropagation();
+                    
+                    switch (entity.state) {
+                        case 'Query':
+                            _Entities.openQueryDialog(entity.id);
+                           break;
+                        case 'Content':
+                            _Contents.openEditContentDialog(this, entity);
+                            break;
+                        case 'Button':
+                            _Entities.openEditModeBindingDialog(entity.id);
+                            break;
+                        case 'Link':
+                            _Entities.showProperties(entity);
+                            break;
+                        default:
+                            _Entities.showProperties(entity);
+                    }
+                    
+                });
+
+                $('b[title]', div).on('click', function() {
+                    _Entities.openQueryDialog(entity.id);
+                });
+
+                $('.content_', div).on('click', function() {
+                    _Contents.openEditContentDialog(this, entity);
+                });
+
+                $('.action', div).on('click', function() {
+                    _Entities.openEditModeBindingDialog(entity.id);
+                });
+
+                var typeIcon = $(div.children('.typeIcon').first());
+                var padding = 0;
+
+                if (!expand) {
+                    padding = 11;
+                } else {
+                    typeIcon.css({
+                        paddingRight: padding + 'px'
+                    }).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expanded_icon + '">');
+                }
+            }
+        }
+    },
+    openQueryDialog: function(id) {
+        Command.get(id, function(obj) {
+            
+            var entity = StructrModel.create(obj);
+            
+            Structr.dialog('Query and Data Binding of ' + (entity.name ? entity.name : entity.id), function() {
+                return true;
+            }, function() {
+                return true;
+            });
+
+            dialogText.append('<p></p>');
+
+            _Entities.queryDialog(entity, dialogText);
+
+            if (entity.restQuery) {
+                _Entities.activateTabs('#data-tabs', '#content-tab-rest');
+            } else if (entity.cypherQuery) {
+                _Entities.activateTabs('#data-tabs', '#content-tab-cypher');
+            } else if (entity.xpathQuery) {
+                _Entities.activateTabs('#data-tabs', '#content-tab-xpath');
+            } else {
+                _Entities.activateTabs('#data-tabs', '#content-tab-rest');
+            }
+        });
+    },
+    openEditModeBindingDialog: function(id) {
+        Command.get(id, function(obj) {
+            
+            var entity = StructrModel.create(obj);
+            
+            Structr.dialog('Edit mode binding for ' + (entity.name ? entity.name : entity.id), function() {
+                return true;
+            }, function() {
+                return true;
+            });
+
+            dialogText.append('<p></p>');
+
+            _Entities.dataBindingDialog(entity, dialogText);
+
+        });
     }
-
-
 };
 
 function addPrincipal(entity, principal, permissions) {

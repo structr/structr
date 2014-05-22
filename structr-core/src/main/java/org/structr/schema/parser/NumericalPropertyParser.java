@@ -23,26 +23,27 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
+import org.structr.schema.Schema;
 
 /**
  *
  * @author Christian Morgner
  */
 public abstract class NumericalPropertyParser extends PropertyParser {
-	
+
 	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
 		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
 	}
 
 	public abstract Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which);
-	
+
 	@Override
-	public String getAuxiliaryType() {
+	public String getPropertyParameters() {
 		return "";
 	}
 
 	@Override
-	public void extractTypeValidation(final String expression) throws FrameworkException {
+	public void extractTypeValidation(final Schema entity, final String expression) throws FrameworkException {
 
 		if (StringUtils.isNotBlank(expression)) {
 
@@ -55,18 +56,18 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 					boolean error           = false;
 
 					if (parts.length == 2) {
-						
+
 						Number lowerBound = parseNumber(errorBuffer, parts[0], "lower");
 						Number upperBound = parseNumber(errorBuffer, parts[1], "upper");
-						
+
 						if (lowerBound == null) {
 							error = true;
 						}
-						
+
 						if (upperBound == null) {
 							error = true;
 						}
-						
+
 					} else {
 
 						errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range must have exactly two bounds."));

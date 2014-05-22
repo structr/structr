@@ -26,7 +26,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -60,7 +59,6 @@ public class CreateComponentCommand extends AbstractCommand {
 			try {
 
 				DOMElement clonedNode = (DOMElement) node.cloneNode(false);
-				clonedNode.setProperty(DOMElement.syncedNodes, null);
 				moveChildNodes(node, clonedNode);
 
 				ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
@@ -71,8 +69,7 @@ public class CreateComponentCommand extends AbstractCommand {
 					child.setProperty((DOMNode.ownerDocument), hiddenDoc);
 				}
 
-				//app.create(node, clonedNode, Sync.class);
-				app.create(clonedNode, node, Sync.class);
+				node.setProperty(DOMElement.sharedComponent, clonedNode);
 				
 			} catch (FrameworkException ex) {
 

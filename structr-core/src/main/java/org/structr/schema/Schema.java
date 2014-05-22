@@ -28,8 +28,10 @@ import org.structr.common.error.FrameworkException;
  * @author Christian Morgner
  */
 public interface Schema {
-	
+
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException;
+	public String getMultiplicity(final String propertyNameToCheck);
+	public String getRelatedType(final String propertyNameToCheck);
 	public PropertyContainer getPropertyContainer();
 	public Set<String> getViews();
 	public String getClassName();

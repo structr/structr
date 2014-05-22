@@ -59,27 +59,27 @@ public class RenderContext extends ActionContext {
 
 	private static final Logger logger                   = Logger.getLogger(RenderContext.class.getName());
 
-	private Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
-	//private final StringBuilder buffer           = new StringBuilder(8192);
-	private Locale locale                        = Locale.getDefault();
-	private EditMode editMode                    = EditMode.NONE;
-	private int depth                            = 0;
-	private boolean inBody                       = false;
-	private boolean appLibRendered               = false;
-	private GraphObject detailsDataObject        = null;
-	private GraphObject currentDataObject        = null;
-	private GraphObject sourceDataObject         = null;
-	private Iterable<GraphObject> listSource     = null;
-	private String searchClass                   = null;
-	private PropertyKey relatedProperty          = null;
-	private List<NodeAttribute> attrs            = null;
-	private Page page                            = null;
-	private Component component                  = null;
-	private HttpServletRequest request           = null;
-	private HttpServletResponse response         = null;
-	private ResourceProvider resourceProvider    = null;
-	private Result result                        = null;
-	private AsyncBuffer buffer                   = new AsyncBuffer();
+	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
+	private long renderStartTime                       = System.currentTimeMillis();
+	private Locale locale                              = Locale.getDefault();
+	private EditMode editMode                          = EditMode.NONE;
+	private int depth                                  = 0;
+	private boolean inBody                             = false;
+	private boolean appLibRendered                     = false;
+	private GraphObject detailsDataObject              = null;
+	private GraphObject currentDataObject              = null;
+	private GraphObject sourceDataObject               = null;
+	private Iterable<GraphObject> listSource           = null;
+	private String searchClass                         = null;
+	private PropertyKey relatedProperty                = null;
+	private List<NodeAttribute> attrs                  = null;
+	private Page page                                  = null;
+	private Component component                        = null;
+	private HttpServletRequest request                 = null;
+	private HttpServletResponse response               = null;
+	private ResourceProvider resourceProvider          = null;
+	private Result result                              = null;
+	private AsyncBuffer buffer                         = new AsyncBuffer();
 
 	public enum EditMode {
 
@@ -113,6 +113,12 @@ public class RenderContext extends ActionContext {
 	}
 
 	public GraphObject getDetailsDataObject() {
+
+//		This is dangerous and leads to inner "ghost queries" without any data
+//		if (EditMode.CONTENT.equals(editMode) && detailsDataObject == null) {
+//			return new GraphObjectMap();
+//		}
+
 		return detailsDataObject;
 	}
 
@@ -666,5 +672,9 @@ public class RenderContext extends ActionContext {
 	@Override
 	public boolean returnRawValue(final SecurityContext securityContext) {
 		return ((EditMode.RAW.equals(getEditMode(securityContext.getUser(false)))));
+	}
+
+	public boolean hasTimeout(final long timeout) {
+		return System.currentTimeMillis() > (renderStartTime + timeout);
 	}
 }

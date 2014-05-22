@@ -19,6 +19,7 @@
 package org.structr.schema;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -29,6 +30,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -37,6 +39,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.Export;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DynamicResourceAccess;
@@ -48,9 +51,12 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
+import org.structr.schema.parser.CypherPropertyParser;
 import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
+import org.structr.schema.parser.FunctionPropertyParser;
+import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.PropertyParser;
@@ -65,7 +71,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count
+		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher
 	}
 
 	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
@@ -77,14 +83,17 @@ public class SchemaHelper {
 		//            because we look up the parsers using "startsWith"!
 
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
-		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
-		parserMap.put(Type.Integer, IntPropertyParser.class);
-		parserMap.put(Type.String, StringPropertyParser.class);
-		parserMap.put(Type.Double, DoublePropertyParser.class);
-		parserMap.put(Type.Long, LongPropertyParser.class);
-		parserMap.put(Type.Enum, EnumPropertyParser.class);
-		parserMap.put(Type.Date, DatePropertyParser.class);
-		parserMap.put(Type.Count, CountPropertyParser.class);
+		parserMap.put(Type.Function,    FunctionPropertyParser.class);
+		parserMap.put(Type.Boolean,     BooleanPropertyParser.class);
+		parserMap.put(Type.Integer,     IntPropertyParser.class);
+		parserMap.put(Type.String,      StringPropertyParser.class);
+		parserMap.put(Type.Double,      DoublePropertyParser.class);
+		parserMap.put(Type.Notion,      NotionPropertyParser.class);
+		parserMap.put(Type.Cypher,      CypherPropertyParser.class);
+		parserMap.put(Type.Long,        LongPropertyParser.class);
+		parserMap.put(Type.Enum,        EnumPropertyParser.class);
+		parserMap.put(Type.Date,        DatePropertyParser.class);
+		parserMap.put(Type.Count,       CountPropertyParser.class);
 	}
 
 	/**
@@ -366,11 +375,13 @@ public class SchemaHelper {
 				}
 
 				String defaultValue = null;
-				// detect and remove default value
-				if (rawType.contains(":")) {
 
-					defaultValue = rawType.substring(rawType.indexOf(":")+1);
-					rawType = rawType.substring(0, rawType.indexOf(":"));
+				// detect and remove default value
+				if (rawType.contains(":") && !rawType.startsWith(Type.Cypher.name())) {
+
+					final int lastIndex = rawType.lastIndexOf(":");
+					defaultValue = rawType.substring(lastIndex+1);
+					rawType = rawType.substring(0, lastIndex);
 
 				}
 
@@ -378,14 +389,14 @@ public class SchemaHelper {
 				if (parser != null) {
 
 					// append created source from parser
-					src.append(parser.getPropertySource(errorBuffer));
+					src.append(parser.getPropertySource(entity, errorBuffer));
 
 					// register global elements created by parser
 					validators.addAll(parser.getGlobalValidators());
 					enums.addAll(parser.getEnumDefinitions());
 
 					// register property in default view
-					addPropertyToView(PropertyView.Public, propertyName.substring(1), views);
+					//addPropertyToView(PropertyView.Public, propertyName.substring(1), views);
 					addPropertyToView(PropertyView.Ui, propertyName.substring(1), views);
 				}
 			}
@@ -449,6 +460,7 @@ public class SchemaHelper {
 
 						actionList.add(entry);
 
+						Collections.sort(actionList);
 					}
 
 				}
@@ -544,14 +556,17 @@ public class SchemaHelper {
 	public static void formatImportStatements(final StringBuilder src, final Class baseType) {
 
 		src.append("import ").append(baseType.getName()).append(";\n");
-		src.append("import ").append(PropertyView.class.getName()).append(";\n");
-		src.append("import ").append(View.class.getName()).append(";\n");
+		src.append("import ").append(GraphObjectComparator.class.getName()).append(";\n");
+		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
 		src.append("import ").append(SecurityContext.class.getName()).append(";\n");
-		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
-		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
+		src.append("import ").append(GraphObject.class.getName()).append(";\n");
 		src.append("import ").append(Actions.class.getName()).append(";\n");
+		src.append("import ").append(PropertyView.class.getName()).append(";\n");
+		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
 		src.append("import ").append(Export.class.getName()).append(";\n");
+		src.append("import ").append(View.class.getName()).append(";\n");
+		src.append("import ").append(List.class.getName()).append(";\n");
 		src.append("import org.structr.rest.RestMethodResult;\n");
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");

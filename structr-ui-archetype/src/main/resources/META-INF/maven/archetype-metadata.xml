@@ -14,6 +14,7 @@
       <includes>
         <include>**/*.xml</include>
         <include>seed.zip</include>
+        <include>structr.conf</include>
       </includes>
     </fileSet>
     <fileSet filtered="true" encoding="UTF-8">
@@ -32,6 +33,12 @@
       <directory></directory>
       <includes>
         <include>seed.zip</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory></directory>
+      <includes>
+        <include>structr.conf</include>
       </includes>
     </fileSet>
   </fileSets>

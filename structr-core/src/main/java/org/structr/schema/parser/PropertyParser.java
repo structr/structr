@@ -25,6 +25,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
+import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -43,55 +44,55 @@ public abstract class PropertyParser {
 	protected String className             = "";
 	protected String rawSource             = "";
 	protected String defaultValue          = "";
-	
+
 	public abstract Type getKey();
 	public abstract String getPropertyType();
 	public abstract String getValueType();
-	public abstract String getAuxiliaryType();
-	public abstract void extractTypeValidation(final String expression) throws FrameworkException;
+	public abstract String getPropertyParameters();
+	public abstract void extractTypeValidation(final Schema entity, final String expression) throws FrameworkException;
 
 	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
-		
+
 		this.errorBuffer  = errorBuffer;
 		this.className    = className;
 		this.propertyName = propertyName;
 		this.dbName       = dbName;
 		this.rawSource    = rawSource;
 		this.defaultValue = defaultValue;
-		
+
 		if (this.propertyName.startsWith("_")) {
 			this.propertyName = this.propertyName.substring(1);
 		}
 	}
-	
-	public String getPropertySource(final ErrorBuffer errorBuffer) throws FrameworkException {
-		
+
+	public String getPropertySource(final Schema entity, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 		final String keyName   = getKey().name();
 		String parserSource    = rawSource.substring(keyName.length());
 
 		// second: uniqueness and/or non-null, check until the two methods to not change the length of the string any more
 		parserSource = extractUniqueness(parserSource);
 
-		extractComplexValidation(parserSource);
-		
+		extractComplexValidation(entity, parserSource);
+
 		return getPropertySource();
 	}
-	
+
 	public Set<String> getGlobalValidators() {
 		return globalValidators;
 	}
-	
+
 	public Set<String> getEnumDefinitions() {
 		return enumDefinitions;
 	}
 
 	// ----- protected methods -----
 	protected String getPropertySource() {
-		
+
 		final StringBuilder buf = new StringBuilder();
-		
+
 		String valueType = getValueType();
-		
+
 		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
 		if (dbName != null) {
@@ -100,13 +101,13 @@ public abstract class PropertyParser {
 			// StringProperty has three leading String parameters
 			buf.append(", \"").append(propertyName).append("\"");
 		}
-		buf.append(getAuxiliaryType());
+		buf.append(getPropertyParameters());
 		if (defaultValue != null) {
 			buf.append(", ").append(getDefaultValueSource());
 		}
 		buf.append(localValidator);
 		buf.append(").indexed();\n");
-		
+
 		return buf.toString();
 	}
 
@@ -140,23 +141,23 @@ public abstract class PropertyParser {
 		}
 	}
 
-	private void extractComplexValidation(final String source) throws FrameworkException {
+	private void extractComplexValidation(final Schema entity, final String source) throws FrameworkException {
 
 		if (StringUtils.isNotBlank(source)) {
 
 			if (source.startsWith("(") && source.endsWith(")")) {
 
-				extractTypeValidation(source.substring(1, source.length() - 1));
-				
+				extractTypeValidation(entity, source.substring(1, source.length() - 1));
+
 			} else {
-	
+
 				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_validation_expression", "Valdation expression must be enclosed in (), e.g. (" + source + ")"));
 			}
 		}
 	}
-	
+
 	public String getDefaultValueSource() {
 		return defaultValue;
 	}
-	
+
 }

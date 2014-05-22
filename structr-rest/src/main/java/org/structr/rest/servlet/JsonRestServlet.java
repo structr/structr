@@ -58,10 +58,10 @@ import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
-import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.serialization.StreamingHtmlWriter;
@@ -112,15 +112,15 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		commonRequestParameters.add(SearchCommand.COUNTRY_SEARCH_KEYWORD);
 	}
 
-	//~--- fields ---------------------------------------------------------
+	// final fields
+	private final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
+	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 
-	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
-	private Value<String> propertyView                          = null;
-	private ThreadLocalGson gson                                = null;
-	private ThreadLocalJsonWriter jsonWriter                    = null;
-	private ThreadLocalHtmlWriter htmlWriter                    = null;
-	private Writer logWriter                                    = null;
-	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+	// non-final fields
+	private Value<String> propertyView       = null;
+	private ThreadLocalGson gson             = null;
+	private Writer logWriter                 = null;
+	private boolean indentJson               = true;
 
 	//~--- methods --------------------------------------------------------
 
@@ -131,8 +131,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	@Override
 	public void init() {
-
-		boolean indentJson = true;
 
 		try {
 			indentJson = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.JSON_INDENTATION, "true"));
@@ -149,9 +147,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		// initialize variables
 		this.propertyView       = new ThreadLocalPropertyView();
 		this.gson               = new ThreadLocalGson(config.getOutputNestingDepth());
-		this.jsonWriter         = new ThreadLocalJsonWriter(propertyView, indentJson, config.getOutputNestingDepth());
-		this.htmlWriter         = new ThreadLocalHtmlWriter(propertyView, indentJson, config.getOutputNestingDepth());
-
 	}
 
 	@Override
@@ -336,6 +331,12 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			if (sortKeyName != null) {
 
 				Class<? extends GraphObject> type = resource.getEntityClass();
+				if (type == null) {
+
+					// fallback to default implementation
+					// if no type can be determined
+					type = AbstractNode.class;
+				}
 				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 			}
 
@@ -370,39 +371,46 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 			result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-			Writer writer = response.getWriter();
 			String accept = request.getHeader("Accept");
 
 			if (accept != null && accept.contains("text/html")) {
 
+				final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
+
 				// isolate write output
 				try (final Tx tx = app.tx()) {
+
 					response.setContentType("text/html; charset=utf-8");
-					htmlWriter.get().stream(writer, result, baseUrl);
+
+					try (final Writer writer = response.getWriter()) {
+
+						htmlStreamer.stream(securityContext, writer, result, baseUrl);
+						writer.append("\n");    // useful newline
+					}
+
 					tx.success();
 				}
 
 			} else {
+
+				final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
+
 					response.setContentType("application/json; charset=utf-8");
-					jsonWriter.get().stream(writer, result, baseUrl);
-					writer.append("\n");    // useful newline
+					try (final Writer writer = response.getWriter()) {
+
+						jsonStreamer.stream(securityContext, writer, result, baseUrl);
+						writer.append("\n");    // useful newline
+					}
+
 					tx.success();
 				}
 
 			}
 
-			if (result.hasPartialContent()) {
-
-				response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-
-			} else {
-
-				response.setStatus(HttpServletResponse.SC_OK);
-			}
-
+			response.setStatus(HttpServletResponse.SC_OK);
 
 		} catch (FrameworkException frameworkException) {
 
@@ -1020,48 +1028,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				.registerTypeAdapter(Result.class, resultGsonAdapter)
 				.create();
 		}
-	}
-
-	private class ThreadLocalJsonWriter extends ThreadLocal<StreamingWriter> {
-
-		private Value<String> propertyView;
-		private boolean indent = false;
-		private int depth      = 3;
-
-		public ThreadLocalJsonWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
-
-			this.propertyView = propertyView;
-			this.indent       = indent;
-			this.depth        = outputNestingDepth;
-		}
-
-		@Override
-		protected StreamingWriter initialValue() {
-
-			return new StreamingJsonWriter(this.propertyView, indent, depth);
-		}
-
-	}
-
-	private class ThreadLocalHtmlWriter extends ThreadLocal<StreamingHtmlWriter> {
-
-		private Value<String> propertyView;
-		private boolean indent = false;
-		private int depth      = 3;
-
-		public ThreadLocalHtmlWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
-
-			this.propertyView = propertyView;
-			this.indent       = indent;
-			this.depth        = outputNestingDepth;
-		}
-
-		@Override
-		protected StreamingHtmlWriter initialValue() {
-
-			return new StreamingHtmlWriter(this.propertyView, indent, depth);
-		}
-
 	}
 	// </editor-fold>
 }

@@ -20,10 +20,16 @@ package org.structr.rest.serialization;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.Tx;
 import org.structr.rest.serialization.html.Document;
 import org.structr.rest.serialization.html.Tag;
 import org.structr.rest.serialization.html.attr.Css;
@@ -41,66 +47,85 @@ import org.structr.rest.serialization.html.attr.Type;
  */
 public class StructrJsonHtmlWriter implements RestWriter {
 
-	private static final int CLOSE_LEVEL = 5;
-	private static final String LI = "li";
-	private static final String UL = "ul";
-	
-	private Document doc       = null;
-	private Tag currentElement = null;
-	private boolean hasName    = false;
-	private String lastName    = null;
-	
-	public StructrJsonHtmlWriter(final Writer rawWriter) {
-		
-		this.doc = new Document(new PrintWriter(rawWriter, false));
+	private static final Set<String> hiddenViews = new LinkedHashSet<>();
+	private static final int CLOSE_LEVEL         = 5;
+	private static final String LI               = "li";
+	private static final String UL               = "ul";
+
+	private SecurityContext securityContext = null;
+	private Document doc                    = null;
+	private Tag currentElement              = null;
+	private boolean hasName                 = false;
+	private String lastName                 = null;
+
+	static {
+
+		hiddenViews.add(PropertyView.All);
+		hiddenViews.add(PropertyView.Html);
+		hiddenViews.add(PropertyView.Ui);
 	}
-	
+
+	public StructrJsonHtmlWriter(final SecurityContext securityContext, final PrintWriter rawWriter) {
+
+		this.securityContext = securityContext;
+		this.doc = new Document(rawWriter);
+	}
+
 	@Override
 	public void setIndent(String indent) {
 		doc.setIndent(indent);
 	}
 
 	@Override
-	public void flush() throws IOException {
-		doc.flush();
+	public SecurityContext getSecurityContext() {
+		return securityContext;
 	}
 
 	@Override
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException {
-		
-		String restPath    = "/structr/rest"; // FIXME;
+
+		String restPath    = "/structr/rest";
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
 
 		Tag head = doc.block("head");
 		head.empty("link").attr(new Rel("stylesheet"), new Type("text/css"), new Href("//structr.org/rest.css"));
 		head.inline("script").attr(new Type("text/javascript"), new Src("//structr.org/CollapsibleLists.js"));
 		head.inline("title").text(baseUrl);
-		
+
 		Tag body = doc.block("body").attr(new Onload("CollapsibleLists.apply(true);"));
 		Tag top  = body.block("div").id("top");
-		Tag ul1  = top.block("ul");
+
+		final App app  = StructrApp.getInstance(securityContext);
+		final Tag left = body.block("div").id("left");
+
+		try (final Tx tx = app.tx()) {
+
+			for (SchemaNode node : app.nodeQuery(SchemaNode.class).getAsList()) {
+
+				final String rawType = node.getName();
+				top.inline("a").attr(new Href(restPath + "/" + rawType), new If(rawType.equals(currentType), new Css("active"))).text(rawType);
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
-			
-			ul1.block("li").inline("a").attr(new Href(restPath + "/" + currentType + "/" + view), new If(view.equals(propertyView), new Css("active"))).text(view);
-		}
-		
-		Tag left = body.block("div").id("left");
 
-		for (String rawType : StructrApp.getConfiguration().getNodeEntities().keySet()) {
-			
-			left.block("p").inline("a").attr(new Href(restPath + "/" + rawType), new If(rawType.equals(currentType), new Css("active"))).text(rawType);
+			if (!hiddenViews.contains(view)) {
+				left.inline("a").attr(new Href(restPath + "/" + currentType + "/" + view), new If(view.equals(propertyView), new Css("active"))).text(view);
+			}
 		}
 
 		// main div
 		currentElement = body.block("div").id("right");
-		
+
 		// h1 title
 		currentElement.block("h1").text(baseUrl);
 
 		// begin ul
 		currentElement = currentElement.block("ul");
-		
+
 		return this;
 	}
 
@@ -109,7 +134,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		// finally render document
 		doc.render();
-		
+
 		return this;
 	}
 
@@ -119,16 +144,16 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		currentElement = currentElement.block(UL).attr(new AtDepth(CLOSE_LEVEL, new Css("collapsibleList")));
 
 		hasName = false;
-		
+
 		return this;
 	}
 
 	@Override
 	public RestWriter endArray() throws IOException {
-		
+
 		currentElement = currentElement.parent();	// end LI
 		currentElement = currentElement.parent();	// end UL
-		
+
 		return this;
 	}
 
@@ -139,13 +164,13 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
-		
+
 		if (!hasName) {
 
 			currentElement = currentElement.block(LI);
-			
+
 			Tag b = currentElement.block("b");
-			
+
 			if (graphObject != null) {
 
 				final String name = graphObject.getProperty(AbstractNode.name);
@@ -158,23 +183,23 @@ public class StructrJsonHtmlWriter implements RestWriter {
 				}
 
 				if (uuid != null) {
-					
+
 					b.inline("span").css("id").text(uuid);
 				}
 
 				if (type != null) {
-					
+
 					b.inline("span").css("type").text(type);
 				}
 			}
 		}
-		
+
 		currentElement.inline("span").text("{");
 
 		currentElement = currentElement.block(UL).attr(new AtDepth(CLOSE_LEVEL, new Css("collapsibleList")));
 
 		hasName = false;
-		
+
 		return this;
 	}
 
@@ -185,11 +210,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter endObject(final GraphObject graphObject) throws IOException {
-		
+
 		currentElement = currentElement.parent();	// end UL
 		currentElement.inline("span").text("}");	// print }
 		currentElement = currentElement.parent();	// end LI
-		
+
 		return this;
 	}
 
@@ -197,12 +222,12 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter name(String name) throws IOException {
 
 		currentElement = currentElement.block(LI);
-		
+
 		currentElement.inline("b").text(name, ":");
 
 		lastName = name;
 		hasName = true;
-		
+
 		return this;
 	}
 
@@ -210,24 +235,24 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter value(String value) throws IOException {
 
 		if (!hasName) {
-			
+
 			currentElement = currentElement.block("li");
 		}
 
 		if ("id".equals(lastName)) {
 
 			currentElement.inline("a").css("id").attr(new Href(value)).text(value);
-			
+
 		} else {
-		
+
 			currentElement.inline("span").css("string").text(value);
-			
+
 		}
 
 		currentElement = currentElement.parent();	// end LI
-		
+
 		hasName = false;
-		
+
 		return this;
 	}
 
@@ -235,15 +260,15 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter nullValue() throws IOException {
 
 		if (!hasName) {
-			
+
 			currentElement = currentElement.block("li");
 		}
-		
+
 		currentElement.inline("span").css("null").text("null");
 		currentElement = currentElement.parent();
-		
+
 		hasName = false;
-		
+
 		return this;
 	}
 
@@ -251,15 +276,15 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter value(boolean value) throws IOException {
 
 		if (!hasName) {
-			
+
 			currentElement = currentElement.block("li");
 		}
-		
+
 		currentElement.inline("span").css("boolean").text(value);
 		currentElement = currentElement.parent();
 
 		hasName = false;
-		
+
 		return this;
 	}
 
@@ -267,15 +292,15 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter value(double value) throws IOException {
 
 		if (!hasName) {
-			
+
 			currentElement = currentElement.block("li");
 		}
-		
+
 		currentElement.inline("span").css("number").text(value);
 		currentElement = currentElement.parent();
 
 		hasName = false;
-		
+
 		return this;
 	}
 
@@ -283,15 +308,15 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter value(long value) throws IOException {
 
 		if (!hasName) {
-			
+
 			currentElement = currentElement.block("li");
 		}
-		
+
 		currentElement.inline("span").css("number").text(value);
 		currentElement = currentElement.parent();
-		
+
 		hasName = false;
-		
+
 		return this;
 	}
 
@@ -299,15 +324,15 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter value(Number value) throws IOException {
 
 		if (!hasName) {
-			
+
 			currentElement = currentElement.block("li");
 		}
-		
+
 		currentElement.inline("span").css("number").text(value);
 		currentElement = currentElement.parent();
 
 		hasName = false;
-		
+
 		return this;
 	}
 }
