@@ -24,6 +24,8 @@ var sizeLimit = 1024 * 1024 * 70;
 var win = $(window);
 var selectedElements = [];
 var activeFileId, fileContents = {};
+var scrollInfoKey = 'structrScrollInfoKey_' + port;
+
 
 $(document).ready(function() {
     Structr.registerModule('files', _Files);
@@ -628,6 +630,16 @@ var _Files = {
                     value: unescapeTags(text),
                     mode: contentType,
                     lineNumbers: true
+                });
+
+                var scrollInfo = JSON.parse(localStorage.getItem(scrollInfoKey + '_' + file.id));
+                if (scrollInfo) {
+                    editor.scrollTo(scrollInfo.left, scrollInfo.top);
+                }
+                
+                editor.on('scroll', function() {
+                    var scrollInfo = editor.getScrollInfo();
+                    localStorage.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo)); 
                 });
 
                 //$('.CodeMirror').css({ 'height': 443 });

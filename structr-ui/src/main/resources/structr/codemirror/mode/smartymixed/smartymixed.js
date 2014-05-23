@@ -1,3 +1,6 @@
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+
 /**
 * @file smartymixed.js
 * @brief Smarty Mixed Codemirror mode (Smarty + Mixed HTML)
@@ -5,6 +8,17 @@
 * @version 3.0
 * @date 05.07.2013
 */
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    mod(require("../../lib/codemirror"), require("../htmlmixed/htmlmixed"), require("../smarty/smarty"));
+  else if (typeof define == "function" && define.amd) // AMD
+    define(["../../lib/codemirror", "../htmlmixed/htmlmixed", "../smarty/smarty"], mod);
+  else // Plain browser env
+    mod(CodeMirror);
+})(function(CodeMirror) {
+"use strict";
+
 CodeMirror.defineMode("smartymixed", function(config) {
   var settings, regs, helpers, parsers,
   htmlMixedMode = CodeMirror.getMode(config, "htmlmixed"),
@@ -58,7 +72,12 @@ CodeMirror.defineMode("smartymixed", function(config) {
 
   parsers = {
     html: function(stream, state) {
-      if (!state.inLiteral && stream.match(regs.htmlHasLeftDelimeter, false)) {
+      if (!state.inLiteral && stream.match(regs.htmlHasLeftDelimeter, false) && state.htmlMixedState.htmlState.tagName === null) {
+        state.tokenize = parsers.smarty;
+        state.localMode = smartyMode;
+        state.localState = smartyMode.startState(htmlMixedMode.indent(state.htmlMixedState, ""));
+        return helpers.maybeBackup(stream, settings.leftDelimiter, smartyMode.token(stream, state.localState));
+      } else if (!state.inLiteral && stream.match(settings.leftDelimiter, false)) {
         state.tokenize = parsers.smarty;
         state.localMode = smartyMode;
         state.localState = smartyMode.startState(htmlMixedMode.indent(state.htmlMixedState, ""));
@@ -154,8 +173,6 @@ CodeMirror.defineMode("smartymixed", function(config) {
       return htmlMixedMode.indent(state.htmlMixedState, textAfter);
     },
 
-    electricChars: "/{}:",
-
     innerMode: function(state) {
       return {
         state: state.localState || state.htmlMixedState,
@@ -163,8 +180,9 @@ CodeMirror.defineMode("smartymixed", function(config) {
       };
     }
   };
-},
-"htmlmixed");
+}, "htmlmixed", "smarty");
 
 CodeMirror.defineMIME("text/x-smarty", "smartymixed");
 // vim: et ts=2 sts=2 sw=2
+
+});
