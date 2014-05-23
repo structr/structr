@@ -114,6 +114,18 @@ var _Schema = {
             $('#admin-tools').on('click', function() {
                 _Schema.openAdminTools();
             });
+
+            /* disabled
+            $('.schema-input-container').append('<button class="btn" id="do-layout"><img src="icon/wrench.png"> Layout</button>');
+            $('#do-layout').on('click', function() {
+                _Schema.doLayout();
+            });
+
+            $('.schema-input-container').append('<button class="btn" id="stop-layout"><img src="icon/wrench.png"> Stop</button>');
+            $('#stop-layout').on('click', function() {
+                _Layout.stopLayout();
+            });
+            */
         }
 
         $('#type-name').on('keyup', function(e) {
@@ -140,7 +152,7 @@ var _Schema = {
             instance = jsPlumb.getInstance({
                 //Connector: "StateMachine",
                 PaintStyle: {
-                    lineWidth: 5,
+                    lineWidth: 3,
                     strokeStyle: "#81ce25"
                 },
                 Endpoint: ["Dot", {radius: 6}],
@@ -1307,8 +1319,27 @@ var _Schema = {
 
         node.addClass('expanded');
         node.removeClass('compact');
-    }
+    },
+    doLayout: function() {
 
+        var nodesToLayout = new Array();
+        var relsToLayout  = new Array();
+
+        $.each(Object.keys(nodes), function(i, id) {
+
+            if (!id.endsWith('_top') && !id.endsWith('_bottom')) {
+
+                var node = $('#id_' + id);
+                nodesToLayout.push(node);
+            }
+        });
+
+        $.each(Object.keys(rels), function(i, id) {
+            relsToLayout.push(rels[id]);
+        });
+
+        _Layout.doLayout(nodesToLayout, relsToLayout);
+    }
 };
 
 var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
