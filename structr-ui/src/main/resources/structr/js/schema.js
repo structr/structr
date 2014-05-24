@@ -115,7 +115,12 @@ var _Schema = {
                 _Schema.openAdminTools();
             });
 
-            /* disabled
+            $('.schema-input-container').append('<button class="btn" id="push-schema"><img src="icon/page_white_get.png"> Push schema</button>');
+            $('#push-schema').on('click', function() {
+                Structr.pushSchemaDialog();
+            });
+
+            /*
             $('.schema-input-container').append('<button class="btn" id="do-layout"><img src="icon/wrench.png"> Layout</button>');
             $('#do-layout').on('click', function() {
                 _Schema.doLayout();
@@ -152,7 +157,7 @@ var _Schema = {
             instance = jsPlumb.getInstance({
                 //Connector: "StateMachine",
                 PaintStyle: {
-                    lineWidth: 3,
+                    lineWidth: 5,
                     strokeStyle: "#81ce25"
                 },
                 Endpoint: ["Dot", {radius: 6}],

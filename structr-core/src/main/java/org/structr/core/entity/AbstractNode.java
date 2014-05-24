@@ -20,6 +20,9 @@ package org.structr.core.entity;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.io.FileInputStream;
@@ -80,9 +83,11 @@ import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
@@ -137,6 +142,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_CAPITALIZE          = "Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}";
 	public static final String ERROR_MESSAGE_TITLEIZE            = "Usage: ${titleize(string, separator}. Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
 	public static final String ERROR_MESSAGE_NUM                 = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
+	public static final String ERROR_MESSAGE_INT                 = "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_RANDOM              = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
 	public static final String ERROR_MESSAGE_INDEX_OF            = "Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}";
 	public static final String ERROR_MESSAGE_CONTAINS            = "Usage: ${contains(string, word)}. Example: ${contains(this.name, \"the\")}";
@@ -166,7 +172,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_MAX                 = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
 	public static final String ERROR_MESSAGE_MIN                 = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
 	public static final String ERROR_MESSAGE_CONFIG              = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
-	public static final String ERROR_MESSAGE_DATE_FORMAT         = "Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT         = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_PARSE_DATE          = "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
 	public static final String ERROR_MESSAGE_NUMBER_FORMAT       = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
 	public static final String ERROR_MESSAGE_TEMPLATE            = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
 	public static final String ERROR_MESSAGE_NOT                 = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
@@ -1362,6 +1369,69 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	static {
 
+		functions.put("error", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity.getClass(), sources[0].toString());
+					ctx.raiseError(entity.getType(), new ErrorToken(422, key) {
+
+						@Override
+						public JsonElement getContent() {
+							return new JsonPrimitive(getErrorToken());
+						}
+
+						@Override
+						public String getErrorToken() {
+							return sources[1].toString();
+						}
+					});
+
+
+				} else if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity.getClass(), sources[0].toString());
+					ctx.raiseError(entity.getType(), new SemanticErrorToken(key) {
+
+						@Override
+						public JsonElement getContent() {
+
+							JsonObject obj = new JsonObject();
+
+							if (sources[2] instanceof Number) {
+
+								obj.add(getErrorToken(), new JsonPrimitive((Number)sources[2]));
+
+							} else if (sources[2] instanceof Boolean) {
+
+								obj.add(getErrorToken(), new JsonPrimitive((Boolean)sources[2]));
+
+							} else {
+
+								obj.add(getErrorToken(), new JsonPrimitive(sources[2].toString()));
+							}
+
+							return obj;
+						}
+
+						@Override
+						public String getErrorToken() {
+							return sources[1].toString();
+						}
+					});
+				}
+
+				return null;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MD5;
+			}
+		});
 		functions.put("md5", new Function<Object, Object>() {
 
 			@Override
@@ -1558,7 +1628,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					try {
-						return Double.parseDouble(sources[0].toString());
+						return Double.valueOf(sources[0].toString());
 
 					} catch (Throwable t) {
 						// ignore
@@ -1571,6 +1641,33 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_NUM;
+			}
+		});
+		functions.put("int", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof Number) {
+						return ((Number)sources[0]).intValue();
+					}
+
+					try {
+						return Double.valueOf(sources[0].toString()).intValue();
+
+					} catch (Throwable t) {
+						// ignore
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_INT;
 			}
 		});
 		functions.put("random", new Function<Object, Object>() {
@@ -1593,7 +1690,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			@Override
 			public String usage() {
-				return ERROR_MESSAGE_NUM;
+				return ERROR_MESSAGE_RANDOM;
 			}
 		});
 		functions.put("index_of", new Function<Object, Object>() {
@@ -2146,16 +2243,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					try {
+					double value1 = AbstractNode.getDoubleForComparison(sources[0]);
+					double value2 = AbstractNode.getDoubleForComparison(sources[1]);
 
-						return (Double.parseDouble(sources[0].toString()) < Double.parseDouble(sources[1].toString()));
-
-					} catch (Throwable t) {
-
-						return t.getMessage();
-
-					}
-
+					return value1 < value2;
 				}
 
 				return result;
@@ -2176,16 +2267,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					try {
+					double value1 = AbstractNode.getDoubleForComparison(sources[0]);
+					double value2 = AbstractNode.getDoubleForComparison(sources[1]);
 
-						return (Double.parseDouble(sources[0].toString()) > Double.parseDouble(sources[1].toString()));
-
-					} catch (Throwable t) {
-
-						return t.getMessage();
-
-					}
-
+					return value1 > value2;
 				}
 
 				return result;
@@ -2206,16 +2291,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					try {
+					double value1 = AbstractNode.getDoubleForComparison(sources[0]);
+					double value2 = AbstractNode.getDoubleForComparison(sources[1]);
 
-						return (Double.parseDouble(sources[0].toString()) <= Double.parseDouble(sources[1].toString()));
-
-					} catch (Throwable t) {
-
-						return t.getMessage();
-
-					}
-
+					return value1 <= value2;
 				}
 
 				return result;
@@ -2236,16 +2315,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					try {
+					double value1 = AbstractNode.getDoubleForComparison(sources[0]);
+					double value2 = AbstractNode.getDoubleForComparison(sources[1]);
 
-						return (Double.parseDouble(sources[0].toString()) >= Double.parseDouble(sources[1].toString()));
-
-					} catch (Throwable t) {
-
-						return t.getMessage();
-
-					}
-
+					return value1 >= value2;
 				}
 
 				return result;
@@ -2496,6 +2569,48 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
+					Date date = null;
+
+					if (sources[0] instanceof Date) {
+
+						date = (Date)sources[0];
+
+					} else {
+
+						try {
+
+							// parse with format from IS
+							date = new SimpleDateFormat(ISO8601DateProperty.PATTERN).parse(sources[0].toString());
+
+						} catch (ParseException ex) {
+							ex.printStackTrace();
+						}
+
+					}
+
+					// format with given pattern
+					return new SimpleDateFormat(sources[1].toString()).format(date);
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_DATE_FORMAT;
+			}
+		});
+		functions.put("parse_date", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources == null || sources != null && sources.length != 2) {
+					return ERROR_MESSAGE_PARSE_DATE;
+				}
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
 					String dateString = sources[0].toString();
 
 					if (StringUtils.isBlank(dateString)) {
@@ -2506,10 +2621,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					try {
 						// parse with format from IS
-						Date d = new SimpleDateFormat(ISO8601DateProperty.PATTERN).parse(dateString);
-
-						// format with given pattern
-						return new SimpleDateFormat(pattern).format(d);
+						return new SimpleDateFormat(pattern).parse(dateString);
 
 					} catch (ParseException ex) {
 						logger.log(Level.WARNING, "Could not parse date " + dateString + " and format it to pattern " + pattern, ex);
@@ -2522,7 +2634,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			@Override
 			public String usage() {
-				return ERROR_MESSAGE_DATE_FORMAT;
+				return ERROR_MESSAGE_PARSE_DATE;
 			}
 		});
 		functions.put("number_format", new Function<Object, Object>() {
@@ -2756,11 +2868,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 					return ((List)sources[0]).get(0);
 				}
 
-				return "";
+				return null;
 			}
 
 			@Override
@@ -2773,7 +2885,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 1) &&  sources[0] instanceof List) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1) &&  sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 
 					final List list = (List)sources[0];
 					return list.get(list.size() - 1);
@@ -2792,7 +2904,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 
 					final List list = (List)sources[0];
 					final int pos   = Double.valueOf(sources[1].toString()).intValue();
@@ -3773,5 +3885,29 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			results.add(partialResult);
 		}
+	}
+
+	private static double getDoubleForComparison(final Object obj) {
+
+		if (obj instanceof Date) {
+
+			return ((Date)obj).getTime();
+
+		} else if (obj instanceof Number) {
+
+			return ((Number)obj).doubleValue();
+
+		} else {
+
+			try {
+				return Double.valueOf(obj.toString());
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+			}
+		}
+
+		return 0.0;
 	}
 }

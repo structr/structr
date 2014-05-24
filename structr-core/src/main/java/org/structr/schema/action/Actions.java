@@ -28,8 +28,15 @@ public class Actions {
 	// ----- public static methods -----
 	public static boolean execute(final SecurityContext securityContext, final AbstractNode entity, final String source) throws FrameworkException {
 
+		final ActionContext context = new ActionContext();
+
 		// ignore result for now
-		entity.replaceVariables(securityContext, new ActionContext(), source);
+		entity.replaceVariables(securityContext, context, source);
+
+		// check for errors raised by scripting
+		if (context.hasError()) {
+			throw new FrameworkException(422, context.getErrorBuffer());
+		}
 
 		// false means SUCCESS!
 		return false;

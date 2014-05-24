@@ -23,11 +23,12 @@ package org.structr.schema.action;
 import java.util.Date;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Ownership;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
@@ -40,8 +41,9 @@ import org.structr.core.property.PropertyKey;
  */
 public class ActionContext {
 
-	private GraphObject parent = null;
-	private Object data        = null;
+	private ErrorBuffer errorBuffer = new ErrorBuffer();
+	private GraphObject parent      = null;
+	private Object data             = null;
 
 	public ActionContext() {
 		this(null, null);
@@ -69,12 +71,7 @@ public class ActionContext {
 			if (_data != null && _data instanceof GraphObject) {
 
 				PropertyKey referenceKeyProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), part);
-				PropertyConverter converter      = referenceKeyProperty.inputConverter(securityContext);
 				_data                            = ((GraphObject)_data).getProperty(referenceKeyProperty);
-
-				if (_data != null && converter != null) {
-					_data = converter.revert(_data);
-				}
 
 				if (_data == null) {
 
@@ -205,5 +202,17 @@ public class ActionContext {
 		}
 
 		return _data;
+	}
+
+	public void raiseError(final String type, final ErrorToken errorToken) {
+		errorBuffer.add(type, errorToken);
+	}
+
+	public ErrorBuffer getErrorBuffer() {
+		return errorBuffer;
+	}
+
+	public boolean hasError() {
+		return errorBuffer.hasError();
 	}
 }

@@ -537,7 +537,7 @@ var Structr = {
             Structr.maximize();
             return;
         }
-        
+
         var w = $(window).width();
         var h = $(window).height();
 
@@ -567,7 +567,7 @@ var Structr = {
         });
 
         var tabsHeight = $('.files-tabs ul').height();
-        
+
         $('.CodeMirror').css({
             height: (dh - 118 - 14 - tabsHeight) + 'px'
         });
@@ -621,7 +621,7 @@ var Structr = {
         });
 
         var tabsHeight = $('.files-tabs ul').height();
-        
+
         $('.CodeMirror').css({
             height: (dh - 118 - 14 - tabsHeight) + 'px'
         });
@@ -1098,6 +1098,43 @@ var Structr = {
             localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
 
             Command.push(obj.id, host, port, username, password, key, recursive, function() {
+                dialog.empty();
+                dialogCancelButton.click();
+            })
+        });
+
+        return false;
+    },
+    pushSchemaDialog: function() {
+
+        Structr.dialog('Push schema to remote server', function() {
+        },
+                function() {
+                });
+
+        var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+
+        dialog.append('Do you want to transfer <b>all schema nodes and relationships</b> to the remote server?');
+
+        dialog.append('<table class="props push">'
+                + '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'
+                + '<tr><td>Port</td><td><input id="push-port" type="text" length="20" value="' + (pushConf.port || '') + '"></td></tr>'
+                + '<tr><td>Username</td><td><input id="push-username" type="text" length="20" value="' + (pushConf.username || '') + '"></td></tr>'
+                + '<tr><td>Password</td><td><input id="push-password" type="password" length="20" value="' + (pushConf.password || '') + '"></td></tr>'
+                + '</table>'
+                + '<button id="start-push">Start</button>');
+
+        $('#start-push', dialog).on('click', function() {
+            var host = $('#push-host', dialog).val();
+            var port = parseInt($('#push-port', dialog).val());
+            var username = $('#push-username', dialog).val();
+            var password = $('#push-password', dialog).val();
+            var key = 'key_push_schema';
+
+            pushConf = {host: host, port: port, username: username, password: password};
+            localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+
+            Command.pushSchema(host, port, username, password, key, function() {
                 dialog.empty();
                 dialogCancelButton.click();
             })

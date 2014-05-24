@@ -35,6 +35,17 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 		exportSet = ExportSet.getInstance(sourceNode, recursive);
 	}
 
+	public PushTransmission(final String userName, final String password, final String remoteHost, final int port) {
+
+		super(userName, password, remoteHost, port);
+
+		exportSet = ExportSet.getInstance();
+	}
+
+	public ExportSet getExportSet() {
+		return exportSet;
+	}
+
 	@Override
 	public int getTotalSize() {
 		return exportSet.getTotalSize() + 1;

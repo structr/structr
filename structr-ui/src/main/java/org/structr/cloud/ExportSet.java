@@ -64,6 +64,10 @@ public class ExportSet {
 	}
 
 	// ----- public static methods -----
+	public static ExportSet getInstance() {
+		return new ExportSet();
+	}
+
 	public static ExportSet getInstance(final Syncable start, final boolean recursive) {
 
 		final ExportSet exportSet = new ExportSet();

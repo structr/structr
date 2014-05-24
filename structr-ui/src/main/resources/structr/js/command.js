@@ -811,6 +811,28 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send a PUSH_SCHEMA command to the server.
+     *
+     * The server will establish a socket connection to the post on the given
+     * port, authenticate with given username and password, and push the node
+     * with the given id to the server.
+     *
+     * The server gives no feedback on a LINK command.
+     */
+    pushSchema: function(host, port, username, password, key, callback) {
+        var obj = {};
+        obj.command = 'PUSH_SCHEMA';
+        var data = {};
+        data.host = host;
+        data.port = port;
+        data.username = username;
+        data.password = password;
+        data.key = key;
+        obj.data = data;
+        log('push_schema()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
      * Send a PULL command to the server.
      *
      * The server will establish a socket connection to the post on the given

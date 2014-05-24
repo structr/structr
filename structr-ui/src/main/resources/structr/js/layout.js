@@ -39,7 +39,7 @@ var _Layout = {
                 var dx  = pos1.x - pos2.x;
                 var dy  = pos1.y - pos2.y;
                 var dl  = Math.sqrt(dx*dx + dy*dy);
-                var len = 400.0 - dl;
+                var len = 300.0 - dl;
                 var dFx = 0.0;
                 var dFy = 0.0;
 
@@ -50,10 +50,11 @@ var _Layout = {
                     dFy = dy * len * springForce * (1.0 / springDamping);
                 }
 
-                if (dl > 5.0) {
+                // "pushing" magnetic force
+                if (dl > 0.0) {
 
-                    dFx += dx * (1.0 / (dl * dl * dl)) * 1000000.0;
-                    dFy += dy * (1.0 / (dl * dl * dl)) * 1000000.0;
+                    dFx += dx * (1.0 / (dl * dl)) * 1000000.0;
+                    dFy += dy * (1.0 / (dl * dl)) * 1000000.0;
                 }
 
                 if (dFx > 1000000) {
@@ -63,7 +64,7 @@ var _Layout = {
                     dFy = 1000000;
                 }
 
-                if (dFx < 10000 && dFy < 10000) {
+                if (dFx < 12000 && dFy < 12000) {
                     stop &= true;
                 } else {
                     stop = false;
@@ -103,6 +104,14 @@ var _Layout = {
 
         pos.x += (pos.x - pos.x0) + (pos.Fx * dt2);
         pos.y += (pos.y - pos.y0) + (pos.Fy * dt2);
+
+        if (pos.x < _Layout.leftOffset) {
+            pos.x = _Layout.leftOffset;
+        }
+
+        if (pos.y < _Layout.topOffset) {
+            pos.y = _Layout.topOffset;
+        }
 
         pos.x0 = tmpX;
         pos.y0 = tmpY;
