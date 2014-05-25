@@ -115,9 +115,9 @@ var _Schema = {
                 _Schema.openAdminTools();
             });
 
-            $('.schema-input-container').append('<button class="btn" id="push-schema"><img src="icon/page_white_get.png"> Push schema</button>');
-            $('#push-schema').on('click', function() {
-                Structr.pushSchemaDialog();
+            $('.schema-input-container').append('<button class="btn" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
+            $('#sync-schema').on('click', function() {
+                _Schema.syncSchemaDialog();
             });
 
             /*
@@ -1125,6 +1125,53 @@ var _Schema = {
                 }
             }
         });
+    },
+    syncSchemaDialog: function() {
+
+        Structr.dialog('Sync schema with remote server', function() {
+        },
+                function() {
+                });
+
+        var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+
+        dialog.append('To push <b>all schema nodes and relationships</b> to the remote server, ');
+        dialog.append('enter host, port, username and password of your remote instance and click Start.');
+
+        dialog.append('<p>Or do you want to <a id="pull" href="javascript:void(0)">update your local schema with schema nodes and relationships from the remote server</a>?</p>');
+
+        $('#pull', dialog).on('click', function(e) {
+            e.stopPropagation();
+            Structr.pullDialog('SchemaNode,SchemaRelationship');
+        });
+
+        dialog.append('<table class="props push">'
+                + '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'
+                + '<tr><td>Port</td><td><input id="push-port" type="text" length="20" value="' + (pushConf.port || '') + '"></td></tr>'
+                + '<tr><td>Username</td><td><input id="push-username" type="text" length="20" value="' + (pushConf.username || '') + '"></td></tr>'
+                + '<tr><td>Password</td><td><input id="push-password" type="password" length="20" value="' + (pushConf.password || '') + '"></td></tr>'
+                + '</table>'
+                + '<button id="start-push">Start</button>');
+
+
+
+        $('#start-push', dialog).on('click', function() {
+            var host = $('#push-host', dialog).val();
+            var port = parseInt($('#push-port', dialog).val());
+            var username = $('#push-username', dialog).val();
+            var password = $('#push-password', dialog).val();
+            var key = 'key_push_schema';
+
+            pushConf = {host: host, port: port, username: username, password: password};
+            localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+
+            Command.pushSchema(host, port, username, password, key, function() {
+                dialog.empty();
+                dialogCancelButton.click();
+            })
+        });
+
+        return false;
     },
     openAdminTools: function() {
         Structr.dialog('Admin Tools', function() {
