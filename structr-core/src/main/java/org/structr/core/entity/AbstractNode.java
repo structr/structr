@@ -184,6 +184,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_FIRST               = "Usage: ${first(collection)}. Example: ${first(this.children)}";
 	public static final String ERROR_MESSAGE_LAST                = "Usage: ${last(collection)}. Example: ${last(this.children)}";
 	public static final String ERROR_MESSAGE_NTH                 = "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
+	public static final String ERROR_MESSAGE_EVAL                = "Usage: ${eval(expression...)}. Example: ${eval(\"print(this.name)\", \"delete(this)\"}";
+	public static final String ERROR_MESSAGE_MERGE_PROPERTIES    = "Usage: ${merge_properties(source, target [, overwriteKeys...])}. Example: ${merge_properties(this, parent, \"eMail\")}";
 	public static final String ERROR_MESSAGE_EACH                = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
 	public static final String ERROR_MESSAGE_PRINT               = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
 	public static final String ERROR_MESSAGE_READ                = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
@@ -2921,6 +2923,70 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return ERROR_MESSAGE_NTH;
 			}
 		});
+		functions.put("eval", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				for (Object i : sources) {
+
+					if (i != null && i instanceof String) {
+
+						final AbstractNode node = (AbstractNode)entity;
+						node.extractFunctions(entity.getSecurityContext(), ctx, i.toString());
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_EVAL;
+			}
+		});
+		functions.put("merge_properties", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject && sources[1] instanceof GraphObject) {
+
+					final ConfigurationProvider config   = StructrApp.getConfiguration();
+					final Set<PropertyKey> overwriteKeys = new LinkedHashSet<>();
+					final GraphObject source             = (GraphObject)sources[0];
+					final GraphObject target             = (GraphObject)sources[1];
+					final int paramCount                 = sources.length;
+
+					for (int i=2; i<paramCount; i++) {
+
+						final String keyName     = sources[i].toString();
+						final PropertyKey key    = config.getPropertyKeyForJSONName(target.getClass(), keyName);
+
+						overwriteKeys.add(key);
+					}
+
+					Iterable<PropertyKey> props = source.getPropertyKeys(PropertyView.Ui);
+					for (final PropertyKey key : props) {
+
+						final Object sourceValue = source.getProperty(key);
+						final Object targetValue = target.getProperty(key);
+
+						if (targetValue == null || overwriteKeys.contains(key)) {
+							target.setProperty(key, sourceValue);
+						}
+
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MERGE_PROPERTIES;
+			}
+		});
 		functions.put("each", new Function<Object, Object>() {
 
 			@Override
@@ -3911,3 +3977,5 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return 0.0;
 	}
 }
+
+

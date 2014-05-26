@@ -282,7 +282,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if (rootElement == null) {
 					return;
 				}
-				
+
 				logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
 				if (EditMode.DATA.equals(edit) || dontCache) {
