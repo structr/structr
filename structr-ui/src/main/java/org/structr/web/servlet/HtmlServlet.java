@@ -332,11 +332,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						response.setHeader("X-Frame-Options", "SAMEORIGIN");
 						response.setHeader("X-XSS-Protection", "1; mode=block");
 
-						AsyncContext async = request.startAsync();
+						//AsyncContext async = request.startAsync();
 						ServletOutputStream out = response.getOutputStream();
 
 						AsyncBuffer buffer = renderContext.getBuffer();
-						buffer.prepare(async, out);
+						//buffer.prepare(async, out);
+						buffer.prepare(null, out);
 						//StructrWriteListener writeListener = new StructrWriteListener(buffer, async, out);
 
 						rootElement.render(securityContext, renderContext, 0);
@@ -358,17 +359,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
 
 						// 3: finish request
-//						try {
-//
-//							out.flush();
-//							//response.flushBuffer();
-//							out.close();
-//
-//						} catch (IllegalStateException ise) {
-//
-//							logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
-//
-//						}
+						try {
+
+							out.flush();
+							//response.flushBuffer();
+							out.close();
+
+						} catch (IllegalStateException ise) {
+
+							logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
+
+						}
 					}
 
 				} else {
