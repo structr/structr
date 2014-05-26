@@ -85,6 +85,9 @@ smtp.port = 25
 # Available servlets
 HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet
 #
+# Work asynchronously
+#HttpService.async = false
+#
 # JSON/REST servlet
 JsonRestServlet.authenticator = org.structr.web.auth.UiAuthenticator
 JsonRestServlet.class = org.structr.rest.servlet.JsonRestServlet
