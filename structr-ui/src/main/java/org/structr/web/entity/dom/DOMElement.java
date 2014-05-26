@@ -93,7 +93,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final Logger logger = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();
 
-	private static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+	private static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
