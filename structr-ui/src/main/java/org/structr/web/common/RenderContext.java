@@ -98,7 +98,6 @@ public class RenderContext extends ActionContext {
 		this.editMode = editMode;
 		this.locale = locale;
 
-
 	}
 	public static RenderContext getInstance(final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
 

@@ -93,7 +93,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final Logger logger = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();
 
-	private static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+	private static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
@@ -406,9 +406,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public void render(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		if (renderContext.hasTimeout(RENDER_TIMEOUT)) {
-
-			logger.log(Level.WARNING, "Render timeout reached, aborting.");
-
 			return;
 		}
 
@@ -620,10 +617,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		logger.log(Level.FINE, "Render node {0} in {1} seconds", new java.lang.Object[]{getUuid(), decimalFormat.format((end - start) / 1000000000.0)});
 
-		if (flush()) {
-			logger.log(Level.FINE, "Flushing response: {0} ", getTagName());
-			out.flush();
-		}
+//		if (flush()) {
+//			logger.log(Level.FINE, "Flushing response: {0} ", getTagName());
+//			out.flush();
+//		}
 
 		// Set result for this level again, if there was any
 		if (localResult != null) {

@@ -30,12 +30,15 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Queue;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -63,7 +66,6 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.File;
@@ -114,13 +116,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
 		double start = System.nanoTime();
 
-		SecurityContext securityContext;
+		final SecurityContext securityContext;
+		final App app;
 		Authenticator auth = config.getAuthenticator();
-		App app;
 
 		try {
 			String path = request.getPathInfo();
@@ -167,7 +169,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
+				final RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
 
 				renderContext.setResourceProvider(config.getResourceProvider());
 
@@ -312,6 +314,29 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					} else {
 
+						final AtomicBoolean finished = new AtomicBoolean(false);
+						final DOMNode rootNode       = rootElement;
+
+						// start rendering
+						new Thread(new Runnable() {
+
+							@Override
+							public void run() {
+
+								try (final Tx tx = app.tx()) {
+
+									// render stuff
+									rootNode.render(securityContext, renderContext, 0);
+
+									finished.set(true);
+
+								} catch (FrameworkException fex) {
+									fex.printStackTrace();
+								}
+							}
+
+						}).start();
+
 						response.setCharacterEncoding("UTF-8");
 
 						String contentType = rootElement.getProperty(Page.contentType);
@@ -332,43 +357,42 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						response.setHeader("X-Frame-Options", "SAMEORIGIN");
 						response.setHeader("X-XSS-Protection", "1; mode=block");
 
-						AsyncContext async = request.startAsync();
-						ServletOutputStream out = response.getOutputStream();
+						// start output write listener
+						final AsyncContext async      = request.startAsync();
+						final ServletOutputStream out = async.getResponse().getOutputStream();
 
-						AsyncBuffer buffer = renderContext.getBuffer();
-						buffer.prepare(async, out);
-						//StructrWriteListener writeListener = new StructrWriteListener(buffer, async, out);
+						out.setWriteListener(new WriteListener() {
 
-						rootElement.render(securityContext, renderContext, 0);
-						buffer.finish();
+							@Override
+							public void onWritePossible() throws IOException {
 
-//						final DOMNode root = rootElement;
-//						new Thread() {
-//							public void run() {
-//								try {
-//									root.render(securityContext, renderContext, 0);
-//								} catch (FrameworkException ex) {
-//									Logger.getLogger(HtmlServlet.class.getName()).log(Level.SEVERE, null, ex);
-//								}
-//							}
-//						}.start();
-						response.setStatus(HttpServletResponse.SC_OK);
+								final Queue<String> queue = renderContext.getBuffer().getQueue();
+								while (out.isReady()) {
+
+									final String s = queue.poll();
+									if (s != null) {
+
+										out.print(s);
+
+									} else if (finished.get()) {
+
+										async.complete();
+										response.setStatus(HttpServletResponse.SC_OK);
+
+										// prevent this block from being called again
+										break;
+									}
+								}
+							}
+
+							@Override
+							public void onError(Throwable t) {
+								t.printStackTrace();
+							}
+						});
 
 						double end = System.nanoTime();
 						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
-
-						// 3: finish request
-//						try {
-//
-//							out.flush();
-//							//response.flushBuffer();
-//							out.close();
-//
-//						} catch (IllegalStateException ise) {
-//
-//							logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
-//
-//						}
 					}
 
 				} else {

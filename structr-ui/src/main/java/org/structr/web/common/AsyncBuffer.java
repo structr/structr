@@ -17,98 +17,29 @@
  */
 package org.structr.web.common;
 
-import java.io.IOException;
-import java.util.LinkedList;
 import java.util.Queue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.AsyncContext;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Special buffer for asynchronous streaming of chunked output.
  *
  * @author Axel Morgner
  */
-public class AsyncBuffer implements WriteListener {
+public class AsyncBuffer {
 
-	private static final Logger logger = Logger.getLogger(AsyncBuffer.class.getName());
+	private final Queue<String> queue = new LinkedBlockingQueue<>();
 
-	private final Queue<String> queue = new LinkedList<>();
-
-	private AsyncContext async;
-	private ServletOutputStream out;
-
-	private boolean completed = false;
-
-	public void prepare(final AsyncContext async, final ServletOutputStream out) {
-
-		this.async = async;
-		this.out = out;
-
-		out.setWriteListener(this);
-	}
-
-	public void flush() {
-
-		try {
-
-			write();
-
-		} catch (IOException ex) {
-
-			Logger.getLogger(AsyncBuffer.class.getName()).log(Level.SEVERE, null, ex);
-
-		}
-
-	}
-
-	private void write() throws IOException {
-
-		// Write to client if buffer is filled and client is ready
-		while (out.isReady()) {
-
-			String s = queue.poll();
-
-			if (s == null) {
-				out.flush();
-				return;
-			}
-
-			if (!completed) {
-				// write out the copy buffer.  
-				out.print(s);
-			}
-
-		}
-
-	}
-
-	public void finish() {
-
-		flush();
-		completed = true;
-		async.complete();
-
-	}
-
-	@Override
-	public void onWritePossible() throws IOException {
-
-		write();
-
-	}
-
-	@Override
-	public void onError(Throwable t) {
-		logger.log(Level.FINE, "Async error", t);
-		async.complete();
+	public AsyncBuffer() {
 	}
 
 	public AsyncBuffer append(final String s) {
+
 		queue.add(s);
+
 		return this;
 	}
 
+	public Queue<String> getQueue() {
+		return queue;
+	}
 }
