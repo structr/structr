@@ -108,26 +108,20 @@ public class StructrHttpServiceConfig {
 
 		} else {
 
-			try {
-				authenticatorClass = loadClass(authenticatorValue);
+			authenticatorClass = loadClass(authenticatorValue);
+			if (authenticatorClass == null) {
 
-			} catch (Throwable t) {
-
-				logger.log(Level.SEVERE, "Unable to instantiate authenticator {0}: {1}", new Object[] { authenticatorValue, t.getMessage() } );
+				logger.log(Level.SEVERE, "Unable	 to instantiate authenticator {0}", authenticatorValue );
 			}
 
 		}
 
 		if (userClassValue != null) {
 
-			try {
-				userClass = loadClass(userClassValue);
+			userClass = loadClass(userClassValue);
 
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-
-				logger.log(Level.SEVERE, "Unable to instantiate user class for authenticator {0}: {1}", new Object[] { userClassValue, t.getMessage() } );
+			if (userClass == null) {
+				logger.log(Level.SEVERE, "Unable to instantiate user class for authenticator {0}", userClassValue );
 			}
 		}
 
@@ -166,7 +160,7 @@ public class StructrHttpServiceConfig {
 	}
 
 	// ----- private methods -----
-	private Class loadClass(final String name) throws ClassNotFoundException {
+	private Class loadClass(final String name) {
 
 		ClassLoader loader = SchemaService.getClassLoader();
 		Class loadedClass  = null;
@@ -182,7 +176,12 @@ public class StructrHttpServiceConfig {
 		} catch (Throwable ignore) {}
 
 		if (loadedClass == null) {
-			loadedClass = Class.forName(name);
+
+			try {
+
+				loadedClass = Class.forName(name);
+
+			} catch (Throwable ignore) {}
 		}
 
 		return loadedClass;

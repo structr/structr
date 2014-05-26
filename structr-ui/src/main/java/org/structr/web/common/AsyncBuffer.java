@@ -17,8 +17,8 @@
  */
 package org.structr.web.common;
 
+import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Special buffer for asynchronous streaming of chunked output.
@@ -27,16 +27,23 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class AsyncBuffer {
 
-	private final Queue<String> queue = new ConcurrentLinkedQueue<>();
+	private final Queue<byte[]> queue = new LinkedList<>();
 
 	public AsyncBuffer append(final String s) {
 
-		queue.add(s);
+		try {
+			synchronized(queue) {
+				queue.add(s.getBytes("utf-8"));
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		return this;
 	}
 
-	public Queue<String> getQueue() {
+	public Queue<byte[]> getQueue() {
 		return queue;
 	}
 }
