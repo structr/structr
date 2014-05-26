@@ -18,7 +18,7 @@
 package org.structr.web.common;
 
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Special buffer for asynchronous streaming of chunked output.
@@ -27,10 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class AsyncBuffer {
 
-	private final Queue<String> queue = new LinkedBlockingQueue<>();
-
-	public AsyncBuffer() {
-	}
+	private final Queue<String> queue = new ConcurrentLinkedQueue<>();
 
 	public AsyncBuffer append(final String s) {
 
