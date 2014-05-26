@@ -179,9 +179,7 @@ public class StructrHttpServiceConfig {
 
 			loadedClass = Class.forName(name, true, loader);
 
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		} catch (Throwable ignore) {}
 
 		if (loadedClass == null) {
 			loadedClass = Class.forName(name);
