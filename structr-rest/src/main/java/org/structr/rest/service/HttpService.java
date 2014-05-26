@@ -90,6 +90,7 @@ public class HttpService implements RunnableService {
 	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
 	
 
+
 	// set of resource providers for this service
 	private Set<ResourceProvider> resourceProviders = new LinkedHashSet<>();
 
@@ -102,7 +103,7 @@ public class HttpService implements RunnableService {
 	private String basePath = null;
 	private String applicationName = null;
 	private String host = null;
-	private boolean async = false;
+	private boolean async = true;
 	private int httpPort = 8082;
 	private int maxIdleTime = 30000;
 	private int requestHeaderSize = 8192;
@@ -212,7 +213,7 @@ public class HttpService implements RunnableService {
 		maxIdleTime       = parseInt(System.getProperty("maxIdleTime"), 30000);
 		requestHeaderSize = parseInt(System.getProperty("requestHeaderSize"), 8192);
 		async             = parseBoolean(finalConfig.getProperty(ASYNC), false);
-		
+
 		if (async) {
 			logger.log(Level.INFO, "Running in asynchronous mode");
 		}
@@ -267,7 +268,7 @@ public class HttpService implements RunnableService {
 
 			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
 			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
-			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
+			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
 		}
 
 		if (enableGzipCompression) {
@@ -278,7 +279,7 @@ public class HttpService implements RunnableService {
 			gzipFilter.setInitParameter("minGzipSize", "256");
 			gzipFilter.setInitParameter("deflateCompressionLevel", "9");
 			gzipFilter.setInitParameter("methods", "GET,POST");
-			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
+			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
 
 		}
 

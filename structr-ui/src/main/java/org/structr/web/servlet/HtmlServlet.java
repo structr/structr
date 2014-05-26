@@ -71,9 +71,11 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
@@ -317,29 +319,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					} else {
 
-						final AtomicBoolean finished = new AtomicBoolean(false);
-						final DOMNode rootNode       = rootElement;
-
-						// start rendering
-						new Thread(new Runnable() {
-
-							@Override
-							public void run() {
-
-								try (final Tx tx = app.tx()) {
-
-									// render stuff
-									rootNode.render(securityContext, renderContext, 0);
-
-									finished.set(true);
-
-								} catch (FrameworkException fex) {
-									fex.printStackTrace();
-								}
-							}
-
-						}).start();
-
+						// prepare response
 						response.setCharacterEncoding("UTF-8");
 
 						String contentType = rootElement.getProperty(Page.contentType);
@@ -360,39 +340,97 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						response.setHeader("X-Frame-Options", "SAMEORIGIN");
 						response.setHeader("X-XSS-Protection", "1; mode=block");
 
-						// start output write listener
-						final AsyncContext async      = request.startAsync();
-						final ServletOutputStream out = async.getResponse().getOutputStream();
+						// async or not?
+						boolean isAsync = HttpService.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), true);
+						if (isAsync) {
 
-						out.setWriteListener(new WriteListener() {
+							final AsyncContext async      = request.startAsync();
+							final ServletOutputStream out = async.getResponse().getOutputStream();
+							final AtomicBoolean finished  = new AtomicBoolean(false);
+							final DOMNode rootNode        = rootElement;
+
+							async.setTimeout(DOMElement.RENDER_TIMEOUT);
+
+							async.start(new Runnable() {
+
+								@Override
+								public void run() {
+
+									try (final Tx tx = app.tx()) {
+
+										//final long start = System.currentTimeMillis();
+
+										// render
+										rootNode.render(securityContext, renderContext, 0);
+										finished.set(true);
+
+										//final long end = System.currentTimeMillis();
+										//System.out.println("Done in " + (end-start) + " ms");
+
+										tx.success();
+
+									} catch (FrameworkException fex) {
+										fex.printStackTrace();
+									}
+								}
+
+							});
+
+							// start output write listener
+							out.setWriteListener(new WriteListener() {
 
 							@Override
 							public void onWritePossible() throws IOException {
 
-								final Queue<String> queue = renderContext.getBuffer().getQueue();
+								final Queue<byte[]> queue = renderContext.getBuffer().getQueue();
 								while (out.isReady()) {
 
-									final String s = queue.poll();
-									if (s != null) {
+									byte[] buffer = null;
 
-										out.print(s);
+									synchronized(queue) {
+										buffer = queue.poll();
+									}
 
-									} else if (finished.get()) {
+									if (buffer != null) {
 
-										async.complete();
-										response.setStatus(HttpServletResponse.SC_OK);
+										out.write(buffer);
 
-										// prevent this block from being called again
-										break;
+									} else {
+
+										if (finished.get()) {
+
+											async.complete();
+											response.setStatus(HttpServletResponse.SC_OK);
+
+											// prevent this block from being called again
+											break;
+										}
+
+										try {
+											Thread.sleep(10);
+										} catch (Throwable t) {}
 									}
 								}
 							}
 
-							@Override
-							public void onError(Throwable t) {
-								t.printStackTrace();
-							}
-						});
+								@Override
+								public void onError(Throwable t) {
+									t.printStackTrace();
+								}
+							});
+
+						} else {
+
+							final StringRenderBuffer buffer = new StringRenderBuffer();
+							renderContext.setBuffer(buffer);
+
+							// render
+							rootElement.render(securityContext, renderContext, 0);
+
+							response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
+							response.getOutputStream().flush();
+							response.getOutputStream().close();
+						}
 
 						double end = System.nanoTime();
 						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
@@ -407,6 +445,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+				fex.printStackTrace();
 				logger.log(Level.SEVERE, "Exception while processing request", fex);
 			}
 
@@ -836,12 +875,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(HttpServletResponse.SC_OK);
 
-			boolean async = HttpService.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), false);
-			
-			if (async) {
-				AsyncContext asyncContext = request.startAsync();
-				out.setWriteListener(new StructrWriteListener(in,asyncContext, out));
-			} else {
+//			boolean async = HttpService.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), false);
+//
+//			if (async) {
+//				AsyncContext asyncContext = request.startAsync();
+//				out.setWriteListener(new StructrWriteListener(in,asyncContext, out));
+//			} else {
 
 				try {
 
@@ -868,7 +907,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					response.setStatus(HttpServletResponse.SC_OK);
 				}
-			}
+//			}
 		}
 	}
 
