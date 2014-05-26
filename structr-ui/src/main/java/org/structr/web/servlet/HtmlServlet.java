@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -51,6 +52,7 @@ import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -60,6 +62,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.ResourceProvider;
+import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
@@ -332,13 +335,18 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						response.setHeader("X-Frame-Options", "SAMEORIGIN");
 						response.setHeader("X-XSS-Protection", "1; mode=block");
 
-						//AsyncContext async = request.startAsync();
 						ServletOutputStream out = response.getOutputStream();
 
 						AsyncBuffer buffer = renderContext.getBuffer();
-						//buffer.prepare(async, out);
-						buffer.prepare(null, out);
-						//StructrWriteListener writeListener = new StructrWriteListener(buffer, async, out);
+
+						boolean async = HttpService.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), false);
+						
+						AsyncContext asyncContext = null;
+						if (async) {
+							asyncContext = request.startAsync();
+						}
+						
+						buffer.prepare(asyncContext, out);
 
 						rootElement.render(securityContext, renderContext, 0);
 						buffer.finish();
@@ -359,16 +367,18 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
 
 						// 3: finish request
-						try {
+						if (!async) {
+							try {
 
-							out.flush();
-							//response.flushBuffer();
-							out.close();
+								out.flush();
+								//response.flushBuffer();
+								out.close();
 
-						} catch (IllegalStateException ise) {
+							} catch (IllegalStateException ise) {
 
-							logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
+								logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
 
+							}
 						}
 					}
 
@@ -810,34 +820,39 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(HttpServletResponse.SC_OK);
 
-			AsyncContext async = request.startAsync();
-			out.setWriteListener(new StructrWriteListener(in, async, out));
+			boolean async = HttpService.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), false);
+			
+			if (async) {
+				AsyncContext asyncContext = request.startAsync();
+				out.setWriteListener(new StructrWriteListener(in,asyncContext, out));
+			} else {
 
-//			try {
-//
-//				IOUtils.copy(in, out);
-//
-//			} catch (Throwable t) {
-//
-//			} finally {
-//
-//				if (out != null) {
-//
-//					try {
-//						// 3: output content
-//						out.flush();
-//						out.close();
-//
-//					} catch (Throwable t) {
-//					}
-//				}
-//
-//				if (in != null) {
-//					in.close();
-//				}
-//
-//				response.setStatus(HttpServletResponse.SC_OK);
-//			}
+				try {
+
+					IOUtils.copy(in, out);
+
+				} catch (Throwable t) {
+
+				} finally {
+
+					if (out != null) {
+
+						try {
+							// 3: output content
+							out.flush();
+							out.close();
+
+						} catch (Throwable t) {
+						}
+					}
+
+					if (in != null) {
+						in.close();
+					}
+
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
+			}
 		}
 	}
 

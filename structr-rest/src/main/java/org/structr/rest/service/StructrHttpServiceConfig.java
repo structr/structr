@@ -36,7 +36,7 @@ import org.structr.schema.SchemaService;
  */
 public class StructrHttpServiceConfig {
 
-	private static final Logger logger            = Logger.getLogger(HttpServiceServlet.class.getName());
+	private static final Logger logger            = Logger.getLogger(StructrHttpServiceConfig.class.getName());
 
 	private final Property<String> defaultIdProperty  = GraphObject.id;
 	private String defaultPropertyView                = PropertyView.Public;

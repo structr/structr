@@ -47,7 +47,9 @@ public class AsyncBuffer implements WriteListener {
 		this.async = async;
 		this.out = out;
 
-		out.setWriteListener(this);
+		if (async != null) {
+			out.setWriteListener(this);
+		}
 	}
 
 	public void flush() {
@@ -67,7 +69,7 @@ public class AsyncBuffer implements WriteListener {
 	private void write() throws IOException {
 
 		// Write to client if buffer is filled and client is ready
-		while (out.isReady()) {
+		while (async == null || out.isReady()) {
 
 			String s = queue.poll();
 
@@ -78,7 +80,7 @@ public class AsyncBuffer implements WriteListener {
 
 			if (!completed) {
 				// write out the copy buffer.  
-				out.print(s);
+				out.write(s.getBytes("UTF-8"));
 			}
 
 		}
@@ -89,7 +91,9 @@ public class AsyncBuffer implements WriteListener {
 
 		flush();
 		completed = true;
-		async.complete();
+		if (async != null) {
+			async.complete();
+		}
 
 	}
 
@@ -103,7 +107,9 @@ public class AsyncBuffer implements WriteListener {
 	@Override
 	public void onError(Throwable t) {
 		logger.log(Level.FINE, "Async error", t);
-		async.complete();
+		if (async != null) {
+			async.complete();
+		}
 	}
 
 	public AsyncBuffer append(final String s) {
