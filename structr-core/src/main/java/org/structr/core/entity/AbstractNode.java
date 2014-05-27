@@ -2969,9 +2969,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					for (final PropertyKey key : mergeKeys) {
 
 						final Object sourceValue = source.getProperty(key);
-						final Object targetValue = target.getProperty(key);
-
-						if (targetValue == null && sourceValue != null) {
+						if (sourceValue != null) {
+							
 							target.setProperty(key, sourceValue);
 						}
 
