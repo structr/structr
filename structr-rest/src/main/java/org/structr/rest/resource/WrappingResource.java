@@ -52,18 +52,6 @@ public abstract class WrappingResource extends Resource {
 		throw new IllegalPathException();
 	}
 
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-
-		if (wrappedResource != null) {
-
-			return wrappedResource.doHead();
-
-		}
-
-		throw new IllegalPathException();
-	}
-
 	protected void wrapResource(Resource wrappedResource) {
 
 		this.idProperty      = wrappedResource.idProperty;
@@ -88,7 +76,7 @@ public abstract class WrappingResource extends Resource {
 
 	@Override
 	public Class getEntityClass() {
-		
+
 		if (wrappedResource != null) {
 
 			return wrappedResource.getEntityClass();
@@ -112,7 +100,7 @@ public abstract class WrappingResource extends Resource {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public boolean isCollectionResource() throws FrameworkException {
 

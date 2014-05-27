@@ -169,7 +169,7 @@ public class SchemaTypeResource extends Resource {
 						if (declaringClass != null && (declaringClass.getName().startsWith("org.structr.dynamic"))) {
 
 							if (property instanceof RelationProperty) {
-								
+
 								Relation relation = ((RelationProperty) property).getRelation();
 
 								if (relation != null) {
@@ -195,13 +195,6 @@ public class SchemaTypeResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-
-		throw new IllegalMethodException();
-
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
 
 		throw new IllegalMethodException();
 

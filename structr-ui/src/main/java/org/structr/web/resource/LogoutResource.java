@@ -64,7 +64,7 @@ public class LogoutResource extends Resource {
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
 		securityContext.getAuthenticator().doLogout(securityContext.getRequest());
-		
+
 		return new RestMethodResult(200);
 
 	}
@@ -73,7 +73,7 @@ public class LogoutResource extends Resource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		throw new NotAllowedException();
-		
+
 	}
 
 	@Override
@@ -87,13 +87,6 @@ public class LogoutResource extends Resource {
 	public RestMethodResult doDelete() throws FrameworkException {
 
 		throw new NotAllowedException();
-
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-
-		throw new IllegalMethodException();
 
 	}
 

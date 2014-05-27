@@ -101,24 +101,19 @@ public class ViewFilterResource extends WrappingResource {
 	}
 
 	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
 	public void configurePropertyView(Value<String> propertyView) {
-		
+
 		try {
 			propertyView.set(securityContext, this.propertyView);
-			
+
 		} catch(FrameworkException fex) {
-			
+
 			logger.log(Level.WARNING, "Unable to configure property view", fex);
 		}
 	}
 
 	//~--- get methods ----------------------------------------------------
-	
+
 	@Override
 	public String getResourceSignature() {
 
@@ -134,7 +129,7 @@ public class ViewFilterResource extends WrappingResource {
 
 				// re-use pattern matcher for better performance
 				matcher.reset(subPart);
-				
+
 				if (!matcher.matches()) {
 
 					signature.append(subPart);
@@ -151,12 +146,12 @@ public class ViewFilterResource extends WrappingResource {
 		}
 
 		if (propertyView != null) {
-			
+
 			// append view / scope part
 			if (!signature.toString().endsWith("/")) {
 				signature.append("/");
 			}
-			
+
 			signature.append("_");
 			signature.append(SchemaHelper.normalizeEntityName(propertyView));
 		}

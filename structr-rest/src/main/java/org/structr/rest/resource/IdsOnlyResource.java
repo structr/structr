@@ -80,11 +80,6 @@ public class IdsOnlyResource extends ViewFilterResource {
 	}
 
 	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
 	public String getUriPart() {
 		return "ids";
 	}
@@ -101,12 +96,12 @@ public class IdsOnlyResource extends ViewFilterResource {
 
 	@Override
 	public void configurePropertyView(Value<String> propertyView) {
-		
+
 		try {
 			propertyView.set(securityContext, "ids");
-			
+
 		} catch(FrameworkException fex) {
-			
+
 			logger.log(Level.WARNING, "Unable to configure property view", fex);
 		}
 	}

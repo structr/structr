@@ -85,7 +85,10 @@ public abstract class Resource {
 
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
-	public abstract RestMethodResult doHead() throws FrameworkException;
+	public RestMethodResult doHead() throws FrameworkException {
+		Thread.dumpStack();
+		throw new IllegalStateException("Resource.doHead() called, this should not happen.");
+	}
 
 	public RestMethodResult doOptions() throws FrameworkException {
 		return new RestMethodResult(HttpServletResponse.SC_OK);

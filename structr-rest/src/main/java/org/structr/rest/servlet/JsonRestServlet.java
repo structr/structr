@@ -471,7 +471,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		RestMethodResult result         = null;
 		Resource resource               = null;
 
 		try {
@@ -490,34 +489,59 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance(securityContext);
 
+			// set default value for property view
+			propertyView.set(securityContext, config.getDefaultPropertyView());
+
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
 				resource = ResourceHelper.applyViewTransformation(request, securityContext,
-					ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
-						config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
+					ResourceHelper.optimizeNestedResourceChain(
+						ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
 
-			// isolate doHead
+			// add sorting & paging
+			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
+			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
+			int pageSize		 = HttpService.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			int page                 = HttpService.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			PropertyKey sortKey      = null;
+
+			// set sort key
+			if (sortKeyName != null) {
+
+				Class<? extends GraphObject> type = resource.getEntityClass();
+				if (type == null) {
+
+					// fallback to default implementation
+					// if no type can be determined
+					type = AbstractNode.class;
+				}
+				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
+			}
+
+			// isolate doGet
 			boolean retry = true;
 			while (retry) {
 
 				try (final Tx tx = app.tx()) {
-					result = resource.doHead();
+					resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 					tx.success();
+					retry = false;
 
-					} catch (DeadlockDetectedException ddex) {
-						retry = true;
-					}
+				} catch (DeadlockDetectedException ddex) {
+					retry = true;
 				}
-
-			// isolate write output
-			try (final Tx tx = app.tx()) {
-				result.commitResponse(gson.get(), response);
-				tx.success();
 			}
+
+			response.setStatus(HttpServletResponse.SC_OK);
 
 		} catch (FrameworkException frameworkException) {
 
@@ -533,7 +557,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in HEAD: " + jsex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "Json syntax exception in HEAD: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -542,7 +566,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in HEAD: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "Parser exception in HEAD: " + jpex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -551,12 +575,12 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in HEAD: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in HEAD: " + t.getMessage()));
 
 		} finally {
 
 			try {
-				response.getWriter().flush();
+				//response.getWriter().flush();
 				response.getWriter().close();
 
 			} catch (Throwable t) {
@@ -612,13 +636,15 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			while (retry) {
 
 				try (final Tx tx = app.tx()) {
+
 					result = resource.doOptions();
 					tx.success();
+					retry = false;
 
-					} catch (DeadlockDetectedException ddex) {
-						retry = true;
-					}
+				} catch (DeadlockDetectedException ddex) {
+					retry = true;
 				}
+			}
 
 			// isolate write output
 			try (final Tx tx = app.tx()) {

@@ -117,11 +117,6 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
 	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new NotAllowedException();
-	}
-
-	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 		return null;
 	}
@@ -151,22 +146,22 @@ public class MaintenanceParameterResource extends Resource {
         public String getResourceSignature() {
                 return SchemaHelper.normalizeEntityName(getUriPart());
         }
-	
+
 	public static void registerMaintenanceTask(String key, Class<? extends Task> task) {
-		
+
 		if(maintenanceCommandMap.containsKey(key)) {
 			throw new IllegalStateException("Maintenance command for key " + key + " already registered!");
 		}
-		
+
 		maintenanceCommandMap.put(key, task);
 	}
-	
+
 	public static void registerMaintenanceCommand(String key, Class<? extends Command> command) {
-		
+
 		if(maintenanceCommandMap.containsKey(key)) {
 			throw new IllegalStateException("Maintenance command for key " + key + " already registered!");
 		}
-		
+
 		maintenanceCommandMap.put(key, command);
 	}
 }

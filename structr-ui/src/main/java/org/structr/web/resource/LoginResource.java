@@ -75,15 +75,15 @@ public class LoginResource extends Resource {
 		String name          = properties.get(User.name);
 		String email         = properties.get(User.eMail);
 		String password      = properties.get(User.password);
-		
+
 		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
-		
+
 		if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
-			
+
 			Principal user = (Principal) securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 
 			if (user != null) {
-				
+
 				logger.log(Level.INFO, "Login successfull: {0}", new Object[]{ user });
 
 				RestMethodResult methodResult = new RestMethodResult(200);
@@ -95,7 +95,7 @@ public class LoginResource extends Resource {
 		}
 
 		logger.log(Level.INFO, "Invalid credentials (name, password): {0}, {1}, {2}", new Object[]{ name, password });
-		
+
 		return new RestMethodResult(401);
 
 	}
@@ -104,7 +104,7 @@ public class LoginResource extends Resource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		throw new NotAllowedException();
-		
+
 	}
 
 	@Override
@@ -118,13 +118,6 @@ public class LoginResource extends Resource {
 	public RestMethodResult doDelete() throws FrameworkException {
 
 		throw new NotAllowedException();
-
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-
-		throw new IllegalMethodException();
 
 	}
 

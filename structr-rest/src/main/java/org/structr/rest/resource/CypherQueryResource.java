@@ -100,13 +100,6 @@ public class CypherQueryResource extends Resource {
 	}
 
 	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-
-		throw new IllegalMethodException();
-
-	}
-
-	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
 		return null;

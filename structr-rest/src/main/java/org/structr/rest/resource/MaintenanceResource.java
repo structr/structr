@@ -87,7 +87,7 @@ public class MaintenanceResource extends Resource {
 				try {
 
 					final App app = StructrApp.getInstance(securityContext);
-					
+
 					if (Task.class.isAssignableFrom(taskOrCommand)) {
 
 						Task task = (Task) taskOrCommand.newInstance();
@@ -129,11 +129,6 @@ public class MaintenanceResource extends Resource {
 			throw new NotAllowedException();
 
 		}
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new NotAllowedException();
 	}
 
 	@Override
