@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
 
 /**
  * A dummy graph object that uses a map as its data store.
- * 
+ *
  * @author Christian Morgner
  */
 public class GraphObjectMap extends PropertyMap implements GraphObject {
@@ -192,12 +192,17 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public void removeFromIndex() {
 	}
-	
+
 	@Override
 	public void indexPassiveProperties() {
 	}
 
 	@Override
 	public void setSecurityContext(SecurityContext securityContext) {
+	}
+
+	@Override
+	public SecurityContext getSecurityContext() {
+		return null;
 	}
 }

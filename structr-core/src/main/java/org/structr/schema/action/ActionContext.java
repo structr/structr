@@ -58,7 +58,7 @@ public class ActionContext {
 		return false;
 	}
 
-	public Object getReferencedProperty(final SecurityContext securityContext, final NodeInterface entity, final String refKey) throws FrameworkException {
+	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
 
 		final String[] parts = refKey.split("[\\.]+");
 		Object _data         = null;
@@ -181,9 +181,9 @@ public class ActionContext {
 				}
 
 				// special keyword "owner"
-				if ("owner".equals(part)) {
+				if (entity instanceof NodeInterface && "owner".equals(part)) {
 
-					Ownership rel = entity.getIncomingRelationship(PrincipalOwnsNode.class);
+					Ownership rel = ((NodeInterface)entity).getIncomingRelationship(PrincipalOwnsNode.class);
 					if (rel != null) {
 
 						_data = rel.getSourceNode();

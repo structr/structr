@@ -445,7 +445,7 @@ var _Schema = {
         el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + entity.name + '</b> extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractNode">AbstractNode</option></select>'
                 + '<h3>Local Attributes</h3><table class="local schema-props"><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th><th>Default</th><th>Action</th></table>'
                 + '<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">'
-                + '<h3>Actions</h3><table class="actions schema-props"><th>JSON Name</th><th>Code</th><th>Action</th></table>'
+                + '<h3>Methods</h3><table class="actions schema-props"><th>JSON Name</th><th>Code</th><th>Action</th></table>'
                 + '<img alt="Add action" class="add-icon add-action-attribute" src="icon/add.png">'
                 + '<h3>Views</h3><table class="views schema-props"><th>Name</th><th>Attributes</th><th>Action</th></table>'
                 + '<img alt="Add view" class="add-icon add-view" src="icon/add.png">'
@@ -525,7 +525,7 @@ var _Schema = {
         if (compact) {
             el.append(
                     '<h3>Local Attributes</h3><table class="local schema-props"></table>'
-                    + '<h3>Actions</h3><table class="actions schema-props"></table>'
+                    + '<h3>Methods</h3><table class="actions schema-props"></table>'
                     + '<h3>Views</h3><table class="views schema-props"></table>');
         }
 
@@ -821,10 +821,6 @@ var _Schema = {
     appendLocalAction: function(el, id, res, key, compact) {
 
         if (key.startsWith('___')) {
-            return false;
-        }
-
-        if (key.substring(0, 3) === '__') {
 
             var name = key.substring(3);
             var value = res[key];
@@ -835,7 +831,7 @@ var _Schema = {
             } else {
 
                 // append default actions
-                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name action" value="' + escapeForHtmlAttributes(name) + '"></td><td><input size="30" type="text" class="property-code action" value="' + escapeForHtmlAttributes(value) + '"></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td></tr>');
+                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name action" value="' + escapeForHtmlAttributes(name) + '"></td><td><textarea rows="4" class="property-code action">' + escapeForHtmlAttributes(value) + '</textarea></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td></tr>');
 
                 $('.' + key + ' .property-code.action').on('blur', function() {
                     _Schema.saveActionDefinition(res.id, key);
@@ -846,7 +842,7 @@ var _Schema = {
                 });
 
                 $('.' + key + ' .remove-action').on('click', function() {
-                    Structr.confirmation('<h3>Delete action ' + key + '?</h3>',
+                    Structr.confirmation('<h3>Delete method ' + key + '?</h3>',
                             function() {
                                 $.unblockUI({
                                     fadeOut: 25
@@ -860,7 +856,7 @@ var _Schema = {
     },
     appendView: function(el, id, res, key, compact) {
 
-        if (key.substring(0, 2) === '__') {
+        if (key.startsWith('__') && !key.startsWith('___')) {
 
             var name = key.substring(2);
             var value = res[key];
@@ -925,7 +921,7 @@ var _Schema = {
     },
     saveActionDefinition: function(entityId, key) {
         var name = $('.' + key + ' .action.property-name').val();
-        var func = $('.' + key + ' .action.property-code').val();
+        var func = $('.' + key + ' .action.property-code').val().replace(/\n/g, "\\n");
         //
         if (name && name.length) {
 

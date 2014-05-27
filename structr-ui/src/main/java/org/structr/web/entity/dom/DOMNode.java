@@ -43,6 +43,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.parser.Functions;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -124,7 +125,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		functions.put("GET", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) {
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
 				if (sources != null && sources.length > 0) {
 
@@ -439,7 +440,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If hide conditions evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(extractFunctions(securityContext, renderContext, _hideConditions))) {
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Functions.evaluate(securityContext, renderContext, this, _hideConditions))) {
 				return false;
 			}
 
@@ -448,7 +449,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If show conditions don't evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_showConditions) && !(Boolean.TRUE.equals(extractFunctions(securityContext, renderContext, _showConditions)))) {
+			if (StringUtils.isNotBlank(_showConditions) && !(Boolean.TRUE.equals(Functions.evaluate(securityContext, renderContext, this, _showConditions)))) {
 				return false;
 			}
 

@@ -194,6 +194,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
+	public SecurityContext getSecurityContext() {
+		return this.securityContext;
+	}
+
+	@Override
 	public void unlockReadOnlyPropertiesOnce() {
 
 		this.readOnlyPropertiesUnlocked = true;

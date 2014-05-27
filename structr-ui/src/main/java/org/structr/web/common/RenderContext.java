@@ -325,7 +325,7 @@ public class RenderContext extends ActionContext {
 
 	// ----- interface ActionContext -----
 	@Override
-	public Object getReferencedProperty(final SecurityContext securityContext, final NodeInterface entity, final String refKey) throws FrameworkException {
+	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
 		final String[] parts           = refKey.split("[\\.]+");
@@ -544,9 +544,9 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "link"
-				if ("link".equals(part)) {
+				if (entity instanceof NodeInterface && "link".equals(part)) {
 
-					ResourceLink rel = entity.getOutgoingRelationship(ResourceLink.class);
+					ResourceLink rel = ((NodeInterface)entity).getOutgoingRelationship(ResourceLink.class);
 
 					if (rel != null) {
 						_data = rel.getTargetNode();
@@ -574,9 +574,9 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "owner"
-				if ("owner".equals(part)) {
+				if (entity instanceof NodeInterface && "owner".equals(part)) {
 
-					Ownership rel = entity.getIncomingRelationship(PrincipalOwnsNode.class);
+					Ownership rel = ((NodeInterface)entity).getIncomingRelationship(PrincipalOwnsNode.class);
 					if (rel != null) {
 
 						_data = rel.getSourceNode();
