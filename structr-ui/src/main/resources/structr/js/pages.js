@@ -327,7 +327,7 @@ var _Pages = {
 
         });
 
-        $('#import_page', previewTabs).after('<li id="pull_page" title="Pull page from remote instance" class="button"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
+        $('#import_page', previewTabs).after('<li id="pull_page" title="Sync page from remote instance" class="button"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
         $('#pull_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
             Structr.pullDialog('Page');
@@ -574,7 +574,7 @@ var _Pages = {
             Command.clonePage(entity.id);
         });
 
-        div.append('<img title="Push page \'' + entity.name + '\'" alt="Push page \'' + entity.name + '\'" class="push_icon button" src="icon/page_white_get.png">');
+        div.append('<img title="Sync page \'' + entity.name + '\' to remote instance" alt="Sync page \'' + entity.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
         div.children('.push_icon').on('click', function() {
             Structr.pushDialog(entity.id, true);
             return false;

@@ -1107,7 +1107,7 @@ var Structr = {
     },
     pullDialog: function(type) {
 
-        Structr.dialog('Pull data from remote server', function() {
+        Structr.dialog('Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server', function() {
         },
                 function() {
                 });

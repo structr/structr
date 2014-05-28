@@ -1128,17 +1128,17 @@ var _Schema = {
     },
     syncSchemaDialog: function() {
 
-        Structr.dialog('Sync schema with remote server', function() {
+        Structr.dialog('Sync schema to remote server', function() {
         },
                 function() {
                 });
 
         var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
 
-        dialog.append('To push <b>all schema nodes and relationships</b> to the remote server, ');
+        dialog.append('To sync <b>all schema nodes and relationships</b> to the remote server, ');
         dialog.append('enter host, port, username and password of your remote instance and click Start.');
 
-        dialog.append('<p>Or do you want to <a id="pull" href="javascript:void(0)">update your local schema with schema nodes and relationships from the remote server</a>?</p>');
+        dialog.append('<p><button class="btn" id="pull"">Click here</button> if you want to sync your local schema with schema nodes and relationships from the remote server.</p>');
 
         $('#pull', dialog).on('click', function(e) {
             e.stopPropagation();
