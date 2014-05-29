@@ -40,7 +40,7 @@ function wsConnect() {
 
     try {
 
-        ws = null;
+        ws = undefined;
         localStorage.removeItem(userKey);
 
         var isEnc = (window.location.protocol === 'https:');
@@ -268,8 +268,6 @@ function wsConnect() {
 
             } else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
 
-                //console.log('SEARCH', result);
-
                 $('.pageCount', $('.pager' + type)).val(pageCount[type]);
 
                 $(result).each(function(i, entity) {
@@ -304,7 +302,7 @@ function wsConnect() {
 
             } else if (command.startsWith('LIST_SYNCABLES')) { /*********************** LIST_SYNCABLES ************************/
 
-                console.log(data);
+                log(data);
 
                 log('LIST_SYNCABLES', result, data);
 
@@ -410,7 +408,7 @@ function wsConnect() {
                     }
 
                 });
-//                console.log(localStorage.getItem(autoRefreshKey + activeTab));
+
                 if (!localStorage.getItem(autoRefreshDisabledKey + activeTab)) {
                     _Pages.reloadPreviews();
                 }
@@ -440,7 +438,8 @@ function wsConnect() {
         }
 
     } catch (exception) {
-        console.log('Error in connect(): ' + exception);
+        log('Error in connect(): ' + exception);
+        ws.close();
     }
 
 }
@@ -465,6 +464,9 @@ function sendObj(obj, callback) {
         log('Sent: ' + text);
     } catch (exception) {
         log('Error in send(): ' + exception);
+        ws.close();
+        ws = undefined;
+        Structr.ping();
     }
     return true;
 }
@@ -480,7 +482,7 @@ function send(text) {
 
 function log() {
     if (debug) {
-        console.log(arguments);
+        log(arguments);
         var msg = Array.prototype.slice.call(arguments).join(' ');
         var div = $('#log', footer);
         div.append(msg + '<br>');

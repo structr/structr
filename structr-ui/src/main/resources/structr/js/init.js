@@ -72,7 +72,6 @@ $(function() {
         e.stopPropagation();
         var jsonArray = $.parseJSON($('#json_input').val());
         $(jsonArray).each(function(i, json) {
-            //console.log(json);
             createEntity(json);
         });
     });
@@ -241,7 +240,7 @@ var Structr = {
     link_icon: 'icon/link.png',
     key_icon: 'icon/key.png',
     reconnect: function() {
-
+        ws.close();
         log('activating reconnect loop');
         reconn = window.setInterval(function() {
             wsConnect();
@@ -356,6 +355,7 @@ var Structr = {
             Structr.login(text);
             return true;
         }
+        ws.close();
         return false;
     },
     loadInitialModule: function() {
@@ -654,12 +654,9 @@ var Structr = {
     error: function(text, callback) {
         if (text)
             $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        //console.log(callback);
         if (callback)
             $('#errorBox .closeButton').on('click', function(e) {
                 e.stopPropagation();
-                //callback();
-                //console.log(callback);
 
                 $.unblockUI({
                     fadeOut: 25
@@ -680,12 +677,9 @@ var Structr = {
         if (response.errors) {
             $.each(Object.keys(response.errors), function(i, err) {
                 errorText += err + ': ';
-                //console.log(Object.keys(response.errors[err]));
                 $.each(Object.keys(response.errors[err]), function(j, attr) {
                     errorText += attr + ' ';
-                    //console.log(attr, Object.keys(response.errors[err][attr]));
                     $.each(response.errors[err][attr], function(k, cond) {
-                        //console.log(cond);
                         if (typeof cond === 'Object') {
                             $.each(Object.keys(cond), function(l, key) {
                                 errorText += key + ' ' + cond[key];
@@ -696,7 +690,6 @@ var Structr = {
                     });
                 });
                 errorText += '\n';
-                //console.log(errorText);
             });
         } else {
             errorText += url + ': ' + response.code + ' ' + response.message;
@@ -798,7 +791,6 @@ var Structr = {
     node: function(id, prefix) {
         var p = prefix || '#id_';
         var node = $($(p + id)[0]);
-        //console.log('Structr.node', node);
         return node.length ? node : undefined;
     },
     entity: function(id, parentId) {
@@ -1033,7 +1025,6 @@ var Structr = {
             var l = s.position().left;
             if (l !== $(window).width()) {
                 wasOpen = true;
-                //console.log('closing open slide-out', s);
                 s.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
             }
@@ -1271,7 +1262,6 @@ function formatValueInputField(key, obj) {
     } else if (obj.constructor === Array) {
         var out = '';
         $(obj).each(function(i, v) {
-            //console.log(v);
             out += JSON.stringify(v);
         });
         return '<textarea name="' + key + '">' + out + '</textarea>';
