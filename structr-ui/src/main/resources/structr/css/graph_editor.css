@@ -24,8 +24,8 @@
     padding: 12px;
 }*/
 
-.canvas {
-	overflow: scroll;
+#schema-graph {
+	overflow: auto;
 	position: relative;
 }
 
