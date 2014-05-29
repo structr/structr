@@ -301,6 +301,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if (!securityContext.isVisible(rootElement)) {
 
 					rootElement = notFound(response, securityContext);
+					if (rootElement == null) {
+						return;
+					}
 
 				}
 
