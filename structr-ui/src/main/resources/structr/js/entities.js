@@ -173,7 +173,6 @@ var _Entities = {
                 tab.addClass('active');
                 el.children('div').hide();
                 var id = tab.prop('id').substring(4);
-                //console.log(id);
                 var content = $('#content-tab-' + id);
                 content.show();
             });
@@ -263,23 +262,6 @@ var _Entities = {
 
                     });
 
-//                    var parent = entity.parent;
-//                    if (parent) {
-//                        Command.removeChild(entity.id);
-//                        Command.appendWidget(text2, entity.parent.id, entity.pageId, null, null, function() {
-//                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-//                            saveAndClose.prop("disabled", true).addClass('disabled');
-//                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
-//                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-//                        });
-//                    } else {
-//                        Command.replaceWidget(text2, entity.id, entity.parent ? entity.parent.id : undefined, entity.pageId, function() {
-//                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-//                            saveAndClose.prop("disabled", true).addClass('disabled');
-//                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
-//                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-//                        });
-//                    }
                 });
 
                 saveAndClose.on('click', function(e) {
@@ -599,7 +581,8 @@ var _Entities = {
                 $('#newPrincipal').on('change', function() {
                     var sel = $(this);
                     var pId = sel[0].value;
-                    Command.setPermission(entity.id, pId, 'grant', 'read', false);
+                    var rec = $('#recursive', dialogText).is(':checked');
+                    Command.setPermission(entity.id, pId, 'grant', 'read', rec);
                     $('#new', tb).selectedIndex = 0;
 
                     Command.get(pId, function(p) {
@@ -927,7 +910,6 @@ var _Entities = {
 
         var id = getId(el);
 
-        //console.log('ensureExpanded: ', el, id);
         addExpandedNode(id);
 
         b = el.children('.expand_icon').first();
@@ -1007,7 +989,6 @@ var _Entities = {
         //element.off('dblclick');
         element.off('hover');
         var oldName = $.trim(element.children('b.name_').attr('title'));
-        //console.log('oldName', oldName);
         element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
         element.find('.button').hide();
 
@@ -1231,7 +1212,9 @@ function addPrincipal(entity, principal, permissions) {
                 $('#newPrincipal').append('<option value="' + row.attr('id').substring(1) + '">' + $('.name', row).text() + '</option>');
                 row.remove();
             }
-            Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, false, function() {
+            var rec = $('#recursive', dialogText).is(':checked');
+
+            Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, rec, function() {
                 permissions[perm] = !permissions[perm];
                 sw.prop('checked', permissions[perm]);
                 log('Permission successfully updated!');

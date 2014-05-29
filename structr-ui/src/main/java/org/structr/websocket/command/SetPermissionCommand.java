@@ -18,17 +18,16 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
-import org.structr.common.error.FrameworkException;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -87,10 +86,9 @@ public class SetPermissionCommand extends AbstractCommand {
 			try {
 				setPermission(obj, principal, action, permission, rec);
 				webSocketData.setResult(Arrays.asList(principal));
-			
+
 				// send only over local connection (no broadcast)
 				getWebSocket().send(webSocketData, true);
-
 
 			} catch (FrameworkException ex) {
 
@@ -126,6 +124,18 @@ public class SetPermissionCommand extends AbstractCommand {
 			case "revoke":
 				principal.revoke(Permission.valueOf(permission), obj);
 				break;
+		}
+
+		if (rec) {
+			if (obj instanceof LinkedTreeNode) {
+				LinkedTreeNode ltn = (LinkedTreeNode) obj;
+
+				for (Object t : ltn.treeGetChildren()) {
+
+					setPermission((AbstractNode) t, principal, action, permission, rec);
+
+				}
+			}
 		}
 
 	}

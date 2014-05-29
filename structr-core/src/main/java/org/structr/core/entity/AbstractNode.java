@@ -264,6 +264,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		this.securityContext = securityContext;
 	}
 
+	@Override
 	public SecurityContext getSecurityContext() {
 		return securityContext;
 	}
