@@ -169,14 +169,12 @@ $(function() {
 
     $('#usernameField').keypress(function(e) {
         if (e.which === 13) {
-            $(this).blur();
-            loginButton.focus().click();
+            loginButton.click();
         }
     });
     $('#passwordField').keypress(function(e) {
         if (e.which === 13) {
-            $(this).blur();
-            loginButton.focus().click();
+            loginButton.click();
         }
     });
 
@@ -255,6 +253,7 @@ var Structr = {
         $('#errorText').empty();
         log('user', user);
         Structr.ping();
+        Structr.startPing();
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
     },
@@ -279,13 +278,15 @@ var Structr = {
         }
     },
     startPing: function() {
+        log('Starting PING');
         if (!ping) {
             ping = window.setInterval(function() {
                 sendObj({command: 'PING', sessionId: sessionId});
-            }, 30000);
+            }, 1000);
         }
     },
     connect: function() {
+        log('connect')
         sessionId = $.cookie('JSESSIONID');
         if (!sessionId) {
             $.get('/').always(function() {
@@ -297,6 +298,11 @@ var Structr = {
         }
     },
     login: function(text) {
+
+        if (loginBox.is(':visible')) {
+            log('Login box is already visible, skipping...');
+            return;
+        }
 
         main.empty();
 
@@ -318,7 +324,6 @@ var Structr = {
             }
         });
         Structr.activateMenuEntry('logout');
-        $('#usernameField').focus();
     },
     doLogin: function(username, password) {
         log('doLogin ' + username + ' with ' + password);

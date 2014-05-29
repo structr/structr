@@ -126,18 +126,18 @@ function wsConnect() {
 
             log('####################################### ', command, ' #########################################');
 
-            if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or repsonse to PING ************************/
+            if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
 
                 user = data.data.username;
                 var oldUser = localStorage.getItem(userKey);
 
-                log(command, code, 'user: ', user, ', oldUser: ', oldUser);
+                log(command, code, 'user:', user, ', oldUser:', oldUser, 'session valid:', sessionValid);
 
                 if (!sessionValid) {
                     localStorage.removeItem(userKey);
                     Structr.clearMain();
                     Structr.login();
-                } else if (!oldUser || (oldUser && (oldUser !== user))) {
+                } else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
                     Structr.refreshUi();
                 }
 
@@ -153,6 +153,8 @@ function wsConnect() {
                 if (code === 403) {
                     Structr.login('Wrong username or password!');
                 } else if (code === 401) {
+                    localStorage.removeItem(userKey);
+                    Structr.clearMain();
                     Structr.login('Session invalid');
                 } else {
 

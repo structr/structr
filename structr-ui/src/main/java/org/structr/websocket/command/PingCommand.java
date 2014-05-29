@@ -20,7 +20,9 @@ package org.structr.websocket.command;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -28,7 +30,9 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket heartbeat command, keeps the websocket connection open
+ * Websocket heartbeat command, keeps the websocket connection open.
+ *
+ * Checks validity of session id.
  *
  * @author Axel Morgner
  */
@@ -45,9 +49,21 @@ public class PingCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		logger.log(Level.FINE, "PING received from session {0}", webSocketData.getSessionId());
+		final String sessionId = webSocketData.getSessionId();
+		logger.log(Level.FINE, "PING received from session {0}", sessionId);
 
-		getWebSocket().send(MessageBuilder.status().data("username", getWebSocket().getCurrentUser().getProperty(AbstractNode.name)).code(100).build(), true);
+		final Principal currentUser = AuthHelper.getPrincipalForSessionId(sessionId);
+
+		if (currentUser != null) {
+
+			getWebSocket().send(MessageBuilder.status().data("username", currentUser.getProperty(AbstractNode.name)).code(100).build(), true);
+
+		} else {
+
+			logger.log(Level.FINE, "Invalid session id");
+			getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+
+		}
 	}
 
 	//~--- get methods ----------------------------------------------------
