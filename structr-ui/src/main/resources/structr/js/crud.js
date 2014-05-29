@@ -1932,19 +1932,17 @@ var _Crud = {
 
     },
     error: function(text, callback) {
-        if (text)
+        if (text) {
             $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        //console.log(callback);
-        if (callback)
-            $('#errorBox .okButton').on('click', function(e) {
+        }
+        if (callback) {
+            $('#errorBox .closeButton').on('click', function(e) {
                 e.stopPropagation();
-                //callback();
-                //console.log(callback);
-
                 $.unblockUI({
                     fadeOut: 25
                 });
             });
+        }
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({

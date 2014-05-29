@@ -64,7 +64,7 @@ $(function() {
     dialogTitle = $('.dialogTitle', dialogBox);
     dialogMeta = $('.dialogMeta', dialogBox);
     dialogText = $('.dialogText', dialogBox);
-    dialogCancelButton = $('.closeButton', dialogBtn);
+    dialogCancelButton = $('.closeButton');
     dialogSaveButton = $('.save', dialogBox);
     loginButton = $('#loginButton');
 
