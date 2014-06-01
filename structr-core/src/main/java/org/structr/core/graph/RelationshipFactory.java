@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -86,9 +85,9 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			newRel.unlockReadOnlyPropertiesOnce();
 			newRel.setProperty(GraphObject.type, relClass.getSimpleName());
 		}
-		
+
 		newRel.onRelationshipInstantiation();
-			
+
 		return newRel;
 	}
 
@@ -97,9 +96,9 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		try {
 			return instantiate(relationship);
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			logger.log(Level.WARNING, "Unable to adapt relationship", fex);
 		}
 
@@ -153,7 +152,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 				newRel = relClass.newInstance();
 				newRel.init(factoryProfile.getSecurityContext(), entity);
-				
+
 				// let rel. know of its instantiation so it can cache its start- and end node ID.
 				newRel.onRelationshipInstantiation();
 
