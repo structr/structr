@@ -24,7 +24,6 @@ import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -75,7 +74,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 					nodes.addAll(nodeFactory.bulkInstantiate(GlobalGraphOperations.at(graphDb).getAllNodes()));
 				}
-				
+
 				logger.log(Level.INFO, "Start setting UUID on all nodes of type {0}", new Object[] { type.getSimpleName() });
 
 				long count = bulkGraphOperation(securityContext, nodes, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
@@ -175,4 +174,8 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
 }

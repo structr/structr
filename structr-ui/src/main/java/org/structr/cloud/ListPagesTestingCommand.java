@@ -51,6 +51,11 @@ public class ListPagesTestingCommand extends CloudServiceCommand implements Main
 		}
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return true;
+	}
+
 	private class LoggingListener implements CloudListener {
 
 		@Override

@@ -43,7 +43,7 @@ import org.structr.schema.SchemaHelper;
 public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = Logger.getLogger(BulkFixNodePropertiesCommand.class.getName());
-	
+
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
@@ -54,9 +54,9 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 			final Class type = SchemaHelper.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
-				
+
 				final List<AbstractNode> nodes = new LinkedList<>();
-				
+
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 					nodes.addAll(StructrApp.getInstance(securityContext).nodeQuery(type).getAsList());
 				}
@@ -68,7 +68,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 					long nodeCount = bulkGraphOperation(securityContext, nodes, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 						private void fixProperty(AbstractNode node, Property propertyToFix) {
-							
+
 							Node databaseNode = node.getNode();
 
 							if (databaseNode.hasProperty(propertyToFix.dbName())) {
@@ -114,25 +114,25 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 								}
 							}
 						}
-						
+
 						@Override
 						public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 							if (propertyName != null) {
-								
+
 								PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, propertyName);
 								if (key != null) {
-									
+
 									// needs type cast to Property to use fixDatabaseProperty method
 									if (key instanceof Property) {
 										fixProperty(node, (Property)key);
 									}
 								}
-								
+
 							} else {
-								
+
 								for(PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
-									
+
 									// needs type cast to Property to use fixDatabaseProperty method
 									if (key instanceof Property) {
 										fixProperty(node, (Property)key);
@@ -151,9 +151,9 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 							t.printStackTrace();
 						}
 					});
-					
+
 					logger.log(Level.INFO, "Fixed {0} nodes", nodeCount);
-					
+
 					return;
 				}
 			}
@@ -161,5 +161,9 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 		logger.log(Level.INFO, "Unable to determine property and/or entity type to fix.");
 	}
-	
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
 }

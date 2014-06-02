@@ -39,9 +39,9 @@ import org.structr.schema.SchemaHelper;
 
 /**
  * Change the property key from the old to the new value on all nodes matching the type.
- * 
+ *
  * Example: "email":"foo@bar.com" => "eMail":"foo@bar.com"
- * 
+ *
  * If no type property is found, change the property key on all nodes.
  * If a property with the new key is already present, the command will abort.
  *
@@ -59,11 +59,11 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		
+
 		String type		= null;
 		final String oldKey	= (String) properties.get("oldKey");
 		final String newKey	= (String) properties.get("newKey");
-		
+
 		if (graphDb != null && StringUtils.isNotBlank(oldKey) && StringUtils.isNotBlank(newKey)) {
 
 			Result<AbstractNode> nodes = null;
@@ -134,14 +134,18 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 
 			logger.log(Level.INFO, "Fixed {0} nodes ...", nodeCount);
-		
+
 		} else {
-			
+
 			logger.log(Level.INFO, "No values for oldKey and/or newKey found, aborting.");
-			
+
 		}
 
 		logger.log(Level.INFO, "Done");
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
 }

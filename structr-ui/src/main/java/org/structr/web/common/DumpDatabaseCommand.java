@@ -63,4 +63,9 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 			throw new FrameworkException(500, t.getMessage());
 		}
 	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return true;
+	}
 }

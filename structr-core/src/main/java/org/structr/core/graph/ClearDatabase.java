@@ -18,6 +18,8 @@
  */
 package org.structr.core.graph;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -30,7 +32,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,9 +56,13 @@ public class ClearDatabase extends NodeServiceCommand {
 
 		if (graphDb != null) {
 
-			final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+			final List<AbstractNode> result = new LinkedList<>();
 			
-			long deletedNodes = bulkGraphOperation(securityContext, result.getResults(), 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				result.addAll(nodeFactory.bulkInstantiate(GlobalGraphOperations.at(graphDb).getAllNodes()));
+			}
+
+			long deletedNodes = bulkGraphOperation(securityContext, result, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -67,7 +72,7 @@ public class ClearDatabase extends NodeServiceCommand {
 
 						try {
 							StructrApp.getInstance(securityContext).delete(node);
-							
+
 						} catch (FrameworkException fex) {
 							logger.log(Level.WARNING, "Unable to delete node {0}: {1}", new Object[] { node.getUuid(), fex.getMessage() } );
 						}

@@ -44,16 +44,16 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 public class DeleteSpatialIndexCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = Logger.getLogger(DeleteSpatialIndexCommand.class.getName());
-	
+
 	static {
-		
+
 		MaintenanceParameterResource.registerMaintenanceCommand("deleteSpatialIndex", DeleteSpatialIndexCommand.class);
 	}
-	
+
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
-		
-		
+
+
 		final GraphDatabaseService graphDb = StructrApp.getInstance().getService(NodeService.class).getGraphDb();
 		final List<Node> toDelete          = new LinkedList<>();
 
@@ -64,13 +64,13 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 					toDelete.add(node);
 				}
-				
+
 			} catch (Throwable t) {}
-	
+
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		try (final Tx tx = app.tx()) {
 
 			for (Node node : toDelete) {
@@ -97,4 +97,8 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 		}
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return true;
+	}
 }

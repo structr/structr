@@ -25,7 +25,6 @@ import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.logging.Level;
@@ -51,23 +50,23 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext, true, false);
-		
+
 		if (graphDb != null) {
 
 			final List<AbstractNode> nodes = new LinkedList<>();
-			
+
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				nodes.addAll(nodeFactory.bulkInstantiate(GlobalGraphOperations.at(graphDb).getAllNodes()));
 			}
 
 			final boolean erase;
-			
+
 			if (properties.containsKey("erase") && properties.get("erase").equals("true")) {
 				erase = true;
 			} else {
 				erase = false;
 			}
-			
+
 			bulkGraphOperation(securityContext, nodes, 1000, "DeleteSoftDeletedNodes", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
@@ -75,18 +74,18 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 
 					if (node.isDeleted()) {
 						logger.log(Level.INFO, "Found deleted node: {0}", node);
-						
+
 						if (erase) {
-						
+
 							try {
 								StructrApp.getInstance(securityContext).delete(node);
-								
+
 							} catch (FrameworkException ex) {
 								logger.log(Level.WARNING, "Could not delete node " + node, ex);
 							}
 						}
 					}
-					
+
 				}
 
 				@Override
@@ -105,4 +104,8 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 		logger.log(Level.INFO, "Done");
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
 }
