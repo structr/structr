@@ -92,7 +92,7 @@ fi
 
 # benchmarking phase
 echo "Benchmarking, output goes to $OUTFILE.."
-while [ $THREADS -le 300 ]; do
+while [ $THREADS -le 190 ]; do
 
 	COUNT=$((THREADS*FACTOR))
 	
