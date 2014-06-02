@@ -17,14 +17,11 @@
  */
 package org.structr.web.entity.dom;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -101,8 +98,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
-
-	private final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
 	public static final Property<Integer> version = new IntProperty("version").indexed();
 	public static final Property<String> tag = new StringProperty("tag").indexed();
@@ -614,13 +609,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 
 		double end = System.nanoTime();
-
-		logger.log(Level.FINE, "Render node {0} in {1} seconds", new java.lang.Object[]{getUuid(), decimalFormat.format((end - start) / 1000000000.0)});
-
-//		if (flush()) {
-//			logger.log(Level.FINE, "Flushing response: {0} ", getTagName());
-//			out.flush();
-//		}
 
 		// Set result for this level again, if there was any
 		if (localResult != null) {

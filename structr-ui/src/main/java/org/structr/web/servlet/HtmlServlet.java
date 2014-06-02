@@ -123,11 +123,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		double start = System.nanoTime();
-
+		final double start       = System.nanoTime();
+		final Authenticator auth = config.getAuthenticator();
 		final SecurityContext securityContext;
 		final App app;
-		Authenticator auth = config.getAuthenticator();
 
 		try {
 			String path = request.getPathInfo();
@@ -142,7 +141,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
-
 
 			app = StructrApp.getInstance(securityContext);
 
@@ -382,39 +380,43 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							// start output write listener
 							out.setWriteListener(new WriteListener() {
 
-							@Override
-							public void onWritePossible() throws IOException {
+								@Override
+								public void onWritePossible() throws IOException {
 
-								final Queue<byte[]> queue = renderContext.getBuffer().getQueue();
-								while (out.isReady()) {
+									try {
 
-									byte[] buffer = null;
+										final Queue<String> queue = renderContext.getBuffer().getQueue();
+										while (out.isReady()) {
 
-									synchronized(queue) {
-										buffer = queue.poll();
-									}
+											String buffer = null;
 
-									if (buffer != null) {
+											synchronized(queue) {
+												buffer = queue.poll();
+											}
 
-										out.write(buffer);
+											if (buffer != null) {
 
-									} else {
+												out.print(buffer);
 
-										if (finished.get()) {
+											} else {
 
-											async.complete();
-											response.setStatus(HttpServletResponse.SC_OK);
+												if (finished.get()) {
 
-											// prevent this block from being called again
-											break;
+													async.complete();
+													response.setStatus(HttpServletResponse.SC_OK);
+
+													// prevent this block from being called again
+													break;
+												}
+
+												Thread.sleep(5);
+											}
 										}
 
-										try {
-											Thread.sleep(10);
-										} catch (Throwable t) {}
+									} catch (Throwable t) {
+										t.printStackTrace();
 									}
 								}
-							}
 
 								@Override
 								public void onError(Throwable t) {
@@ -581,29 +583,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private Page findIndexPage(final SecurityContext securityContext) throws FrameworkException {
 
-		logger.log(Level.FINE, "Looking for an index page ...");
+		Result<Page> results = StructrApp.getInstance().nodeQuery(Page.class).sort(Page.position).order(false).getResult();
+		Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
-		Result<Page> results = StructrApp.getInstance().nodeQuery(Page.class).getResult();
+		// Find first visible page
+		Page page = null;
+		int i = 0;
 
-		logger.log(Level.FINE, "{0} results", results.size());
+		while (page == null || (i < results.size() && !securityContext.isVisible(page))) {
 
-		if (!results.isEmpty()) {
-
-			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
-
-			// Find first visible page
-			int i = 0;
-			Page page = null;
-
-			while (page == null || (i < results.size() && !securityContext.isVisible(page))) {
-
-				page = results.get(i++);
-			}
-
-			return page;
+			page = results.get(i++);
 		}
 
-		return null;
+		return page;
 	}
 
 	/**

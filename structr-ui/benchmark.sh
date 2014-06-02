@@ -101,7 +101,7 @@ while [ $THREADS -le 190 ]; do
 		COUNT=10000
 	fi
 
-	echo -n "$COUNT reqeusts, $THREADS threads: "
+	echo -n "$COUNT requests, $THREADS threads: "
 	
 	# create header row
 	HEADER="$HEADER$THREADS,"

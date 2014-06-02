@@ -27,13 +27,13 @@ import java.util.Queue;
  */
 public class AsyncBuffer {
 
-	private final Queue<byte[]> queue = new LinkedList<>();
+	private final Queue<String> queue = new LinkedList<>();
 
 	public AsyncBuffer append(final String s) {
 
 		try {
 			synchronized(queue) {
-				queue.add(s.getBytes("utf-8"));
+				queue.add(s);
 			}
 
 		} catch (Throwable t) {
@@ -43,7 +43,7 @@ public class AsyncBuffer {
 		return this;
 	}
 
-	public Queue<byte[]> getQueue() {
+	public Queue<String> getQueue() {
 		return queue;
 	}
 }
