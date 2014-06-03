@@ -21,9 +21,6 @@ package org.structr.websocket.command;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.PagingHelper;
-import org.structr.core.property.PropertyKey;
-import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
@@ -32,42 +29,28 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  * Websocket command to retrieve a single node by id.
- * 
+ *
  * @author Christian Morgner
  * @author Axel Morgner
  */
 public class GetCommand extends AbstractCommand {
-	
+
 	private static final Logger logger = Logger.getLogger(GetCommand.class.getName());
-	
+
 	static {
-		
+
 		StructrWebSocket.addCommand(GetCommand.class);
-		
+
 	}
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		AbstractNode node = getNode(webSocketData.getId());
-		//String view       = webSocketData.getView();
 
 		if (node != null) {
-
-//			if (view == null) {
-//
-//				view = PropertyView.All;
-//
-//			}
-
-//			for (PropertyKey key : node.getPropertyKeys(view)) {
-//
-//				webSocketData.setNodeData(key.jsonName(), node.getProperty(key));
-//
-//			}
-			
 			webSocketData.setResult(Arrays.asList(node));
-			
+
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);
 
