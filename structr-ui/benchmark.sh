@@ -25,6 +25,9 @@ FACTOR=100
 # do warm-up?
 WARMUP=1
 
+# max threads
+MAX_THREADS=1000
+
 # process parameters
 while [ "$1" != "" ]; do
 
@@ -42,6 +45,11 @@ while [ "$1" != "" ]; do
         -n)
         	shift
             FACTOR=$1
+            ;;
+            
+        -m)
+        	shift
+            MAX_THREADS=$1
             ;;
             
         *)
@@ -92,13 +100,13 @@ fi
 
 # benchmarking phase
 echo "Benchmarking, output goes to $OUTFILE.."
-while [ $THREADS -le 190 ]; do
+while [ $THREADS -le $MAX_THREADS ]; do
 
 	COUNT=$((THREADS*FACTOR))
 	
-	# limit count to 10000
-	if [ $COUNT -gt 10000 ]; then
-		COUNT=10000
+	# limit count to 2000
+	if [ $COUNT -gt 1000 ]; then
+		COUNT=1000
 	fi
 
 	echo -n "$COUNT requests, $THREADS threads: "
@@ -114,10 +122,10 @@ while [ $THREADS -le 190 ]; do
 	# create data row
 	DATA="$DATA$RESULT,"
 
-	STEP=$(((THREADS / 10) + 1))
+	STEP=$((THREADS / 10))
 
 	# limit step increment to 5
-	if [ $STEP -gt 5 ]; then STEP=5; fi
+	if [ $STEP -eq 0 ]; then STEP=1; fi
 
 	THREADS=$((THREADS+STEP))
 

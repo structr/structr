@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -73,7 +75,6 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
@@ -100,6 +101,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String LOCALE_KEY = "locale";
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
+	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
 
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
@@ -335,9 +337,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							final AtomicBoolean finished  = new AtomicBoolean(false);
 							final DOMNode rootNode        = rootElement;
 
-							async.setTimeout(DOMElement.RENDER_TIMEOUT);
+							async.setTimeout(100);
 
-							async.start(new Runnable() {
+							threadPool.submit(new Runnable() {
 
 								@Override
 								public void run() {
