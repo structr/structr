@@ -550,7 +550,11 @@ var _Schema = {
     },
     loadRelationship: function(entity, el) {
 
-        el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + entity.name + '</b> extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractRelationship">AbstractRelationship</option></select>'
+        var source = nodes[entity.sourceId];
+        var target = nodes[entity.targetId];
+
+        el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + (entity.name || source.name + entity.relationshipType + target.name) + '</b>'
+                //+ ' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractRelationship">AbstractRelationship</option></select>'
                 + '<h3>Local Attributes</h3><table class="local schema-props"><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th><th>Default</th><th>Action</th></table>'
                 + '<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">'
                 + '<h3>Actions</h3><table class="actions schema-props"><th>JSON Name</th><th>Code</th><th>Action</th></table>'
@@ -564,28 +568,28 @@ var _Schema = {
             _Schema.makeNameEditable(n);
         });
 
-        var classSelect = $('.extends-class-select', el);
-        _Crud.loadAccessibleResources(function() {
-            $.each(_Crud.types, function(t, type) {
-                if (!type || type.startsWith('_')) {
-                    return;
-                }
-                $.get(rootUrl + '_schema/' + type, function(data) {
-                    if (data && data.result && data.result.length) {
-                        var fqcn = data.result[0].className;
-                        classSelect.append('<option ' + (entity.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
-                    }
-                });
-
-            });
-
-        });
-
-        classSelect.on('change', function() {
-            var value = $(this).val();
-            _Schema.putPropertyDefinition(entity.id, ' {"extendsClass":"' + value.escapeForJSON() + '"}');
-
-        });
+//        var classSelect = $('.extends-class-select', el);
+//        _Crud.loadAccessibleResources(function() {
+//            $.each(_Crud.types, function(t, type) {
+//                if (!type || type.startsWith('_')) {
+//                    return;
+//                }
+//                $.get(rootUrl + '_schema/' + type, function(data) {
+//                    if (data && data.result && data.result.length) {
+//                        var fqcn = data.result[0].className;
+//                        classSelect.append('<option ' + (entity.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
+//                    }
+//                });
+//
+//            });
+//
+//        });
+//
+//        classSelect.on('change', function() {
+//            var value = $(this).val();
+//            _Schema.putPropertyDefinition(entity.id, ' {"extendsClass":"' + value.escapeForJSON() + '"}');
+//
+//        });
 
         _Schema.appendLocalPropertiesAndActions(el, entity);
 
