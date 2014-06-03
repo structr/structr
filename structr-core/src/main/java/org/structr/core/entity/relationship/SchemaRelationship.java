@@ -57,8 +57,8 @@ import org.structr.core.property.TargetId;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.action.Actions;
 import org.structr.schema.action.ActionEntry;
+import org.structr.schema.action.Actions;
 
 /**
  *
@@ -69,6 +69,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
 
+	public static final Property<String> name             = new StringProperty("name").indexed();
 	public static final Property<String> sourceId           = new SourceId("sourceId").passivelyIndexed();
 	public static final Property<String> targetId           = new TargetId("targetId").passivelyIndexed();
 	public static final Property<String> relationshipType   = new StringProperty("relationshipType");
@@ -78,11 +79,17 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public static final Property<String> targetNotion       = new StringProperty("targetNotion");
 	public static final Property<String> sourceJsonName     = new StringProperty("sourceJsonName");
 	public static final Property<String> targetJsonName     = new StringProperty("targetJsonName");
+	public static final Property<String> extendsClass       = new StringProperty("extendsClass").indexed();
 
 
 	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
-		AbstractNode.name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName
+		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
+		sourceJsonName, targetJsonName, extendsClass
+	);
+
+	public static final View uiView = new View(SchemaRelationship.class, PropertyView.Ui,
+		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
+		sourceJsonName, targetJsonName, extendsClass
 	);
 
 	private Set<String> dynamicViews = new LinkedHashSet<>();
