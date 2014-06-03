@@ -96,20 +96,19 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
 	public static final Property<DOMElement> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
 
-	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(200);	// use LURMap here to avoid infinite growing
+	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(1000);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
+	private static final String lowercaseBodyName = Body.class.getSimpleName().toLowerCase();
 
-	public static final Property<Integer> version = new IntProperty("version").indexed();
-	public static final Property<String> tag = new StringProperty("tag").indexed();
-	public static final Property<String> path = new StringProperty("path").indexed();
+	public static final Property<Integer> version         = new IntProperty("version").indexed();
+ 	public static final Property<String> tag              = new StringProperty("tag").indexed();
+ 	public static final Property<String> path             = new StringProperty("path").indexed();
 	public static final Property<String> partialUpdateKey = new StringProperty("partialUpdateKey").indexed();
-	public static final Property<String> dataKey = new StringProperty("dataKey").indexed();
-	public static final Property<String> cypherQuery = new StringProperty("cypherQuery");
-	public static final Property<String> xpathQuery = new StringProperty("xpathQuery");
-	public static final Property<String> restQuery = new StringProperty("restQuery");
-	public static final Property<Boolean> renderDetails = new BooleanProperty("renderDetails");
-//	public static final Property<Boolean> hideOnEdit              = new BooleanProperty("hideOnEdit");
-//	public static final Property<Boolean> hideOnNonEdit           = new BooleanProperty("hideOnNonEdit");
+	public static final Property<String> dataKey          = new StringProperty("dataKey").indexed();
+	public static final Property<String> cypherQuery      = new StringProperty("cypherQuery");
+	public static final Property<String> xpathQuery       = new StringProperty("xpathQuery");
+	public static final Property<String> restQuery        = new StringProperty("restQuery");
+	public static final Property<Boolean> renderDetails   = new BooleanProperty("renderDetails");
 
 	// Event-handler attributes
 	public static final Property<String> _onabort = new HtmlProperty("onabort");
@@ -338,7 +337,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		out.append("<").append(tag);
 
-		for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(getClass(), PropertyView.Html)) {
+		for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.Html)) {
 
 			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
 
@@ -404,19 +403,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			return;
 		}
 
-		Result localResult = renderContext.getResult();
-
-		AsyncBuffer out = renderContext.getBuffer();
-		double start = System.nanoTime();
-
 		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
 			return;
 		}
 
-		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-		boolean isVoid = isVoidElement();
-		String _tag = getProperty(DOMElement.tag);
+		// final variables
+		final AsyncBuffer out    = renderContext.getBuffer();
+		final EditMode editMode  = renderContext.getEditMode(securityContext.getUser(false));
+		final boolean isVoid     = isVoidElement();
+		final String _tag        = getProperty(DOMElement.tag);
 
+		// non-final variables
+		Result localResult                 = renderContext.getResult();
 		boolean anyChildNodeCreatesNewLine = false;
 
 		renderStructrAppLib(out, securityContext, renderContext, depth);
@@ -434,7 +432,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			try {
 
 				// in body?
-				if (Body.class.getSimpleName().toLowerCase().equals(this.getTagName())) {
+				if (lowercaseBodyName.equals(this.getTagName())) {
 					renderContext.setInBody(true);
 				}
 
@@ -718,7 +716,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			// try to find native html property defined in
 			// DOMElement or one of its subclasses
-			PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), name, false);
+			PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, name, false);
 
 			if (key != null && key instanceof HtmlProperty) {
 

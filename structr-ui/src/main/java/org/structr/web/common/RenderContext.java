@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -37,12 +36,10 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.Component;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.relation.ResourceLink;
@@ -57,12 +54,11 @@ import org.structr.web.entity.html.relation.ResourceLink;
 
 public class RenderContext extends ActionContext {
 
-	private static final Logger logger                   = Logger.getLogger(RenderContext.class.getName());
-
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
-	private long renderStartTime                       = System.currentTimeMillis();
+	private final long renderStartTime                 = System.currentTimeMillis();
 	private Locale locale                              = Locale.getDefault();
 	private EditMode editMode                          = EditMode.NONE;
+	private AsyncBuffer buffer                         = new AsyncBuffer();
 	private int depth                                  = 0;
 	private boolean inBody                             = false;
 	private boolean appLibRendered                     = false;
@@ -70,16 +66,12 @@ public class RenderContext extends ActionContext {
 	private GraphObject currentDataObject              = null;
 	private GraphObject sourceDataObject               = null;
 	private Iterable<GraphObject> listSource           = null;
-	private String searchClass                         = null;
 	private PropertyKey relatedProperty                = null;
-	private List<NodeAttribute> attrs                  = null;
 	private Page page                                  = null;
-	private Component component                        = null;
 	private HttpServletRequest request                 = null;
 	private HttpServletResponse response               = null;
 	private ResourceProvider resourceProvider          = null;
 	private Result result                              = null;
-	private AsyncBuffer buffer                         = new AsyncBuffer();
 
 	public enum EditMode {
 
@@ -112,12 +104,6 @@ public class RenderContext extends ActionContext {
 	}
 
 	public GraphObject getDetailsDataObject() {
-
-//		This is dangerous and leads to inner "ghost queries" without any data
-//		if (EditMode.CONTENT.equals(editMode) && detailsDataObject == null) {
-//			return new GraphObjectMap();
-//		}
-
 		return detailsDataObject;
 	}
 
@@ -249,10 +235,6 @@ public class RenderContext extends ActionContext {
 		return depth;
 	}
 
-	public String getSearchClass() {
-		return searchClass;
-	}
-
 	public void setBuffer(final AsyncBuffer buffer) {
 		this.buffer = buffer;
 	}
@@ -275,10 +257,6 @@ public class RenderContext extends ActionContext {
 
 	public boolean appLibRendered() {
 		return appLibRendered;
-	}
-
-	public List<NodeAttribute> getAttrs() {
-		return attrs;
 	}
 
 	public GraphObject getDataNode(String key) {
@@ -312,13 +290,6 @@ public class RenderContext extends ActionContext {
 		return (page != null ? page.getUuid() : null);
 	}
 
-	public Component getComponent() {
-		return component;
-	}
-
-	public String getComponentId() {
-		return (component != null ? component.getUuid() : null);
-	}
 	public Result getResult() {
 		return result;
 	}

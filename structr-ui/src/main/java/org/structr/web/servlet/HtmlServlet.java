@@ -20,8 +20,6 @@ package org.structr.web.servlet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -103,9 +101,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 
-	// non-static fields
-	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
 	@Override
@@ -123,7 +118,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final double start       = System.nanoTime();
 		final Authenticator auth = config.getAuthenticator();
 		final SecurityContext securityContext;
 		final App app;
@@ -157,7 +151,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				boolean dontCache = false;
 
 				logger.log(Level.FINE, "Path info {0}", path);
-				logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
 				// don't continue on redirects
 				if (response.getStatus() == 302) {
@@ -205,8 +198,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// Look for a file
 					org.structr.web.entity.File file = findFile(request, path);
 					if (file != null) {
-
-						logger.log(Level.FINE, "File found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
 						streamFile(securityContext, file, request, response, edit);
 						return;
@@ -288,8 +279,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					return;
 				}
 
-				logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
-
 				if (EditMode.DATA.equals(edit) || dontCache) {
 
 					setNoCacheHeaders(response);
@@ -306,10 +295,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				}
 
 				if (securityContext.isVisible(rootElement)) {
-
-					//PrintWriter out = response.getWriter();
-					double setup = System.nanoTime();
-					logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
 
 					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
 
@@ -436,9 +421,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							response.getOutputStream().flush();
 							response.getOutputStream().close();
 						}
-
-						double end = System.nanoTime();
-						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
 					}
 
 				} else {
@@ -507,7 +489,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		// FIXME: Take full path into account
 		String name = PathHelper.getName(path);
 
-		if (name.length() > 0) {
+		if (!name.isEmpty()) {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
@@ -870,39 +852,31 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(HttpServletResponse.SC_OK);
 
-//			boolean async = HttpService.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), false);
-//
-//			if (async) {
-//				AsyncContext asyncContext = request.startAsync();
-//				out.setWriteListener(new StructrWriteListener(in,asyncContext, out));
-//			} else {
+			try {
 
-				try {
+				IOUtils.copy(in, out);
 
-					IOUtils.copy(in, out);
+			} catch (Throwable t) {
 
-				} catch (Throwable t) {
+			} finally {
 
-				} finally {
+				if (out != null) {
 
-					if (out != null) {
+					try {
+						// 3: output content
+						out.flush();
+						out.close();
 
-						try {
-							// 3: output content
-							out.flush();
-							out.close();
-
-						} catch (Throwable t) {
-						}
+					} catch (Throwable t) {
 					}
-
-					if (in != null) {
-						in.close();
-					}
-
-					response.setStatus(HttpServletResponse.SC_OK);
 				}
-//			}
+
+				if (in != null) {
+					in.close();
+				}
+
+				response.setStatus(HttpServletResponse.SC_OK);
+			}
 		}
 	}
 
