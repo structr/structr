@@ -396,7 +396,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 													break;
 												}
 
-												Thread.sleep(5);
+												Thread.sleep(1);
 											}
 										}
 
