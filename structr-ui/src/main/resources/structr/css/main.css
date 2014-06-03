@@ -1484,7 +1484,13 @@ button.add_property {
     border-radius: 3px;
     min-width: 1em;
     text-align: center;
-    padding: .5em;
+    padding: .6em;
+}
+
+#schema-graph .label .icon {
+	margin: -3px 2px;
+    display: none;
+    cursor: pointer;
 }
 
 #schema-graph .node {
