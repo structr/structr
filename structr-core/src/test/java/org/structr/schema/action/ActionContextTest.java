@@ -744,6 +744,9 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid replace() result", "equal", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, 2),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 			assertEquals("Invalid replace() result", "not equal", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, 3),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 
+			//
+			assertEquals("Invalid keys() / join() result", "id,name,owner,type,createdBy,deleted,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,visibilityStartDate,visibilityEndDate", testOne.replaceVariables(securityContext, ctx, "${join(keys(this, 'ui'), ',')}"));
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
