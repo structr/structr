@@ -5,6 +5,7 @@ import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.parser.Functions;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -37,7 +38,8 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 		if (obj instanceof AbstractNode) {
 
 			try {
-				return (T)((AbstractNode)obj).extractFunctions(securityContext, new ActionContext(), expression);
+
+				return (T)Functions.evaluate(securityContext, new ActionContext(), obj, expression);
 
 			} catch (Throwable t) {
 				t.printStackTrace();

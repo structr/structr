@@ -2,7 +2,7 @@ package org.structr.schema.action;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 
 /**
  *
@@ -26,7 +26,7 @@ public class Actions {
 	}
 
 	// ----- public static methods -----
-	public static boolean execute(final SecurityContext securityContext, final AbstractNode entity, final String source) throws FrameworkException {
+	public static boolean execute(final SecurityContext securityContext, final GraphObject entity, final String source) throws FrameworkException {
 
 		final ActionContext context = new ActionContext();
 

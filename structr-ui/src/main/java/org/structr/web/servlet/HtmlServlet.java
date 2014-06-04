@@ -572,11 +572,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		// Find first visible page
 		Page page = null;
-		int i = 0;
 
-		while (page == null || (i < results.size() && !securityContext.isVisible(page))) {
+		if (!results.isEmpty()) {
 
-			page = results.get(i++);
+			int i = 0;
+			
+			while (page == null || (i < results.size() && !securityContext.isVisible(page))) {
+
+				page = results.get(i++);
+			}
 		}
 
 		return page;

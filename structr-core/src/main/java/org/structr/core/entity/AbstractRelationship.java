@@ -59,6 +59,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationshipTypeProperty;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.TargetId;
+import org.structr.schema.SchemaHelper;
+import org.structr.schema.action.ActionContext;
 
 
 /**
@@ -191,6 +193,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void setSecurityContext(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
+	}
+
+	@Override
+	public SecurityContext getSecurityContext() {
+		return this.securityContext;
 	}
 
 	@Override
@@ -720,6 +727,16 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		// create new relationship and store here
 		app.create(startNode, newTargetNode, relationType, _props);
+	}
+
+	@Override
+	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+		return SchemaHelper.getPropertyWithVariableReplacement(securityContext, this, renderContext, key);
+	}
+
+	@Override
+	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
+		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
 	}
 
 	// ----- protected methods -----
