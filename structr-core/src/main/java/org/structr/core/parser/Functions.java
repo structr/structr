@@ -162,7 +162,7 @@ public class Functions {
 	public static Object evaluate(final SecurityContext securityContext, final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
 
 		final String expressionWithoutNewlines = expression.replace('\n', ' ');
-		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
+		final StreamTokenizer tokenizer        = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
 		tokenizer.eolIsSignificant(true);
 		tokenizer.wordChars('_', '_');
 		tokenizer.wordChars('.', '.');
@@ -334,7 +334,7 @@ public class Functions {
 					});
 
 
-				} else if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+				} else if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
 					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity.getClass(), sources[0].toString());
 					ctx.raiseError(entity.getType(), new SemanticErrorToken(key) {
@@ -2095,7 +2095,11 @@ public class Functions {
 							// we either have and odd number of items, or two multi-value items.
 							for (int i=1; i<sourceCount; i++) {
 
-								properties.putAll(deserialize(gson, sources[i].toString()));
+								final Map<String, Object> values = deserialize(gson, sources[i].toString());
+								if (values != null) {
+
+									properties.putAll(values);
+								}
 							}
 						}
 

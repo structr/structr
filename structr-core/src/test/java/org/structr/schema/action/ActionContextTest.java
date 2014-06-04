@@ -721,10 +721,27 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid replacement result", "A Nice Little Name For My Test Object", testOne.replaceVariables(securityContext, ctx, "${titleize(this.name, '-')}"));
 			assertEquals("Invalid replacement result", "STRINGtrueFALSE", testOne.replaceVariables(securityContext, ctx, "${upper(this.aString)}${lower(true)}${upper(false)}"));
 
-			// or(empty(hotel.numberOfMarinaSlips),equal(hotel.numberOfMarinaSlips,0))
-
 			// test replace() method
 			assertEquals("Invalid replace() result", "A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${replace(this.replaceString, this)}"));
+
+			// test error method
+			try {
+				Actions.execute(securityContext, testTwo, "${error(\"base\", \"test1\")}");
+				fail("error() should throw an exception.");
+
+			} catch (FrameworkException fex) { }
+
+			try {
+				Actions.execute(securityContext, testTwo, "${error(\"base\", \"test1\", \"test2\")}");
+				fail("error() should throw an exception.");
+
+			} catch (FrameworkException fex) { }
+
+			// test multiline statements
+			assertEquals("Invalid replace() result", "equal", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, 2),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
+			assertEquals("Invalid replace() result", "not equal", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, 3),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 
@@ -732,11 +749,5 @@ public class ActionContextTest extends StructrTest {
 
 			fail("Unexpected exception");
 		}
-
-		// TODO: test find() and mutating functions
-
 	}
 }
-
-
-
