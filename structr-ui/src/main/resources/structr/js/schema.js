@@ -126,7 +126,7 @@ var _Schema = {
              $('#do-layout').on('click', function() {
              _Schema.doLayout();
              });
-             
+
              $('.schema-input-container').append('<button class="btn" id="stop-layout"><img src="icon/wrench.png"> Stop</button>');
              $('#stop-layout').on('click', function() {
              _Layout.stopLayout();
@@ -516,8 +516,8 @@ var _Schema = {
         var actionsTable = $('.actions.schema-props', el);
 
         $('.add-action-attribute', el).on('click', function() {
-            actionsTable.append('<tr class="new"><td><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
-                    + '<td><input size="15" type="text" class="action property-code" placeholder="Enter Code"></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td>'
+            actionsTable.append('<tr class="new"><td style="vertical-align:top;"><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
+                    + '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td>'
                     + '</div');
 
             $('.new .property-code.action', el).on('blur', function() {
@@ -596,8 +596,8 @@ var _Schema = {
         var actionsTable = $('.actions.schema-props', el);
 
         $('.add-action-attribute', el).on('click', function() {
-            actionsTable.append('<tr class="new"><td><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
-                    + '<td><input size="15" type="text" class="action property-code" placeholder="Enter Code"></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td>'
+            actionsTable.append('<tr class="new"><td style="vertical-align:top;"><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
+                    + '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td>'
                     + '</div');
 
             $('.new .property-code.action', el).on('blur', function() {
@@ -940,9 +940,9 @@ var _Schema = {
             } else {
 
                 // append default actions
-                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name action" value="'
-                        + escapeForHtmlAttributes(name) + '"></td><td><input size="30" type="text" class="property-code action" value="'
-                        + escapeForHtmlAttributes(value) + '"></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td></tr>');
+                el.append('<tr class="' + key + '"><td style="vertical-align:top;"><input size="15" type="text" class="property-name action" value="'
+                        + escapeForHtmlAttributes(name) + '"></td><td><textarea rows="4" class="property-code action">'
+                        + escapeForHtmlAttributes(value) + '</textarea></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td></tr>');
 
                 $('.' + key + ' .property-code.action').on('blur', function() {
                     _Schema.saveActionDefinition(res.id, key);
@@ -1038,7 +1038,8 @@ var _Schema = {
     },
     saveActionDefinition: function(entityId, key) {
         var name = $('.' + key + ' .action.property-name').val();
-        var func = $('.' + key + ' .action.property-code').val();
+        var func = $('.' + key + ' .action.property-code').val().replace(/\n/g, "\\n");
+        // var func = $('.' + key + ' .action.property-code').val();
         if (name && name.length) {
             _Schema.putPropertyDefinition(entityId, ' {"'
                     + '___' + name + '": "' + (func ? func.escapeForJSON() : '')
