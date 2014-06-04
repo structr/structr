@@ -51,9 +51,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.SourceId;
 import org.structr.core.property.StringProperty;
-import org.structr.core.property.TargetId;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
@@ -69,8 +67,6 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
 
-	public static final Property<String> sourceId           = new SourceId("sourceId").passivelyIndexed();
-	public static final Property<String> targetId           = new TargetId("targetId").passivelyIndexed();
 	public static final Property<String> relationshipType   = new StringProperty("relationshipType");
 	public static final Property<String> sourceMultiplicity = new StringProperty("sourceMultiplicity");
 	public static final Property<String> targetMultiplicity = new StringProperty("targetMultiplicity");
