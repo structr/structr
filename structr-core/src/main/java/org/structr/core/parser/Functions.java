@@ -91,7 +91,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_ERROR               = "Usage: ${error(...)}. Example: ${error(\"base\", \"must_equal\", int(5))}";
 	public static final String ERROR_MESSAGE_UPPER               = "Usage: ${upper(string)}. Example: ${upper(this.nickName)}";
 	public static final String ERROR_MESSAGE_LOWER               = "Usage: ${lower(string)}. Example: ${lower(this.email)}";
-	public static final String ERROR_MESSAGE_JOIN                = "Usage: ${join(separator, collection)}. Example: ${join(\",\", this.children)}";
+	public static final String ERROR_MESSAGE_JOIN                = "Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}";
 	public static final String ERROR_MESSAGE_CONCAT              = "Usage: ${concat(values...)}. Example: ${concat(this.firstName, this.lastName)}";
 	public static final String ERROR_MESSAGE_SPLIT               = "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
 	public static final String ERROR_MESSAGE_ABBR                = "Usage: ${abbr(longString, maxLength)}. Example: ${abbr(this.title, 20)}";
@@ -432,7 +432,7 @@ public class Functions {
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[1] instanceof Collection) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Collection) {
 
 					return StringUtils.join((Collection)sources[1], sources[0].toString());
 				}

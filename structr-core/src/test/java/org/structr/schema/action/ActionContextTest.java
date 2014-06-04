@@ -174,7 +174,7 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid upper() result", "STRING",       testOne.replaceVariables(securityContext, ctx, "${upper(this.aString)}"));
 
 			// join
-			assertEquals("Invalid join() result", "one,two,three", testOne.replaceVariables(securityContext, ctx, "${join(\",\", merge(\"one\", \"two\", \"three\"))}"));
+			assertEquals("Invalid join() result", "one,two,three", testOne.replaceVariables(securityContext, ctx, "${join(merge(\"one\", \"two\", \"three\"), \",\")}"));
 
 			// concat
 			assertEquals("Invalid concat() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${concat(\"one\", \"two\", \"three\")}"));
