@@ -174,32 +174,35 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid upper() result", "STRING",       testOne.replaceVariables(securityContext, ctx, "${upper(this.aString)}"));
 
 			// join
-			assertEquals("Invalid join() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${join(\"one\", \"two\", \"three\")}"));
-			assertEquals("Invalid join() result", "oneStringthree", testOne.replaceVariables(securityContext, ctx, "${join(\"one\", this.aString, \"three\")}"));
-			assertEquals("Invalid join() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${join(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for join()", Functions.ERROR_MESSAGE_JOIN, testOne.replaceVariables(securityContext, ctx, "${join()}"));
+			assertEquals("Invalid join() result", "one,two,three", testOne.replaceVariables(securityContext, ctx, "${join(\",\", merge(\"one\", \"two\", \"three\"))}"));
+
+			// concat
+			assertEquals("Invalid concat() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${concat(\"one\", \"two\", \"three\")}"));
+			assertEquals("Invalid concat() result", "oneStringthree", testOne.replaceVariables(securityContext, ctx, "${concat(\"one\", this.aString, \"three\")}"));
+			assertEquals("Invalid concat() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${concat(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for concat()", Functions.ERROR_MESSAGE_CONCAT, testOne.replaceVariables(securityContext, ctx, "${concat()}"));
 
 			// split
-			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${join(split(\"one,two,three\"))}"));
-			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${join(split(\"one;two;three\"))}"));
-			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${join(split(\"one;two;three\", \";\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${concat(split(\"one,two,three\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${concat(split(\"one;two;three\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${concat(split(\"one;two;three\", \";\"))}"));
 			assertEquals("Invalid split() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${split(this.alwaysNull)}"));
 			assertEquals("Invalid usage message for split()", Functions.ERROR_MESSAGE_SPLIT, testOne.replaceVariables(securityContext, ctx, "${split()}"));
 
 			// abbr
-			assertEquals("Invalid abbr() result", "oneStringt…", testOne.replaceVariables(securityContext, ctx, "${abbr(join(\"one\", this.aString, \"three\"), 10)}"));
+			assertEquals("Invalid abbr() result", "oneStringt…", testOne.replaceVariables(securityContext, ctx, "${abbr(concat(\"one\", this.aString, \"three\"), 10)}"));
 			assertEquals("Invalid abbr() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${abbr(this.alwaysNull, 10)}"));
 			assertEquals("Invalid usage message for abbr()", Functions.ERROR_MESSAGE_ABBR, testOne.replaceVariables(securityContext, ctx, "${abbr()}"));
 
 			// capitalize..
-			assertEquals("Invalid capitalize() result", "One_two_three", testOne.replaceVariables(securityContext, ctx, "${capitalize(join(\"one_\", \"two_\", \"three\"))}"));
-			assertEquals("Invalid capitalize() result", "One_Stringthree", testOne.replaceVariables(securityContext, ctx, "${capitalize(join(\"one_\", this.aString, \"three\"))}"));
+			assertEquals("Invalid capitalize() result", "One_two_three", testOne.replaceVariables(securityContext, ctx, "${capitalize(concat(\"one_\", \"two_\", \"three\"))}"));
+			assertEquals("Invalid capitalize() result", "One_Stringthree", testOne.replaceVariables(securityContext, ctx, "${capitalize(concat(\"one_\", this.aString, \"three\"))}"));
 			assertEquals("Invalid capitalize() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${capitalize(this.alwaysNull)}"));
 			assertEquals("Invalid usage message for capitalize()", Functions.ERROR_MESSAGE_CAPITALIZE, testOne.replaceVariables(securityContext, ctx, "${capitalize()}"));
 
 			// titleize
-			assertEquals("Invalid titleize() result", "One Two Three", testOne.replaceVariables(securityContext, ctx, "${titleize(join(\"one_\", \"two_\", \"three\"), \"_\")}"));
-			assertEquals("Invalid titleize() result", "One Stringthree", testOne.replaceVariables(securityContext, ctx, "${titleize(join(\"one_\", this.aString, \"three\"), \"_\")}"));
+			assertEquals("Invalid titleize() result", "One Two Three", testOne.replaceVariables(securityContext, ctx, "${titleize(concat(\"one_\", \"two_\", \"three\"), \"_\")}"));
+			assertEquals("Invalid titleize() result", "One Stringthree", testOne.replaceVariables(securityContext, ctx, "${titleize(concat(\"one_\", this.aString, \"three\"), \"_\")}"));
 			assertEquals("Invalid titleize() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${titleize(this.alwaysNull)}"));
 			assertEquals("Invalid usage message for titleize()", Functions.ERROR_MESSAGE_TITLEIZE, testOne.replaceVariables(securityContext, ctx, "${titleize()}"));
 
