@@ -3,9 +3,9 @@ package org.structr.web.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.hasSize;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.TestOne;
 
@@ -285,7 +285,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result[0].name",             equalTo("TestOne-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))
-				.body("result[0].aDate",            equalTo("2012-09-18T00:33:12+0200"))
+				.body("result[0].aDate",            equalTo("2012-09-17T22:33:12+0000"))
 
 			.when()
 				.get(resource);
@@ -314,7 +314,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result[0].name",                        equalTo("TestOne-0"))
 				.body("result[0].anInt",                       equalTo(0))
 				.body("result[0].aLong",                       equalTo(0))
-				.body("result[0].aDate",                       equalTo("2012-09-18T00:33:12+0200"))
+				.body("result[0].aDate",                       equalTo("2012-09-17T22:33:12+0000"))
 				.body("result[0].base",                        nullValue())
 				.body("result[0].createdDate",                 notNullValue())
 				.body("result[0].lastModifiedDate",            notNullValue())
@@ -357,7 +357,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result[0].name",             equalTo("TestOne-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))
-				.body("result[0].aDate",            equalTo("2012-09-18T00:33:12+0200"))
+				.body("result[0].aDate",            equalTo("2012-09-17T22:33:12+0000"))
 
 			.when()
 				.get(resource + "/ui");
