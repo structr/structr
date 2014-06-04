@@ -122,7 +122,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	static {
 
 		// extend set of builtin functions
-		functions.put("GET", new Function<Object, Object>() {
+		Functions.functions.put("GET", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {

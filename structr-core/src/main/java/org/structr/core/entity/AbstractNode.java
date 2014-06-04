@@ -43,7 +43,6 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -66,7 +65,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -78,16 +76,8 @@ import org.structr.schema.action.Function;
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
-	private static final String regexDecimal = "^-?\\d*\\.\\d+$";
-	private static final String regexInteger = "^-?\\d+$";
-	private static final String regexSciNot  = "^-?\\d*\\.\\d+e-?\\d+$";
-	private static final String regexDouble  = regexDecimal + "|" + regexInteger + "|" + regexSciNot;
-	private static final Map<Class, Object> instanceCache = new LinkedHashMap<>();
-
-	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
-	private static final ThreadLocalMatcher threadLocalDoubleMatcher   = new ThreadLocalMatcher(regexDouble);
-	public static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
-
+	private static final Logger logger                                        = Logger.getLogger(AbstractNode.class.getName());
+	private static final Map<Class, Object> relationshipTemplateInstanceCache = new LinkedHashMap<>();
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 
@@ -97,8 +87,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	protected PropertyMap cachedConvertedProperties  = new PropertyMap();
 	protected PropertyMap cachedRawProperties        = new PropertyMap();
-	protected Principal cachedOwnerNode              = null;
 	protected Class entityType                       = getClass();
+	protected Principal cachedOwnerNode              = null;
 
 	// request parameters
 	protected SecurityContext securityContext        = null;
@@ -1180,13 +1170,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
 
-		R instance = (R)instanceCache.get(type);
+		R instance = (R)relationshipTemplateInstanceCache.get(type);
 		if (instance == null) {
 
 			try {
 
 				instance = type.newInstance();
-				instanceCache.put(type, instance);
+				relationshipTemplateInstanceCache.put(type, instance);
 
 			} catch (Throwable t) {
 
@@ -1311,22 +1301,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return tokens.toArray(new String[0]);
 
-	}
-
-	protected static boolean isNumeric(final String source) {
-		return threadLocalDoubleMatcher.get().reset(source).matches();
-	}
-
-	private void addAll(final List results, final Object partialResult) {
-
-		if (partialResult instanceof Object[]) {
-
-			results.addAll(Arrays.asList((Object[])partialResult));
-
-		} else {
-
-			results.add(partialResult);
-		}
 	}
 }
 
