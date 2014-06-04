@@ -144,13 +144,6 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		if (super.onCreation(securityContext, errorBuffer)) {
 
-			// check if type already exists and raise an error if yes.
-//			if (Services.getInstance().getConfigurationProvider().getRelationshipEntityClass(getClassName()) != null) {
-//
-//				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getClassName(), "type_already_exists"));
-//				return false;
-//			}
-
 			// register transaction post processing that recreates the schema information
 			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 
@@ -397,20 +390,6 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 			}
 		}
 
-		if (!validators.isEmpty()) {
-
-			src.append("\n\t@Override\n");
-			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean error = false;\n\n");
-
-			for (final String validator : validators) {
-				src.append("\t\terror |= ").append(validator).append(";\n");
-			}
-
-			src.append("\n\t\treturn !error;\n");
-			src.append("\t}\n");
-		}
-
 		// abstract method implementations
 		src.append("\n\t@Override\n");
 		src.append("\tpublic Class<").append(_sourceNodeType).append("> getSourceType() {\n");
@@ -432,6 +411,9 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		src.append("\tpublic String name() {\n");
 		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
 		src.append("\t}\n\n");
+
+		SchemaHelper.formatValidators(src, validators);
+		SchemaHelper.formatSaveActions(src, actions);
 
 		src.append("}\n");
 

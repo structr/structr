@@ -25,6 +25,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.schema.SchemaHelper;
+import org.structr.schema.action.ActionContext;
 
 /**
  * A dummy graph object that uses a map as its data store.
@@ -55,7 +57,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public <T> T getProperty(PropertyKey<T> propertyKey, org.neo4j.helpers.Predicate<GraphObject> filter) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return (T)properties.get(propertyKey);
 	}
 
 	@Override
@@ -204,5 +206,15 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public SecurityContext getSecurityContext() {
 		return null;
+	}
+
+	@Override
+	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+		return SchemaHelper.getPropertyWithVariableReplacement(securityContext, this, renderContext, key);
+	}
+
+	@Override
+	public String replaceVariables(SecurityContext securityContext, ActionContext actionContext, Object rawValue) throws FrameworkException {
+		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
 	}
 }

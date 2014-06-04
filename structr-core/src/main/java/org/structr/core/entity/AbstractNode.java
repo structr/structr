@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Direction;
@@ -63,9 +62,9 @@ import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.Tx;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -85,8 +84,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	private static final String regexDouble  = regexDecimal + "|" + regexInteger + "|" + regexSciNot;
 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
-	private static final ThreadLocalMatcher threadLocalFunctionMatcher = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.*)\\)");
 	private static final ThreadLocalMatcher threadLocalDoubleMatcher   = new ThreadLocalMatcher(regexDouble);
 	public static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
 
@@ -1197,153 +1194,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return null;
 	}
 
-	// ----- variable replacement functions etc. -----
-
+	@Override
 	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-
-		return replaceVariables(securityContext, renderContext, getProperty(key));
-
+		return SchemaHelper.getPropertyWithVariableReplacement(securityContext, this, renderContext, key);
 	}
 
+	@Override
 	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
-
-		String value = null;
-
-		if (rawValue == null) {
-
-			return null;
-
-		}
-
-		if (rawValue instanceof String) {
-
-			value = (String) rawValue;
-
-			if (!actionContext.returnRawValue(securityContext)) {
-
-				// re-use matcher from previous calls
-				Matcher matcher = threadLocalTemplateMatcher.get();
-
-				matcher.reset(value);
-
-				while (matcher.find()) {
-
-					String group          = matcher.group();
-					String source         = group.substring(2, group.length() - 1);
-					Object extractedValue = Functions.evaluate(securityContext, actionContext, this, source);
-
-					if (extractedValue == null) {
-						extractedValue = "";
-					}
-
-					String partValue = StringUtils.remove(extractedValue.toString(), "\\");
-					if (partValue != null) {
-
-						value = value.replace(group, partValue);
-
-					} else {
-
-						// If the whole expression should be replaced, and partValue is null
-						// replace it by null to make it possible for HTML attributes to not be rendered
-						// and avoid something like ... selected="" ... which is interpreted as selected==true by
-						// all browsers
-						value = value.equals(group) ? null : value.replace(group, "");
-					}
-				}
-
-			}
-
-		} else if (rawValue instanceof Boolean) {
-
-			value = Boolean.toString((Boolean) rawValue);
-
-		} else {
-
-			value = rawValue.toString();
-
-		}
-
-		// return literal null
-		if (Functions.NULL_STRING.equals(value)) {
-			return null;
-		}
-
-		return value;
-
+		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
 	}
-
-	/*
-	public Object extractFunctions(SecurityContext securityContext, ActionContext actionContext, String source) throws FrameworkException {
-
-		if ("null".equals(source)) {
-			return NULL_STRING;
-		}
-
-		// re-use matcher from previous calls
-		Matcher functionMatcher = threadLocalFunctionMatcher.get();
-
-		functionMatcher.reset(source);
-
-		if (functionMatcher.matches()) {
-
-			String functionGroup = functionMatcher.group(1);
-			String parameter     = functionMatcher.group(2);
-			String functionName  = functionGroup.substring(0, functionGroup.length());
-
-			final Function<Object, Object> function = functions.get(functionName);
-			final List results                      = new ArrayList();
-
-			if (function != null) {
-
-				// return usage string if no parameter is present
-				if (parameter == null || parameter.isEmpty()) {
-					return function.usage();
-				}
-
-				if (parameter.contains(",")) {
-
-					final String[] parameters = split(parameter);
-
-					// collect results from comma-separated function parameter
-					for (int i = 0; i < parameters.length; i++) {
-
-						addAll(results, extractFunctions(securityContext, actionContext, StringUtils.strip(parameters[i])));
-					}
-
-					return function.apply(actionContext, this, results.toArray());
-
-				} else {
-
-					addAll(results, extractFunctions(securityContext, actionContext, StringUtils.strip(parameter)));
-
-					return function.apply(actionContext, this, results.toArray());
-
-				}
-			}
-
-		}
-
-		// if any of the following conditions match, the literal source value is returned
-		if (source.startsWith("\"") && source.endsWith("\"")) {
-
-			return source.substring(1, source.length() - 1);
-
-		} else if (source.startsWith("'") && source.endsWith("'")) {
-
-			return source.substring(1, source.length() - 1);
-
-		} else if (StringUtils.isNotBlank(source) && isNumeric(source)) {
-
-			// return numeric value
-			return Double.parseDouble(source);
-
-		} else {
-
-			// return property key
-			return actionContext.getReferencedProperty(securityContext, this, source);
-		}
-	}
-	*/
 
 	protected String[] split(final String source) {
 

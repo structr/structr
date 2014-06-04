@@ -33,6 +33,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.TypeProperty;
 import org.structr.core.property.UuidProperty;
+import org.structr.schema.action.ActionContext;
 
 
 /**
@@ -279,4 +280,7 @@ public interface GraphObject {
 	public void updateInIndex();
 	public void removeFromIndex();
 	public void indexPassiveProperties();
+
+	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException;
+	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException;
 }
