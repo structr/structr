@@ -64,6 +64,11 @@ public class PushNodesTestingCommand extends CloudServiceCommand implements Main
 		}
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
+
 	private class LoggingListener implements CloudListener {
 
 		@Override

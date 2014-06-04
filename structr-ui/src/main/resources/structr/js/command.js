@@ -27,7 +27,7 @@ var Command = {
     /**
      * Send a single GET command to the server.
      *
-     * The server will return a single item with all properties
+     * The server will return a single node with all properties
      * of the node with the given id to the sending client (no broadcast).
      */
     get: function(id, callback) {
@@ -38,6 +38,22 @@ var Command = {
         //data.id = id;
         //obj.data = data;
         log('get()', obj, callback);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a single GET command to the server.
+     *
+     * The server will return a single relationship with all properties
+     * with the given id to the sending client (no broadcast).
+     */
+    getRelationship: function(id, callback) {
+        var obj = {};
+        obj.command = 'GET_RELATIONSHIP';
+        obj.id = id;
+        //var data = {};
+        //data.id = id;
+        //obj.data = data;
+        log('getRelationship()', obj, callback);
         return sendObj(obj, callback);
     },
     /**

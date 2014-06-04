@@ -18,50 +18,47 @@
  */
 package org.structr.websocket.command;
 
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.auth.AuthHelper;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket heartbeat command, keeps the websocket connection open.
+ * Websocket command to retrieve a single relationship by id.
  *
- * Checks validity of session id.
- *
+ * @author Christian Morgner
  * @author Axel Morgner
  */
-public class PingCommand extends AbstractCommand {
+public class GetRelationshipCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(PingCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(GetRelationshipCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(PingCommand.class);
+		StructrWebSocket.addCommand(GetRelationshipCommand.class);
 
 	}
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		final String sessionId = webSocketData.getSessionId();
-		logger.log(Level.FINE, "PING received from session {0}", sessionId);
+		AbstractRelationship rel = getRelationship(webSocketData.getId());
 
-		final Principal currentUser = AuthHelper.getPrincipalForSessionId(sessionId);
+		if (rel != null) {
+			webSocketData.setResult(Arrays.asList(rel));
 
-		if (currentUser != null) {
-
-			getWebSocket().send(MessageBuilder.status().data("username", currentUser.getProperty(AbstractNode.name)).code(100).build(), true);
+			// send only over local connection (no broadcast)
+			getWebSocket().send(webSocketData, true);
 
 		} else {
 
-			logger.log(Level.FINE, "Invalid session id");
-			getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+			logger.log(Level.WARNING, "Relationship not found for id {0}!", webSocketData.getId());
+			// Not necessary to send a 404 here
+			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
 	}
@@ -70,6 +67,6 @@ public class PingCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-		return "PING";
+		return "GET_RELATIONSHIP";
 	}
 }

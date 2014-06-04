@@ -106,7 +106,7 @@ var _Files = {
         files.empty();
         files.append(
                 '<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>'
-                + '<button class="pull_file_icon button"><img title="Pull File" alt="Pull File" src="' + _Files.pull_file_icon + '"> Pull File</button>'
+                + '<button class="pull_file_icon button"><img title="Sync Files" alt="Sync Files" src="' + _Files.pull_file_icon + '"> Sync Files</button>'
                 );
         $('.add_file_icon', main).on('click', function(e) {
             e.stopPropagation();
@@ -119,8 +119,6 @@ var _Files = {
         });
 
         if (window.File && window.FileReader && window.FileList && window.Blob) {
-
-            //files.append('<h2>Files</h2>');
 
             drop = $('#dropArea');
 
@@ -257,7 +255,7 @@ var _Files = {
             });
         }
 
-        div.append('<img title="Push file \'' + file.name + '\'" alt="Push file \'' + file.name + '\'" class="push_icon button" src="icon/page_white_get.png">');
+        div.append('<img title="Sync file \'' + file.name + '\' to remote instance" alt="Sync file \'' + file.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
         div.children('.push_icon').on('click', function() {
             Structr.pushDialog(file.id, false);
             return false;
@@ -281,7 +279,6 @@ var _Files = {
             }
             div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
-                //_Files.removeFileFromFolder(file.id, folderId, isImage);
                 Command.removeSourceFromTarget(file.id, folderId);
             });
             disable(parent.children('.delete_icon')[0]);
@@ -369,7 +366,7 @@ var _Files = {
 
         _Entities.appendAccessControlIcon(div, folder);
 
-        div.append('<img title="Push folder \'' + folder.name + '\'" alt="Push folder \'' + folder.name + '\'" class="push_icon button" src="icon/page_white_get.png">');
+        div.append('<img title="Sync folder \'' + folder.name + '\' to remote instance" alt="Sync folder \'' + folder.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
         div.children('.push_icon').on('click', function() {
             Structr.pushDialog(folder.id, true);
             return false;
@@ -383,13 +380,11 @@ var _Files = {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);
-                //delIcon = $('.delete_icon', div);
             }
             div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
                 Command.removeChild(folder.id);
             });
-            //disable($('.delete_icon', parent)[0]);
 
         } else {
             newDelIcon = '<img title="Delete folder \'' + folder.name + '\'" alt="Delete folder \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
@@ -397,7 +392,6 @@ var _Files = {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);
-                //delIcon = $('.delete_icon', div);
             }
             div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
@@ -413,8 +407,6 @@ var _Files = {
 
         div.draggable({
             revert: 'invalid',
-            //helper: 'clone',
-            //containment: '#main',
             stack: '.node'
         });
 
@@ -459,10 +451,6 @@ var _Files = {
 
         return div;
     },
-//    removeImageFromFolder: function(imageId, folderId) {
-//        log('removeImageFromFolder', imageId, folderId);
-//        _Files.removeFileFromFolder(imageId, folderId, true);
-//    },
     uploadFile: function(file) {
 
         $(fileList).each(function(i, fileObj) {
@@ -476,26 +464,6 @@ var _Files = {
                 //reader.readAsText(fileObj);
 
                 var chunks = Math.ceil(fileObj.size / chunkSize);
-                //console.log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
-
-                // slicing is still unstable/browser dependent yet, see f.e. http://georgik.sinusgear.com/2011/05/06/html5-api-file-slice-changed/
-
-                //                var blob;
-                //                for (var c=0; c<chunks; c++) {
-                //
-                //                    var start = c*chunkSize;
-                //                    var end = (c+1)*chunkSize-1;
-                //
-                //                    console.log('start: ' + start + ', end: ' + end);
-                //
-                //                    if (fileObj.webkitSlice) {
-                //                        blob = fileObj.webkitSlice(start, end);
-                //                    } else if (fileObj.mozSlice) {
-                //                        blob = fileObj.mozSlice(start, end);
-                //                    }
-                //                    setTimeout(function() { reader.readAsText(blob)}, 1000);
-                //                }
-
                 reader.onload = function(f) {
 
                     log('File was read into memory.', f);
@@ -527,14 +495,10 @@ var _Files = {
     },
     updateTextFile: function(file, text) {
         var chunks = Math.ceil(text.length / chunkSize);
-        //console.log(text, text.length, chunks);
         for (var c = 0; c < chunks; c++) {
             var start = c * chunkSize;
             var end = (c + 1) * chunkSize;
-            //console.log(text.substring(start,end));
             var chunk = utf8_to_b64(text.substring(start, end));
-            //console.log(chunk);
-            // TODO: check if we can send binary data directly
             Command.chunk(file.id, c, chunkSize, chunk, chunks);
         }
     },
@@ -548,9 +512,6 @@ var _Files = {
 
         $(parent.children('.edit_file_icon')).on('click', function(e) {
             e.stopPropagation();
-            //var self = $(this);
-            //var text = self.parent().find('.file').text();
-
             selectedElements = $('.node.selected');
             if (selectedElements.length > 1) {
                 selectedElements.removeClass('selected');
@@ -590,13 +551,9 @@ var _Files = {
             });
 
             _Entities.activateTabs('#files-tabs', '#content-tab-' + file.id);
-              
-            //_Files.editContent(this, file, dialogText);
         });
     },
     editContent: function(button, file, element) {
-        //debug = true;
-        
         var url = viewRootUrl + file.id + '?edit=1';
         log('editContent', button, file, element, url);
         var text;
@@ -641,8 +598,6 @@ var _Files = {
                     var scrollInfo = editor.getScrollInfo();
                     localStorage.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo)); 
                 });
-
-                //$('.CodeMirror').css({ 'height': 443 });
                 editor.id = file.id;
 
                 dialogBtn.children('#saveFile').remove();

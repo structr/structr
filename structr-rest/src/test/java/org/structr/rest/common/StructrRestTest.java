@@ -21,32 +21,30 @@ package org.structr.rest.common;
 
 import com.jayway.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
-import org.apache.commons.io.FileUtils;
-
-import org.neo4j.graphdb.GraphDatabaseService;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -97,6 +95,7 @@ public class StructrRestTest extends TestCase {
 		GraphDatabaseService graphDb = app.getGraphDatabaseService();
 
 		assertTrue(graphDb != null);
+		
 	}
 
 	@Override
@@ -127,6 +126,10 @@ public class StructrRestTest extends TestCase {
 		}
 
 		super.tearDown();
+
+		System.out.println("######################################################################################");
+		System.out.println("# " + getClass().getSimpleName() + "#" + getName() + " finished.");
+		System.out.println("######################################################################################\n");
 	}
 
 	/**
@@ -272,6 +275,10 @@ public class StructrRestTest extends TestCase {
 
 	@Override
 	protected void setUp() throws Exception {
+
+		System.out.println("\n######################################################################################");
+		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
+		System.out.println("######################################################################################");
 
 		final StructrConf config = Services.getBaseConfiguration();
 		final Date now           = new Date();

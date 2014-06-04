@@ -206,7 +206,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 			Integer pos = rel.getProperty(positionProperty);
 
-			if (pos != null && pos.intValue() == position) {
+			if (pos != null && pos == position) {
 
 				return (T) rel.getTargetNode();
 			}
@@ -223,7 +223,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 			Integer pos = rel.getProperty(positionProperty);
 			if (pos != null) {
 
-				return pos.intValue();
+				return pos;
 			}
 		}
 

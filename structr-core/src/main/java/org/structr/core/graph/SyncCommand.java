@@ -153,6 +153,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return true;
+	}
+
+	// ----- static methods -----
 	/**
 	 * Exports the whole structr database to a file with the given name.
 	 *

@@ -25,10 +25,11 @@ import org.structr.common.error.FrameworkException;
  * Common base interface for commands that can be registered as a maintenance
  * command. Maintenance commands can be called via REST if registered
  * appropriately.
- * 
+ *
  * @author Christian Morgner
  */
 public interface MaintenanceCommand {
-	
+
 	public void execute(Map<String, Object> attributes) throws FrameworkException;
+	public boolean requiresEnclosingTransaction();
 }

@@ -600,7 +600,7 @@ var _Crud = {
     clearList: function(type) {
         //console.log('clearList', type);
         var table = _Crud.getTable(type);
-        var headerRow = '<tr>' + $($('tr:first-child', table)[0]).html() + '</tr>';
+        var headerRow = '<thead><tr>' + $($('tr:first-child', table)[0]).html() + '</tr></thead>';
         //    console.log(headerRow);
         table.empty();
         table.append(headerRow);
@@ -1297,6 +1297,8 @@ var _Crud = {
                 });
             });
             row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button></td>');
+            _Crud.resize();
+
             $('.actions .edit', row).on('mouseup', function(event) {
                 event.preventDefault();
                 _Crud.crudEdit(id);
@@ -1919,28 +1921,28 @@ var _Crud = {
             height: bh
         });
 
-        $('#resourceTabs .resourceBox').css({
-            height: h - ($('#resourceTabsMenu').height() + 109) + 'px'
+        $('#resourceTabs .resourceBox table').css({
+            height: h - ($('#resourceTabsMenu').height() + 184) + 'px',
+            width:  w - 59 + 'px'
         });
 
         $('.searchResults').css({
             height: h - 103 + 'px'
         });
+
     },
     error: function(text, callback) {
-        if (text)
+        if (text) {
             $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        //console.log(callback);
-        if (callback)
-            $('#errorBox .okButton').on('click', function(e) {
+        }
+        if (callback) {
+            $('#errorBox .closeButton').on('click', function(e) {
                 e.stopPropagation();
-                //callback();
-                //console.log(callback);
-
                 $.unblockUI({
                     fadeOut: 25
                 });
             });
+        }
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({

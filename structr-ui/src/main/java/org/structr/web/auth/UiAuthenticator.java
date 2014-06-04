@@ -90,7 +90,7 @@ public class UiAuthenticator implements Authenticator {
 	public static final long NON_AUTH_USER_OPTIONS	= 512;
 
 	//~--- methods --------------------------------------------------------
-	
+
 	/**
 	 * Examine request and try to find a user.
 	 *
@@ -537,7 +537,7 @@ public class UiAuthenticator implements Authenticator {
 	public Class getUserClass() {
 		return userClass;
 	}
-	
+
 	@Override
 	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
@@ -567,7 +567,7 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		return user;
-		
+
 	}
 
 }

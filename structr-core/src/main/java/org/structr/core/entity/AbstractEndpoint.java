@@ -42,24 +42,24 @@ import org.structr.core.property.PropertyMap;
 public abstract class AbstractEndpoint {
 
 	private static final Logger logger = Logger.getLogger(AbstractEndpoint.class.getName());
-	
+
 	public Relationship getSingle(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType) {
-		
+
 		final Iterable<Relationship> rels     = getMultiple(securityContext, dbNode, relationshipType, direction, otherNodeType, null);
 		final Iterator<Relationship> iterator = rels.iterator();
-		
+
 		// FIXME: this returns only the first relationship that matches, i.e. there is NO check for multiple relationships
 		if (iterator.hasNext()) {
 			return iterator.next();
 		}
-		
+
 		return null;
 	}
 
 	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType, final Predicate<GraphObject> predicate) {
 		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType, predicate), dbNode.getRelationships(direction, relationshipType));
 	}
-	
+
 	// ----- protected methods -----
 	/**
 	 * Loads a PropertyMap from the current security context that was previously stored
@@ -68,30 +68,30 @@ public abstract class AbstractEndpoint {
 	 * @param securityContext the security context
 	 * @param type the entity type
 	 * @param entityKey the key for which the PropertyMap was stored
-	 * 
+	 *
 	 * @return a PropertyMap or null
 	 */
 	protected PropertyMap getNotionProperties(final SecurityContext securityContext, final Class type, final String entityKey) {
-		
-		
+
+
 		final Map<String, PropertyMap> notionPropertyMap = (Map<String, PropertyMap>)securityContext.getAttribute("notionProperties");
 		if (notionPropertyMap != null) {
-			
+
 			final Set<PropertyKey> keySet      = Services.getInstance().getConfigurationProvider().getPropertySet(type, PropertyView.Public);
 			final PropertyMap notionProperties = notionPropertyMap.get(entityKey);
-			
+
 			for (final Iterator<PropertyKey> it = notionProperties.keySet().iterator(); it.hasNext();) {
-				
+
 				final PropertyKey key = it.next();
 				if (!keySet.contains(key)) {
-					
+
 					it.remove();
 				}
 			}
-		
+
 			return notionProperties;
-		}		
-		
+		}
+
 		return null;
 	}
 }

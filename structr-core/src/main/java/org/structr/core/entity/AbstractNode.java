@@ -82,6 +82,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	private static final String regexInteger = "^-?\\d+$";
 	private static final String regexSciNot  = "^-?\\d*\\.\\d+e-?\\d+$";
 	private static final String regexDouble  = regexDecimal + "|" + regexInteger + "|" + regexSciNot;
+	private static final Map<Class, Object> instanceCache = new LinkedHashMap<>();
 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 	private static final ThreadLocalMatcher threadLocalDoubleMatcher   = new ThreadLocalMatcher(regexDouble);
@@ -143,6 +144,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		this.securityContext = securityContext;
 	}
 
+	@Override
 	public SecurityContext getSecurityContext() {
 		return securityContext;
 	}
@@ -1178,20 +1180,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
 
-		try {
+		R instance = (R)instanceCache.get(type);
+		if (instance == null) {
 
-			return type.newInstance();
+			try {
 
-		} catch (Throwable t) {
+				instance = type.newInstance();
+				instanceCache.put(type, instance);
 
-			// TODO: throw meaningful exception here,
-			// should be a RuntimeException that indicates
-			// wrong use of Relationships etc.
+			} catch (Throwable t) {
 
-			t.printStackTrace();
+				// TODO: throw meaningful exception here,
+				// should be a RuntimeException that indicates
+				// wrong use of Relationships etc.
+
+				t.printStackTrace();
+			}
 		}
 
-		return null;
+		return instance;
 	}
 
 	@Override

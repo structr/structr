@@ -756,14 +756,28 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				boolean retry = true;
 				while (retry) {
 
-					try (final Tx tx = app.tx()) {
+					if (resource.createPostTransaction()) {
 
-						result = resource.doPost(properties);
-						tx.success();
-						retry = false;
+						try (final Tx tx = app.tx()) {
 
-					} catch (DeadlockDetectedException ddex) {
-						retry = true;
+							result = resource.doPost(properties);
+							tx.success();
+							retry = false;
+
+						} catch (DeadlockDetectedException ddex) {
+							retry = true;
+						}
+
+					} else {
+
+						try {
+
+							result = resource.doPost(properties);
+							retry = false;
+
+						} catch (DeadlockDetectedException ddex) {
+							retry = true;
+						}
 					}
 				}
 

@@ -45,6 +45,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
+import org.neo4j.shell.ShellSettings;
 import org.structr.common.StructrConf;
 
 //~--- classes ----------------------------------------------------------------
@@ -130,7 +132,8 @@ public class NodeService implements SingletonService {
 	@Override
 	public void initialize(final StructrConf config) {
 
-		final String dbPath = config.getProperty(Services.DATABASE_PATH);
+		final String dbPath                = config.getProperty(Services.DATABASE_PATH);
+		final GraphDatabaseBuilder builder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath);
 
 		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
@@ -142,38 +145,30 @@ public class NodeService implements SingletonService {
 
 		}
 
-//		// neo4j remote shell configuration
-//		if ("true".equals(config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"))) {
-//
-//			// enable neo4j remote shell, thanks Michael :)
-//			neo4jConfiguration.put(ShellSettings.remote_shell_enabled.name(), "true");
-//		}
-
-
 		final File confFile = new File(dbPath + "/neo4j.conf");
 		if (confFile.exists()) {
 
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(confFile.getAbsolutePath()).newGraphDatabase();
-
-		} else {
-
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).newGraphDatabase();
+			builder.loadPropertiesFromFile(confFile.getAbsolutePath());
 		}
 
-//
+		// neo4j remote shell configuration
+		builder.setConfig(ShellSettings.remote_shell_enabled, config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"));
+		builder.setConfig(ShellSettings.remote_shell_port,    config.getProperty(Services.NEO4J_SHELL_PORT, "1337"));
+
+		// create graph database instance
+		graphDb = builder.newGraphDatabase();
+
+		// success?
 		if (graphDb == null) {
 
 			logger.log(Level.SEVERE, "Database could not be started ({0}) ...", dbPath);
-
 			return;
-
 		}
 
 		filesPath = config.getProperty(Services.FILES_PATH);
 
 		// check existence of files path
 		File files = new File(filesPath);
-
 		if (!files.exists()) {
 
 			files.mkdir();

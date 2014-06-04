@@ -1,7 +1,6 @@
 @charset "UTF-8";
 
 .resourceBox {
-    overflow: auto;
     border: 1px solid #999 ! important;
     background: #fff ! important;
     font-family: Arial, Helvetica, Sans-serif ! important;
@@ -10,6 +9,8 @@
 }
 
 .resourceBox table {
+    display: block;
+    overflow: auto;
     border-collapse: collapse;
     background: #fff;
     margin: 6px 0;

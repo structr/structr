@@ -41,7 +41,7 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType) {
 		this(securityContext, thisNode, desiredType, null);
 	}
-	
+
 	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType, final Predicate<GraphObject> nodePredicate) {
 
 		this.nodePredicate = nodePredicate;
@@ -58,7 +58,7 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
 			// check predicate if exists
 			if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {
-				
+
 				final Class otherNodeType = otherNode.getClass();
 
 				return desiredType.isAssignableFrom(otherNodeType) || otherNodeType.isAssignableFrom(desiredType);

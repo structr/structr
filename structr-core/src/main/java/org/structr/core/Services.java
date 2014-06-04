@@ -80,6 +80,7 @@ public class Services {
 	public static final String LOG_DATABASE_PATH             = "log.database.path";
 	public static final String FOREIGN_TYPE                  = "foreign.type.key";
 	public static final String NEO4J_SHELL_ENABLED           = "neo4j.shell.enabled";
+	public static final String NEO4J_SHELL_PORT              = "neo4j.shell.port";
 	public static final String LOG_SERVICE_INTERVAL          = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD         = "structr.logging.threshold";
 	public static final String SERVER_IP                     = "server.ip";
@@ -545,6 +546,7 @@ public class Services {
 			baseConf.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
 			baseConf.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService SchemaService");
 			baseConf.setProperty(NEO4J_SHELL_ENABLED,       "true");
+			baseConf.setProperty(NEO4J_SHELL_PORT,          "1337");
 			baseConf.setProperty(JSON_INDENTATION,          "true");
 
 			baseConf.setProperty(SUPERUSER_USERNAME,        "superadmin");

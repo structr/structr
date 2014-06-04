@@ -80,10 +80,14 @@ public abstract class Resource {
 	 * @throws FrameworkException
 	 */
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
+	public abstract String getUriPart();
+	public abstract Class<? extends GraphObject> getEntityClass();
+	public abstract String getResourceSignature();
+	public abstract boolean isCollectionResource() throws FrameworkException;
 
 	public abstract Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException;
-
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
+
 
 	public RestMethodResult doHead() throws FrameworkException {
 		Thread.dumpStack();
@@ -178,6 +182,25 @@ public abstract class Resource {
 	public void postProcessResultSet(final Result result) {
 	}
 
+	public boolean isPrimitiveArray() {
+		return false;
+	}
+
+	public void setSecurityContext(final SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
+
+	/**
+	 * Override this method in your resource implementation and return false
+	 * to prevent the creation of an encosing transaction context in your
+	 * doPost() method. Default: true.
+	 *
+	 * @return whether to create transaction around the doPost() method
+	 */
+	public boolean createPostTransaction() {
+		return true;
+	}
+
 	// ----- protected methods -----
 	protected PropertyKey findPropertyKey(final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
@@ -243,23 +266,6 @@ public abstract class Resource {
 			}
 		}
 	}
-
-	protected static int parseInteger(final Object source) {
-
-		try {
-			return Integer.parseInt(source.toString());
-		} catch (final Throwable t) {
-		}
-
-		return -1;
-	}
-
-	//~--- get methods ----------------------------------------------------
-	public abstract String getUriPart();
-
-	public abstract Class<? extends GraphObject> getEntityClass();
-
-	public abstract String getResourceSignature();
 
 	protected void extractDistanceSearch(final HttpServletRequest request, final Query query) {
 
@@ -347,14 +353,14 @@ public abstract class Resource {
 		}
 	}
 
-	public abstract boolean isCollectionResource() throws FrameworkException;
+	protected static int parseInteger(final Object source) {
 
-	public boolean isPrimitiveArray() {
-		return false;
-	}
+		try {
+			return Integer.parseInt(source.toString());
+		} catch (final Throwable t) {
+		}
 
-	public void setSecurityContext(final SecurityContext securityContext) {
-		this.securityContext = securityContext;
+		return -1;
 	}
 
 	// ----- private methods -----

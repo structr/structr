@@ -56,7 +56,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		
+
 		final String type = (String)properties.get("type");
 		if (StringUtils.isBlank(type)) {
 			throw new FrameworkException(422, "Type must not be empty");
@@ -70,8 +70,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 		// remove "type" so it won't be set later
 		properties.remove("type");
-		
-		
+
+
 		if (graphDb != null) {
 
 			Result<AbstractNode> nodes = null;
@@ -90,7 +90,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 					nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 				}
 			}
-			
+
 			long nodeCount  = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
@@ -103,7 +103,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 							String key = (String) entry.getKey();
 							Object val = null;
-							
+
 							// allow to set new type
 							if (key.equals("newType")) {
 								key = "type";
@@ -111,14 +111,14 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 							PropertyConverter inputConverter = StructrApp.getConfiguration().getPropertyKeyForJSONName(cls, key).inputConverter(securityContext);
 
-							
+
 							if (inputConverter != null) {
 								try {
 									val = inputConverter.convert(entry.getValue());
 								} catch (FrameworkException ex) {
 									logger.log(Level.SEVERE, null, ex);
 								}
-								
+
 							} else {
 								val = entry.getValue();
 							}
@@ -129,11 +129,11 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 								try {
 									node.unlockReadOnlyPropertiesOnce();
 									node.setProperty(propertyKey, val);
-									
+
 								} catch (FrameworkException fex) {
 
 									logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, node.getUuid(), val, fex.getMessage() } );
-									
+
 								}
 							}
 
@@ -160,4 +160,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 		logger.log(Level.INFO, "Done");
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
 }

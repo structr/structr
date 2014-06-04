@@ -55,7 +55,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 		final GraphDatabaseService graphDb            = (GraphDatabaseService) arguments.get("graphDb");
 		final RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
-                
+
 		if (graphDb != null) {
 
 			List<AbstractRelationship> rels = null;
@@ -66,7 +66,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 					rels = StructrApp.getInstance(securityContext).relationshipQuery(SchemaHelper.getEntityClassForRawType(typeName)).getAsList();
 				}
-				
+
 				properties.remove(typeName);
 
 			} else {
@@ -94,8 +94,8 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 								try {
 									rel.setProperty(propertyKey, val);
-									
-							
+
+
 								} catch (FrameworkException fex) {
 
 									logger.log(Level.WARNING, "Unable to set relationship property {0} of relationship {1} to {2}: {3}", new Object[] { propertyKey, rel.getUuid(), val, fex.getMessage() } );
@@ -119,5 +119,10 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 			logger.log(Level.INFO, "Finished setting properties on {0} relationships", count);
 		}
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
 	}
 }

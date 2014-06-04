@@ -792,33 +792,48 @@ public class DiffTest extends StructrUiTest {
 	private String testDiff(final String source, final org.neo4j.helpers.Function<String, String> modifier) {
 
 		StringBuilder buf = new StringBuilder();
+		String sourceHtml = null;
 
-		try (final Tx tx = app.tx()) {
+		try {
 
-			final Page sourcePage     = Importer.parsePageFromSource(securityContext, source, "test");
-			final String sourceHtml   = sourcePage.getContent(RenderContext.EditMode.RAW);
+			// create page from source
+			final Page sourcePage = Importer.parsePageFromSource(securityContext, source, "test");
+
+			// render page into HTML string
+			try (final Tx tx = app.tx()) {
+				sourceHtml = sourcePage.getContent(RenderContext.EditMode.RAW);
+				tx.success();
+			}
+
+			// modify HTML string with transformation function
 			final String modifiedHtml = modifier.apply(sourceHtml);
 
 			// parse page from modified source
 			final Page modifiedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "Test");
 
-			final List<InvertibleModificationOperation> changeSet = Importer.diffPages(sourcePage, modifiedPage);
+			// create and apply diff operations
+			try (final Tx tx = app.tx()) {
 
-			for (final InvertibleModificationOperation op : changeSet) {
+				final List<InvertibleModificationOperation> changeSet = Importer.diffPages(sourcePage, modifiedPage);
+				for (final InvertibleModificationOperation op : changeSet) {
 
-				System.out.println(op);
+					System.out.println(op);
 
-				// execute operation
-				op.apply(app, sourcePage, modifiedPage);
+					// execute operation
+					op.apply(app, sourcePage, modifiedPage);
 
-				System.out.println("############################################################################################");
-				System.out.println(sourcePage.getContent(RenderContext.EditMode.NONE));
+					System.out.println("############################################################################################");
+//					System.out.println(sourcePage.getContent(RenderContext.EditMode.NONE));
+				}
+
+				tx.success();
 			}
 
-			buf.append(sourcePage.getContent(RenderContext.EditMode.NONE));
-
-			// commit data to the database so we can access it later..
-			tx.success();
+			// render modified page into buffer
+			try (final Tx tx = app.tx()) {
+				buf.append(sourcePage.getContent(RenderContext.EditMode.NONE));
+				tx.success();
+			}
 
 		} catch (Throwable t) {
 

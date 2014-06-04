@@ -59,7 +59,6 @@ function escapeForHtmlAttributes(str, escapeWhitespace) {
     if (!(typeof str === 'string'))
         return str;
     var escapedStr = str
-            .replace(/\\/g, '\\\\\\')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
