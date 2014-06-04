@@ -434,7 +434,7 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Collection) {
 
-					return StringUtils.join((Collection)sources[1], sources[0].toString());
+					return StringUtils.join((Collection)sources[0], sources[1].toString());
 				}
 
 				return "";
