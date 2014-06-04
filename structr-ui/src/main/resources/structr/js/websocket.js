@@ -238,7 +238,7 @@ function wsConnect() {
                     StructrModel.clearCallback(data.callback);
                 }
 
-            } else if (command.endsWith('GET') || command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
+            } else if (command.startsWith('GET') || command === 'GET_BY_TYPE') { /*********************** GET_BY_TYPE ************************/
 
                 log(command, data);
 

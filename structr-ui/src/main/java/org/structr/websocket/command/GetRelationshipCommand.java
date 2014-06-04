@@ -21,42 +21,42 @@ package org.structr.websocket.command;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket command to retrieve a single node by id.
+ * Websocket command to retrieve a single relationship by id.
  *
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class GetCommand extends AbstractCommand {
+public class GetRelationshipCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(GetCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(GetRelationshipCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(GetCommand.class);
+		StructrWebSocket.addCommand(GetRelationshipCommand.class);
 
 	}
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		AbstractNode node = getNode(webSocketData.getId());
+		AbstractRelationship rel = getRelationship(webSocketData.getId());
 
-		if (node != null) {
-			webSocketData.setResult(Arrays.asList(node));
+		if (rel != null) {
+			webSocketData.setResult(Arrays.asList(rel));
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);
 
 		} else {
 
-			logger.log(Level.WARNING, "Node not found for id {0}!", webSocketData.getId());
+			logger.log(Level.WARNING, "Relationship not found for id {0}!", webSocketData.getId());
 			// Not necessary to send a 404 here
 			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
@@ -67,6 +67,6 @@ public class GetCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-		return "GET";
+		return "GET_RELATIONSHIP";
 	}
 }

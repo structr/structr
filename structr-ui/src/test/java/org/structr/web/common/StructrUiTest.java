@@ -19,36 +19,35 @@ package org.structr.web.common;
 
 import com.jayway.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
-import org.apache.commons.io.FileUtils;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.GraphDatabaseCommand;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-
 import java.net.URL;
 import java.nio.charset.Charset;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
 import org.structr.common.PropertyView;
-import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
+import org.structr.core.property.PropertyMap;
 import org.structr.files.ftp.FtpService;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
@@ -109,6 +108,10 @@ public class StructrUiTest extends TestCase {
 	//~--- methods --------------------------------------------------------
 	@Override
 	protected void setUp() throws Exception {
+		
+		System.out.println("\n######################################################################################");
+		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
+		System.out.println("######################################################################################");
 
 		config = Services.getBaseConfiguration();
 
@@ -239,6 +242,10 @@ public class StructrUiTest extends TestCase {
 		}
 
 		super.tearDown();
+
+		System.out.println("######################################################################################");
+		System.out.println("# " + getClass().getSimpleName() + "#" + getName() + " finished.");
+		System.out.println("######################################################################################\n");
 
 	}
 
