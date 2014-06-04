@@ -18,25 +18,21 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.rest.exception.NotFoundException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
-
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
+import org.structr.rest.exception.NotFoundException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,7 +84,7 @@ public class UuidResource extends FilterableResource {
 
 		// do not allow nesting of "bare" uuid resource with type resource
 		// as this will not do what the user expects to do. 
-		if(next instanceof TypeResource) {
+		if (next instanceof TypeResource) {
 			
 			throw new IllegalPathException();
 		}

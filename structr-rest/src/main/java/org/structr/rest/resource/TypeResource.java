@@ -18,42 +18,40 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.NotFoundException;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.PropertyKey;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaHelper;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -214,15 +212,15 @@ public class TypeResource extends SortableResource {
 				final PropertyMap properties          = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 				RelationshipInterface newRelationship = null;
 
-				if(sourceNode == null) {
+				if (sourceNode == null) {
 					errorBuffer.add(entityClass.getSimpleName(), new EmptyPropertyToken(template.getSourceIdProperty()));
 				}
 
-				if(targetNode == null) {
+				if (targetNode == null) {
 					errorBuffer.add(entityClass.getSimpleName(), new EmptyPropertyToken(template.getTargetIdProperty()));
 				}
 
-				if(errorBuffer.hasError()) {
+				if (errorBuffer.hasError()) {
 					throw new FrameworkException(422, errorBuffer);
 				}
 

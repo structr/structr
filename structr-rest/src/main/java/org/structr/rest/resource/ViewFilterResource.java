@@ -18,25 +18,20 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Value;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
+import org.structr.core.Value;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -157,5 +152,9 @@ public class ViewFilterResource extends WrappingResource {
 		}
 
 		return StringUtils.stripEnd(signature.toString(), "/");
+	}
+	
+	public String getPropertyView() {
+		return propertyView;
 	}
 }
