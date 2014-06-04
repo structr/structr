@@ -91,7 +91,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_ERROR               = "Usage: ${error(...)}. Example: ${error(\"base\", \"must_equal\", int(5))}";
 	public static final String ERROR_MESSAGE_UPPER               = "Usage: ${upper(string)}. Example: ${upper(this.nickName)}";
 	public static final String ERROR_MESSAGE_LOWER               = "Usage: ${lower(string)}. Example: ${lower(this.email)}";
-	public static final String ERROR_MESSAGE_JOIN                = "Usage: ${join(values...)}. Example: ${join(this.firstName, this.lastName)}";
+	public static final String ERROR_MESSAGE_JOIN                = "Usage: ${join(separator, collection)}. Example: ${join(\",\", this.children)}";
+	public static final String ERROR_MESSAGE_CONCAT              = "Usage: ${concat(values...)}. Example: ${concat(this.firstName, this.lastName)}";
 	public static final String ERROR_MESSAGE_SPLIT               = "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
 	public static final String ERROR_MESSAGE_ABBR                = "Usage: ${abbr(longString, maxLength)}. Example: ${abbr(this.title, 20)}";
 	public static final String ERROR_MESSAGE_CAPITALIZE          = "Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}";
@@ -140,6 +141,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_NTH                 = "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
 	public static final String ERROR_MESSAGE_EVAL                = "Usage: ${eval(expression...)}. Example: ${eval(\"print(this.name)\", \"delete(this)\"}";
 	public static final String ERROR_MESSAGE_MERGE_PROPERTIES    = "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
+	public static final String ERROR_MESSAGE_KEYS                = "Usage: ${keys(entity, viewName)}. Example: ${keys(this, \"ui\")}";
 	public static final String ERROR_MESSAGE_EACH                = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
 	public static final String ERROR_MESSAGE_PRINT               = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
 	public static final String ERROR_MESSAGE_READ                = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
@@ -430,6 +432,25 @@ public class Functions {
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[1] instanceof Collection) {
+
+					return StringUtils.join((Collection)sources[1], sources[0].toString());
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_JOIN;
+			}
+
+		});
+		functions.put("concat", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
 				final List list = new ArrayList();
 				for (final Object source : sources) {
 
@@ -448,7 +469,7 @@ public class Functions {
 
 			@Override
 			public String usage() {
-				return ERROR_MESSAGE_JOIN;
+				return ERROR_MESSAGE_CONCAT;
 			}
 
 		});
@@ -1872,6 +1893,31 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_MERGE_PROPERTIES;
+			}
+		});
+		functions.put("keys", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject) {
+
+					final Set<String> keys   = new LinkedHashSet<>();
+					final GraphObject source = (GraphObject)sources[0];
+
+					for (final PropertyKey key : source.getPropertyKeys(sources[1].toString())) {
+						keys.add(key.jsonName());
+					}
+
+					return new LinkedList<>(keys);
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_KEYS;
 			}
 		});
 
