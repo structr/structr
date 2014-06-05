@@ -1755,6 +1755,7 @@ public class Functions {
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
+				final SecurityContext securityContext = entity.getSecurityContext();
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					NodeInterface node = null;
@@ -1778,6 +1779,14 @@ public class Functions {
 						final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), keyName);
 
 						if (key != null) {
+							
+							final PropertyConverter inputConverter = key.inputConverter(securityContext);
+							Object value = node.getProperty(key);
+
+							if (inputConverter != null) {
+								return inputConverter.revert(value);
+							}							
+							
 							return node.getProperty(key);
 						}
 
