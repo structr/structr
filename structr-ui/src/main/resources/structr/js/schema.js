@@ -538,7 +538,7 @@ var _Schema = {
                     + '</div');
 
             $('.new .property-attrs.view', el).on('blur', function() {
-                _Schema.saveViewDefinition(entity.id, 'new');
+                _Schema.saveViewDefinition(entity.id, 'new', Object.keys(entity));
             });
 
             $('.new .remove-view', el).on('click', function() {
@@ -989,7 +989,7 @@ var _Schema = {
                 });
 
                 $('.' + key + ' .property-name.view').on('blur', function() {
-                    _Schema.saveViewDefinition(res.id, key);
+                    _Schema.saveViewDefinition(res.id, key, Object.keys(res));
                 });
 
                 $('.' + key + ' .remove-view').on('click', function() {
