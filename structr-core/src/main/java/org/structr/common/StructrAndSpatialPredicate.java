@@ -23,8 +23,8 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.neo4j.collections.rtree.RTreeRelationshipTypes;
 import org.neo4j.gis.spatial.SpatialRelationshipTypes;
-import org.neo4j.gis.spatial.rtree.RTreeRelationshipTypes;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
@@ -40,7 +40,7 @@ import org.structr.schema.ConfigurationProvider;
  *
  * @author Christian Morgner
  */
-	
+
 public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> {
 
 	private static final Set<String> spatialRelationshipTypes = new LinkedHashSet<>();
@@ -49,25 +49,25 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 	private static final String idName                        = GraphObject.id.dbName();
 
 	static {
-		
+
 		// collect spatial relationship types
 		spatialRelationshipTypes.addAll(Iterables.toList(Iterables.map(new RelationshipName(), Arrays.asList(RTreeRelationshipTypes.values()))));
 		spatialRelationshipTypes.addAll(Iterables.toList(Iterables.map(new RelationshipName(), Arrays.asList(SpatialRelationshipTypes.values()))));
 	}
-	
+
 	private ConfigurationProvider configuration = null;
 	private boolean includeStructr              = false;
 	private boolean includeSpatial              = false;
 	private boolean includeOther                = false;
-	
+
 	public StructrAndSpatialPredicate(final boolean includeStructrEntities, final boolean includeSpatialEntities, final boolean includeOtherNodes) {
-		
+
 		this.configuration  = Services.getInstance().getConfigurationProvider();
 		this.includeStructr = includeStructrEntities;
 		this.includeSpatial = includeSpatialEntities;
 		this.includeOther   = includeOtherNodes;
 	}
-	
+
 	@Override
 	public boolean accept(PropertyContainer container) {
 
@@ -80,11 +80,11 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 			if (isStructrEntity) {
 				return includeStructr;
 			}
-			
+
 			if (isSpatialEntity) {
 				return includeSpatial;
 			}
-			
+
 			return includeOther;
 
 		} else if (container instanceof Relationship) {
@@ -94,41 +94,41 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 			if (isStructrEntity) {
 				return includeStructr;
 			}
-			
+
 			if (isSpatialEntity) {
 				return includeSpatial;
 			}
-			
+
 			return includeOther;
 		}
 
 		return true;
 	}
-	
+
 	private boolean isStructrEntity(final PropertyContainer container) {
 
 		if (container.hasProperty(idName)) {
-			
+
 			final Object idObject = container.getProperty(idName);
 			if (idObject instanceof String) {
-				
+
 				final String id = (String)idObject;
-				
+
 				if (uuidPattern.matcher(id).matches()) {
-					
+
 					// id is a Structr uuid
 					if (container.hasProperty(typeName)) {
-						
+
 						final Object typeObject = container.getProperty(typeName);
 						if (typeObject instanceof String) {
-							
+
 							final String type = (String)typeObject;
 
 							// return true if type is an existing node entity
 							if (configuration.getNodeEntityClass(type) != null) {
 								return true;
 							}
-							
+
 							// return true if type is an existing relationship entity
 							if (configuration.getRelationshipEntityClass(type) != null) {
 								return true;
@@ -138,10 +138,10 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 				}
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	private static class RelationshipName implements Function<RelationshipType, String> {
 
 		@Override
