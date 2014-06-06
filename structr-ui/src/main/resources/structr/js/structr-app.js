@@ -1,3 +1,4 @@
+
 /*
  *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
@@ -152,6 +153,7 @@ function StructrApp(baseUrl) {
                 anchor.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
                     return false;
                 });
+                anchor.attr('data-structr-href', href);
             }
             //el.html(inputField(id, key, val));
                     
@@ -164,11 +166,17 @@ function StructrApp(baseUrl) {
             var i; //console.log(f.id, f.type, f.key, f.val);
             if (f.type === 'Boolean') {
                 i = checkbox(f.id, f.type, f.key, f.val);
-            } else {
+            } else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Double' || f.type === 'Date') {
                 if (!f.val || f.val.indexOf('\n') === -1) {
                     i = inputField(f.id, f.type, f.key, f.val);
                 } else {
                     i = textarea(f.id, f.key, f.val);
+                }
+            } else {
+                if (f.type.endsWith('[]')) {
+                    i = multiSelect(f.id, f.type, f.key, f.val);
+                } else {
+                    i = singleSelect(f.id, f.type, f.key, f.val);
                 }
             }
 
@@ -209,15 +217,13 @@ function StructrApp(baseUrl) {
                 });
             }
             
-            
-            
         });
         $('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
         $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container).on('click', function() {
             s.saveAction(btn, id, attrs, reload);
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
-        enableButton(btn); // 
+        enableButton(btn);
     },
     
     this.saveAction = function(btn, id, attrs, reload) {
@@ -226,6 +232,8 @@ function StructrApp(baseUrl) {
             
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
             var f = s.field(inp);
+            //if (!f) return;
+            //console.log('saving', f);
 
             if (key.contains('.')) {
                 delete s.data[id][key];
@@ -238,18 +246,40 @@ function StructrApp(baseUrl) {
                 s.data[id][local] = {};
                 s.data[id][local][related] = f.val;
                 
-            } else if (f && f.type === 'Boolean') {
+            } else if (f.type === 'Boolean') {
                 
                 s.data[id][key] = (f.val === true ? true : false);
                 
-            } else {
+            } else if (f.type === 'Integer') {
                 
-                if (f && f.val && f.val.length) {
+                s.data[id][key] = parseInt(f.val) || f.val;
+                
+            } else if (f.type === 'Double' || f.type === 'Float') {
+                
+                s.data[id][key] = parseFloat(f.val) || f.val;
+                
+            } else if (f.type === 'String' || f.type === 'Date') {
+                
+                if (f.val && f.val.length) {
                     s.data[id][key] = f.val;
                 } else {
                     s.data[id][key] = null;
                 }
                 
+            } else {
+                var ids = [];
+                $('option:selected', inp).each(function() {
+                    var self = $(this);
+                    ids.push(self.val());
+                });
+
+                if (!f.type.endsWith('[]')) {
+                    s.data[id][key] = {'id':ids[0]};
+                } else {
+                    s.data[id][key] = ids.map(function(id) {
+                       return {'id':id}; 
+                    });
+                }
             }
         });
         //console.log('PUT', structrRestUrl + id, s.data[id]);
@@ -265,13 +295,17 @@ function StructrApp(baseUrl) {
             var container = $('[data-structr-id="' + id + '"]');
             $.each(attrs, function(i, key) {
                 var inp = s.input($('[data-structr-attr="' + key + '"]', container));
-                if (inp && inp.is('select')) {
-                    return;
-                }
+//                if (inp && inp.is('select')) {
+//                    return;
+//                }
                 var href = inp.attr('data-structr-href');
                 var anchor = inp.parent('a');
                 if (href && anchor.length) {
                     anchor.attr('href', href);
+                    anchor.removeAttr('data-structr-href');
+                    anchor.attr('href', '').css({textDecoration: ''}).on('click', function() {
+                        document.location.href = href;
+                    });
                 }
                 inp.replaceWith(s.data[id][key]);
             });
@@ -694,7 +728,7 @@ function resizeInput(inp) {
 
     var text = inp.val();// console.log(inp, 'value of input', text);
     // don't resize empty input elements with preset size
-    if (!text.length && inp.attr('size')) return;
+    if (!text || (!text.length && inp.attr('size'))) return;
 
     if (isTextarea(inp[0])) {
 
@@ -791,30 +825,58 @@ function isTextarea(el) {
 }
 
 function textarea(id, key, val) {
-    return '<textarea class="structr-input-text">' + val + '</textarea>';
+    return '<textarea data-structr-id="' + id + '" data-structr-attr="' + key + '" class="structr-input-text">' + val + '</textarea>';
 }
 
 function inputField(id, type, key, val) {
     var size = (val ? val.length : (type && type === 'Date' ? 25 : key.length));
-    return '<input class="structr-input-text" type="text" placeholder="' + (key ? key.capitalize() : '')
+    return '<input class="structr-input-text" data-structr-id="' + id + '" data-structr-attr="' + key + '" data-structr-type="' + type + '" type="text" placeholder="' + (key ? key.capitalize() : '')
             + '" value="' + (val === 'null' ? '' : val)
             + '" size="' + size + '">';
 }
 
 function field(id, type, key, val) {
-    return '<span type="text" data-structr-type="' + type + '" data-structr-attr="' + key + '">' + val + '</span>';
+    return '<span type="text" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-attr="' + key + '">' + val + '</span>';
 }
 
 function checkbox(id, type, key, val) {
-    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-type="' + type + '" ' + (val ? 'checked="checked"' : '') + '">';
+    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-attr="' + key + '" data-structr-type="' + type + '" ' + (val ? 'checked="checked"' : '') + '">';
 }
 
-function select(id, key, val, options) {
-    var s = '<select data-structr-id="' + id + '">';
-    $.each(options, function(i, o) {
-        s += '<option ' + (o === val ? 'selected' : '') + '>' + o + '</option>';
+function singleSelect(id, type, key, val) {
+    var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '"></select>';
+    var valId = val.substring(val.lastIndexOf(',')+1).replace(/\)/, '');
+    $.ajax({
+        url: structrRestUrl + type + '/ui', method: 'GET', contentType: 'application/json',
+        statusCode: {
+            200: function(data) {
+                $.each(data.result, function(i, o) {
+                    $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]').append('<option value="' + o.id + '" ' + (o.id === valId ? 'selected' : '') + '>' + o.name + '</option>');
+                });
+            }
+        }
     });
-    return s + '</select>';
+    return inp;
+}
+
+function multiSelect(id, type, key, val) {
+    var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '" multiple></select>';
+    type = type.substring(0, type.length-2);
+    var valIds = val.substring(1).substring(0, val.length-2).split('(' + type + ',').map(function(part) {
+        return part.indexOf(')') === 32 ? part.substring(0, 32) : '';
+    });
+    $.ajax({
+        url: structrRestUrl + type + '/ui', method: 'GET', contentType: 'application/json',
+        statusCode: {
+            200: function(data) {
+                //console.log(data.result);
+                $.each(data.result, function(i, o) {
+                    $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]').append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
+                });
+            }
+        }
+    });
+    return inp;
 }
 
 function enableButton(btn) {
