@@ -64,15 +64,16 @@ superuser.password =
 # Indent JSON
 json.indentation = true
 #
-# Neo4j shell on port 1337
+# Neo4j shell
 neo4j.shell.enabled = true
+neo4j.shell.port = 1337
 #
 # E-Mail settings: Set host and port of an MTA Structr will use to send e-mails
 smtp.host = localhost
 smtp.port = 25
 #
 # Ports for low-level binary protocols
-#tcp.port = 54555
+tcp.port = 54555
 #udp.port = 57555
 #
 #############################################################################
