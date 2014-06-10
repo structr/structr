@@ -337,8 +337,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							final AtomicBoolean finished  = new AtomicBoolean(false);
 							final DOMNode rootNode        = rootElement;
 
-							async.setTimeout(100);
-
 							threadPool.submit(new Runnable() {
 
 								@Override

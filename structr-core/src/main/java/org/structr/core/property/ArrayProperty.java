@@ -85,7 +85,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		
 		@Override
 		public Object revert(Object[] source) throws FrameworkException {
-			return Arrays.asList(source);
+			return source != null ? Arrays.asList(source) : null;
 		}
 
 		@Override

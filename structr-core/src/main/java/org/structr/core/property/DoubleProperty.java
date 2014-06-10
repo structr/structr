@@ -176,42 +176,6 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 
 	@Override
 	public void index(GraphObject entity, Object value) {
-		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
+		super.index(entity, value != null ? ValueContext.numeric((Number)fixDatabaseProperty(value)) : value);
 	}
 }
-
-/*
-
-			if ((dbNode.hasProperty(Location.latitude.dbName())) && (dbNode.hasProperty(Location.longitude.dbName()))) {
-
-				// Before indexing, check properties for correct type
-				Object lat = dbNode.getProperty(Location.latitude.dbName());
-				Object lon = dbNode.getProperty(Location.longitude.dbName());
-
-				if (lat instanceof Double && lon instanceof Double && !((Double) lat).isNaN() && !((Double) lon).isNaN()) {
-
-					LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeService.NodeIndex.layer.name());
-
-					try {
-
-						synchronized (layerIndex) {
-
-							layerIndex.add(dbNode, "", "");
-						}
-
-						// If an exception is thrown here, the index was deleted
-						// and has to be recreated.
-					} catch (NotFoundException nfe) {
-
-						logger.log(Level.SEVERE, "Could not add node to layer index because the db could not find the node", nfe);
-
-					} catch (Throwable t) {
-
-						logger.log(Level.SEVERE, "Could not add node to layer index", t);
-					}
-
-				}
-
-			}
-
- */
