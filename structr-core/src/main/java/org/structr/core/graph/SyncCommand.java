@@ -225,7 +225,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		try {
 
-			Set<String> filesToInclude = new LinkedHashSet<String>();
+			Set<String> filesToInclude = new LinkedHashSet<>();
 			ZipOutputStream zos        = new ZipOutputStream(outputStream);
 			PrintWriter writer         = new PrintWriter(new BufferedWriter(new OutputStreamWriter(zos)));
 
@@ -621,7 +621,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 	}
 
-	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation) throws FrameworkException {
+	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation) throws FrameworkException, IOException {
 
 		final App app                        = StructrApp.getInstance();
 		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
@@ -635,139 +635,136 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		long totalNodeCount                  = 0;
 		long totalRelCount                   = 0;
 
-		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(zis))) {
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
 
-			do {
+		do {
 
-				try (final Tx tx = app.tx(doValidation)) {
+			try (final Tx tx = app.tx(doValidation)) {
 
-					final List<Relationship> rels = new LinkedList<>();
-					final List<Node> nodes        = new LinkedList<>();
-					long nodeCount                = 0;
-					long relCount                 = 0;
+				final List<Relationship> rels = new LinkedList<>();
+				final List<Node> nodes        = new LinkedList<>();
+				long nodeCount                = 0;
+				long relCount                 = 0;
 
-					do {
+				do {
 
-						try {
+					try {
 
-							// store current position
-							reader.mark(4);
+						// store current position
+						reader.mark(4);
 
-							// read one byte
-							String objectType = read(reader, 1);
+						// read one byte
+						String objectType = read(reader, 1);
 
-							// skip newlines
-							if ("\n".equals(objectType)) {
-								continue;
-							}
+						// skip newlines
+						if ("\n".equals(objectType)) {
+							continue;
+						}
 
-							if ("N".equals(objectType)) {
+						if ("N".equals(objectType)) {
 
-								currentObject = graphDb.createNode();
-								nodeCount++;
+							currentObject = graphDb.createNode();
+							nodeCount++;
+
+							// store for later use
+							nodes.add((Node)currentObject);
+
+						} else if ("R".equals(objectType)) {
+
+							String startId     = (String)deserialize(reader);
+							String endId       = (String)deserialize(reader);
+							String relTypeName = (String)deserialize(reader);
+
+							Node endNode   = uuidMap.get(endId);
+							Node startNode = uuidMap.get(startId);
+
+							if (startNode != null && endNode != null) {
+
+								RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
+								currentObject = startNode.createRelationshipTo(endNode, relType);
 
 								// store for later use
-								nodes.add((Node)currentObject);
+								rels.add((Relationship)currentObject);
+							}
 
-							} else if ("R".equals(objectType)) {
+							relCount++;
 
-								String startId     = (String)deserialize(reader);
-								String endId       = (String)deserialize(reader);
-								String relTypeName = (String)deserialize(reader);
+						} else {
 
-								Node endNode   = uuidMap.get(endId);
-								Node startNode = uuidMap.get(startId);
+							// reset if not at the beginning of a line
+							reader.reset();
 
-								if (startNode != null && endNode != null) {
+							if (currentKey == null) {
 
-									RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
-									currentObject = startNode.createRelationshipTo(endNode, relType);
-
-									// store for later use
-									rels.add((Relationship)currentObject);
-								}
-
-								relCount++;
+								currentKey = (String)deserialize(reader);
 
 							} else {
 
-								// reset if not at the beginning of a line
-								reader.reset();
+								if (currentObject != null) {
 
-								if (currentKey == null) {
+									Object obj = deserialize(reader);
 
-									currentKey = (String)deserialize(reader);
+									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
 
-								} else {
+										String uuid = (String)obj;
+										uuidMap.put(uuid, (Node)currentObject);
+									}
 
-									if (currentObject != null) {
+									if (currentKey.length() != 0) {
 
-										Object obj = deserialize(reader);
+										// store object in DB
+										currentObject.setProperty(currentKey, obj);
 
-										if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
-
-											String uuid = (String)obj;
-											uuidMap.put(uuid, (Node)currentObject);
+										// set type label
+										if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+											((Node) currentObject).addLabel(DynamicLabel.label((String) obj));
 										}
-
-										if (currentKey.length() != 0) {
-
-											// store object in DB
-											currentObject.setProperty(currentKey, obj);
-
-											// set type label
-											if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
-												((Node) currentObject).addLabel(DynamicLabel.label((String) obj));
-											}
-
-										} else {
-
-											logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
-										}
-
-										currentKey = null;
 
 									} else {
 
-										logger.log(Level.WARNING, "No current object to store property in.");
+										logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
 									}
+
+									currentKey = null;
+
+								} else {
+
+									logger.log(Level.WARNING, "No current object to store property in.");
 								}
 							}
-
-						} catch (EOFException eofex) {
-
-							finished = true;
 						}
 
-					} while (!finished && (nodeCount + relCount < 200));
+					} catch (EOFException eofex) {
 
-					totalNodeCount += nodeCount;
-					totalRelCount  += relCount;
-
-					for (Node node : nodes) {
-
-						NodeInterface entity = nodeFactory.instantiate(node);
-						TransactionCommand.nodeCreated(entity);
-						entity.addToIndex();
+						finished = true;
 					}
 
-					for (Relationship rel : rels) {
+				} while (!finished && (nodeCount + relCount < 200));
 
-						RelationshipInterface entity = relFactory.instantiate(rel);
-						TransactionCommand.relationshipCreated(entity);
-						entity.addToIndex();
-					}
+				totalNodeCount += nodeCount;
+				totalRelCount  += relCount;
 
-					logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
+				for (Node node : nodes) {
 
-					tx.success();
-
+					NodeInterface entity = nodeFactory.instantiate(node);
+					TransactionCommand.nodeCreated(entity);
+					entity.addToIndex();
 				}
 
-			} while (!finished);
+				for (Relationship rel : rels) {
 
-		} catch (IOException ioex) {
-		}
+					RelationshipInterface entity = relFactory.instantiate(rel);
+					TransactionCommand.relationshipCreated(entity);
+					entity.addToIndex();
+				}
+
+				logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
+
+				tx.success();
+
+			}
+
+		} while (!finished);
 
 		double t1   = System.nanoTime();
 		double time = ((t1 - t0) / 1000000000.0);
