@@ -147,6 +147,11 @@ public class RenderContextTest extends StructrUiTest {
 			// more complex replacement
 			//assertEquals("Invalid replacement result", "", a.replaceVariables(securityContext, ctx, "${get(find('P'), 'id')}"));
 
+			// String default value
+			assertEquals("bar", p1.replaceVariables(securityContext, ctx, "${request.foo!bar}"));
+
+			// Number default value
+			assertEquals(1, p1.replaceVariables(securityContext, ctx, "${page.position!1}"));
 
 		} catch (FrameworkException fex) {
 
