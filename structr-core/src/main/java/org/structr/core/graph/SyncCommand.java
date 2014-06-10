@@ -57,13 +57,10 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.StaticValue;
-import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
@@ -169,13 +166,19 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 */
 	public static void exportToFile(final GraphDatabaseService graphDb, final String fileName, final boolean includeFiles) throws FrameworkException {
 
-		try {
+		final App app = StructrApp.getInstance();
 
-			GlobalGraphOperations ggop  = GlobalGraphOperations.at(graphDb);
-			Iterable<Relationship> rels = ggop.getAllRelationships();
-			Iterable<Node> nodes        = ggop.getAllNodes();
+		try (final Tx tx = app.tx()) {
 
-			exportToStream(new FileOutputStream(fileName), nodes, rels, null, includeFiles);
+			exportToStream(
+				new FileOutputStream(fileName),
+				app.nodeQuery(NodeInterface.class).getAsList(),
+				app.relationshipQuery(RelationshipInterface.class).getAsList(),
+				null,
+				includeFiles
+			);
+
+			tx.success();
 
 		} catch (Throwable t) {
 
@@ -194,11 +197,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToFile(final String fileName, final Iterable<Node> nodes, final Iterable<Relationship> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
+	public static void exportToFile(final String fileName, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
-		try {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			exportToStream(new FileOutputStream(fileName), nodes, relationships, filePaths, includeFiles);
+
+			tx.success();
 
 		} catch (Throwable t) {
 
@@ -216,7 +221,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToStream(final OutputStream outputStream, final Iterable<Node> nodes, final Iterable<Relationship> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
+	public static void exportToStream(final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
 		try {
 
@@ -497,7 +502,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	}
 
-	private static void exportDatabase(ZipOutputStream zos, PrintWriter writer, Iterable<Node> nodes, Iterable<Relationship> relationships) throws IOException, FrameworkException {
+	private static void exportDatabase(final ZipOutputStream zos, final PrintWriter writer,  final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships) throws IOException, FrameworkException {
 
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
@@ -507,7 +512,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		zos.putNextEntry(dbEntry);
 
-		for (Node node : nodes) {
+		for (NodeInterface nodeObject : nodes) {
+
+			final Node node = nodeObject.getNode();
+
+			System.out.println(node.getId() + ": " + (node.hasProperty("id") ? node.getProperty("id") : "null"));
 
 			// ignore non-structr nodes
 			if (node.hasProperty(GraphObject.id.dbName())) {
@@ -529,7 +538,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		writer.flush();
 
-		for (Relationship rel : relationships) {
+		for (RelationshipInterface relObject : relationships) {
+
+			final Relationship rel = relObject.getRelationship();
 
 			// ignore non-structr nodes
 			if (rel.hasProperty(GraphObject.id.dbName())) {
@@ -612,154 +623,150 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation) throws FrameworkException {
 
-		final App app                    = StructrApp.getInstance();
-		final Value<Long> nodeCountValue = new StaticValue<>(0L);
-		final Value<Long> relCountValue  = new StaticValue<>(0L);
-		final String uuidPropertyName    = GraphObject.id.dbName();
-		double t0                        = System.nanoTime();
+		final App app                        = StructrApp.getInstance();
+		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
+		final NodeFactory nodeFactory        = new NodeFactory(securityContext);
+		final String uuidPropertyName        = GraphObject.id.dbName();
+		double t0                            = System.nanoTime();
+		Map<String, Node> uuidMap            = new LinkedHashMap<>();
+		PropertyContainer currentObject      = null;
+		String currentKey                    = null;
+		boolean finished                     = false;
+		long totalNodeCount                  = 0;
+		long totalRelCount                   = 0;
 
-		try (final Tx tx = app.tx()) {
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(zis))) {
 
-			Map<String, Node> uuidMap       = new LinkedHashMap<>();
-			List<Relationship> rels         = new LinkedList<>();
-			List<Node> nodes                = new LinkedList<>();
-			PropertyContainer currentObject = null;
-			BufferedReader reader           = null;
-			String currentKey               = null;
-			boolean finished                = false;
-			long nodeCount                  = 0;
-			long relCount                   = 0;
+			do {
 
-			try {
+				try (final Tx tx = app.tx(doValidation)) {
 
-				reader = new BufferedReader(new InputStreamReader(zis));
+					final List<Relationship> rels = new LinkedList<>();
+					final List<Node> nodes        = new LinkedList<>();
+					long nodeCount                = 0;
+					long relCount                 = 0;
 
-				do {
+					do {
 
-					try {
+						try {
 
-						// store current position
-						reader.mark(4);
+							// store current position
+							reader.mark(4);
 
-						// read one byte
-						String objectType = read(reader, 1);
+							// read one byte
+							String objectType = read(reader, 1);
 
-						// skip newlines
-						if ("\n".equals(objectType)) {
-							continue;
-						}
-
-						if ("N".equals(objectType)) {
-
-							currentObject = graphDb.createNode();
-							nodeCount++;
-
-							// store for later use
-							nodes.add((Node)currentObject);
-
-						} else if ("R".equals(objectType)) {
-
-							String startId     = (String)deserialize(reader);
-							String endId       = (String)deserialize(reader);
-							String relTypeName = (String)deserialize(reader);
-
-							Node endNode   = uuidMap.get(endId);
-							Node startNode = uuidMap.get(startId);
-
-							if (startNode != null && endNode != null) {
-
-								RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
-								currentObject = startNode.createRelationshipTo(endNode, relType);
-
-								// store for later use
-								rels.add((Relationship)currentObject);
+							// skip newlines
+							if ("\n".equals(objectType)) {
+								continue;
 							}
 
-							relCount++;
+							if ("N".equals(objectType)) {
 
-						} else {
+								currentObject = graphDb.createNode();
+								nodeCount++;
 
-							// reset if not at the beginning of a line
-							reader.reset();
+								// store for later use
+								nodes.add((Node)currentObject);
 
-							if (currentKey == null) {
+							} else if ("R".equals(objectType)) {
 
-								currentKey = (String)deserialize(reader);
+								String startId     = (String)deserialize(reader);
+								String endId       = (String)deserialize(reader);
+								String relTypeName = (String)deserialize(reader);
+
+								Node endNode   = uuidMap.get(endId);
+								Node startNode = uuidMap.get(startId);
+
+								if (startNode != null && endNode != null) {
+
+									RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
+									currentObject = startNode.createRelationshipTo(endNode, relType);
+
+									// store for later use
+									rels.add((Relationship)currentObject);
+								}
+
+								relCount++;
 
 							} else {
 
-								if (currentObject != null) {
+								// reset if not at the beginning of a line
+								reader.reset();
 
-									Object obj = deserialize(reader);
+								if (currentKey == null) {
 
-									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
-
-										String uuid = (String)obj;
-										uuidMap.put(uuid, (Node)currentObject);
-									}
-
-									if (currentKey.length() != 0) {
-
-										// store object in DB
-										currentObject.setProperty(currentKey, obj);
-
-										// set type label
-										if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
-											((Node) currentObject).addLabel(DynamicLabel.label((String) obj));
-										}
-
-									} else {
-
-										logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
-									}
-
-									currentKey = null;
+									currentKey = (String)deserialize(reader);
 
 								} else {
 
-									logger.log(Level.WARNING, "No current object to store property in.");
+									if (currentObject != null) {
+
+										Object obj = deserialize(reader);
+
+										if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
+
+											String uuid = (String)obj;
+											uuidMap.put(uuid, (Node)currentObject);
+										}
+
+										if (currentKey.length() != 0) {
+
+											// store object in DB
+											currentObject.setProperty(currentKey, obj);
+
+											// set type label
+											if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+												((Node) currentObject).addLabel(DynamicLabel.label((String) obj));
+											}
+
+										} else {
+
+											logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
+										}
+
+										currentKey = null;
+
+									} else {
+
+										logger.log(Level.WARNING, "No current object to store property in.");
+									}
 								}
 							}
+
+						} catch (EOFException eofex) {
+
+							finished = true;
 						}
 
-					} catch (EOFException eofex) {
+					} while (!finished && (nodeCount + relCount < 200));
 
-						finished = true;
+					totalNodeCount += nodeCount;
+					totalRelCount  += relCount;
+
+					for (Node node : nodes) {
+
+						NodeInterface entity = nodeFactory.instantiate(node);
+						TransactionCommand.nodeCreated(entity);
+						entity.addToIndex();
 					}
 
-				} while (!finished);
+					for (Relationship rel : rels) {
 
-			} catch (IOException ioex) {
-			}
+						RelationshipInterface entity = relFactory.instantiate(rel);
+						TransactionCommand.relationshipCreated(entity);
+						entity.addToIndex();
+					}
 
-			logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { nodeCount, relCount } );
+					logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
 
-			nodeCountValue.set(securityContext, nodeCount);
-			relCountValue.set(securityContext, relCount);
+					tx.success();
 
-			// make nodes visible in transaction context
-			RelationshipFactory relFactory     = new RelationshipFactory(securityContext);
-			NodeFactory nodeFactory            = new NodeFactory(securityContext);
+				}
 
-			for (Node node : nodes) {
+			} while (!finished);
 
-				NodeInterface entity = nodeFactory.instantiate(node);
-				TransactionCommand.nodeCreated(entity);
-				entity.addToIndex();
-			}
-
-			for (Relationship rel : rels) {
-
-				RelationshipInterface entity = relFactory.instantiate(rel);
-				TransactionCommand.relationshipCreated(entity);
-				entity.addToIndex();
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
+		} catch (IOException ioex) {
 		}
 
 		double t1   = System.nanoTime();

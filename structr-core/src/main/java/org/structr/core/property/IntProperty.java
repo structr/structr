@@ -167,7 +167,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
 	@Override
 	public void index(GraphObject entity, Object value) {
-		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
+		super.index(entity, value != null ? ValueContext.numeric((Number)fixDatabaseProperty(value)) : value);
 	}
 
 	@Override
