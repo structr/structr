@@ -367,6 +367,11 @@ public class RenderContext extends ActionContext {
 
 				if (value == null) {
 
+					// check for default value
+					if (defaultValue != null && StringUtils.contains(refKey, "!")) {
+						return numberOrString(defaultValue);
+					}
+
 					// Need to return null here to avoid _data sticking to the (wrong) parent object
 					return null;
 
@@ -390,17 +395,16 @@ public class RenderContext extends ActionContext {
 			// special keyword "request"
 			if ("request".equals(part)) {
 
-				HttpServletRequest request = this.getRequest(); //securityContext.getRequest();
-
+				final HttpServletRequest request = this.getRequest(); //securityContext.getRequest();
 				if (request != null) {
 
 					if (StringUtils.contains(refKey, "!")) {
 
-						return StringUtils.defaultIfBlank(request.getParameter(referenceKey), defaultValue);
+						return numberOrString(StringUtils.defaultIfBlank(request.getParameter(referenceKey), defaultValue));
 
 					} else {
 
-						return StringUtils.defaultString(request.getParameter(referenceKey));
+						return numberOrString(StringUtils.defaultString(request.getParameter(referenceKey)));
 					}
 				}
 
@@ -409,10 +413,7 @@ public class RenderContext extends ActionContext {
 			// special keyword "now":
 			if ("now".equals(part)) {
 
-				// Return current date converted in format
-				// Note: We use "createdDate" here only as an arbitrary property key to get the database converter
-				return AbstractNode.createdDate.inputConverter(securityContext).revert(new Date());
-
+				return new Date();
 			}
 
 			// special keyword "me"
@@ -633,6 +634,11 @@ public class RenderContext extends ActionContext {
 
 			return value != null ? value : defaultValue;
 
+		}
+
+		// check for default value
+		if (defaultValue != null && StringUtils.contains(refKey, "!")) {
+			return numberOrString(defaultValue);
 		}
 
 		return null;

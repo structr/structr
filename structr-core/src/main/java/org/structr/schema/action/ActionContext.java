@@ -22,6 +22,8 @@ package org.structr.schema.action;
 
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -29,7 +31,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Ownership;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
@@ -60,8 +61,25 @@ public class ActionContext {
 
 	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
 
-		final String[] parts = refKey.split("[\\.]+");
-		Object _data         = null;
+		final String DEFAULT_VALUE_SEP = "!";
+		final String[] parts           = refKey.split("[\\.]+");
+		String referenceKey            = parts[parts.length - 1];
+		String defaultValue            = null;
+		Object _data                   = null;
+
+		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
+
+			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
+			referenceKey = ref[0];
+			if (ref.length > 1) {
+
+				defaultValue = ref[1];
+
+			} else {
+
+				defaultValue = "";
+			}
+		}
 
 		// walk through template parts
 		for (int i = 0; (i < parts.length); i++) {
@@ -74,6 +92,12 @@ public class ActionContext {
 				_data                            = ((GraphObject)_data).getProperty(referenceKeyProperty);
 
 				if (_data == null) {
+
+					// check for default value
+					if (defaultValue != null && StringUtils.contains(refKey, "!")) {
+
+						return numberOrString(defaultValue);
+					}
 
 					// Need to return null here to avoid _data sticking to the (wrong) parent object
 					return null;
@@ -90,10 +114,7 @@ public class ActionContext {
 			// special keyword "now":
 			if ("now".equals(part)) {
 
-				// Return current date converted in format
-				// Note: We use "createdDate" here only as an arbitrary property key to get the database converter
-				return AbstractNode.createdDate.inputConverter(securityContext).revert(new Date());
-
+				return new Date();
 			}
 
 			// special keyword "me"
@@ -214,5 +235,14 @@ public class ActionContext {
 
 	public boolean hasError() {
 		return errorBuffer.hasError();
+	}
+
+	protected Object numberOrString(final String value) {
+
+		if (NumberUtils.isNumber(value)) {
+			return NumberUtils.createNumber(value);
+		}
+
+		return value;
 	}
 }

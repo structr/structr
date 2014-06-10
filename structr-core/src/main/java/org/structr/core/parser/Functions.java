@@ -168,6 +168,7 @@ public class Functions {
 		tokenizer.eolIsSignificant(true);
 		tokenizer.wordChars('_', '_');
 		tokenizer.wordChars('.', '.');
+		tokenizer.wordChars('!', '!');
 
 		Expression root    = new RootExpression();
 		Expression current = root;
@@ -285,6 +286,7 @@ public class Functions {
 				return new ConstantExpression(NULL_STRING);
 		}
 
+		// no match, try functions
 		final Function<Object, Object> function = Functions.get(word);
 		if (function != null) {
 
@@ -292,12 +294,7 @@ public class Functions {
 
 		} else {
 
-			final Object value = context.getReferencedProperty(securityContext, entity, word);
-			if (value != null) {
-				return new ConstantExpression(value);
-			}
-
-			return new NullExpression();
+			return new ValueExpression(word);
 		}
 	}
 
@@ -1779,14 +1776,14 @@ public class Functions {
 						final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), keyName);
 
 						if (key != null) {
-							
+
 							final PropertyConverter inputConverter = key.inputConverter(securityContext);
 							Object value = node.getProperty(key);
 
 							if (inputConverter != null) {
 								return inputConverter.revert(value);
-							}							
-							
+							}
+
 							return node.getProperty(key);
 						}
 

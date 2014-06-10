@@ -150,8 +150,11 @@ public class RenderContextTest extends StructrUiTest {
 			// String default value
 			assertEquals("bar", p1.replaceVariables(securityContext, ctx, "${request.foo!bar}"));
 
+			// Number default value (will be evaluated to a string)
+			assertEquals("1", p1.replaceVariables(securityContext, ctx, "${page.position!1}"));
+
 			// Number default value
-			assertEquals(1, p1.replaceVariables(securityContext, ctx, "${page.position!1}"));
+			assertEquals("true", p1.replaceVariables(securityContext, ctx, "${equal(42, this.null!42)}"));
 
 		} catch (FrameworkException fex) {
 
