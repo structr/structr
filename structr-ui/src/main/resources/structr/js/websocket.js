@@ -464,9 +464,7 @@ function sendObj(obj, callback) {
         log('Sent: ' + text);
     } catch (exception) {
         log('Error in send(): ' + exception);
-        ws.close();
-        ws = undefined;
-        Structr.ping();
+        //Structr.ping();
     }
     return true;
 }
