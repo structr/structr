@@ -1,5 +1,6 @@
 package org.structr.core.parser;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -45,18 +46,18 @@ public class IfExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 
 		if (condition == null) {
 			return Functions.ERROR_MESSAGE_IF;
 		}
 
-		if (isTrue(condition.evaluate(ctx, entity))) {
+		if (isTrue(condition.evaluate(securityContext, ctx, entity))) {
 
 			if (trueExpression != null) {
 
-				return trueExpression.evaluate(ctx, entity);
+				return trueExpression.evaluate(securityContext, ctx, entity);
 
 			} else {
 
@@ -67,7 +68,7 @@ public class IfExpression extends Expression {
 
 			if (falseExpression != null) {
 
-				return falseExpression.evaluate(ctx, entity);
+				return falseExpression.evaluate(securityContext, ctx, entity);
 
 			} else {
 

@@ -202,7 +202,7 @@ public class Functions {
 					if (current == null) {
 						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval);
 					}
-					next = checkReservedWords(securityContext, actionContext, entity, tokenizer.sval);
+					next = checkReservedWords(tokenizer.sval);
 					current.add(next);
 					lastToken = tokenizer.sval;
 					break;
@@ -256,10 +256,10 @@ public class Functions {
 			throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
 		}
 
-		return root.evaluate(actionContext, entity);
+		return root.evaluate(securityContext, actionContext, entity);
 	}
 
-	private static Expression checkReservedWords(final SecurityContext securityContext, final ActionContext context, final GraphObject entity, final String word) throws FrameworkException {
+	private static Expression checkReservedWords(final String word) throws FrameworkException {
 
 		if (word == null) {
 			return new NullExpression();

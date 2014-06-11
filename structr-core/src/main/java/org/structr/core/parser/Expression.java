@@ -2,6 +2,7 @@ package org.structr.core.parser;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -41,5 +42,5 @@ public abstract class Expression {
 		return parent;
 	}
 
-	public abstract Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException;
+	public abstract Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException;
 }
