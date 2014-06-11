@@ -17,6 +17,7 @@
  */
 package org.structr.rest.resource;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -191,7 +192,7 @@ public class SchemaTypeResource extends Resource {
 	private Map<String, Object> getPropertiesForView(final Class type, final String view) {
 
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
-		final Map<String, Object> propertyConverterMap = new TreeMap<>();
+		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
 
 		// augment property set with properties from PropertyDefinition
 		if (PropertyDefinition.exists(type.getSimpleName())) {
@@ -212,7 +213,7 @@ public class SchemaTypeResource extends Resource {
 
 			for (PropertyKey property : properties) {
 
-				final Map<String, Object> propProperties = new TreeMap();
+				final Map<String, Object> propProperties = new LinkedHashMap();
 
 				propProperties.put("dbName", property.dbName());
 				propProperties.put("jsonName", property.jsonName());
