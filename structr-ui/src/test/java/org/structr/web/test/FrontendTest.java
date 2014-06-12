@@ -58,7 +58,7 @@ public class FrontendTest extends StructrUiTest {
 			// Workaround to remove local storage, as phantomjs is pretty buggy here.
 			// Currently, phantomjs doesn't allow localStorage to be modified remotely,
 			// and the --local-storage-path parameter is ignored.
-			String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
+			String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
 			//String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --debug test " + testName + ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);

@@ -37,7 +37,6 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
@@ -367,6 +366,10 @@ public class StructrWebSocket implements WebSocketListener {
 
 	}
 
+	public void setCallback(final String callback) {
+		this.callback = callback;
+	}
+
 	public String getPagePath() {
 
 		return pagePath;
@@ -374,7 +377,7 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	public boolean isAuthenticated() {
-		
+
 		final Principal user = getCurrentUser();
 		return (user != null && (user.getProperty(Principal.isAdmin) || user.getProperty(User.backendUser)));
 

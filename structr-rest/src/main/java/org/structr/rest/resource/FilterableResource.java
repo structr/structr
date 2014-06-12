@@ -32,7 +32,7 @@ public abstract class FilterableResource extends WrappingResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof ViewFilterResource) {
+		if (next instanceof ViewFilterResource) {
 			((ViewFilterResource)next).wrapResource(this);
 			return next;
 		}

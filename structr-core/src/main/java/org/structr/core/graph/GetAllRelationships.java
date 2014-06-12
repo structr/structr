@@ -37,8 +37,8 @@ public class GetAllRelationships extends NodeServiceCommand {
 		RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
 		GraphDatabaseService graphDb            = (GraphDatabaseService)arguments.get("graphDb");
 
-		if(graphDb != null) {
-			
+		if (graphDb != null) {
+
 			return relationshipFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
 		}
 

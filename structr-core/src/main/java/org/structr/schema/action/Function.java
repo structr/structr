@@ -19,7 +19,7 @@
 package org.structr.schema.action;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.GraphObject;
 
 /**
  *
@@ -27,6 +27,6 @@ import org.structr.core.graph.NodeInterface;
  */
 public interface Function<S, T> {
 
-	public T apply(ActionContext ctx, NodeInterface entity, S[] sources) throws FrameworkException;
+	public T apply(ActionContext ctx, GraphObject entity, S[] sources) throws FrameworkException;
 	public String usage();
 }

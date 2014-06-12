@@ -28,14 +28,15 @@ import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.property.Property;
 import org.structr.rest.ResourceProvider;
+import org.structr.schema.SchemaService;
 
 /**
  *
  * @author Axel Morgner
  */
 public class StructrHttpServiceConfig {
-	
-	private static final Logger logger            = Logger.getLogger(HttpServiceServlet.class.getName());
+
+	private static final Logger logger            = Logger.getLogger(StructrHttpServiceConfig.class.getName());
 
 	private final Property<String> defaultIdProperty  = GraphObject.id;
 	private String defaultPropertyView                = PropertyView.Public;
@@ -49,23 +50,23 @@ public class StructrHttpServiceConfig {
 	public Property<String> getDefaultIdProperty() {
 		return defaultIdProperty;
 	}
-	
+
 	public ResourceProvider getResourceProvider() {
 		return resourceProvider;
 	}
-	
+
 	public void setResourceProvider(final ResourceProvider resourceProvider) {
 		this.resourceProvider = resourceProvider;
 	}
-	
+
 	public String getDefaultPropertyView() {
 		return defaultPropertyView;
 	}
-	
+
 	public int getOutputNestingDepth() {
 		return outputNestingDepth;
 	}
-	
+
 	public void initializeFromProperties(final Properties properties, final String servletName, final Set<ResourceProvider> resourceProviders) {
 
 		final String resourceProviderKeyName = servletName.concat(".resourceprovider");
@@ -75,7 +76,7 @@ public class StructrHttpServiceConfig {
 		final String userAutoLoginKeyName    = servletName.concat(".user.autologin");
 		final String defaultPropertyKeyName  = servletName.concat(".defaultview");
 		final String nestingDepthKeyName     = servletName.concat(".outputdepth");
-		
+
 		final String resourceProviderValue   = properties.getProperty(resourceProviderKeyName);
 		final String authenticatorValue      = properties.getProperty(authenticatorKeyName);
 		final String userClassValue          = properties.getProperty(userClassKeyName);
@@ -83,55 +84,51 @@ public class StructrHttpServiceConfig {
 		final String userAutoLoginValue      = properties.getProperty(userAutoLoginKeyName);
 		final String defaultPropertyKeyValue = properties.getProperty(defaultPropertyKeyName);
 		final String outputDepthValue        = properties.getProperty(nestingDepthKeyName);
-		
+
 		if (resourceProviderValue == null) {
 
 			logger.log(Level.SEVERE, "Missing resource provider key {0}.resourceprovider in configuration file.", servletName);
-			
+
 		} else {
 
 			try {
-				resourceProvider = (ResourceProvider)Class.forName(resourceProviderValue).newInstance();
+				resourceProvider = (ResourceProvider)loadClass(resourceProviderValue).newInstance();
 				resourceProviders.add(resourceProvider);
 
 			} catch (Throwable t) {
 
 				logger.log(Level.SEVERE, "Unable to instantiate resource provider {0}: {1}", new Object[] { resourceProviderValue, t.getMessage() } );
 			}
-			
+
 		}
-		
+
 		if (authenticatorValue == null) {
-			
+
 			logger.log(Level.SEVERE, "Missing authenticator key {0}.authenticator in configuration file.", servletName);
-			
+
 		} else {
 
-			try {
-				authenticatorClass = Class.forName(authenticatorValue);
+			authenticatorClass = loadClass(authenticatorValue);
+			if (authenticatorClass == null) {
 
-			} catch (Throwable t) {
-
-				logger.log(Level.SEVERE, "Unable to instantiate authenticator {0}: {1}", new Object[] { authenticatorValue, t.getMessage() } );
+				logger.log(Level.SEVERE, "Unable	 to instantiate authenticator {0}", authenticatorValue );
 			}
-			
+
 		}
-		
+
 		if (userClassValue != null) {
 
-			try {
-				userClass = Class.forName(userClassValue);
+			userClass = loadClass(userClassValue);
 
-			} catch (Throwable t) {
-
-				logger.log(Level.SEVERE, "Unable to instantiate user class for authenticator {0}: {1}", new Object[] { userClassValue, t.getMessage() } );
+			if (userClass == null) {
+				logger.log(Level.SEVERE, "Unable to instantiate user class for authenticator {0}", userClassValue );
 			}
 		}
-		
+
 		if (userAutoCreateValue != null) {
 			userAutoCreate = HttpService.parseBoolean(userAutoCreateValue, false);
 		}
-		
+
 		if (userAutoLoginValue != null) {
 			userAutoLogin = HttpService.parseBoolean(userAutoLoginValue, false);
 		}
@@ -139,7 +136,7 @@ public class StructrHttpServiceConfig {
 		if (defaultPropertyKeyValue != null) {
 			this.defaultPropertyView = defaultPropertyKeyValue;
 		}
-		
+
 		if (outputDepthValue != null) {
 			this.outputNestingDepth = HttpService.parseInt(outputDepthValue, 3);
 		}
@@ -158,8 +155,35 @@ public class StructrHttpServiceConfig {
 
 			logger.log(Level.SEVERE, "Unable to instantiate authenticator {0}: {1}", new Object[] { authenticatorClass, t.getMessage() } );
 		}
-		
+
 		return authenticator;
 	}
 
+	// ----- private methods -----
+	private Class loadClass(final String name) {
+
+		ClassLoader loader = SchemaService.getClassLoader();
+		Class loadedClass  = null;
+
+		if (loader == null) {
+			loader = getClass().getClassLoader();
+		}
+
+		try {
+
+			loadedClass = Class.forName(name, true, loader);
+
+		} catch (Throwable ignore) {}
+
+		if (loadedClass == null) {
+
+			try {
+
+				loadedClass = Class.forName(name);
+
+			} catch (Throwable ignore) {}
+		}
+
+		return loadedClass;
+	}
 }

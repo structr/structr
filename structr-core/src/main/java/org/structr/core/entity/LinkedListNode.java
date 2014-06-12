@@ -98,8 +98,15 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 			// delete old relationship
 			unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
 
-			linkNodes(getSiblingLinkType(), previousElement, newElement);
-			linkNodes(getSiblingLinkType(), newElement, currentElement);
+			// dont create self link
+			if (previousElement.getId() != newElement.getId()) {
+				linkNodes(getSiblingLinkType(), previousElement, newElement);
+			}
+
+			// dont create self link
+			if (newElement.getId() != currentElement.getId()) {
+				linkNodes(getSiblingLinkType(), newElement, currentElement);
+			}
 		}
 	}
 
@@ -123,10 +130,18 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 
 		} else {
 
+			// unlink predecessor and successor
 			unlinkNodes(getSiblingLinkType(), currentElement, next);
 
+			// link predecessor to new element
 			linkNodes(getSiblingLinkType(), currentElement, newElement);
-			linkNodes(getSiblingLinkType(), newElement, next);
+
+			// dont create self link
+			if (newElement.getId() != next.getId()) {
+
+				// link new element to successor
+				linkNodes(getSiblingLinkType(), newElement, next);
+			}
 		}
 	}
 

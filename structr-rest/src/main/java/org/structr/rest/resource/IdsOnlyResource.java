@@ -18,15 +18,15 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 import org.structr.core.Value;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 
@@ -47,7 +47,7 @@ public class IdsOnlyResource extends ViewFilterResource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
-		if(wrappedResource != null) {
+		if (wrappedResource != null) {
 			return wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 		}
 
@@ -57,7 +57,7 @@ public class IdsOnlyResource extends ViewFilterResource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		if(wrappedResource != null) {
+		if (wrappedResource != null) {
 			return wrappedResource.doPost(propertySet);
 		}
 		throw new IllegalPathException();
@@ -65,7 +65,7 @@ public class IdsOnlyResource extends ViewFilterResource {
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		if(wrappedResource != null) {
+		if (wrappedResource != null) {
 			return wrappedResource.doPut(propertySet);
 		}
 		throw new IllegalPathException();
@@ -73,15 +73,10 @@ public class IdsOnlyResource extends ViewFilterResource {
 
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
-		if(wrappedResource != null) {
+		if (wrappedResource != null) {
 			return wrappedResource.doDelete();
 		}
 		throw new IllegalPathException();
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -101,12 +96,12 @@ public class IdsOnlyResource extends ViewFilterResource {
 
 	@Override
 	public void configurePropertyView(Value<String> propertyView) {
-		
+
 		try {
 			propertyView.set(securityContext, "ids");
-			
+
 		} catch(FrameworkException fex) {
-			
+
 			logger.log(Level.WARNING, "Unable to configure property view", fex);
 		}
 	}

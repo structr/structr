@@ -51,7 +51,7 @@ textarea {
 	border: 1px solid #b5b5b5;
 }
 
-button, textarea, input {
+button, textarea, input, select {
     font-family: Arial, Helvetica, Sans-serif ! important;
 }
 
@@ -253,10 +253,16 @@ img.disabled {
     top: 60px;
 }
 
+#activeElementsTab {
+    right: -71px;
+    width: 98px;
+    top: 184px;
+}
+
 #dataBindingTab {
     right: -61px;
     width: 78px;
-    top: 176px;
+    top: 296px;
 }
 
 #widgetsTab {
@@ -496,14 +502,14 @@ ul#previewTabs {
     height: 25px;
 }
 
-.data-tabs, .data-tabs ul, #tabs, #tabs ul {
+.data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul {
     background: none;
     border: none;
     padding: 0;
     margin: 0;
 }
 
-#previewTabs li, #tabs li, .compTab, .data-tabs li {
+#previewTabs li, #tabs li, .compTab, .data-tabs li, .files-tabs li {
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -526,7 +532,7 @@ ul#previewTabs {
     height: 22px;
 }
 
-#previewTabs li, #tabs li, .data-tabs li {
+#previewTabs li, #tabs li, .data-tabs li, .files-tabs li {
     position: relative;
     z-index: 1;
 }
@@ -535,11 +541,11 @@ ul#previewTabs {
     margin-top: 20px;
 }
 
-.data-tabs ul {
+.data-tabs ul, .files-tabs ul {
     overflow: hidden;
 }
 
-.data-tabs > div {
+.data-tabs > div, .files-tabs > div {
     padding: 0;
     display: none;
     border-top: 1px solid #a5a5a5;
@@ -549,7 +555,7 @@ ul#previewTabs {
     margin: 6px 0 0 0;
 }
 
-.data-tabs li, #tabs li {
+.data-tabs li, #tabs li, .files-tabs li {
     font-size: 1em;
 }
 
@@ -583,7 +589,7 @@ ul#previewTabs {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active {
+#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active {
     color: #333 ! important;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
@@ -606,7 +612,7 @@ ul#previewTabs {
     -o-transform-origin: 0 0;
     -webkit-transform-origin: 0 0;
     width: 100%;
-    height: 100%;   
+    height: 100%;
 }
 
 .previewBox iframe {
@@ -690,6 +696,16 @@ span.id {
     position: relative;
 }
 
+.active-element .edit_icon {
+    right: 4px ! important;
+}
+
+.active-element b:hover,
+.active-element .content_:hover,
+.active-element .action:hover {
+    cursor: pointer;
+}
+
 .page, .widget, .user, .group, .folder, .file, .image,
 .ver-scrollable > .node {
     margin: 4px 0;
@@ -701,7 +717,7 @@ span.id {
 }
 
 .group .user, .folder .file, .folder .folder {
-    margin: 4px 0 4px 11px;    
+    margin: 4px 0 4px 11px;
 }
 
 .image {
@@ -787,7 +803,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon {
+.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -987,7 +1003,7 @@ button img {
 #tempErrorBox .al {
     vertical-align: middle;
     margin-left: 4px;
-    margin-top: -4px;    
+    margin-top: -4px;
 }
 
 #dialogBox {
@@ -1261,7 +1277,7 @@ button.enabled, button.active {
 }
 
 .callToAction {
-    background-color: #81ce25;  
+    background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
     background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
@@ -1398,14 +1414,14 @@ button.add_property {
     margin-top: -3px;
 }
 
-#admin-tools {
+/*#admin-tools {
     margin-top: 2px;
     margin-right: 30px;
     padding-left: 4px;
-}
+}*/
 
 .schema {
-    width: 600px;
+    /*width: 600px;*/
     /*height: 200px;*/
     padding-bottom: 6px ! important;
 }
@@ -1421,6 +1437,25 @@ button.add_property {
 .schema-input {
     border-radius: 3px;
     font-size: 1.5em;
+}
+
+#connector-style {
+    color: #222;
+    font-weight: bold;
+    padding: 3px 2px 3px 4px;
+    margin: 0 8px 3px 24px;
+    vertical-align: middle;
+    line-height: 1.5em;
+    border-radius: 3px;
+    border: 1px solid #999;
+    background-color: #e5e5e5;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ccc), to(#e7e7e7)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ccc, #e7e7e7) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
+}
+
+#expand-all, #compact-all {
+    padding: 1px 4px 2px 4px ! important;
 }
 
 .schema-props {
@@ -1449,7 +1484,13 @@ button.add_property {
     border-radius: 3px;
     min-width: 1em;
     text-align: center;
-    padding: .5em;
+    padding: .6em;
+}
+
+#schema-graph .label .icon {
+	margin: -3px 2px;
+    display: none;
+    cursor: pointer;
 }
 
 #schema-graph .node {
@@ -1464,7 +1505,8 @@ button.add_property {
 .property-dbname,
 .property-format,
 .property-code,
-.default,
+.property-attrs,
+.property-default,
 #relationship-label {
     width: 98%;
     font-size: 1em;
@@ -1472,27 +1514,41 @@ button.add_property {
     background: transparent;
 }
 
-.schema.compact .property-name,
-.schema.compact .property-type,
-.schema.compact .property-dbname,
-.schema.compact .property-format,
-.schema.compact .property-code,
-.default,
+
+.schema.expanded .property-name,
+.schema.expanded .property-type,
+.schema.expanded .property-dbname,
+.schema.expanded .property-format,
+.schema.expanded .property-code,
+.schema.expanded .property-attrs,
+.schema.expanded .property-default,
 #relationship-label {
     border: none;
     background: transparent;
 }
 
-.schema b {
+.schema.expanded tr, .schema.expanded .schema-props {
+    background: transparent ! important;
+}
+
+.schema.expanded td {
+    border: none ! important;
+}
+
+.schema b,
+.schema-details b {
     font-size: 1.5em;
     display: inline-block;
     /*margin: 2px 0;*/
 }
 
 .schema b:hover,
-.schema .property-name:hover,
-.schema .property-dbname:hover,
-.schema .property-code:hover {
+.schema-details b:hover,
+.schema-details .property-name:hover,
+.schema-details .property-dbname:hover,
+.schema-details .property-format:hover,
+.schema-details .property-default:hover,
+.schema-details .property-code:hover {
     cursor: text;
     box-shadow: 2px 0 #000;
     color: #222;
@@ -1506,6 +1562,7 @@ button.add_property {
     margin: 1px -1px 1px -1px;
 }*/
 
+.schema-details .new-name,
 .schema .new-name {
     font-size: 1.3em;
     margin: -2px 0 -2px 0;
@@ -1523,9 +1580,12 @@ button.add_property {
     cursor: pointer;
 }
 
+.schema .edit {
+    right: 46px;
+}
+
 #admin-tools {
-    position: absolute;
-    right: 12px;
+    margin: 0 8px 3px 24px;
 }
 
 #admin-tools-table td {
@@ -1548,11 +1608,15 @@ button.add_property {
     padding-top: 10px;
 }
 
-.schema .add-icon {
+.schema-details th {
+    padding: 2px 4px;
+}
+
+.schema-details .add-icon {
     margin-top: 4px;
 }
 
-.schema .add-icon:hover,
+.schema-details .add-icon:hover,
 .schema .toggle-view:hover,
 .schema .remove-icon:hover{
     opacity: .6;
@@ -1565,14 +1629,23 @@ button.add_property {
     top: 6px;
 }
 
-.schema.compact b {
-    margin: 0 40px 0 40px;
+.schema b {
+    margin: 0 60px 0 60px;
     display: block;
     text-align: center;
 }
 
+.schema .icon {
+    display: none;
+}
+
+.schema:hover .icon {
+    display: inline-block;
+}
+
 .schema .extends-class {
     text-align: center;
+	display: none;
 }
 
 .schema .icon.delete {
@@ -1584,38 +1657,6 @@ button.add_property {
 }
 
 .schema hr {
-    display: none;
-}
-
-.schema.compact {
-    width: 220px;
-}
-
-.schema.compact hr {
-    display: block;
-    height: 0;
-    border: none;
-    border-top: 1px solid #a5a5a5;
-}
-
-.schema.compact .add-icon,
-.schema.compact .remove-icon {
-    display: none;
-}
-
-.schema.compact .schema-props,
-.schema.compact tr,
-.schema.compact td {
-    background: none ! important;
-    border: none;
-}
-
-.schema.compact .schema-props td:nth-child(2),
-.schema.compact .schema-props td:nth-child(4),
-.schema.compact .schema-props td:nth-child(5),
-.schema.compact .schema-props td:nth-child(6),
-.schema.compact .schema-props td:nth-child(7),
-.schema.compact .schema-props td:nth-child(8) {
     display: none;
 }
 
@@ -1641,6 +1682,33 @@ button.add_property {
 
 .image-folder:hover b {
     color: #000;
+}
+
+/**
+ * Active Elements slideout
+ */
+#activeElements .inner {
+    margin-left: 12px;
+    margin-right: 12px;
+}
+
+#activeElements h3 {
+    font-size: 11pt;
+    margin-bottom: 0px;
+}
+
+#activeElements textarea {
+    font-size: 8pt;
+    width: 90%;
+}
+
+#activeElements input {
+    font-size: 8pt;
+    width: 90%;
+}
+
+#activeElements div.inner p {
+    margin: 0px;
 }
 
 /**
@@ -1758,4 +1826,13 @@ button.add_property {
     margin-bottom: 4px;
     vertical-align: middle;
     cursor: pointer;
+}
+
+.page .push_icon {
+	position: relative ! important;
+	margin-left: 24px ! important;
+}
+
+table.push {
+	margin: 2em 0;
 }

@@ -19,7 +19,6 @@
 package org.structr.websocket;
 
 import com.google.gson.Gson;
-import java.io.IOException;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -143,14 +142,10 @@ public class SynchronizationController implements StructrTransactionListener {
 
 						session.getRemote().sendString(message);
 
-					} catch (org.eclipse.jetty.io.EofException eof) {
+					} catch (Throwable t) {
 
-						logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
-
-					} catch (IOException e) {
-
-						logger.log(Level.WARNING, "Error sending message to client.", e);
-
+						t.printStackTrace();
+						logger.log(Level.WARNING, "Error sending message to client.", t);
 					}
 
 				}

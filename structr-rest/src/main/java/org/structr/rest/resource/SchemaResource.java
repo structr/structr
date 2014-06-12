@@ -50,42 +50,42 @@ public class SchemaResource extends Resource {
 	public enum UriPart {
 		_schema
 	}
-	
+
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-		
+
 		this.securityContext = securityContext;
-		
+
 		if (UriPart._schema.name().equals(part)) {
-			
+
 			return true;
 		}
-		
+
 		return false;
 	}
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-		
+
 		List<GraphObjectMap> resultList = new LinkedList<>();
-		
+
 		// extract types from ModuleService
 		for (String rawType : StructrApp.getConfiguration().getNodeEntities().keySet()) {
-			
+
 			// create & add schema information
 			Class type            = SchemaHelper.getEntityClassForRawType(rawType);
 			GraphObjectMap schema = new GraphObjectMap();
 			resultList.add(schema);
-			
+
 			if (type == null) {
-				
+
 //				if (PropertyDefinition.exists(rawType)) {
 //					type = PropertyDefinition.nodeExtender.getType(rawType);
 //				}
 			}
-			
+
 			if (type != null) {
-				
+
 				String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
 
 				schema.setProperty(new StringProperty("url"),   url);
@@ -151,20 +151,15 @@ public class SchemaResource extends Resource {
 					}
 				}
 			}
-			
-			
+
+
 		}
-		
+
 		return new Result(resultList, resultList.size(), false, false);
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException();
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
 		throw new IllegalMethodException();
 	}
 

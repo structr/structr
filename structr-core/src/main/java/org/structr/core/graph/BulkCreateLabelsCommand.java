@@ -47,7 +47,6 @@ import org.structr.schema.SchemaHelper;
 public class BulkCreateLabelsCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = Logger.getLogger(BulkCreateLabelsCommand.class.getName());
-	private static final String idName = GraphObject.id.dbName();
 
 	//~--- methods --------------------------------------------------------
 	@Override
@@ -97,16 +96,16 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 				final String type = node.getProperty(GraphObject.type);
 				if (type != null) {
-					
+
 					try {
-						
+
 						// Since the setProperty method of the TypeProperty
 						// overrides the default setProperty behaviour, we
 						// do not need to set a different type value first.
-						
+
 						node.unlockReadOnlyPropertiesOnce();
 						GraphObject.type.setProperty(securityContext, node, type);
-						
+
 					} catch (FrameworkException fex) {
 						// ignore
 					}
@@ -132,5 +131,10 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 		});
 
 		logger.log(Level.INFO, "Done with creating labels on {0} nodes", count);
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
 	}
 }

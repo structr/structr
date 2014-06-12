@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -37,12 +36,11 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.RelationProperty;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.Component;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.relation.ResourceLink;
@@ -57,29 +55,24 @@ import org.structr.web.entity.html.relation.ResourceLink;
 
 public class RenderContext extends ActionContext {
 
-	private static final Logger logger                   = Logger.getLogger(RenderContext.class.getName());
-
-	private Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
-	//private final StringBuilder buffer           = new StringBuilder(8192);
-	private Locale locale                        = Locale.getDefault();
-	private EditMode editMode                    = EditMode.NONE;
-	private int depth                            = 0;
-	private boolean inBody                       = false;
-	private boolean appLibRendered               = false;
-	private GraphObject detailsDataObject        = null;
-	private GraphObject currentDataObject        = null;
-	private GraphObject sourceDataObject         = null;
-	private Iterable<GraphObject> listSource     = null;
-	private String searchClass                   = null;
-	private PropertyKey relatedProperty          = null;
-	private List<NodeAttribute> attrs            = null;
-	private Page page                            = null;
-	private Component component                  = null;
-	private HttpServletRequest request           = null;
-	private HttpServletResponse response         = null;
-	private ResourceProvider resourceProvider    = null;
-	private Result result                        = null;
-	private AsyncBuffer buffer                   = new AsyncBuffer();
+	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
+	private final long renderStartTime                 = System.currentTimeMillis();
+	private Locale locale                              = Locale.getDefault();
+	private EditMode editMode                          = EditMode.NONE;
+	private AsyncBuffer buffer                         = new AsyncBuffer();
+	private int depth                                  = 0;
+	private boolean inBody                             = false;
+	private boolean appLibRendered                     = false;
+	private GraphObject detailsDataObject              = null;
+	private GraphObject currentDataObject              = null;
+	private GraphObject sourceDataObject               = null;
+	private Iterable<GraphObject> listSource           = null;
+	private PropertyKey relatedProperty                = null;
+	private Page page                                  = null;
+	private HttpServletRequest request                 = null;
+	private HttpServletResponse response               = null;
+	private ResourceProvider resourceProvider          = null;
+	private Result result                              = null;
 
 	public enum EditMode {
 
@@ -97,7 +90,6 @@ public class RenderContext extends ActionContext {
 
 		this.editMode = editMode;
 		this.locale = locale;
-
 
 	}
 	public static RenderContext getInstance(final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
@@ -244,10 +236,6 @@ public class RenderContext extends ActionContext {
 		return depth;
 	}
 
-	public String getSearchClass() {
-		return searchClass;
-	}
-
 	public void setBuffer(final AsyncBuffer buffer) {
 		this.buffer = buffer;
 	}
@@ -270,10 +258,6 @@ public class RenderContext extends ActionContext {
 
 	public boolean appLibRendered() {
 		return appLibRendered;
-	}
-
-	public List<NodeAttribute> getAttrs() {
-		return attrs;
 	}
 
 	public GraphObject getDataNode(String key) {
@@ -307,20 +291,13 @@ public class RenderContext extends ActionContext {
 		return (page != null ? page.getUuid() : null);
 	}
 
-	public Component getComponent() {
-		return component;
-	}
-
-	public String getComponentId() {
-		return (component != null ? component.getUuid() : null);
-	}
 	public Result getResult() {
 		return result;
 	}
 
 	// ----- interface ActionContext -----
 	@Override
-	public Object getReferencedProperty(final SecurityContext securityContext, final NodeInterface entity, final String refKey) throws FrameworkException {
+	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
 		final String[] parts           = refKey.split("[\\.]+");
@@ -391,6 +368,11 @@ public class RenderContext extends ActionContext {
 
 				if (value == null) {
 
+					// check for default value
+					if (defaultValue != null && StringUtils.contains(refKey, "!")) {
+						return numberOrString(defaultValue);
+					}
+
 					// Need to return null here to avoid _data sticking to the (wrong) parent object
 					return null;
 
@@ -414,17 +396,16 @@ public class RenderContext extends ActionContext {
 			// special keyword "request"
 			if ("request".equals(part)) {
 
-				HttpServletRequest request = this.getRequest(); //securityContext.getRequest();
-
+				final HttpServletRequest request = this.getRequest(); //securityContext.getRequest();
 				if (request != null) {
 
 					if (StringUtils.contains(refKey, "!")) {
 
-						return StringUtils.defaultIfBlank(request.getParameter(referenceKey), defaultValue);
+						return numberOrString(StringUtils.defaultIfBlank(request.getParameter(referenceKey), defaultValue));
 
 					} else {
 
-						return StringUtils.defaultString(request.getParameter(referenceKey));
+						return numberOrString(StringUtils.defaultString(request.getParameter(referenceKey)));
 					}
 				}
 
@@ -433,10 +414,7 @@ public class RenderContext extends ActionContext {
 			// special keyword "now":
 			if ("now".equals(part)) {
 
-				// Return current date converted in format
-				// Note: We use "createdDate" here only as an arbitrary property key to get the database converter
-				return AbstractNode.createdDate.inputConverter(securityContext).revert(new Date());
-
+				return new Date();
 			}
 
 			// special keyword "me"
@@ -539,9 +517,9 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "link"
-				if ("link".equals(part)) {
+				if (entity instanceof NodeInterface && "link".equals(part)) {
 
-					ResourceLink rel = entity.getOutgoingRelationship(ResourceLink.class);
+					ResourceLink rel = ((NodeInterface)entity).getOutgoingRelationship(ResourceLink.class);
 
 					if (rel != null) {
 						_data = rel.getTargetNode();
@@ -569,9 +547,9 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "owner"
-				if ("owner".equals(part)) {
+				if (entity instanceof NodeInterface && "owner".equals(part)) {
 
-					Ownership rel = entity.getIncomingRelationship(PrincipalOwnsNode.class);
+					Ownership rel = ((NodeInterface)entity).getIncomingRelationship(PrincipalOwnsNode.class);
 					if (rel != null) {
 
 						_data = rel.getSourceNode();
@@ -651,12 +629,17 @@ public class RenderContext extends ActionContext {
 
 			PropertyConverter converter = referenceKeyProperty.inputConverter(securityContext);
 
-			if (value != null && converter != null) {
+			if (value != null && converter != null && !(referenceKeyProperty instanceof RelationProperty)) {
 				value = converter.revert(value);
 			}
 
 			return value != null ? value : defaultValue;
 
+		}
+
+		// check for default value
+		if (defaultValue != null && StringUtils.contains(refKey, "!")) {
+			return numberOrString(defaultValue);
 		}
 
 		return null;
@@ -666,5 +649,9 @@ public class RenderContext extends ActionContext {
 	@Override
 	public boolean returnRawValue(final SecurityContext securityContext) {
 		return ((EditMode.RAW.equals(getEditMode(securityContext.getUser(false)))));
+	}
+
+	public boolean hasTimeout(final long timeout) {
+		return System.currentTimeMillis() > (renderStartTime + timeout);
 	}
 }

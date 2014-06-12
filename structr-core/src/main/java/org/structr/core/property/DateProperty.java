@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.NumericUtils;
@@ -41,26 +42,26 @@ import org.structr.core.graph.search.SearchAttribute;
  * @author Christian Morgner
  */
 public class DateProperty extends AbstractPrimitiveProperty<Date> {
-	
+
 	public static final String DATE_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
-	
+
 	protected String pattern = null;
-	
+
 	public DateProperty(String name, String pattern) {
 		super(name);
-		
+
 		this.pattern = pattern;
 	}
-	
+
 	public DateProperty(String name, String dbName, String pattern) {
 		super(name, dbName);
-		
+
 		this.pattern = pattern;
 	}
 
 	public DateProperty(String name, String dbName, Date defaultValue, String pattern) {
 		super(name, dbName, defaultValue);
-		
+
 		this.pattern = pattern;
 	}
 
@@ -73,7 +74,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	public Integer getSortType() {
 		return SortField.LONG;
 	}
-	
+
 	@Override
 	public PropertyConverter<Date, Long> databaseConverter(SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
@@ -91,49 +92,49 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-		
+
 		if (value != null) {
-			
+
 			if (value instanceof Long) {
 				return value;
 			}
-			
+
 			if (value instanceof Number) {
 				return ((Number)value).longValue();
 			}
-			
+
 			try {
-				
+
 				return Long.parseLong(value.toString());
-				
+
 			} catch (Throwable t) {
 			}
-			
+
 			try {
-				
+
 				return new SimpleDateFormat(pattern).parse(value.toString()).getTime();
-				
+
 			} catch (Throwable t) {
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	private class DatabaseConverter extends PropertyConverter<Date, Long> {
 
 		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
 			super(securityContext, entity);
 		}
-		
+
 		@Override
 		public Long convert(Date source) throws FrameworkException {
 
 			if (source != null) {
-				
+
 				return source.getTime();
 			}
-			
+
 			return null;
 		}
 
@@ -146,10 +147,10 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			}
 
 			return null;
-			
+
 		}
 	}
-	
+
 	private class InputConverter extends PropertyConverter<String, Date> {
 
 		public InputConverter(SecurityContext securityContext) {
@@ -159,32 +160,40 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		@Override
 		public Date convert(String source) throws FrameworkException {
 
-			if (source != null) {
+			if (StringUtils.isNotBlank(source)) {
 
 				try {
+
+					// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
+					if (StringUtils.contains(source, "Z")) {
+
+						source = StringUtils.replace(source, "Z", "+0000");
+					}
+
 					return new SimpleDateFormat(pattern).parse(source);
 
-				} catch(Throwable t) {
+				} catch (Throwable t) {
 
 					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(DateProperty.this));
+
 				}
 
 			}
 
 			return null;
-			
+
 		}
-		
+
 		@Override
 		public String revert(Date source) throws FrameworkException {
 
 			if (source != null) {
 				return new SimpleDateFormat(pattern).format(source);
 			}
-			
+
 			return null;
 		}
-		
+
 	}
 
 	@Override
@@ -196,10 +205,10 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	public void index(GraphObject entity, Object value) {
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
-	
+
 	@Override
 	public String getValueForEmptyFields() {
 		return DATE_EMPTY_FIELD_VALUE;
 	}
-	
+
 }

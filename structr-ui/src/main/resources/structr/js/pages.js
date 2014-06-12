@@ -18,7 +18,7 @@
  */
 
 var pages, shadowPage;
-var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, dataBindingSlideout;
+var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
 var lsw, rsw;
 var components, elements;
 var selStart, selEnd;
@@ -119,6 +119,7 @@ var _Pages = {
 
         main.prepend(
                 '<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
+                + '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
                 + '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
                 + '<div id="previews"></div>'
                 + '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
@@ -127,6 +128,7 @@ var _Pages = {
                 + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Unused Elements</div></div>');
 
         pagesSlideout = $('#pages');
+        activeElementsSlideout = $('#activeElements');
         dataBindingSlideout = $('#dataBinding');
 
         previews = $('#previews');
@@ -141,7 +143,7 @@ var _Pages = {
 
         $('#pagesTab').on('click', function() {
             if (pagesSlideout.position().left === -lsw) {
-                Structr.closeLeftSlideOuts([dataBindingSlideout], activeTabLeftKey);
+                Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
             } else {
                 Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
@@ -150,7 +152,7 @@ var _Pages = {
             tolerance: 'touch',
             over: function(e, ui) {
                 if (pagesSlideout.position().left === -lsw) {
-                    Structr.closeLeftSlideOuts([dataBindingSlideout], activeTabLeftKey);
+                    Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
                     Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
                 } else {
                     Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
@@ -158,9 +160,19 @@ var _Pages = {
             }
         });
 
+        $('#activeElementsTab').on('click', function() {
+            if (activeElementsSlideout.position().left === -lsw) {
+                Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
+                Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function() {
+                });
+            } else {
+                Structr.closeLeftSlideOuts([activeElementsSlideout], activeTabLeftKey);
+            }
+        });
+
         $('#dataBindingTab').on('click', function() {
             if (dataBindingSlideout.position().left === -lsw) {
-                Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
+                Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function() {
                     _Pages.reloadDataBindingWizard();
                 });
@@ -315,16 +327,17 @@ var _Pages = {
 
         });
 
-        previewTabs.append('<li id="add_page" title="Add page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
-        $('#add_page', previewTabs).on('click', function(e) {
+        $('#import_page', previewTabs).after('<li id="pull_page" title="Sync page from remote instance" class="button"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
+        $('#pull_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
-            //var entity = {};
-            //entity.type = 'Page';
-            //Command.create(entity);
-            Command.createSimplePage();
+            Structr.pullDialog('Page');
         });
 
-        //_Pages.resize(0,0)
+        $('#pull_page', previewTabs).after('<li id="add_page" title="Add page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
+        $('#add_page', previewTabs).on('click', function(e) {
+            e.stopPropagation();
+            Command.createSimplePage();
+        });
 
     },
     addTab: function(entity) {
@@ -433,17 +446,32 @@ var _Pages = {
         log('store active tab', activeTab);
         localStorage.setItem(activeTabKey, activeTab);
 
+        _Pages.refreshActiveElements(id);
+
     },
-    reloadIframe: function(id, name) {
+    refreshActiveElements: function(id) {
+        $('#activeElements div.inner').empty().attr('id', 'id_' + id);
+        activeElements = {};
+
+        Command.listActiveElements(id, function(activeElement) {
+            _Entities.handleActiveElement(activeElement);
+        });
+    },
+    reloadIframe: function(id) {
         _Pages.clearIframeDroppables();
-        var iframe = $('#preview_' + id);
-        if (iframe.parent().is(':hidden') || !localStorage.getItem(autoRefreshDisabledKey + id)) {
-            iframe.prop('src', viewRootUrl + name + '?edit=2');
-            iframe.parent().show();
-        }
-        _Pages.resize();
+        Command.get(id, function(obj) {
+            var iframe = $('#preview_' + id);
+            if (iframe.parent().is(':hidden') || !localStorage.getItem(autoRefreshDisabledKey + id)) {
+                iframe.prop('src', viewRootUrl + obj.name + '?edit=2');
+                iframe.parent().show();
+            }
+            _Pages.resize();
+
+            _Pages.refreshActiveElements(id);
+        });
     },
     reloadPreviews: function() {
+        log('all previews refreshed')
         _Pages.clearIframeDroppables();
         // add a small delay to avoid getting old data in very fast localhost envs
         window.setTimeout(function() {
@@ -451,11 +479,14 @@ var _Pages = {
                 var self = $(this);
                 var pageId = self.prop('id').substring('preview_'.length);
                 if (!localStorage.getItem(autoRefreshDisabledKey + pageId) && pageId === activeTab) {
-                    var doc = this.contentDocument;
-                    doc.location.reload(true);
+
+                    _Pages.reloadIframe(pageId);
+
+                    //var doc = this.contentDocument;
+                    //doc.location.reload(true);
                 }
             });
-        }, 100);
+        }, 200);
     },
     clearIframeDroppables: function() {
         var droppablesArray = [];
@@ -514,6 +545,7 @@ var _Pages = {
 
         var hasChildren = entity.children.length;
 
+
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
         var div = Structr.node(entity.id);
 
@@ -541,7 +573,13 @@ var _Pages = {
             e.stopPropagation();
             Command.clonePage(entity.id);
         });
-        
+
+        div.append('<img title="Sync page \'' + entity.name + '\' to remote instance" alt="Sync page \'' + entity.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
+        div.children('.push_icon').on('click', function() {
+            Structr.pushDialog(entity.id, true);
+            return false;
+        });
+
         _Entities.setMouseOver(div);
 
         var tab = _Pages.addTab(entity);
@@ -645,13 +683,7 @@ var _Pages = {
                             e.stopPropagation();
                             var self = $(this);
                             self.addClass('structr-element-container-active');
-
-                            var node = Structr.node(structrId);
-                            if (node) {
-                                node.parent().removeClass('nodeHover');
-                                node.addClass('nodeHover');
-                            }
-
+                            _Pages.highlight(structrId);
                             var pos = self.position();
                             var header = self.children('.structr-element-container-header');
                             header.css({
@@ -668,10 +700,7 @@ var _Pages = {
                             self.removeClass('.structr-element-container');
                             var header = self.children('.structr-element-container-header');
                             header.remove();
-                            var node = Structr.node(structrId);
-                            if (node) {
-                                node.removeClass('nodeHover');
-                            }
+                            _Pages.unhighlight(structrId);
                         }
                     });
 
@@ -684,7 +713,7 @@ var _Pages = {
 
                     var inner = $(getNonCommentSiblings(c.textNode));
                     $(getNonCommentSiblings(c.textNode)).remove();
-                    $(c.textNode).replaceWith('<span data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent) + '">' + escapeTags(c.textNode.nodeValue) + '</span>');
+                    $(c.textNode).replaceWith('<span data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, true) + '">' + escapeTags(c.textNode.nodeValue) + '</span>');
 
                     var el = $(element).children('[data-structr-id="' + c.id + '"]');
 
@@ -699,11 +728,7 @@ var _Pages = {
                             self.addClass('structr-editable-area');
                             //$('#hoverStatus').text('Editable content element: ' + self.attr('data-structr_content_id'));
                             var contentSourceId = self.attr('data-structr-id');
-                            var node = Structr.node(contentSourceId);
-                            if (node) {
-                                node.parent().removeClass('nodeHover');
-                                node.addClass('nodeHover');
-                            }
+                            _Pages.highlight(contentSourceId);
                         },
                         mouseout: function(e) {
                             e.stopPropagation();
@@ -713,10 +738,7 @@ var _Pages = {
                             //self.prop('contenteditable', false);
                             //$('#hoverStatus').text('-- non-editable --');
                             var contentSourceId = self.attr('data-structr-id');
-                            var node = Structr.node(contentSourceId);
-                            if (node) {
-                                node.removeClass('nodeHover');
-                            }
+                            _Pages.unhighlight(contentSourceId);
                         },
                         click: function(e) {
                             e.stopPropagation();
@@ -737,12 +759,10 @@ var _Pages = {
                                 self.html(srcText);
                                 textBeforeEditing = srcText;
                             }
-                            
+
                             var structrId = self.attr('data-structr-id');
-                            var selected = self.hasClass('structr-element-container-selected');
-                            console.log(self, structrId, selected);
                             _Pages.expandTreeNode(structrId);
-                            
+
                             return false;
 
                         },
@@ -921,7 +941,6 @@ var _Pages = {
 
         _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
 
-
     },
     reloadDataBindingWizard: function() {
         dataBindingSlideout.children('#wizard').remove();
@@ -969,8 +988,12 @@ var _Pages = {
 
             var subkey = 'name';
 
+            var endNodes = [];
             $.each(t.relatedTo, function(i, endNode) {
 
+                if (isIn(endNode.id, endNodes))
+                    return;
+                endNodes.push(endNode.id);
 
                 $.ajax({
                     url: rootUrl + '/schema_relationships?sourceId=' + id + '&targetId=' + endNode.id,
@@ -978,18 +1001,20 @@ var _Pages = {
                     contentType: 'application/json',
                     statusCode: {
                         200: function(data) {
-                            _Schema.getPropertyName(t.name, data.result[0].relationshipType, true, function(key, isCollection) {
-                                $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
-                                $('#data-wizard-attributes .custom').children('.' + key).draggable({
-                                    iframeFix: true,
-                                    revert: 'invalid',
-                                    containment: 'body',
-                                    helper: 'clone',
-                                    appendTo: '#main',
-                                    stack: '.node',
-                                    zIndex: 99
-                                }).on('click', function() {
-                                    //console.log('expand')
+                            $.each(data.result, function(i, r) {
+                                _Schema.getPropertyName(t.name, r.relationshipType, true, function(key, isCollection) {
+                                    $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
+                                    $('#data-wizard-attributes .custom').children('.' + key).draggable({
+                                        iframeFix: true,
+                                        revert: 'invalid',
+                                        containment: 'body',
+                                        helper: 'clone',
+                                        appendTo: '#main',
+                                        stack: '.node',
+                                        zIndex: 99
+                                    }).on('click', function() {
+                                        //console.log('expand')
+                                    });
                                 });
                             });
                         }
@@ -997,7 +1022,12 @@ var _Pages = {
                 });
             });
 
+            var startNodes = [];
             $.each(t.relatedFrom, function(i, startNode) {
+
+                if (isIn(startNode.id, startNodes))
+                    return;
+                startNodes.push(startNode.id);
 
                 $.ajax({
                     url: rootUrl + '/schema_relationships?sourceId=' + startNode.id + '&targetId=' + id,
@@ -1005,19 +1035,18 @@ var _Pages = {
                     contentType: 'application/json',
                     statusCode: {
                         200: function(data) {
-                            _Schema.getPropertyName(t.name, data.result[0].relationshipType, false, function(key, isCollection) {
-
-                                console.log('key', key)
-
-                                $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
-                                $('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
-                                    iframeFix: true,
-                                    revert: 'invalid',
-                                    containment: 'body',
-                                    helper: 'clone',
-                                    appendTo: '#main',
-                                    stack: '.node',
-                                    zIndex: 99
+                            $.each(data.result, function(i, r) {
+                                _Schema.getPropertyName(t.name, r.relationshipType, false, function(key, isCollection) {
+                                    $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
+                                    $('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
+                                        iframeFix: true,
+                                        revert: 'invalid',
+                                        containment: 'body',
+                                        helper: 'clone',
+                                        appendTo: '#main',
+                                        stack: '.node',
+                                        zIndex: 99
+                                    });
                                 });
                             });
                         }
@@ -1065,5 +1094,26 @@ var _Pages = {
             }
         });
     },
-    
+    highlight: function(id) {
+        var node = Structr.node(id);
+        if (node) {
+            node.parent().removeClass('nodeHover');
+            node.addClass('nodeHover');
+        }
+        var activeNode = Structr.node(id, '#active_');
+        if (activeNode) {
+            activeNode.parent().removeClass('nodeHover');
+            activeNode.addClass('nodeHover');
+        }
+    },
+    unhighlight: function(id) {
+        var node = Structr.node(id);
+        if (node) {
+            node.removeClass('nodeHover');
+        }
+        var activeNode = Structr.node(id, '#active_');
+        if (activeNode) {
+            activeNode.removeClass('nodeHover');
+        }
+    }
 };

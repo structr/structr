@@ -30,7 +30,6 @@ import org.structr.rest.exception.SystemException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,8 +37,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.MaintenanceCommand;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -80,14 +79,14 @@ public class MaintenanceResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		if ((securityContext != null) && securityContext.isSuperUser()) {
+		if ((securityContext != null) && isSuperUser()) {
 
 			if (this.taskOrCommand != null) {
 
 				try {
 
 					final App app = StructrApp.getInstance(securityContext);
-					
+
 					if (Task.class.isAssignableFrom(taskOrCommand)) {
 
 						Task task = (Task) taskOrCommand.newInstance();
@@ -97,7 +96,18 @@ public class MaintenanceResource extends Resource {
 					} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
 
 						MaintenanceCommand cmd = (MaintenanceCommand)StructrApp.getInstance(securityContext).command(taskOrCommand);
-						cmd.execute(propertySet);
+						if (cmd.requiresEnclosingTransaction()) {
+
+							try (final Tx tx = app.tx()) {
+
+								cmd.execute(propertySet);
+								tx.success();
+							}
+
+						} else {
+
+							cmd.execute(propertySet);
+						}
 
 					} else {
 						return new RestMethodResult(HttpServletResponse.SC_NOT_FOUND);
@@ -120,20 +130,16 @@ public class MaintenanceResource extends Resource {
 
 		} else {
 
-			logger.log(Level.INFO, "SecurityContext is {0}, user is {1}", new Object[] { (securityContext != null)
-				? "non-null"
-				: "null", ((securityContext != null) && (securityContext.getUser(true) != null))
-					  ? securityContext.getUser(true).getProperty(AbstractNode.name)
-					  : "null" });
+			// loggin disabled because of possible NotInTransactionException
+//			logger.log(Level.INFO, "SecurityContext is {0}, user is {1}", new Object[] { (securityContext != null)
+//				? "non-null"
+//				: "null", ((securityContext != null) && (securityContext.getUser(true) != null))
+//					  ? securityContext.getUser(true).getProperty(AbstractNode.name)
+//					  : "null" });
 
 			throw new NotAllowedException();
 
 		}
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new NotAllowedException();
 	}
 
 	@Override
@@ -150,7 +156,10 @@ public class MaintenanceResource extends Resource {
 		return null;
 	}
 
-	//~--- get methods ----------------------------------------------------
+	@Override
+	public boolean createPostTransaction() {
+		return false;
+	}
 
 	@Override
 	public Class getEntityClass() {
@@ -171,4 +180,12 @@ public class MaintenanceResource extends Resource {
         public String getResourceSignature() {
                 return getUriPart();
         }
+
+	// ----- private methods -----
+	private boolean isSuperUser() throws FrameworkException {
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+			return securityContext.isSuperUser();
+		}
+	}
 }

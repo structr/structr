@@ -19,6 +19,7 @@
 package org.structr.rest.serialization;
 
 import java.io.Writer;
+import org.structr.common.SecurityContext;
 import org.structr.core.Value;
 
 /**
@@ -30,9 +31,9 @@ public class StreamingJsonWriter extends StreamingWriter {
 	public StreamingJsonWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth) {
 		super(propertyView, indent, outputNestingDepth);
 	}
-	
+
 	@Override
-	public RestWriter getRestWriter(Writer writer) {
-		return new StructrJsonWriter(writer);
+	public RestWriter getRestWriter(final SecurityContext securityContext, Writer writer) {
+		return new StructrJsonWriter(securityContext, writer);
 	}
 }

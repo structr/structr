@@ -22,11 +22,8 @@ package org.structr.websocket.command;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -35,7 +32,7 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Create a node as clone of a component.
  *
- * This command will create default SYNC relationships (bi-directional)
+ * This command will create a SYNC relationship: (component)-[:SYNC]->(target)
  *
  * @author Axel Morgner
  */
@@ -50,7 +47,6 @@ public class CloneComponentCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext	= getWebSocket().getSecurityContext();
-		final App app                           = StructrApp.getInstance(securityContext);
 		String id				= webSocketData.getId();
 		Map<String, Object> nodeData		= webSocketData.getNodeData();
 		String parentId				= (String) nodeData.get("parentId");
@@ -90,11 +86,8 @@ public class CloneComponentCommand extends AbstractCommand {
 		try {
 
 			DOMElement clonedNode = (DOMElement) node.cloneNode(false);
-			clonedNode.setProperty(DOMElement.syncedNodes, null);
 			parentNode.appendChild(clonedNode);
-
-			app.create(node, clonedNode, Sync.class);
-			//app.create(clonedNode, node, Sync.class);
+			clonedNode.setProperty(DOMElement.sharedComponent, node);
 			
 		} catch (FrameworkException ex) {
 

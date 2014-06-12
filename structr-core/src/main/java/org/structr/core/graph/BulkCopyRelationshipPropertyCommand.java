@@ -61,11 +61,11 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 			throw new IllegalArgumentException("This command requires one argument of type Map. Map must contain values for 'sourceKey' and 'destKey'.");
 
 		}
-		
+
 		if(graphDb != null) {
 
 			List<AbstractRelationship> rels = new LinkedList<>();
-			
+
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				rels.addAll(relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships()));
 			}
@@ -81,13 +81,13 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 						Class type                    = rel.getClass();
 						PropertyKey destPropertyKey   = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, destKey);
 						PropertyKey sourcePropertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sourceKey);
-						
+
 						try {
 							// copy properties
 							rel.setProperty(destPropertyKey, rel.getProperty(sourcePropertyKey));
-							
+
 						} catch (FrameworkException fex) {
-							
+
 							logger.log(Level.WARNING, "Unable to copy relationship property {0} of relationship {1} to {2}: {3}", new Object[] { sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage() } );
 						}
 					}
@@ -107,5 +107,10 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count);
 
 		}
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
 	}
 }

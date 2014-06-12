@@ -21,8 +21,6 @@
 
 var fs = require('fs');
 
-// Remove old screenshots
-fs.removeTree(exports.docsDir + '/screenshots/' + testName);
 
 /**
  * Screenshot/animation dimensions (pixel)
@@ -47,7 +45,7 @@ var mouseSteps = 20;
 /**
  * Recording interval in ms
  */
-var recordingInterval = 200;
+var recordingInterval = 100;
 
 /**
  * Length of animation images filenames (f.e. 0023.png)
@@ -449,6 +447,9 @@ exports.startRecording = function(window, casper, testName) {
     };
 
     var i = 0;
+    
+    // Remove old screenshots
+    fs.removeTree(exports.docsDir + '/screenshots/' + testName);
 
     window.setInterval(function() {
         casper.capture(exports.docsDir + '/screenshots/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);

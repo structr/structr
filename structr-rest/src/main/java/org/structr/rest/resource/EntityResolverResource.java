@@ -37,7 +37,7 @@ public class EntityResolverResource extends SortableResource {
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
-		
+
 		return true;
 	}
 
@@ -45,34 +45,29 @@ public class EntityResolverResource extends SortableResource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		throw new IllegalMethodException();
 	}
-	
+
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
-		
-		// TODO: fetch nodes with superuser security context, collect forbidden nodes and return 
+
+		// TODO: fetch nodes with superuser security context, collect forbidden nodes and return
 		//       in error response
-		
+
 		RestMethodResult result = new RestMethodResult(200);
 
 		for (Object o : propertySet.values()) {
-			
+
 			if (o instanceof String) {
-				
+
 				String id = (String)o;
-				
+
 				AbstractNode node = (AbstractNode) StructrApp.getInstance().get(id);
 				if (node != null) {
 					result.addContent(node);
 				}
 			}
 		}
-		
-		return result;
-	}
 
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new IllegalMethodException();
+		return result;
 	}
 
 	@Override
@@ -89,7 +84,7 @@ public class EntityResolverResource extends SortableResource {
         public String getResourceSignature() {
                 return getUriPart();
         }
-	
+
 	@Override
 	public String getUriPart() {
 		return "resolver";

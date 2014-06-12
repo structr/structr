@@ -11,7 +11,7 @@
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.RC2</version>
+    <version>1.0.RC3</version>
     <name>structr</name>
     <url>http://structr.org</url>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
@@ -29,7 +29,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>1.0.RC2</structr.version>
+        <structr.version>1.0.RC3</structr.version>
     </properties>
 
     <modules>

@@ -78,8 +78,6 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.relation.Files;
-import org.structr.web.entity.relation.Folders;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -779,11 +777,13 @@ public class Importer {
 
 				if (fileNode != null) {
 
-					Folder parent = createFolderPath(path);
+					Folder parent = FileHelper.createFolderPath(securityContext, path);
 
 					if (parent != null) {
 
-						app.create(parent, fileNode, Files.class);
+						fileNode.setProperty(File.parent, parent);
+						
+						//app.create(parent, fileNode, Files.class);
 						//createRel.execute(parent, fileNode, Folders.class);
 					}
 
@@ -810,42 +810,6 @@ public class Importer {
 
 	}
 
-	/**
-	 * Create one folder per path item and return the last folder.
-	 *
-	 * F.e.: /a/b/c => Folder["name":"a"] --HAS_CHILD--> Folder["name":"b"]
-	 * --HAS_CHILD--> Folder["name":"c"], returns Folder["name":"c"]
-	 *
-	 * @param path
-	 * @return
-	 * @throws FrameworkException
-	 */
-	private Folder createFolderPath(final String path) throws FrameworkException {
-
-		if (path == null) {
-
-			return null;
-		}
-
-		String[] parts = StringUtils.split(path, "/");
-		Folder folder = null;
-
-		for (String part : parts) {
-
-			Folder parent = folder;
-
-			folder = findOrCreateFolder(part);
-
-			if (folder != null && parent != null) {
-				app.create(parent, folder, Folders.class);
-				folder.updateInIndex();
-			}
-
-		}
-
-		return folder;
-
-	}
 
 	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 

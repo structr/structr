@@ -18,42 +18,40 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.NotFoundException;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.PropertyKey;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaHelper;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -93,20 +91,20 @@ public class TypeResource extends SortableResource {
 
 			final boolean inexactSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 			final App app               = StructrApp.getInstance(securityContext);
-			
+
 			// test if resource class exists
 			entityClass = SchemaHelper.getEntityClassForRawType(rawType);
 			if (entityClass != null) {
-				
+
 				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
-					
+
 					searchCommandType = SearchRelationshipCommand.class;
 					query             = app.relationshipQuery(entityClass, !inexactSearch);
 					isNode            = false;
 					return true;
-					
+
 				} else {
-					
+
 					// include interfaces here
 					searchCommandType = SearchNodeCommand.class;
 					query             = app.nodeQuery(entityClass, !inexactSearch);
@@ -115,7 +113,7 @@ public class TypeResource extends SortableResource {
 				}
 			}
 		}
-		
+
 		return true;
 
 	}
@@ -133,34 +131,34 @@ public class TypeResource extends SortableResource {
 			if (entityClass == null) {
 				throw new NotFoundException();
 			}
-			
+
 			collectSearchAttributes(query);
-			
+
 			// default sort key & order
 			if (actualSortKey == null) {
-				
+
 				try {
-					
+
 					GraphObject templateEntity  = ((GraphObject)entityClass.newInstance());
 					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
 					actualSortOrder             = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
-					
+
 					if (sortKeyProperty != null) {
-						
+
 						actualSortKey = sortKeyProperty;
-						
+
 					} else {
-						
+
 						actualSortKey = AbstractNode.name;
 					}
-					
+
 				} catch(Throwable t) {
-					
+
 					// fallback to name
 					actualSortKey = AbstractNode.name;
 				}
 			}
-	
+
 			// do search: FIXME: this doesn't work for inexact search because
 			// the type search attribute has to be lowercase in the fulltext indices..
 			return query
@@ -172,22 +170,7 @@ public class TypeResource extends SortableResource {
 				.page(page)
 				.offsetId(offsetId)
 				.getResult();
-			
-//			
-//			// do search
-//			Result results = StructrApp.getInstance(securityContext).command(searchCommandType).execute(
-//				includeDeletedAndHidden,
-//				publicOnly,
-//				searchContext.getSearchAttributes(),
-//				actualSortKey,
-//				actualSortOrder,
-//				pageSize,
-//				page,
-//				offsetId
-//			);
-//			
-//			return results;
-			
+
 		} else {
 
 			logger.log(Level.WARNING, "type was null");
@@ -215,29 +198,29 @@ public class TypeResource extends SortableResource {
 
 			// finally: return 201 Created
 			return result;
-			
+
 		} else {
 
 			final App app                         = StructrApp.getInstance(securityContext);
 			final Relation template               = getRelationshipTemplate();
 			final ErrorBuffer errorBuffer         = new ErrorBuffer();
-			
+
 			if (template != null) {
-				
+
 				final NodeInterface sourceNode        = identifyStartNode(template, propertySet);
 				final NodeInterface targetNode        = identifyEndNode(template, propertySet);
 				final PropertyMap properties          = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 				RelationshipInterface newRelationship = null;
 
-				if(sourceNode == null) {
+				if (sourceNode == null) {
 					errorBuffer.add(entityClass.getSimpleName(), new EmptyPropertyToken(template.getSourceIdProperty()));
 				}
 
-				if(targetNode == null) {
+				if (targetNode == null) {
 					errorBuffer.add(entityClass.getSimpleName(), new EmptyPropertyToken(template.getTargetIdProperty()));
 				}
-			
-				if(errorBuffer.hasError()) {
+
+				if (errorBuffer.hasError()) {
 					throw new FrameworkException(422, errorBuffer);
 				}
 
@@ -252,7 +235,7 @@ public class TypeResource extends SortableResource {
 				// finally: return 201 Created
 				return result;
 			}
-			
+
 			// shouldn't happen
 			throw new NotFoundException();
 		}
@@ -260,16 +243,7 @@ public class TypeResource extends SortableResource {
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-
 		throw new IllegalPathException();
-
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
 	}
 
 	public NodeInterface createNode(final Map<String, Object> propertySet) throws FrameworkException {
@@ -281,7 +255,7 @@ public class TypeResource extends SortableResource {
 
 			return app.create(entityClass, properties);
 		}
-		
+
 		throw new NotFoundException();
 	}
 
@@ -317,11 +291,11 @@ public class TypeResource extends SortableResource {
 	public Class getEntityClass() {
 		return entityClass;
 	}
-	
+
 	public void setEntityClass(final Class<? extends GraphObject> type) {
 		this.entityClass = type;
 	}
-	
+
 	public void setSearchCommandType(final Class<? extends SearchCommand> searchCommand) {
 		this.searchCommandType = searchCommand;
 	}
@@ -335,32 +309,32 @@ public class TypeResource extends SortableResource {
 	public boolean isCollectionResource() {
 		return true;
 	}
-	
+
 	public void collectSearchAttributes(final Query query) throws FrameworkException {
 
 		// first step: extract searchable attributes from request
 		extractSearchableAttributes(securityContext, entityClass, request, query);
-		
+
 		// second step: distance search?
 		extractDistanceSearch(request, query);
 	}
 
 	// ----- private methods -----
 	private Relation getRelationshipTemplate() {
-		
+
 		try {
-			
+
 			return (Relation)entityClass.newInstance();
-			
+
 		} catch (Throwable t) {
-			
+
 		}
-		
+
 		return null;
 	}
-	
+
 	private NodeInterface identifyStartNode(final Relation template, final Map<String, Object> properties) throws FrameworkException {
-		
+
 		final Property<String> sourceIdProperty = template.getSourceIdProperty();
 		final Class sourceType                  = template.getSourceType();
 		final Notion notion                     = template.getStartNodeNotion();
@@ -378,12 +352,12 @@ public class TypeResource extends SortableResource {
                         return (NodeInterface)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
 
                 }
-	
+
 		return null;
 	}
-	
+
 	private NodeInterface identifyEndNode(final Relation template, final Map<String, Object> properties) throws FrameworkException {
-		
+
 		final Property<String> targetIdProperty = template.getTargetIdProperty();
 		final Class targetType                  = template.getTargetType();
 		final Notion notion                     = template.getEndNodeNotion();
@@ -400,7 +374,7 @@ public class TypeResource extends SortableResource {
                         return (NodeInterface)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
 
                 }
-	
+
 		return null;
-	}		
+	}
 }

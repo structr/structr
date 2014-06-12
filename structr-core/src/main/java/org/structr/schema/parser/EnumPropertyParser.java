@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.EnumProperty;
+import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
@@ -31,10 +32,10 @@ import org.structr.schema.SchemaHelper.Type;
  * @author Christian Morgner
  */
 public class EnumPropertyParser extends PropertyParser {
-	
+
 	private String enumTypeName = "";
 	private String enumType     = "";
-	
+
 	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
 		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
 	}
@@ -50,17 +51,17 @@ public class EnumPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public String getAuxiliaryType() {
+	public String getPropertyParameters() {
 		return enumType;
 	}
-	
+
 	@Override
 	public Type getKey() {
 		return Type.Enum;
 	}
 
 	@Override
-	public void extractTypeValidation(String expression) throws FrameworkException {
+	public void extractTypeValidation(final Schema entity, String expression) throws FrameworkException {
 
 		final String[] enumTypes = expression.split("[, ]+");
 		if (StringUtils.isNotBlank(expression) && enumTypes.length > 0) {

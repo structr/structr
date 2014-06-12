@@ -33,6 +33,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.jsoup.Jsoup;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
+import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -41,6 +42,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.parser.Functions;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -55,7 +58,6 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.entity.PageData;
 import org.structr.web.entity.Renderable;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
@@ -73,7 +75,7 @@ import org.w3c.dom.UserDataHandler;
  *
  * @author Christian Morgner
  */
-public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable, PageData {
+public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable, Syncable {
 
 	private static final Logger logger = Logger.getLogger(DOMNode.class.getName());
 
@@ -93,13 +95,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC = "Document nodes cannot be adopted by another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME = "Renaming of nodes is not supported by this implementation.";
 
-	public static final Property<Boolean> hideOnIndex = new BooleanProperty("hideOnIndex");
-	public static final Property<Boolean> hideOnDetail = new BooleanProperty("hideOnDetail");
-	public static final Property<String> showForLocales = new StringProperty("showForLocales");
-	public static final Property<String> hideForLocales = new StringProperty("hideForLocales");
+	public static final Property<Boolean> hideOnIndex = new BooleanProperty("hideOnIndex").indexed();
+	public static final Property<Boolean> hideOnDetail = new BooleanProperty("hideOnDetail").indexed();
+	public static final Property<String> showForLocales = new StringProperty("showForLocales").indexed();
+	public static final Property<String> hideForLocales = new StringProperty("hideForLocales").indexed();
 
-	public static final Property<String> showConditions = new StringProperty("showConditions");
-	public static final Property<String> hideConditions = new StringProperty("hideConditions");
+	public static final Property<String> showConditions = new StringProperty("showConditions").indexed();
+	public static final Property<String> hideConditions = new StringProperty("hideConditions").indexed();
 
 	public static final Property<List<DOMNode>> children = new EndNodes<>("children", DOMChildren.class);
 	public static final Property<DOMNode> parent = new StartNode<>("parent", DOMChildren.class);
@@ -120,10 +122,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	static {
 
 		// extend set of builtin functions
-		functions.put("GET", new Function<Object, Object>() {
+		Functions.functions.put("GET", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) {
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
 				if (sources != null && sources.length > 0) {
 
@@ -185,7 +187,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public abstract boolean isSynced();
 	public abstract boolean contentEquals(final DOMNode otherNode);
-	public abstract void updateFrom(final DOMNode source) throws FrameworkException;
+	public abstract void updateFromNode(final DOMNode otherNode) throws FrameworkException;
 
 	public String getIdHash() {
 
@@ -438,7 +440,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If hide conditions evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(extractFunctions(securityContext, renderContext, _hideConditions))) {
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Functions.evaluate(securityContext, renderContext, this, _hideConditions))) {
 				return false;
 			}
 
@@ -447,7 +449,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If show conditions don't evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_showConditions) && !(Boolean.TRUE.equals(extractFunctions(securityContext, renderContext, _showConditions)))) {
+			if (StringUtils.isNotBlank(_showConditions) && !(Boolean.TRUE.equals(Functions.evaluate(securityContext, renderContext, this, _showConditions)))) {
 				return false;
 			}
 
@@ -838,6 +840,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					&& !key.equals(GraphObject.id)
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
+					&& !key.equals(DOMElement.syncedNodes)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
 
 					properties.put(key, getProperty(key));
@@ -1055,6 +1058,55 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		return allChildNodes;
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData() {
+
+		final List<Syncable> data = new LinkedList<>();
+
+		// nodes
+		data.addAll(getProperty(DOMNode.children));
+
+		final DOMNode sibling = getProperty(DOMNode.nextSibling);
+		if (sibling != null) {
+
+			data.add(sibling);
+		}
+
+		// relationships
+		for (final DOMChildren child : getOutgoingRelationships(DOMChildren.class)) {
+			data.add(child);
+		}
+
+		final DOMSiblings siblingRel = getOutgoingRelationship(DOMSiblings.class);
+		if (siblingRel != null) {
+
+			data.add(siblingRel);
+		}
+
+		return data;
+	}
+
+	@Override
+	public boolean isNode() {
+		return true;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return this;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return null;
 	}
 
 	// ----- nested classes -----

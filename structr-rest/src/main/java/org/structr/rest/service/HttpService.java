@@ -52,6 +52,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.AsyncGzipFilter;
+import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
@@ -78,6 +79,7 @@ public class HttpService implements RunnableService {
 	public static final String RESOURCE_HANDLERS = "HttpService.resourceHandlers";
 	public static final String LIFECYCLE_LISTENERS = "HttpService.lifecycle.listeners";
 	public static final String MAIN_CLASS = "HttpService.mainClass";
+	public static final String ASYNC = "HttpService.async";
 
 	public static final String APPLICATION_TITLE = "application.title";
 	public static final String APPLICATION_HOST = "application.host";
@@ -86,6 +88,8 @@ public class HttpService implements RunnableService {
 	public static final String APPLICATION_HTTPS_ENABLED = "application.https.enabled";
 	public static final String APPLICATION_KEYSTORE_PATH = "application.keystore.path";
 	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
+	
+
 
 	// set of resource providers for this service
 	private Set<ResourceProvider> resourceProviders = new LinkedHashSet<>();
@@ -99,7 +103,7 @@ public class HttpService implements RunnableService {
 	private String basePath = null;
 	private String applicationName = null;
 	private String host = null;
-	private String restUrl = null;
+	private boolean async = true;
 	private int httpPort = 8082;
 	private int maxIdleTime = 30000;
 	private int requestHeaderSize = 8192;
@@ -158,6 +162,7 @@ public class HttpService implements RunnableService {
 		finalConfig.setProperty(APPLICATION_HTTP_PORT, "8082");
 		finalConfig.setProperty(APPLICATION_HTTPS_ENABLED, "false");
 		finalConfig.setProperty(APPLICATION_HTTPS_PORT, "8083");
+		finalConfig.setProperty(ASYNC, "false");
 		finalConfig.setProperty(SERVLETS, "JsonRestServlet");
 
 		finalConfig.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
@@ -207,6 +212,11 @@ public class HttpService implements RunnableService {
 		httpPort          = parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8082);
 		maxIdleTime       = parseInt(System.getProperty("maxIdleTime"), 30000);
 		requestHeaderSize = parseInt(System.getProperty("requestHeaderSize"), 8192);
+		async             = parseBoolean(finalConfig.getProperty(ASYNC), false);
+
+		if (async) {
+			logger.log(Level.INFO, "Running in asynchronous mode");
+		}
 
 		// other properties
 		String keyStorePath = finalConfig.getProperty(APPLICATION_KEYSTORE_PATH);
@@ -258,18 +268,18 @@ public class HttpService implements RunnableService {
 
 			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
 			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
-			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
 		}
 
 		if (enableGzipCompression) {
 
-			FilterHolder gzipFilter = new FilterHolder(AsyncGzipFilter.class);
+			FilterHolder gzipFilter = async ? new FilterHolder(AsyncGzipFilter.class) : new FilterHolder(GzipFilter.class);
 			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
 			gzipFilter.setInitParameter("bufferSize", "32768");
 			gzipFilter.setInitParameter("minGzipSize", "256");
 			gzipFilter.setInitParameter("deflateCompressionLevel", "9");
 			gzipFilter.setInitParameter("methods", "GET,POST");
-			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
 
 		}
 
@@ -318,7 +328,7 @@ public class HttpService implements RunnableService {
 			}
 
 			FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
-			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
+			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
 			loggingFilter.setInitParameter("includes", "");
 
 			RequestLogHandler requestLogHandler = new RequestLogHandler();
@@ -600,12 +610,10 @@ public class HttpService implements RunnableService {
 							if (servletPath.endsWith("*")) {
 
 								servlets.put(servletPath, new ServletHolder(servlet));
-								restUrl = servletPath;
 
 							} else {
 
 								servlets.put(servletPath + "/*", new ServletHolder(servlet));
-								restUrl = servletPath + "/*";
 							}
 
 						} else {

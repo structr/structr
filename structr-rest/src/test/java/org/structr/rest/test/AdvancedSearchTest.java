@@ -20,8 +20,17 @@ package org.structr.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
 import org.structr.rest.common.StructrRestTest;
 import static org.hamcrest.Matchers.*;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 
 /**
  *
@@ -555,5 +564,74 @@ public class AdvancedSearchTest extends StructrRestTest {
 				.get(concat("/test_sixs?aString=string02;string04;string06"));
 
 
+	}
+
+	public void testSearchDynamicNodes() {
+
+		/**
+		 * This is actually a core test but has to go here because some
+		 * of the includes for dynamic types are only available in rest
+		 */
+
+		try {
+
+			SchemaNode node = null;
+
+			// setup
+			try (final Tx tx = app.tx()) {
+
+				node = app.create(SchemaNode.class, new NodeAttribute(SchemaNode.name, "TestType"));
+				node.setProperty(new StringProperty("_test"), "Integer");
+
+				tx.success();
+			}
+
+			// fetch dynamic type info
+			final Class dynamicType   = StructrApp.getConfiguration().getNodeEntityClass("TestType");
+			final PropertyKey testKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(dynamicType, "test");
+
+			// modify schema node but keep reference to "old" type
+			try (final Tx tx = app.tx()) {
+
+				node.setProperty(new StringProperty("_test2"), "String");
+
+				tx.success();
+			}
+
+			// create test nodes
+			try (final Tx tx = app.tx()) {
+
+				app.create(dynamicType, new NodeAttribute(testKey, 10));
+				app.create(dynamicType, new NodeAttribute(testKey, 11));
+				app.create(dynamicType, new NodeAttribute(testKey, 12));
+
+				tx.success();
+			}
+
+			// query test nodes
+			try (final Tx tx = app.tx()) {
+
+				/*
+				 * If this test fails, the method "allSubtypes" in SearchCommand was not able to identify
+				 * a dynamic type as being assignable to itself. This can happen when the reference to an
+				 * existing dynamic type is used after the type has been modified, because the class
+				 * instances produced by the dynamic schema ClassLoader are not equal even if they have
+				 * the same name and package etc.
+				 */
+
+				assertEquals("Query for dynamic node should return exactly one result: ", 1, app.nodeQuery(dynamicType).and(testKey, 10).getAsList().size());
+
+				tx.success();
+			}
+
+
+
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
+		}
 	}
 }

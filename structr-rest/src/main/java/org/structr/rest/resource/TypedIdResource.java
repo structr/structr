@@ -33,7 +33,7 @@ import org.structr.rest.exception.NotFoundException;
 /**
  * Represents a type-constrained ID match. A TypedIdResource will always
  * result in a single element.
- * 
+ *
  * @author Christian Morgner
  */
 public class TypedIdResource extends FilterableResource {
@@ -67,11 +67,6 @@ public class TypedIdResource extends FilterableResource {
 		throw new IllegalMethodException();
 	}
 
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-	
 	@Override
 	public Class getEntityClass() {
 		return typeResource.getEntityClass();
@@ -111,20 +106,20 @@ public class TypedIdResource extends FilterableResource {
 	public String getUriPart() {
 		return typeResource.getUriPart().concat("/").concat(idResource.getUriPart());
 	}
-        
+
 	@Override
 	public String getResourceSignature() {
 		return typeResource.getResourceSignature();
 	}
-        
+
 	@Override
 	public boolean isCollectionResource() {
 		return false;
 	}
-	
+
 	// ----- public methods -----
 	public GraphObject getEntity() throws FrameworkException {
-		
+
 		GraphObject entity = idResource.getEntity();
 		String type        = SchemaHelper.normalizeEntityName(typeResource.getRawType());
 		Class parentClass  = SchemaHelper.getEntityClassForRawType(type);
@@ -135,6 +130,6 @@ public class TypedIdResource extends FilterableResource {
 		}
 
 		throw new NotFoundException();
-		
+
 	}
 }

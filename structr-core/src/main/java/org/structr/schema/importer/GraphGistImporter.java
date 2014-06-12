@@ -35,34 +35,34 @@ import org.structr.core.graph.MaintenanceCommand;
 public class GraphGistImporter extends SchemaImporter implements MaintenanceCommand {
 
 	private static final Logger logger = Logger.getLogger(GraphGistImporter.class.getName());
-	
+
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
-		
+
 		final String fileName = (String)attributes.get("file");
 		final String source   = (String)attributes.get("source");
 		final String url      = (String)attributes.get("url");
-		
+
 		if (fileName == null && source == null && url == null) {
 			throw new FrameworkException(422, "Please supply file, url or source parameter.");
 		}
-		
+
 		if (fileName != null && source != null) {
 			throw new FrameworkException(422, "Please supply only one of file, url or source.");
 		}
-		
+
 		if (fileName != null && url != null) {
 			throw new FrameworkException(422, "Please supply only one of file, url or source.");
 		}
-		
+
 		if (url != null && source != null) {
 			throw new FrameworkException(422, "Please supply only one of file, url or source.");
 		}
-		
+
 		try {
-			
+
 			if (fileName != null) {
-			
+
 				GraphGistImporter.importCypher(extractSources(new FileInputStream(fileName)));
 
 			} else if (url != null) {
@@ -77,7 +77,12 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
 		}
-		
+
 		analyzeSchema();
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
 	}
 }

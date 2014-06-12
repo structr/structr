@@ -18,6 +18,7 @@
  */
 package org.structr.web.migration;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -27,6 +28,7 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Security;
@@ -36,6 +38,7 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
@@ -45,7 +48,7 @@ import org.structr.web.entity.relation.Sync;
 
 /**
  * Migrate UI relationships of the pre-0.9 scheme to the new scheme
- * 
+ *
  * @author Axel Morgner
  */
 public class BulkMigrateRelationships extends NodeServiceCommand implements MaintenanceCommand {
@@ -53,11 +56,11 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 	private static final Logger logger = Logger.getLogger(BulkMigrateRelationships.class.getName());
 
 	static {
-		
+
 		MaintenanceParameterResource.registerMaintenanceCommand("migrateRelationships", BulkMigrateRelationships.class);
-		
+
 	}
-	
+
 	@Override
 	public void execute(final Map<String, Object> map) throws FrameworkException {
 
@@ -66,7 +69,12 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 
 		if (graphDb != null) {
 
-			List<AbstractRelationship> rels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
+			// collect relationships in transactional context
+			List<AbstractRelationship> rels = new LinkedList<>();
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				
+				rels.addAll(relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships()));
+			}
 
 			long count = bulkGraphOperation(securityContext, rels, 1000, "MigrateRelationships", new BulkGraphOperation<AbstractRelationship>() {
 
@@ -77,15 +85,15 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 					if (rel.getProperty(GraphObject.id) != null) {
 
 						Class type = rel.getClass();
-						
+
 						if (!type.equals(GenericRelationship.class)) return;
-						
+
 						try {
-							
+
 							Class sourceType = rel.getSourceNode().getClass();
 							Class targetType = rel.getTargetNode().getClass();
 							String relType   = rel.getType();
-							
+
 							rel.getRelationship().removeProperty("combinedType");
 							rel.unlockReadOnlyPropertiesOnce();
 
@@ -119,11 +127,11 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 
 							}
 
-							
+
 						} catch (FrameworkException fex) {
-							
+
 							logger.log(Level.WARNING, "Unable to migrate relationship {0}: {1}", new Object[] { rel.getUuid(), fex.getMessage() } );
-						
+
 						}
 					}
 				}
@@ -142,5 +150,10 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count);
 
 		}
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
 	}
 }

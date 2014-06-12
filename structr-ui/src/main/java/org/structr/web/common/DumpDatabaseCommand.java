@@ -10,8 +10,10 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
@@ -53,7 +55,7 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 				file.setProperty(File.visibleToAuthenticatedUsers, true);
 
 				// Don't include files
-				SyncCommand.exportToStream(file.getOutputStream(), nodes, rels, null, false);
+				SyncCommand.exportToStream(file.getOutputStream(), app.nodeQuery(NodeInterface.class).getAsList(), app.relationshipQuery(RelationshipInterface.class).getAsList(), null, false);
 
 				tx.success();
 			}
@@ -62,5 +64,10 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 
 			throw new FrameworkException(500, t.getMessage());
 		}
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return true;
 	}
 }

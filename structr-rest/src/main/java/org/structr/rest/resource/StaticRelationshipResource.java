@@ -121,7 +121,7 @@ public class StaticRelationshipResource extends SortableResource {
 				}
 
 			} else {
-//			
+//
 //			// second try: property key
 //			if (propertyKey != null) {
 
@@ -150,7 +150,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 						/*
 						 if (typeResource.getEntityClass() != null) {
-						
+
 						 final Set<GraphObject> typeResourceResults = new LinkedHashSet<>(typeResource.doGet(null, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
 
 						 // merge list with results from type resource (which includes request parameter based filtering)
@@ -238,7 +238,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 				/*
 				 * FIXME: is this needed at all??
-				 * 
+				 *
 				 // the notion that is defined for this relationship can deserialize
 				 // objects with a single key (uuid for example), and the POSTed
 				 // property set contains value(s) for this key, so we only need
@@ -362,11 +362,6 @@ public class StaticRelationshipResource extends SortableResource {
 		}
 
 		throw new IllegalPathException();
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

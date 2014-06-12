@@ -20,7 +20,6 @@ package org.structr.web.test;
 
 import static junit.framework.TestCase.assertEquals;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.dom.DOMElement;

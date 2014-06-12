@@ -100,12 +100,12 @@ function Engine(parent) {
     this.initialize = function() {
 
         colors[ 0] = "#FF0000";
-        colors[ 1] = "#BF3030";
-        colors[ 2] = "#A60000";
-        colors[ 3] = "#FF4040";
-        colors[ 4] = "#FF7373";
-        colors[ 5] = "#FF7400";
-        colors[ 6] = "#BF7130";
+        colors[ 1] = "#00CC00";
+        colors[ 2] = "#E6399B";
+        colors[ 3] = "#269926";
+        colors[ 4] = "#FF7400";
+        colors[ 5] = "#BF7130";
+        colors[ 6] = "#BF3030";
 
         colors[ 7] = "#A64B00";
         colors[ 8] = "#FF9640";
@@ -113,11 +113,11 @@ function Engine(parent) {
         colors[10] = "#CD0074";
         colors[11] = "#992667";
         colors[12] = "#85004B";
-        colors[13] = "#E6399B";
+        colors[13] = "#FF4040";
 
-        colors[14] = "#E667AF";
-        colors[15] = "#00CC00";
-        colors[16] = "#269926";
+        colors[14] = "#A60000";
+        colors[15] = "#E667AF";
+        colors[16] = "#FF7373";
         colors[17] = "#008500";
         colors[18] = "#39E639";
         colors[19] = "#67E667";

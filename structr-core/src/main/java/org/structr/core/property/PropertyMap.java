@@ -39,25 +39,25 @@ import org.structr.schema.SchemaHelper;
 /**
  * A container for properties and their values that is used for input/output and database
  * conversion.
- * 
+ *
  * @author Christian Morgner
  */
 public class PropertyMap {
-	
+
 	private static final Logger logger = Logger.getLogger(PropertyMap.class.getName());
-	
+
 	protected Map<PropertyKey, Object> properties = new LinkedHashMap<>();
 
 	public PropertyMap() {
 	}
-	
+
 	public PropertyMap(PropertyMap source) {
-		
+
 		for (Entry<PropertyKey, Object> entry : source.entrySet()) {
 			properties.put(entry.getKey(), entry.getValue());
 		}
 	}
-	
+
 	public int size() {
 		return properties.size();
 	}
@@ -101,25 +101,25 @@ public class PropertyMap {
 	public Set<Entry<PropertyKey, Object>> entrySet() {
 		return properties.entrySet();
 	}
-	
+
 	public Map<PropertyKey, Object> getRawMap() {
 		return properties;
 	}
-	
+
 	/**
-	 * Calculates a hash code for the contents of this PropertyMap. 
-	 * 
+	 * Calculates a hash code for the contents of this PropertyMap.
+	 *
 	 * @param comparableKeys the set of property keys to use for hash code calculation, or null to use the whole keySet
 	 * @param includeSystemProperties whether to include system properties in the calculatio9n
-	 * @return 
+	 * @return
 	 */
 	public int contentHashCode(Set<PropertyKey> comparableKeys, boolean includeSystemProperties) {
-		
+
 		Map<PropertyKey, Object> sortedMap = new TreeMap<>(new PropertyKeyComparator());
 		int hashCode                       = 42;
-		
+
 		sortedMap.putAll(properties);
-		
+
 		if (comparableKeys == null) {
 
 			// calculate hash code for all properties in this map
@@ -132,11 +132,11 @@ public class PropertyMap {
 			}
 
 		} else {
-			
+
 			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
 
 				PropertyKey key = entry.getKey();
-				
+
 				if (comparableKeys.contains(key)) {
 
 					if (includeSystemProperties || !key.isUnvalidated()) {
@@ -146,17 +146,17 @@ public class PropertyMap {
 				}
 			}
 		}
-		
-		
+
+
 		return hashCode;
 	}
-	
+
 	// ----- static methods -----
 	public static PropertyMap javaTypeToDatabaseType(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
-		
+
 		PropertyMap resultMap = new PropertyMap();
 		Class entityType      = entity.getClass();
-		
+
 		if (source != null) {
 
 			for (Entry<String, Object> entry : source.entrySet()) {
@@ -189,12 +189,12 @@ public class PropertyMap {
 				}
 			}
 		}
-		
+
 		return resultMap;
 	}
-	
+
 	public static PropertyMap databaseTypeToJavaType(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
-		
+
 		PropertyMap resultMap = new PropertyMap();
 		Class entityType      = entity.getClass();
 
@@ -230,10 +230,50 @@ public class PropertyMap {
 				}
 			}
 		}
-		
+
 		return resultMap;
 	}
-	
+
+	public static PropertyMap databaseTypeToJavaType(SecurityContext securityContext, Class<? extends GraphObject> entityType, Map<String, Object> source) throws FrameworkException {
+
+		PropertyMap resultMap = new PropertyMap();
+
+		if (source != null) {
+
+			for (Entry<String, Object> entry : source.entrySet()) {
+
+				String key   = entry.getKey();
+				Object value = entry.getValue();
+
+				if (key != null) {
+
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key);
+					PropertyConverter converter = propertyKey.databaseConverter(securityContext);
+
+					if (converter != null) {
+
+						try {
+							Object propertyValue = converter.revert(value);
+							resultMap.put(propertyKey, propertyValue);
+
+						} catch(ClassCastException cce) {
+
+							cce.printStackTrace();
+
+							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
+						}
+
+					} else {
+
+						resultMap.put(propertyKey, value);
+					}
+				}
+			}
+		}
+
+		return resultMap;
+	}
+
 	public static PropertyMap inputTypeToJavaType(SecurityContext securityContext, Map<String, Object> source) throws FrameworkException {
 
 		if (source != null) {
@@ -256,12 +296,12 @@ public class PropertyMap {
 				logger.log(Level.WARNING, "No entity type found in source map");
 			}
 		}
-			
+
 		return fallbackPropertyMap(source);
 	}
-		
+
 	public static PropertyMap inputTypeToJavaType(SecurityContext securityContext, Class<? extends GraphObject> entity, Map<String, Object> source) throws FrameworkException {
-		
+
 		PropertyMap resultMap = new PropertyMap();
 		if (source != null) {
 
@@ -296,16 +336,16 @@ public class PropertyMap {
 				}
 			}
 		}
-		
+
 		return resultMap;
 	}
-	
+
 	public static Map<String, Object> javaTypeToInputType(SecurityContext securityContext, Class<? extends GraphObject> entity, PropertyMap properties) throws FrameworkException {
-		
+
 		Map<String, Object> inputTypedProperties = new LinkedHashMap<>();
-		
+
 		for(Entry<PropertyKey, Object> entry : properties.entrySet()) {
-			
+
 			PropertyKey propertyKey     = entry.getKey();
 			PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
@@ -314,11 +354,11 @@ public class PropertyMap {
 				try {
 					Object propertyValue = converter.revert(entry.getValue());
 					inputTypedProperties.put(propertyKey.jsonName(), propertyValue);
-					
+
 				} catch(ClassCastException cce) {
 
 					cce.printStackTrace();
-					
+
 					throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
 				}
 
@@ -327,10 +367,10 @@ public class PropertyMap {
 				inputTypedProperties.put(propertyKey.jsonName(), entry.getValue());
 			}
 		}
-		
+
 		return inputTypedProperties;
 	}
-	
+
 	private static PropertyMap fallbackPropertyMap(Map<String, Object> source) {
 
 		PropertyMap map = new PropertyMap();
@@ -339,7 +379,7 @@ public class PropertyMap {
 		//Thread.dumpStack();
 
 		if (source != null) {
-			
+
 
 			for (Entry<String, Object> entry : source.entrySet()) {
 
@@ -352,10 +392,10 @@ public class PropertyMap {
 				}
 			}
 		}
-		
+
 		return map;
 	}
-	
+
 	private static class PropertyKeyComparator implements Comparator<PropertyKey> {
 
 		@Override

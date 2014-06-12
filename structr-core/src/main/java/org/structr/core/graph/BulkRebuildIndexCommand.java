@@ -69,12 +69,12 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 
 		if (mode == null || "nodesOnly".equals(mode)) {
-			
+
 			final List<AbstractNode> nodes = new LinkedList<>();
 
 			// instantiate all nodes in a single list
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				
+
 				final Result<AbstractNode> result = nodeFactory.instantiateAll(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()));
 				for (AbstractNode node : result.getResults()) {
 
@@ -85,7 +85,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 				}
 			}
-			
+
 			if (type == null) {
 
 				logger.log(Level.INFO, "Node type not set or no entity class found. Starting (re-)indexing all nodes");
@@ -95,7 +95,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 				logger.log(Level.INFO, "Starting (re-)indexing all nodes of type {0}", new Object[]{type.getSimpleName()});
 			}
 
-			long count = bulkGraphOperation(securityContext, nodes, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
+			long count = bulkGraphOperation(securityContext, nodes, 100, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -138,7 +138,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 			// instantiate all relationships in a single list
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-			
+
 				final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()));
 				for (AbstractRelationship rel : unfilteredRels) {
 
@@ -159,7 +159,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 			}
 
-			count = bulkGraphOperation(securityContext, rels, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
+			count = bulkGraphOperation(securityContext, rels, 100, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -192,9 +192,14 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	// ----- interface TransactionPostProcess -----
 	@Override
 	public boolean execute(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		
+
 		execute(Collections.EMPTY_MAP);
-		
+
 		return true;
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
 	}
 }

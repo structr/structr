@@ -3,5 +3,6 @@ Version: [[version]]
 Section: misc
 Priority: low
 Architecture: all
+Depends: openjdk-7-jdk | oracle-java7-jdk | oracle-java7-installer
 Description: [[description]]
-Maintainer: axel@morgner.de
+Maintainer: Axel Morgner <axel@morgner.de>

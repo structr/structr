@@ -47,26 +47,30 @@ import org.structr.module.JarConfigurationProvider;
 public class NodeExtender {
 
 	private static final Logger logger   = Logger.getLogger(NodeExtender.class.getName());
-	
+
 	private JavaCompiler compiler        = null;
 	private JavaFileManager fileManager  = null;
 	private List<JavaFileObject> jfiles  = null;
 	private Set<String> fqcns            = null;
 
 	public NodeExtender() {
-		
+
 		compiler    = ToolProvider.getSystemJavaCompiler();
 		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 		jfiles      = new ArrayList<>();
 		fqcns       = new LinkedHashSet<>();
 	}
-	
+
+	public ClassLoader getClassLoader() {
+		return fileManager.getClassLoader(null);
+	}
+
 	public void addClass(final String className, final String content) throws ClassNotFoundException {
-		
+
 		if (className != null && content != null) {
 
 			final String packageName = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE;
-			
+
 			jfiles.add(new CharSequenceJavaFileObject(className, content));
 			fqcns.add(packageName.concat(".".concat(className)));
 
@@ -84,43 +88,43 @@ public class NodeExtender {
 		final Writer errorWriter         = new StringWriter();
 
 		if (!jfiles.isEmpty()) {
-			
+
 			logger.log(Level.INFO, "Compiling {0} dynamic entities", jfiles.size());
 
 			compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
 
 			final ClassLoader loader = fileManager.getClassLoader(null);
 			for (final String fqcn : fqcns) {
-				
+
 				try {
 					classes.put(fqcn, loader.loadClass(fqcn));
-					
+
 				} catch (Throwable t) {
-					
+
 					logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { fqcn, t.getMessage() });
 				}
 			}
 		}
-		
+
 		return classes;
 	}
 
 	private static class Listener implements DiagnosticListener<JavaFileObject> {
 
 		private ErrorBuffer errorBuffer = null;
-		
+
 		public Listener(final ErrorBuffer errorBuffer) {
 			this.errorBuffer = errorBuffer;
 }
-		
+
 		@Override
 		public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-			
+
 			if (diagnostic.getKind().equals(Kind.ERROR)) {
 
 				final JavaFileObject obj = diagnostic.getSource();
 				String name        = "unknown";
-				
+
 				if (obj != null && obj instanceof CharSequenceJavaFileObject) {
 					name = ((CharSequenceJavaFileObject)obj).getClassName();
 				}

@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>1.0.RC2</version>
+        <version>1.0.RC3</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui-archetype</artifactId>
-    <version>1.0.RC2</version>
+    <version>1.0.RC3</version>
     <packaging>maven-archetype</packaging>
     <url>http://structr.org</url>
     <name>structr-ui-archetype</name>

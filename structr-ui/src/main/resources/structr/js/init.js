@@ -1,18 +1,18 @@
-/* 
+/*
  *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -30,7 +30,7 @@ var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
 var dialog, isMax = false;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox;
+var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
 var page = {};
 var pageSize = {};
@@ -40,6 +40,7 @@ var pagerDataKey = 'structrPagerData_' + port + '_';
 var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
+var pushConfigKey = 'structrpushConfigKey_' + port;
 
 $(function() {
 
@@ -51,7 +52,7 @@ $(function() {
     main = $('#main');
     footer = $('#footer');
     loginBox = $('#login');
-    
+
     if (debug) {
         footer.show();
     }
@@ -63,7 +64,7 @@ $(function() {
     dialogTitle = $('.dialogTitle', dialogBox);
     dialogMeta = $('.dialogMeta', dialogBox);
     dialogText = $('.dialogText', dialogBox);
-    dialogCancelButton = $('.closeButton', dialogBtn);
+    dialogCancelButton = $('.closeButton');
     dialogSaveButton = $('.save', dialogBox);
     loginButton = $('#loginButton');
 
@@ -71,7 +72,6 @@ $(function() {
         e.stopPropagation();
         var jsonArray = $.parseJSON($('#json_input').val());
         $(jsonArray).each(function(i, json) {
-            //console.log(json);
             createEntity(json);
         });
     });
@@ -168,14 +168,12 @@ $(function() {
 
     $('#usernameField').keypress(function(e) {
         if (e.which === 13) {
-            $(this).blur();
-            loginButton.focus().click();
+            loginButton.click();
         }
     });
     $('#passwordField').keypress(function(e) {
         if (e.which === 13) {
-            $(this).blur();
-            loginButton.focus().click();
+            loginButton.click();
         }
     });
 
@@ -242,7 +240,7 @@ var Structr = {
     link_icon: 'icon/link.png',
     key_icon: 'icon/key.png',
     reconnect: function() {
-
+        ws.close();
         log('activating reconnect loop');
         reconn = window.setInterval(function() {
             wsConnect();
@@ -254,6 +252,7 @@ var Structr = {
         $('#errorText').empty();
         log('user', user);
         Structr.ping();
+        Structr.startPing();
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
     },
@@ -278,13 +277,15 @@ var Structr = {
         }
     },
     startPing: function() {
+        log('Starting PING');
         if (!ping) {
             ping = window.setInterval(function() {
                 sendObj({command: 'PING', sessionId: sessionId});
-            }, 30000);
+            }, 1000);
         }
     },
     connect: function() {
+        log('connect')
         sessionId = $.cookie('JSESSIONID');
         if (!sessionId) {
             $.get('/').always(function() {
@@ -296,14 +297,19 @@ var Structr = {
         }
     },
     login: function(text) {
-        
+
+        if (loginBox.is(':visible')) {
+            log('Login box is already visible, skipping...');
+            return;
+        }
+
         main.empty();
 
         $('#logout_').html('Login');
         if (text) {
             $('#errorText').html(text);
         }
-        
+
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
@@ -317,7 +323,6 @@ var Structr = {
             }
         });
         Structr.activateMenuEntry('logout');
-        $('#usernameField').focus();
     },
     doLogin: function(username, password) {
         log('doLogin ' + username + ' with ' + password);
@@ -350,6 +355,7 @@ var Structr = {
             Structr.login(text);
             return true;
         }
+        ws.close();
         return false;
     },
     loadInitialModule: function() {
@@ -406,29 +412,8 @@ var Structr = {
         });
 
     },
-    info: function(text, callback) {
-        if (text)
-            $('#infoText').html(text);
-        if (callback)
-            $('#okButton').on('click', function(e) {
-                e.stopPropagation();
-                callback();
-            });
-        $.blockUI.defaults.overlayCSS.opacity = .6;
-        $.blockUI.defaults.applyPlatformOpacityRules = false;
-        $.blockUI({
-            fadeIn: 25,
-            fadeOut: 25,
-            message: $('#infoBox'),
-            css: {
-                border: 'none',
-                backgroundColor: 'transparent'
-            }
-        });
-
-    },
     restoreDialog: function(dialogData) {
-        console.log('restoreDialog', dialogData);
+        log('restoreDialog', dialogData);
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
 
@@ -552,6 +537,12 @@ var Structr = {
         }
     },
     resize: function() {
+
+        if (isMax) {
+            Structr.maximize();
+            return;
+        }
+
         var w = $(window).width();
         var h = $(window).height();
 
@@ -580,8 +571,18 @@ var Structr = {
             height: bh
         });
 
+        var tabsHeight = $('.files-tabs ul').height();
+
         $('.CodeMirror').css({
-            height: (dh - 118 - 14) + 'px'
+            height: (dh - 118 - 14 - tabsHeight) + 'px'
+        });
+
+        $('.CodeMirror-gutters').css({
+            height: (dh - 118 - 14 - tabsHeight) + 'px'
+        });
+
+        $('.CodeMirror').each(function(i, el) {
+            el.CodeMirror.refresh();
         });
 
         $('.fit-to-height').css({
@@ -593,9 +594,6 @@ var Structr = {
             Structr.maximize();
         });
 
-        $('.CodeMirror').each(function(i, el) {
-            el.CodeMirror.refresh();
-        });
     },
     maximize: function() {
 
@@ -627,8 +625,18 @@ var Structr = {
             height: bh
         });
 
+        var tabsHeight = $('.files-tabs ul').height();
+
         $('.CodeMirror').css({
-            height: (dh - 118 - 14) + 'px'
+            height: (dh - 118 - 14 - tabsHeight) + 'px'
+        });
+
+        $('.CodeMirror-gutters').css({
+            height: (dh - 118 - 14 - tabsHeight) + 'px'
+        });
+
+        $('.CodeMirror').each(function(i, el) {
+            el.CodeMirror.refresh();
         });
 
         $('.fit-to-height').css({
@@ -638,22 +646,17 @@ var Structr = {
         isMax = true;
         $('#maximizeDialog').hide();
         $('#minimizeDialog').show().on('click', function() {
+            isMax = false;
             Structr.resize();
         });
 
-        $('.CodeMirror').each(function(i, el) {
-            el.CodeMirror.refresh();
-        });
     },
     error: function(text, callback) {
         if (text)
             $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        //console.log(callback);
         if (callback)
             $('#errorBox .closeButton').on('click', function(e) {
                 e.stopPropagation();
-                //callback();
-                //console.log(callback);
 
                 $.unblockUI({
                     fadeOut: 25
@@ -674,12 +677,9 @@ var Structr = {
         if (response.errors) {
             $.each(Object.keys(response.errors), function(i, err) {
                 errorText += err + ': ';
-                //console.log(Object.keys(response.errors[err]));
                 $.each(Object.keys(response.errors[err]), function(j, attr) {
                     errorText += attr + ' ';
-                    //console.log(attr, Object.keys(response.errors[err][attr]));
                     $.each(response.errors[err][attr], function(k, cond) {
-                        //console.log(cond);
                         if (typeof cond === 'Object') {
                             $.each(Object.keys(cond), function(l, key) {
                                 errorText += key + ' ' + cond[key];
@@ -690,7 +690,6 @@ var Structr = {
                     });
                 });
                 errorText += '\n';
-                //console.log(errorText);
             });
         } else {
             errorText += url + ': ' + response.code + ' ' + response.message;
@@ -789,9 +788,9 @@ var Structr = {
     parent: function(id) {
         return Structr.node(id) && Structr.node(id).parent().closest('.node');
     },
-    node: function(id) {
-        var node = $($('#id_' + id)[0]);
-        //console.log('Structr.node', node);
+    node: function(id, prefix) {
+        var p = prefix || '#id_';
+        var node = $($(p + id)[0]);
         return node.length ? node : undefined;
     },
     entity: function(id, parentId) {
@@ -892,10 +891,10 @@ var Structr = {
     },
     /**
      * Append a pager for the given type to the given DOM element.
-     * 
+     *
      * This pager calls Command#list (WebSocket call) after being loaded
      * and binds Command#list to all actions.
-     * 
+     *
      * If the optional callback function is given, it will be executed
      * instead of the default action.
      */
@@ -1026,7 +1025,6 @@ var Structr = {
             var l = s.position().left;
             if (l !== $(window).width()) {
                 wasOpen = true;
-                //console.log('closing open slide-out', s);
                 s.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
             }
@@ -1063,6 +1061,120 @@ var Structr = {
             _Pages.resize(-lsw, 0);
         }
         localStorage.removeItem(activeTabKey);
+    },
+    pushDialog: function(id, recursive) {
+
+        var obj = StructrModel.obj(id);
+
+        Structr.dialog('Push node to remote server', function() {
+        },
+                function() {
+                });
+
+        var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+
+        dialog.append('Do you want to transfer <b>' + (obj.name || obj.id) + '</b> to the remote server?');
+
+        dialog.append('<table class="props push">'
+                + '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'
+                + '<tr><td>Port</td><td><input id="push-port" type="text" length="20" value="' + (pushConf.port || '') + '"></td></tr>'
+                + '<tr><td>Username</td><td><input id="push-username" type="text" length="20" value="' + (pushConf.username || '') + '"></td></tr>'
+                + '<tr><td>Password</td><td><input id="push-password" type="password" length="20" value="' + (pushConf.password || '') + '"></td></tr>'
+                + '</table>'
+                + '<button id="start-push">Start</button>');
+
+        $('#start-push', dialog).on('click', function() {
+            var host = $('#push-host', dialog).val();
+            var port = parseInt($('#push-port', dialog).val());
+            var username = $('#push-username', dialog).val();
+            var password = $('#push-password', dialog).val();
+            var key = 'key_' + obj.id;
+
+            pushConf = {host: host, port: port, username: username, password: password};
+            localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+
+            Command.push(obj.id, host, port, username, password, key, recursive, function() {
+                dialog.empty();
+                dialogCancelButton.click();
+            })
+        });
+
+        return false;
+    },
+    pullDialog: function(type) {
+
+        Structr.dialog('Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server', function() {
+        },
+                function() {
+                });
+
+        var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+
+        dialog.append('<table class="props push">'
+                + '<tr><td>Host</td><td><input id="push-host" type="text" length="32" value="' + (pushConf.host || '') + '"></td>'
+                + '<td>Port</td><td><input id="push-port" type="text" length="32" value="' + (pushConf.port || '') + '"></td></tr>'
+                + '<tr><td>Username</td><td><input id="push-username" type="text" length="32" value="' + (pushConf.username || '') + '"></td>'
+                + '<td>Password</td><td><input id="push-password" type="password" length="32" value="' + (pushConf.password || '') + '"></td></tr>'
+                + '</table>'
+                + '<button id="show-syncables">Show available entities</button>'
+                + '<table id="syncables" class="props push"><tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>'
+                + '</table>'
+        );
+
+        $('#show-syncables', dialog).on('click', function() {
+
+            var syncables = $("#syncables");
+            var host = $('#push-host', dialog).val();
+            var port = parseInt($('#push-port', dialog).val());
+            var username = $('#push-username', dialog).val();
+            var password = $('#push-password', dialog).val();
+            var key = 'syncables';
+
+            pushConf = {host: host, port: port, username: username, password: password};
+            localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+
+            syncables.empty();
+            syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
+
+            Command.listSyncables(host, port, username, password, key, type, function(syncable) {
+
+                syncables.append(
+                      '<tr>'
+                    + '<td>' + syncable.name + '</td>'
+                    + '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
+                    + '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
+                    + '<td>' + syncable.type + '</td>'
+                    + '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
+                    + '<td><button id="pull-' + syncable.id + '"></td>'
+                    + '</tr>'
+                );
+
+                var syncButton = $('#pull-' + syncable.id, dialog);
+
+                if (syncable.isSynchronized) {
+                    syncButton.empty();
+                    syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
+                } else {
+                    syncButton.empty();
+                    syncButton.append('<img src="icon/page_white_put.png" title="Import" alt="Import"> Import');
+                }
+
+                syncButton.on('click', function() {
+
+                    syncButton.empty();
+                    syncButton.append('Importing..');
+
+                    var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
+                    Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
+                        // update table cell..
+                        syncButton.empty();
+                        syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
+                    });
+                });
+            });
+        });
+
+        return false;
     }
 };
 
@@ -1150,7 +1262,6 @@ function formatValueInputField(key, obj) {
     } else if (obj.constructor === Array) {
         var out = '';
         $(obj).each(function(i, v) {
-            //console.log(v);
             out += JSON.stringify(v);
         });
         return '<textarea name="' + key + '">' + out + '</textarea>';
@@ -1226,14 +1337,18 @@ function getId(element) {
     return getIdFromIdString($(element).prop('id')) || undefined;
 }
 
-function getComponentIdFromIdString(idString) {
-    if (!idString || !idString.startsWith('componentId_'))
+function getIdFromPrefixIdString(idString, prefix) {
+    if (!idString || !idString.startsWith(prefix))
         return false;
-    return idString.substring(12);
+    return idString.substring(prefix.length);
 }
 
 function getComponentId(element) {
-    return getComponentIdFromIdString($(element).prop('id')) || undefined;
+    return getIdFromPrefixIdString($(element).prop('id'), 'componentId_') || undefined;
+}
+
+function getActiveElementId(element) {
+    return getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 }
 
 $(window).unload(function() {

@@ -22,7 +22,6 @@ import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
-import org.neo4j.graphdb.Node;
 import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -39,12 +38,12 @@ import static org.structr.core.property.IntProperty.INT_EMPTY_FIELD_VALUE;
  * @author Christian Morgner
  */
 public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
-	
+
 	private Property<? extends Iterable> collectionProperty = null;
-	
+
 	public ElementCounter(String name, Property<? extends Iterable> collectionProperty) {
 		super(name);
-		
+
 		this.collectionProperty = collectionProperty;
 	}
 
@@ -55,11 +54,11 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 
 	@Override
 	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		int count = 0;
-		
+
 		if(obj != null) {
-			
+
 			Object toCount = obj.getProperty(collectionProperty);
 			if(toCount != null) {
 
@@ -80,7 +79,7 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 				}
 			}
 		}
-		
+
 		return count;
 	}
 
@@ -103,13 +102,13 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
-	
+
 	protected class InputConverter extends PropertyConverter<Object, Integer> {
 
 		public InputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
-		
+
 		@Override
 		public Object revert(Integer source) throws FrameworkException {
 			return source;
@@ -119,7 +118,7 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 		public Integer convert(Object source) {
 
 			if (source == null) return null;
-			
+
 			if (source instanceof Number) {
 
 				return ((Number)source).intValue();
@@ -130,12 +129,12 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 
 				return Integer.parseInt(source.toString());
 			}
-			
+
 			return null;
-			
+
 		}
 	}
-	
+
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Integer searchValue, boolean exactMatch, final Query query) {
 		return new IntegerSearchAttribute(this, searchValue, occur, exactMatch);

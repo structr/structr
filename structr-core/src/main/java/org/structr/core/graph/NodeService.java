@@ -31,7 +31,6 @@ import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 
 import org.structr.core.Command;
-import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
 import org.structr.core.entity.AbstractNode;
@@ -46,13 +45,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
+import org.neo4j.shell.ShellSettings;
 import org.structr.common.StructrConf;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * The graph/node service main class.
- * 
+ *
  * @author Christian Morgner
  * @author Axel Morgner
  */
@@ -64,28 +65,27 @@ public class NodeService implements SingletonService {
 	//~--- fields ---------------------------------------------------------
 
 	private GraphDatabaseService graphDb            = null;
-	
+
 	private Index<Node> caseInsensitiveUserIndex    = null;
 	private Index<Node> fulltextIndex               = null;
 	private Index<Node> keywordIndex                = null;
 	private Index<Node> layerIndex                  = null;
 	private Index<Node> userIndex                   = null;
 	private Index<Node> uuidIndex                   = null;
-	
+
 	private Index<Relationship> relFulltextIndex    = null;
 	private Index<Relationship> relKeywordIndex     = null;
 	private Index<Relationship> relUuidIndex        = null;
 
 	private ExecutionEngine cypherExecutionEngine   = null;
-	
+
 	// indices
-	private Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<>(RelationshipIndex.class);
-	private Map<NodeIndex, Index<Node>> nodeIndices                = new EnumMap<>(NodeIndex.class);
+	private final Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<>(RelationshipIndex.class);
+	private final Map<NodeIndex, Index<Node>> nodeIndices                = new EnumMap<>(NodeIndex.class);
 
 	/** Dependent services */
-	private Set<RunnableService> registeredServices = new HashSet<>();
-	private String filesPath                        = null;
-	private boolean isInitialized                   = false;
+	private String filesPath      = null;
+	private boolean isInitialized = false;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -108,23 +108,23 @@ public class NodeService implements SingletonService {
 		if (command != null) {
 
 			command.setArgument("graphDb", graphDb);
-			
+
 			command.setArgument(NodeIndex.uuid.name(), uuidIndex);
 			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
 			command.setArgument(NodeIndex.user.name(), userIndex);
 			command.setArgument(NodeIndex.caseInsensitiveUser.name(), caseInsensitiveUserIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
 			command.setArgument(NodeIndex.layer.name(), layerIndex);
-			
+
 			command.setArgument(RelationshipIndex.rel_uuid.name(), relUuidIndex);
 			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
 			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
 
 			command.setArgument("filesPath", filesPath);
-			
+
 			command.setArgument("indices", NodeIndex.values());
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
-			
+
 			command.setArgument("cypherExecutionEngine", cypherExecutionEngine);
 		}
 	}
@@ -132,7 +132,8 @@ public class NodeService implements SingletonService {
 	@Override
 	public void initialize(final StructrConf config) {
 
-		final String dbPath = config.getProperty(Services.DATABASE_PATH);
+		final String dbPath                = config.getProperty(Services.DATABASE_PATH);
+		final GraphDatabaseBuilder builder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath);
 
 		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
@@ -144,38 +145,30 @@ public class NodeService implements SingletonService {
 
 		}
 
-//		// neo4j remote shell configuration
-//		if ("true".equals(config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"))) {
-//			
-//			// enable neo4j remote shell, thanks Michael :)
-//			neo4jConfiguration.put(ShellSettings.remote_shell_enabled.name(), "true");
-//		}
-		
-
 		final File confFile = new File(dbPath + "/neo4j.conf");
 		if (confFile.exists()) {
 
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(confFile.getAbsolutePath()).newGraphDatabase();
-			
-		} else {
-			
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).newGraphDatabase();
+			builder.loadPropertiesFromFile(confFile.getAbsolutePath());
 		}
-		
-//		
+
+		// neo4j remote shell configuration
+		builder.setConfig(ShellSettings.remote_shell_enabled, config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"));
+		builder.setConfig(ShellSettings.remote_shell_port,    config.getProperty(Services.NEO4J_SHELL_PORT, "1337"));
+
+		// create graph database instance
+		graphDb = builder.newGraphDatabase();
+
+		// success?
 		if (graphDb == null) {
 
 			logger.log(Level.SEVERE, "Database could not be started ({0}) ...", dbPath);
-
 			return;
-
 		}
 
 		filesPath = config.getProperty(Services.FILES_PATH);
 
 		// check existence of files path
 		File files = new File(filesPath);
-
 		if (!files.exists()) {
 
 			files.mkdir();
@@ -186,7 +179,7 @@ public class NodeService implements SingletonService {
 
 		// index creation transaction
 		try ( final Transaction tx = graphDb.beginTx() ) {
-		
+
 			uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
 			nodeIndices.put(NodeIndex.uuid, uuidIndex);
 
@@ -243,22 +236,22 @@ public class NodeService implements SingletonService {
 
 			relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
 			relIndices.put(RelationshipIndex.rel_keyword, relKeywordIndex);
-			
+
 			tx.success();
-			
+
 		} catch (Throwable t) {
-			
+
 			logger.log(Level.WARNING, "Error while initializing indexes.", t);
-		}	
+		}
 
 		logger.log(Level.FINE, "Relationship numeric index ready.");
 		logger.log(Level.FINE, "Initializing relationship factory...");
 
 		logger.log(Level.FINE, "Relationship factory ready.");
 		cypherExecutionEngine = new ExecutionEngine(graphDb);
-		
+
 		logger.log(Level.FINE, "Cypher execution engine ready.");
-		
+
 		isInitialized = true;
 	}
 
@@ -267,43 +260,11 @@ public class NodeService implements SingletonService {
 
 		if (isRunning()) {
 
-			for (RunnableService s : registeredServices) {
-
-				s.stopService();
-			}
-
-			// Wait for all registered services to end
-			waitFor(registeredServices.isEmpty());
+			logger.log(Level.INFO, "Shutting down graph database service");
 			graphDb.shutdown();
 
 			graphDb       = null;
 			isInitialized = false;
-
-		}
-
-	}
-
-	public void registerService(final RunnableService service) {
-
-		registeredServices.add(service);
-
-	}
-
-	public void unregisterService(final RunnableService service) {
-
-		registeredServices.remove(service);
-
-	}
-
-	private void waitFor(final boolean condition) {
-
-		while (!condition) {
-
-			try {
-
-				Thread.sleep(10);
-
-			} catch (Throwable t) {}
 
 		}
 
@@ -337,11 +298,11 @@ public class NodeService implements SingletonService {
 	}
 
 	// </editor-fold>
-	
+
 	public GraphDatabaseService getGraphDb() {
 		return graphDb;
 	}
-	
+
 	@Override
 	public boolean isRunning() {
 
@@ -351,15 +312,15 @@ public class NodeService implements SingletonService {
 	public Collection<Index<Node>> getNodeIndices() {
 		return nodeIndices.values();
 	}
-	
+
 	public Collection<Index<Relationship>> getRelationshipIndices() {
 		return relIndices.values();
 	}
-	
+
 	public Index<Node> getNodeIndex(NodeIndex name) {
 		return nodeIndices.get(name);
 	}
-	
+
 	public Index<Relationship> getRelationshipIndex(RelationshipIndex name) {
 		return relIndices.get(name);
 	}

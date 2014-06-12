@@ -98,6 +98,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		result = result.replaceAll("\"", "\\\\\"");
 		result = result.replaceAll("\'", "\\\\\'");
+		result = result.replaceAll("\n", "\\\\n");
 
 		return result;
 	}

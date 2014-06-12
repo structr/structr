@@ -55,7 +55,6 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface>, A
 	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
 	public void init(final SecurityContext securityContext, final Node dbNode);
-	public SecurityContext getSecurityContext();
 
 	public void onNodeCreation();
 	public void onNodeInstantiation();

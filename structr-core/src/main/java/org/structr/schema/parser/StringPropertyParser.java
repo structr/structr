@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
@@ -34,7 +35,7 @@ public class StringPropertyParser extends PropertyParser {
 	public StringPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
 		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
 	}
-	
+
 	@Override
 	public String getPropertyType() {
 		return StringProperty.class.getSimpleName();
@@ -46,23 +47,23 @@ public class StringPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public String getAuxiliaryType() {
+	public String getPropertyParameters() {
 		return "";
 	}
-	
+
 	@Override
 	public Type getKey() {
 		return Type.String;
 	}
 
 	@Override
-	public void extractTypeValidation(final String expression) throws FrameworkException {
-		
+	public void extractTypeValidation(final Schema entity, final String expression) throws FrameworkException {
+
 		if ("[]".equals(expression)) {
 			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_validation_expression", "Empty validation expression."));
 			return;
 		}
-		
+
 		localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
 	}
 

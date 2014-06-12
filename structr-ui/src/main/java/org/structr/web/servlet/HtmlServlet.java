@@ -20,8 +20,6 @@ package org.structr.web.servlet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -30,16 +28,22 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Queue;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -51,6 +55,7 @@ import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -60,12 +65,13 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.ResourceProvider;
+import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
@@ -95,9 +101,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String LOCALE_KEY = "locale";
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
-
-	// non-static fields
-	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
 
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
@@ -114,13 +118,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		double start = System.nanoTime();
-
-		SecurityContext securityContext;
-		Authenticator auth = config.getAuthenticator();
-		App app;
+		final Authenticator auth = config.getAuthenticator();
+		final SecurityContext securityContext;
+		final App app;
 
 		try {
 			String path = request.getPathInfo();
@@ -135,7 +137,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
-
 
 			app = StructrApp.getInstance(securityContext);
 
@@ -152,7 +153,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				boolean dontCache = false;
 
 				logger.log(Level.FINE, "Path info {0}", path);
-				logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
 				// don't continue on redirects
 				if (response.getStatus() == 302) {
@@ -167,7 +167,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
+				final RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
 
 				renderContext.setResourceProvider(config.getResourceProvider());
 
@@ -200,8 +200,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// Look for a file
 					org.structr.web.entity.File file = findFile(request, path);
 					if (file != null) {
-
-						logger.log(Level.FINE, "File found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
 						streamFile(securityContext, file, request, response, edit);
 						return;
@@ -282,8 +280,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if (rootElement == null) {
 					return;
 				}
-				
-				logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
 				if (EditMode.DATA.equals(edit) || dontCache) {
 
@@ -294,14 +290,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if (!securityContext.isVisible(rootElement)) {
 
 					rootElement = notFound(response, securityContext);
+					if (rootElement == null) {
+						return;
+					}
 
 				}
 
 				if (securityContext.isVisible(rootElement)) {
-
-					//PrintWriter out = response.getWriter();
-					double setup = System.nanoTime();
-					logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
 
 					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
 
@@ -312,6 +307,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					} else {
 
+						// prepare response
 						response.setCharacterEncoding("UTF-8");
 
 						String contentType = rootElement.getProperty(Page.contentType);
@@ -332,43 +328,99 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						response.setHeader("X-Frame-Options", "SAMEORIGIN");
 						response.setHeader("X-XSS-Protection", "1; mode=block");
 
-						AsyncContext async = request.startAsync();
-						ServletOutputStream out = response.getOutputStream();
+						// async or not?
+						boolean isAsync = HttpService.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), true);
+						if (isAsync) {
 
-						AsyncBuffer buffer = renderContext.getBuffer();
-						buffer.prepare(async, out);
-						//StructrWriteListener writeListener = new StructrWriteListener(buffer, async, out);
+							final AsyncContext async      = request.startAsync();
+							final ServletOutputStream out = async.getResponse().getOutputStream();
+							final AtomicBoolean finished  = new AtomicBoolean(false);
+							final DOMNode rootNode        = rootElement;
 
-						rootElement.render(securityContext, renderContext, 0);
-						buffer.finish();
+							threadPool.submit(new Runnable() {
 
-//						final DOMNode root = rootElement;
-//						new Thread() {
-//							public void run() {
-//								try {
-//									root.render(securityContext, renderContext, 0);
-//								} catch (FrameworkException ex) {
-//									Logger.getLogger(HtmlServlet.class.getName()).log(Level.SEVERE, null, ex);
-//								}
-//							}
-//						}.start();
-						response.setStatus(HttpServletResponse.SC_OK);
+								@Override
+								public void run() {
 
-						double end = System.nanoTime();
-						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
+									try (final Tx tx = app.tx()) {
 
-						// 3: finish request
-//						try {
-//
-//							out.flush();
-//							//response.flushBuffer();
-//							out.close();
-//
-//						} catch (IllegalStateException ise) {
-//
-//							logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
-//
-//						}
+										//final long start = System.currentTimeMillis();
+
+										// render
+										rootNode.render(securityContext, renderContext, 0);
+										finished.set(true);
+
+										//final long end = System.currentTimeMillis();
+										//System.out.println("Done in " + (end-start) + " ms");
+
+										tx.success();
+
+									} catch (FrameworkException fex) {
+										fex.printStackTrace();
+									}
+								}
+
+							});
+
+							// start output write listener
+							out.setWriteListener(new WriteListener() {
+
+								@Override
+								public void onWritePossible() throws IOException {
+
+									try {
+
+										final Queue<String> queue = renderContext.getBuffer().getQueue();
+										while (out.isReady()) {
+
+											String buffer = null;
+
+											synchronized(queue) {
+												buffer = queue.poll();
+											}
+
+											if (buffer != null) {
+
+												out.print(buffer);
+
+											} else {
+
+												if (finished.get()) {
+
+													async.complete();
+													response.setStatus(HttpServletResponse.SC_OK);
+
+													// prevent this block from being called again
+													break;
+												}
+
+												Thread.sleep(1);
+											}
+										}
+
+									} catch (Throwable t) {
+										t.printStackTrace();
+									}
+								}
+
+								@Override
+								public void onError(Throwable t) {
+									t.printStackTrace();
+								}
+							});
+
+						} else {
+
+							final StringRenderBuffer buffer = new StringRenderBuffer();
+							renderContext.setBuffer(buffer);
+
+							// render
+							rootElement.render(securityContext, renderContext, 0);
+
+							response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
+							response.getOutputStream().flush();
+							response.getOutputStream().close();
+						}
 					}
 
 				} else {
@@ -380,6 +432,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+				fex.printStackTrace();
 				logger.log(Level.SEVERE, "Exception while processing request", fex);
 			}
 
@@ -436,7 +489,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		// FIXME: Take full path into account
 		String name = PathHelper.getName(path);
 
-		if (name.length() > 0) {
+		if (!name.isEmpty()) {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
@@ -512,29 +565,23 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private Page findIndexPage(final SecurityContext securityContext) throws FrameworkException {
 
-		logger.log(Level.FINE, "Looking for an index page ...");
+		Result<Page> results = StructrApp.getInstance().nodeQuery(Page.class).sort(Page.position).order(false).getResult();
+		Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
-		Result<Page> results = StructrApp.getInstance().nodeQuery(Page.class).getResult();
-
-		logger.log(Level.FINE, "{0} results", results.size());
+		// Find first visible page
+		Page page = null;
 
 		if (!results.isEmpty()) {
 
-			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
-
-			// Find first visible page
 			int i = 0;
-			Page page = null;
-
+			
 			while (page == null || (i < results.size() && !securityContext.isVisible(page))) {
 
 				page = results.get(i++);
 			}
-
-			return page;
 		}
 
-		return null;
+		return page;
 	}
 
 	/**
@@ -809,34 +856,31 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(HttpServletResponse.SC_OK);
 
-			AsyncContext async = request.startAsync();
-			out.setWriteListener(new StructrWriteListener(in, async, out));
+			try {
 
-//			try {
-//
-//				IOUtils.copy(in, out);
-//
-//			} catch (Throwable t) {
-//
-//			} finally {
-//
-//				if (out != null) {
-//
-//					try {
-//						// 3: output content
-//						out.flush();
-//						out.close();
-//
-//					} catch (Throwable t) {
-//					}
-//				}
-//
-//				if (in != null) {
-//					in.close();
-//				}
-//
-//				response.setStatus(HttpServletResponse.SC_OK);
-//			}
+				IOUtils.copy(in, out);
+
+			} catch (Throwable t) {
+
+			} finally {
+
+				if (out != null) {
+
+					try {
+						// 3: output content
+						out.flush();
+						out.close();
+
+					} catch (Throwable t) {
+					}
+				}
+
+				if (in != null) {
+					in.close();
+				}
+
+				response.setStatus(HttpServletResponse.SC_OK);
+			}
 		}
 	}
 

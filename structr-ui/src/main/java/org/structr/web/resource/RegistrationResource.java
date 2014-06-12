@@ -52,7 +52,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
-import org.structr.web.entity.mail.MailTemplate;
+import org.structr.core.entity.MailTemplate;
 import org.structr.web.servlet.HtmlServlet;
 
 //~--- classes ----------------------------------------------------------------
@@ -65,7 +65,7 @@ import org.structr.web.servlet.HtmlServlet;
 public class RegistrationResource extends Resource {
 
 	private static final Logger logger = Logger.getLogger(RegistrationResource.class.getName());
-	
+
 	private enum TemplateKey {
 		SENDER_NAME,
 		SENDER_ADDRESS,
@@ -83,7 +83,7 @@ public class RegistrationResource extends Resource {
 
 	private static String localeString;
 	private static String confKey;
-	
+
 	//~--- methods --------------------------------------------------------
 
 	@Override
@@ -111,84 +111,77 @@ public class RegistrationResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		
+
 		boolean existingUser = false;
-		
+
 		if (propertySet.containsKey(User.eMail.jsonName())) {
-			
+
 			final Principal user;
-			
+
 			final String emailString  = (String) propertySet.get(User.eMail.jsonName());
-			
+
 			if (StringUtils.isEmpty(emailString)) {
 				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 			}
-			
+
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
 			confKey = UUID.randomUUID().toString();
-			
+
 			Result result = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getResult();
 			if (!result.isEmpty()) {
-				
+
 				final App app = StructrApp.getInstance(securityContext);
 				user = (Principal) result.get(0);
-				
+
 				// For existing users, update confirmation key
 				user.setProperty(User.confirmationKey, confKey);
-				
+
 				existingUser = true;
 
-				
+
 			} else {
 
 				Authenticator auth = securityContext.getAuthenticator();
 				user = createUser(securityContext, User.eMail, emailString, propertySet, auth.getUserAutoCreate(), auth.getUserClass());
 			}
-			
+
 			if (user != null) {
 
 				if (!sendInvitationLink(user, propertySet)) {
-					
+
 					// return 400 Bad request
 					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-					
+
 				}
-				
+
 				// If we have just updated the confirmation key for an existing user,
 				// return 200 to distinguish from new users
 				if (existingUser) {
-					
+
 					// return 200 OK
 					return new RestMethodResult(HttpServletResponse.SC_OK);
-					
+
 				} else {
-				
+
 					// return 201 Created
 					return new RestMethodResult(HttpServletResponse.SC_CREATED);
-					
+
 				}
 
 			} else {
-				
+
 				// return 400 Bad request
 				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-				
+
 			}
-			
+
 
 		} else {
 
 			// return 400 Bad request
 			return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-		
+
 		}
-
-	}
-
-	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-
-		throw new NotAllowedException();
 
 	}
 
@@ -209,7 +202,7 @@ public class RegistrationResource extends Resource {
 	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST) {
 
 		Map<String, String> replacementMap = new HashMap();
-		
+
 		// Populate the replacement map with all POSTed values
 		// WARNING! This is unchecked user input!!
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
@@ -217,7 +210,7 @@ public class RegistrationResource extends Resource {
 		final String userEmail = user.getProperty(User.eMail);
 		final String appHost   = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HOST);
 		final String httpPort  = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HTTP_PORT);
-		
+
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
 			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort)
@@ -245,168 +238,168 @@ public class RegistrationResource extends Resource {
 			logger.log(Level.SEVERE, "Unable to send registration e-mail", e);
 			return false;
 		}
-		
+
 		return true;
 
 	}
 
 	private String getTemplateText(final TemplateKey key, final String defaultValue) {
-		
+
 		try {
-			
+
 			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(key.name());
-			
+
 			if (localeString != null) {
 				query.and(MailTemplate.locale, localeString);
 			}
-			
+
 			MailTemplate template = query.getFirst();
 			if (template != null) {
-				
+
 				final String text = template.getProperty(MailTemplate.text);
 				return text != null ? text : defaultValue;
-				
+
 			} else {
-				
+
 				return defaultValue;
-				
+
 			}
-			
+
 		} catch (FrameworkException ex) {
-			
+
 			Logger.getLogger(RegistrationResource.class.getName()).log(Level.WARNING, "Could not get mail template for key " + key, ex);
-			
+
 		}
-		
+
 		return null;
-		
+
 	}
-	
+
 	private static void populateReplacementMap(final Map<String, String> replacementMap, final Map<String, Object> props) {
-		
+
 		for (Entry<String, Object> entry : props.entrySet()) {
-			
+
 			replacementMap.put(toPlaceholder(entry.getKey()), entry.getValue().toString());
-			
+
 		}
-		
+
 	}
-	
+
 	private static String toPlaceholder(final String key) {
 
 		return "${".concat(key).concat("}");
 
 	}
-	
+
 	/**
 	 * Create a new user.
-	 * 
+	 *
 	 * If a {@link Person} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
-	 * 
+	 *
 	 * @param securityContext
 	 * @param credentialKey
 	 * @param credentialValue
-	 * @return 
+	 * @return
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue) {
-		
+
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP);
-		
-	}	
-	
+
+	}
+
 	/**
 	 * Create a new user.
-	 * 
+	 *
 	 * If a {@link Person} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
-	 * 
+	 *
 	 * @param securityContext
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param propertySet
-	 * @return 
+	 * @return
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet) {
-		
+
 		return createUser(securityContext, credentialKey, credentialValue, propertySet, false);
-		
-	}	
+
+	}
 
 	/**
 	 * Create a new user.
-	 * 
+	 *
 	 * If a {@link Person} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
-	 * 
+	 *
 	 * @param securityContext
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param autoCreate
-	 * @return 
+	 * @return
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate) {
-		
+
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate);
-		
-	}	
+
+	}
 
 	/**
 	 * Create a new user.
-	 * 
+	 *
 	 * If a {@link Person} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
-	 * 
+	 *
 	 * @param securityContext
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param autoCreate
 	 * @param userClass
-	 * @return 
+	 * @return
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass) {
-		
+
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userClass);
-		
-	}	
+
+	}
 
 	/**
 	 * Create a new user.
-	 * 
+	 *
 	 * If a {@link Person} is found, convert that object to a {@link User} object.
 	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
-	 * 
+	 *
 	 * @param securityContext
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param propertySet
 	 * @param autoCreate
-	 * @return 
+	 * @return
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate) {
-		
+
 		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, User.class);
-		
-	}	
-		
+
+	}
+
 	/**
 	 * Create a new user.
-	 * 
+	 *
 	 * If a {@link Person} is found, convert that object to a {@link User} object.
 	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
-	 * 
+	 *
 	 * @param securityContext
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param propertySet
 	 * @param autoCreate
 	 * @param userClass
-	 * @return 
+	 * @return
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass) {
 
 		Principal user = null;
-		
+
 		try {
 
 			// First, search for a person with that e-mail address
@@ -419,7 +412,7 @@ public class RegistrationResource extends Resource {
 				user.setProperty(AbstractNode.type, User.class.getSimpleName());
 
 				user = new User();
-				
+
 				user.init(securityContext, user.getNode());
 
 
@@ -431,9 +424,9 @@ public class RegistrationResource extends Resource {
 				propertySet.remove(credentialKey.jsonName());
 				propertySet.remove(User.name.jsonName());
 				propertySet.remove(User.confirmationKey.jsonName());
-				
+
 				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, propertySet);
-				
+
 				props.put(credentialKey, credentialValue);
 				props.put(User.name, credentialValue);
 				props.put(User.confirmationKey, confKey);
@@ -441,18 +434,18 @@ public class RegistrationResource extends Resource {
 				user = (Principal) StructrApp.getInstance(securityContext).create(userClass, props);
 
 			}
-			
+
 		} catch (FrameworkException ex) {
-			
+
 			logger.log(Level.SEVERE, null, ex);
-			
+
 		}
-		
+
 		return user;
-		
+
 	}
-	
-	
+
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override

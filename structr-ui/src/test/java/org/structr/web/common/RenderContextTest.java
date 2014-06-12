@@ -4,10 +4,14 @@ import java.util.Date;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.parser.Functions;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -103,6 +107,13 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals(p3, paragraphs.item(2));
 			assertEquals(p4, paragraphs.item(3));
 
+			// create users
+			final User tester1 = app.create(User.class, new NodeAttribute<>(User.name, "tester1"), new NodeAttribute<>(User.eMail, "tester1@test.com"));
+			final User tester2 = app.create(User.class, new NodeAttribute<>(User.name, "tester2"), new NodeAttribute<>(User.eMail, "tester2@test.com"));
+
+			assertNotNull("User tester1 should exist.", tester1);
+			assertNotNull("User tester2 should exist.", tester2);
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -116,7 +127,7 @@ public class RenderContextTest extends StructrUiTest {
 			ctx.setPage(page);
 
 			// test for "empty" return value
-			assertEquals("", p1.replaceVariables(securityContext, ctx, "${error}"));
+			assertEquals("", p1.replaceVariables(securityContext, ctx, "${err}"));
 			assertEquals("", p1.replaceVariables(securityContext, ctx, "${this.error}"));
 			assertEquals("", p1.replaceVariables(securityContext, ctx, "${this.this.this.error}"));
 			assertEquals("", p1.replaceVariables(securityContext, ctx, "${parent.error}"));
@@ -142,11 +153,33 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid replacement result", a.getUuid(), a.replaceVariables(securityContext, ctx, "${get(find('A'), 'id')}"));
 
 			// this test finds multiple <p> elements => error
-			assertEquals("Invalid replacement result", AbstractNode.ERROR_MESSAGE_GET_ENTITY, a.replaceVariables(securityContext, ctx, "${get(find('P'), 'id')}"));
+			assertEquals("Invalid replacement result", Functions.ERROR_MESSAGE_GET_ENTITY, a.replaceVariables(securityContext, ctx, "${get(find('P'), 'id')}"));
 
 			// more complex replacement
 			//assertEquals("Invalid replacement result", "", a.replaceVariables(securityContext, ctx, "${get(find('P'), 'id')}"));
 
+			// String default value
+			assertEquals("bar", p1.replaceVariables(securityContext, ctx, "${request.foo!bar}"));
+
+			// Number default value (will be evaluated to a string)
+			assertEquals("1", p1.replaceVariables(securityContext, ctx, "${page.position!1}"));
+
+			// Number default value
+			assertEquals("true", p1.replaceVariables(securityContext, ctx, "${equal(42, this.null!42)}"));
+
+
+			final User tester1 = app.nodeQuery(User.class).andName("tester1").getFirst();
+			final User tester2 = app.nodeQuery(User.class).andName("tester2").getFirst();
+
+			assertNotNull("User tester1 should exist.", tester1);
+			assertNotNull("User tester2 should exist.", tester2);
+
+			final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
+			final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
+
+			// users
+			assertEquals("tester1", p1.replaceVariables(tester1Context, ctx, "${me.name}"));
+			assertEquals("tester2", p1.replaceVariables(tester2Context, ctx, "${me.name}"));
 
 		} catch (FrameworkException fex) {
 

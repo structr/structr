@@ -3,40 +3,23 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.common;
 
-import org.structr.core.property.PropertyMap;
-import junit.framework.TestCase;
-
-import org.apache.commons.io.FileUtils;
-
-import org.neo4j.graphdb.GraphDatabaseService;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.GraphDatabaseCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.File;
 import java.io.IOException;
-
 import java.net.URL;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -45,20 +28,30 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
+import org.structr.core.property.PropertyMap;
 import org.structr.module.JarConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * Base class for all structr tests
  *
@@ -71,25 +64,28 @@ public class StructrTest extends TestCase {
 	private static final Logger logger = Logger.getLogger(StructrTest.class.getName());
 
 	//~--- fields ---------------------------------------------------------
-
 	protected GraphDatabaseCommand graphDbCommand = null;
-	protected SecurityContext securityContext     = null;
-	protected ReadLogCommand readLogCommand       = null;
-	protected WriteLogCommand writeLogCommand     = null;
-	protected String basePath                     =  null;
-	protected App app                             =  null;
-
-	//~--- methods --------------------------------------------------------
+	protected SecurityContext securityContext = null;
+	protected ReadLogCommand readLogCommand = null;
+	protected WriteLogCommand writeLogCommand = null;
+	protected String basePath = null;
+	protected App app = null;
 	
+	@Rule
+	public TestRule watcher = new TestWatcher() {
+		@Override
+		protected void starting(Description description) {
+			System.out.println("Starting test: " + description.getMethodName());
+		}
+	};
+	
+	//~--- methods --------------------------------------------------------
+
 	public void test00DbAvailable() {
 
 		GraphDatabaseService graphDb = graphDbCommand.execute();
 
 		assertTrue(graphDb != null);
-
-		System.out.println("\n######################################################################################");
-		System.out.println("######                           Executing Test "+ getClass().getSimpleName());
-		System.out.println("######################################################################################");
 	}
 
 	@Override
@@ -102,24 +98,30 @@ public class StructrTest extends TestCase {
 			if (testDir.isDirectory()) {
 
 				FileUtils.deleteDirectory(testDir);
-				
+
 			} else {
 
 				testDir.delete();
 			}
-			
-		} catch(Throwable t) {
+
+		} catch (Throwable t) {
 		}
 
 		super.tearDown();
 
+		System.out.println("######################################################################################");
+		System.out.println("# " + getClass().getSimpleName() + "#" + getName() + " finished.");
+		System.out.println("######################################################################################\n");
+
 	}
 
 	/**
-	 * Recursive method used to find all classes in a given directory and subdirs.
+	 * Recursive method used to find all classes in a given directory and
+	 * subdirs.
 	 *
-	 * @param directory   The base directory
-	 * @param packageName The package name for classes found inside the base directory
+	 * @param directory The base directory
+	 * @param packageName The package name for classes found inside the base
+	 * directory
 	 * @return The classes
 	 * @throws ClassNotFoundException
 	 */
@@ -154,7 +156,7 @@ public class StructrTest extends TestCase {
 	}
 
 	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number, final long delay) throws FrameworkException {
-		
+
 		try (final Tx tx = app.tx()) {
 
 			List<T> nodes = new LinkedList<>();
@@ -165,7 +167,8 @@ public class StructrTest extends TestCase {
 
 				try {
 					Thread.sleep(delay);
-				} catch (InterruptedException ex) {}
+				} catch (InterruptedException ex) {
+				}
 			}
 
 			tx.success();
@@ -173,21 +176,21 @@ public class StructrTest extends TestCase {
 			return nodes;
 
 		} catch (Throwable t) {
-			
+
 			t.printStackTrace();
 		}
-		
+
 		return null;
 	}
 
 	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
-		
+
 		return createTestNodes(type, number, 0);
 
 	}
 
 	protected <T extends AbstractNode> T createTestNode(final Class<T> type) throws FrameworkException {
-		return (T)createTestNode(type, new PropertyMap());
+		return (T) createTestNode(type, new PropertyMap());
 	}
 
 	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
@@ -199,7 +202,7 @@ public class StructrTest extends TestCase {
 			final T newNode = app.create(type, props);
 
 			tx.success();
-		
+
 			return newNode;
 		}
 
@@ -207,9 +210,9 @@ public class StructrTest extends TestCase {
 
 	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
 
-		List<GenericNode> nodes     = createTestNodes(GenericNode.class, 2);
+		List<GenericNode> nodes = createTestNodes(GenericNode.class, 2);
 		final NodeInterface startNode = nodes.get(0);
-		final NodeInterface endNode   = nodes.get(1);
+		final NodeInterface endNode = nodes.get(1);
 
 		try (final Tx tx = app.tx()) {
 
@@ -217,7 +220,7 @@ public class StructrTest extends TestCase {
 
 			for (int i = 0; i < number; i++) {
 
-				rels.add((T)app.create(startNode, endNode, relType));
+				rels.add((T) app.create(startNode, endNode, relType));
 			}
 
 			tx.success();
@@ -231,7 +234,7 @@ public class StructrTest extends TestCase {
 
 		try (final Tx tx = app.tx()) {
 
-			final T rel = (T)app.create(startNode, endNode, relType);
+			final T rel = (T) app.create(startNode, endNode, relType);
 
 			tx.success();
 
@@ -251,37 +254,38 @@ public class StructrTest extends TestCase {
 	protected <T> List<T> toList(T... elements) {
 		return Arrays.asList(elements);
 	}
-	
+
 	protected Map<String, Object> toMap(final String key1, final Object value1) {
 		return toMap(key1, value1, null, null);
 	}
-	
+
 	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2) {
 		return toMap(key1, value1, key2, value2, null, null);
 	}
+
 	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2, final String key3, final Object value3) {
-		
+
 		final Map<String, Object> map = new LinkedHashMap<>();
-		
+
 		if (key1 != null && value1 != null) {
 			map.put(key1, value1);
 		}
-		
+
 		if (key2 != null && value2 != null) {
 			map.put(key2, value2);
 		}
-		
+
 		if (key3 != null && value3 != null) {
 			map.put(key3, value3);
 		}
-		
+
 		return map;
 	}
-	
-	//~--- get methods ----------------------------------------------------
 
+	//~--- get methods ----------------------------------------------------
 	/**
-	 * Get classes in given package and subpackages, accessible from the context class loader
+	 * Get classes in given package and subpackages, accessible from the
+	 * context class loader
 	 *
 	 * @param packageName The base package
 	 * @return The classes
@@ -294,9 +298,9 @@ public class StructrTest extends TestCase {
 
 		assert classLoader != null;
 
-		String path                = packageName.replace('.', '/');
+		String path = packageName.replace('.', '/');
 		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs            = new ArrayList<>();
+		List<File> dirs = new ArrayList<>();
 
 		while (resources.hasMoreElements()) {
 
@@ -320,10 +324,14 @@ public class StructrTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
+		System.out.println("\n######################################################################################");
+		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
+		System.out.println("######################################################################################");
+
 		final StructrConf config = Services.getBaseConfiguration();
-		final Date now           = new Date();
-		final long timestamp     = now.getTime();
-		
+		final Date now = new Date();
+		final long timestamp = now.getTime();
+
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService");
@@ -337,20 +345,23 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.UDP_PORT, "13466");
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-		
+
 		final Services services = Services.getInstance(config);
 
-		securityContext		= SecurityContext.getSuperUserInstance();
-		app			= StructrApp.getInstance(securityContext);
-		
-		graphDbCommand            = app.command(GraphDatabaseCommand.class);
-		writeLogCommand           = app.command(WriteLogCommand.class);
-		readLogCommand            = app.command(ReadLogCommand.class);
+		securityContext = SecurityContext.getSuperUserInstance();
+		app = StructrApp.getInstance(securityContext);
+
+		graphDbCommand = app.command(GraphDatabaseCommand.class);
+		writeLogCommand = app.command(WriteLogCommand.class);
+		readLogCommand = app.command(ReadLogCommand.class);
 
 		// wait for service layer to be initialized
 		do {
-			try { Thread.sleep(100); } catch(Throwable t) {}
-			
-		} while(!services.isInitialized());
+			try {
+				Thread.sleep(100);
+			} catch (Throwable t) {
+			}
+
+		} while (!services.isInitialized());
 	}
 }

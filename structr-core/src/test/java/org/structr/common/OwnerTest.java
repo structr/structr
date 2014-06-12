@@ -50,7 +50,7 @@ import org.structr.core.Ownership;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.User;
+import org.structr.core.entity.TestUser;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -79,19 +79,19 @@ public class OwnerTest extends StructrTest {
 
 		try {
 		
-			User user1 = null;
-			User user2 = null;
+			TestUser user1 = null;
+			TestUser user2 = null;
 			TestOne t1 = null;
 			Class type = TestOne.class;
 
 			final App superUserApp = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				List<User> users = createTestNodes(User.class, 2);
-				user1 = (User) users.get(0);
+				List<TestUser> users = createTestNodes(TestUser.class, 2);
+				user1 = (TestUser) users.get(0);
 				user1.setProperty(AbstractNode.name, "user1");
 				
-				user2 = (User) users.get(1);
+				user2 = (TestUser) users.get(1);
 				user2.setProperty(AbstractNode.name, "user2");
 
 				t1 = createTestNode(TestOne.class);
@@ -159,8 +159,8 @@ public class OwnerTest extends StructrTest {
 		
 		try (final Tx tx = app.tx()) {
 
-			List<User> users = createTestNodes(User.class, 2);
-			User user1 = (User) users.get(0);
+			List<TestUser> users = createTestNodes(TestUser.class, 2);
+			TestUser user1 = (TestUser) users.get(0);
 
 			List<Group> groups = createTestNodes(Group.class, 1);
 			Group group1 = (Group) groups.get(0);

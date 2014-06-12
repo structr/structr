@@ -37,6 +37,7 @@ import org.structr.core.Adapter;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -183,12 +184,20 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void updateFrom(final DOMNode source) throws FrameworkException {
+	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 
-		// will throw a ClassCastException here (which is desired behaviour)
-		final Content contentSource = (Content)source;
+		if (newNode instanceof Content) {
 
-		this.setProperty(Content.content, contentSource.getProperty(Content.content));
+			final PropertyMap properties = new PropertyMap();
+			properties.put(Content.content, newNode.getProperty(Content.content));
+
+			updateFromPropertyMap(properties);
+		}
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+		this.setProperty(Content.content, properties.get(Content.content));
 	}
 
 	@Override

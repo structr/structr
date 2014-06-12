@@ -50,7 +50,7 @@ tmp.path = /tmp
 configuration.provider = org.structr.module.JarConfigurationProvider
 #
 # Configure services to automatically run at start-up
-configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService
+configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService
 #
 # Support migration from 0.8.x and earlier versions
 #NodeService.migration = true
@@ -64,15 +64,16 @@ superuser.password =
 # Indent JSON
 json.indentation = true
 #
-# Neo4j shell on port 1337
+# Neo4j shell
 neo4j.shell.enabled = true
+neo4j.shell.port = 1337
 #
 # E-Mail settings: Set host and port of an MTA Structr will use to send e-mails
 smtp.host = localhost
 smtp.port = 25
 #
 # Ports for low-level binary protocols
-#tcp.port = 54555
+tcp.port = 54555
 #udp.port = 57555
 #
 #############################################################################
@@ -84,6 +85,9 @@ smtp.port = 25
 #
 # Available servlets
 HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet
+#
+# Work asynchronously
+#HttpService.async = false
 #
 # JSON/REST servlet
 JsonRestServlet.authenticator = org.structr.web.auth.UiAuthenticator

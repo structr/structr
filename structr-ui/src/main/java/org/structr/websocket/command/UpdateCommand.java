@@ -3,41 +3,35 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket.command;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.core.graph.NodeInterface;
-import org.structr.web.entity.dom.relationship.DOMChildren;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author Christian Morgner
@@ -45,22 +39,20 @@ import org.structr.websocket.StructrWebSocket;
 public class UpdateCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
-	
+
 	static {
-		
+
 		StructrWebSocket.addCommand(UpdateCommand.class);
 
 	}
 
 	//~--- methods --------------------------------------------------------
-
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
-		
 
-		GraphObject obj  = getNode(webSocketData.getId());
+		GraphObject obj = getNode(webSocketData.getId());
 		Boolean recValue = (Boolean) webSocketData.getNodeData().get("recursive");
-		
+
 		boolean rec = recValue != null ? recValue : false;
 
 		webSocketData.getNodeData().remove("recursive");
@@ -70,13 +62,13 @@ public class UpdateCommand extends AbstractCommand {
 			if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.write)) {
 
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
-				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] { getWebSocket().getCurrentUser().toString(), obj.toString() });
+				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
 				return;
-				
+
 			}
-			
+
 		}
-		
+
 		if (obj == null) {
 
 			// No node? Try to find relationship
@@ -106,7 +98,6 @@ public class UpdateCommand extends AbstractCommand {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 
@@ -115,29 +106,26 @@ public class UpdateCommand extends AbstractCommand {
 	}
 
 	//~--- set methods ----------------------------------------------------
-
 	private void setProperties(final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
 		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
 			PropertyKey key = entry.getKey();
-			Object value    = entry.getValue();
+			Object value = entry.getValue();
 
 			obj.setProperty(key, value);
 
-			if (rec && obj instanceof AbstractNode) {
+			if (rec && obj instanceof LinkedTreeNode) {
 
-				AbstractNode node = (AbstractNode) obj;
+				LinkedTreeNode node = (LinkedTreeNode) obj;
 
-				for (DOMChildren rel : node.getOutgoingRelationships(DOMChildren.class)) {
+				for (Object child : node.treeGetChildren()) {
 
-					NodeInterface endNode = rel.getTargetNode();
-					if (endNode != null) {
+					setProperties((GraphObject) child, properties, true);
 
-						setProperties(endNode, properties, rec);
-					}
 				}
 			}
 		}
 	}
+
 }

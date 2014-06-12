@@ -1,5 +1,16 @@
-(function() {
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    mod(require("../../lib/codemirror"));
+  else if (typeof define == "function" && define.amd) // AMD
+    define(["../../lib/codemirror"], mod);
+  else // Plain browser env
+    mod(CodeMirror);
+})(function(CodeMirror) {
   "use strict";
+  // declare global: diff_match_patch, DIFF_INSERT, DIFF_DELETE, DIFF_EQUAL
 
   var Pos = CodeMirror.Pos;
   var svgNS = "http://www.w3.org/2000/svg";
@@ -28,39 +39,67 @@
       this.edit = this.mv.edit;
       this.orig = CodeMirror(pane, copyObj({value: orig, readOnly: true}, copyObj(options)));
 
-      this.diff = getDiff(orig, options.value);
+      this.diff = getDiff(asString(orig), asString(options.value));
       this.diffOutOfDate = false;
 
+      this.showDifferences = options.showDifferences !== false;
       this.forceUpdate = registerUpdate(this);
       setScrollLock(this, true, false);
       registerScroll(this);
+    },
+    setShowDifferences: function(val) {
+      val = val !== false;
+      if (val != this.showDifferences) {
+        this.showDifferences = val;
+        this.forceUpdate("full");
+      }
     }
   };
+
+  function ensureDiff(dv) {
+    if (dv.diffOutOfDate) {
+      dv.diff = getDiff(dv.orig.getValue(), dv.edit.getValue());
+      dv.diffOutOfDate = false;
+      CodeMirror.signal(dv.edit, "updateDiff", dv.diff);
+    }
+  }
 
   function registerUpdate(dv) {
     var edit = {from: 0, to: 0, marked: []};
     var orig = {from: 0, to: 0, marked: []};
     var debounceChange;
-    function update() {
-      if (dv.diffOutOfDate) {
-        dv.diff = getDiff(dv.orig.getValue(), dv.edit.getValue());
-        dv.diffOutOfDate = false;
+    function update(mode) {
+      if (mode == "full") {
+        if (dv.svg) clear(dv.svg);
+        clear(dv.copyButtons);
+        clearMarks(dv.edit, edit.marked, dv.classes);
+        clearMarks(dv.orig, orig.marked, dv.classes);
+        edit.from = edit.to = orig.from = orig.to = 0;
       }
-      updateMarks(dv.edit, dv.diff, edit, DIFF_INSERT, dv.classes);
-      updateMarks(dv.orig, dv.diff, orig, DIFF_DELETE, dv.classes);
+      ensureDiff(dv);
+      if (dv.showDifferences) {
+        updateMarks(dv.edit, dv.diff, edit, DIFF_INSERT, dv.classes);
+        updateMarks(dv.orig, dv.diff, orig, DIFF_DELETE, dv.classes);
+      }
       drawConnectors(dv);
     }
     function set(slow) {
       clearTimeout(debounceChange);
       debounceChange = setTimeout(update, slow == true ? 250 : 100);
     }
-    dv.edit.on("change", function() {
+    function change() {
       if (!dv.diffOutOfDate) {
         dv.diffOutOfDate = true;
         edit.from = edit.to = orig.from = orig.to = 0;
       }
       set(true);
-    });
+    }
+    dv.edit.on("change", change);
+    dv.orig.on("change", change);
+    dv.edit.on("markerAdded", set);
+    dv.edit.on("markerCleared", set);
+    dv.orig.on("markerAdded", set);
+    dv.orig.on("markerCleared", set);
     dv.edit.on("viewportChange", set);
     dv.orig.on("viewportChange", set);
     update();
@@ -133,7 +172,7 @@
       var mark = arr[i];
       if (mark instanceof CodeMirror.TextMarker) {
         mark.clear();
-      } else {
+      } else if (mark.parent) {
         editor.removeLineClass(mark, "background", classes.chunk);
         editor.removeLineClass(mark, "background", classes.start);
         editor.removeLineClass(mark, "background", classes.end);
@@ -211,6 +250,8 @@
   // Updating the gap between editor and original
 
   function drawConnectors(dv) {
+    if (!dv.showDifferences) return;
+
     if (dv.svg) {
       clear(dv.svg);
       var w = dv.gap.offsetWidth;
@@ -322,8 +363,23 @@
     constuctor: MergeView,
     editor: function() { return this.edit; },
     rightOriginal: function() { return this.right && this.right.orig; },
-    leftOriginal: function() { return this.left && this.left.orig; }
+    leftOriginal: function() { return this.left && this.left.orig; },
+    setShowDifferences: function(val) {
+      if (this.right) this.right.setShowDifferences(val);
+      if (this.left) this.left.setShowDifferences(val);
+    },
+    rightChunks: function() {
+      return this.right && getChunks(this.right);
+    },
+    leftChunks: function() {
+      return this.left && getChunks(this.left);
+    }
   };
+
+  function asString(obj) {
+    if (typeof obj == "string") return obj;
+    else return obj.getValue();
+  }
 
   // Operations on diffs
 
@@ -365,6 +421,16 @@
     }
     if (startEdit <= edit.line || startOrig <= orig.line)
       f(startOrig, orig.line + 1, startEdit, edit.line + 1);
+  }
+
+  function getChunks(dv) {
+    ensureDiff(dv);
+    var collect = [];
+    iterateChunks(dv.diff, function(topOrig, botOrig, topEdit, botEdit) {
+      collect.push({origFrom: topOrig, origTo: botOrig,
+                    editFrom: topEdit, editTo: botEdit});
+    });
+    return collect;
   }
 
   function endOfLineClean(diff, i) {
@@ -444,4 +510,4 @@
   function posMin(a, b) { return (a.line - b.line || a.ch - b.ch) < 0 ? a : b; }
   function posMax(a, b) { return (a.line - b.line || a.ch - b.ch) > 0 ? a : b; }
   function posEq(a, b) { return a.line == b.line && a.ch == b.ch; }
-})();
+});

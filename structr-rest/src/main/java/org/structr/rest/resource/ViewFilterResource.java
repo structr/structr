@@ -18,25 +18,20 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Value;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
+import org.structr.core.Value;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -101,24 +96,19 @@ public class ViewFilterResource extends WrappingResource {
 	}
 
 	@Override
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
 	public void configurePropertyView(Value<String> propertyView) {
-		
+
 		try {
 			propertyView.set(securityContext, this.propertyView);
-			
+
 		} catch(FrameworkException fex) {
-			
+
 			logger.log(Level.WARNING, "Unable to configure property view", fex);
 		}
 	}
 
 	//~--- get methods ----------------------------------------------------
-	
+
 	@Override
 	public String getResourceSignature() {
 
@@ -134,7 +124,7 @@ public class ViewFilterResource extends WrappingResource {
 
 				// re-use pattern matcher for better performance
 				matcher.reset(subPart);
-				
+
 				if (!matcher.matches()) {
 
 					signature.append(subPart);
@@ -151,16 +141,20 @@ public class ViewFilterResource extends WrappingResource {
 		}
 
 		if (propertyView != null) {
-			
+
 			// append view / scope part
 			if (!signature.toString().endsWith("/")) {
 				signature.append("/");
 			}
-			
+
 			signature.append("_");
 			signature.append(SchemaHelper.normalizeEntityName(propertyView));
 		}
 
 		return StringUtils.stripEnd(signature.toString(), "/");
+	}
+	
+	public String getPropertyView() {
+		return propertyView;
 	}
 }

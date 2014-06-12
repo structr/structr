@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
@@ -45,6 +46,7 @@ import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.IntProperty;
@@ -65,6 +67,7 @@ import org.structr.web.entity.Linkable;
 import static org.structr.web.entity.Linkable.linkingElements;
 import static org.structr.web.entity.dom.DOMNode.children;
 import org.structr.web.entity.html.Html;
+import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.entity.relation.PageLink;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -123,8 +126,21 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public void updateFrom(final DOMNode source) throws FrameworkException {
+	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 		// do nothing
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+
+		if (properties.containsKey(NodeInterface.name)) {
+
+			final String newName = properties.get(NodeInterface.name);
+			if (newName != null) {
+
+				setProperty(NodeInterface.name, newName);
+			}
+		}
 	}
 
 	@Override
@@ -1049,4 +1065,18 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return null;
 	}
 
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData() {
+
+		final List<Syncable> data = super.getSyncData();
+
+		data.addAll(getProperty(Linkable.linkingElements));
+
+		for (final ResourceLink link : getRelationships(ResourceLink.class)) {
+			data.add(link);
+		}
+
+		return data;
+	}
 }

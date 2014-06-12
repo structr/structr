@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>1.0.RC2</version>
+		<version>1.0.RC3</version>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-ui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.RC2</version>
+	<version>1.0.RC3</version>
 	<name>structr-ui</name>
 	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
 	<developers>
@@ -166,6 +166,11 @@
             <artifactId>xalan</artifactId>
             <version>2.7.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware.kryo</groupId>
+            <artifactId>kryo</artifactId>
+            <version>2.21</version>
+        </dependency>
     </dependencies>
     <build>
         <resources>
@@ -205,6 +210,9 @@
                     <forkCount>1</forkCount>
                     <reuseForks>false</reuseForks>
                     <argLine>-server -Xmx512m -XX:MaxPermSize=128m -XX:+UseNUMA -Dfile.encoding=utf-8</argLine>
+                    <systemPropertyVariables>
+                        <user.timezone>UTC</user.timezone>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
             <plugin>
