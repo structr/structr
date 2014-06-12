@@ -37,13 +37,11 @@
 
 package org.structr.common;
 
-import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
@@ -85,7 +83,7 @@ public class SearchTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 				String name;
 
@@ -100,24 +98,25 @@ public class SearchTest extends StructrTest {
 					node.setProperty(AbstractNode.name, name);
 
 				}
-				
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result<TestOne> result = app.nodeQuery(type).getResult();
 
 				assertEquals(4, result.size());
-				
+
 				for (NodeInterface node : result.getResults()) {
 					System.out.println(node);
 				}
-				
+
 				result = app.nodeQuery(type).andName("TestOne-12").getResult();
-				
+
 				assertEquals(1, result.size());
 
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -141,7 +140,7 @@ public class SearchTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 				String name;
 
@@ -156,15 +155,17 @@ public class SearchTest extends StructrTest {
 					node.setProperty(AbstractNode.name, name);
 
 				}
-				
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).and(TestOne.name, "TestOne-13").getResult();
 
 				assertEquals(1, result.size());
+
+				tx.success();
 
 			}
 
@@ -189,7 +190,7 @@ public class SearchTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 				String name;
 
@@ -204,15 +205,17 @@ public class SearchTest extends StructrTest {
 					node.setProperty(AbstractNode.name, name);
 
 				}
-				
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).and(TestOne.name, "testone", false).getResult();
 
 				assertEquals(4, result.size());
+
+				tx.success();
 
 			}
 
@@ -237,7 +240,7 @@ public class SearchTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 				String name;
 
@@ -252,15 +255,17 @@ public class SearchTest extends StructrTest {
 					node.setProperty(AbstractNode.name, name);
 
 				}
-				
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).and(TestOne.name, "TestOne", false).getResult();
 
 				assertEquals(4, result.size());
+
+				tx.success();
 
 			}
 
@@ -272,5 +277,4 @@ public class SearchTest extends StructrTest {
 		}
 
 	}
-
 }

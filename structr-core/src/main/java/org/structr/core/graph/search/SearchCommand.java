@@ -68,13 +68,13 @@ import org.structr.schema.ConfigurationProvider;
 public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
 
 	private static final Logger logger                        = Logger.getLogger(SearchCommand.class.getName());
-	
+
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
 	protected static final boolean PUBLIC_ONLY		  = false;
-	
+
 	private static final Set<Character> specialCharsExact = new LinkedHashSet<>();
 	private static final Set<Character> specialChars      = new LinkedHashSet<>();
-	
+
 	public static final String LOCATION_SEARCH_KEYWORD    = "location";
 	public static final String STATE_SEARCH_KEYWORD       = "state";
 	public static final String HOUSE_SEARCH_KEYWORD       = "house";
@@ -120,18 +120,18 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private int pageSize                       = Integer.MAX_VALUE;
 	private int page                           = 1;
 
-	
-	
+
+
 	// the value that will be indexed for "empty" fields
 	//public static final String EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
-	
+
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
 	public abstract Index<S> getFulltextIndex();
 	public abstract Index<S> getKeywordIndex();
 	public abstract LayerNodeIndex getSpatialIndex();
 
 	private Result<T> doSearch() throws FrameworkException {
-	
+
 		if (page == 0 || pageSize <= 0) {
 
 			return Result.EMPTY_RESULT;
@@ -142,11 +142,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		boolean hasGraphSources      = false;
 		boolean hasSpatialSource     = false;
 		final Index<S> index;
-		
+
 		if (securityContext.getUser(false) == null) {
 
 			and(GraphObject.visibleToPublicUsers, true);
-			
+
 		}
 
 		// At this point, all search attributes are ready
@@ -185,12 +185,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				hasGraphSources = true;
 			}
-			
+
 			if (attr instanceof EmptySearchAttribute) {
 				hasEmptySearchFields = true;
 			}
 		}
-		
+
 		Result intermediateResult;
 
 		// only do "normal" query if no other sources are present
@@ -251,7 +251,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 						}
 					}
 				}
-					
+
 				// instantiate spatial search results without paging,
 				// as the results must be filtered by type anyway
 				intermediateResult = new NodeFactory(securityContext).instantiate(hits);
@@ -321,7 +321,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			// We need to find out whether there was a source for any of the possible sets that we want to merge.
 			// If there was only a single source, the final result is the result of that source. If there are
 			// multiple sources, the result is the intersection of all the sources, depending on the occur flag.
-			
+
 			if (hasGraphSources) {
 
 				// merge sources according to their occur flag
@@ -331,23 +331,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 					// CHM 2014-02-24: preserve sorting of intermediate result, might be sorted by distance which we cannot reproduce easily
 					intermediateResultSet.retainAll(mergedSources);
-					
+
 				} else {
-					
+
 					intermediateResultSet.addAll(mergedSources);
 				}
 			}
-			
+
 			// CHM 2014-02-10: this is probably wrong but left here
 			// because I'm not sure, replaced by the code above
-			
+
 //			if (intermediateResultSet.isEmpty()) {
-//				
+//
 //				// merge sources according to their occur flag
 //				intermediateResultSet.addAll(mergeSources(sources));
-//				
+//
 //			} else if (!sources.isEmpty()) {
-//				
+//
 //				// merge sources according to their occur flag
 //				intermediateResultSet.retainAll(mergeSources(sources));
 //			}
@@ -373,7 +373,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			// sort list
 			Collections.sort(finalResult, new GraphObjectComparator(sortKey, sortDescending));
-			
+
 			// return paged final result
 			return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), resultCount, true, false);
 
@@ -383,68 +383,68 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			return intermediateResult;
 		}
 	}
-	
+
 	private Set<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
-		
+
 		Set<GraphObject> mergedResult = new LinkedHashSet<>();
 		boolean alreadyAdded          = false;
-		
+
 		for (Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {
-			
+
 			SourceSearchAttribute attr = it.next();
-			
+
 			if (!alreadyAdded) {
-				
+
 				mergedResult.addAll(attr.getResult());
 				alreadyAdded = true;
-				
+
 			} else {
-				
+
 				switch (attr.getOccur()) {
-					
+
 					case MUST:
-						
+
 						mergedResult.retainAll(attr.getResult());
 						break;
-						
+
 					case SHOULD:
-						
+
 						mergedResult.addAll(attr.getResult());
 						break;
-						
+
 					case MUST_NOT:
 						mergedResult.removeAll(attr.getResult());
 						break;
 				}
 			}
 		}
-		
-		
+
+
 		return mergedResult;
 	}
-	
+
 	@Override
 	public Result<T> getResult() throws FrameworkException {
 		return doSearch();
 	}
-	
+
 	@Override
 	public List<T> getAsList() throws FrameworkException {
 		return getResult().getResults();
 	}
-	
+
 	@Override
 	public T getFirst() throws FrameworkException {
 
 		final Result<T> result = getResult();
 		if (result.isEmpty()) {
-			
+
 			return null;
 		}
-		
+
 		return result.get(0);
 	}
-	
+
 	@Override
 	public boolean isExactSearch() {
 		return exactSearch;
@@ -455,107 +455,107 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> sort(final PropertyKey key) {
 		return sortAscending(key);
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> sortAscending(final PropertyKey key) {
-		
+
 		this.sortDescending = false;
 		this.sortKey = key;
-		
+
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> sortDescending(final PropertyKey key) {
 
 		this.sortDescending = true;
 		this.sortKey = key;
-		
+
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> order(final boolean descending) {
-		
+
 		this.sortDescending = descending;
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> pageSize(final int pageSize) {
 		this.pageSize = pageSize;
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> page(final int page) {
 		this.page = page;
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> publicOnly() {
 		this.publicOnly = true;
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> publicOnly(final boolean publicOnly) {
 		this.publicOnly = publicOnly;
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> exact(final boolean exact) {
 
 		if (!exact) {
-		
+
 			for (final SearchAttribute attr : rootGroup.getSearchAttributes()) {
-				
+
 				attr.setExactMatch(false);
 
 			}
 		}
-		
+
 		this.exactSearch = exact;
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> includeDeletedAndHidden() {
 		this.includeDeletedAndHidden = true;
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> includeDeletedAndHidden(final boolean includeDeletedAndHidden) {
 		this.includeDeletedAndHidden = includeDeletedAndHidden;
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> offsetId(final String offsetId) {
 		this.offsetId = offsetId;
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> uuid(final String uuid) {
 		return and(GraphObject.id, uuid);
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> andType(final Class type) {
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.MUST, exactSearch));
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> orType(final Class type) {
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.SHOULD, exactSearch));
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> andTypes(final Class type) {
 
@@ -568,28 +568,28 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// exit search group
 		parent();
-		
+
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> orTypes(final Class type) {
 
 		// create a new search group
 		or();
-		
+
 		for (final Class subtype : allSubtypes(type)) {
 			orType(subtype);
 		}
 
 		// exit search group
 		parent();
-		
+
 		return this;
 	}
-	
+
 	private void types(final Class type) {
-		
+
 		final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
 		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
 		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
@@ -638,151 +638,151 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> andName(final String name) {
 		return and(AbstractNode.name, name);
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> orName(final String name) {
 		return or(AbstractNode.name, name);
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> location(final String street, final String postalCode, final String city, final String country, final double distance) {
 		return location(street, null, postalCode, city, null, country, distance);
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance) {
 		return location(street, null, postalCode, city, state, country, distance);
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance) {
 		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(street, house, postalCode, city, state, country, distance, BooleanClause.Occur.MUST));
 		return this;
 	}
-	
+
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value) {
 		return and(key, value, true);
 	}
-	
+
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact) {
-		
+
 		exact(exact);
 		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, BooleanClause.Occur.MUST, value, exact, this));
-		
+
 		return this;
 	}
 
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyMap attributes) {
-		
+
 		for (final Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-			
+
 			final PropertyKey key = entry.getKey();
 			final Object value = entry.getValue();
-			
+
 			and(key, value);
 		}
-		
-		
+
+
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> and() {
-		
+
 		// create nested group that the user can add to
 		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, BooleanClause.Occur.MUST);
 
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
-		
+
 		return this;
 	}
-	
+
 	@Override
 	public <P> org.structr.core.app.Query<T> or(final PropertyKey<P> key, P value) {
 		return or(key, value, true);
 	}
-	
+
 	@Override
 	public <P> org.structr.core.app.Query<T> or(final PropertyKey<P> key, P value, final boolean exact) {
-		
+
 		exact(exact);
 		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, BooleanClause.Occur.SHOULD, value, exact, this));
-		
+
 		return this;
 	}
 
 	@Override
 	public <P> org.structr.core.app.Query<T> or(final PropertyMap attributes) {
-		
+
 		for (Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-			
+
 			final PropertyKey key = entry.getKey();
 			final Object value = entry.getValue();
-			
+
 			or(key, value);
 		}
-		
-		
+
+
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> notBlank(final PropertyKey key) {
-		
+
 		currentGroup.getSearchAttributes().add(new NotBlankSearchAttribute(key));
-		
+
 		return this;
 	}
-	
+
 	@Override
 	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
-		
+
 		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, BooleanClause.Occur.MUST));
 
 		return this;
 	}
-	
+
 	@Override
 	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
-		
+
 		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, BooleanClause.Occur.SHOULD));
 
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> or() {
-		
+
 		// create nested group that the user can add to
 		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, BooleanClause.Occur.SHOULD);
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
-		
+
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> not() {
-		
+
 		// create nested group that the user can add to
 		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, BooleanClause.Occur.MUST_NOT);
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
-		
+
 		return this;
 	}
-	
+
 	@Override
 	public org.structr.core.app.Query<T> parent() {
-		
+
 		// one level up
 		SearchAttributeGroup parent = currentGroup.getParent();
 		if (parent != null) {
-			
+
 			currentGroup = parent;
 		}
 
@@ -795,7 +795,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		currentGroup.getSearchAttributes().addAll(attributes);
 		return this;
 	}
-	
+
 	@Override
 	public Predicate<GraphObject> toPredicate() {
 		return new AndPredicate(rootGroup.getSearchAttributes());
@@ -803,21 +803,21 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public Iterator<T> iterator() {
-		
+
 		try {
 			return getAsList().iterator();
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			// there is no way to handle this elegantly with the
 			// current Iterator<> interface, so we just have to
 			// drop the exception here, which is ugly ugly ugly. :(
 			fex.printStackTrace();
 		}
-		
+
 		return null;
 	}
-	
+
 	// ----- static methods -----
 	public static String escapeForLucene(String input) {
 
@@ -839,34 +839,20 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return output.toString();
 
 	}
-	
+
 	// ----- public static methods -----
 	public static Set<Class> allSubtypes(final Class type) {
-		
+
 		final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
 		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
 		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
 		final Set<Class> allSubtypes                                          = new LinkedHashSet<>();
 
-		/* FIXME: how can that work at all???????
-		if (type == null) {
+		// add type first (this is neccesary because two class objects of the same dynamic type node are not equal
+		// to each other and not assignable, if the schema node was modified in the meantime)
+		allSubtypes.add(type);
 
-			// no entity class for the given type found, examine interface types and subclasses
-			Set<Class> classesForInterface = configuration.getClassesForInterface(type.getSimpleName());
-
-			if (classesForInterface != null) {
-
-				for (Class clazz : classesForInterface) {
-
-					attrs.addAll(getTypeAndSubtypesInternal(clazz, isExactMatch));
-				}
-
-			}
-
-			return attrs;
-		}
-		*/
-
+		// scan all node entities for subtypes
 		for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
 
 			Class<? extends NodeInterface> entityClass = entity.getValue();
@@ -877,6 +863,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 		}
 
+		// scan all relationship entities for subtypes
 		for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
 
 			Class<? extends RelationshipInterface> entityClass = entity.getValue();
@@ -886,56 +873,56 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				allSubtypes.add(entityClass);
 			}
 		}
-		
+
 		return allSubtypes;
 	}
-	
+
 	public static Set<Class> typeAndAllSupertypes(final Class type) {
-		
+
 		final ConfigurationProvider configuration = StructrApp.getConfiguration();
 		final Set<Class> allSupertypes            = new LinkedHashSet<>();
-		
+
 		Class localType = type;
 
 		while (localType != null && !localType.equals(Object.class)) {
 
 			allSupertypes.add(localType);
 			allSupertypes.addAll(configuration.getInterfacesForType(localType));
-			
+
 			localType = localType.getSuperclass();
 
 		}
-		
+
 		// remove base types
 		allSupertypes.remove(RelationshipInterface.class);
 		allSupertypes.remove(AbstractRelationship.class);
 		allSupertypes.remove(NodeInterface.class);
 		allSupertypes.remove(AbstractNode.class);
-		
+
 		return allSupertypes;
 	}
-	
+
 	// ----- nested classes -----
 	private class AndPredicate implements Predicate<GraphObject> {
 
 		final List<Predicate<GraphObject>> predicates = new LinkedList<>();
 
 		public AndPredicate(final List<SearchAttribute> searchAttributes) {
-			
+
 			for (final SearchAttribute attr : searchAttributes) {
 
 				if (attr instanceof SearchAttributeGroup) {
-					
+
 					for (final SearchAttribute groupAttr : ((SearchAttributeGroup)attr).getSearchAttributes()) {
 						// ignore type search attributes as the nodes will
 						// already have the correct type when arriving here
 						if (groupAttr instanceof TypeSearchAttribute) {
 							continue;
 						}
-				
+
 						predicates.add(attr);
 					}
-					
+
 				} else {
 
 					// ignore type search attributes as the nodes will
@@ -943,7 +930,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					if (attr instanceof TypeSearchAttribute) {
 						continue;
 					}
-								
+
 					predicates.add(attr);
 				}
 			}
@@ -955,12 +942,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			boolean result = true;
 
 			for (Predicate<GraphObject> predicate : predicates) {
-				
+
 				result &= predicate.accept(obj);
 			}
 
 			return result;
 		}
-		
+
 	}
 }

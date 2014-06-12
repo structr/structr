@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
-import org.structr.core.entity.User;
+import org.structr.core.entity.TestUser;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 
@@ -47,7 +47,7 @@ public class CallbackTest extends StructrTest {
 		
 		try {
 			
-			User person = this.createTestNode(User.class);
+			TestUser person = this.createTestNode(TestUser.class);
 			
 			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
 			testCallbacks(securityContext);

@@ -31,7 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.TestOne;
-import org.structr.core.entity.User;
+import org.structr.core.entity.TestUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -61,8 +61,8 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<User> users = createTestNodes(User.class, 1);
-			User user = (User) users.get(0);
+			List<TestUser> users = createTestNodes(TestUser.class, 1);
+			TestUser user = (TestUser) users.get(0);
 			
 			// Create node with user context
 			Class type = TestOne.class;
@@ -92,8 +92,8 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<User> users = createTestNodes(User.class, 1);
-			User user = (User) users.get(0);
+			List<TestUser> users = createTestNodes(TestUser.class, 1);
+			TestUser user = (TestUser) users.get(0);
 			
 			PropertyMap props = new PropertyMap();
 			props.put(AbstractNode.visibleToPublicUsers, true);
@@ -126,8 +126,8 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<User> users = createTestNodes(User.class, 1);
-			User user = (User) users.get(0);
+			List<TestUser> users = createTestNodes(TestUser.class, 1);
+			TestUser user = (TestUser) users.get(0);
 			
 			PropertyMap props = new PropertyMap();
 			props.put(AbstractNode.visibleToPublicUsers, true);
@@ -163,9 +163,9 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<User> users = createTestNodes(User.class, 2);
-			User user1 = (User) users.get(0);
-			User user2 = (User) users.get(1);
+			List<TestUser> users = createTestNodes(TestUser.class, 2);
+			TestUser user1 = (TestUser) users.get(0);
+			TestUser user2 = (TestUser) users.get(1);
 
 			PropertyMap props = new PropertyMap();
 			props.put(AbstractNode.visibleToPublicUsers, true);
@@ -201,9 +201,9 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<User> users = createTestNodes(User.class, 2);
-			User user1 = (User) users.get(0);
-			User user2 = (User) users.get(1);
+			List<TestUser> users = createTestNodes(TestUser.class, 2);
+			TestUser user1 = (TestUser) users.get(0);
+			TestUser user2 = (TestUser) users.get(1);
 			
 			PropertyMap props = new PropertyMap();
 			props.put(AbstractNode.visibleToPublicUsers, true);
@@ -240,9 +240,9 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<User> users = createTestNodes(User.class, 2);
-			User user1 = (User) users.get(0);
-			User user2 = (User) users.get(1);
+			List<TestUser> users = createTestNodes(TestUser.class, 2);
+			TestUser user1 = (TestUser) users.get(0);
+			TestUser user2 = (TestUser) users.get(1);
 			Result result = null;
 			
 			// Let user 1 create a node

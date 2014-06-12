@@ -38,6 +38,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.RelationProperty;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -628,7 +629,7 @@ public class RenderContext extends ActionContext {
 
 			PropertyConverter converter = referenceKeyProperty.inputConverter(securityContext);
 
-			if (value != null && converter != null) {
+			if (value != null && converter != null && !(referenceKeyProperty instanceof RelationProperty)) {
 				value = converter.revert(value);
 			}
 

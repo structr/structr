@@ -22,7 +22,7 @@ package org.structr.core.entity;
  *
  * @author Axel Morgner
  */
-public class User extends AbstractUser implements Principal {
+public class TestUser extends AbstractUser implements Principal {
 
 
 }
