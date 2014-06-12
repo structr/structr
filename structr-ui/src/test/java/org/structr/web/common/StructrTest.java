@@ -18,41 +18,32 @@
  */
 package org.structr.web.common;
 
-import org.structr.core.property.PropertyMap;
-import junit.framework.TestCase;
-
-import org.apache.commons.io.FileUtils;
-
-import org.neo4j.graphdb.GraphDatabaseService;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.GraphDatabaseCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.File;
 import java.io.IOException;
-
 import java.net.URL;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
+import org.structr.core.property.PropertyMap;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
 

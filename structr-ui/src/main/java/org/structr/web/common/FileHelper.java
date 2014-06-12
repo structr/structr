@@ -17,37 +17,34 @@
  */
 package org.structr.web.common;
 
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicMatch;
-
-import org.apache.commons.io.FileUtils;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicException;
+import net.sf.jmimemagic.MagicMatch;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -614,4 +611,64 @@ public class FileHelper {
 		return returnPath.toString();
 	}
 
+	/**
+	 * Create one folder per path item and return the last folder.
+	 *
+	 * F.e.: /a/b/c => Folder["name":"a"] --HAS_CHILD--> Folder["name":"b"]
+	 * --HAS_CHILD--> Folder["name":"c"], returns Folder["name":"c"]
+	 *
+	 * @param securityContext
+	 * @param path
+	 * @return
+	 * @throws FrameworkException
+	 */
+	public static Folder createFolderPath(final SecurityContext securityContext, final String path) throws FrameworkException {
+
+		App app = StructrApp.getInstance(securityContext);
+		
+		if (path == null) {
+
+			return null;
+		}
+
+		Folder folder = (Folder) FileHelper.getFileByAbsolutePath(path);
+		
+		if (folder != null) {
+			return folder;
+		}
+		
+		String[] parts = PathHelper.getParts(path);
+		String partialPath = "";
+		
+		for (String part : parts) {
+
+			Folder parent = folder;
+
+			partialPath += PathHelper.PATH_SEP + part;
+			folder = (Folder) FileHelper.getFileByAbsolutePath(partialPath);
+			
+			if (folder == null) {
+				
+				folder = app.create(Folder.class, part);
+				
+			}
+			
+			if (parent != null) {
+				
+				folder.setProperty(Folder.parent, parent);
+				
+			}
+
+//			if (folder != null && parent != null) {
+//				app.create(parent, folder, Folders.class);
+//				folder.updateInIndex();
+//			}
+
+		}
+
+		return folder;
+
+	}
+	
+	
 }
