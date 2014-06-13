@@ -298,30 +298,29 @@ var Structr = {
     },
     login: function(text) {
 
-        if (loginBox.is(':visible')) {
-            log('Login box is already visible, skipping...');
-            return;
-        }
+        if (!loginBox.is(':visible')) {
 
-        main.empty();
+            main.empty();
+            
+            $.blockUI.defaults.overlayCSS.opacity = .6;
+            $.blockUI.defaults.applyPlatformOpacityRules = false;
+            $.blockUI({
+                fadeIn: 25,
+                fadeOut: 25,
+                message: loginBox,
+                forceInput: true,
+                css: {
+                    border: 'none',
+                    backgroundColor: 'transparent'
+                }
+            });
+        }
 
         $('#logout_').html('Login');
         if (text) {
             $('#errorText').html(text);
         }
 
-        $.blockUI.defaults.overlayCSS.opacity = .6;
-        $.blockUI.defaults.applyPlatformOpacityRules = false;
-        $.blockUI({
-            fadeIn: 25,
-            fadeOut: 25,
-            message: loginBox,
-            forceInput: true,
-            css: {
-                border: 'none',
-                backgroundColor: 'transparent'
-            }
-        });
         Structr.activateMenuEntry('logout');
     },
     doLogin: function(username, password) {
