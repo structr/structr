@@ -1578,9 +1578,9 @@ var _Crud = {
 
                             //console.log('node', node);
                             var displayName = _Crud.displayName(node);
-                            $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToWidth(displayName, 120) + '</div>');
+                            $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" " class="_' + node.id + ' node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToWidth(displayName, 120) + '</div>');
 
-                            var nodeEl = $('#_' + node.id, searchResults);
+                            var nodeEl = $('._' + node.id, searchResults);
                             //console.log(node);
                             if (node.type === 'Image') {
                                 nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');

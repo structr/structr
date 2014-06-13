@@ -315,6 +315,7 @@ h2.searchResultsTitle {
     padding: 8px 12px;
     clear: both;
     border: 1px solid red;
+    overflow: hidden;
 }
 
 .searchResults .node {
