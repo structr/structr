@@ -2,6 +2,8 @@ package org.structr.web.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
@@ -242,6 +244,9 @@ public class PropertyViewTest extends StructrUiTest {
 
 
 		// create entity
+        final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        final Date testDate = new Date(112, 9, 18, 0, 33, 2);
+        final String expectedDate = format.format(testDate);
 		final String uuid = getUuidFromLocation(RestAssured
 
 			.given()
@@ -249,7 +254,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.header("X-User", username)
 				.header("X-Password", password)
 				.header("Accept", "application/json; charset=UTF-8")
-				.body(" { 'name' : 'TestOne-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
+				.body(" { 'name' : 'TestOne-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '" + expectedDate + "' } ")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
@@ -285,7 +290,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result[0].name",             equalTo("TestOne-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))
-				.body("result[0].aDate",            equalTo("2012-09-17T22:33:12+0000"))
+				.body("result[0].aDate",            equalTo(expectedDate))
 
 			.when()
 				.get(resource);
@@ -314,7 +319,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result[0].name",                        equalTo("TestOne-0"))
 				.body("result[0].anInt",                       equalTo(0))
 				.body("result[0].aLong",                       equalTo(0))
-				.body("result[0].aDate",                       equalTo("2012-09-17T22:33:12+0000"))
+				.body("result[0].aDate",                       equalTo(expectedDate))
 				.body("result[0].base",                        nullValue())
 				.body("result[0].createdDate",                 notNullValue())
 				.body("result[0].lastModifiedDate",            notNullValue())
@@ -357,7 +362,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result[0].name",             equalTo("TestOne-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))
-				.body("result[0].aDate",            equalTo("2012-09-17T22:33:12+0000"))
+				.body("result[0].aDate",            equalTo(expectedDate))
 
 			.when()
 				.get(resource + "/ui");
