@@ -166,7 +166,7 @@ input.readonly {
 .props .node img,
 .resourceBox div.node img {
     vertical-align: middle;
-    margin: 0 0 2px 4px;
+    margin: 0 0 6px 4px;
 }
 
 
@@ -239,6 +239,7 @@ img.thumbnail {
     position: absolute;
     top: 50%;
     left: 50%;
+    margin-bottom: 4px;
 }
 
 .dialog {
