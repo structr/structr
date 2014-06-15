@@ -316,8 +316,7 @@ var _Schema = {
                         maxConnections: -1,
                         isSource: true,
                         deleteEndpointsOnDetach: false
-
-                                //isTarget: true
+                        //isTarget: true
                     });
 
                     instance.draggable(id, {containment: '#schema-graph', stop: function() {
@@ -618,7 +617,7 @@ var _Schema = {
                     + '</div');
 
             $('.new .property-attrs.view', el).on('blur', function() {
-                _Schema.saveViewDefinition(entity.id, 'new');
+                _Schema.saveViewDefinition(entity.id, 'new', Object.keys(entity ));
             });
 
             $('.new .remove-view', el).on('click', function() {
@@ -664,77 +663,58 @@ var _Schema = {
                         + '<td><input class="unique" type="checkbox"></td>'
                         + '<td><input class="property-default" size="10" type="text"></td><td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"></td></div>');
 
-                $('.new .remove-property', el).on('click', function() {
+                $('.new .remove-property', propertiesTable).on('click', function() {
                     var self = $(this);
                     self.closest('tr').remove();
                 });
 
-                $('.new .property-name', el).on('blur', function() {
-                    var name = $('.new .property-name', el).val();
-                    var dbName = $('.new .property-dbname', el).val();
-                    var type = $('.new .property-type', el).val();
-                    var format = $('.new .property-format', el).val();
-                    var notNull = $('.new .not-null', el).is(':checked');
-                    var unique = $('.new .unique', el).is(':checked');
-                    var defaultValue = $('.new .property-default', el).val();
-
-                    if (name && name.length && type) {
-                        _Schema.putPropertyDefinition(entity.id, ' {"'
-                                + '_' + name + '": "'
-                                + (dbName ? dbName + '|' : '')
-                                + (notNull ? '+' : '')
-                                + (type === 'del' ? null : type)
-                                + (unique ? '!' : '')
-                                + (format ? '(' + format + ')' : '')
-                                + (defaultValue ? ':' + defaultValue : '')
-                                + '"}');
-                    }
+                $('.new .property-name', propertiesTable).on('blur', function() {
+                    _Schema.collectAndSaveNewLocalProperty(propertiesTable, entity.id);
                 });
 
-                $('.new .property-type', el).on('change', function() {
-                    var name = $('.new .property-name', el).val();
-                    var dbName = $('.new .property-dbname', el).val();
-                    var type = $('.new .property-type', el).val();
-                    var format = $('.new .property-format', el).val();
-                    var notNull = $('.new .not-null', el).is(':checked');
-                    var unique = $('.new .unique', el).is(':checked');
-                    var defaultValue = $('.new .property-default', el).val();
-                    if (name && name.length && type && (type !== 'Enum' || (format && format.length))) {
-                        _Schema.putPropertyDefinition(entity.id, ' {"'
-                                + '_' + name + '": "'
-                                + (dbName ? dbName + '|' : '')
-                                + (notNull ? '+' : '')
-                                + type
-                                + (unique ? '!' : '')
-                                + (format && format.length ? '(' + format + ')' : '')
-                                + (defaultValue ? ':' + defaultValue : '')
-                                + '"}');
-                    }
+                $('.new .property-type', propertiesTable).on('change', function() {
+                    _Schema.collectAndSaveNewLocalProperty(propertiesTable, entity.id);
                 });
 
-                $('.new .property-format', el).on('blur', function() {
-                    var name = $('.new .property-name', el).val();
-                    var dbName = $(' .new .property-dbname', el).val();
-                    var type = $('.new .property-type', el).val();
-                    var notNull = $('.new .not-null', el).is(':checked');
-                    var unique = $('.new .unique', el).is(':checked');
-                    var format = $('.new .property-format', el).val();
-                    var defaultValue = $('.new .property-default', el).val();
-                    if (name && name.length && type && (type !== 'Enum' || (format && format.length))) {
-                        _Schema.putPropertyDefinition(entity.id, ' {"'
-                                + '_' + name + '": "'
-                                + (dbName ? dbName + '|' : '')
-                                + (notNull ? '+' : '')
-                                + type
-                                + (unique ? '!' : '')
-                                + (defaultValue ? defaultValue : '')
-                                + (format && format.length ? '(' + format + ')' : '')
-                                + '"}');
-                    }
+                $('.new .property-format', propertiesTable).on('blur', function() {
+                    _Schema.collectAndSaveNewLocalProperty(propertiesTable, entity.id);
+                });
+
+                $('.new .not-null', propertiesTable).on('change', function() {
+                    _Schema.collectAndSaveNewLocalProperty(propertiesTable, entity.id);
+                });
+
+                $('.new .unique', propertiesTable).on('change', function() {
+                    _Schema.collectAndSaveNewLocalProperty(propertiesTable, entity.id);
                 });
             });
         }
 
+    },
+    collectAndSaveNewLocalProperty: function(el, entityId) {
+        var name = $('.new .property-name', el).val();
+        var dbName = $('.new .property-dbname', el).val();
+        var type = $('.new .property-type', el).val();
+        var format = $('.new .property-format', el).val();
+        var notNull = $('.new .not-null', el).is(':checked');
+        var unique = $('.new .unique', el).is(':checked');
+        var defaultValue = $('.new .property-default', el).val();
+
+        if (name && name.length && type) {
+            _Schema.putPropertyDefinition(entityId, ' {"'
+                    + '_' + name + '": "'
+                    + (dbName ? dbName + '|' : '')
+                    + (notNull ? '+' : '')
+                    + (type === 'del' ? null : type)
+                    + (unique ? '!' : '')
+                    + (format ? '(' + format + ')' : '')
+                    + (defaultValue ? ':' + defaultValue : '')
+                    + '"}', function() {
+                        blinkGreen($('.new', el));
+                    }, function() {
+                        blinkRed($('.new', el));
+                    });
+        }
     },
     appendRemoteProperties: function(el, id, compact) {
 
@@ -920,9 +900,17 @@ var _Schema = {
             }
 
             if (out) {
-                _Schema.setRelationshipProperty(rel.id, 'targetJsonName', newName);
+                _Schema.setRelationshipProperty(rel.id, 'targetJsonName', newName, function() {
+                    blinkGreen($('.' + key, el));
+                }, function() {
+                    blinkRed($('.' + key, el));
+                });
             } else {
-                _Schema.setRelationshipProperty(rel.id, 'sourceJsonName', newName);
+                _Schema.setRelationshipProperty(rel.id, 'sourceJsonName', newName, function() {
+                    blinkGreen($('.' + key, el));
+                }, function() {
+                    blinkRed($('.' + key, el));
+                });
             }
         });
 
@@ -966,7 +954,7 @@ var _Schema = {
         }
     },
     appendView: function(el, res, key, compact) {
-
+        
         if (key.substring(0, 3) === '___') {
             return;
         }
@@ -1017,20 +1005,19 @@ var _Schema = {
         var unique = $('.' + key + ' .unique').is(':checked');
         var defaultValue = $('.' + key + ' .property-default').val();
         if (name && name.length && type) {
-
-            if (type === 'del') {
-                _Schema.putPropertyDefinition(entityId, ' {"_' + name + '":null}');
-            } else {
-                _Schema.putPropertyDefinition(entityId, ' {"'
-                        + '_' + name + '": "'
-                        + (dbName ? dbName + '|' : '')
-                        + (notNull ? '+' : '')
-                        + (type === 'del' ? null : type)
-                        + (unique ? '!' : '')
-                        + (format ? '(' + format.escapeForJSON() + ')' : '')
-                        + (defaultValue ? ':' + defaultValue.escapeForJSON() : '')
-                        + '"}');
-            }
+            _Schema.putPropertyDefinition(entityId, ' {"'
+                    + '_' + name + '": "'
+                    + (dbName ? dbName + '|' : '')
+                    + (notNull ? '+' : '')
+                    + (type === 'del' ? null : type)
+                    + (unique ? '!' : '')
+                    + (format ? '(' + format.escapeForJSON() + ')' : '')
+                    + (defaultValue ? ':' + defaultValue.escapeForJSON() : '')
+                    + '"}', function() {
+                    blinkGreen($('.local .' + key));
+                }, function() {
+                    blinkRed($('.local .' + key));
+                });
         }
     },
     removeActionDefinition: function(entityId, name) {
@@ -1043,7 +1030,11 @@ var _Schema = {
         if (name && name.length) {
             _Schema.putPropertyDefinition(entityId, ' {"'
                     + '___' + name + '": "' + (func ? func.escapeForJSON() : '')
-                    + '"}');
+                    + '"}', function() {
+                        blinkGreen($('.actions .' + key));
+                    }, function() {
+                        blinkRed($('.actions .' + key));
+                    });
         }
 
     },
@@ -1054,11 +1045,15 @@ var _Schema = {
             attrs = normalizeAttrs(attrs, keys.concat(remotePropertyKeys));
             _Schema.putPropertyDefinition(entityId, ' {"'
                     + '__' + name + '": "' + (attrs ? attrs.escapeForJSON() : '')
-                    + '"}');
+                    + '"}', function() {
+                        blinkGreen($('.views .' + key));
+                    }, function() {
+                        blinkRed($('.views .' + key));
+                    });
         }
 
     },
-    putPropertyDefinition: function(id, data) {
+    putPropertyDefinition: function(id, data, onSuccess, onError) {
         var jsonData = JSON.parse(data);
         log('putPropertyDefinition', id, data);
         $.ajax({
@@ -1070,9 +1065,15 @@ var _Schema = {
             statusCode: {
                 200: function() {
                     _Schema.reload();
+                    if (onSuccess) {
+                        onSuccess();
+                    }
                 },
                 422: function(data) {
-                    Structr.errorFromResponse(data.responseJSON);
+                    //Structr.errorFromResponse(data.responseJSON);
+                    if (onError) {
+                        onError();
+                    }
                 }
             }
         });
@@ -1151,7 +1152,7 @@ var _Schema = {
             }
         });
     },
-    setRelationshipProperty: function(entityId, key, value) {
+    setRelationshipProperty: function(entityId, key, value, onSuccess, onError) {
         var data = {};
         data[key] = cleanText(value);
         $.ajax({
@@ -1163,9 +1164,15 @@ var _Schema = {
             statusCode: {
                 200: function(data, textStatus, jqXHR) {
                     _Schema.reload();
+                    if (onSuccess) {
+                        onSuccess();
+                    }
                 },
                 422: function(data) {
-                    Structr.errorFromResponse(data.responseJSON);
+                    //Structr.errorFromResponse(data.responseJSON);
+                    if (onError) {
+                        onError();
+                    }
                 }
             }
         });
@@ -1533,5 +1540,4 @@ var typeOptions = '<select class="property-type"><option value="">--Select type-
         + '<option value="Counter">Counter</option>'
         + '<option value="Function">Function</option>'
         + '<option value="Notion">Notion</option>'
-        + '<option value="Cypher">Cypher</option>'
-        + '<option value="del">--DELETE--</option></select>';
+        + '<option value="Cypher">Cypher</option>';
