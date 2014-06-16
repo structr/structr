@@ -18,10 +18,9 @@
  */
 package org.structr.web.entity;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -34,6 +33,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.Importer;
 import org.structr.common.ThreadLocalMatcher;
+import org.structr.common.error.ValueToken;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.relation.ImageWidget;
@@ -45,70 +45,130 @@ import org.structr.web.property.UiNotion;
  */
 public class Widget extends AbstractNode implements Taggable {
 
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[a-zA-Z]+\\]");
-	
+	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[a-zA-Z:,]+\\]");
+
 	public static final Property<String>      source      = new StringProperty("source");
 	public static final Property<String>      description = new StringProperty("description");
 	public static final Property<List<Image>> pictures    = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
-	
+
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, source, description, pictures, tags
 	);
-	
+
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
 		type, name, source, description, pictures, tags
 	);
-	
+
 	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, String baseUrl, Map<String, Object> parameters) throws FrameworkException {
-	
+
 		String _source          = (String)parameters.get("source");
 		ErrorBuffer errorBuffer = new ErrorBuffer();
-		
+
 		if (_source == null) {
-			
+
 			errorBuffer.add(Widget.class.getSimpleName(), new EmptyPropertyToken(source));
-			
+
 		} else {
-	
+
 			// check source for mandatory parameters
 			Matcher matcher  = threadLocalTemplateMatcher.get();
-			Set<String> keys = new HashSet<>();
 
 			// initialize with source
 			matcher.reset(_source);
 
 			while (matcher.find()) {
 
-				String group  = matcher.group();
-				String key    = group.substring(1, group.length() - 1);
+				String group              = matcher.group();
+				String source             = group.substring(1, group.length() - 1);
+				ReplacementInfo info      = new ReplacementInfo(source);
+				ArrayList<String> options = info.getOptions();
+				String key                = info.getKey();
+
 				Object value  = parameters.get(key);
-				
+
 				if (value == null) {
-					
-					errorBuffer.add(Widget.class.getSimpleName(), new EmptyPropertyToken(new StringProperty(key)));
-					
+
+					if (!options.isEmpty()) {
+
+						errorBuffer.add(Widget.class.getSimpleName(), new ValueToken(new StringProperty(key), options.toArray()));
+
+					} else {
+
+						errorBuffer.add(Widget.class.getSimpleName(), new EmptyPropertyToken(new StringProperty(key)));
+					}
+
 				} else {
-					
+
 					// replace and restart matching process
 					_source = _source.replace(group, value.toString());
 					matcher.reset(_source);
 				}
-				
+
 			}
-			
+
 		}
-		
+
 		if (!errorBuffer.hasError()) {
 
 			Importer importer = new Importer(securityContext, _source, baseUrl, null, 1, true, true);
 
 			importer.parse(true);
 			importer.createChildNodes(parent, page, baseUrl);
-			
+
 		} else {
-			
+
 			// report error to ui
 			throw new FrameworkException(422, errorBuffer);
+		}
+	}
+
+	/**
+	 * Unused yet
+	 */
+	public static class ReplacementInfo {
+
+		private ArrayList<String> options = new ArrayList<>();
+		private String key                = null;
+		private boolean hasOptions        = false;
+
+		public ReplacementInfo(final String value) {
+
+			this.key = value;
+
+			if (value.contains(":")) {
+
+				final String[] parts = value.split("[:]+");
+				this.key = parts[0];
+
+				if (parts[1].contains(",")) {
+
+					final String[] opts = parts[1].split("[,]+");
+					final int count     = opts.length;
+
+					for (int i=0; i<count; i++) {
+
+						final String trimmedPart = opts[i].trim();
+						if (!trimmedPart.isEmpty()) {
+
+							options.add(trimmedPart);
+						}
+					}
+
+					hasOptions = true;
+				}
+			}
+		}
+
+		public String getKey() {
+			return key;
+		}
+
+		public ArrayList<String> getOptions() {
+			return options;
+		}
+
+		public boolean hasOptions() {
+			return hasOptions;
 		}
 	}
 }

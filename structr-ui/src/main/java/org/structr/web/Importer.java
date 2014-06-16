@@ -657,33 +657,6 @@ public class Importer {
 
 	}
 
-	/**
-	 * Return an eventually existing folder with given name, or create a new
-	 * one.
-	 *
-	 * Don't create a folder for ".."
-	 */
-	private Folder findOrCreateFolder(final String name) throws FrameworkException {
-
-		if ("..".equals(name)) {
-			return null;
-		}
-
-		Folder folder = app.nodeQuery(Folder.class).andName(name).getFirst();
-
-		if (folder != null) {
-
-			return folder;
-		}
-
-		return (Folder) app.create(Folder.class,
-			new NodeAttribute(AbstractNode.name, name),
-			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible)
-		);
-
-	}
-
 	private Linkable downloadFile(String downloadAddress, final URL baseUrl) {
 
 		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
@@ -782,7 +755,7 @@ public class Importer {
 					if (parent != null) {
 
 						fileNode.setProperty(File.parent, parent);
-						
+
 						//app.create(parent, fileNode, Files.class);
 						//createRel.execute(parent, fileNode, Folders.class);
 					}

@@ -144,7 +144,6 @@ public class SynchronizationController implements StructrTransactionListener {
 
 					} catch (Throwable t) {
 
-						t.printStackTrace();
 						logger.log(Level.WARNING, "Error sending message to client.", t);
 					}
 

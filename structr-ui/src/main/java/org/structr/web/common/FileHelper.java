@@ -124,9 +124,9 @@ public class FileHelper {
 
 		final byte[] data = IOUtils.toByteArray(fileStream);
 		return createFile(securityContext, data, getContentMimeType(data), fileType, name);
-		
+
 	}
-	
+
 	/**
 	 * Create a new file node from the given byte array
 	 *
@@ -153,7 +153,7 @@ public class FileHelper {
 
 		return newFile;
 	}
-	
+
 	/**
 	 * Create a new file node from the given byte array
 	 *
@@ -625,38 +625,43 @@ public class FileHelper {
 	public static Folder createFolderPath(final SecurityContext securityContext, final String path) throws FrameworkException {
 
 		App app = StructrApp.getInstance(securityContext);
-		
+
 		if (path == null) {
 
 			return null;
 		}
 
 		Folder folder = (Folder) FileHelper.getFileByAbsolutePath(path);
-		
+
 		if (folder != null) {
 			return folder;
 		}
-		
+
 		String[] parts = PathHelper.getParts(path);
 		String partialPath = "";
-		
+
 		for (String part : parts) {
+
+			// ignore ".." and "." in paths
+			if ("..".equals(part) || ".".equals(part)) {
+				continue;
+			}
 
 			Folder parent = folder;
 
 			partialPath += PathHelper.PATH_SEP + part;
 			folder = (Folder) FileHelper.getFileByAbsolutePath(partialPath);
-			
+
 			if (folder == null) {
-				
+
 				folder = app.create(Folder.class, part);
-				
+
 			}
-			
+
 			if (parent != null) {
-				
+
 				folder.setProperty(Folder.parent, parent);
-				
+
 			}
 
 //			if (folder != null && parent != null) {
@@ -669,6 +674,6 @@ public class FileHelper {
 		return folder;
 
 	}
-	
-	
+
+
 }
