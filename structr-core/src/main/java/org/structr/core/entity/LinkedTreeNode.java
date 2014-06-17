@@ -28,8 +28,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.AbstractChildren;
 import org.structr.core.entity.relationship.AbstractListSiblings;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 /**
@@ -38,9 +36,6 @@ import org.structr.core.property.PropertyMap;
  * @author Christian Morgner
  */
 public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends AbstractListSiblings<T, T>, T extends LinkedTreeNode> extends LinkedListNode<S, T> {
-
-	// this is not used for the node itself but for the relationship(s) this node maintains
-	public static final PropertyKey<Integer> positionProperty = new IntProperty("position");
 
 	public abstract Class<R> getChildLinkType();
 
@@ -60,7 +55,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		final T lastChild = treeGetLastChild();
 
 		PropertyMap properties = new PropertyMap();
-		properties.put(positionProperty, treeGetChildCount());
+		properties.put(AbstractChildren.position, treeGetChildCount());
 
 		// create child relationship
 		linkNodes(getChildLinkType(), (T) LinkedTreeNode.this, childElement, properties);
@@ -96,7 +91,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 				// will be used only once here..
 				PropertyMap properties = new PropertyMap();
-				properties.put(positionProperty, position);
+				properties.put(AbstractChildren.position, position);
 
 				linkNodes(getChildLinkType(), (T) LinkedTreeNode.this, newChild, properties);
 
@@ -105,7 +100,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 				position++;
 			}
 
-			rel.setProperty(positionProperty, position);
+			rel.setProperty(AbstractChildren.position, position);
 
 			position++;
 		}
@@ -135,14 +130,14 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 			T node = rel.getTargetNode();
 
-			rel.setProperty(positionProperty, position);
+			rel.setProperty(AbstractChildren.position, position);
 			position++;
 
 			if (node.equals(refChild)) {
 
 				// will be used only once here..
 				PropertyMap properties = new PropertyMap();
-				properties.put(positionProperty, position);
+				properties.put(AbstractChildren.position, position);
 
 				linkNodes(getChildLinkType(), (T) LinkedTreeNode.this, newChild, properties);
 
@@ -176,7 +171,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 		// insert new node with position from old node
 		PropertyMap properties = new PropertyMap();
-		properties.put(positionProperty, oldPosition);
+		properties.put(AbstractChildren.position, oldPosition);
 
 		linkNodes(getChildLinkType(), (T) LinkedTreeNode.this, newChild, properties);
 
@@ -204,7 +199,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 		for (R rel : getOutgoingRelationships(getChildLinkType())) {
 
-			Integer pos = rel.getProperty(positionProperty);
+			Integer pos = rel.getProperty(AbstractChildren.position);
 
 			if (pos != null && pos == position) {
 
@@ -220,7 +215,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		final R rel = child.getIncomingRelationship(getChildLinkType());
 		if (rel != null) {
 
-			Integer pos = rel.getProperty(positionProperty);
+			Integer pos = rel.getProperty(AbstractChildren.position);
 			if (pos != null) {
 
 				return pos;
@@ -257,8 +252,8 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 			@Override
 			public int compare(R o1, R o2) {
 
-				Integer pos1 = o1.getProperty(positionProperty);
-				Integer pos2 = o2.getProperty(positionProperty);
+				Integer pos1 = o1.getProperty(AbstractChildren.position);
+				Integer pos2 = o2.getProperty(AbstractChildren.position);
 
 				if (pos1 != null && pos2 != null) {
 
@@ -288,7 +283,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		int position = 0;
 
 		for (R childRel : childRels) {
-			childRel.setProperty(positionProperty, position++);
+			childRel.setProperty(AbstractChildren.position, position++);
 		}
 	}
 
