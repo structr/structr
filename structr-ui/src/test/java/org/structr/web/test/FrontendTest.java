@@ -69,7 +69,14 @@ public class FrontendTest extends StructrUiTest {
 				logger.log(Level.WARNING, warnings);
 			}
 
-			int exitValue = proc.exitValue();
+			Integer exitValue = null;
+			try {
+				exitValue = proc.exitValue();
+				
+			} catch (IllegalThreadStateException ex) {
+				logger.log(Level.WARNING, "Subprocess has not properly exited", ex);
+				ex.printStackTrace();
+			}
 
 			logger.log(Level.INFO, "casperjs subprocess returned with {0}", exitValue);
 
