@@ -24,16 +24,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ValueToken;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.Importer;
-import org.structr.common.ThreadLocalMatcher;
-import org.structr.common.error.ValueToken;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.relation.ImageWidget;
@@ -49,14 +49,15 @@ public class Widget extends AbstractNode implements Taggable {
 
 	public static final Property<String>      source      = new StringProperty("source");
 	public static final Property<String>      description = new StringProperty("description");
+	public static final Property<String>      treePath    = new StringProperty("treePath");
 	public static final Property<List<Image>> pictures    = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, source, description, pictures, tags
+		type, name, source, description, pictures, tags, treePath
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
-		type, name, source, description, pictures, tags
+		type, name, source, description, pictures, tags, treePath
 	);
 
 	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, String baseUrl, Map<String, Object> parameters) throws FrameworkException {
