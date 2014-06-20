@@ -772,6 +772,10 @@ public class ActionContextTest extends StructrTest {
 			testOne.replaceVariables(securityContext, ctx, "${(set(this, \"isValid\", false), each(this.manyToManyTestSixs, set(this, \"isValid\", and(this.isValid, gte(now, data.createdDate)))))}");
 			assertEquals("Invalid multiline statement test result", "false", testOne.replaceVariables(securityContext, ctx, "${this.isValid}"));
 
+			// test multiple nested dot-separated properties (this.parent.parent.parent)
+			assertEquals("Invalid multilevel property expression result", "false", testOne.replaceVariables(securityContext, ctx, "${empty(this.testThree.testOne.testThree)}"));
+
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
