@@ -634,6 +634,11 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid get() result", testSixs.get(0).getUuid(),  testOne.replaceVariables(securityContext, ctx, "${get(first(get(this, \"manyToManyTestSixs\")), \"id\")}"));
 			assertEquals("Invalid usage message for get()", Functions.ERROR_MESSAGE_GET, testOne.replaceVariables(securityContext, ctx, "${get()}"));
 
+			// size
+			assertEquals("Invalid size() result", "20", testOne.replaceVariables(securityContext, ctx, "${size(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid size() result", "0", testOne.replaceVariables(securityContext, ctx, "${size(null)}"));
+			assertEquals("Invalid size() result", "0", testOne.replaceVariables(securityContext, ctx, "${size(xyz)}"));
+
 			// first / last / nth
 			assertEquals("Invalid first() result", testSixs.get( 0).toString(), testOne.replaceVariables(securityContext, ctx, "${first(this.manyToManyTestSixs)}"));
 			assertEquals("Invalid last() result",  testSixs.get(19).toString(), testOne.replaceVariables(securityContext, ctx, "${last(this.manyToManyTestSixs)}"));

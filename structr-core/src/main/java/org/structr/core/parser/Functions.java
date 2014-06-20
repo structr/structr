@@ -136,6 +136,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_OR                  = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_GET                 = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
 	public static final String ERROR_MESSAGE_GET_ENTITY          = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";
+	public static final String ERROR_MESSAGE_SIZE                = "Usage: ${size(collection)}. Example: ${size(this.children)}";
 	public static final String ERROR_MESSAGE_FIRST               = "Usage: ${first(collection)}. Example: ${first(this.children)}";
 	public static final String ERROR_MESSAGE_LAST                = "Usage: ${last(collection)}. Example: ${last(this.children)}";
 	public static final String ERROR_MESSAGE_NTH                 = "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
@@ -1803,6 +1804,40 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_GET;
+			}
+		});
+		functions.put("size", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List list = new ArrayList();
+				for (final Object source : sources) {
+
+					if (source instanceof Collection) {
+
+						// filter null objects
+						for (Object obj : (Collection)source) {
+							if (obj != null && !NULL_STRING.equals(obj)) {
+
+								list.add(obj);
+							}
+						}
+
+					} else if (source != null && !NULL_STRING.equals(source)) {
+
+						list.add(source);
+					}
+					
+					return list.size();
+				}
+
+				return null;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SIZE;
 			}
 		});
 		functions.put("first", new Function<Object, Object>() {
