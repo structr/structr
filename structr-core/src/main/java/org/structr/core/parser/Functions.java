@@ -704,15 +704,15 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 					final String source    = sources[0].toString();
 					final int sourceLength = source.length();
 					final int start        = parseInt(sources[1]);
-					final int length       = parseInt(sources[2]);
+					final int length       = sources.length >= 3 ? parseInt(sources[2]) : sourceLength - start;
 					final int end          = start + length;
 
-					if (start >= 0 && start < sourceLength && end >= 0 && end < sourceLength && start <= end) {
+					if (start >= 0 && start < sourceLength && end >= 0 && end <= sourceLength && start <= end) {
 
 						return source.substring(start, end);
 					}
@@ -1828,7 +1828,7 @@ public class Functions {
 
 						list.add(source);
 					}
-					
+
 					return list.size();
 				}
 

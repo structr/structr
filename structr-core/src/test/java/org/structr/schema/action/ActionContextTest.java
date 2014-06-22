@@ -233,6 +233,8 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 100, -1)}"));
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 5, -2)}"));
 			assertEquals("Invalid substring() result", "for", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 19, 3)}"));
+			assertEquals("Invalid substring() result", "ice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 3)}"));
+			assertEquals("Invalid substring() result", "ice", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 3, 3)}"));
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', -1, -1)}"));
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 100, -1)}"));
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 5, -2)}"));
