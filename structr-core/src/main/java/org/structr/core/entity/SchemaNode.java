@@ -262,7 +262,20 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	// ----- interface Syncable -----
 	@Override
 	public List<Syncable> getSyncData() {
-		return Collections.emptyList();
+
+		final List<Syncable> data = new LinkedList<>();
+
+		// outgoing relationships
+		for (final SchemaRelationship rel : getOutgoingRelationships(SchemaRelationship.class)) {
+			data.add(rel);
+		}
+
+		// incoming relationships
+		for (final SchemaRelationship rel : getIncomingRelationships(SchemaRelationship.class)) {
+			data.add(rel);
+		}
+
+		return data;
 	}
 
 	@Override
@@ -288,6 +301,10 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	@Override
 	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
 
+		// update all properties that exist in the source map
+		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
+			setProperty(entry.getKey(), entry.getValue());
+		}
 	}
 }

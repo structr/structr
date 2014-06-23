@@ -19,10 +19,10 @@
 package org.structr.core.entity.relationship;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -566,7 +566,13 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	// ----- interface Syncable -----
 	@Override
 	public List<Syncable> getSyncData() {
-		return Collections.emptyList();
+
+		final List<Syncable> syncables = new LinkedList<>();
+
+		syncables.add(getSourceNode());
+		syncables.add(getTargetNode());
+
+		return syncables;
 	}
 
 	@Override
@@ -591,6 +597,12 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 	@Override
 	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+
+		// update all properties that exist in the source map
+		for (final Map.Entry<PropertyKey, Object> entry : properties.entrySet()) {
+
+			setProperty(entry.getKey(), entry.getValue());
+		}
 	}
 
 	// ----- nested classes -----

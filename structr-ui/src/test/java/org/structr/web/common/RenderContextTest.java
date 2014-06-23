@@ -1,15 +1,26 @@
 package org.structr.web.common;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.parser.Functions;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
@@ -24,6 +35,100 @@ import org.w3c.dom.NodeList;
 
 
 public class RenderContextTest extends StructrUiTest {
+
+	public void testVariableReplacementInDynamicTypes() {
+
+		SchemaNode itemNode  = null;
+		NodeInterface parent = null;
+		NodeInterface child1 = null;
+		NodeInterface child2 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			itemNode = app.create(SchemaNode.class, new NodeAttribute(SchemaNode.name, "Item"));
+
+			final PropertyMap properties = new PropertyMap();
+			properties.put(SchemaRelationship.relationshipType, "CHILD");
+			properties.put(SchemaRelationship.sourceMultiplicity, "1");
+			properties.put(SchemaRelationship.targetMultiplicity, "*");
+			properties.put(SchemaRelationship.sourceJsonName, "parentItem");
+			properties.put(SchemaRelationship.targetJsonName, "children");
+
+			app.create(itemNode, itemNode, SchemaRelationship.class, properties);
+
+			// compile the stuff
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class itemClass              = config.getNodeEntityClass("Item");
+		final PropertyKey childrenProperty = config.getPropertyKeyForJSONName(itemClass, "children");
+
+		// create parent/child relationship
+		try (final Tx tx = app.tx()) {
+
+			parent = app.create(itemClass);
+			child1 = app.create(itemClass);
+			child2 = app.create(itemClass);
+
+			final List<NodeInterface> children = new LinkedList<>();
+			children.add(child1);
+			children.add(child2);
+
+			parent.setProperty(childrenProperty, children);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+
+		// verify that parent has two children
+		try (final Tx tx = app.tx()) {
+
+			// verify that parentItem can be accessed....
+			final Object value = parent.getProperty(childrenProperty);
+
+			assertTrue(value instanceof Collection);
+
+			final Collection coll = (Collection)value;
+			assertEquals("FUCK", 2, coll.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+
+		// check property access in template expressions
+		try (final Tx tx = app.tx()) {
+
+			assertEquals(parent.toString(), child1.replaceVariables(securityContext, new ActionContext(), "${this.parentItem}"));
+
+			tx.success();
+
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+
+
+	}
 
 	public void testVariableReplacement() {
 
