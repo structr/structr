@@ -136,7 +136,7 @@ function wsConnect() {
                 if (!sessionValid) {
                     localStorage.removeItem(userKey);
                     Structr.clearMain();
-                    Structr.login();
+                    Structr.login(msg);
                 } else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
                     Structr.refreshUi();
                 }
