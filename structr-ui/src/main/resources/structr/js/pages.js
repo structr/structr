@@ -1002,7 +1002,8 @@ var _Pages = {
                     statusCode: {
                         200: function(data) {
                             $.each(data.result, function(i, r) {
-                                _Schema.getPropertyName(t.name, r.relationshipType, true, function(key, isCollection) {
+                                _Schema.getPropertyName(t.name, r.relationshipType, endNode.name, true, function(key, isCollection) {
+                                    console.log(key, isCollection)
                                     $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
                                     $('#data-wizard-attributes .custom').children('.' + key).draggable({
                                         iframeFix: true,
@@ -1036,7 +1037,7 @@ var _Pages = {
                     statusCode: {
                         200: function(data) {
                             $.each(data.result, function(i, r) {
-                                _Schema.getPropertyName(t.name, r.relationshipType, false, function(key, isCollection) {
+                                _Schema.getPropertyName(t.name, r.relationshipType, startNode.name, false, function(key, isCollection) {
                                     $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
                                     $('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
                                         iframeFix: true,
