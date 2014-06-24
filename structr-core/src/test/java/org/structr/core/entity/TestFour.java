@@ -19,31 +19,39 @@
 package org.structr.core.entity;
 
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.*;
+import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.EnumProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 
 /**
  * A simple entity for the most basic tests.
- * 
+ *
  * The isValid method does always return true for testing purposes only.
- * 
- * 
+ *
+ *
  * @author Axel Morgner
  */
 public class TestFour extends AbstractNode {
-	
+
 	public static final Property<TestOne>       testOne             = new StartNode<>("testOne", OneFourOneToOne.class);
-	
-	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class);
+
+	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class).indexed();
 	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();
 	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty").indexed();
 	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty").indexed();
 	public static final Property<Long>          longProperty        = new LongProperty("longProperty").indexed();
 	public static final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
 	public static final Property<TestEnum>      enumProperty        = new EnumProperty("enumProperty", TestEnum.class).indexed();
-	
+
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 		return true;
 	}
-	
+
 }
