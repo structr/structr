@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -89,7 +90,16 @@ public abstract class AbstractUser extends Person implements Principal {
 	public void addSessionId(final String sessionId) {
 
 		try {
-			setProperty(Principal.sessionIds, (String[]) ArrayUtils.add(getProperty(Principal.sessionIds), sessionId));
+
+			final String[] ids = getProperty(Principal.sessionIds);
+			
+			if (!ArrayUtils.contains(ids, sessionId)) {
+
+				setProperty(Principal.sessionIds, (String[]) ArrayUtils.add(getProperty(Principal.sessionIds), sessionId));
+
+			}
+
+
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, "Could not add sessionId " + sessionId + " to array of sessionIds", ex);
 		}
@@ -99,9 +109,24 @@ public abstract class AbstractUser extends Person implements Principal {
 	public void removeSessionId(final String sessionId) {
 
 		try {
-			setProperty(Principal.sessionIds, (String[]) ArrayUtils.removeElement(getProperty(Principal.sessionIds), sessionId));
+
+			final String[] ids = getProperty(Principal.sessionIds);
+			List<String> newSessionIds = new ArrayList<>();
+
+			for (final String id : ids) {
+
+				if (!id.equals(sessionId)) {
+
+					newSessionIds.add(id);
+
+				}
+
+			}
+
+			setProperty(Principal.sessionIds, (String[]) newSessionIds.toArray(new String[newSessionIds.size()]));
+
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, "Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+			logger.log(Level.SEVERE, "Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
 		}
 	}
 
