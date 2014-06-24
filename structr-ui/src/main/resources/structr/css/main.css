@@ -440,7 +440,6 @@ img.disabled {
 .props td, .props th {
     padding: 6px 6px;
     line-height: 1.7em;
-    font-size: 8pt;
     height: 1.7em;
     border: 1px solid #b5b5b5;
 }
@@ -457,8 +456,6 @@ img.disabled {
 
 .props tr td.value input {
     margin: -3px;
-    /*height: 1.7em;*/
-    font-size: 8pt;
     background: #fff;
     border: 1px solid #c0c0c0;
     width: 380px;

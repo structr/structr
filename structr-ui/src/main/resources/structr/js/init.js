@@ -1252,23 +1252,6 @@ function getExpanded() {
     return Structr.expanded;
 }
 
-
-function formatValueInputField(key, obj) {
-    if (obj === null) {
-        return '<input name="' + key + '" type="text" value="">';
-    } else if (obj.constructor === Object) {
-        return '<input name="' + key + '" type="text" value="' + escapeForHtmlAttributes(JSON.stringify(obj)) + '">';
-    } else if (obj.constructor === Array) {
-        var out = '';
-        $(obj).each(function(i, v) {
-            out += JSON.stringify(v);
-        });
-        return '<textarea name="' + key + '">' + out + '</textarea>';
-    } else {
-        return '<input name="' + key + '" type="text" value="' + escapeForHtmlAttributes(obj) + '">';
-    }
-}
-
 function formatKey(text) {
     var result = '';
     for (var i = 0; i < text.length; i++) {
