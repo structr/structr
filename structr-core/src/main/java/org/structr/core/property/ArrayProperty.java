@@ -54,7 +54,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public String typeName() {
-		return "";
+		return componentType.getSimpleName().concat("[]");
 	}
 
 	@Override
