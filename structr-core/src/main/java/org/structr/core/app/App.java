@@ -35,7 +35,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 
 /**
- * 
+ *
  * @author Christian Morgner
  */
 public interface App  {
@@ -43,16 +43,17 @@ public interface App  {
 	public Tx tx();
 	public Tx tx(final boolean doValidation);
 	public Tx tx(final boolean doValidation, final boolean doCallbacks);
-	
+	public Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications);
+
 	public <T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException;
 	public <T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;
 	public <T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException;
 
 	public void delete(final NodeInterface node) throws FrameworkException;
-	
+
 	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException;
 	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException;
-	
+
 	public void delete(final RelationshipInterface relationship);
 
 	public GraphObject get(final String uuid) throws FrameworkException;
@@ -63,21 +64,21 @@ public interface App  {
 	public Query<? extends NodeInterface> nodeQuery(final boolean exact);
 	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type);
 	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type, final boolean exact);
-	
+
 	public Query<? extends RelationshipInterface> relationshipQuery();
 	public Query<? extends RelationshipInterface> relationshipQuery(final boolean exact);
 	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type);
 	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type, final boolean exact);
-	
+
 	public void shutdown();
-	
+
 	public <T extends Command> T command(final Class<T> commandType);
-	
+
 	public void processTasks(final Task... tasks);
 	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException;
-	
+
 	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
-	
+
 	public <T extends Service> T getService(final Class<T> serviceClass);
 	public GraphDatabaseService getGraphDatabaseService();
 }
