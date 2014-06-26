@@ -1434,7 +1434,10 @@ var _Crud = {
             url: rootUrl + id + '/' + _Crud.view[parentType],
             type: 'GET',
             dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
+            contentType: 'application/json; charset=utf-8;',
+            headers: {
+                Accept: 'application/json; charset=utf-8; properties=id,name'
+            },
             //async: false,
             success: function(data) {
                 if (!data)

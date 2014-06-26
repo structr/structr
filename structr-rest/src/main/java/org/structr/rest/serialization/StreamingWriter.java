@@ -31,15 +31,15 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.Property;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 
 /**
  *
@@ -49,17 +49,23 @@ public abstract class StreamingWriter {
 
 	private static final Logger logger                   = Logger.getLogger(StreamingWriter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
+	private static final Set<PropertyKey> idNameOnly         = new LinkedHashSet<>();
+
+	static {
+
+		idNameOnly.add(GraphObject.id);
+		idNameOnly.add(AbstractNode.name);
+	}
 
 	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<>();
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
-	private final Property<String> id                    = new StringProperty("id");
 	private final DecimalFormat decimalFormat            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private final PropertyKey idProperty                 = GraphObject.id;
 	private int outputNestingDepth                       = 3;
 	private Value<String> propertyView                   = null;
 	protected boolean indent                             = true;
+	protected boolean compactNestedProperties            = true;
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
@@ -365,36 +371,19 @@ public abstract class StreamingWriter {
 			// prevent endless recursion by pruning at depth n
 			if (depth <= outputNestingDepth) {
 
-
-				/*
-				// id (only if idProperty is not set)
-				if (idProperty == null) {
-
-					writer.name("id").value(source.getId());
-
-				} else {
-
-					Object idPropertyValue = source.getProperty(idProperty);
-					if (idPropertyValue != null) {
-
-						writer.name("id").value(idPropertyValue.toString());
-					}
-
-				}
-				*/
-
 				// property keys
 				Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
 				if (keys != null) {
+
+					// speciality for the Ui view: limit recursive rendering to (id, name)
+					if (compactNestedProperties && depth > 0 && PropertyView.Ui.equals(localPropertyView)) {
+						keys = idNameOnly;
+					}
 
 					for (PropertyKey key : keys) {
 
 						Object value = source.getProperty(key);
 						PropertyKey localKey = key;
-
-						if (localKey.equals(idProperty)) {
-							localKey = id;
-						}
 
 						if (value != null) {
 
@@ -448,11 +437,6 @@ public abstract class StreamingWriter {
 					String key = entry.getKey();
 					Object value = entry.getValue();
 
-					// id property mapping again..
-					if (idProperty.jsonName().equals(key)) {
-						key = "id";
-					}
-
 					writer.name(key);
 					serializeRoot(writer, value, localPropertyView, depth+1);
 				}
@@ -477,10 +461,6 @@ public abstract class StreamingWriter {
 				for (Map.Entry<PropertyKey, Object> entry : source.entrySet()) {
 
 					PropertyKey key = entry.getKey();
-					if (key.equals(idProperty)) {
-
-						key = id;
-					}
 
 					writer.name(key.jsonName());
 					serializeProperty(writer, key, entry.getValue(), localPropertyView, depth+1);
