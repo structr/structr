@@ -1438,7 +1438,7 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8;',
             headers: {
-                Accept: 'application/json; charset=utf-8; properties=id,name,type'
+                Accept: 'application/json; charset=utf-8; properties=id,name,type,isThumbnail'
             },
             //async: false,
             success: function(data) {
