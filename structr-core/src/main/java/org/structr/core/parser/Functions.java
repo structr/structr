@@ -113,6 +113,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_ADD                 = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
 	public static final String ERROR_MESSAGE_INT_SUM             = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
 	public static final String ERROR_MESSAGE_DOUBLE_SUM          = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
+	public static final String ERROR_MESSAGE_IS_COLLECTION       = "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
 	public static final String ERROR_MESSAGE_EXTRACT             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_MERGE               = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
 	public static final String ERROR_MESSAGE_SORT                = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
@@ -1030,6 +1031,25 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_INT_SUM;
+			}
+
+		});
+		functions.put("is_collection", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+					return (sources[0] instanceof Collection);
+				} else {
+					return false;
+				}
+				
+			}
+			
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_IS_COLLECTION;
 			}
 
 		});

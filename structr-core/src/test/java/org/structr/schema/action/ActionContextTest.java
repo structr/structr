@@ -641,6 +641,12 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid size() result", "0", testOne.replaceVariables(securityContext, ctx, "${size(null)}"));
 			assertEquals("Invalid size() result", "0", testOne.replaceVariables(securityContext, ctx, "${size(xyz)}"));
 
+			// is_collection
+			assertEquals("Invalid is_collection() result", "true", testOne.replaceVariables(securityContext, ctx, "${is_collection(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(this.name)}"));
+			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(null)}"));
+			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(xyz)}"));
+
 			// first / last / nth
 			assertEquals("Invalid first() result", testSixs.get( 0).toString(), testOne.replaceVariables(securityContext, ctx, "${first(this.manyToManyTestSixs)}"));
 			assertEquals("Invalid last() result",  testSixs.get(19).toString(), testOne.replaceVariables(securityContext, ctx, "${last(this.manyToManyTestSixs)}"));
