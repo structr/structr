@@ -1383,10 +1383,12 @@ var _Crud = {
 
             if (value && value.length) {
 
+
                 $.each(value, function(v, relatedId) {
                     _Crud.getAndAppendNode(type, id, key, relatedId, cell);
                 });
-                //cells.append('<div style="clear:both"><img class="add" src="icon/add_grey.png"></div>');
+
+                //cell.append('<div class="node element"><span>' + 5 + ' more</span></div>');
             }
 
             cell.append('<img class="add" src="icon/add_grey.png">');
@@ -1436,7 +1438,7 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8;',
             headers: {
-                Accept: 'application/json; charset=utf-8; properties=id,name'
+                Accept: 'application/json; charset=utf-8; properties=id,name,type'
             },
             //async: false,
             success: function(data) {
@@ -1493,7 +1495,6 @@ var _Crud = {
                     _Crud.showDetails(node, false, node.type);
                     return false;
                 });
-
             }
         });
 
@@ -1956,21 +1957,20 @@ var _Crud = {
             }
         });
     },
-    showDetails: function(node, create, typeParam) {
+    showDetails: function(n, create, typeParam) {
 
-        var type = typeParam || node.type;
+        var type = typeParam || n.type;
         if (!type) {
             Structr.error('Missing type', function() {
             }, function() {
             });
             return;
         }
-        var typeDef = _Crud.schema[type];
 
         if (!dialogBox.is(':visible')) {
-            if (node) {
+            if (n) {
                 //console.log('Edit node', node);
-                _Crud.dialog('Details of ' + type + ' ' + (node.name ? node.name : node.id) + '<span class="id"> [' + node.id + ']</span>', function() {
+                _Crud.dialog('Details of ' + type + ' ' + (n.name ? n.name : n.id) + '<span class="id"> [' + n.id + ']</span>', function() {
                 }, function() {
                 });
             } else {
@@ -1980,62 +1980,78 @@ var _Crud = {
                 });
             }
         }
-        //console.log('readonly', readonly);
 
-        if (create) {
-            //console.log('edit mode, appending form');
-            dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table></form>');
-        } else {
-            dialogText.html('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table>');
-        }
+        // load details
+        $.ajax({
+            url: rootUrl + n.id + '/' + _Crud.view[type],
+            type: 'GET',
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8;',
+            success: function(data) {
+                if (!data)
+                    return;
+                var node = data.result;
 
-        var table = $('table', dialogText);
+                var typeDef = _Crud.schema[type];
+                //console.log('readonly', readonly);
 
+                if (create) {
+                    //console.log('edit mode, appending form');
+                    dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table></form>');
+                } else {
+                    dialogText.html('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table>');
+                }
 
-        var keys = _Crud.keys[type];
-        if (!keys) {
-            keys = Object.keys(typeDef.views[_Crud.view[type]]);
-        }
+                var table = $('table', dialogText);
 
-        $.each(keys, function(i, key) {
-            var readOnly = _Crud.readOnly(key, type);
-            var isCollection = _Crud.isCollection(key, type);
-            var relatedType = _Crud.relatedType(key, type);
-            if (readOnly || (create && (isCollection || relatedType))) {
-                return;
-            }
+                var keys = _Crud.keys[type];
+                if (!keys) {
+                    keys = Object.keys(typeDef.views[_Crud.view[type]]);
+                }
 
-            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
-            var cell = $('.' + key, table);
-            if (node && node.id) {
-                //console.log(node.id, key, type, node[key], cell);
-                _Crud.populateCell(node.id, key, node.type, node[key], cell);
-            } else {
-                _Crud.populateCell(null, key, type, null, cell);
-            }
-        });
+                $.each(keys, function(i, key) {
+                    var readOnly = _Crud.readOnly(key, type);
+                    var isCollection = _Crud.isCollection(key, type);
+                    var relatedType = _Crud.relatedType(key, type);
+                    if (readOnly || (create && (isCollection || relatedType))) {
+                        return;
+                    }
 
-        if (create) {
-            dialogCloseButton = $('.save', $('#dialogBox'));
-            if (!(dialogCloseButton.length)) {
-                dialogBox.append('<button class="save" id="saveProperties">Save</button>');
-                dialogCloseButton = $('.save', $('#dialogBox'));
-                dialogCloseButton.on('click', function() {
-                    var form = $('#entityForm');
-                    var json = JSON.stringify(_Crud.serializeObject(form));
-                    if (create) {
-                        _Crud.crudCreate(type, typeDef.url, json);
+                    table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+                    var cell = $('.' + key, table);
+                    if (node && node.id) {
+
+                        //console.log(node.id, key, type, node[key], cell);
+                        _Crud.populateCell(node.id, key, node.type, node[key], cell);
+
                     } else {
-                        var id = form.attr('data-id');
-                        _Crud.crudUpdateObj(id, json);
+                        _Crud.populateCell(null, key, type, null, cell);
                     }
                 });
-            }
-        }
 
-        if (node && node.type === 'Image') {
-            dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
-        }
+                if (create) {
+                    dialogCloseButton = $('.save', $('#dialogBox'));
+                    if (!(dialogCloseButton.length)) {
+                        dialogBox.append('<button class="save" id="saveProperties">Save</button>');
+                        dialogCloseButton = $('.save', $('#dialogBox'));
+                        dialogCloseButton.on('click', function() {
+                            var form = $('#entityForm');
+                            var json = JSON.stringify(_Crud.serializeObject(form));
+                            if (create) {
+                                _Crud.crudCreate(type, typeDef.url, json);
+                            } else {
+                                var id = form.attr('data-id');
+                                _Crud.crudUpdateObj(id, json);
+                            }
+                        });
+                    }
+                }
+
+                if (node && node.type === 'Image') {
+                    dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
+                }
+            }
+        });
 
     },
     formatKey: function(text) {
@@ -2159,6 +2175,29 @@ var _Crud = {
 
         // default
         return false;
+    },
+
+    loadDetails : function(id, parentType) {
+
+        var node;
+
+        $.ajax({
+            url: rootUrl + id + '/' + _Crud.view[parentType],
+            type: 'GET',
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8;',
+            success: function(data) {
+                if (!data)
+                    return;
+                node = data.result;
+                console.log(node);
+                console.log(data.result);
+            }
+        });
+
+        console.log(node);
+
+        return node;
     }
 
 }
