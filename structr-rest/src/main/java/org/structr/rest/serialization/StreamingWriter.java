@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -382,8 +383,9 @@ public abstract class StreamingWriter {
 
 					for (PropertyKey key : keys) {
 
-						Object value = source.getProperty(key);
-						PropertyKey localKey = key;
+						final Predicate predicate  = writer.getSecurityContext().getRange(key.jsonName());
+						final Object value         = source.getProperty(key, predicate);
+						final PropertyKey localKey = key;
 
 						if (value != null) {
 

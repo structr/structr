@@ -23,9 +23,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.NotNullPredicate;
@@ -34,11 +31,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ManyEndpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
-import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.notion.Notion;
@@ -56,7 +51,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	private Relation<S, T, ? extends Source, ManyEndpoint<T>> relation = null;
 	private Notion notion                                              = null;
 	private Class<T> destType                                          = null;
-	
+
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
@@ -78,11 +73,11 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	public EndNodes(final String name, final Class<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass, final Notion notion) {
 
 		super(name);
-		
+
 		try {
-			
+
 			this.relation = relationClass.newInstance();
-			
+
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -91,10 +86,10 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		this.destType = relation.getTargetType();
 
 		this.notion.setType(destType);
-		
+
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
-	
+
 	@Override
 	public String typeName() {
 		return "Object";
@@ -127,20 +122,27 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		ManyEndpoint<T> endpoint = relation.getTarget();
-		
-		return Iterables.toList(Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, predicate)));
+
+		if (predicate != null) {
+
+			return Iterables.toList(Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, null))));
+
+		} else {
+
+			return Iterables.toList(Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, null)));
+		}
 	}
 
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, List<T> collection) throws FrameworkException {
-		
+
 		ManyEndpoint<T> endpoint = relation.getTarget();
-		
+
 		endpoint.set(securityContext, (NodeInterface)obj, collection);
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return destType;
@@ -160,37 +162,37 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	public Property<List<T>> indexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<T>> indexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<T>> passivelyIndexed() {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<T>> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<T>> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
-	
+
 	@Override
 	public boolean isSearchable() {
 		return false;
 	}
-	
+
 	@Override
 	public void index(GraphObject entity, Object value) {
 		// no indexing
@@ -209,10 +211,10 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 	@Override
 	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
-		
+
 		List<T> list = getProperty(securityContext, obj, false);
 		list.add(t);
-		
+
 		setProperty(securityContext, obj, list);
 	}
 
@@ -220,13 +222,13 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	public Class<T> getTargetType() {
 		return destType;
 	}
-	
+
 	// ----- overridden methods from super class -----
 	@Override
 	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType, final Predicate<GraphObject> predicate) {
 
 		Set<T> relatedNodes = new LinkedHashSet<>();
-		
+
 		try {
 
 			final Object source = relation.getSource().get(securityContext, obj, predicate);

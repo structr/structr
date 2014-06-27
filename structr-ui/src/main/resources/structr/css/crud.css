@@ -200,6 +200,14 @@ table.props input.readonly {
     background-color: transparent ! important;
 }
 
+table.props td.key {
+    width: 20%;
+}
+
+table.props td.value {
+    width: 80%;
+}
+
 img.thumbnail {
     max-width: 100px;
     max-height: 100px;

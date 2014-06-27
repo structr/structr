@@ -154,7 +154,7 @@ var _Crud = {
             _Crud.loadSchema(function() {
                 _Crud.crudRead(null, id, function(node) {
                     //console.log(node, _Crud.view[node.type]);
-                    _Crud.showDetails(node, false, node.type);
+                    _Crud.showDetails(node, node.type);
                 });
             });
 
@@ -792,7 +792,7 @@ var _Crud = {
                 }, function() {
                     //console.log('cancel')
                 });
-                _Crud.showDetails(data.result, false, t);
+                _Crud.showDetails(data.result, t);
                 //_Crud.populateForm($('#entityForm'), data.result);
             }
         });
@@ -862,7 +862,7 @@ var _Crud = {
 //                            }, function() {
 //                                //console.log('cancel')
 //                            });
-                _Crud.showDetails(null, true, type);
+                _Crud.showCreate(null, type);
             }
             var resp = JSON.parse(data.responseText);
             //console.log(resp);
@@ -1464,7 +1464,7 @@ var _Crud = {
                     $('.thumbnail', nodeEl).on('click', function(e) {
                         e.stopPropagation();
                         e.preventDefault();
-                        _Crud.showDetails(node, false, node.type);
+                        _Crud.showDetails(node, node.type);
                         return false;
                     });
 
@@ -1492,7 +1492,7 @@ var _Crud = {
                 });
                 nodeEl.on('click', function(e) {
                     e.preventDefault();
-                    _Crud.showDetails(node, false, node.type);
+                    _Crud.showDetails(node, node.type);
                     return false;
                 });
             }
@@ -1957,7 +1957,7 @@ var _Crud = {
             }
         });
     },
-    showDetails: function(n, create, typeParam) {
+    showDetails: function(n, typeParam) {
 
         var type = typeParam || n.type;
         if (!type) {
@@ -1981,12 +1981,29 @@ var _Crud = {
             }
         }
 
+        var ranges = "";
+        var keys = _Crud.keys[type];
+        if (!keys) {
+            keys = Object.keys(typeDef.views[_Crud.view[type]]);
+        }
+
+        $.each(keys, function(i, key) {
+
+            if ( _Crud.isCollection(key, type)) {
+                ranges += key + '=0-9;'
+            }
+
+        });
+
         // load details
         $.ajax({
             url: rootUrl + n.id + '/' + _Crud.view[type],
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8;',
+            headers: {
+                Range: ranges
+            },
             success: function(data) {
                 if (!data)
                     return;
@@ -1995,12 +2012,7 @@ var _Crud = {
                 var typeDef = _Crud.schema[type];
                 //console.log('readonly', readonly);
 
-                if (create) {
-                    //console.log('edit mode, appending form');
-                    dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table></form>');
-                } else {
-                    dialogText.html('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table>');
-                }
+                dialogText.html('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table>');
 
                 var table = $('table', dialogText);
 
@@ -2010,12 +2022,12 @@ var _Crud = {
                 }
 
                 $.each(keys, function(i, key) {
-                    var readOnly = _Crud.readOnly(key, type);
-                    var isCollection = _Crud.isCollection(key, type);
-                    var relatedType = _Crud.relatedType(key, type);
-                    if (readOnly || (create && (isCollection || relatedType))) {
-                        return;
-                    }
+//                    var readOnly = _Crud.readOnly(key, type);
+//                    var isCollection = _Crud.isCollection(key, type);
+//                    var relatedType = _Crud.relatedType(key, type);
+//                    if (readOnly) {
+//                        return;
+//                    }
 
                     table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
                     var cell = $('.' + key, table);
@@ -2029,29 +2041,80 @@ var _Crud = {
                     }
                 });
 
-                if (create) {
-                    dialogCloseButton = $('.save', $('#dialogBox'));
-                    if (!(dialogCloseButton.length)) {
-                        dialogBox.append('<button class="save" id="saveProperties">Save</button>');
-                        dialogCloseButton = $('.save', $('#dialogBox'));
-                        dialogCloseButton.on('click', function() {
-                            var form = $('#entityForm');
-                            var json = JSON.stringify(_Crud.serializeObject(form));
-                            if (create) {
-                                _Crud.crudCreate(type, typeDef.url, json);
-                            } else {
-                                var id = form.attr('data-id');
-                                _Crud.crudUpdateObj(id, json);
-                            }
-                        });
-                    }
-                }
-
                 if (node && node.type === 'Image') {
                     dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
                 }
             }
         });
+
+    },
+    showCreate: function(node, typeParam) {
+
+        var type = typeParam || node.type;
+        if (!type) {
+            Structr.error('Missing type', function() {
+            }, function() {
+            });
+            return;
+        }
+        var typeDef = _Crud.schema[type];
+
+        if (!dialogBox.is(':visible')) {
+            if (node) {
+                //console.log('Edit node', node);
+                _Crud.dialog('Details of ' + type + ' ' + (node.name ? node.name : node.id) + '<span class="id"> [' + node.id + ']</span>', function() {
+                }, function() {
+                });
+            } else {
+                //console.log('Create new node of type', typeOnCreate);
+                _Crud.dialog('Create new ' + type, function() {
+                }, function() {
+                });
+            }
+        }
+        //console.log('readonly', readonly);
+
+        dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table></form>');
+
+        var table = $('table', dialogText);
+
+        var keys = _Crud.keys[type];
+        if (!keys) {
+            keys = Object.keys(typeDef.views[_Crud.view[type]]);
+        }
+
+        $.each(keys, function(i, key) {
+            var readOnly = _Crud.readOnly(key, type);
+            var isCollection = _Crud.isCollection(key, type);
+            var relatedType = _Crud.relatedType(key, type);
+            if (readOnly || (isCollection || relatedType)) {
+                return;
+            }
+
+            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+            var cell = $('.' + key, table);
+            if (node && node.id) {
+                //console.log(node.id, key, type, node[key], cell);
+                _Crud.populateCell(node.id, key, node.type, node[key], cell);
+            } else {
+                _Crud.populateCell(null, key, type, null, cell);
+            }
+        });
+
+        dialogCloseButton = $('.save', $('#dialogBox'));
+        if (!(dialogCloseButton.length)) {
+            dialogBox.append('<button class="save" id="saveProperties">Save</button>');
+            dialogCloseButton = $('.save', $('#dialogBox'));
+            dialogCloseButton.on('click', function() {
+                var form = $('#entityForm');
+                var json = JSON.stringify(_Crud.serializeObject(form));
+                _Crud.crudCreate(type, typeDef.url, json);
+            });
+        }
+
+        if (node && node.type === 'Image') {
+            dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
+        }
 
     },
     formatKey: function(text) {
