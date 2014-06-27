@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaHelper;
@@ -58,6 +59,7 @@ public class SecurityContext {
 	//~--- fields ---------------------------------------------------------
 
 	private Map<Long, NodeInterface> cache = new ConcurrentHashMap<>();
+	private Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
 	private AccessMode accessMode          = AccessMode.Frontend;
 	private Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
 	private Authenticator authenticator    = null;
@@ -83,12 +85,10 @@ public class SecurityContext {
 	 */
 	private SecurityContext(Principal user, HttpServletRequest request, AccessMode accessMode) {
 
+		this(request);
+
 		this.cachedUser = user;
 		this.accessMode = accessMode;
-		this.request    = request;
-
-		initRequestBasedCache(request);
-		initializeCustomView(request);
 	}
 
 	private SecurityContext(HttpServletRequest request) {
@@ -97,6 +97,7 @@ public class SecurityContext {
 
 		initRequestBasedCache(request);
 		initializeCustomView(request);
+		initializeQueryRanges(request);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -149,6 +150,64 @@ public class SecurityContext {
 			} catch (Throwable ignore) { }
 		}
 
+	}
+
+	private void initializeQueryRanges(final HttpServletRequest request) {
+
+		if (request != null) {
+
+			final String rangeSource = request.getHeader("Range");
+			if (rangeSource != null) {
+
+				final String[] rangeParts = rangeSource.split("[;]+");
+				final int rangeCount      = rangeParts.length;
+
+				for (int i=0; i<rangeCount; i++) {
+
+					final String[] parts = rangeParts[i].split("[=]+");
+					if (parts.length == 2) {
+
+						final String identifier = parts[0].trim();
+						final String valueRange = parts[1].trim();
+
+						if (StringUtils.isNotBlank(identifier) && StringUtils.isNotBlank(valueRange)) {
+
+							if (valueRange.contains(",")) {
+
+								logger.log(Level.WARNING, "Unsupported Range header specification {0}, multiple ranges are not supported.", valueRange);
+
+							} else {
+
+								final String[] valueParts = valueRange.split("[-]+");
+								if (valueParts.length == 2) {
+
+									String startString = valueParts[0].trim();
+									String endString   = valueParts[1].trim();
+
+									// remove optional total size indicator
+									if (endString.contains("/")) {
+										endString = endString.substring(0, endString.indexOf("/"));
+									}
+
+									try {
+
+										final int start    = Integer.parseInt(startString);
+										final int end      = Integer.parseInt(endString);
+
+										ranges.put(identifier, new QueryRange(start, end));
+
+									} catch (Throwable t) {
+
+										t.printStackTrace();
+									}
+								}
+							}
+
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -580,6 +639,10 @@ public class SecurityContext {
 
 	public Set<String> getCustomView() {
 		return customView;
+	}
+
+	public QueryRange getRange(final String key) {
+		return ranges.get(key);
 	}
 
 	// ----- nested classes -----

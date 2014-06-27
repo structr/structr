@@ -1981,12 +1981,29 @@ var _Crud = {
             }
         }
 
+        var ranges = "";
+        var keys = _Crud.keys[type];
+        if (!keys) {
+            keys = Object.keys(typeDef.views[_Crud.view[type]]);
+        }
+
+        $.each(keys, function(i, key) {
+
+            if ( _Crud.isCollection(key, type)) {
+                ranges += key + '=0-9;'
+            }
+
+        });
+
         // load details
         $.ajax({
             url: rootUrl + n.id + '/' + _Crud.view[type],
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8;',
+            headers: {
+                Range: ranges
+            },
             success: function(data) {
                 if (!data)
                     return;

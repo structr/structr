@@ -51,7 +51,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	private Relation<S, T, ManyStartpoint<S>, ? extends Target> relation = null;
 	private Notion notion                                                = null;
 	private Class<S> destType                                            = null;
-	
+
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
@@ -73,11 +73,11 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	public StartNodes(final String name, final Class<? extends Relation<S, T, ManyStartpoint<S>, ? extends Target>> relationClass, final Notion notion) {
 
 		super(name);
-		
+
 		try {
-			
+
 			this.relation = relationClass.newInstance();
-			
+
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -86,10 +86,10 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 		this.destType = relation.getSourceType();
 
 		this.notion.setType(destType);
-		
+
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
-	
+
 	@Override
 	public String typeName() {
 		return "Object";
@@ -122,20 +122,27 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 	@Override
 	public List<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
-		
+
 		ManyStartpoint<S> startpoint = relation.getSource();
 
-		return Iterables.toList(Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, predicate)));
+		if (predicate != null) {
+
+			return Iterables.toList(Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, null))));
+
+		} else {
+
+			return Iterables.toList(Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, null)));
+		}
 	}
 
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, List<S> collection) throws FrameworkException {
-		
+
 		ManyStartpoint<S> startpoint = relation.getSource();
 
 		startpoint.set(securityContext, (NodeInterface)obj, collection);
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return destType;
@@ -155,37 +162,37 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	public Property<List<S>> indexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<S>> indexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<S>> passivelyIndexed() {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<S>> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<S>> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
-	
+
 	@Override
 	public boolean isSearchable() {
 		return false;
 	}
-	
+
 	@Override
 	public void index(GraphObject entity, Object value) {
 		// no indexing
@@ -204,10 +211,10 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 	@Override
 	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final S s) throws FrameworkException {
-		
+
 		List<S> list = getProperty(securityContext, obj, false);
 		list.add(s);
-		
+
 		setProperty(securityContext, obj, list);
 	}
 
@@ -215,13 +222,13 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	public Class<S> getTargetType() {
 		return destType;
 	}
-	
+
 	// ----- overridden methods from super class -----
 	@Override
 	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType, final Predicate<GraphObject> predicate) {
 
 		Set<T> relatedNodes = new LinkedHashSet<>();
-		
+
 		try {
 
 			final Object target = relation.getTarget().get(securityContext, obj, predicate);
