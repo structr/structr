@@ -23,12 +23,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.BooleanClause;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.ManyEndpoint;
@@ -36,6 +40,9 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.search.EmptySearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
@@ -190,7 +197,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 	@Override
 	public boolean isSearchable() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -221,6 +228,72 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	@Override
 	public Class<T> getTargetType() {
 		return destType;
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, List<T> searchValue, boolean exactMatch, final Query query) {
+
+		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
+		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
+		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
+		boolean alreadyAdded                      = false;
+
+		if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			if (exactMatch) {
+
+				for (NodeInterface node : searchValue) {
+
+					switch (occur) {
+
+						case MUST:
+
+							if (!alreadyAdded) {
+
+								// the first result is the basis of all subsequent intersections
+								intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+
+								// the next additions are intersected with this one
+								alreadyAdded = true;
+
+							} else {
+
+								intersectionResult.retainAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+							}
+
+							break;
+
+						case SHOULD:
+							intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+							break;
+
+						case MUST_NOT:
+							break;
+					}
+				}
+
+			} else {
+
+				// loose search behaves differently, all results must be combined
+				for (NodeInterface node : searchValue) {
+
+					intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+				}
+			}
+
+			attr.setResult(intersectionResult);
+
+		} else {
+
+			// experimental filter attribute that
+			// removes entities with a non-empty
+			// value in the given field
+			return new EmptySearchAttribute(this, null);
+		}
+
+		return attr;
 	}
 
 	// ----- overridden methods from super class -----
