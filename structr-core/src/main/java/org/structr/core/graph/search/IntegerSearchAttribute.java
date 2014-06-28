@@ -32,16 +32,21 @@ public class IntegerSearchAttribute extends PropertySearchAttribute<Integer> {
 	public IntegerSearchAttribute(PropertyKey<Integer> key, Integer value, Occur occur, boolean isExactMatch) {
 		super(key, value, occur, isExactMatch);
 	}
-	
+
+	@Override
+	public String toString() {
+		return "IntegerSearchAttribute()";
+	}
+
 	@Override
 	public String getStringValue() {
-		
+
 		Integer value = getValue();
-		
+
 		if (value == null) {
-		
+
 			return getValueForEmptyField();
-		
+
 		}
 
 		return NumericUtils.intToPrefixCoded(value);

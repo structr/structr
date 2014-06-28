@@ -146,8 +146,8 @@ public class AdvancedSearchTest extends StructrRestTest {
 			.when()
 				.get(concat("/test_sevens?testSixIds=", test01, ";", test06));
 
-		// test simple related search with two objects, AND,
-		// expected result is empty
+		// test simple related search with one object,
+		// expected result is a list of two elements
 		RestAssured
 
 			.given()

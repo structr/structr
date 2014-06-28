@@ -33,13 +33,18 @@ public class DoubleSearchAttribute extends PropertySearchAttribute<Double> {
 	}
 
 	@Override
+	public String toString() {
+		return "DoubleSearchAttribute()";
+	}
+
+	@Override
 	public String getStringValue() {
-		
+
 		Double value = getValue();
 		if (value != null) {
 			return NumericUtils.doubleToPrefixCoded(value);
 		}
-		
+
 		return null;
 	}
 }

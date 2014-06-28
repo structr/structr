@@ -39,21 +39,26 @@ import org.structr.core.property.PropertyKey;
 public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 	private static final Logger logger = Logger.getLogger(PropertySearchAttribute.class.getName());
-	
+
 	private boolean isExactMatch = false;
-	
+
 	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final Occur occur, final boolean isExactMatch) {
-		
+
 		super(occur, key, value);
-		
+
 		this.isExactMatch = isExactMatch;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "PropertySearchAttribute()";
+	}
+
 	@Override
 	public Query getQuery() {
 
 		if (isExactMatch) {
-			
+
 			String value = getStringValue();
 
 			if (StringUtils.isEmpty(value)) {
@@ -65,22 +70,22 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 				value = "\"" + value + "\"";
 			}
-			
+
 			return new TermQuery(new Term(getKey().dbName(), value));
-			
+
 		} else {
-			
+
 			String value = getInexactValue();
 
 			// If there are double quotes around the search value treat as phrase
 			if (value.startsWith("\"") && value.endsWith("\"")) {
-				
+
 				value = StringUtils.stripStart(StringUtils.stripEnd(value, "\""), "\"");
-		
+
 				// Split string into words
 				String[] words = StringUtils.split(value, " ");
-			
-				
+
+
 				PhraseQuery query = new PhraseQuery();
 
 				for (String word : words) {
@@ -88,16 +93,16 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 					query.add(new Term(getKey().dbName(), word));
 
 				}
-				
+
 				return query;
-				
+
 			}
-			
+
 			BooleanQuery query = new BooleanQuery();
 
 			// Split string into words
 			String[] words = StringUtils.split(value, " ");
-			
+
 			for (String word : words) {
 
 				query.add(new WildcardQuery(new Term(getKey().dbName(), word)), Occur.SHOULD);
@@ -120,33 +125,33 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 	public void setExactMatch(final boolean exact) {
 		this.isExactMatch = exact;
 	}
-	
+
 	@Override
 	public String getStringValue() {
-		
+
 		Object value = getValue();
 		if (value != null) {
 			return value.toString();
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public String getInexactValue() {
-		
+
 		String stringValue = getStringValue();
 		if (stringValue != null) {
-			
+
 			return stringValue.toLowerCase();
 		}
-		
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
-		
+
 		T nodeValue          = entity.getProperty(getKey());
 		Occur occur          = getOccur();
 		T searchValue        = getValue();
@@ -174,20 +179,20 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 				}
 			}
 		}
-		
+
 		return true;
 	}
-	
+
 	private int compare(T nodeValue, T searchValue) {
-		
+
 		if (nodeValue instanceof Comparable && searchValue instanceof Comparable) {
-			
+
 			Comparable n = (Comparable)nodeValue;
 			Comparable s = (Comparable)searchValue;
-			
+
 			return n.compareTo(s);
 		}
-		
+
 		return 0;
 	}
 

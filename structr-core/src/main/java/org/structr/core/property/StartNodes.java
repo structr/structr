@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -228,6 +229,26 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	@Override
 	public Class<S> getTargetType() {
 		return destType;
+	}
+
+	@Override
+	public List<S> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+
+		final PropertyConverter inputConverter = inputConverter(securityContext);
+		if (inputConverter != null) {
+
+			final List<String> sources = new LinkedList<>();
+			if (requestParameter != null) {
+
+				for (String part : requestParameter.split("[,;]+")) {
+					sources.add(part);
+				}
+			}
+
+			return (List<S>)inputConverter.convert(sources);
+		}
+
+		return null;
 	}
 
 	@Override

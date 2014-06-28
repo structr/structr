@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph.search;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -43,15 +44,36 @@ public class SearchAttributeGroup extends SearchAttribute {
 	}
 
 	public SearchAttributeGroup(final SearchAttributeGroup parent, final Occur occur) {
-		
+
 		super(occur);
 		this.parent = parent;
+	}
+
+	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder("SearchAttributeGroup(");
+
+		for (final Iterator<SearchAttribute> it = searchItems.iterator(); it.hasNext();) {
+
+			final SearchAttribute item = it.next();
+
+			buf.append(item.toString());
+
+			if (it.hasNext()) {
+				buf.append(", ");
+			}
+		}
+
+		buf.append(")");
+
+		return buf.toString();
 	}
 
 	public final SearchAttributeGroup getParent() {
 		return parent;
 	}
-	
+
 	public final void setSearchAttributes(final List<SearchAttribute> searchItems) {
 		this.searchItems = searchItems;
 	}
@@ -66,30 +88,30 @@ public class SearchAttributeGroup extends SearchAttribute {
 
 	@Override
 	public Query getQuery() {
-		
+
 		BooleanQuery query = new BooleanQuery();
-		
+
 		for (SearchAttribute attr : getSearchAttributes()) {
-			
+
 			Query subQuery = attr.getQuery();
 			Occur occur    = attr.getOccur();
-			
+
 			query.add(subQuery, occur);
 		}
-		
+
 		return query;
 	}
 
 	@Override
 	public boolean isExactMatch() {
-		
+
 		boolean exactMatch = true;
-		
+
 		for (SearchAttribute attr : getSearchAttributes()) {
-			
+
 			exactMatch &= attr.isExactMatch();
 		}
-		
+
 		return exactMatch;
 	}
 
@@ -105,7 +127,7 @@ public class SearchAttributeGroup extends SearchAttribute {
 
 	@Override
 	public boolean includeInResult(GraphObject entity) {
-		
+
 		boolean includeInResult = true;
 
 		for (SearchAttribute attr : getSearchAttributes()) {
@@ -119,13 +141,13 @@ public class SearchAttributeGroup extends SearchAttribute {
 				case SHOULD:
 					// special behaviour for OR'ed predicates
 					if (attr.includeInResult(entity)) {
-						
+
 						// we're in or mode, return
 						// immediately
 						return true;
-						
+
 					} else {
-						
+
 						// set result flag to false
 						// and evaluate next search predicate
 						includeInResult = false;
@@ -139,7 +161,7 @@ public class SearchAttributeGroup extends SearchAttribute {
 			}
 		}
 
-		
+
 		return includeInResult;
 	}
 
@@ -147,15 +169,15 @@ public class SearchAttributeGroup extends SearchAttribute {
 	public String getValueForEmptyField() {
 		return null;
 	}
-	
+
 	@Override
 	public void setExactMatch(final boolean exact) {
 
 		for (SearchAttribute attr : getSearchAttributes()) {
-			
+
 			attr.setExactMatch(exact);
 		}
-		
+
 	}
-	
+
 }
