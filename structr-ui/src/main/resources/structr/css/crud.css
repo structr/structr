@@ -37,11 +37,15 @@
     background: #f0f0f0;
     color: #333;
     vertical-align: top;
+    padding-right: 20px;
+    position: relative;
 }
 
 .resourceBox th img {
-    float: right;
     cursor: pointer;
+    position: absolute;
+    top: 4px;
+    right: 4px;
 }
 
 .resourceBox td.value {
@@ -355,4 +359,31 @@ h2.searchResultsTitle {
 img.loader {
     vertical-align: middle;
     margin-right: 12px;
+}
+
+/*
+* Collection pager
+*/
+
+.cell-pager {
+    margin: 4px -4px -4px -4px;
+    padding: 4px;
+    clear: both;
+}
+
+.cell-pager .prev {
+    position: absolute;
+    left: 2px;
+    bottom: 2px;
+}
+
+.cell-pager .next {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+}
+
+.collection-page-size {
+    display: inline-block;
+    clear: both;
 }
