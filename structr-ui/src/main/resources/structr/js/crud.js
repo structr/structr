@@ -626,8 +626,9 @@ var _Crud = {
         var oldPage = parseInt(_Crud.getCollectionPage(type, key) || 1);
         el.append('<div class="collection-cell"></div>');
         el.append('<div class="cell-pager"></div>');
+        $('.cell-pager', el).append('<button class="prev disabled" disabled>&lt;</button>');
         if (oldPage > 1) {
-            $('.cell-pager', el).append('<button class="prev">&lt;</button>');
+            $('.cell-pager .prev', el).removeClass('disabled').prop('disabled', '');
         }
         $('.cell-pager', el).append('<input type="text" size="1" class="collection-page" value="' + oldPage + '">');
 
