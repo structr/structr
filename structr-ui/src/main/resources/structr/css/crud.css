@@ -37,8 +37,6 @@
     background: #f0f0f0;
     color: #333;
     vertical-align: top;
-    padding-right: 20px;
-    position: relative;
 }
 
 .resourceBox th img {
@@ -369,21 +367,23 @@ img.loader {
     margin: 4px -4px -4px -4px;
     padding: 4px;
     clear: both;
+    width: 90px;
 }
 
-.cell-pager .prev {
-    position: absolute;
-    left: 2px;
-    bottom: 2px;
+.cell-pager .prev, .cell-pager .next {
+    height: 20px;
 }
 
 .cell-pager .next {
-    position: absolute;
-    right: 2px;
-    bottom: 2px;
+    margin-left: 2px;
+}
+
+.cell-pager .collection-page {
+    margin-bottom: 2px;
 }
 
 .collection-page-size {
+    margin-left: 2px;
     display: inline-block;
     clear: both;
 }

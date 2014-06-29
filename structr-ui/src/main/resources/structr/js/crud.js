@@ -19,7 +19,7 @@
 
 var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
 var searchField;
-var defaultCollectionPageSize = 100;
+var defaultCollectionPageSize = 10;
 
 var browser = (typeof document === 'object');
 var crudPagerDataKey = 'structrCrudPagerData_' + port + '_';
@@ -596,7 +596,7 @@ var _Crud = {
                         th.append('<div class="collection-cell"></div>');
                         th.append('<div class="cell-pager"></div>');
                         if (oldPage > 1) {
-                            $('.cell-pager', th).append('<button class="prev">&lt; Prev</button>');
+                            $('.cell-pager', th).append('<button class="prev">&lt;</button>');
                         }
                         $('.cell-pager', th).append('<input type="text" size="1" class="collection-page" value="' + oldPage + '">');
 
@@ -618,7 +618,7 @@ var _Crud = {
                             }
                         });
 
-                        $('.cell-pager', th).append('<button class="next">Next &gt;</button>');
+                        $('.cell-pager', th).append('<button class="next">&gt;</button>');
 
                         $('.prev', th).on('click', function() {
                             _Crud.setCollectionPage(type, key, Math.max(1,oldPage-1));
