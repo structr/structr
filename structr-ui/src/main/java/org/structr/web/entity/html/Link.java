@@ -18,23 +18,17 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.core.property.Property;
 import org.apache.commons.lang3.ArrayUtils;
-
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.Linkable;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.Property;
 import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.File;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.html.relation.ResourceLink;
 
 //~--- classes ----------------------------------------------------------------
@@ -78,40 +72,40 @@ public class Link extends LinkSource {
 
 	}
 	
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		
-		Linkable target = getProperty(linkable);
-		
-		if (target instanceof File) {
-			
-			File file = (File) target;
-			
-			String contentType = file.getProperty(File.contentType);
-			
-			if (contentType != null) {
-				
-				setProperty(_type, contentType);
-				
-				if ("text/css".equals(contentType)) {
-				
-					setProperty(_rel, "stylesheet");
-					setProperty(_media, "screen");
-					
-				}
-				
-			}
-			
-			if (getProperty(_href) == null) {
-				
-				setProperty(_href, "/${link.name}");
-				
-			}
-			
-		}
-		
-		return true;
-		
-	}
+//	@Override
+//	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+//		
+//		Linkable target = getProperty(linkable);
+//		
+//		if (target instanceof File) {
+//			
+//			File file = (File) target;
+//			
+//			String contentType = file.getProperty(File.contentType);
+//			
+//			if (contentType != null) {
+//				
+//				setProperty(_type, contentType);
+//				
+//				if ("text/css".equals(contentType)) {
+//				
+//					setProperty(_rel, "stylesheet");
+//					setProperty(_media, "screen");
+//					
+//				}
+//				
+//			}
+//			
+//			if (getProperty(_href) == null) {
+//				
+//				setProperty(_href, "${link.path}");
+//				
+//			}
+//			
+//		}
+//		
+//		return true;
+//		
+//	}
 	
 }

@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -214,7 +215,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 				if (path.contains("/")) {
 
 					String newParentPath = StringUtils.substringBeforeLast(path, "/");
-					AbstractFile newParent = FileHelper.getFileByAbsolutePath(newParentPath);
+					AbstractFile newParent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), newParentPath);
 
 					if (newParent != null && newParent instanceof Folder) {
 

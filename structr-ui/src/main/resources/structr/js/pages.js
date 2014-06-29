@@ -621,6 +621,12 @@ var _Pages = {
                         + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
                         + '.link-hover { border: 1px solid #00c; }\n'
                         + '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
+                        /**
+                         * Fix for bug in Chrome preventing the modal dialog background
+                         * from being displayed if a page is shown in the preview which has the
+                         * transform3d rule activated.
+                         */
+                        + '.navbar-fixed-top { -webkit-transform: none ! important; }'
                         + '</style>');
 
             _Pages.findDroppablesInIframe($(this).contents(), entity.id).each(function(i, element) {

@@ -70,14 +70,14 @@ public class FileHelper {
 	 */
 	public static org.structr.web.entity.File transformFile(final SecurityContext securityContext, final String uuid, final Class<? extends org.structr.web.entity.File> fileType) throws FrameworkException, IOException {
 
-		AbstractFile existingFile = getFileByUuid(uuid);
+		AbstractFile existingFile = getFileByUuid(securityContext, uuid);
 
 		if (existingFile != null) {
 
 			existingFile.unlockReadOnlyPropertiesOnce();
 			existingFile.setProperty(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
 
-			existingFile = getFileByUuid(uuid);
+			existingFile = getFileByUuid(securityContext, uuid);
 
 			return fileType != null ? fileType.cast(existingFile) : (org.structr.web.entity.File) existingFile;
 		}
@@ -490,10 +490,11 @@ public class FileHelper {
 	 *
 	 * File may not be hidden or deleted.
 	 *
+	 * @param securityContext
 	 * @param absolutePath
 	 * @return
 	 */
-	public static AbstractFile getFileByAbsolutePath(final String absolutePath) {
+	public static AbstractFile getFileByAbsolutePath(final SecurityContext securityContext, final String absolutePath) {
 
 		String[] parts = PathHelper.getParts(absolutePath);
 
@@ -506,7 +507,7 @@ public class FileHelper {
 			return null;
 		}
 
-		AbstractFile currentFile = getFileByName(parts[0]);
+		AbstractFile currentFile = getFirstRootFileByName(securityContext, parts[0]);
 		if (currentFile == null) {
 			return null;
 		}
@@ -538,31 +539,61 @@ public class FileHelper {
 
 	}
 
-	public static AbstractFile getFileByUuid(final String uuid) {
+	public static AbstractFile getFileByUuid(final SecurityContext securityContext, final String uuid) {
 
 		logger.log(Level.FINE, "Search for file with uuid: {0}", uuid);
 
 		try {
-			return StructrApp.getInstance().get(AbstractFile.class, uuid);
+			return StructrApp.getInstance(securityContext).get(AbstractFile.class, uuid);
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to load file by UUID {0}: {1}", new Object[]{uuid, fex.getMessage()});
+			logger.log(Level.WARNING, "Unable to find a file by UUID {0}: {1}", new Object[]{uuid, fex.getMessage()});
 		}
 
 		return null;
 	}
 
-	public static AbstractFile getFileByName(final String name) {
+	public static AbstractFile getFirstFileByName(final SecurityContext securityContext, final String name) {
 
 		logger.log(Level.FINE, "Search for file with name: {0}", name);
 
 		try {
-			return StructrApp.getInstance().nodeQuery(AbstractFile.class).andName(name).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getFirst();
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to load file by name {0}: {1}", new Object[]{name, fex.getMessage()});
+			logger.log(Level.WARNING, "Unable to find a file for name {0}: {1}", new Object[]{name, fex.getMessage()});
+		}
+
+		return null;
+	}
+
+	/**
+	 * Find the first file with given name on root level (without parent folder).
+	 * 
+	 * @param securityContext
+	 * @param name
+	 * @return 
+	 */
+	public static AbstractFile getFirstRootFileByName(final SecurityContext securityContext, final String name) {
+
+		logger.log(Level.FINE, "Search for file with name: {0}", name);
+
+		try {
+			final List<AbstractFile> files = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getAsList();
+			
+			for (final AbstractFile file : files) {
+				
+				if (file.getProperty(AbstractFile.parent) == null) {
+					return file;
+				}
+				
+			}
+
+		} catch (FrameworkException fex) {
+
+			logger.log(Level.WARNING, "Unable to find a file for name {0}: {1}", new Object[]{name, fex.getMessage()});
 		}
 
 		return null;
@@ -631,7 +662,7 @@ public class FileHelper {
 			return null;
 		}
 
-		Folder folder = (Folder) FileHelper.getFileByAbsolutePath(path);
+		Folder folder = (Folder) FileHelper.getFileByAbsolutePath(securityContext, path);
 
 		if (folder != null) {
 			return folder;
@@ -650,7 +681,7 @@ public class FileHelper {
 			Folder parent = folder;
 
 			partialPath += PathHelper.PATH_SEP + part;
-			folder = (Folder) FileHelper.getFileByAbsolutePath(partialPath);
+			folder = (Folder) FileHelper.getFileByAbsolutePath(securityContext, partialPath);
 
 			if (folder == null) {
 
