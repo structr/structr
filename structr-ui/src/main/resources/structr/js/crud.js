@@ -568,67 +568,12 @@ var _Crud = {
                 th.empty();
                 if (view[key]) {
                     var sortKey = view[key].jsonName;
-                    th.append('<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>'
-                        + (_Crud.isCollection(key, type) ? '<input type="text" class="collection-page-size" size="1" value="' + (_Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize) + '">' : '')
-                        + '<img src="icon/cross_small_grey.png" alt="Hide this column" title="Hide this column">');
-                        
+                    th.append(
+                        '<img src="icon/cross_small_grey.png" alt="Hide this column" title="Hide this column">'
+                        + '<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
                         
                     if (_Crud.isCollection(key, type)) {
-                        $('.collection-page-size', th).on('blur', function() {
-                            var newPageSize = $(this).val();
-                            if (newPageSize !== _Crud.getCollectionPageSize(type, key)) {
-                                _Crud.setCollectionPageSize(type, key, newPageSize);
-                                document.location.reload();
-                            }
-                        });
-
-                        $('.collection-page-size', th).on('keypress', function(e) {
-                            if (e.keyCode === 13) {
-                                var newPageSize = $(this).val();
-                                if (newPageSize !== _Crud.getCollectionPageSize(type, key)) {
-                                    _Crud.setCollectionPageSize(type, key, newPageSize);
-                                    document.location.reload();
-                                }
-                            }
-                        });
-
-                        var oldPage = parseInt(_Crud.getCollectionPage(type, key) || 1);
-                        th.append('<div class="collection-cell"></div>');
-                        th.append('<div class="cell-pager"></div>');
-                        if (oldPage > 1) {
-                            $('.cell-pager', th).append('<button class="prev">&lt;</button>');
-                        }
-                        $('.cell-pager', th).append('<input type="text" size="1" class="collection-page" value="' + oldPage + '">');
-
-                        $('.collection-page', $('.cell-pager', th)).on('blur', function() {
-                            var newPage = $(this).val();
-                            if (newPage !== _Crud.getCollectionPage(type, key)) {
-                                _Crud.setCollectionPage(type, key, newPage);
-                                document.location.reload();
-                            }
-                        });
-
-                        $('.collection-page-size', $('.cell-pager', th)).on('keypress', function(e) {
-                            if (e.keyCode === 13) {
-                                var newPage = $(this).val();
-                                if (newPage !== _Crud.getCollectionPage(type, key)) {
-                                    _Crud.setCollectionPage(type, key, newPage);
-                                    document.location.reload();
-                                }
-                            }
-                        });
-
-                        $('.cell-pager', th).append('<button class="next">&gt;</button>');
-
-                        $('.prev', th).on('click', function() {
-                            _Crud.setCollectionPage(type, key, Math.max(1,oldPage-1));
-                            document.location.reload();
-                        });
-
-                        $('.next', th).on('click', function() {
-                            _Crud.setCollectionPage(type, key, oldPage+1);
-                            document.location.reload();
-                        });
+                        _Crud.appendPerCollectionPager(th, type, key);
                     }
                 
                     $('a', th).on('click', function(event) {
@@ -648,6 +593,90 @@ var _Crud = {
                 }
             }
         });
+    },
+    appendPerCollectionPager: function(el, type, key, callback) {
+        el.append('<input type="text" class="collection-page-size" size="1" value="' + (_Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize) + '">');
+
+        $('.collection-page-size', el).on('blur', function() {
+            var newPageSize = $(this).val();
+            if (newPageSize !== _Crud.getCollectionPageSize(type, key)) {
+                _Crud.setCollectionPageSize(type, key, newPageSize);
+                if (callback) {
+                    callback();
+                } else {
+                    document.location.reload();
+                }
+            }
+        });
+
+        $('.collection-page-size', el).on('keypress', function(e) {
+            if (e.keyCode === 13) {
+                var newPageSize = $(this).val();
+                if (newPageSize !== _Crud.getCollectionPageSize(type, key)) {
+                    _Crud.setCollectionPageSize(type, key, newPageSize);
+                    if (callback) {
+                        callback();
+                    } else {
+                        document.location.reload();
+                    }
+                }
+            }
+        });
+
+        var oldPage = parseInt(_Crud.getCollectionPage(type, key) || 1);
+        el.append('<div class="collection-cell"></div>');
+        el.append('<div class="cell-pager"></div>');
+        if (oldPage > 1) {
+            $('.cell-pager', el).append('<button class="prev">&lt;</button>');
+        }
+        $('.cell-pager', el).append('<input type="text" size="1" class="collection-page" value="' + oldPage + '">');
+
+        $('.collection-page', $('.cell-pager', el)).on('blur', function() {
+            var newPage = $(this).val();
+            if (newPage !== _Crud.getCollectionPage(type, key)) {
+                _Crud.setCollectionPage(type, key, newPage);
+                if (callback) {
+                    callback();
+                } else {
+                    document.location.reload();
+                }
+            }
+        });
+
+        $('.collection-page', $('.cell-pager', el)).on('keypress', function(e) {
+            if (e.keyCode === 13) {
+                var newPage = $(this).val();
+                if (newPage !== _Crud.getCollectionPage(type, key)) {
+                    _Crud.setCollectionPage(type, key, newPage);
+                    if (callback) {
+                        callback();
+                    } else {
+                        document.location.reload();
+                    }
+                }
+            }
+        });
+
+        $('.cell-pager', el).append('<button class="next">&gt;</button>');
+
+        $('.prev', el).on('click', function() {
+            _Crud.setCollectionPage(type, key, Math.max(1, oldPage - 1));
+            if (callback) {
+                callback();
+            } else {
+                document.location.reload();
+            }
+        });
+
+        $('.next', el).on('click', function() {
+            _Crud.setCollectionPage(type, key, oldPage + 1);
+            if (callback) {
+                callback();
+            } else {
+                document.location.reload();
+            }
+        });
+
     },
     sortAndPagingParameters: function(t, s, o, ps, p) {
         //var typeParam = (t ? 'type=' + t : '');
@@ -873,7 +902,7 @@ var _Crud = {
     },
     crudEdit: function(id, type) {
         var t = type || _Crud.type;
-        console.log(t);
+        //console.log(t);
         $.ajax({
             url: rootUrl + id + (_Crud.view[t] ? '/' + _Crud.view[t] : ''),
             type: 'GET',
@@ -1000,7 +1029,7 @@ var _Crud = {
             //_Crud.error('Error: ' + data.responseText, true);
         }
     },
-    crudRefresh: function(id, key) {
+    crudRefresh: function(id, key, oldValue) {
         var url = rootUrl + id + '/' + _Crud.view[_Crud.type];
         //console.log('crudRefresh', id, key, url);
 
@@ -1015,7 +1044,7 @@ var _Crud = {
                     return;
                 //console.log('refresh', id, key, data.result[key], data.result.type);
                 if (key) {
-                    _Crud.refreshCell(id, key, data.result[key], data.result.type);
+                    _Crud.refreshCell(id, key, data.result[key], data.result.type, oldValue);
                 } else {
                     _Crud.refreshRow(id, data.result, data.result.type);
                 }
@@ -1107,7 +1136,7 @@ var _Crud = {
             }
         });
     },
-    crudUpdate: function(id, key, newValue, onSuccess, onError) {
+    crudUpdate: function(id, key, newValue, oldValue, onSuccess, onError) {
         var url = rootUrl + id;
         var json;
         if (!newValue || newValue === '') {
@@ -1126,7 +1155,7 @@ var _Crud = {
                     if (onSuccess) {
                         onSuccess();
                     } else {
-                        _Crud.crudRefresh(id, key);
+                        _Crud.crudRefresh(id, key, oldValue);
                     }
                 },
                 400: function(data, status, xhr) {
@@ -1334,13 +1363,15 @@ var _Crud = {
             blinkRed(cell);
         });
     },
-    refreshCell: function(id, key, newValue, type) {
-        //    console.log('refreshCell', id, key, newValue, type);
+    refreshCell: function(id, key, newValue, type, oldValue) {
+        //console.log('refreshCell', id, key, newValue, type, oldValue);
         var cells = _Crud.cells(id, key);
         $.each(cells, function(i, cell) {
             cell.empty();
             _Crud.populateCell(id, key, type, newValue, cell);
-            blinkGreen(cell);
+            if (newValue !== oldValue && !(!newValue && oldValue === '')) {
+                blinkGreen(cell);
+            }
         });
     },
     refreshRow: function(id, item, type) {
@@ -1354,7 +1385,7 @@ var _Crud = {
         el.off('mouseup');
         var input;
         if (propertyType === 'String') {
-            el.html('<textarea name="' + key + '" class="value" cols="40" rows="4"></textare>');
+            el.html('<textarea name="' + key + '" class="value" cols="40" rows="4"></textarea>');
             input = $('textarea', el);
         } else {
             el.html('<input name="' + key + '" class="value" type="text" size="10">');
@@ -1367,7 +1398,7 @@ var _Crud = {
         input.on('blur', function() {
             var newValue = input.val();
             if (id) {
-                _Crud.crudUpdate(id, key, newValue);
+                _Crud.crudUpdate(id, key, newValue, oldValue);
             }
         });
     },
@@ -2108,8 +2139,16 @@ var _Crud = {
 //                        return;
 //                    }
 
-                    table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+                    table.append('<tr class="key"><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+
                     var cell = $('.' + key, table);
+                    
+                    if (_Crud.isCollection(key, type)) {
+                        _Crud.appendPerCollectionPager(cell.prev('td'), type, key, function() {
+                             _Crud.showDetails(n, typeParam);
+                        });
+                    }
+                    
                     if (node && node.id) {
 
                         //console.log(node.id, key, type, node[key], cell);

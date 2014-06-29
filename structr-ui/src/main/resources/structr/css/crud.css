@@ -37,13 +37,13 @@
     background: #f0f0f0;
     color: #333;
     vertical-align: top;
+    min-width: 60px;
 }
 
 .resourceBox th img {
     cursor: pointer;
-    position: absolute;
-    top: 4px;
-    right: 4px;
+    display: inline-block;
+    float: right;
 }
 
 .resourceBox td.value {
@@ -367,11 +367,11 @@ img.loader {
     margin: 4px -4px -4px -4px;
     padding: 4px;
     clear: both;
-    width: 90px;
+    width: 10em;
 }
 
 .cell-pager .prev, .cell-pager .next {
-    height: 20px;
+    height: 1.7em;
 }
 
 .cell-pager .next {
