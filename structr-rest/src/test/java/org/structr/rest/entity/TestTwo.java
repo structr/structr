@@ -31,19 +31,19 @@ import org.structr.core.property.EndNodes;
 
 /**
  * Another simple entity for the most basic tests.
- * 
+ *
  * @author Axel Morgner
  */
 public class TestTwo extends AbstractNode {
-	
+
 	public static final Property<Integer>       anInt    = new IntProperty("anInt").indexed();
 	public static final Property<Long>          aLong    = new LongProperty("aLong").indexed();
 	public static final Property<Date>          aDate    = new ISO8601DateProperty("aDate").indexed();
-	
+
 	public static final Property<List<TestOne>> testOnes = new EndNodes<>("test_ones", TwoOneOneToMany.class);
 
 	public static final View publicView = new View(TestTwo.class, PropertyView.Public,
-		name, anInt, aLong, aDate
+		name, anInt, aLong, aDate, testOnes
 	);
 }
 
