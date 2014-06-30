@@ -847,7 +847,6 @@ function checkbox(id, type, key, val) {
 
 function singleSelect(id, type, key, val) {
     var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '"></select>';
-    var valId = val.substring(val.lastIndexOf(',')+1).replace(/\)/, '');
     $.ajax({
         url: structrRestUrl + type + '/ui', method: 'GET', contentType: 'application/json',
         statusCode: {
@@ -855,7 +854,7 @@ function singleSelect(id, type, key, val) {
                 var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
                 sel.append('<option value="null"></option>');
                 $.each(data.result, function(i, o) {
-                    sel.append('<option value="' + o.id + '" ' + (o.id === valId ? 'selected' : '') + '>' + o.name + '</option>');
+                    sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
                 });
                 sel.chosen({allow_single_deselect: true});
             }
@@ -867,19 +866,16 @@ function singleSelect(id, type, key, val) {
 function multiSelect(id, type, key, val) {
     var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '" multiple="multiple"></select>';
     type = type.substring(0, type.length-2);
-    var valIds = val.substring(1).substring(0, val.length-2).split('(' + type + ',').map(function(part) {
-        return part.indexOf(')') === 32 ? part.substring(0, 32) : '';
-    });
+    var valIds = val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
     $.ajax({
         url: structrRestUrl + type + '/ui', method: 'GET', contentType: 'application/json',
         statusCode: {
             200: function(data) {
-                //console.log(data.result);
                 var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
                 $.each(data.result, function(i, o) {
                     sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
                 });
-                sel.chosen({allow_single_deselect: true});
+                sel.chosen();
             }
         }
     });

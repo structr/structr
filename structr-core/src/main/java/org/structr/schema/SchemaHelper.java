@@ -744,14 +744,7 @@ public class SchemaHelper {
 
 		} else {
 
-			if (rawValue instanceof GraphObject) {
-
-				value = ((GraphObject)rawValue).getUuid();
-
-			} else {
-
-				value = rawValue.toString();
-			}
+			value = rawValue.toString();
 
 		}
 
