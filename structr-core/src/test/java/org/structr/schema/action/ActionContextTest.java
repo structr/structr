@@ -233,6 +233,8 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 100, -1)}"));
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 5, -2)}"));
 			assertEquals("Invalid substring() result", "for", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 19, 3)}"));
+			assertEquals("Invalid substring() result", "ice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 3)}"));
+			assertEquals("Invalid substring() result", "ice", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 3, 3)}"));
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', -1, -1)}"));
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 100, -1)}"));
 			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 5, -2)}"));
@@ -634,6 +636,24 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid get() result", testSixs.get(0).getUuid(),  testOne.replaceVariables(securityContext, ctx, "${get(first(get(this, \"manyToManyTestSixs\")), \"id\")}"));
 			assertEquals("Invalid usage message for get()", Functions.ERROR_MESSAGE_GET, testOne.replaceVariables(securityContext, ctx, "${get()}"));
 
+			// size
+			assertEquals("Invalid size() result", "20", testOne.replaceVariables(securityContext, ctx, "${size(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid size() result", "0", testOne.replaceVariables(securityContext, ctx, "${size(null)}"));
+			assertEquals("Invalid size() result", "0", testOne.replaceVariables(securityContext, ctx, "${size(xyz)}"));
+
+			// is_collection
+			assertEquals("Invalid is_collection() result", "true", testOne.replaceVariables(securityContext, ctx, "${is_collection(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(this.name)}"));
+			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(null)}"));
+			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(xyz)}"));
+
+			// is_entity
+			assertEquals("Invalid is_entity() result", "true", testOne.replaceVariables(securityContext, ctx, "${is_entity(this.testFour)}"));
+			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(this.name)}"));
+			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(null)}"));
+			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(xyz)}"));
+
 			// first / last / nth
 			assertEquals("Invalid first() result", testSixs.get( 0).toString(), testOne.replaceVariables(securityContext, ctx, "${first(this.manyToManyTestSixs)}"));
 			assertEquals("Invalid last() result",  testSixs.get(19).toString(), testOne.replaceVariables(securityContext, ctx, "${last(this.manyToManyTestSixs)}"));
@@ -766,6 +786,10 @@ public class ActionContextTest extends StructrTest {
 
 			testOne.replaceVariables(securityContext, ctx, "${(set(this, \"isValid\", false), each(this.manyToManyTestSixs, set(this, \"isValid\", and(this.isValid, gte(now, data.createdDate)))))}");
 			assertEquals("Invalid multiline statement test result", "false", testOne.replaceVariables(securityContext, ctx, "${this.isValid}"));
+
+			// test multiple nested dot-separated properties (this.parent.parent.parent)
+			assertEquals("Invalid multilevel property expression result", "false", testOne.replaceVariables(securityContext, ctx, "${empty(this.testThree.testOne.testThree)}"));
+
 
 			tx.success();
 

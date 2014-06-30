@@ -36,7 +36,10 @@ public class FolderTest extends StructrTest {
 		
 		try (final Tx tx = app.tx()) {
 			
-			Folder test = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/a/b/c");
+			Folder test4 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/a/a");
+			Folder test3 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/c/b/a");
+			Folder test2 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/b/a");
+			Folder test1 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/a/b/c");
 						
 			tx.success();
 			
@@ -46,17 +49,17 @@ public class FolderTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 			
-			Folder a = (Folder) FileHelper.getFileByAbsolutePath("/a");
+			Folder a = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a");
 			assertNotNull(a);
-			assertNull(a.getProperty(Folder.parent));
+			assertEquals(FileHelper.getFolderPath(a), "/a");
 			
-			Folder b = (Folder) FileHelper.getFileByAbsolutePath("/a/b");
+			Folder b = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b");
 			assertNotNull(b);
-			assertEquals(a, b.getProperty(Folder.parent));
+			assertEquals(FileHelper.getFolderPath(b), "/a/b");
 			
-			Folder c = (Folder) FileHelper.getFileByAbsolutePath("/a/b/c");
+			Folder c = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b/c");
 			assertNotNull(c);
-			assertEquals(b, c.getProperty(Folder.parent));
+			assertEquals(FileHelper.getFolderPath(c), "/a/b/c");
 						
 		} catch (FrameworkException ex) {
 			Logger.getLogger(FolderTest.class.getName()).log(Level.SEVERE, null, ex);

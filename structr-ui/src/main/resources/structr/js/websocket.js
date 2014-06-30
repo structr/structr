@@ -136,7 +136,7 @@ function wsConnect() {
                 if (!sessionValid) {
                     localStorage.removeItem(userKey);
                     Structr.clearMain();
-                    Structr.login();
+                    Structr.login(msg);
                 } else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
                     Structr.refreshUi();
                 }
@@ -151,11 +151,13 @@ function wsConnect() {
                 log('Error code: ' + code, message);
 
                 if (code === 403) {
+                    //Structr.clearMain();
+                    localStorage.removeItem(userKey);
                     Structr.login('Wrong username or password!');
                 } else if (code === 401) {
                     localStorage.removeItem(userKey);
-                    Structr.clearMain();
-                    Structr.login('Session invalid');
+                    //Structr.clearMain();
+                    Structr.login('');
                 } else {
 
                     var msgClass;

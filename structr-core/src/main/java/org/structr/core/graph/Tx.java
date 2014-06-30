@@ -26,7 +26,7 @@ import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
 
 /**
- * 
+ *
  * @author Christian Morgner
  */
 public class Tx implements AutoCloseable {
@@ -36,36 +36,42 @@ public class Tx implements AutoCloseable {
 	private boolean success                 = false;
 	private boolean doValidation            = true;
 	private boolean doCallbacks             = true;
+	private boolean doNotifications         = true;
 	private TransactionCommand cmd          = null;
 	private StructrApp app                  = null;
-	
+
 	public Tx(final SecurityContext securityContext, final StructrApp app) {
 		this(securityContext, app, true, true);
 	}
-	
+
 	public Tx(final SecurityContext securityContext, final StructrApp app, final boolean doValidation, final boolean doCallbacks) {
-		
+		this(securityContext, app, doValidation, doCallbacks, true);
+	}
+
+	public Tx(final SecurityContext securityContext, final StructrApp app, final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {
+
 		this.securityContext = securityContext;
+		this.doNotifications = doNotifications;
 		this.doValidation    = doValidation;
 		this.doCallbacks     = doCallbacks;
 		this.app             = app;
 	}
-	
+
 	public Tx begin() {
 
 		cmd = app.command(TransactionCommand.class).beginTx();
-		
+
 		return this;
 	}
-	
+
 	public void success() throws FrameworkException {
 		success = true;
 		cmd.commitTx(doValidation);
 	}
-	
+
 	@Override
 	public void close() throws FrameworkException {
-		
+
 		final ModificationQueue modificationQueue = cmd.finishTx();
 
 		if (success && guard.compareAndSet(false, true)) {
@@ -77,11 +83,14 @@ public class Tx implements AutoCloseable {
 
 					modificationQueue.doOuterCallbacks(securityContext);
 
-					// notify listeners
-					final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
-					for (StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+					// notify listeners if desired
+					if (doNotifications) {
 
-						listener.transactionCommited(securityContext, modificationEvents);
+						final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
+						for (StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+							listener.transactionCommited(securityContext, modificationEvents);
+						}
 					}
 
 					modificationQueue.clear();
@@ -89,7 +98,7 @@ public class Tx implements AutoCloseable {
 
 				tx.success();
 			}
-		
+
 			guard.set(false);
 		}
 	}

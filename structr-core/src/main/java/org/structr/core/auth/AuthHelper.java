@@ -55,13 +55,16 @@ public class AuthHelper {
 	 * @param value
 	 * @return
 	 */
-	public static Principal getPrincipalForCredential(final PropertyKey key, final String value) {
+	public static <T> Principal getPrincipalForCredential(final PropertyKey<T> key, final T value) {
 
 		if (value == null) {
 			return null;
 		}
 
 		final App app = StructrApp.getInstance();
+
+
+
 		final Query<Principal> query = app.nodeQuery(Principal.class).and(key, value);
 
 		try {
@@ -179,7 +182,7 @@ public class AuthHelper {
 	 * @return
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
-		return getPrincipalForCredential(Principal.sessionIds, sessionId);
+		return getPrincipalForCredential(Principal.sessionIds, new String[]{ sessionId });
 	}
 
 	/**
@@ -227,7 +230,7 @@ public class AuthHelper {
 	public static void clearSession(final String sessionId) {
 
 		final App app = StructrApp.getInstance();
-		final Query<Principal> query = app.nodeQuery(Principal.class).and(Principal.sessionIds, new String[]{sessionId});
+		final Query<Principal> query = app.nodeQuery(Principal.class).and(Principal.sessionIds, new String[]{ sessionId });
 
 		try {
 			List<Principal> principals = query.getAsList();

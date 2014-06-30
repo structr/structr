@@ -21,7 +21,9 @@
 package org.structr.schema.action;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.structr.common.SecurityContext;
@@ -42,9 +44,10 @@ import org.structr.core.property.PropertyKey;
  */
 public class ActionContext {
 
-	private ErrorBuffer errorBuffer = new ErrorBuffer();
-	private GraphObject parent      = null;
-	private Object data             = null;
+	private Map<Integer, Integer> counters = new LinkedHashMap<>();
+	private ErrorBuffer errorBuffer        = new ErrorBuffer();
+	private GraphObject parent             = null;
+	private Object data                    = null;
 
 	public ActionContext() {
 		this(null, null);
@@ -235,6 +238,32 @@ public class ActionContext {
 
 	public boolean hasError() {
 		return errorBuffer.hasError();
+	}
+
+	public void incrementCounter(final int level) {
+
+		Integer value = counters.get(level);
+		if (value == null) {
+
+			value = 0;
+		}
+
+		counters.put(level, value+1);
+	}
+
+	public int getCounter(final int level) {
+
+		Integer value = counters.get(level);
+		if (value == null) {
+
+			return 0;
+		}
+
+		return value;
+	}
+
+	public void resetCounter(final int level) {
+		counters.put(level, 0);
 	}
 
 	protected Object numberOrString(final String value) {

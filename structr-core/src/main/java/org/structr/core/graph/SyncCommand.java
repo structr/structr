@@ -313,7 +313,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param writer
 	 * @param obj
 	 */
-	private static void serialize(PrintWriter writer, Object obj) {
+	public static void serialize(PrintWriter writer, Object obj) {
 
 		if (obj != null) {
 
@@ -339,7 +339,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				} else {
 
-					String str        = obj.toString();
+					String str        = filter(obj.toString());
 					int len           = str.length();
 					int log           = Integer.valueOf(len).toString().length();
 
@@ -359,7 +359,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 	}
 
-	private static Object deserialize(Reader reader) throws IOException {
+	public static Object deserialize(Reader reader) throws IOException {
 
 		Object serializedObject = null;
 		String type             = read(reader, 2);
@@ -393,6 +393,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 					// strings can be returned immediately
 					serializedObject = value;
+
+				} else if (clazz.equals(Character.class)) {
+
+					// characters can only a single element
+					serializedObject = value.charAt(0);
 
 				} else {
 
@@ -515,8 +520,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (NodeInterface nodeObject : nodes) {
 
 			final Node node = nodeObject.getNode();
-
-			System.out.println(node.getId() + ": " + (node.hasProperty("id") ? node.getProperty("id") : "null"));
 
 			// ignore non-structr nodes
 			if (node.hasProperty(GraphObject.id.dbName())) {
@@ -771,5 +774,16 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		DecimalFormat decimalFormat  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 		logger.log(Level.INFO, "Import done in {0} s", decimalFormat.format(time));
+	}
+
+	private static String filter(final String source) {
+
+		// remove double newline characters
+//		if (source.contains("\r")) {
+//
+//			return source.replace("\r", "");
+//		}
+
+		return source;
 	}
 }

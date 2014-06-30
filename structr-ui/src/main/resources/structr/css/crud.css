@@ -37,11 +37,13 @@
     background: #f0f0f0;
     color: #333;
     vertical-align: top;
+    min-width: 60px;
 }
 
 .resourceBox th img {
-    float: right;
     cursor: pointer;
+    display: inline-block;
+    float: right;
 }
 
 .resourceBox td.value {
@@ -166,7 +168,7 @@ input.readonly {
 .props .node img,
 .resourceBox div.node img {
     vertical-align: middle;
-    margin: 0 0 2px 4px;
+    margin: 0 0 6px 4px;
 }
 
 
@@ -198,6 +200,14 @@ input.readonly {
 table.props input.readonly {
     border: none;
     background-color: transparent ! important;
+}
+
+table.props td.key {
+    width: 20%;
+}
+
+table.props td.value {
+    width: 80%;
 }
 
 img.thumbnail {
@@ -239,6 +249,7 @@ img.thumbnail {
     position: absolute;
     top: 50%;
     left: 50%;
+    margin-bottom: 4px;
 }
 
 .dialog {
@@ -315,6 +326,7 @@ h2.searchResultsTitle {
     padding: 8px 12px;
     clear: both;
     border: 1px solid red;
+    overflow: hidden;
 }
 
 .searchResults .node {
@@ -345,4 +357,33 @@ h2.searchResultsTitle {
 img.loader {
     vertical-align: middle;
     margin-right: 12px;
+}
+
+/*
+* Collection pager
+*/
+
+.cell-pager {
+    margin: 4px -4px -4px -4px;
+    padding: 4px;
+    clear: both;
+    width: 10em;
+}
+
+.cell-pager .prev, .cell-pager .next {
+    height: 1.7em;
+}
+
+.cell-pager .next {
+    margin-left: 2px;
+}
+
+.cell-pager .collection-page {
+    margin-bottom: 2px;
+}
+
+.collection-page-size {
+    margin-left: 2px;
+    display: inline-block;
+    clear: both;
 }

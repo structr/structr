@@ -25,6 +25,7 @@ import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.apache.ftpserver.ftplet.User;
 import org.structr.common.PathHelper;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
@@ -77,7 +78,7 @@ public class StructrFileSystemView implements FileSystemView {
 //		if (workingDir == null) {
 //			workingDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
 //		}
-			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(workingDir);
+			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), workingDir);
 			if (structrWorkingDir == null || structrWorkingDir instanceof File) {
 				return new StructrFtpFolder(null);
 			}
@@ -161,7 +162,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 			}
 
-			AbstractFile file = FileHelper.getFileByAbsolutePath(requestedPath);
+			AbstractFile file = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), requestedPath);
 
 			if (file != null) {
 

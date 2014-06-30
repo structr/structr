@@ -24,12 +24,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-import org.structr.common.SecurityContext;
-import org.structr.websocket.StructrWebSocket;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.util.logging.Logger;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -37,6 +31,7 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PathHelper;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -46,6 +41,9 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -205,7 +203,7 @@ public class UnarchiveCommand extends AbstractCommand {
 			final String entryPath = "/" + PathHelper.clean(entry.getName());
 			logger.log(Level.INFO, "Entry path: {0}", entryPath);
 
-			AbstractFile f = FileHelper.getFileByAbsolutePath(entryPath);
+			AbstractFile f = FileHelper.getFileByAbsolutePath(securityContext, entryPath);
 
 			if (f == null) {
 

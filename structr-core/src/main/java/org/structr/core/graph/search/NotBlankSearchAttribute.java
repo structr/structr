@@ -32,7 +32,12 @@ public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 	public NotBlankSearchAttribute(PropertyKey<T> key) {
 		super(key, null);
 	}
-	
+
+	@Override
+	public String toString() {
+		return "NotBlankSearchAttribute()";
+	}
+
 	@Override
 	public Query getQuery() {
 		return null;
@@ -40,17 +45,17 @@ public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 
 	@Override
 	public boolean includeInResult(GraphObject entity) {
-		
+
 		BooleanClause.Occur occur = getOccur();
 		T nodeValue               = entity.getProperty(getKey());
-		
+
 		if (occur.equals(BooleanClause.Occur.MUST_NOT)) {
 
 			// reverse
 			return nodeValue == null;
 
 		} else {
-			
+
 			return nodeValue != null;
 		}
 	}

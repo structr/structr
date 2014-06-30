@@ -46,7 +46,7 @@ public class DistanceSearchAttribute extends SearchAttribute {
 	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance, final Occur occur) {
 
 		super(occur);
-		
+
 		this.street = street;
 		this.house = house;
 		this.postalCode = postalCode;
@@ -55,6 +55,11 @@ public class DistanceSearchAttribute extends SearchAttribute {
 		this.country = country;
 
 		this.distance = distance;
+	}
+
+	@Override
+	public String toString() {
+		return "DistanceSearchAttribute(" + street + ", " + house + ", " + postalCode + ", " + city + ", " + state + ", " + country + ", " + distance + ")";
 	}
 
 	@Override

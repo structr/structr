@@ -20,29 +20,25 @@ package org.structr.web.entity;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import org.apache.commons.io.FileUtils;
-
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.Services;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.Syncable;
+import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
@@ -61,13 +57,13 @@ public class File extends AbstractFile implements Linkable {
 	private static final Logger logger = Logger.getLogger(File.class.getName());
 
 	public static final Property<String> contentType = new StringProperty("contentType").indexedWhenEmpty();
-	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath");
-	public static final Property<Long> size = new LongProperty("size").indexed();
+	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath").readOnly();
+	public static final Property<Long> size = new LongProperty("size").indexed().readOnly();
 	public static final Property<String> url = new StringProperty("url");
-	public static final Property<Long> checksum = new LongProperty("checksum").unvalidated();
+	public static final Property<Long> checksum = new LongProperty("checksum").unvalidated().readOnly();
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
-	public static final Property<Integer> version = new IntProperty("version").indexed();
-	public static final Property<String> path = new PathProperty("path").indexed();
+	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
+	public static final Property<String> path = new PathProperty("path").indexed().readOnly();
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner, path);
 	public static final View uiView = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path);

@@ -221,8 +221,10 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public void send(final WebSocketMessage message, final boolean clearSessionId) {
 
+		final boolean isAuthenticated = isAuthenticated();
+
 		// return session status to client
-		message.setSessionValid(isAuthenticated());
+		message.setSessionValid(isAuthenticated);
 
 		// whether to clear the token (all command except LOGIN (for now) should absolutely do this!)
 		if (clearSessionId) {
@@ -232,24 +234,29 @@ public class StructrWebSocket implements WebSocketListener {
 
 		// set callback
 		message.setCallback(callback);
-		if (isAuthenticated() || "STATUS".equals(message.getCommand())) {
+
+
+		if ("LOGIN".equals(message.getCommand()) && !isAuthenticated) {
+
+			message.setMessage("User has no backend access.");
+			message.setCode(403);
+
+			//logger.log(Level.WARNING, "NOT sending message to unauthenticated client.");
+		}
+
+		try {
 
 			String msg = gson.toJson(message, WebSocketMessage.class);
 
 			logger.log(Level.FINE, "############################################################ SENDING \n{0}", msg);
 
-			try {
+			session.getRemote().sendString(msg);
 
-				session.getRemote().sendString(msg);
-
-			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Unable to send websocket message to remote client");
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "NOT sending message to unauthenticated client.");
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, "Unable to send websocket message to remote client");
 		}
+
+
 	}
 
 	// ----- file handling -----

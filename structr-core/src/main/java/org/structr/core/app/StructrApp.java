@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.agent.AgentService;
@@ -58,10 +57,7 @@ import org.structr.schema.ConfigurationProvider;
  */
 public class StructrApp implements App {
 
-	private static final Logger logger = Logger.getLogger(StructrApp.class.getName());
-
-//	private Map<Class<? extends Command>, Command> commandCache = new LinkedHashMap<>();
-	private SecurityContext securityContext                     = null;
+	private SecurityContext securityContext = null;
 
 	private StructrApp(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
@@ -195,6 +191,11 @@ public class StructrApp implements App {
 	@Override
 	public Tx tx(final boolean doValidation, final boolean doCallbacks) {
 		return new Tx(securityContext, this, doValidation, doCallbacks).begin();
+	}
+
+	@Override
+	public Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {
+		return new Tx(securityContext, this, doValidation, doCallbacks, doNotifications).begin();
 	}
 
 	@Override

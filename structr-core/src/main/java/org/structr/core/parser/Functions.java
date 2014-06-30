@@ -113,6 +113,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_ADD                 = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
 	public static final String ERROR_MESSAGE_INT_SUM             = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
 	public static final String ERROR_MESSAGE_DOUBLE_SUM          = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
+	public static final String ERROR_MESSAGE_IS_COLLECTION       = "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
+	public static final String ERROR_MESSAGE_IS_ENTITY           = "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
 	public static final String ERROR_MESSAGE_EXTRACT             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_MERGE               = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
 	public static final String ERROR_MESSAGE_SORT                = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
@@ -136,10 +138,13 @@ public class Functions {
 	public static final String ERROR_MESSAGE_OR                  = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_GET                 = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
 	public static final String ERROR_MESSAGE_GET_ENTITY          = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";
+	public static final String ERROR_MESSAGE_SIZE                = "Usage: ${size(collection)}. Example: ${size(this.children)}";
 	public static final String ERROR_MESSAGE_FIRST               = "Usage: ${first(collection)}. Example: ${first(this.children)}";
 	public static final String ERROR_MESSAGE_LAST                = "Usage: ${last(collection)}. Example: ${last(this.children)}";
 	public static final String ERROR_MESSAGE_NTH                 = "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
-	public static final String ERROR_MESSAGE_EVAL                = "Usage: ${eval(expression...)}. Example: ${eval(\"print(this.name)\", \"delete(this)\"}";
+	public static final String ERROR_MESSAGE_GET_COUNTER         = "Usage: ${get_counter(level)}. Example: ${get_counter(1)}";
+	public static final String ERROR_MESSAGE_INC_COUNTER         = "Usage: ${inc_counter(level, [resetLowerLevels])}. Example: ${inc_counter(1, true)}";
+	public static final String ERROR_MESSAGE_RESET_COUNTER       = "Usage: ${reset_counter(level)}. Example: ${reset_counter(1)}";
 	public static final String ERROR_MESSAGE_MERGE_PROPERTIES    = "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
 	public static final String ERROR_MESSAGE_KEYS                = "Usage: ${keys(entity, viewName)}. Example: ${keys(this, \"ui\")}";
 	public static final String ERROR_MESSAGE_EACH                = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
@@ -314,7 +319,7 @@ public class Functions {
 		functions.put("error", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -377,7 +382,7 @@ public class Functions {
 		functions.put("md5", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? DigestUtils.md5Hex(sources[0].toString())
@@ -393,7 +398,7 @@ public class Functions {
 		functions.put("upper", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? sources[0].toString().toUpperCase()
@@ -410,7 +415,7 @@ public class Functions {
 		functions.put("lower", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? sources[0].toString().toLowerCase()
@@ -427,7 +432,7 @@ public class Functions {
 		functions.put("join", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Collection) {
 
@@ -446,7 +451,7 @@ public class Functions {
 		functions.put("concat", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				final List list = new ArrayList();
 				for (final Object source : sources) {
@@ -473,7 +478,7 @@ public class Functions {
 		functions.put("split", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -499,7 +504,7 @@ public class Functions {
 		functions.put("abbr", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -536,7 +541,7 @@ public class Functions {
 		functions.put("capitalize", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? StringUtils.capitalize(sources[0].toString())
@@ -552,7 +557,7 @@ public class Functions {
 		functions.put("titleize", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources.length < 2 || sources[0] == null) {
 					return null;
@@ -584,7 +589,7 @@ public class Functions {
 		functions.put("num", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -607,7 +612,7 @@ public class Functions {
 		functions.put("int", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -634,7 +639,7 @@ public class Functions {
 		functions.put("random", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number) {
 
@@ -657,7 +662,7 @@ public class Functions {
 		functions.put("index_of", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -678,7 +683,7 @@ public class Functions {
 		functions.put("contains", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -699,17 +704,17 @@ public class Functions {
 		functions.put("substring", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 					final String source    = sources[0].toString();
 					final int sourceLength = source.length();
 					final int start        = parseInt(sources[1]);
-					final int length       = parseInt(sources[2]);
+					final int length       = sources.length >= 3 ? parseInt(sources[2]) : sourceLength - start;
 					final int end          = start + length;
 
-					if (start >= 0 && start < sourceLength && end >= 0 && end < sourceLength && start <= end) {
+					if (start >= 0 && start < sourceLength && end >= 0 && end <= sourceLength && start <= end) {
 
 						return source.substring(start, end);
 					}
@@ -726,7 +731,7 @@ public class Functions {
 		functions.put("length", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -744,7 +749,7 @@ public class Functions {
 		functions.put("replace", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -785,7 +790,7 @@ public class Functions {
 		functions.put("clean", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				String result;
 
@@ -840,7 +845,7 @@ public class Functions {
 		functions.put("urlencode", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? encodeURL(sources[0].toString())
@@ -857,7 +862,7 @@ public class Functions {
 		functions.put("if", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources[0] == null || sources.length < 3) {
 
@@ -884,7 +889,7 @@ public class Functions {
 		functions.put("empty", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources.length == 0 || sources[0] == null || StringUtils.isEmpty(sources[0].toString())) {
 
@@ -905,7 +910,7 @@ public class Functions {
 		functions.put("equal", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				logger.log(Level.FINE, "Length: {0}", sources.length);
 
@@ -936,7 +941,7 @@ public class Functions {
 		functions.put("add", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				Double result = 0.0;
 
@@ -977,7 +982,7 @@ public class Functions {
 		functions.put("double_sum", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				double result = 0.0;
 
@@ -1005,7 +1010,7 @@ public class Functions {
 		functions.put("int_sum", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				int result = 0;
 
@@ -1030,10 +1035,48 @@ public class Functions {
 			}
 
 		});
+		functions.put("is_collection", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+					return (sources[0] instanceof Collection);
+				} else {
+					return false;
+				}
+				
+			}
+			
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_IS_COLLECTION;
+			}
+
+		});
+		functions.put("is_entity", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+					return (sources[0] instanceof NodeInterface);
+				} else {
+					return false;
+				}
+				
+			}
+			
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_IS_ENTITY;
+			}
+
+		});
 		functions.put("extract", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -1093,7 +1136,7 @@ public class Functions {
 		functions.put("merge", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				final List list = new ArrayList();
 				for (final Object source : sources) {
@@ -1126,7 +1169,7 @@ public class Functions {
 		functions.put("sort", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -1168,7 +1211,7 @@ public class Functions {
 		functions.put("lt", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1192,7 +1235,7 @@ public class Functions {
 		functions.put("gt", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1216,7 +1259,7 @@ public class Functions {
 		functions.put("lte", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1240,7 +1283,7 @@ public class Functions {
 		functions.put("gte", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1264,7 +1307,7 @@ public class Functions {
 		functions.put("subt", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -1299,7 +1342,7 @@ public class Functions {
 		functions.put("mult", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				Double result = 1.0d;
 
@@ -1332,7 +1375,7 @@ public class Functions {
 		functions.put("quot", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -1369,7 +1412,7 @@ public class Functions {
 		functions.put("round", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -1405,7 +1448,7 @@ public class Functions {
 		functions.put("max", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				Object result   = "";
 				String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
@@ -1438,7 +1481,7 @@ public class Functions {
 		functions.put("min", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				Object result   = "";
 				String errorMsg = "ERROR! Usage: ${min(val1, val2)}. Example: ${min(5,10)}";
@@ -1471,7 +1514,7 @@ public class Functions {
 		functions.put("config", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -1492,7 +1535,7 @@ public class Functions {
 		functions.put("date_format", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 2) {
 					return ERROR_MESSAGE_DATE_FORMAT;
@@ -1534,7 +1577,7 @@ public class Functions {
 		functions.put("parse_date", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 2) {
 					return ERROR_MESSAGE_PARSE_DATE;
@@ -1571,7 +1614,7 @@ public class Functions {
 		functions.put("number_format", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 3) {
 					return ERROR_MESSAGE_NUMBER_FORMAT;
@@ -1605,7 +1648,7 @@ public class Functions {
 		functions.put("template", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 3) {
 					return ERROR_MESSAGE_TEMPLATE;
@@ -1641,7 +1684,7 @@ public class Functions {
 		functions.put("not", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -1661,7 +1704,7 @@ public class Functions {
 		functions.put("and", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				boolean result = true;
 
@@ -1706,7 +1749,7 @@ public class Functions {
 		functions.put("or", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				boolean result = false;
 
@@ -1750,7 +1793,7 @@ public class Functions {
 		functions.put("get", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				final SecurityContext securityContext = entity.getSecurityContext();
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
@@ -1803,10 +1846,44 @@ public class Functions {
 				return ERROR_MESSAGE_GET;
 			}
 		});
+		functions.put("size", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List list = new ArrayList();
+				for (final Object source : sources) {
+
+					if (source instanceof Collection) {
+
+						// filter null objects
+						for (Object obj : (Collection)source) {
+							if (obj != null && !NULL_STRING.equals(obj)) {
+
+								list.add(obj);
+							}
+						}
+
+					} else if (source != null && !NULL_STRING.equals(source)) {
+
+						list.add(source);
+					}
+
+					return list.size();
+				}
+
+				return null;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SIZE;
+			}
+		});
 		functions.put("first", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 					return ((List)sources[0]).get(0);
@@ -1823,7 +1900,7 @@ public class Functions {
 		functions.put("last", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) &&  sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 
@@ -1842,7 +1919,7 @@ public class Functions {
 		functions.put("nth", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 
@@ -1861,10 +1938,75 @@ public class Functions {
 				return ERROR_MESSAGE_NTH;
 			}
 		});
+		functions.put("get_counter", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					return ctx.getCounter(parseInt(sources[0]));
+				}
+
+				return 0;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_GET_COUNTER;
+			}
+		});
+		functions.put("inc_counter", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					final int level = parseInt(sources[0]);
+
+					ctx.incrementCounter(level);
+
+					// reset lower levels?
+					if (sources.length == 2 && "true".equals(sources[1].toString())) {
+
+						// reset lower levels
+						for (int i=level+1; i<10; i++) {
+							ctx.resetCounter(i);
+						}
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_INC_COUNTER;
+			}
+		});
+		functions.put("reset_counter", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					ctx.resetCounter(parseInt(sources[0]));
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_RESET_COUNTER;
+			}
+		});
 		functions.put("merge_properties", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject && sources[1] instanceof GraphObject) {
 
@@ -1904,7 +2046,7 @@ public class Functions {
 		functions.put("keys", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject) {
 
@@ -1931,7 +2073,7 @@ public class Functions {
 		functions.put("print", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null) {
 
@@ -1954,7 +2096,7 @@ public class Functions {
 		functions.put("read", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -1988,7 +2130,7 @@ public class Functions {
 		functions.put("write", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -2032,7 +2174,7 @@ public class Functions {
 		functions.put("append", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -2068,7 +2210,7 @@ public class Functions {
 		functions.put("xml", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
 
@@ -2100,7 +2242,7 @@ public class Functions {
 		functions.put("xpath", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Document) {
 
@@ -2125,7 +2267,7 @@ public class Functions {
 		functions.put("set", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -2180,7 +2322,7 @@ public class Functions {
 		functions.put("send_plaintext_mail", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 6)) {
 
@@ -2210,7 +2352,7 @@ public class Functions {
 		functions.put("send_html_mail", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 6)) {
 
@@ -2245,7 +2387,7 @@ public class Functions {
 		functions.put("geocode", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
@@ -2278,7 +2420,7 @@ public class Functions {
 		functions.put("find", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null) {
 
@@ -2380,7 +2522,7 @@ public class Functions {
 		functions.put("create", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null) {
 
@@ -2491,7 +2633,7 @@ public class Functions {
 		functions.put("delete", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null) {
 

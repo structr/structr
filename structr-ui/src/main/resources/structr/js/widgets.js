@@ -32,13 +32,14 @@ $(document).ready(function() {
 var _Widgets = {
 
     icon : 'icon/layout.png',
+    group_icon : 'icon/folder.png',
     add_widget_icon : 'icon/layout_add.png',
     delete_widget_icon : 'icon/layout_delete.png',
-	
+
     init : function() {
 
         Structr.initPager('Widget', 1, 25);
-        
+
     },
 
     resize : function() {
@@ -57,17 +58,17 @@ var _Widgets = {
     },
 
     onload : function() {
-        
+
         _Widgets.init();
-        
+
         $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Widgets');
-        
+
         log('onload');
 
         main.append('<div id="dropArea"><div class="fit-to-height" id="widgets"></div><div class="fit-to-height" id="remoteWidgets"></div></div>');
         widgets = $('#widgets');
         remoteWidgets = $('#remoteWidgets');
-        
+
         _Widgets.refreshWidgets();
         _Widgets.refreshRemoteWidgets();
     },
@@ -91,30 +92,30 @@ var _Widgets = {
     refreshRemoteWidgets : function() {
         remoteWidgets.empty();
         remoteWidgets.append('<h2>Remote Widgets</h2>');
-        
+
         if (widgetsUrl.startsWith(document.location.hostname)) {
             return;
         }
-        
+
         _Widgets.getRemoteWidgets(widgetsUrl, function(entity) {
-            
+
             var obj = StructrModel.create(entity, undefined, false);
             obj.srcUrl = widgetsUrl + '/' + entity.id;
             _Widgets.appendWidgetElement(obj, true);
-            
+
         });
-        
+
         //remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
 //        $('#connect_button', main).on('click', function(e) {
 //            e.stopPropagation();
-            
+
 //        });
     },
 
     getRemoteWidgets : function(baseUrl, callback) {
         $.ajax({
             //url: $('#widgetServerUrl').val(),
-            url: baseUrl,
+            url: baseUrl + '?sort=treePath',
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -148,7 +149,7 @@ var _Widgets = {
             }
 
         });
-        
+
     },
 
     getIcon : function() {
@@ -156,34 +157,88 @@ var _Widgets = {
         return icon;
     },
 
+    getTreeParent : function(element, treePath, suffix) {
+
+        var parent = element;
+
+        if (treePath) {
+
+            var parts = treePath.split('/');
+            var num   = parts.length;
+            var i     = 0;
+
+            for (i=0; i<num; i++) {
+
+                var part = parts[i];
+                if (part) {
+
+                    var lowerPart = part.toLowerCase();
+                    var idString  = lowerPart + suffix;
+                    var newParent = $('#' + idString);
+                    if (newParent.size() === 0) {
+
+                        _Widgets.appendFolderElement(parent, idString, _Widgets.group_icon, part);
+                        // parent.append('<div id="' + idString + '_node" class="node widget"><b>' + part + '</b><div id="' + idString + '" style="padding-left: 2em;"></div></div>');
+                        newParent = $('#' + idString);
+                    }
+
+                    parent = newParent;
+                }
+            }
+
+        } else {
+
+            var idString  = 'other' + suffix;
+            var newParent = $('#' + idString);
+            if (newParent.size() === 0) {
+
+                _Widgets.appendFolderElement(parent, idString, _Widgets.group_icon, 'Uncategorized');
+                //parent.append('<div id="' + idString + '_node" class="node widget"><b>Uncategorized</b><div id="' + idString + '" style="padding-left: 2em;"></div></div>');
+                newParent = $('#' + idString);
+            }
+
+            parent = newParent;
+        }
+
+        return parent;
+    },
+
+    appendFolderElement : function(parent, id, icon, name) {
+
+            parent.append('<div id="' + id + '_folder" class="widget node">'
+                + '<img class="typeIcon" src="'+ icon + '">'
+                + '<b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b> <span class="id">' + id + '</span>'
+                + '<div id="' + id + '" class="node"></div>'
+                + '</div>');
+    },
+
     appendWidgetElement : function(widget, remote, el) {
 
         log('Widgets.appendWidgetElement', widget, remote);
-        
+
         var icon = _Widgets.getIcon(widget);
-        var parent = el ? el : (remote ? remoteWidgets : widgets);
-        
+        var parent = _Widgets.getTreeParent(el ? el : (remote ? remoteWidgets : widgets), widget.treePath, remote ? '_remote' : '_local');
         var delIcon, newDelIcon;
         var div = Structr.node(widget.id);
         if (div && div.length) {
-            
+
             var formerParent = div.parent();
-            
+
             if (!Structr.containsNodes(formerParent)) {
                 _Entities.removeExpandIcon(formerParent);
                 enable($('.delete_icon', formerParent)[0]);
-            }            
-            
+            }
+
         } else {
-        
+
             parent.append('<div id="id_' + widget.id + '" class="node widget">'
                 + '<img class="typeIcon" src="'+ icon + '">'
                 + '<b title="' + widget.name + '" class="name_">' + fitStringToWidth(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
                 + '</div>');
             div = Structr.node(widget.id);
-            
+
         }
-        
+
         if (!div) return;
 
         if (!remote) {
@@ -200,7 +255,7 @@ var _Widgets = {
             });
 
         }
-		
+
         div.draggable({
             iframeFix: true,
             revert: 'invalid',
@@ -225,7 +280,7 @@ var _Widgets = {
             });
             _Widgets.editWidget(this, widget, text, dialogText);
         });
-        
+
         if (!remote) {
             _Entities.appendEditPropertiesIcon(div, widget);
         }
@@ -262,11 +317,11 @@ var _Widgets = {
 
         dialogSaveButton = $('#editorSave', dialogBtn);
         var saveAndClose = $('#saveAndClose', dialogBtn);
-        
+
         text1 = text;
-        
+
         editor.on('change', function(cm, change) {
-            
+
             text2 = editor.getValue();
 
             if (text1 === text2) {
@@ -295,7 +350,7 @@ var _Widgets = {
             if (text1 === newText) {
                 return;
             }
-            
+
             if (entity.srcUrl) {
                 var data = JSON.stringify({'source':newText});
                 log('update remote widget', entity.srcUrl, data);
@@ -314,7 +369,7 @@ var _Widgets = {
                             text1 = newText;
                             dialogSaveButton.prop("disabled", true).addClass('disabled');
                             saveAndClose.prop("disabled", true).addClass('disabled');
-                            
+
                         },
                         400 : function(data, status, xhr) {
                             console.log(data, status, xhr);
@@ -337,9 +392,9 @@ var _Widgets = {
                     }
 
                 });
-                
+
             } else {
-                
+
                 Command.setProperty(entity.id, 'source', newText, false, function() {
                     dialogMsg.html('<div class="infoBox success">Widget saved.</div>');
                     $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
@@ -349,9 +404,9 @@ var _Widgets = {
                 });
 
             }
-            
+
         });
-        
+
         editor.id = entity.id;
     }
 };

@@ -66,7 +66,9 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					inCypher = false;
 					beforeCypher = false;
 
-					if (buf.toString().toUpperCase().contains("CREATE")) {
+					final String result = buf.toString().toUpperCase();
+
+					if (result.contains("CREATE") || result.contains("LOAD CSV")) {
 
 						sources.add(buf.toString());
 						buf.setLength(0);
@@ -77,6 +79,13 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 					buf.append(line);
 					buf.append("\n");
+
+					if (line.endsWith(";")) {
+
+						sources.add(buf.toString());
+						buf.setLength(0);
+					}
+
 				}
 
 				if ("[source,cypher]".equals(trimmedLine)) {

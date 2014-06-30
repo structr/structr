@@ -50,6 +50,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.structr.common.CaseHelper;
+import org.structr.common.PathHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -84,6 +85,7 @@ import org.structr.web.entity.dom.Page;
  * The importer creates a new page by downloading and parsing markup from a URL.
  *
  * @author Axel Morgner
+ * @author Christian Morgner
  */
 public class Importer {
 
@@ -119,7 +121,6 @@ public class Importer {
 	private Document parsedDocument;
 	private final boolean publicVisible;
 	private final SecurityContext securityContext;
-	private final int timeout;
 
 	//~--- constructors ---------------------------------------------------
 //      public static void main(String[] args) throws Exception {
@@ -144,7 +145,6 @@ public class Importer {
 		this.code = code;
 		this.address = address;
 		this.name = name;
-		this.timeout = timeout;
 		this.securityContext = securityContext;
 		this.publicVisible = publicVisible;
 		this.authVisible = authVisible;
@@ -154,9 +154,6 @@ public class Importer {
 	//~--- methods --------------------------------------------------------
 	private void init() {
 		app = StructrApp.getInstance(securityContext);
-//		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
-//		createNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
-//		createRel  = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
 	}
 
 	public boolean parse() throws FrameworkException {
@@ -203,10 +200,6 @@ public class Importer {
 
 				parsedDocument = Jsoup.parse(code);
 
-//				parsedDocument = Jsoup.connect(address)
-//					.userAgent("Mozilla")
-//					.timeout(timeout)
-//					.get().normalise();
 			} catch (IOException ioe) {
 
 				throw new FrameworkException(500, "Error while parsing content from " + address);
@@ -224,7 +217,6 @@ public class Importer {
 		try {
 			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
 
-			// AbstractNode page = findOrCreateNode(attrs, "/");
 			Page page = Page.createNewPage(securityContext, name);
 
 			if (page != null) {
@@ -619,11 +611,11 @@ public class Importer {
 
 						} else {
 
-							if ("link".equals(tag) && "href".equals(key) && nodeAttr.getValue() == null) {
+							if ("link".equals(tag) && "href".equals(key) && !nodeAttr.getValue().startsWith("http")) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
 
-							} else if (("href".equals(key) || "src".equals(key)) && nodeAttr.getValue() == null) {
+							} else if (("href".equals(key) || "src".equals(key)) && !nodeAttr.getValue().startsWith("http")) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
 
@@ -654,33 +646,6 @@ public class Importer {
 	private boolean fileExists(final String name, final long checksum) throws FrameworkException {
 
 		return app.nodeQuery(File.class).andName(name).and(File.checksum, checksum).getFirst() != null;
-
-	}
-
-	/**
-	 * Return an eventually existing folder with given name, or create a new
-	 * one.
-	 *
-	 * Don't create a folder for ".."
-	 */
-	private Folder findOrCreateFolder(final String name) throws FrameworkException {
-
-		if ("..".equals(name)) {
-			return null;
-		}
-
-		Folder folder = app.nodeQuery(Folder.class).andName(name).getFirst();
-
-		if (folder != null) {
-
-			return folder;
-		}
-
-		return (Folder) app.create(Folder.class,
-			new NodeAttribute(AbstractNode.name, name),
-			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible)
-		);
 
 	}
 
@@ -746,13 +711,18 @@ public class Importer {
 		contentType = FileHelper.getContentMimeType(fileOnDisk);
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 
-		final String fileName = (downloadAddress.indexOf("/") > -1)
-			? StringUtils.substringAfterLast(downloadAddress, "/")
-			: downloadAddress;
+		final String fileName = PathHelper.getName(downloadAddress);
+		
 		String httpPrefix = "http://";
-		String path = StringUtils.substringBefore(((downloadAddress.indexOf(httpPrefix) > -1)
+		
+		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), address);
+		if (StringUtils.isBlank(relativePath)) {
+			relativePath = downloadAddress;
+		}
+		
+		String path = StringUtils.substringBefore(((downloadAddress.contains(httpPrefix))
 			? StringUtils.substringAfter(downloadAddress, "http://")
-			: downloadAddress), fileName);
+			: relativePath), fileName);
 
 		if (contentType.equals("text/plain")) {
 
@@ -782,9 +752,7 @@ public class Importer {
 					if (parent != null) {
 
 						fileNode.setProperty(File.parent, parent);
-						
-						//app.create(parent, fileNode, Files.class);
-						//createRel.execute(parent, fileNode, Folders.class);
+
 					}
 
 					if (contentType.equals("text/css")) {

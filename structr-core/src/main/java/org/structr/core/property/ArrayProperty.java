@@ -21,11 +21,17 @@ package org.structr.core.property;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 
 /**
 * A property that stores and retrieves an array of the given type.
@@ -35,18 +41,18 @@ import org.structr.core.converter.PropertyConverter;
 public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	private Class<T> componentType = null;
-	
+
 	public ArrayProperty(String name, Class<T> componentType, final PropertyValidator<T[]>... validators) {
-		
+
 		super(name);
-		
+
 		this.componentType = componentType;
-		
+
 		for (final PropertyValidator<T[]> validator : validators) {
 			addValidator(validator);
 		}
 	}
-	
+
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return value;
@@ -54,14 +60,14 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public String typeName() {
-		return "";
+		return componentType.getSimpleName().concat("[]");
 	}
 
 	@Override
 	public Integer getSortType() {
 		return null;
 	}
-	
+
 	@Override
 	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext) {
 		return null;
@@ -76,13 +82,13 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	public PropertyConverter<?, T[]> inputConverter(SecurityContext securityContext) {
 		return new ArrayInputConverter(securityContext);
 	}
-	
+
 	private class ArrayInputConverter extends PropertyConverter<Object, T[]> {
 
 		public ArrayInputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
-		
+
 		@Override
 		public Object revert(Object[] source) throws FrameworkException {
 			return source != null ? Arrays.asList(source) : null;
@@ -90,19 +96,35 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		@Override
 		public T[] convert(Object source) throws FrameworkException {
-			
+
 			if (source instanceof List) {
 
 				T[] dummyValue = (T[])Array.newInstance(componentType, 0);
 				return (T[])((List<T>)source).toArray(dummyValue);
 			}
-			
+
 			if (source.getClass().isArray()) {
 				return (T[])source;
 			}
-			
+
 			return null;
 		}
-		
+
 	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T[] searchValue, boolean exactMatch, Query query) {
+
+		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
+
+		for (T value : searchValue) {
+
+			group.add(new PropertySearchAttribute(this, value, exactMatch ? Occur.MUST : Occur.SHOULD, exactMatch));
+
+		}
+
+		return group;
+	}
+
+
 }

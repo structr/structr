@@ -61,7 +61,7 @@ public class PingCommand extends AbstractCommand {
 		} else {
 
 			logger.log(Level.FINE, "Invalid session id");
-			getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+			getWebSocket().send(MessageBuilder.status().code(401).build(), true);
 
 		}
 	}

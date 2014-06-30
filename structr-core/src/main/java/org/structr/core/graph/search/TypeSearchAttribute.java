@@ -34,19 +34,24 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	public TypeSearchAttribute(Class<S> type, Occur occur, boolean isExactMatch) {
 		super(AbstractNode.type, type.getSimpleName(), occur, isExactMatch);
 	}
-	
+
+	@Override
+	public String toString() {
+		return "TypeSearchAttribute()";
+	}
+
 	@Override
 	public Query getQuery() {
 
 		String value = getStringValue();
 		if (isExactMatch()) {
-			
+
 			return new TermQuery(new Term(getKey().dbName(), value));
-			
+
 		} else {
-			
+
 			return new TermQuery(new Term(getKey().dbName(), value.toLowerCase()));
 		}
 	}
-	
+
 }

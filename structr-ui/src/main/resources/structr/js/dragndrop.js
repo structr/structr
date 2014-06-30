@@ -166,7 +166,7 @@ var _Dragndrop = {
     /**
      * Define what happens when a source object is dropped onto
      * a target object in the given page.
-     * 
+     *
      * The optional tag is used to create new elements if the source object
      * is undefined. This is the case if an element was dragged from the
      * HTML elements palette.
@@ -307,7 +307,7 @@ var _Dragndrop = {
         Structr.makePagesMenuDroppable();
 
         //var pattern = /^\[[a-zA-Z]+\]$/;
-        var pattern = /\[[a-zA-Z]+\]/g;
+        var pattern = /\[[a-zA-Z:,]+\]/g;
         var text = source.source;
         if (text) {
 
@@ -328,8 +328,44 @@ var _Dragndrop = {
 
                     $.each(matches, function(i, match) {
 
-                        var label = _Crud.formatKey(match.replace(/\[/, '').replace(/\]/, ''));
-                        table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input type="text" id="' + match + '" placeholder="' + label + '"></td></tr>');
+                        var propertyKey = match.replace(/\[/, '').replace(/\]/, '')
+                        var options     = '';
+                        var hasOptions  = false;
+
+                        if (propertyKey.contains(":")) {
+
+                            var parts = propertyKey.split(":");
+                            if (parts.length === 2) {
+
+                                propertyKey = parts[0];
+                                options     = parts[1];
+                                hasOptions  = true;
+                            }
+                        }
+
+                        var label = _Crud.formatKey(propertyKey);
+
+                        if (hasOptions) {
+
+                            var buffer = '';
+
+                            buffer += '<tr><td><label for="' + label + '">' + label + '</label></td><td>';
+                            buffer += '<select id="' + propertyKey + '" class="input-field" >';
+
+                            $.each(options.split(","), function(i, option) {
+
+                                buffer += '<option>' + option + '</option>';
+                            });
+
+                            buffer += '</select>';
+                            buffer += '</td></tr>';
+
+                            table.append(buffer);
+
+                        } else {
+
+                            table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input class="input-field" type="text" id="' + propertyKey + '" placeholder="' + label + '"></td></tr>');
+                        }
 
                     });
 
@@ -339,7 +375,7 @@ var _Dragndrop = {
 
                         $.each(matches, function(i, match) {
 
-                            $.each($('input[type="text"]', table), function(i, m) {
+                            $.each($('.input-field', table), function(i, m) {
                                 var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '')
                                 attrs[key] = $(this).val();
                                 //console.log(this, match, key, attrs[key]);

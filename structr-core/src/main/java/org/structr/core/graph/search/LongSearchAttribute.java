@@ -32,18 +32,23 @@ public class LongSearchAttribute extends PropertySearchAttribute<Long> {
 	public LongSearchAttribute(PropertyKey<Long> key, Long value, Occur occur, boolean isExactMatch) {
 		super(key, value, occur, isExactMatch);
 	}
-	
+
+	@Override
+	public String toString() {
+		return "LongSearchAttribute()";
+	}
+
 	@Override
 	public String getStringValue() {
-		
+
 		Long value = getValue();
 
 		if (value == null) {
-			
+
 			return getValueForEmptyField();
-			
+
 		}
-		
+
 		return NumericUtils.longToPrefixCoded(value);
 	}
 
@@ -52,5 +57,5 @@ public class LongSearchAttribute extends PropertySearchAttribute<Long> {
 		return LongProperty.LONG_EMPTY_FIELD_VALUE;
 	}
 
-}	
+}
 
