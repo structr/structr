@@ -647,6 +647,13 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(null)}"));
 			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(xyz)}"));
 
+			// is_entity
+			assertEquals("Invalid is_entity() result", "true", testOne.replaceVariables(securityContext, ctx, "${is_entity(this.testFour)}"));
+			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(this.name)}"));
+			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(null)}"));
+			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(xyz)}"));
+
 			// first / last / nth
 			assertEquals("Invalid first() result", testSixs.get( 0).toString(), testOne.replaceVariables(securityContext, ctx, "${first(this.manyToManyTestSixs)}"));
 			assertEquals("Invalid last() result",  testSixs.get(19).toString(), testOne.replaceVariables(securityContext, ctx, "${last(this.manyToManyTestSixs)}"));
