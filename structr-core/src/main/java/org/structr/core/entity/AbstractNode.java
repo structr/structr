@@ -60,7 +60,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
@@ -198,30 +197,32 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public String toString() {
 
-		if (dbNode == null) {
-
-			return "AbstractNode with null database node";
-		}
-
-		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-			String name = dbNode.hasProperty(AbstractNode.name.dbName())
-				      ? (String) dbNode.getProperty(AbstractNode.name.dbName())
-				      : "<null name>";
-			String type = dbNode.hasProperty(AbstractNode.type.dbName())
-				      ? (String) dbNode.getProperty(AbstractNode.type.dbName())
-				      : "<AbstractNode>";
-			String id   = dbNode.hasProperty(GraphObject.id.dbName())
-				      ? (String) dbNode.getProperty(GraphObject.id.dbName())
-				      : Long.toString(dbNode.getId());
-
-			return name + " (" + type + "," + id + ")";
-
-		} catch (Throwable ignore) {
-			logger.log(Level.WARNING, ignore.getMessage());
-		}
-
-		return "<AbstractNode>";
+//		if (dbNode == null) {
+//
+//			return "AbstractNode with null database node";
+//		}
+//
+//		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+//
+//			String name = dbNode.hasProperty(AbstractNode.name.dbName())
+//				      ? (String) dbNode.getProperty(AbstractNode.name.dbName())
+//				      : "<null name>";
+//			String type = dbNode.hasProperty(AbstractNode.type.dbName())
+//				      ? (String) dbNode.getProperty(AbstractNode.type.dbName())
+//				      : "<AbstractNode>";
+//			String id   = dbNode.hasProperty(GraphObject.id.dbName())
+//				      ? (String) dbNode.getProperty(GraphObject.id.dbName())
+//				      : Long.toString(dbNode.getId());
+//
+//			return name + " (" + type + "," + id + ")";
+//
+//		} catch (Throwable ignore) {
+//			logger.log(Level.WARNING, ignore.getMessage());
+//		}
+//
+//		return "<AbstractNode>";
+		
+		return getUuid();
 
 	}
 

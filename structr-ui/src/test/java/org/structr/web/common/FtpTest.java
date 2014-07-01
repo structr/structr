@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
@@ -63,7 +64,7 @@ public class FtpTest extends StructrUiTest {
 		Folder dir = (Folder) createTestNodes(Folder.class, 1, props).get(0);
 		
 		if (StringUtils.isNotBlank(path)) {
-			AbstractFile parent = FileHelper.getFileByAbsolutePath(path);
+			AbstractFile parent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path);
 			if (parent != null && parent instanceof Folder) {
 				Folder parentFolder = (Folder) parent;
 				dir.setProperty(Folder.parent, parentFolder);
@@ -83,7 +84,7 @@ public class FtpTest extends StructrUiTest {
 		File file = (File) createTestNodes(File.class, 1, props).get(0);
 		
 		if (StringUtils.isNotBlank(path)) {
-			AbstractFile parent = FileHelper.getFileByAbsolutePath(path);
+			AbstractFile parent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path);
 			if (parent != null && parent instanceof Folder) {
 				Folder parentFolder = (Folder) parent;
 				file.setProperty(Folder.parent, parentFolder);

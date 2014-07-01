@@ -33,18 +33,23 @@ public class DateSearchAttribute extends PropertySearchAttribute<Date> {
 	public DateSearchAttribute(PropertyKey<Date> key, Date value, Occur occur, boolean isExactMatch) {
 		super(key, value, occur, isExactMatch);
 	}
-	
+
+	@Override
+	public String toString() {
+		return "DateSearchAttribute()";
+	}
+
 	@Override
 	public String getStringValue() {
-		
+
 		Date value = getValue();
-		
+
 		if (value == null) {
-			
+
 			return getValueForEmptyField();
-			
+
 		}
-		
+
 		return NumericUtils.longToPrefixCoded(value.getTime());
 
 	}

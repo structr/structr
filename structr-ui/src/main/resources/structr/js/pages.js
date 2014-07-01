@@ -621,6 +621,12 @@ var _Pages = {
                         + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
                         + '.link-hover { border: 1px solid #00c; }\n'
                         + '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
+                        /**
+                         * Fix for bug in Chrome preventing the modal dialog background
+                         * from being displayed if a page is shown in the preview which has the
+                         * transform3d rule activated.
+                         */
+                        + '.navbar-fixed-top { -webkit-transform: none ! important; }'
                         + '</style>');
 
             _Pages.findDroppablesInIframe($(this).contents(), entity.id).each(function(i, element) {
@@ -1003,7 +1009,6 @@ var _Pages = {
                         200: function(data) {
                             $.each(data.result, function(i, r) {
                                 _Schema.getPropertyName(t.name, r.relationshipType, endNode.name, true, function(key, isCollection) {
-                                    console.log(key, isCollection)
                                     $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
                                     $('#data-wizard-attributes .custom').children('.' + key).draggable({
                                         iframeFix: true,
@@ -1057,7 +1062,7 @@ var _Pages = {
 
             $.each(Object.keys(t), function(i, key) {
                 var type = 'system';
-                if (key.startsWith('_')) {
+                if (key.substring(0,1) === '_' && key.substring(0,2) !== '__') {
 
                     key = key.substring(1);
                     type = 'custom'

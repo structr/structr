@@ -80,13 +80,13 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 			logger.log(Level.INFO, "mkdir() Folder");
 
-			AbstractFile existing = FileHelper.getFileByAbsolutePath(newPath);
+			AbstractFile existing = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), newPath);
 			if (existing != null) {
 				logger.log(Level.WARNING, "File {0} already exists.", newPath);
 				return false;
 			}
 
-			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
+			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), StringUtils.substringBeforeLast(newPath, "/"));
 
 			try {
 				Folder newFolder = (Folder) StructrApp.getInstance().command(CreateNodeCommand.class).execute(
@@ -127,7 +127,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 			if (structrFile == null) {
 
-				final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
+				final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), StringUtils.substringBeforeLast(newPath, "/"));
 				final App app = StructrApp.getInstance();
 
 				try {

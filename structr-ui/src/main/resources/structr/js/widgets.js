@@ -188,7 +188,7 @@ var _Widgets = {
 
         } else {
 
-            var idString  = 'other';
+            var idString  = 'other' + suffix;
             var newParent = $('#' + idString);
             if (newParent.size() === 0) {
 

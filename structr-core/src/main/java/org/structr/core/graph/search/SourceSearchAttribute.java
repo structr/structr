@@ -31,7 +31,12 @@ public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 	public SourceSearchAttribute(Occur occur) {
 		super(occur);
 	}
-	
+
+	@Override
+	public String toString() {
+		return "SourceSearchAttribute()";
+	}
+
 	@Override
 	public Query getQuery() {
 		return null;

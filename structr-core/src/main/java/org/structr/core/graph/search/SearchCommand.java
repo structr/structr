@@ -162,6 +162,29 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			SearchAttribute attr = it.next();
 
+			if (attr instanceof SearchAttributeGroup) {
+
+				// fixme: this needs to be done recursively, but how?
+				for (final Iterator<SearchAttribute> groupIterator = ((SearchAttributeGroup)attr).getSearchAttributes().iterator(); groupIterator.hasNext();) {
+
+					final SearchAttribute item = groupIterator.next();
+					if (item instanceof SourceSearchAttribute) {
+
+						sources.add((SourceSearchAttribute)item);
+
+						// remove attribute from filter list
+						groupIterator.remove();
+
+						hasGraphSources = true;
+
+					}
+
+					if (item instanceof EmptySearchAttribute) {
+						hasEmptySearchFields = true;
+					}
+				}
+			}
+
 			// check for distance search and initialize
 			if (attr instanceof DistanceSearchAttribute) {
 

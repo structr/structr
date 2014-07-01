@@ -18,7 +18,7 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.util.Objects;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -53,7 +53,7 @@ public class ArrayPropertyTest extends StructrTest {
 
 				String[] newArr = instance.getProperty(securityContext, testEntity, true);
 
-				assertTrue(ArrayUtils.isEquals(arr, newArr));
+				assertTrue(Objects.deepEquals(arr, newArr));
 			}
 
 		} catch (FrameworkException fex) {

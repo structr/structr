@@ -22,20 +22,24 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.BooleanClause;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.OneEndpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
-import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.search.EmptySearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
@@ -56,35 +60,35 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	 * Constructs an entity property with the given name, the given destination type,
 	 * the given relationship type, the given direction and the given cascade delete
 	 * flag.
-	 * 
+	 *
 	 * @param name
 	 * @param destType
 	 * @param relType
 	 * @param direction
-	 * @param cascadeDelete 
+	 * @param cascadeDelete
 	 */
 	public EndNode(String name, Class<? extends Relation<S, T, ? extends Source, OneEndpoint<T>>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
 	}
-	
+
 	/**
 	 * Constructs an entity property with the given name, the given destination type,
 	 * the given relationship type, the given direction and the given notion.
-	 * 
+	 *
 	 * @param name
 	 * @param destType
 	 * @param relType
 	 * @param direction
-	 * @param notion 
+	 * @param notion
 	 */
 	public EndNode(String name, Class<? extends Relation<S, T, ? extends Source, OneEndpoint<T>>> relationClass, Notion notion) {
 
 		super(name);
-		
+
 		try {
-			
+
 			this.relation  = relationClass.newInstance();
-			
+
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -93,10 +97,10 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 		this.destType  = relation.getTargetType();
 
 		this.notion.setType(destType);
-		
+
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
-	
+
 	@Override
 	public String typeName() {
 		return "Object";
@@ -129,20 +133,20 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		OneEndpoint<T> endpoint  = relation.getTarget();
-		
+
 		return endpoint.get(securityContext, (NodeInterface)obj, predicate);
 	}
 
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
-		
+
 		OneEndpoint<T> endpoint  = relation.getTarget();
-		
+
 		endpoint.set(securityContext, (NodeInterface)obj, value);
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return destType;
@@ -162,37 +166,37 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> passivelyIndexed() {
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
-	
+
 	@Override
 	public boolean isSearchable() {
-		return false;
+		return true;
 	}
-	
+
 	@Override
 	public void index(GraphObject entity, Object value) {
 		// no indexing
@@ -218,13 +222,72 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	public Class<T> getTargetType() {
 		return destType;
 	}
-	
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch, final Query query) {
+
+		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
+		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
+		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
+		boolean alreadyAdded                      = false;
+
+		if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			if (exactMatch) {
+
+				switch (occur) {
+
+					case MUST:
+
+						if (!alreadyAdded) {
+
+							// the first result is the basis of all subsequent intersections
+							intersectionResult.addAll(getRelatedNodesReverse(securityContext, searchValue, declaringClass, predicate));
+
+							// the next additions are intersected with this one
+							alreadyAdded = true;
+
+						} else {
+
+							intersectionResult.retainAll(getRelatedNodesReverse(securityContext, searchValue, declaringClass, predicate));
+						}
+
+						break;
+
+					case SHOULD:
+						intersectionResult.addAll(getRelatedNodesReverse(securityContext, searchValue, declaringClass, predicate));
+						break;
+
+					case MUST_NOT:
+						break;
+				}
+
+			} else {
+
+				intersectionResult.addAll(getRelatedNodesReverse(securityContext, searchValue, declaringClass, predicate));
+			}
+
+			attr.setResult(intersectionResult);
+
+		} else {
+
+			// experimental filter attribute that
+			// removes entities with a non-empty
+			// value in the given field
+			return new EmptySearchAttribute(this, null);
+		}
+
+		return attr;
+	}
+
 	// ----- overridden methods from super class -----
 	@Override
 	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType, final Predicate<GraphObject> predicate) {
 
 		Set<T> relatedNodes = new LinkedHashSet<>();
-		
+
 		try {
 
 			final Object source = relation.getSource().get(securityContext, obj, predicate);
