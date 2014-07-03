@@ -16,7 +16,7 @@ import org.neo4j.graphdb.Node;
 public class NodeInfo {
 
 	private static Map<String, Set<String>> propertySets = new LinkedHashMap<>();
-	
+
 	private Map<String, Class> properties         = new LinkedHashMap<>();
 	private Set<String> types                     = new LinkedHashSet<>();
 
@@ -26,9 +26,9 @@ public class NodeInfo {
 		extractTypes(node);
 		createPropertySets();
 
-		
+
 //		final String type = null;
-//			
+//
 //		// create ID and type on imported node
 //		node.setProperty(GraphObject.id.dbName(), uuid);
 //		node.setProperty(GraphObject.type.dbName(), type);
@@ -56,7 +56,7 @@ public class NodeInfo {
 
 		return false;
 	}
-	
+
 	public boolean hasType(final String type) {
 		return types.contains(type);
 	}
@@ -141,19 +141,19 @@ public class NodeInfo {
 			types.add(buf.toString());
 		}
 	}
-	
+
 	private void createPropertySets() {
-		
+
 		for (final String type : types) {
-			
+
 			Set<String> propertySet = propertySets.get(type);
 			if (propertySet == null) {
-				
+
 				propertySet = new LinkedHashSet<>();
 				propertySets.put(type, propertySet);
 
 				propertySet.addAll(properties.keySet());
-				
+
 			} else {
 
 				propertySet.retainAll(properties.keySet());
