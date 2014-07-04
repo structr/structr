@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.dom;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -28,6 +29,8 @@ import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
 import net.java.textilej.parser.markup.textile.TextileDialect;
 import net.java.textilej.parser.markup.trac.TracWikiDialect;
 import org.apache.commons.lang3.StringUtils;
+import org.asciidoctor.Asciidoctor;
+import org.asciidoctor.Asciidoctor.Factory;
 import org.pegdown.PegDownProcessor;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
@@ -66,6 +69,7 @@ public class Content extends DOMNode implements Text {
 
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<>();
 
+	private static final ThreadLocalAsciiDocProcessor asciiDocProcessor                  = new ThreadLocalAsciiDocProcessor();
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                  = new ThreadLocalTracWikiProcessor();
 	private static final ThreadLocalTextileProcessor textileProcessor                    = new ThreadLocalTextileProcessor();
 	private static final ThreadLocalPegDownProcessor pegDownProcessor                    = new ThreadLocalPegDownProcessor();
@@ -142,6 +146,20 @@ public class Content extends DOMNode implements Text {
 
 				if (s != null) {
 					return confluenceProcessor.get().parseToHtml(s);
+				}
+
+				return "";
+
+			}
+
+		});
+		contentConverters.put("text/asciidoc", new Adapter<String, String>() {
+
+			@Override
+			public String adapt(String s) throws FrameworkException {
+
+				if (s != null) {
+					return asciiDocProcessor.get().render(s, new HashMap<String, Object>());
 				}
 
 				return "";
@@ -715,7 +733,6 @@ public class Content extends DOMNode implements Text {
 
 	}
 
-
 	private static class ThreadLocalTracWikiProcessor extends ThreadLocal<MarkupParser> {
 
 		@Override
@@ -724,6 +741,14 @@ public class Content extends DOMNode implements Text {
 			return new MarkupParser(new TracWikiDialect());
 
 		}
+	}
 
+	private static class ThreadLocalAsciiDocProcessor extends ThreadLocal<Asciidoctor> {
+
+		@Override
+		protected Asciidoctor initialValue() {
+
+			return Factory.create();
+		}
 	}
 }

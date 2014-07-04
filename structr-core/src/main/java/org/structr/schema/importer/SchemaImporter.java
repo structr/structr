@@ -132,7 +132,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		}
 	}
 
-	protected static void analyzeSchema() throws FrameworkException {
+	public static void analyzeSchema() throws FrameworkException {
 
 		final App app                                     = StructrApp.getInstance();
 		final GraphDatabaseService graphDb                = app.command(GraphDatabaseCommand.class).execute();
@@ -384,7 +384,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 				} else {
 
-					firstTypeInfo.intersectPropertySets(typeInfo.getPropertySet());
+					firstTypeInfo.combinePropertySets(typeInfo.getPropertySet());
 
 					// "save" node references for later use
 					firstTypeInfo.getNodes().addAll(typeInfo.getNodes());
