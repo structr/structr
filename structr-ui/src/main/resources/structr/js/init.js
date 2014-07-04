@@ -680,7 +680,7 @@ var Structr = {
                 $.each(Object.keys(response.errors[err]), function(j, attr) {
                     errorText += attr + ' ';
                     $.each(response.errors[err][attr], function(k, cond) {
-                        if (typeof cond === 'Object') {
+                        if (typeof cond === 'object') {
                             $.each(Object.keys(cond), function(l, key) {
                                 errorText += key + ' ' + cond[key];
                             });
