@@ -588,14 +588,3 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return Collections.emptySet();
 	}
 }
-
-/*
-
-	public static <T> SearchAttribute<T> andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
-	}
-
-	public static <T> SearchAttribute<T> orExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
-		return propertyKey.getSearchAttribute(securityContext, Occur.SHOULD, searchValue, true);
-	}
-
- */

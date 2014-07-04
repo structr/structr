@@ -115,6 +115,11 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T[] searchValue, boolean exactMatch, Query query) {
 
+		// early exit, return empty search attribute
+		if (searchValue == null) {
+			return new PropertySearchAttribute(this, "", exactMatch ? Occur.MUST : Occur.SHOULD, exactMatch);
+		}
+
 		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
 
 		for (T value : searchValue) {

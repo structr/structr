@@ -28,9 +28,9 @@ import static org.hamcrest.Matchers.*;
  * @author Christian Morgner
  */
 public class ArrayPropertyRestTest extends StructrRestTest {
-	
+
 	public void testViaRest() {
-		
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { 'stringArrayProperty' : ['one', 'two', 'three', 'four', 'five'] } ")
@@ -39,9 +39,9 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 		.when()
 			.post("/test_threes")
 			.getHeader("Location");
-		
-		
-		
+
+
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -55,8 +55,55 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 			.body("result[0].stringArrayProperty[4]", equalTo("five"))
 		.when()
 			.get("/test_threes");
-		
-		
-		
+
+	}
+
+	public void testSearch() {
+
+		// create test objects
+		final String id1 = getUuidFromLocation(RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(" { 'stringArrayProperty' : ['one', 'two', 'three', 'four', 'five'] } ")
+		.expect()
+			.statusCode(201)
+		.when()
+			.post("/test_threes")
+			.getHeader("Location")
+		);
+
+		// create test objects
+		final String id2 = getUuidFromLocation(RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(201)
+		.when()
+			.post("/test_threes")
+			.getHeader("Location")
+		);
+
+		// test search for empty array property
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result[0].id", equalTo(id2))
+		.when()
+			.get("/test_threes?stringArrayProperty=");
+
+
+		// test search for empty array property
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+		.expect()
+			.statusCode(200)
+			.body("result[0].id", equalTo(id1))
+		.when()
+			.get("/test_threes?stringArrayProperty=[]");
+
+
+
 	}
 }
