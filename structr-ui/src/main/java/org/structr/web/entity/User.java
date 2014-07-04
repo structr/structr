@@ -57,7 +57,7 @@ public class User extends AbstractUser {
 	public static final Property<Boolean>     frontendUser     = new BooleanProperty("frontendUser").indexed();
 	public static final Property<Image>       img              = new StartNode<>("img", UserImage.class);
 	public static final ImageDataProperty     imageData        = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
-	public static final Property<Folder>      homeDirectory    = new EndNode<>("homeDirecory", UserHomeDir.class);
+	public static final Property<Folder>      homeDirectory    = new EndNode<>("homeDirectory", UserHomeDir.class);
 	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
 	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new PropertyNotion(id));
 
