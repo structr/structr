@@ -68,6 +68,7 @@ public class ActionContextTest extends StructrTest {
 		TestThree testThree               = null;
 		TestFour testFour                 = null;
 		List<TestSix> testSixs            = null;
+		int index                         = 0;
 
 		try (final Tx tx = app.tx()) {
 
@@ -76,6 +77,10 @@ public class ActionContextTest extends StructrTest {
 			testThree      = createTestNode(TestThree.class);
 			testFour       = createTestNode(TestFour.class);
 			testSixs       = createTestNodes(TestSix.class, 20);
+
+			for (final TestSix testSix : testSixs) {
+				testSix.setProperty(TestSix.index, index++);
+			}
 
 			// create mail template
 			template = createTestNode(MailTemplate.class);
@@ -789,6 +794,11 @@ public class ActionContextTest extends StructrTest {
 
 			// test multiple nested dot-separated properties (this.parent.parent.parent)
 			assertEquals("Invalid multilevel property expression result", "false", testOne.replaceVariables(securityContext, ctx, "${empty(this.testThree.testOne.testThree)}"));
+
+			// test extract() with additional evaluation function
+			assertEquals("Invalid filter() result", "1",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, equal(data.index, 4)))}"));
+			assertEquals("Invalid filter() result", "9",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gt(data.index, 10)))}"));
+			assertEquals("Invalid filter() result", "10", testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gte(data.index, 10)))}"));
 
 
 			tx.success();

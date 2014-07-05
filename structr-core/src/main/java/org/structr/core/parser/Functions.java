@@ -116,6 +116,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_IS_COLLECTION       = "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
 	public static final String ERROR_MESSAGE_IS_ENTITY           = "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
 	public static final String ERROR_MESSAGE_EXTRACT             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
+	public static final String ERROR_MESSAGE_FILTER              = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
 	public static final String ERROR_MESSAGE_MERGE               = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
 	public static final String ERROR_MESSAGE_SORT                = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
 	public static final String ERROR_MESSAGE_LT                  = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
@@ -283,6 +284,9 @@ public class Functions {
 
 			case "each":
 				return new EachExpression();
+
+			case "filter":
+				return new FilterExpression();
 
 			case "data":
 				return new ValueExpression("data");
@@ -1045,9 +1049,9 @@ public class Functions {
 				} else {
 					return false;
 				}
-				
+
 			}
-			
+
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_IS_COLLECTION;
@@ -1064,9 +1068,9 @@ public class Functions {
 				} else {
 					return false;
 				}
-				
+
 			}
-			
+
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_IS_ENTITY;
@@ -1095,8 +1099,6 @@ public class Functions {
 
 						return extraction;
 					}
-
-
 
 				} else if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
