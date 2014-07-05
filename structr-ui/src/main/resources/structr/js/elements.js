@@ -120,7 +120,7 @@ var _Elements = {
                 var sourceId = getId(sourceEl);
 
                 $.ajax({
-                    url: viewRootUrl + sourceId + '?edit=3',
+                    url: viewRootUrl + sourceId + '?edit=1',
                     contentType: 'text/html',
                     statusCode: {
                         200: function(data) {

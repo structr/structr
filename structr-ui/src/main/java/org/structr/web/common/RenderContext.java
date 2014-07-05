@@ -76,7 +76,7 @@ public class RenderContext extends ActionContext {
 
 	public enum EditMode {
 
-		NONE, DATA, CONTENT, RAW;
+		NONE, WIDGET, CONTENT, RAW;
 
 	}
 
@@ -169,7 +169,7 @@ public class RenderContext extends ActionContext {
 
 			case "1" :
 
-				edit = EditMode.DATA;
+				edit = EditMode.WIDGET;
 				break;
 
 			case "2" :

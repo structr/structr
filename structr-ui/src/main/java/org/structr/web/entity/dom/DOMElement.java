@@ -341,7 +341,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
 
-			if (!(EditMode.RAW.equals(editMode))) {
+			if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
 				value = escapeForHtmlAttributes(value);
 
@@ -474,7 +474,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 						anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !((DOMElement) subNode).avoidWhitespace());
 					}
 
-					if (EditMode.RAW.equals(editMode)) {
+					if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 
 						subNode.render(securityContext, renderContext, depth + 1);
 
@@ -605,8 +605,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			}
 
 		}
-
-		double end = System.nanoTime();
 
 		// Set result for this level again, if there was any
 		if (localResult != null) {
@@ -1094,7 +1092,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key));
 
-				if (!(EditMode.RAW.equals(editMode))) {
+				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
 					value = escapeForHtmlAttributes(value);
 
@@ -1110,7 +1108,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		}
 
-		if (EditMode.RAW.equals(editMode)) {
+		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 
 			Property[] rawProps = new Property[]{
 				dataKey, restQuery, cypherQuery, xpathQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
@@ -1165,7 +1163,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 */
 	private void renderStructrAppLib(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (!(EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
+		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+		
+		if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
 
 			out
 				.append(indent(depth))

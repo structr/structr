@@ -281,7 +281,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					return;
 				}
 
-				if (EditMode.DATA.equals(edit) || dontCache) {
+				if (EditMode.WIDGET.equals(edit) || dontCache) {
 
 					setNoCacheHeaders(response);
 
@@ -298,7 +298,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				if (securityContext.isVisible(rootElement)) {
 
-					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
+					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
 
 						ServletOutputStream out = response.getOutputStream();
 						out.flush();
@@ -833,7 +833,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		ServletOutputStream out = response.getOutputStream();
 
-		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file, false)) {
+		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, false)) {
 
 			out.flush();
 			out.close();
