@@ -611,17 +611,22 @@ public class Importer {
 
 						} else {
 
-							if ("link".equals(tag) && "href".equals(key) && !nodeAttr.getValue().startsWith("http")) {
+							String value =  nodeAttr.getValue();
+							
+							boolean isLocal = StringUtils.isNotBlank(value) && !value.startsWith("http");
+							boolean isActive = StringUtils.isNotBlank(value) && (value.startsWith("${") || value.startsWith("/${"));
+							
+							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
 
-							} else if (("href".equals(key) || "src".equals(key)) && !nodeAttr.getValue().startsWith("http")) {
+							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
 
 							} else {
 
-								newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+								newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), value);
 							}
 
 						}
