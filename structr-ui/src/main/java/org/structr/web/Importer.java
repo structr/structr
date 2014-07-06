@@ -115,7 +115,7 @@ public class Importer {
 	//~--- fields ---------------------------------------------------------
 	private StringBuilder commentSource = new StringBuilder();
 	private String code;
-	private final String address;
+	private String address;
 	private final boolean authVisible;
 	private final String name;
 	private Document parsedDocument;
@@ -681,6 +681,9 @@ public class Importer {
 				// Try alternative baseUrl with trailing "/"
 				downloadUrl = new URL(new URL(address.concat("/")), downloadAddress);
 				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
+				
+				// If successful, change address
+				address = address.concat("/");
 
 			} catch (MalformedURLException ex) {
 				logger.log(Level.SEVERE, "Could not resolve address " + address.concat("/"), ex);
@@ -715,7 +718,10 @@ public class Importer {
 		
 		String httpPrefix = "http://";
 		
-		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), address);
+		logger.log(Level.INFO, "Download URL: {0}, address: {1}, cleaned address: {2}",
+			new Object[] { downloadUrl, address, StringUtils.substringBeforeLast(address, "/") });
+		
+		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
 			relativePath = downloadAddress;
 		}
@@ -724,6 +730,8 @@ public class Importer {
 			? StringUtils.substringAfter(downloadAddress, "http://")
 			: relativePath), fileName);
 
+		logger.log(Level.INFO, "Relative path: {0}, final path: {1}", new Object[] { relativePath, path });
+		
 		if (contentType.equals("text/plain")) {
 
 			contentType = StringUtils.defaultIfBlank(contentTypeForExtension.get(StringUtils.substringAfterLast(fileName, ".")), "text/plain");
