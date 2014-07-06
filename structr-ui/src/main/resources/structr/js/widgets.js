@@ -172,7 +172,7 @@ var _Widgets = {
                 var part = parts[i];
                 if (part) {
 
-                    var lowerPart = part.toLowerCase();
+                    var lowerPart = part.toLowerCase().replace(/ /g, '');
                     var idString  = lowerPart + suffix;
                     var newParent = $('#' + idString);
                     if (newParent.size() === 0) {
@@ -422,12 +422,14 @@ var _Widgets = {
 
             log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand)
 
-            var typeIcon = $(el.children('.typeIcon').first());
-            var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
+            var typeIcon   = $(el.children('.typeIcon').first());
+            var icon       = $(el).children('.node').hasClass('hidden') ? Structr.expand_icon : Structr.expanded_icon;
 
             typeIcon.css({
                 paddingRight: 0 + 'px'
             }).after('<img title="Expand \'' + name + '\'" alt="Expand \'' + name + '\'" class="expand_icon" src="' + icon + '">');
+
+            var expandIcon = el.children('.expand_icon').first();
 
             $(el).on('click', function(e) {
                 e.stopPropagation();
@@ -437,8 +439,11 @@ var _Widgets = {
                 var expanded = body.hasClass('hidden');
                 if (expanded) {
                     addExpandedNode(id);
+                    expandIcon.prop('src', 'icon/tree_arrow_right.png');
+
                 } else {
                     removeExpandedNode(id);
+                    expandIcon.prop('src', 'icon/tree_arrow_down.png');
                 }
             });
 
@@ -454,8 +459,10 @@ var _Widgets = {
                     var expanded = body.hasClass('hidden');
                     if (expanded) {
                         addExpandedNode(id);
+                        expandIcon.prop('src', 'icon/tree_arrow_right.png');
                     } else {
                         removeExpandedNode(id);
+                        expandIcon.prop('src', 'icon/tree_arrow_down.png');
                     }
                 });
 
