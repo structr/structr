@@ -29,6 +29,7 @@ import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.EndNode;
+import org.structr.core.property.EnumProperty;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 
@@ -40,10 +41,15 @@ import org.structr.core.property.StringProperty;
  */
 public class TestOne extends AbstractNode {
 
+	public enum Status {
+		One, Two, Three, Four
+	}
+
 	public static final Property<Integer>       anInt              = new IntProperty("anInt").indexed().indexedWhenEmpty();
 	public static final Property<Long>          aLong              = new LongProperty("aLong").indexed().indexedWhenEmpty();
 	public static final Property<Double>        aDouble            = new DoubleProperty("aDouble").indexed().indexedWhenEmpty();
 	public static final Property<Date>          aDate              = new ISO8601DateProperty("aDate").indexed().indexedWhenEmpty();
+	public static final Property<Status>        anEnum             = new EnumProperty<>("anEnum", Status.class);
 	public static final Property<String>        aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
 	public static final Property<Boolean>       aBoolean           = new BooleanProperty("aBoolean");
 	public static final Property<String>        anotherString      = new StringProperty("anotherString");
@@ -61,6 +67,6 @@ public class TestOne extends AbstractNode {
 	public static final Property<List<TestSix>> manyToManyTestSixs = new StartNodes<>("manyToManyTestSixs", SixOneManyToMany.class);
 
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
-		name, anInt, aDouble, aLong, aDate, createdDate, aString, anotherString, aBoolean
+		name, anInt, aDouble, aLong, aDate, createdDate, aString, anotherString, aBoolean, anEnum
 	);
 }

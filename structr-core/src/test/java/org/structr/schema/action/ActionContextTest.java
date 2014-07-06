@@ -99,6 +99,7 @@ public class ActionContextTest extends StructrTest {
 			testOne.setProperty(TestOne.aLong, 235242522552L);
 			testOne.setProperty(TestOne.aDouble, 2.234);
 			testOne.setProperty(TestOne.aDate, now);
+			testOne.setProperty(TestOne.anEnum, TestOne.Status.One);
 			testOne.setProperty(TestOne.aBoolean, true);
 			testOne.setProperty(TestOne.testTwo, testTwo);
 			testOne.setProperty(TestOne.testThree, testThree);
@@ -296,6 +297,7 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, \"true\")}"));
 			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, true)}"));
 			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, false)}"));
+			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.anEnum, 'One')}"));
 
 			// if + equal
 			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(this.id, this.id), \"true\", \"false\")}"));
