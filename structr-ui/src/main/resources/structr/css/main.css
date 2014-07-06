@@ -1826,10 +1826,18 @@ button.add_property {
 }
 
 .page .push_icon {
-	position: relative ! important;
-	margin-left: 24px ! important;
+    position: relative ! important;
+    margin-left: 24px ! important;
 }
 
 table.push {
-	margin: 2em 0;
+    margin: 2em 0;
+}
+
+.widget b, .widget span {
+	cursor: pointer;
+}
+
+.hidden {
+    display: none;
 }

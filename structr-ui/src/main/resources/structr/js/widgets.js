@@ -205,11 +205,17 @@ var _Widgets = {
 
     appendFolderElement : function(parent, id, icon, name) {
 
-            parent.append('<div id="' + id + '_folder" class="widget node">'
-                + '<img class="typeIcon" src="'+ icon + '">'
-                + '<b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b> <span class="id">' + id + '</span>'
-                + '<div id="' + id + '" class="node"></div>'
-                + '</div>');
+        var expanded = isExpanded(id);
+
+        parent.append('<div id="' + id + '_folder" class="widget node">'
+            + '<img class="typeIcon" src="'+ icon + '">'
+            + '<b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b> <span class="id">' + id + '</span>'
+            + '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
+            + '</div>');
+
+        var div = $('#' + id + '_folder');
+
+        _Widgets.appendVisualExpandIcon(div, id, name, true, false);
     },
 
     appendWidgetElement : function(widget, remote, el) {
@@ -408,5 +414,67 @@ var _Widgets = {
         });
 
         editor.id = entity.id;
+    },
+
+    appendVisualExpandIcon : function(el, id, name, hasChildren, expand) {
+
+        if (hasChildren) {
+
+            log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand)
+
+            var typeIcon = $(el.children('.typeIcon').first());
+            var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
+
+            typeIcon.css({
+                paddingRight: 0 + 'px'
+            }).after('<img title="Expand \'' + name + '\'" alt="Expand \'' + name + '\'" class="expand_icon" src="' + icon + '">');
+
+            $(el).on('click', function(e) {
+                e.stopPropagation();
+
+                var body = $('#' + id);
+                body.toggleClass('hidden');
+                var expanded = body.hasClass('hidden');
+                if (expanded) {
+                    addExpandedNode(id);
+                } else {
+                    removeExpandedNode(id);
+                }
+            });
+
+            button = $(el.children('.expand_icon').first());
+
+            if (button) {
+
+                button.on('click', function(e) {
+                    e.stopPropagation();
+
+                    var body = $('#' + id);
+                    body.toggleClass('hidden');
+                    var expanded = body.hasClass('hidden');
+                    if (expanded) {
+                        addExpandedNode(id);
+                    } else {
+                        removeExpandedNode(id);
+                    }
+                });
+
+                // Prevent expand icon from being draggable
+                button.on('mousedown', function(e) {
+                    e.stopPropagation();
+
+                });
+
+                if (expand) {
+                }
+            }
+
+        } else {
+            el.children('.typeIcon').css({
+                paddingRight: 11 + 'px'
+            });
+        }
+
+
     }
 };
