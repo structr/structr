@@ -39,8 +39,16 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolException;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.protocol.HttpContext;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Comment;
@@ -190,9 +198,33 @@ public class Importer {
 				HttpGet get = new HttpGet(address);
 				get.setHeader("User-Agent", "Mozilla");
 				get.setHeader("Connection", "close");
+				
+				client.setRedirectStrategy(new RedirectStrategy() {
+
+					@Override
+					public boolean isRedirected(HttpRequest hr, HttpResponse hr1, HttpContext hc) throws ProtocolException {
+						return false;
+					}
+
+					@Override
+					public HttpUriRequest getRedirect(HttpRequest hr, HttpResponse hr1, HttpContext hc) throws ProtocolException {
+						return new DefaultRedirectStrategy().getRedirect(hr, hr1, hc);
+					}
+				});
+				
+				
+				HttpResponse resp = client.execute(get);
+				
+				Header location = resp.getFirstHeader("Location");
+				
+				if (location != null) {
+					address = location.getValue();
+					client = new DefaultHttpClient();
+					resp = client.execute(new HttpGet(address));
+				}
 
 				// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-				code = IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
+				code = IOUtils.toString(resp.getEntity().getContent(), "UTF-8");
 
 				if (code.charAt(0) == 65279) {
 					code = code.substring(1);
