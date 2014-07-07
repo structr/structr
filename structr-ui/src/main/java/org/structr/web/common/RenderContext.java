@@ -648,7 +648,8 @@ public class RenderContext extends ActionContext {
 
 	@Override
 	public boolean returnRawValue(final SecurityContext securityContext) {
-		return ((EditMode.RAW.equals(getEditMode(securityContext.getUser(false)))));
+		EditMode editMode = getEditMode(securityContext.getUser(false));
+		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
 	}
 
 	public boolean hasTimeout(final long timeout) {

@@ -426,8 +426,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 */
 	protected boolean displayForConditions(final SecurityContext securityContext, final RenderContext renderContext) {
 
-		// In raw mode, render everything
-		if (EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+		// In raw or widget mode, render everything
+		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 			return true;
 		}
 
@@ -470,8 +471,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 */
 	protected boolean displayForLocale(final RenderContext renderContext) {
 
-		// In raw mode, render everything
-		if (EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+		// In raw or widget mode, render everything
+		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 			return true;
 		}
 
