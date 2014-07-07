@@ -949,7 +949,7 @@ var _Entities = {
                 if (page.length) {
                     $('#preview_' + getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
                 }
-                self.addClass('nodeHover').children('img.button').show();
+                self.addClass('nodeHover').children('img.button').show().css('display', 'inline-block');
                 self.children('.icons').children('img.button').show();
             },
             mouseout: function(e) {
@@ -973,7 +973,7 @@ var _Entities = {
         var node = el.closest('.node')
         if (node) {
             node.removeClass('nodeHover');
-            node.find('img.button').not('.donthide').hide();
+            node.find('img.button').not('.donthide').hide().css('display', 'none');
         }
         var page = node.closest('.page');
         if (page.length) {
