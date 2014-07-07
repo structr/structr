@@ -256,7 +256,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	// ----- private methods -----
 	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
 		//SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
-		//SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
 	}
 
 	// ----- interface Syncable -----
