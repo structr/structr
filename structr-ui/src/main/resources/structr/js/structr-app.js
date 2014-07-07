@@ -114,7 +114,6 @@ function StructrApp(baseUrl) {
                     } else {
                         // none, or more than one field: try with type prefix
                         possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
-                        console.log(possibleFields);
                         val = possibleFields.val();
                     }
                     data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
