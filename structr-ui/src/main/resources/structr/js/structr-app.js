@@ -229,7 +229,10 @@ function StructrApp(baseUrl) {
             
         });
         $('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
-        $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container).on('click', function() {
+        var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
+        saveButton.prop('class', btn.prop('class')).after(' ');
+        enableButton(saveButton);
+        saveButton.on('click', function() {
             s.saveAction(btn, id, attrs, reload);
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
