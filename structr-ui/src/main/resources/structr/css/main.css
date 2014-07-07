@@ -873,6 +873,10 @@ li.page .view_icon {
     opacity: 1;
 }
 
+.nodeHover img.button {
+    display: inline-block;
+}
+
 #add_type {
     position: absolute;
     right: 12px;
