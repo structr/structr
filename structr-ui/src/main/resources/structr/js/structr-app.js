@@ -107,7 +107,16 @@ function StructrApp(baseUrl) {
             if (action === 'create') {
                 var data = {};
                 $.each(attrs, function(i, key) {
-                    var val = $('[data-structr-name="' + key + '"]').val();
+                    var possibleFields = $('[data-structr-name="' + key + '"]');
+                    var val;
+                    if (possibleFields.length === 1) {
+                        val = possibleFields.val();
+                    } else {
+                        // none, or more than one field: try with type prefix
+                        possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
+                        console.log(possibleFields);
+                        val = possibleFields.val();
+                    }
                     data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
                 });
                 s.create(type, data, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
