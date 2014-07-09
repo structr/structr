@@ -63,6 +63,7 @@ public class ActionContextTest extends StructrTest {
 		final String numberString2        = numberFormat2.format(2.234);
 		final String numberString3        = numberFormat3.format(2.234);
 		MailTemplate template             = null;
+		MailTemplate template2             = null;
 		TestOne testOne                   = null;
 		TestTwo testTwo                   = null;
 		TestThree testThree               = null;
@@ -87,6 +88,12 @@ public class ActionContextTest extends StructrTest {
 			template.setProperty(MailTemplate.name, "TEST");
 			template.setProperty(MailTemplate.locale, "en_EN");
 			template.setProperty(MailTemplate.text, "This is a template for ${this.name}");
+
+			// create mail template
+			template2 = createTestNode(MailTemplate.class);
+			template2.setProperty(MailTemplate.name, "TEST2");
+			template2.setProperty(MailTemplate.locale, "en_EN");
+			template2.setProperty(MailTemplate.text, "${this.aDouble}");
 
 			// check existance
 			assertNotNull(testOne);
@@ -802,6 +809,16 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid filter() result", "9",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gt(data.index, 10)))}"));
 			assertEquals("Invalid filter() result", "10", testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gte(data.index, 10)))}"));
 
+			// test complex multiline statement replacement
+			final String test =
+				"${if(lte(template('TEST2', 'en_EN', this), 2), '<2', '>2')}\n" +		// first expression should evaluate to ">2"
+				"${if(lte(template('TEST2', 'en_EN', this), 3), '<3', '>3')}"			// second expression should evaluate to "<3"
+			;
+
+			final String result = testOne.replaceVariables(securityContext, ctx, test);
+
+			assertEquals("Invalid multiline and template() result", ">2\n<3", result);
+
 
 			tx.success();
 
@@ -813,3 +830,5 @@ public class ActionContextTest extends StructrTest {
 		}
 	}
 }
+
+
