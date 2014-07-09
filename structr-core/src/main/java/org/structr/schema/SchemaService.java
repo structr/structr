@@ -48,8 +48,6 @@ public class SchemaService implements Service {
 	private static final Logger logger           = Logger.getLogger(SchemaService.class.getName());
 	private static final AtomicBoolean compiling = new AtomicBoolean(false);
 
-	private static ClassLoader lastClassLoader   = null;
-
 	@Override
 	public void injectArguments(final Command command) {
 	}
@@ -100,8 +98,6 @@ public class SchemaService implements Service {
 						// TODO: add all views
 					}
 
-					lastClassLoader = nodeExtender.getClassLoader();
-
 				} catch (Throwable t) {
 
 					logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
@@ -115,10 +111,6 @@ public class SchemaService implements Service {
 		}
 
 		return success;
-	}
-
-	public static ClassLoader getClassLoader() {
-		return lastClassLoader;
 	}
 
 	@Override

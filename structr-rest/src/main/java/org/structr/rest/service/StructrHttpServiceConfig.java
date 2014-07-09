@@ -28,7 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.property.Property;
 import org.structr.rest.ResourceProvider;
-import org.structr.schema.SchemaService;
+import org.structr.schema.compiler.NodeExtender;
 
 /**
  *
@@ -162,7 +162,7 @@ public class StructrHttpServiceConfig {
 	// ----- private methods -----
 	private Class loadClass(final String name) {
 
-		ClassLoader loader = SchemaService.getClassLoader();
+		ClassLoader loader = NodeExtender.getClassLoader();
 		Class loadedClass  = null;
 
 		if (loader == null) {
