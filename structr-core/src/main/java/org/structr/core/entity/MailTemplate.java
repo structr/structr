@@ -33,6 +33,7 @@ import org.structr.core.app.StructrApp;
 //~--- JDK imports ------------------------------------------------------------
 
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,6 +57,11 @@ public class MailTemplate extends AbstractNode {
 	public static final org.structr.common.View publicView = new org.structr.common.View(MailTemplate.class, PropertyView.Public,
 		type, name, text, locale
 	);
+
+	// register this type as an overridden builtin type
+	static {
+		SchemaService.registerBuiltinType("MailTemplate", MailTemplate.class.getName());
+	}
 
 	//~--- get methods ----------------------------------------------------
 	@Override

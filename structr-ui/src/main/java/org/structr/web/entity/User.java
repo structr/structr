@@ -35,6 +35,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.core.validator.SimpleRegexValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.UserHomeDir;
 import org.structr.web.entity.relation.UserImage;
 import org.structr.web.entity.relation.UserWorkDir;
@@ -70,6 +71,9 @@ public class User extends AbstractUser {
 	);
 
 	static {
+
+	// register this type as an overridden builtin type
+		SchemaService.registerBuiltinType("User", User.class.getName());
 
 		User.eMail.addValidator(new TypeUniquenessValidator(User.class));
 		User.name.addValidator(new SimpleNonEmptyValueValidator());

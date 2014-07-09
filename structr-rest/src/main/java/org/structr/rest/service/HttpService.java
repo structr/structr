@@ -88,7 +88,7 @@ public class HttpService implements RunnableService {
 	public static final String APPLICATION_HTTPS_ENABLED = "application.https.enabled";
 	public static final String APPLICATION_KEYSTORE_PATH = "application.keystore.path";
 	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
-	
+
 
 
 	// set of resource providers for this service
@@ -446,6 +446,9 @@ public class HttpService implements RunnableService {
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
 	}
+
+	@Override
+	public void initialized() {}
 
 	@Override
 	public void shutdown() {

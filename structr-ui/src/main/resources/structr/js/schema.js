@@ -246,32 +246,42 @@ var _Schema = {
             success: function(data) {
 
                 $.each(data.result, function(i, entity) {
+
+                    var isBuiltinType = entity.isBuiltinType;
                     var id = 'id_' + entity.id;
                     nodes[entity.id] = entity;
-                    canvas.append('<div class="schema node compact" id="' + id + '"><b>' + entity.name + '</b>'
+                    canvas.append('<div class="schema node compact'
+                            + (isBuiltinType ? ' light' : '')
+                            + '" id="' + id + '"><b>' + entity.name + '</b>'
                             + '<img class="icon toggle-view" src="icon/arrow_out.png">'
-                            + '<img class="icon delete" src="icon/delete.png">'
+                            + '<img class="icon delete" src="icon/delete' + (isBuiltinType ? '_gray' : '') + '.png">'
                             + '<img class="icon edit" src="icon/pencil.png">'
                             + '</div>');
 
+
                     var node = $('#' + id);
-                    node.children('b').on('click', function() {
-                        _Schema.makeNameEditable(node);
-                    });
+
+                    if (!isBuiltinType) {
+                        node.children('b').on('click', function() {
+                            _Schema.makeNameEditable(node);
+                        });
+                    }
 
                     node.on('click', function() {
                         node.css({zIndex: ++maxZ});
                     });
 
-                    node.children('.delete').on('click', function() {
-                        Structr.confirmation('<h3>Delete schema node?</h3><p>This will delete all incoming and outgoing schema relatinships as well, but no data will be removed.</p>',
-                                function() {
-                                    $.unblockUI({
-                                        fadeOut: 25
+                    if (!isBuiltinType) {
+                        node.children('.delete').on('click', function() {
+                            Structr.confirmation('<h3>Delete schema node?</h3><p>This will delete all incoming and outgoing schema relatinships as well, but no data will be removed.</p>',
+                                    function() {
+                                        $.unblockUI({
+                                            fadeOut: 25
+                                        });
+                                        _Schema.deleteNode(entity.id);
                                     });
-                                    _Schema.deleteNode(entity.id);
-                                });
-                    });
+                        });
+                    }
 
                     var storedPosition = _Schema.getPosition(id);
                     node.offset({
@@ -471,7 +481,8 @@ var _Schema = {
     },
     loadNode: function(entity, el) {
         remotePropertyKeys = [];
-        el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + entity.name + '</b> extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractNode">AbstractNode</option></select>'
+        el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + entity.name + '</b>'
+                + (entity.isBuiltinType ? '' : ' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractNode">AbstractNode</option></select>')
                 + '<h3>Local Attributes</h3><table class="local schema-props"><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th><th>Default</th><th>Action</th></table>'
                 + '<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">'
                 + '<h3>Methods</h3><table class="actions schema-props"><th>JSON Name</th><th>Code</th><th>Action</th></table>'
@@ -954,7 +965,7 @@ var _Schema = {
         }
     },
     appendView: function(el, res, key, compact) {
-        
+
         if (key.substring(0, 3) === '___') {
             return;
         }

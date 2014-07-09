@@ -34,6 +34,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.SchemaService;
 import static org.structr.web.entity.AbstractFile.parent;
 import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
@@ -61,6 +62,11 @@ public class Folder extends AbstractFile implements Syncable {
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parent, folders, files, images
 	);
+
+	// register this type as an overridden builtin type
+	static {
+		SchemaService.registerBuiltinType("Folder", Folder.class.getName());
+	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

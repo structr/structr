@@ -2788,11 +2788,11 @@ public class Functions {
 	protected static boolean valueEquals(final Object obj1, final Object obj2) {
 
 		if (obj1 instanceof Enum || obj2 instanceof Enum) {
-			
+
 			return obj1.toString().equals(obj2.toString());
-			
+
 		}
-		
+
 		if (obj1 instanceof Number && obj2 instanceof Number) {
 
 			return ((Number)obj1).doubleValue() == ((Number)obj2).doubleValue();

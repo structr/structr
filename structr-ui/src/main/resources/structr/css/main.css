@@ -1581,6 +1581,14 @@ button.add_property {
     right: 46px;
 }
 
+.schema.light b {
+    color: #999;
+}
+
+#schema-graph .light {
+    opacity: .7;
+}
+
 #admin-tools {
     margin: 0 8px 3px 24px;
 }

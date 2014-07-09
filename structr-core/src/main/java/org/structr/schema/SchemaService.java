@@ -23,20 +23,26 @@
 
 package org.structr.schema;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.StructrConf;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Service;
 import org.structr.core.Services;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.Tx;
+import org.structr.core.mixin.Mixin;
 import org.structr.schema.compiler.NodeExtender;
 
 /**
@@ -45,10 +51,12 @@ import org.structr.schema.compiler.NodeExtender;
  */
 public class SchemaService implements Service {
 
-	private static final Logger logger           = Logger.getLogger(SchemaService.class.getName());
-	private static final AtomicBoolean compiling = new AtomicBoolean(false);
+	private static final Logger logger                            = Logger.getLogger(SchemaService.class.getName());
+	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
+	private static final Map<String, String> builtinTypeMap       = new LinkedHashMap<>();
+	private static final Set<Class<? extends Mixin>> mixinClasses = new LinkedHashSet<>();
 
-	private static ClassLoader lastClassLoader   = null;
+	private static ClassLoader lastClassLoader              = null;
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -57,6 +65,14 @@ public class SchemaService implements Service {
 	@Override
 	public void initialize(final StructrConf config) {
 		reloadSchema(new ErrorBuffer());
+	}
+
+	public static void registerBuiltinType(final String type, final String fqcn) {
+		builtinTypeMap.put(type, fqcn);
+	}
+
+	public static <T extends Mixin> void registerMixin(final Class<T> mixin) {
+		mixinClasses.add(mixin);
 	}
 
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
@@ -73,6 +89,8 @@ public class SchemaService implements Service {
 				final NodeExtender nodeExtender = new NodeExtender();
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
+
+					SchemaService.ensureBuiltinTypesExist();
 
 					// collect node classes
 					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
@@ -97,10 +115,11 @@ public class SchemaService implements Service {
 					if (success) {
 
 						Services.getInstance().getConfigurationProvider().registerDynamicViews(dynamicViews);
-						// TODO: add all views
-					}
 
-					lastClassLoader = nodeExtender.getClassLoader();
+						tx.success();
+
+						lastClassLoader = nodeExtender.getClassLoader();
+					}
 
 				} catch (Throwable t) {
 
@@ -122,6 +141,10 @@ public class SchemaService implements Service {
 	}
 
 	@Override
+	public void initialized() {
+	}
+
+	@Override
 	public void shutdown() {
 	}
 
@@ -133,5 +156,50 @@ public class SchemaService implements Service {
 	@Override
 	public boolean isRunning() {
 		return true;
+	}
+
+	// ----- private methods -----
+	public static void ensureBuiltinTypesExist() throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		for (final Entry<String, String> entry : builtinTypeMap.entrySet()) {
+
+			final String type = entry.getKey();
+			final String fqcn = entry.getValue();
+
+			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+			if (schemaNode == null) {
+
+				schemaNode = app.create(SchemaNode.class, type);
+			}
+
+			schemaNode.setProperty(SchemaNode.extendsClass, fqcn);
+			schemaNode.unlockReadOnlyPropertiesOnce();
+			schemaNode.setProperty(SchemaNode.isBuiltinType, true);
+		}
+
+		for (final Class<? extends Mixin> mixinClass : mixinClasses) {
+
+			try {
+				final Mixin mixin       = mixinClass.newInstance();
+				final String type       = mixin.getType();
+				final String superClass = mixin.getSuperclass();
+
+				SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+				if (schemaNode == null) {
+
+					schemaNode = app.create(SchemaNode.class, type);
+				}
+
+				schemaNode.setProperty(SchemaNode.extendsClass, superClass);
+				schemaNode.unlockReadOnlyPropertiesOnce();
+				schemaNode.setProperty(SchemaNode.isBuiltinType, true);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+			}
+		}
 	}
 }

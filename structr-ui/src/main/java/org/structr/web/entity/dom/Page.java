@@ -58,6 +58,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.files.ftp.AbstractStructrFtpFile;
 import org.structr.files.ftp.StructrFtpFile;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.SchemaService;
 import org.structr.web.Importer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
@@ -113,6 +114,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	);
 
 	private Html5DocumentType docTypeNode = null;
+
+	// register this type as an overridden builtin type
+	static {
+		SchemaService.registerBuiltinType("Page", Page.class.getName());
+	}
 
 	public Page() {
 

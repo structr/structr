@@ -52,7 +52,10 @@ public interface Service {
 	 */
 	public void shutdown();
 
-	//~--- get methods ----------------------------------------------------
+	/**
+	 * Called by the service layer when the service was initialized successfully
+	 */
+	public void initialized();
 
 	/**
 	 * Return name of service

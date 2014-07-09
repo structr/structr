@@ -44,7 +44,7 @@ import org.structr.schema.ConfigurationProvider;
 
 /**
  * The agent service main class.
- * 
+ *
  * @author Christian Morgner
  */
 public class AgentService extends Thread implements RunnableService {
@@ -106,7 +106,7 @@ public class AgentService extends Thread implements RunnableService {
 
 			Task nextTask = taskQueue.poll();
 			if (nextTask != null) {
-				
+
 				assignNextAgentForTask(nextTask);
 			}
 
@@ -137,13 +137,13 @@ public class AgentService extends Thread implements RunnableService {
 
 		final ConfigurationProvider configuration = Services.getInstance().getConfigurationProvider();
 		if (configuration != null) {
-			
+
 			return configuration.getAgents();
 		}
-		
+
 		return Collections.emptyMap();
 	}
-	
+
 	// <editor-fold defaultstate="collapsed" desc="interface RunnableService">
 	@Override
 	public void injectArguments(Command command) {
@@ -152,6 +152,9 @@ public class AgentService extends Thread implements RunnableService {
 
 	@Override
 	public void initialize(final StructrConf config) {}
+
+	@Override
+	public void initialized() {}
 
 	@Override
 	public void shutdown() {}
@@ -265,7 +268,7 @@ public class AgentService extends Thread implements RunnableService {
 		if (agentClass == null) {
 
 			Map<String, Class<? extends Agent>> agentClassesMap = getAgents();
-			
+
 			if (agentClassesMap != null) {
 
 				for (Entry<String, Class<? extends Agent>> classEntry : agentClassesMap.entrySet()) {
@@ -292,7 +295,7 @@ public class AgentService extends Thread implements RunnableService {
 
 			try {
 				agent = (Agent) agentClass.newInstance();
-				
+
 			} catch (Throwable ignore) {}
 		}
 

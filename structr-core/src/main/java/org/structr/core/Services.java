@@ -18,7 +18,6 @@
  */
 package org.structr.core;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -39,7 +38,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
@@ -47,7 +45,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.module.JarConfigurationProvider;
@@ -68,9 +65,9 @@ public class Services {
 
 	private static final Logger logger                       = Logger.getLogger(StructrApp.class.getName());
 	private static StructrConf baseConf                      = null;
-	private static final String INITIAL_SEED_FILE            = "seed.zip";
 
 	// Configuration constants
+	public static final String INITIAL_SEED_FILE             = "seed.zip";
 	public static final String BASE_PATH                     = "base.path";
 	public static final String CONFIGURED_SERVICES           = "configured.services";
 	public static final String CONFIG_FILE_PATH              = "configfile.path";
@@ -248,9 +245,13 @@ public class Services {
 			try {
 
 				Class serviceClass = getServiceClassForName(serviceClassName);
-
 				if (serviceClass != null) {
-					createService(serviceClass);
+
+					final Service service = createService(serviceClass);
+					if (service != null) {
+						
+						service.initialized();
+					}
 				}
 
 			} catch (Throwable t) {
@@ -269,9 +270,6 @@ public class Services {
 			if ("true".equals(properties.getProperty(Services.MIGRATION_KEY))) {
 				migrateDatabase();
 			}
-
-			// check for empty database and seed file
-			importSeedFile(properties.getProperty(Services.BASE_PATH));
 		}
 
 		logger.log(Level.INFO, "Registering shutdown hook.");
@@ -690,49 +688,11 @@ public class Services {
 		logger.log(Level.INFO, "Migrated {0} relationships to new ID property.", actualRelCount);
 	}
 
-	private void importSeedFile(final String basePath) {
-
-		final GraphDatabaseService graphDb = getService(NodeService.class).getGraphDb();
-		final File seedFile                = new File(trim(basePath) + "/" + INITIAL_SEED_FILE);
-
-		if (seedFile.exists()) {
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
-				final String idName           = GraphObject.id.dbName();
-				boolean hasApplicationNodes   = false;
-
-				while (allNodes.hasNext()) {
-
-					if (allNodes.next().hasProperty(idName)) {
-
-						hasApplicationNodes = true;
-						break;
-					}
-				}
-
-				if (!hasApplicationNodes) {
-
-					logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
-
-					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
-				}
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-
-				logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
-			}
-		}
-	}
-
-	private static String trim(final String value) {
+	public static String trim(final String value) {
 		return StringUtils.trim(value);
 	}
 
-	private static void trim(StructrConf properties) {
+	public static void trim(StructrConf properties) {
 		for (Object k : properties.keySet()) {
 			properties.put(k, trim((String) properties.get(k)));
 		}

@@ -38,6 +38,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -61,13 +62,14 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	public static final Property<String>            extendsClass     = new StringProperty("extendsClass").indexed();
 	public static final Property<String>            defaultSortKey   = new StringProperty("defaultSortKey");
 	public static final Property<String>            defaultSortOrder = new StringProperty("defaultSortOrder");
+	public static final Property<Boolean>           isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly();
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
 	);
 
 	private Set<String> dynamicViews = new LinkedHashSet<>();

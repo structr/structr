@@ -19,7 +19,6 @@
 package org.structr.cron;
 
 import java.util.LinkedList;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -57,7 +56,7 @@ public class CronService extends Thread implements RunnableService {
 	public void run() {
 
 		final Services servicesInstance = Services.getInstance();
-		
+
 		// wait for service layer to be initialized
 		while(!servicesInstance.isInitialized()) {
 			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
@@ -74,7 +73,7 @@ public class CronService extends Thread implements RunnableService {
 			for(CronEntry entry : cronEntries) {
 
 				if(entry.getDelayToNextExecutionInMillis() < GRANULARITY_UNIT.toMillis(GRANULARITY)) {
-					
+
 					String taskClassName = entry.getName();
 
 					try {
@@ -91,7 +90,7 @@ public class CronService extends Thread implements RunnableService {
 			}
 		}
 	}
-	
+
 	// ----- interface RunnableService -----
 	@Override
 	public void startService() {
@@ -123,7 +122,7 @@ public class CronService extends Thread implements RunnableService {
 
 		final String taskList = config.getProperty(TASKS, "");
 		if (taskList != null) {
-			
+
 			for(String task : taskList.split("[ \\t]+")) {
 
 				String expression = config.getProperty(task.concat(EXPRESSION_SUFFIX));
@@ -137,17 +136,20 @@ public class CronService extends Thread implements RunnableService {
 						cronEntries.add(entry);
 
 					} else {
-						
+
 						logger.log(Level.WARNING, "Unable to parse cron expression for taks {0}, ignoring.", task);
 					}
 
 				} else {
-					
+
 					logger.log(Level.WARNING, "No cron expression for task {0}, ignoring.", task);
 				}
 			}
 		}
 	}
+
+	@Override
+	public void initialized() {}
 
 	@Override
 	public void shutdown() {

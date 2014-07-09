@@ -43,6 +43,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.Thumbnails;
 import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
@@ -51,7 +52,7 @@ import org.structr.web.property.ThumbnailProperty;
 
 /**
  * An image whose binary data will be stored on disk.
- * 
+ *
  * @author Axel Morgner
  *
  */
@@ -61,30 +62,24 @@ public class Image extends File {
 
 	public static final Property<Integer> height = new IntProperty("height");
 	public static final Property<Integer> width  = new IntProperty("width");
-	
+
 	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall", new ThumbnailParameters(100, 100, false));
 	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid", new ThumbnailParameters(300, 300, false));
-	
+
 	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").indexed().unvalidated().readOnly();
 	public static final ImageDataProperty imageData   = new ImageDataProperty("imageData");
-	
+
 	public static final org.structr.common.View uiView              = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path);
 	public static final org.structr.common.View publicView          = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path);
 
-//	@Override
-//	public boolean isValid(ErrorBuffer errorBuffer) {
-//		
-//		boolean valid = true;
-//		
-//		valid &= nonEmpty(imageData, errorBuffer);
-//		valid &= super.isValid(errorBuffer);
-//		
-//		return valid;
-//	}
+	// register this type as an overridden builtin type
+	static {
+		SchemaService.registerBuiltinType("Image", Image.class.getName());
+	}
 
 	@Override
 	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
-		
+
 		// Copy visibility properties and owner to all thumbnails
 		if (AbstractNode.visibleToPublicUsers.equals(key)
 		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
@@ -93,17 +88,17 @@ public class Image extends File {
 		 || AbstractNode.owner.equals(key)) {
 
 			for (Image tn : getThumbnails()) {
-				
+
 				tn.setProperty(key, value);
-				
+
 			}
 
 		}
 
 		super.setProperty(key, value);
-		
+
 	}
-	
+
 	//~--- get methods ----------------------------------------------------
 
 	public Integer getWidth() {
@@ -240,7 +235,7 @@ public class Image extends File {
 		logger.log(Level.FINE, "Creating thumbnail for {0}", getName());
 
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		try {
 			originalImage.setProperty(File.checksum, newChecksum);
 
@@ -297,7 +292,7 @@ public class Image extends File {
 						tn.setProperty(deleted, true);
 					}
 				}
-				
+
 			} else {
 
 				logger.log(Level.FINE, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getUuid() });
