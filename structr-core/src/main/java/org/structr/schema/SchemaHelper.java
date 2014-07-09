@@ -26,15 +26,14 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.regex.Matcher;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -79,7 +78,6 @@ public class SchemaHelper {
 		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher
 	}
 
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher        = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
 	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
 	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new LinkedHashMap<>();
 
@@ -706,15 +704,15 @@ public class SchemaHelper {
 
 			if (!actionContext.returnRawValue(securityContext)) {
 
-				// re-use matcher from previous calls
-				Matcher matcher = threadLocalTemplateMatcher.get();
+				final Map<String, String> replacements = new LinkedHashMap<>();
 
-				matcher.reset(value);
+				int start = value.indexOf("${");
+				int end   = value.indexOf("}", start);
 
-				while (matcher.find()) {
+				while (start >= 0 && end >= 0) {
 
-					String group          = matcher.group();
-					String source         = group.substring(2, group.length() - 1);
+					String group          = value.substring(start,   end+1);
+					String source         = value.substring(start+2, end);
 					Object extractedValue = Functions.evaluate(securityContext, actionContext, entity, source);
 
 					if (extractedValue == null) {
@@ -724,7 +722,7 @@ public class SchemaHelper {
 					String partValue = StringUtils.remove(extractedValue.toString(), "\\");
 					if (partValue != null) {
 
-						value = value.replace(group, partValue);
+						replacements.put(group, partValue);
 
 					} else {
 
@@ -732,8 +730,22 @@ public class SchemaHelper {
 						// replace it by null to make it possible for HTML attributes to not be rendered
 						// and avoid something like ... selected="" ... which is interpreted as selected==true by
 						// all browsers
-						value = value.equals(group) ? null : value.replace(group, "");
+						if (!value.equals(group)) {
+							replacements.put(group, "");
+						}
 					}
+
+					start = value.indexOf("${", end);
+					end   = value.indexOf("}", start);
+				}
+
+				// apply replacements
+				for (final Entry<String, String> entry : replacements.entrySet()) {
+
+					final String group       = entry.getKey();
+					final String replacement = entry.getValue();
+
+					value = value.replace(group, replacement);
 				}
 
 			}
