@@ -145,7 +145,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		if (securityContext.getUser(false) == null) {
 
-			and(GraphObject.visibleToPublicUsers, true);
+			rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, BooleanClause.Occur.MUST, true));
 
 		}
 
