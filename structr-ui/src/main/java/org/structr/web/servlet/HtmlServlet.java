@@ -72,7 +72,7 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -198,7 +198,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if (rootElement == null) { // No page found
 
 					// Look for a file
-					org.structr.web.entity.File file = findFile(securityContext, request, path);
+					File file = findFile(securityContext, request, path);
 					if (file != null) {
 
 						streamFile(securityContext, file, request, response, edit);
@@ -479,7 +479,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	/**
 	 * Find first node whose name matches the given path
 	 *
-	 * @param securityContext 
+	 * @param securityContext
 	 * @param request
 	 * @param path
 	 * @return
@@ -508,13 +508,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	/**
 	 * Find a file with its name matching last path part
 	 *
-	 * @param securityContext 
+	 * @param securityContext
 	 * @param request
 	 * @param path
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private org.structr.web.entity.File findFile(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private File findFile(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.getName(path));
 
@@ -528,8 +528,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		for (Linkable node : entryPoints) {
-			if (node instanceof org.structr.web.entity.File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.clean(path)))) {
-				return (org.structr.web.entity.File) node;
+			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.clean(path)))) {
+				return (File) node;
 			}
 		}
 
@@ -539,7 +539,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	/**
 	 * Find a page with its name matching last path part
 	 *
-	 * @param securityContext 
+	 * @param securityContext
 	 * @param request
 	 * @param path
 	 * @return
@@ -577,7 +577,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		if (!results.isEmpty()) {
 
 			int i = 0;
-			
+
 			while (page == null || (i < results.size() && !securityContext.isVisible(page))) {
 
 				page = results.get(i++);
@@ -825,7 +825,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		config.setResourceProvider(resourceProvider);
 	}
 
-	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
+	private void streamFile(SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
 

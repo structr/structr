@@ -145,11 +145,11 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 					String contentType = fileItem.getContentType();
 					boolean isImage = (contentType != null && contentType.startsWith("image"));
 
-					Class type = isImage ? Image.class : org.structr.web.entity.File.class;
+					Class type = isImage ? Image.class : File.class;
 
 					String name = fileItem.getName().replaceAll("\\\\", "/");
 
-					org.structr.web.entity.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), contentType, type);
+					org.structr.dynamic.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), contentType, type);
 					newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
 					newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
 					newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);

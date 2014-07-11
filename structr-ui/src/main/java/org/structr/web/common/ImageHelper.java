@@ -43,10 +43,8 @@ import org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.property.PropertyMap;
 import static org.structr.web.common.FileHelper.setFileData;
-import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -54,6 +52,10 @@ import org.structr.web.entity.File;
  *
  * @author Axel Morgner
  */
+
+
+
+import org.structr.dynamic.File;
 public abstract class ImageHelper extends FileHelper {
 
 	private static final Logger logger = Logger.getLogger(ImageHelper.class.getName());
@@ -76,9 +78,9 @@ public abstract class ImageHelper extends FileHelper {
 	 */
 	public static Image createImage(final SecurityContext securityContext, final InputStream imageStream, final String contentType, final Class<? extends Image> imageType, final String name, final boolean markAsThumbnail)
 		throws FrameworkException, IOException {
-	
+
 		return createImage(securityContext, IOUtils.toByteArray(imageStream), contentType, imageType, name, markAsThumbnail);
-		
+
 	}
 
 	/**
@@ -98,39 +100,39 @@ public abstract class ImageHelper extends FileHelper {
 		throws FrameworkException, IOException {
 
 		PropertyMap props                          = new PropertyMap();
-		
+
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(Image.isThumbnail, markAsThumbnail);
 		props.put(AbstractNode.name, name);
-		
+
 		Image newImage = StructrApp.getInstance(securityContext).create(imageType, props);
 
 		if (imageData != null && imageData.length > 0) {
-			
+
 			setFileData(newImage, imageData, contentType);
-			
+
 		}
-		
+
 		return newImage;
 
 	}
 
 	/**
 	 * Write image data to the given image node and set checksum and size.
-	 * 
+	 *
 	 * @param img
 	 * @param imageData
 	 * @param contentType
 	 * @throws FrameworkException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public static void setImageData(final Image img, final byte[] imageData, final String contentType)
 		throws FrameworkException, IOException {
 
 		setFileData(img, imageData, contentType);
-		
+
 	}
-	
+
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
 
 		return createThumbnail(originalImage, maxWidth, maxHeight, false);
@@ -143,18 +145,18 @@ public abstract class ImageHelper extends FileHelper {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		Thumbnail tn        = new Thumbnail();
-		
+
 		try {
 
 			// read image
 			long start           = System.nanoTime();
 			InputStream in       = originalImage.getInputStream();
-			
+
 			if (in == null) {
 				logger.log(Level.FINE, "InputStream of original image {0} ({1}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
 				return null;
 			}
-			
+
 			BufferedImage source = null;
 
 			try {
@@ -173,7 +175,7 @@ public abstract class ImageHelper extends FileHelper {
 			}
 
 			if (source != null) {
-				
+
 				int sourceWidth  = source.getWidth();
 				int sourceHeight = source.getHeight();
 
@@ -340,7 +342,7 @@ public abstract class ImageHelper extends FileHelper {
 	//~--- get methods ----------------------------------------------------
 
 	public static String getBase64String(final File file) {
-		
+
 		try {
 
 			return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
@@ -351,7 +353,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		return null;
 	}
-	
+
 	/**
 	 * Check if url points to an image by extension
 	 *

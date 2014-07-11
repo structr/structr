@@ -27,12 +27,15 @@ import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.File;
 
 /**
  *
  * @author Axel Morgner
  */
+
+
+
+import org.structr.dynamic.File;
 public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	private static final Logger logger = Logger.getLogger(StructrFtpFile.class.getName());

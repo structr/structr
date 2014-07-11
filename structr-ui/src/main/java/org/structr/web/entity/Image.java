@@ -36,14 +36,20 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.ThumbnailParameters;
+import static org.structr.core.GraphObject.type;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
+import static org.structr.core.graph.NodeInterface.deleted;
+import static org.structr.core.graph.NodeInterface.name;
+import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaService;
+import org.structr.dynamic.File;
+import static org.structr.dynamic.File.relativeFilePath;
+import static org.structr.dynamic.File.size;
 import org.structr.web.entity.relation.Thumbnails;
 import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
@@ -71,11 +77,6 @@ public class Image extends File {
 
 	public static final org.structr.common.View uiView              = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path);
 	public static final org.structr.common.View publicView          = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path);
-
-	// register this type as an overridden builtin type
-	static {
-		SchemaService.registerBuiltinType("Image", Image.class.getName());
-	}
 
 	@Override
 	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {

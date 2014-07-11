@@ -5,7 +5,7 @@ import java.util.Date;
 import org.structr.common.Syncable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
 
 /**
  *

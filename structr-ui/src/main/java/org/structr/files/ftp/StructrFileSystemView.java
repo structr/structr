@@ -31,9 +31,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.graph.Tx;
+import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.Page;
 
@@ -73,7 +73,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 //		org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
-//		
+//
 //		Folder workingDir = structrUser.getProperty(org.structr.web.entity.User.workingDirectory);
 //		if (workingDir == null) {
 //			workingDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
@@ -172,7 +172,7 @@ public class StructrFileSystemView implements FileSystemView {
 					return new StructrFtpFile((File) file);
 				}
 			}
-			
+
 			// Look up a page by its name
 			Page page = StructrApp.getInstance().nodeQuery(Page.class).andName(PathHelper.getName(requestedPath)).getFirst();
 			if (page != null) {

@@ -18,6 +18,8 @@
  */
 package org.structr.web.entity;
 
+import org.structr.dynamic.File;
+
 /**
  *
  * @author amorgner

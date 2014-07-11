@@ -35,10 +35,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
@@ -140,7 +140,7 @@ public class UnarchiveCommand extends AbstractCommand {
 			// Root folder doesn't exist, so create it and all child folders
 			folder = app.create(Folder.class, parts[0]);
 			logger.log(Level.INFO, "Created root folder {0}", new Object[]{folder});
-			
+
 			for (int i = 1; i < parts.length - 1; i++) {
 				Folder childFolder = app.create(Folder.class, parts[i]);
 				childFolder.setProperty(Folder.parent, folder);
@@ -185,7 +185,7 @@ public class UnarchiveCommand extends AbstractCommand {
 	private void unarchive(final SecurityContext securityContext, final File file) throws ArchiveException, IOException, FrameworkException {
 
 		logger.log(Level.INFO, "Unarchiving file {0}", new Object[]{file});
-		
+
 		final InputStream is = file.getInputStream();
 		if (is == null) {
 			getWebSocket().send(MessageBuilder.status().code(400).message("Could not get input stream from file ".concat(file.getName())).build(), true);
@@ -227,7 +227,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 					fileOrFolder.setProperty(AbstractFile.parent, parentFolder);
 					logger.log(Level.INFO, "Created {0} {1} with path {2}", new Object[]{fileOrFolder.getType(), fileOrFolder, FileHelper.getFolderPath(fileOrFolder)});
-					
+
 				}
 			}
 

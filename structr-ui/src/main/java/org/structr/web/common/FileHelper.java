@@ -42,6 +42,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.PropertyMap;
+import org.structr.dynamic.FileBase;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
@@ -68,18 +69,18 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static org.structr.web.entity.File transformFile(final SecurityContext securityContext, final String uuid, final Class<? extends org.structr.web.entity.File> fileType) throws FrameworkException, IOException {
+	public static <T extends org.structr.dynamic.File> T transformFile(final SecurityContext securityContext, final String uuid, final Class<T> fileType) throws FrameworkException, IOException {
 
 		AbstractFile existingFile = getFileByUuid(securityContext, uuid);
 
 		if (existingFile != null) {
 
 			existingFile.unlockReadOnlyPropertiesOnce();
-			existingFile.setProperty(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
+			existingFile.setProperty(AbstractNode.type, fileType == null ? org.structr.dynamic.File.class.getSimpleName() : fileType.getSimpleName());
 
 			existingFile = getFileByUuid(securityContext, uuid);
 
-			return fileType != null ? fileType.cast(existingFile) : (org.structr.web.entity.File) existingFile;
+			return (T)(fileType != null ? fileType.cast(existingFile) : (org.structr.dynamic.File) existingFile);
 		}
 
 		return null;
@@ -94,16 +95,16 @@ public class FileHelper {
 	 * @param <T>
 	 * @param securityContext
 	 * @param rawData
-	 * @param T defaults to File.class if null
+	 * @param t defaults to File.class if null
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.web.entity.File> T createFileBase64(final SecurityContext securityContext, final String rawData, final Class<? extends org.structr.web.entity.File> T) throws FrameworkException, IOException {
+	public static <T extends org.structr.dynamic.File> T createFile64(final SecurityContext securityContext, final String rawData, final Class<T> t) throws FrameworkException, IOException {
 
 		Base64URIData uriData = new Base64URIData(rawData);
 
-		return createFile(securityContext, uriData.getBinaryData(), uriData.getContentType(), T);
+		return createFile(securityContext, uriData.getBinaryData(), uriData.getContentType(), t);
 
 	}
 
@@ -119,7 +120,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<? extends org.structr.web.entity.File> fileType, final String name)
+	public static <T extends org.structr.dynamic.File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
 		throws FrameworkException, IOException {
 
 		final byte[] data = IOUtils.toByteArray(fileStream);
@@ -134,20 +135,20 @@ public class FileHelper {
 	 * @param securityContext
 	 * @param fileData
 	 * @param contentType if null, try to auto-detect content type
-	 * @param T
+	 * @param t
 	 * @param name
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> T, final String name)
+	public static <T extends org.structr.dynamic.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t, final String name)
 		throws FrameworkException, IOException {
 
 		PropertyMap props = new PropertyMap();
 
 		props.put(AbstractNode.name, name);
 
-		T newFile = (T) StructrApp.getInstance(securityContext).create(T, props);
+		T newFile = (T) StructrApp.getInstance(securityContext).create(t, props);
 
 		setFileData(newFile, fileData, contentType);
 
@@ -161,15 +162,15 @@ public class FileHelper {
 	 * @param securityContext
 	 * @param fileData
 	 * @param contentType
-	 * @param T defaults to File.class if null
+	 * @param t defaults to File.class if null
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> T)
+	public static <T extends org.structr.dynamic.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t)
 		throws FrameworkException, IOException {
 
-		return createFile(securityContext, fileData, contentType, T, null);
+		return createFile(securityContext, fileData, contentType, t, null);
 
 	}
 
@@ -182,7 +183,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void decodeAndSetFileData(final org.structr.web.entity.File file, final String rawData) throws FrameworkException, IOException {
+	public static void decodeAndSetFileData(final org.structr.dynamic.File file, final String rawData) throws FrameworkException, IOException {
 
 		Base64URIData uriData = new Base64URIData(rawData);
 		setFileData(file, uriData.getBinaryData(), uriData.getContentType());
@@ -198,18 +199,18 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void setFileData(final org.structr.web.entity.File file, final byte[] fileData, final String contentType)
+	public static void setFileData(final org.structr.dynamic.File file, final byte[] fileData, final String contentType)
 		throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
-		file.setProperty(org.structr.web.entity.File.contentType, contentType != null ? contentType : getContentMimeType(fileData));
-		file.setProperty(org.structr.web.entity.File.checksum, FileHelper.getChecksum(file));
-		file.setProperty(org.structr.web.entity.File.size, FileHelper.getSize(file));
+		file.setProperty(org.structr.dynamic.File.contentType, contentType != null ? contentType : getContentMimeType(fileData));
+		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
+		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
 
 	}
 
 	//~--- get methods ----------------------------------------------------
-	public static String getBase64String(final org.structr.web.entity.File file) {
+	public static String getBase64String(final org.structr.dynamic.File file) {
 
 		try {
 
@@ -268,7 +269,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void writeToFile(final org.structr.web.entity.File fileNode, final InputStream inStream) throws FrameworkException, IOException {
+	public static void writeToFile(final org.structr.dynamic.File fileNode, final InputStream inStream) throws FrameworkException, IOException {
 
 		writeToFile(fileNode, IOUtils.toByteArray(inStream));
 
@@ -283,7 +284,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void writeToFile(final org.structr.web.entity.File fileNode, final byte[] data) throws FrameworkException, IOException {
+	public static void writeToFile(final org.structr.dynamic.File fileNode, final byte[] data) throws FrameworkException, IOException {
 
 		String id = fileNode.getProperty(GraphObject.id);
 		if (id == null) {
@@ -295,7 +296,7 @@ public class FileHelper {
 			fileNode.setProperty(GraphObject.id, newUuid);
 		}
 
-		fileNode.setProperty(org.structr.web.entity.File.relativeFilePath, org.structr.web.entity.File.getDirectoryPath(id) + "/" + id);
+		fileNode.setProperty(org.structr.dynamic.File.relativeFilePath, org.structr.dynamic.File.getDirectoryPath(id) + "/" + id);
 
 		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
 
@@ -421,7 +422,7 @@ public class FileHelper {
 	 * @param file
 	 * @return
 	 */
-	public static Long getChecksum(final org.structr.web.entity.File file) {
+	public static Long getChecksum(final FileBase file) {
 
 		String relativeFilePath = file.getRelativeFilePath();
 
@@ -456,7 +457,7 @@ public class FileHelper {
 	 * @param file
 	 * @return
 	 */
-	public static long getSize(final org.structr.web.entity.File file) {
+	public static long getSize(final FileBase file) {
 
 		String path = file.getRelativeFilePath();
 
@@ -571,10 +572,10 @@ public class FileHelper {
 
 	/**
 	 * Find the first file with given name on root level (without parent folder).
-	 * 
+	 *
 	 * @param securityContext
 	 * @param name
-	 * @return 
+	 * @return
 	 */
 	public static AbstractFile getFirstRootFileByName(final SecurityContext securityContext, final String name) {
 
@@ -582,13 +583,13 @@ public class FileHelper {
 
 		try {
 			final List<AbstractFile> files = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getAsList();
-			
+
 			for (final AbstractFile file : files) {
-				
+
 				if (file.getProperty(AbstractFile.parent) == null) {
 					return file;
 				}
-				
+
 			}
 
 		} catch (FrameworkException fex) {
@@ -601,7 +602,7 @@ public class FileHelper {
 
 	/**
 	 * Return the virtual folder path of any
-	 * {@link org.structr.web.entity.File} or
+	 * {@link File} or
 	 * {@link org.structr.web.entity.Folder}
 	 *
 	 * @param file

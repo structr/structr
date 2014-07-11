@@ -45,7 +45,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;

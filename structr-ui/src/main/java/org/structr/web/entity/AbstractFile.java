@@ -32,12 +32,9 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.FileChildren;
 import org.structr.web.entity.relation.FileSiblings;
 import org.structr.web.entity.relation.Folders;
-import org.structr.web.mixin.FileMixin;
-import org.structr.web.mixin.ImageMixin;
 
 /**
  * Base class for filesystem objects in structr.
@@ -57,13 +54,6 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final Property<String> parentId              = new EntityIdProperty("parentId", parent);
 
 	public static final Property<Boolean> hasParent            = new BooleanProperty("hasParent").indexed();
-
-	// register this type as an overridden builtin type
-	static {
-		
-		SchemaService.registerMixin(FileMixin.class);
-		SchemaService.registerMixin(ImageMixin.class);
-	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

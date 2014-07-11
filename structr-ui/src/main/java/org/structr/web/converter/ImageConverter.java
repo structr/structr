@@ -34,17 +34,15 @@ import org.structr.web.entity.Image;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Converts image data into an image node.
- *  
+ *
  * If a {@link KeyAndClass} object is given, the image will be created with
  * the corresponding type and with setProperty to the given property key.
- * 
+ *
  * If no {@link KeyAndClass} object is given, the image data will be set on
  * the image node itself.
  *
@@ -55,14 +53,14 @@ public class ImageConverter extends PropertyConverter {
 	private static final Logger logger = Logger.getLogger(ImageConverter.class.getName());
 
 	private KeyAndClass<Image> keyAndClass = null;
-	
+
 	public ImageConverter(SecurityContext securityContext, GraphObject entity, KeyAndClass<Image> kc) {
-		
+
 		super(securityContext, entity);
-		
+
 		this.keyAndClass = kc;
 	}
-	
+
 	//~--- methods --------------------------------------------------------
 
 	@Override
@@ -110,7 +108,7 @@ public class ImageConverter extends PropertyConverter {
 
 							if (img == null) {
 
-								img = (Image) ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+								img = (Image) ImageHelper.createFile64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
 
 							}
 
@@ -133,13 +131,13 @@ public class ImageConverter extends PropertyConverter {
 				img.updateInIndex();
 				currentObject.setProperty(keyAndClass.getPropertyKey(), img);
 			}
-					
+
 
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Cannot create image node from given data", t);
 		}
-			
+
 		return null;
 	}
 

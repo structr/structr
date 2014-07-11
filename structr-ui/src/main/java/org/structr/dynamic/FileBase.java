@@ -1,21 +1,4 @@
-/**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
- *
- * This file is part of Structr <http://structr.org>.
- *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
- *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with Structr. If not, see <http://www.gnu.org/licenses/>.
- */
-package org.structr.web.entity;
+package org.structr.dynamic;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,8 +16,11 @@ import org.structr.common.SecurityContext;
 import org.structr.common.Syncable;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import static org.structr.core.GraphObject.type;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeInterface;
+import static org.structr.core.graph.NodeInterface.name;
+import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -42,19 +28,19 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.AbstractFile;
 import static org.structr.web.entity.AbstractFile.parent;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.relation.Folders;
 import org.structr.web.property.PathProperty;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * A file that stores its binary content on disk.
  *
- * @author Axel Morgner
+ * @author Christian Morgner
  */
-public class File extends AbstractFile implements Linkable {
+public class FileBase extends AbstractFile implements Linkable {
 
-	private static final Logger logger = Logger.getLogger(File.class.getName());
+	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
 	public static final Property<String> contentType = new StringProperty("contentType").indexedWhenEmpty();
 	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath").readOnly();
@@ -65,8 +51,8 @@ public class File extends AbstractFile implements Linkable {
 	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
 	public static final Property<String> path = new PathProperty("path").indexed().readOnly();
 
-	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner, path);
-	public static final View uiView = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path);
+	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path);
+	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path);
 
 	@Override
 	public void onNodeDeletion() {
@@ -119,10 +105,10 @@ public class File extends AbstractFile implements Linkable {
 				return;
 			}
 
-			setProperty(checksum, FileHelper.getChecksum(File.this));
+			setProperty(checksum, FileHelper.getChecksum(FileBase.this));
 			setProperty(version, 0);
 
-			long fileSize = FileHelper.getSize(File.this);
+			long fileSize = FileHelper.getSize(FileBase.this);
 			if (fileSize > 0) {
 				setProperty(size, fileSize);
 			}
@@ -135,21 +121,26 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
-//	@Override
-//	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-//		increaseVersion();
-//		return true;
-//	}
+	@Override
+	public String getPath() {
+		return FileHelper.getFolderPath(this);
+	}
+
+	public String getRelativeFilePath() {
+
+		return getProperty(FileBase.relativeFilePath);
+
+	}
 
 	public String getUrl() {
 
-		return getProperty(File.url);
+		return getProperty(FileBase.url);
 
 	}
 
 	public String getContentType() {
 
-		return getProperty(File.contentType);
+		return getProperty(FileBase.contentType);
 
 	}
 
@@ -171,15 +162,25 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
-	public String getRelativeFilePath() {
+	public static String getDirectoryPath(final String uuid) {
 
-		return getProperty(File.relativeFilePath);
+		return (uuid != null)
+			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+			: null;
 
 	}
 
-	@Override
-	public String getPath() {
-		return FileHelper.getFolderPath(this);
+	public void increaseVersion() throws FrameworkException {
+
+		final Integer _version = getProperty(FileBase.version);
+		if (_version == null) {
+
+			setProperty(FileBase.version, 1);
+
+		} else {
+
+			setProperty(FileBase.version, _version + 1);
+		}
 	}
 
 	public InputStream getInputStream() {
@@ -239,8 +240,8 @@ public class File extends AbstractFile implements Linkable {
 						super.close();
 
 						try {
-							setProperty(checksum, FileHelper.getChecksum(File.this));
-							setProperty(size, FileHelper.getSize(File.this));
+							setProperty(checksum, FileHelper.getChecksum(FileBase.this));
+							setProperty(size, FileHelper.getSize(FileBase.this));
 
 						} catch (FrameworkException ex) {
 
@@ -260,27 +261,6 @@ public class File extends AbstractFile implements Linkable {
 
 		return null;
 
-	}
-
-	public static String getDirectoryPath(final String uuid) {
-
-		return (uuid != null)
-			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
-			: null;
-
-	}
-
-	public void increaseVersion() throws FrameworkException {
-
-		final Integer _version = getProperty(File.version);
-		if (_version == null) {
-
-			setProperty(File.version, 1);
-
-		} else {
-
-			setProperty(File.version, _version + 1);
-		}
 	}
 
 	// ----- interface Syncable -----

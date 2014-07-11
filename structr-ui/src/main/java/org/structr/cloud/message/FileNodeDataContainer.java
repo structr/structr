@@ -32,7 +32,7 @@ import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
 
 /**
  * Transport data container for file nodes

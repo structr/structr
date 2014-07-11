@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.web.entity.File;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -31,6 +30,7 @@ import java.nio.channels.FileChannel;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -60,15 +60,15 @@ public class FileUploadHandler {
 
 			FileChannel channel;
 			try {
-				
+
 				channel = getChannel(false);
 				this.size = channel.size();
 				updateSize(this.size);
-				
+
 			} catch (IOException ex) {
 				logger.log(Level.SEVERE, "Could not access file", ex);
 			}
-			
+
 
 		}
 
@@ -81,30 +81,30 @@ public class FileUploadHandler {
 		FileChannel channel = getChannel(sequenceNumber > 0);
 
 		if (channel != null) {
-			
+
 			channel.position(sequenceNumber * chunkSize);
 			channel.write(ByteBuffer.wrap(data));
 
 			if (this.size == null) {
-				
+
 				this.size = channel.size();
-				
+
 			}
-			
+
 			// finish upload
 			if (sequenceNumber + 1 == chunks) {
-				
+
 				finish();
 				updateSize(this.size);
-				
+
 			}
-			
+
 		}
 
 	}
 
 	private void updateSize(final Long size) {
-		
+
 		if (size == null) {
 			return;
 		}
@@ -118,9 +118,9 @@ public class FileUploadHandler {
 			logger.log(Level.WARNING, "Could not set size to " + size, ex);
 
 		}
-		
+
 	}
-	
+
 	/**
 	 * Called when the WebSocket connection is closed
 	 */
@@ -134,9 +134,9 @@ public class FileUploadHandler {
 
 				channel.force(true);
 				channel.close();
-				
+
 				this.privateFileChannel = null;
-				
+
 				file.increaseVersion();
 
 			}

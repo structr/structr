@@ -34,6 +34,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.dynamic.File;
 import org.structr.schema.SchemaService;
 import static org.structr.web.entity.AbstractFile.parent;
 import org.structr.web.entity.relation.Files;
@@ -51,9 +52,9 @@ import org.structr.web.entity.relation.Images;
  */
 public class Folder extends AbstractFile implements Syncable {
 
-	public static final Property<List<Folder>> folders = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
-	public static final Property<List<File>>   files   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
-	public static final Property<List<Image>>  images  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
+	public static final Property<List<Folder>> folders   = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
+	public static final Property<List<File>>   files = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
+	public static final Property<List<Image>>  images    = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
 
 	public static final Property<Integer>		position     = new IntProperty("position").indexed();
 

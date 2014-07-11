@@ -33,7 +33,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
 import org.structr.web.entity.Folder;
 
 /**

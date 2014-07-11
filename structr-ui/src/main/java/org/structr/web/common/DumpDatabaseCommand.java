@@ -17,12 +17,15 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
-import org.structr.web.entity.File;
 
 /**
  *
  * @author Christian Morgner
  */
+
+
+
+import org.structr.dynamic.File;
 public class DumpDatabaseCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	static {

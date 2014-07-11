@@ -78,7 +78,7 @@ import org.structr.web.diff.DeleteOperation;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.diff.MoveOperation;
 import org.structr.web.diff.UpdateOperation;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.LinkSource;
@@ -198,7 +198,7 @@ public class Importer {
 				HttpGet get = new HttpGet(address);
 				get.setHeader("User-Agent", "Mozilla");
 				get.setHeader("Connection", "close");
-				
+
 				client.setRedirectStrategy(new RedirectStrategy() {
 
 					@Override
@@ -211,12 +211,12 @@ public class Importer {
 						return new DefaultRedirectStrategy().getRedirect(hr, hr1, hc);
 					}
 				});
-				
-				
+
+
 				HttpResponse resp = client.execute(get);
-				
+
 				Header location = resp.getFirstHeader("Location");
-				
+
 				if (location != null) {
 					address = location.getValue();
 					client = new DefaultHttpClient();
@@ -644,10 +644,10 @@ public class Importer {
 						} else {
 
 							String value =  nodeAttr.getValue();
-							
+
 							boolean isLocal = StringUtils.isNotBlank(value) && !value.startsWith("http");
 							boolean isActive = StringUtils.isNotBlank(value) && (value.startsWith("${") || value.startsWith("/${"));
-							
+
 							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
@@ -693,7 +693,7 @@ public class Importer {
 
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
-		final String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
+		final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
 		final String filePath = FileHelper.getFilePath(relativeFilePath);
 		final java.io.File fileOnDisk = new java.io.File(filePath);
 
@@ -718,7 +718,7 @@ public class Importer {
 				// Try alternative baseUrl with trailing "/"
 				downloadUrl = new URL(new URL(address.concat("/")), downloadAddress);
 				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
-				
+
 				// If successful, change address
 				address = address.concat("/");
 
@@ -752,23 +752,23 @@ public class Importer {
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 
 		final String fileName = PathHelper.getName(downloadAddress);
-		
+
 		String httpPrefix = "http://";
-		
+
 		logger.log(Level.INFO, "Download URL: {0}, address: {1}, cleaned address: {2}",
 			new Object[] { downloadUrl, address, StringUtils.substringBeforeLast(address, "/") });
-		
+
 		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
 			relativePath = downloadAddress;
 		}
-		
+
 		String path = StringUtils.substringBefore(((downloadAddress.contains(httpPrefix))
 			? StringUtils.substringAfter(downloadAddress, "http://")
 			: relativePath), fileName);
 
 		logger.log(Level.INFO, "Relative path: {0}, final path: {1}", new Object[] { relativePath, path });
-		
+
 		if (contentType.equals("text/plain")) {
 
 			contentType = StringUtils.defaultIfBlank(contentTypeForExtension.get(StringUtils.substringAfterLast(fileName, ".")), "text/plain");

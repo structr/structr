@@ -37,7 +37,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
 import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.FileUploadHandler;

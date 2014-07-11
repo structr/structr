@@ -25,7 +25,7 @@ import org.structr.cloud.CloudService;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
 
 /**
  * Encapsulates a pull request for a node

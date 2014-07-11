@@ -15,7 +15,7 @@ import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
 
 /**
  *

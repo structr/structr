@@ -30,8 +30,8 @@ import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.dynamic.File;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.Page;
 
@@ -93,7 +93,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 	public List<FtpFile> listFiles() {
 
 		List<FtpFile> ftpFiles = new ArrayList();
-		
+
 		final App app = StructrApp.getInstance();
 
 		try (Tx tx = app.tx()) {

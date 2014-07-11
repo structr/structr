@@ -34,8 +34,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.dynamic.File;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
@@ -45,24 +45,24 @@ import org.structr.web.entity.User;
  * @author Axel Morgner
  */
 public class FtpTest extends StructrUiTest {
-	
+
 	private static final Logger logger = Logger.getLogger(FtpTest.class.getName());
-	
+
 	protected User ftpUser;
-	
+
 	protected User createFTPUser(final String username, final String password) throws FrameworkException {
 		PropertyMap props = new PropertyMap();
 		props.put(AbstractUser.name, username);
 		props.put(AbstractUser.password, password);
 		return (User) createTestNodes(User.class, 1, props).get(0);
 	}
-	
+
 	protected Folder createFTPDirectory(final String path, final String name) throws FrameworkException {
 		PropertyMap props = new PropertyMap();
 		props.put(Folder.name, name);
 		props.put(Folder.owner, ftpUser);
 		Folder dir = (Folder) createTestNodes(Folder.class, 1, props).get(0);
-		
+
 		if (StringUtils.isNotBlank(path)) {
 			AbstractFile parent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path);
 			if (parent != null && parent instanceof Folder) {
@@ -70,19 +70,19 @@ public class FtpTest extends StructrUiTest {
 				dir.setProperty(Folder.parent, parentFolder);
 			}
 		}
-		
+
 		logger.log(Level.INFO, "FTP directory {0} created successfully.", dir);
-		
+
 		return dir;
 	}
-	
+
 	protected File createFTPFile(final String path, final String name) throws FrameworkException {
 		PropertyMap props = new PropertyMap();
 		props.put(File.name, name);
 		props.put(File.size, 0L);
 		props.put(File.owner, ftpUser);
 		File file = (File) createTestNodes(File.class, 1, props).get(0);
-		
+
 		if (StringUtils.isNotBlank(path)) {
 			AbstractFile parent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path);
 			if (parent != null && parent instanceof Folder) {
@@ -90,30 +90,30 @@ public class FtpTest extends StructrUiTest {
 				file.setProperty(Folder.parent, parentFolder);
 			}
 		}
-		
+
 		logger.log(Level.INFO, "FTP file {0} created successfully.", file);
-		
+
 		return file;
 	}
-	
+
 	protected void assertEmptyDirectory(final FTPClient ftp) {
-		
+
 		FTPFile[] dirs = null;
-		
+
 		try {
-			
+
 			dirs = ftp.listDirectories();
-			
+
 		} catch (IOException ex) {
-			
+
 			logger.log(Level.SEVERE, "Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
-			
+
 		}
-		
+
 		assertNotNull(dirs);
 		assertEquals(0, dirs.length);
-		
+
 	}
 
 	/**
@@ -122,20 +122,20 @@ public class FtpTest extends StructrUiTest {
 	 * @return
 	 */
 	protected FTPClient setupFTPClient() {
-		
+
 		FTPClient ftp = new FTPClient();
-		
+
 		try {
-			
+
 			ftp.connect("localhost", ftpPort);
 			logger.log(Level.INFO, "Reply from FTP server:", ftp.getReplyString());
-			
+
 			int reply = ftp.getReplyCode();
 			assertTrue(FTPReply.isPositiveCompletion(reply));
-			
+
 			String username = "ftpuser1";
 			String password = "ftpuserpw1";
-			
+
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 				ftpUser = createFTPUser(username, password);
 				tx.success();
@@ -145,19 +145,19 @@ public class FtpTest extends StructrUiTest {
 			boolean loginSuccess = ftp.login(username, password);
 			logger.log(Level.INFO, "Try to login as " + username + "/" + password + ": ", loginSuccess);
 			assertTrue(loginSuccess);
-			
+
 			reply = ftp.getReplyCode();
 			assertEquals(FTPReply.USER_LOGGED_IN, reply);
-			
+
 		} catch (IOException ex) {
 			logger.log(Level.SEVERE, "Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
-		
+
 		return ftp;
-		
+
 	}
-	
+
 	protected void disconnect(final FTPClient ftp) {
 		try {
 			ftp.disconnect();
