@@ -25,6 +25,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
@@ -37,6 +38,7 @@ public abstract class PropertyParser {
 
 	protected Set<String> globalValidators = new LinkedHashSet<>();
 	protected Set<String> enumDefinitions  = new LinkedHashSet<>();
+	protected PropertyKey realInstance     = null;
 	protected ErrorBuffer errorBuffer      = null;
 	protected String propertyName          = "";
 	protected String dbName                = "";
@@ -49,7 +51,7 @@ public abstract class PropertyParser {
 	public abstract String getPropertyType();
 	public abstract String getValueType();
 	public abstract String getPropertyParameters();
-	public abstract void extractTypeValidation(final Schema entity, final String expression) throws FrameworkException;
+	public abstract void parseFormatString(final Schema entity, final String expression) throws FrameworkException;
 
 	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
 
@@ -84,6 +86,14 @@ public abstract class PropertyParser {
 
 	public Set<String> getEnumDefinitions() {
 		return enumDefinitions;
+	}
+
+	public PropertyKey getRealInstance() {
+		return realInstance;
+	}
+
+	public String getPropertyName() {
+		return SchemaHelper.cleanPropertyName(propertyName) + "Property";
 	}
 
 	// ----- protected methods -----
@@ -147,7 +157,7 @@ public abstract class PropertyParser {
 
 			if (source.startsWith("(") && source.endsWith(")")) {
 
-				extractTypeValidation(entity, source.substring(1, source.length() - 1));
+				parseFormatString(entity, source.substring(1, source.length() - 1));
 
 			} else {
 

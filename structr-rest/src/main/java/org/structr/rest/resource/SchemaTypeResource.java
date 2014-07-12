@@ -34,7 +34,6 @@ import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
@@ -93,9 +92,9 @@ public class SchemaTypeResource extends Resource {
 				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView).entrySet()) {
 
 					final GraphObjectMap property = new GraphObjectMap();
-					
+
 					for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
-					
+
 						property.setProperty(new StringProperty(prop.getKey()), prop.getValue());
 					}
 
@@ -103,7 +102,7 @@ public class SchemaTypeResource extends Resource {
 				}
 
 			} else {
-		
+
 				final GraphObjectMap schema = new GraphObjectMap();
 
 				resultList.add(schema);
@@ -194,79 +193,59 @@ public class SchemaTypeResource extends Resource {
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
 
-		// augment property set with properties from PropertyDefinition
-		if (PropertyDefinition.exists(type.getSimpleName())) {
+		for (PropertyKey property : properties) {
 
-			Iterable<PropertyDefinition> dynamicProperties = PropertyDefinition.getPropertiesForKind(type.getSimpleName());
-			if (dynamicProperties != null) {
+			final Map<String, Object> propProperties = new LinkedHashMap();
 
-				for (PropertyDefinition property : dynamicProperties) {
-					properties.add(property);
+			propProperties.put("dbName", property.dbName());
+			propProperties.put("jsonName", property.jsonName());
+			propProperties.put("className", property.getClass().getName());
+
+			final Class declaringClass = property.getDeclaringClass();
+
+			propProperties.put("declaringClass", declaringClass);
+			propProperties.put("defaultValue", property.defaultValue());
+			propProperties.put("readOnly", property.isReadOnly());
+			propProperties.put("system", property.isUnvalidated());
+			propProperties.put("indexed", property.isIndexed());
+			propProperties.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
+
+			final Class<? extends GraphObject> relatedType = property.relatedType();
+			if (relatedType != null) {
+				
+				propProperties.put("relatedType", relatedType.getName());
+				propProperties.put("type", relatedType.getSimpleName());
+
+			} else {
+
+				propProperties.put("type", property.typeName());
+			}
+			propProperties.put("isCollection", property.isCollection());
+
+			final PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
+			final PropertyConverter inputConverter = property.inputConverter(securityContext);
+
+			if (databaseConverter != null) {
+
+				propProperties.put("databaseConverter", databaseConverter.getClass().getName());
+			}
+
+			if (inputConverter != null) {
+
+				propProperties.put("inputConverter", inputConverter.getClass().getName());
+			}
+
+			//if (declaringClass != null && ("org.structr.dynamic".equals(declaringClass.getPackage().getName()))) {
+			if (declaringClass != null && property instanceof RelationProperty) {
+
+				Relation relation = ((RelationProperty) property).getRelation();
+				if (relation != null) {
+
+					propProperties.put("relationshipType", relation.name());
 				}
 			}
 
-		}
-
-		// ignore "all" and empty views
-		//                      if (!"all".equals(view) && !properties.isEmpty()) {
-		if (!properties.isEmpty()) {
-
-			for (PropertyKey property : properties) {
-
-				final Map<String, Object> propProperties = new LinkedHashMap();
-
-				propProperties.put("dbName", property.dbName());
-				propProperties.put("jsonName", property.jsonName());
-				propProperties.put("className", property.getClass().getName());
-
-				final Class declaringClass = property.getDeclaringClass();
-
-				propProperties.put("declaringClass", declaringClass);
-				propProperties.put("defaultValue", property.defaultValue());
-				propProperties.put("readOnly", property.isReadOnly());
-				propProperties.put("system", property.isUnvalidated());
-				propProperties.put("indexed", property.isIndexed());
-				propProperties.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
-
-				final Class<? extends GraphObject> relatedType = property.relatedType();
-				if (relatedType != null) {
-					propProperties.put("relatedType", relatedType.getName());
-					propProperties.put("type", relatedType.getSimpleName());
-				} else {
-					propProperties.put("type", property.typeName());
-				}
-				propProperties.put("isCollection", property.isCollection());
-
-				final PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
-				final PropertyConverter inputConverter = property.inputConverter(securityContext);
-
-				if (databaseConverter != null) {
-
-					propProperties.put("databaseConverter", databaseConverter.getClass().getName());
-				}
-
-				if (inputConverter != null) {
-
-					propProperties.put("inputConverter", inputConverter.getClass().getName());
-				}
-
-				//if (declaringClass != null && ("org.structr.dynamic".equals(declaringClass.getPackage().getName()))) {
-				if (declaringClass != null && (declaringClass.getName().startsWith("org.structr.dynamic"))) {
-
-					if (property instanceof RelationProperty) {
-
-						Relation relation = ((RelationProperty) property).getRelation();
-
-						if (relation != null) {
-							propProperties.put("relationshipType", relation.name());
-						}
-					}
-
-				}
-
-				propertyConverterMap.put(property.jsonName(), propProperties);
-
-			}
+			propertyConverterMap.put(property.jsonName(), propProperties);
 		}
 
 		return propertyConverterMap;

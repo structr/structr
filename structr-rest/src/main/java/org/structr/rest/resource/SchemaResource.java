@@ -35,7 +35,6 @@ import org.structr.core.*;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.PropertyDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -77,13 +76,6 @@ public class SchemaResource extends Resource {
 			GraphObjectMap schema = new GraphObjectMap();
 			resultList.add(schema);
 
-			if (type == null) {
-
-//				if (PropertyDefinition.exists(rawType)) {
-//					type = PropertyDefinition.nodeExtender.getType(rawType);
-//				}
-			}
-
 			if (type != null) {
 
 				String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
@@ -103,52 +95,34 @@ public class SchemaResource extends Resource {
 					Set<PropertyKey> properties              = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 					Map<String, Object> propertyConverterMap = new TreeMap<>();
 
-					// augment property set with properties from PropertyDefinition
-					if (PropertyDefinition.exists(type.getSimpleName())) {
+					for (PropertyKey property : properties) {
 
-						Iterable<PropertyDefinition> dynamicProperties = PropertyDefinition.getPropertiesForKind(type.getSimpleName());
-						if (dynamicProperties != null) {
+						Map<String, Object> propProperties    = new TreeMap();
 
-							for (PropertyDefinition property : dynamicProperties) {
-								properties.add(property);
-							}
+						propProperties.put("dbName", property.dbName());
+						propProperties.put("jsonName", property.jsonName());
+						propProperties.put("className", property.getClass().getName());
+						propProperties.put("defaultValue", property.defaultValue());
+
+						propProperties.put("readOnly", property.isReadOnly());
+						propProperties.put("system", property.isUnvalidated());
+
+						PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
+						PropertyConverter inputConverter    = property.inputConverter(securityContext);
+
+						if (databaseConverter != null) {
+							propProperties.put("databaseConverter", databaseConverter.getClass().getName());
 						}
 
-					}
-
-					// ignore "all" and empty views
-	//				if (!"all".equals(view) && !properties.isEmpty()) {
-					if (!properties.isEmpty()) {
-
-						for (PropertyKey property : properties) {
-
-							Map<String, Object> propProperties    = new TreeMap();
-
-							propProperties.put("dbName", property.dbName());
-							propProperties.put("jsonName", property.jsonName());
-							propProperties.put("className", property.getClass().getName());
-							propProperties.put("defaultValue", property.defaultValue());
-
-							propProperties.put("readOnly", property.isReadOnly());
-							propProperties.put("system", property.isUnvalidated());
-
-							PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
-							PropertyConverter inputConverter    = property.inputConverter(securityContext);
-
-							if (databaseConverter != null) {
-								propProperties.put("databaseConverter", databaseConverter.getClass().getName());
-							}
-
-							if (inputConverter != null) {
-								propProperties.put("inputConverter", inputConverter.getClass().getName());
-							}
-
-
-							propertyConverterMap.put(property.jsonName(), propProperties);
+						if (inputConverter != null) {
+							propProperties.put("inputConverter", inputConverter.getClass().getName());
 						}
 
-						views.put(view, propertyConverterMap);
+
+						propertyConverterMap.put(property.jsonName(), propProperties);
 					}
+
+					views.put(view, propertyConverterMap);
 				}
 			}
 

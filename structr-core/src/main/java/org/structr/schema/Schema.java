@@ -30,6 +30,8 @@ import org.structr.common.error.FrameworkException;
 public interface Schema {
 
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException;
+	public String getAuxiliarySource() throws FrameworkException;
+
 	public String getMultiplicity(final String propertyNameToCheck);
 	public String getRelatedType(final String propertyNameToCheck);
 	public PropertyContainer getPropertyContainer();

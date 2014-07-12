@@ -43,7 +43,7 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void extractTypeValidation(final Schema entity, final String expression) throws FrameworkException {
+	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
 		if (StringUtils.isNotBlank(expression)) {
 

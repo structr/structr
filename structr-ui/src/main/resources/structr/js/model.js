@@ -51,9 +51,9 @@ var StructrModel = {
         if (!data) return;
 
         var type = data.type;
-        
+
         var obj;
-        
+
         if (type === 'Page') {
 
             obj = new StructrPage(data);
@@ -99,7 +99,7 @@ var StructrModel = {
             obj = new StructrElement(data);
 
         }
-        
+
         // Store a reference of this object
         StructrModel.objects[data.id] = obj;
 
@@ -182,7 +182,7 @@ var StructrModel = {
     },
     /**
      * Update the model with the given data.
-     * 
+     *
      * This function is usually triggered by a websocket message
      * and will trigger a UI refresh.
      **/
@@ -221,7 +221,7 @@ var StructrModel = {
      * the current model value for the given key
      */
     refreshKey: function(id, key, width) {
-        
+
         var w = width || 200;
 
         var obj = StructrModel.obj(id);
@@ -394,7 +394,7 @@ var StructrModel = {
         //console.log('save', id, data);
         Command.setProperties(id, data);
     },
-            
+
     callCallback: function(callback, entity) {
         log('Calling callback', callback, 'on entity', entity);
         var callbackFunction = StructrModel.callbacks[callback];
@@ -404,7 +404,7 @@ var StructrModel = {
         }
 
     },
-            
+
     clearCallback : function(callback) {
         if (callback && StructrModel.callbacks[callback]) {
             delete StructrModel.callbacks[callback];
@@ -495,9 +495,9 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrFile.prototype.remove = function() {
     var file = this;
-    
+
     if (file.parent) {
-        
+
         var parentFolder = StructrModel.obj(file.parent.id);
         var parentFolderEl = Structr.node(parentFolder.id);
 
@@ -506,7 +506,7 @@ StructrFile.prototype.remove = function() {
             _Entities.removeExpandIcon(parentFolderEl);
             enable(parentFolderEl.children('.delete_icon')[0]);
         }
-        
+
         file.parent = undefined;
     }
 
@@ -552,9 +552,9 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrImage.prototype.remove = function() {
     var file = this;
-    
+
     if (file.parent) {
-        
+
         var parentFolder = StructrModel.obj(file.parent.id);
         var parentFolderEl = Structr.node(parentFolder.id);
 
@@ -563,7 +563,7 @@ StructrImage.prototype.remove = function() {
             _Entities.removeExpandIcon(parentFolderEl);
             enable(parentFolderEl.children('.delete_icon')[0]);
         }
-        
+
         file.parent = undefined;
     }
 
@@ -612,7 +612,7 @@ StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrUser.prototype.remove = function() {
     var user = this;
-    
+
     var group = StructrModel.obj(user.groups[0]);
     var groupEl = Structr.node(group.id);
 

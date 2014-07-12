@@ -1,5 +1,6 @@
 package org.structr.dynamic;
 
+import org.structr.web.entity.FileBase;
 import org.structr.schema.SchemaService;
 
 /**

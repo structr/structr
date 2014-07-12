@@ -60,7 +60,7 @@ public class NotionPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void extractTypeValidation(final Schema entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
 
 		final StringBuilder buf = new StringBuilder();
 		final String[] parts    = expression.split("[, ]+");

@@ -36,13 +36,11 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Service;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.Tx;
-import org.structr.core.mixin.Mixin;
 import org.structr.schema.compiler.NodeExtender;
 
 /**
@@ -54,7 +52,6 @@ public class SchemaService implements Service {
 	private static final Logger logger                            = Logger.getLogger(SchemaService.class.getName());
 	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
 	private static final Map<String, String> builtinTypeMap       = new LinkedHashMap<>();
-	private static final Set<Class<? extends Mixin>> mixinClasses = new LinkedHashSet<>();
 
 	private static ClassLoader lastClassLoader              = null;
 
@@ -71,12 +68,9 @@ public class SchemaService implements Service {
 		builtinTypeMap.put(type, fqcn);
 	}
 
-	public static <T extends Mixin> void registerMixin(final Class<T> mixin) {
-		mixinClasses.add(mixin);
-	}
-
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
 
+		final ConfigurationProvider config = StructrApp.getConfiguration();
 		boolean success = true;
 
 		// compiling must only be done once
@@ -95,18 +89,26 @@ public class SchemaService implements Service {
 					// collect node classes
 					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
 						nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
+						nodeExtender.addClass("_" + schemaNode.getClassName() + "Helper", schemaNode.getAuxiliarySource());
 						dynamicViews.addAll(schemaNode.getViews());
 					}
 
 					// collect relationship classes
 					for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
 						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
+						nodeExtender.addClass("_" + schemaRelationship.getClassName() + "Helper", schemaRelationship.getAuxiliarySource());
 						dynamicViews.addAll(schemaRelationship.getViews());
 					}
 
-					// compile all classes at once
-					for (final Class newType : nodeExtender.compile(errorBuffer).values()) {
-						Services.getInstance().getConfigurationProvider().registerEntityType(newType);
+					// compile all classes at once and register
+					Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
+					for (final Class newType : newTypes.values()) {
+
+						config.registerEntityType(newType);
+
+						// instantiate classes to execute
+						// static initializer of helpers
+						try { newType.newInstance(); } catch (Throwable t) {}
 					}
 
 					success = !errorBuffer.hasError();
@@ -114,7 +116,7 @@ public class SchemaService implements Service {
 					// inject views in configuration provider
 					if (success) {
 
-						Services.getInstance().getConfigurationProvider().registerDynamicViews(dynamicViews);
+						config.registerDynamicViews(dynamicViews);
 
 						tx.success();
 
@@ -177,29 +179,6 @@ public class SchemaService implements Service {
 			schemaNode.setProperty(SchemaNode.extendsClass, fqcn);
 			schemaNode.unlockReadOnlyPropertiesOnce();
 			schemaNode.setProperty(SchemaNode.isBuiltinType, true);
-		}
-
-		for (final Class<? extends Mixin> mixinClass : mixinClasses) {
-
-			try {
-				final Mixin mixin       = mixinClass.newInstance();
-				final String type       = mixin.getType();
-				final String superClass = mixin.getSuperclass();
-
-				SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
-				if (schemaNode == null) {
-
-					schemaNode = app.create(SchemaNode.class, type);
-				}
-
-				schemaNode.setProperty(SchemaNode.extendsClass, superClass);
-				schemaNode.unlockReadOnlyPropertiesOnce();
-				schemaNode.setProperty(SchemaNode.isBuiltinType, true);
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-			}
 		}
 	}
 }

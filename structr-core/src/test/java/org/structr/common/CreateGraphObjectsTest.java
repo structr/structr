@@ -43,7 +43,6 @@ import org.structr.core.entity.Location;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
-import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.TestNine;
@@ -212,7 +211,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 			// Don't test these, it would fail due to violated constraints
 			entityList.remove(TestTwo.class);
 			entityList.remove(TestNine.class);
-			entityList.remove(PropertyDefinition.class);
 			entityList.remove(MailTemplate.class);
 			entityList.remove(SchemaNode.class);
 

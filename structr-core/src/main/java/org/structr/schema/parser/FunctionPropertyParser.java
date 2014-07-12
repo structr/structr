@@ -58,7 +58,7 @@ public class FunctionPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void extractTypeValidation(final Schema entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
 		auxType = ", \"" + StringEscapeUtils.escapeJava(expression) + "\"";
 	}
 }

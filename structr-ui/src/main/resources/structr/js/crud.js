@@ -571,11 +571,11 @@ var _Crud = {
                     th.append(
                         '<img src="icon/cross_small_grey.png" alt="Hide this column" title="Hide this column">'
                         + '<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
-                        
+
                     if (_Crud.isCollection(key, type)) {
                         _Crud.appendPerCollectionPager(th, type, key);
                     }
-                
+
                     $('a', th).on('click', function(event) {
                         event.preventDefault();
                         _Crud.sort[type] = key;
@@ -714,7 +714,7 @@ var _Crud = {
         //console.log('list', type, url, table);
         table.append('<tr></tr>');
         _Crud.clearList(type);
-        
+
         $.ajax({
             headers: {
                 Range: _Crud.ranges(type)
@@ -2143,13 +2143,13 @@ var _Crud = {
                     table.append('<tr class="key"><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
 
                     var cell = $('.' + key, table);
-                    
+
                     if (_Crud.isCollection(key, type)) {
                         _Crud.appendPerCollectionPager(cell.prev('td'), type, key, function() {
                              _Crud.showDetails(n, typeParam);
                         });
                     }
-                    
+
                     if (node && node.id) {
 
                         //console.log(node.id, key, type, node[key], cell);

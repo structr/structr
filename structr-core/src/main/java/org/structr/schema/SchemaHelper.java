@@ -256,7 +256,7 @@ public class SchemaHelper {
 		try {
 
 			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-			long flagsValue = 255;
+			long flagsValue = 0;
 
 			// set value from grant flags
 			if (flags != null) {
@@ -349,7 +349,7 @@ public class SchemaHelper {
 
 	}
 
-	public static String extractProperties(final Schema entity, final Set<String> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<String> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
  		final StringBuilder src                   = new StringBuilder();
@@ -391,6 +391,9 @@ public class SchemaHelper {
 
 				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, dbName, rawType, notNull, defaultValue);
 				if (parser != null) {
+
+					// add property name to set for later use
+					propertyNames.add(parser.getPropertyName());
 
 					// append created source from parser
 					src.append(parser.getPropertySource(entity, errorBuffer));
@@ -560,6 +563,7 @@ public class SchemaHelper {
 	public static void formatImportStatements(final StringBuilder src, final Class baseType) {
 
 		src.append("import ").append(baseType.getName()).append(";\n");
+		src.append("import ").append(ConfigurationProvider.class.getName()).append(";\n");
 		src.append("import ").append(GraphObjectComparator.class.getName()).append(";\n");
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
@@ -568,6 +572,7 @@ public class SchemaHelper {
 		src.append("import ").append(Actions.class.getName()).append(";\n");
 		src.append("import ").append(PropertyView.class.getName()).append(";\n");
 		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
+		src.append("import ").append(StructrApp.class.getName()).append(";\n");
 		src.append("import ").append(Export.class.getName()).append(";\n");
 		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import ").append(List.class.getName()).append(";\n");

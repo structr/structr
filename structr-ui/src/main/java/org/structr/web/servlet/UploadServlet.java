@@ -145,7 +145,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 					String contentType = fileItem.getContentType();
 					boolean isImage = (contentType != null && contentType.startsWith("image"));
 
-					Class type = isImage ? Image.class : File.class;
+					Class type = isImage ? Image.class : org.structr.dynamic.File.class;
 
 					String name = fileItem.getName().replaceAll("\\\\", "/");
 

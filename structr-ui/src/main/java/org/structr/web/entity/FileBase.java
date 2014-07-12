@@ -1,4 +1,4 @@
-package org.structr.dynamic;
+package org.structr.web.entity;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

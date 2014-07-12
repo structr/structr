@@ -18,48 +18,20 @@
  */
 package org.structr.core.entity;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * A generic node entity that will be instantiated when a node with an unknown
  * type is encountered.
- * 
+ *
  * @author Axel Morgner
  */
 public class GenericNode extends AbstractNode {
-
-	@Override
-	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
-		
-		List<PropertyKey> augmentedProperties = new LinkedList<PropertyKey>();
-		String _type                          = getType();
-
-		// add property keys from superclass
-		for (PropertyKey key : super.getPropertyKeys(propertyView)) {
-			augmentedProperties.add(key);
-		}
-
-		if (_type != null) {
-			
-			Iterable<PropertyDefinition> defs = PropertyDefinition.getPropertiesForKind(_type);
-			if (defs != null) {
-
-				for (PropertyDefinition propertyDefinition : defs) {
-					augmentedProperties.add(propertyDefinition);
-				}
-			}
-		}
-
-		return augmentedProperties;
-	}	
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {

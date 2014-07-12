@@ -72,7 +72,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
 	);
 
-	private Set<String> dynamicViews = new LinkedHashSet<>();
+	private final Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
@@ -105,6 +105,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
 		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
+		final Set<String> propertyNames                        = new LinkedHashSet<>();
 		final Set<String> validators                           = new LinkedHashSet<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
 		final StringBuilder src                                = new StringBuilder();
@@ -115,7 +116,6 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		src.append("package org.structr.dynamic;\n\n");
 
 		SchemaHelper.formatImportStatements(src, baseType);
-
 
 		String superClass = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
 
@@ -148,7 +148,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		}
 
 		// extract properties from node
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, saveActions, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, saveActions, errorBuffer));
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -254,6 +254,56 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		return null;
 	}
 
+	@Override
+	public String getAuxiliarySource() throws FrameworkException {
+
+		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
+		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
+		final Set<String> propertyNames                        = new LinkedHashSet<>();
+		final Set<String> validators                           = new LinkedHashSet<>();
+		final Set<String> enums                                = new LinkedHashSet<>();
+		final StringBuilder src                                = new StringBuilder();
+		final String _className                                = getProperty(name);
+		final ErrorBuffer dummyErrorBuffer                     = new ErrorBuffer();
+
+		src.append("package org.structr.dynamic;\n\n");
+
+		SchemaHelper.formatImportStatements(src, AbstractNode.class);
+
+
+		String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, saveActions, dummyErrorBuffer);
+		propertyDefinitions        = propertyDefinitions.replaceAll("public static final Property", "\tfinal Property");
+
+		src.append("public class _").append(_className).append("Helper {\n");
+
+		// formatting is important :)
+		if (!enums.isEmpty()) {
+			src.append("\n");
+		}
+
+		// output possible enum definitions
+		for (final String enumDefition : enums) {
+			src.append(enumDefition);
+		}
+
+		src.append("\n\tstatic {\n\n");
+
+		// extract properties from node
+		src.append(propertyDefinitions);
+
+		for (final String propertyName : propertyNames) {
+
+			src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
+			src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
+			src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
+
+		}
+
+		src.append("\t}\n");
+		src.append("}\n");
+
+		return src.toString();
+	}
 
 	// ----- private methods -----
 	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {

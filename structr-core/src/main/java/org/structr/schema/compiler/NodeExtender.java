@@ -21,11 +21,11 @@ package org.structr.schema.compiler;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.tools.Diagnostic;
@@ -84,7 +84,7 @@ public class NodeExtender {
 
 	public synchronized Map<String, Class> compile(final ErrorBuffer errorBuffer) throws ClassNotFoundException {
 
-		final Map<String, Class> classes = new LinkedHashMap<>();
+		final Map<String, Class> classes = new TreeMap<>();
 		final Writer errorWriter         = new StringWriter();
 
 		if (!jfiles.isEmpty()) {

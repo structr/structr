@@ -335,7 +335,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		for (final Class<? extends RelationshipInterface> candidate : getRelationshipEntities().values()) {
 
 			Relation rel = instantiate(candidate);
-			
+
 			if (rel == null) {
 				continue;
 			}
@@ -384,7 +384,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				//System.out.println("\n=========================== Found " + candidate.getSimpleName() + " for " + sourceTypeName + " " + relType + " " + targetTypeName + " at distance " + (distance-2000));
 
 			} else {
-				//System.out.println(" no match.");	
+				//System.out.println(" no match.");
 			}
 
 		}
@@ -893,6 +893,42 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return validators;
 	}
 
+	@Override
+	public void registerProperty(Class type, PropertyKey propertyKey) {
+
+		getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(), propertyKey);
+		getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), propertyKey);
+
+		registerPropertySet(type, PropertyView.All, propertyKey);
+
+		// inform property key of its registration
+		propertyKey.registrationCallback(type);
+	}
+
+	@Override
+	public void registerDynamicProperty(Class type, PropertyKey propertyKey) {
+
+		final String typeName = type.getName();
+
+		registerProperty(type, propertyKey);
+
+		// scan all existing classes and find all classes that have the given
+		// type as a supertype
+
+		for (final Class possibleSubclass : nodeEntityClassCache.values()) {
+
+			// need to compare strings not classes here..
+			for (final Class supertype : getAllTypes(possibleSubclass)) {
+
+				if (supertype.getName().equals(typeName)) {
+
+					registerProperty(possibleSubclass, propertyKey);
+					registerPropertySet(possibleSubclass, PropertyView.Ui, propertyKey);
+				}
+			}
+		}
+	}
+
 	// ----- private methods -----
 	private void scanResources() {
 
@@ -1165,10 +1201,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				if (fieldType.isAssignableFrom(field.getType()) && Modifier.isStatic(field.getModifiers())) {
 
 					try {
-						
+
 						// ensure access
 						field.setAccessible(true);
-						
+
 						// fetch value
 						final T value = (T) field.get(null);
 						if (value != null) {
@@ -1330,32 +1366,5 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 
 		return viewTransformationMap;
-	}
-
-	private void registerProperty(Class type, PropertyKey propertyKey) {
-
-		getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(), propertyKey);
-		getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), propertyKey);
-
-		registerPropertySet(type, PropertyView.All, propertyKey);
-
-		// inform property key of its registration
-		propertyKey.registrationCallback(type);
-	}
-
-	private String denormalizeEntityName(String normalizedEntityName) {
-
-		StringBuilder buf = new StringBuilder();
-
-		for (char c : normalizedEntityName.toCharArray()) {
-
-			if (Character.isUpperCase(c) && buf.length() > 0) {
-				buf.append("_");
-			}
-
-			buf.append(Character.toLowerCase(c));
-		}
-
-		return buf.toString();
 	}
 }
