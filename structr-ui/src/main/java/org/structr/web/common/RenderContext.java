@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +56,8 @@ import org.structr.web.entity.html.relation.ResourceLink;
 
 
 public class RenderContext extends ActionContext {
+
+	private static final Logger logger = Logger.getLogger(RenderContext.class.getName());
 
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
 	private final long renderStartTime                 = System.currentTimeMillis();
@@ -630,7 +634,14 @@ public class RenderContext extends ActionContext {
 			PropertyConverter converter = referenceKeyProperty.inputConverter(securityContext);
 
 			if (value != null && converter != null && !(referenceKeyProperty instanceof RelationProperty)) {
-				value = converter.revert(value);
+
+				try {
+					value = converter.revert(value);
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to convert property {0} of node {1}: {2}", new Object[] { referenceKeyProperty, _data, t.getMessage() } );
+				}
 			}
 
 			return value != null ? value : defaultValue;
