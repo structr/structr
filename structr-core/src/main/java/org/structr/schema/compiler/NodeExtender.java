@@ -37,6 +37,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.Services;
 import org.structr.module.JarConfigurationProvider;
 
 /**
@@ -50,6 +51,7 @@ public class NodeExtender {
 	private static final JavaCompiler compiler       = ToolProvider.getSystemJavaCompiler();
 	private static final JavaFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
+	private static final Map<String, Class> classes  = new TreeMap<>();
 
 	private List<JavaFileObject> jfiles  = null;
 	private Set<String> fqcns            = null;
@@ -64,6 +66,10 @@ public class NodeExtender {
 		return classLoader;
 	}
 
+	public static Class getClass(final String fqcn) {
+		return classes.get(fqcn);
+	}
+
 	public void addClass(final String className, final String content) throws ClassNotFoundException {
 
 		if (className != null && content != null) {
@@ -72,23 +78,25 @@ public class NodeExtender {
 
 			jfiles.add(new CharSequenceJavaFileObject(className, content));
 			fqcns.add(packageName.concat(".".concat(className)));
-//
-//			if ("true".equals(Services.getInstance().getConfigurationValue("NodeExtender.log"))) {
-//
-//				System.out.println("########################################################################################################################################################");
-//				System.out.println(content);
-//			}
+
+			if ("true".equals(Services.getInstance().getConfigurationValue("NodeExtender.log"))) {
+
+				System.out.println("########################################################################################################################################################");
+				System.out.println(content);
+			}
 		}
 	}
 
 	public synchronized Map<String, Class> compile(final ErrorBuffer errorBuffer) throws ClassNotFoundException {
 
-		final Map<String, Class> classes = new TreeMap<>();
-		final Writer errorWriter         = new StringWriter();
+		final Writer errorWriter = new StringWriter();
 
 		if (!jfiles.isEmpty()) {
 
 			logger.log(Level.INFO, "Compiling {0} dynamic entities", jfiles.size());
+
+			// clear classes map
+			classes.clear();
 
 			compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
 

@@ -36,16 +36,16 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public abstract class PropertyParser {
 
-	protected Set<String> globalValidators = new LinkedHashSet<>();
-	protected Set<String> enumDefinitions  = new LinkedHashSet<>();
-	protected PropertyKey realInstance     = null;
-	protected ErrorBuffer errorBuffer      = null;
-	protected String propertyName          = "";
-	protected String dbName                = "";
-	protected String localValidator        = "";
-	protected String className             = "";
-	protected String rawSource             = "";
-	protected String defaultValue          = "";
+	protected Set<Validator> globalValidators = new LinkedHashSet<>();
+	protected Set<String> enumDefinitions     = new LinkedHashSet<>();
+	protected PropertyKey realInstance        = null;
+	protected ErrorBuffer errorBuffer         = null;
+	protected String propertyName             = "";
+	protected String dbName                   = "";
+	protected String localValidator           = "";
+	protected String className                = "";
+	protected String rawSource                = "";
+	protected String defaultValue             = "";
 
 	public abstract Type getKey();
 	public abstract String getPropertyType();
@@ -80,7 +80,7 @@ public abstract class PropertyParser {
 		return getPropertySource();
 	}
 
-	public Set<String> getGlobalValidators() {
+	public Set<Validator> getGlobalValidators() {
 		return globalValidators;
 	}
 
@@ -125,12 +125,7 @@ public abstract class PropertyParser {
 
 		if (source.startsWith("!")) {
 
-			StringBuilder buf = new StringBuilder();
-			buf.append("ValidationHelper.checkPropertyUniquenessError(this, ");
-			buf.append(className).append(".").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-			buf.append(", errorBuffer)");
-
-			globalValidators.add(buf.toString());
+			globalValidators.add(new Validator("checkPropertyUniquenessError", className, propertyName));
 
 			return source.substring(1);
 		}
@@ -142,12 +137,7 @@ public abstract class PropertyParser {
 
 		if (notNull) {
 
-			StringBuilder buf = new StringBuilder();
-			buf.append("ValidationHelper.checkPropertyNotNull(this, ");
-			buf.append(className).append(".").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-			buf.append(", errorBuffer)");
-
-			globalValidators.add(buf.toString());
+			globalValidators.add(new Validator("checkPropertyNotNull", className, propertyName));
 		}
 	}
 

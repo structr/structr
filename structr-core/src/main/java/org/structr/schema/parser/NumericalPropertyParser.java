@@ -78,14 +78,7 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 						return;
 					}
 
-					final StringBuilder buf = new StringBuilder();
-
-					buf.append("ValidationHelper.check").append(getValueType()).append("InRangeError(this, ");
-					buf.append(className).append(".").append(propertyName).append("Property");
-					buf.append(", \"").append(expression);
-					buf.append("\", errorBuffer)");
-
-					globalValidators.add(buf.toString());
+					globalValidators.add(new Validator("check" + getValueType() + "inRangeError", className, propertyName));
 
 				} else {
 

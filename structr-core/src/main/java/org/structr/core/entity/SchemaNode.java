@@ -50,6 +50,7 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaNotion;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
+import org.structr.schema.parser.Validator;
 
 /**
  *
@@ -106,7 +107,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
 		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
-		final Set<String> validators                           = new LinkedHashSet<>();
+		final Set<Validator> validators                        = new LinkedHashSet<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
 		final StringBuilder src                                = new StringBuilder();
 		final Class baseType                                   = AbstractNode.class;
@@ -260,16 +261,15 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
-		final Set<String> validators                           = new LinkedHashSet<>();
+		final Set<Validator> validators                        = new LinkedHashSet<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
 		final String _className                                = getProperty(name);
 		final ErrorBuffer dummyErrorBuffer                     = new ErrorBuffer();
 
 		// extract properties
-		String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, saveActions, dummyErrorBuffer);
-		propertyDefinitions        = propertyDefinitions.replaceAll("public static final Property", "\tfinal Property");
+		final String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, saveActions, dummyErrorBuffer);
 
-		if (!propertyNames.isEmpty()) {
+		if (!propertyNames.isEmpty() || validators.isEmpty() || !saveActions.isEmpty()) {
 
 			final StringBuilder src = new StringBuilder();
 
@@ -289,20 +289,29 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 				src.append("\n");
 			}
 
-			src.append("\n\tstatic {\n\n");
+			if (!propertyNames.isEmpty()) {
 
-			// extract properties from node
-			src.append(propertyDefinitions);
+				src.append("\n");
 
-			for (final String propertyName : propertyNames) {
+				// extract properties from node
+				src.append(propertyDefinitions);
 
-				src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
-				src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
-				src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
+				src.append("\n\tstatic {\n\n");
 
+				for (final String propertyName : propertyNames) {
+
+					src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
+					src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
+					src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
+
+				}
+
+				src.append("\t}\n\n");
 			}
 
-			src.append("\t}\n");
+			SchemaHelper.formatDynamicValidators(src, validators);
+			SchemaHelper.formatDynamicSaveActions(src, saveActions);
+
 			src.append("}\n");
 
 			return src.toString();

@@ -221,7 +221,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 //		}
 //
 //		return "<AbstractNode>";
-		
+
 		return getUuid();
 
 	}

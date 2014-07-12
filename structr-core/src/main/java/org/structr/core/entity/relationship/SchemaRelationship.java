@@ -57,6 +57,7 @@ import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
+import org.structr.schema.parser.Validator;
 
 /**
  *
@@ -376,7 +377,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		final String _sourceNodeType                       = getSchemaNodeSourceType();
 		final String _targetNodeType                       = getSchemaNodeTargetType();
 		final Set<String> propertyNames                    = new LinkedHashSet<>();
-		final Set<String> validators                       = new LinkedHashSet<>();
+		final Set<Validator> validators                    = new LinkedHashSet<>();
 		final Set<String> enums                            = new LinkedHashSet<>();
 
 		src.append("package org.structr.dynamic;\n\n");

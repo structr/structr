@@ -66,6 +66,7 @@ import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.PropertyParser;
 import org.structr.schema.parser.StringArrayPropertyParser;
 import org.structr.schema.parser.StringPropertyParser;
+import org.structr.schema.parser.Validator;
 
 /**
  *
@@ -349,7 +350,7 @@ public class SchemaHelper {
 
 	}
 
-	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<String> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
  		final StringBuilder src                   = new StringBuilder();
@@ -588,7 +589,7 @@ public class SchemaHelper {
 		return propertyName.replaceAll("[^\\w]+", "");
 	}
 
-	public static void formatValidators(final StringBuilder src, final Set<String> validators) {
+	public static void formatValidators(final StringBuilder src, final Set<Validator> validators) {
 
 		if (!validators.isEmpty()) {
 
@@ -596,14 +597,30 @@ public class SchemaHelper {
 			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
 			src.append("\t\tboolean error = !super.isValid(errorBuffer);\n\n");
 
-			for (final String validator : validators) {
-				src.append("\t\terror |= ").append(validator).append(";\n");
+			for (final Validator validator : validators) {
+				src.append("\t\terror |= ").append(validator.getSource("this", true)).append(";\n");
 			}
 
 			src.append("\n\t\treturn !error;\n");
 			src.append("\t}\n");
 		}
 
+	}
+
+	public static void formatDynamicValidators(final StringBuilder src, final Set<Validator> validators) {
+
+		if (!validators.isEmpty()) {
+
+			src.append("\tpublic static boolean isValid(final AbstractNode obj, final ErrorBuffer errorBuffer) {\n\n");
+			src.append("\t\tboolean error = false;\n\n");
+
+			for (final Validator validator : validators) {
+				src.append("\t\terror |= ").append(validator.getSource("obj", false)).append(";\n");
+			}
+
+			src.append("\n\t\treturn !error;\n");
+			src.append("\t}\n\n");
+		}
 	}
 
 	public static void formatSaveActions(final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
@@ -635,6 +652,32 @@ public class SchemaHelper {
 
 	}
 
+	public static void formatDynamicSaveActions(final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
+
+		// save actions..
+		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
+
+			final List<ActionEntry> actionList = entry.getValue();
+			final Actions.Type type            = entry.getKey();
+
+			if (!actionList.isEmpty()) {
+
+				switch (type) {
+
+					case Custom:
+						throw new UnsupportedOperationException("Active save actions are not supported for overridable types.");
+
+					default:
+						// passive actions are actions that are executed
+						// automtatically on creation / modification etc.
+						formatDynamicPassiveSaveActions(src, type, actionList);
+						break;
+				}
+			}
+		}
+
+	}
+
 	public static void formatActiveActions(final StringBuilder src, final List<ActionEntry> actionList) {
 
 		for (final ActionEntry action : actionList) {
@@ -645,7 +688,25 @@ public class SchemaHelper {
 			src.append("() throws FrameworkException {\n\n");
 
 			src.append("\t\t");
-			src.append(action.getSource());
+			src.append(action.getSource("this"));
+			src.append(";\n\n");
+
+			src.append("\t\treturn new RestMethodResult(200);\n");
+			src.append("\t}\n");
+		}
+
+	}
+
+	public static void formatDynamicActiveActions(final StringBuilder src, final List<ActionEntry> actionList) {
+
+		for (final ActionEntry action : actionList) {
+
+			src.append("\tpublic static RestMethodResult ");
+			src.append(action.getName());
+			src.append("(final AbstractNode obj) throws FrameworkException {\n\n");
+
+			src.append("\t\t");
+			src.append(action.getSource("obj"));
 			src.append(";\n\n");
 
 			src.append("\t\treturn new RestMethodResult(200);\n");
@@ -660,30 +721,68 @@ public class SchemaHelper {
 		src.append("\tpublic boolean ");
 		src.append(type.getMethod());
 		src.append("(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
-		src.append("\t\tboolean error = false;\n\n");
-
-		for (final ActionEntry action : actionList) {
-
-			if (action.runOnError()) {
-
-				src.append("\t\terror |= ").append(action.getSource()).append(";\n");
-
-			} else {
-
-				src.append("\t\tif (!error) {\n");
-				src.append("\t\t\terror |= ").append(action.getSource()).append(";\n");
-				src.append("\t\t}\n");
-
-			}
-		}
-
-		// don't forget super call
-		src.append("\t\terror |= !super.");
+		src.append("\t\tboolean error = !super.");
 		src.append(type.getMethod());
-		src.append("(securityContext, errorBuffer);\n");
+		src.append("(securityContext, errorBuffer);\n\n");
+
+		if (!actionList.isEmpty()) {
+
+			src.append("\t\tif (!error) {\n");
+
+			for (final ActionEntry action : actionList) {
+
+				if (action.runOnError()) {
+
+					src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
+
+				} else {
+
+					src.append("\t\tif (!error) {\n");
+					src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
+					src.append("\t\t}\n");
+
+				}
+			}
+
+			src.append("\t\t}\n");
+		}
 
 		src.append("\n\t\treturn !error;\n");
 		src.append("\t}\n");
+
+	}
+
+	public static void formatDynamicPassiveSaveActions(final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList) {
+
+		src.append("\tpublic static boolean ");
+		src.append(type.getMethod());
+		src.append("(final AbstractNode obj, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
+		src.append("\t\tboolean error = !obj.isValid(errorBuffer);\n\n");
+
+		if (!actionList.isEmpty()) {
+
+			src.append("\t\tif (!error) {\n");
+
+			for (final ActionEntry action : actionList) {
+
+				if (action.runOnError()) {
+
+					src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
+
+				} else {
+
+					src.append("\t\tif (!error) {\n");
+					src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
+					src.append("\t\t}\n");
+
+				}
+			}
+
+			src.append("\t\t}\n");
+		}
+
+		src.append("\n\t\treturn !error;\n");
+		src.append("\t}\n\n");
 
 	}
 
