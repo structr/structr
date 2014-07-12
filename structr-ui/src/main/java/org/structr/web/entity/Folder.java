@@ -30,6 +30,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
@@ -50,23 +51,24 @@ import org.structr.web.entity.relation.Images;
  * @author Axel Morgner
  *
  */
-public class Folder extends AbstractFile implements Syncable {
+public class Folder extends FileBase implements Syncable {
 
 	public static final Property<List<Folder>> folders   = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
-	public static final Property<List<File>>   files = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
+	public static final Property<List<File>>   files     = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
 	public static final Property<List<Image>>  images    = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
+	public static final Property<Boolean>      isFolder  = new BooleanProperty("isFolder", true).readOnly();
 
 	public static final Property<Integer>		position     = new IntProperty("position").indexed();
 
-	public static final View defaultView = new View(Folder.class, PropertyView.Public, id, type, name);
+	public static final View defaultView = new View(Folder.class, PropertyView.Public, id, type, name, isFolder);
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
-		parent, folders, files, images
+		parent, folders, files, images, isFolder
 	);
 
 	// register this type as an overridden builtin type
 	static {
-		SchemaService.registerBuiltinType("Folder", Folder.class.getName());
+		SchemaService.registerBuiltinTypeOverride("Folder", Folder.class.getName());
 	}
 
 	@Override

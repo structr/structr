@@ -38,6 +38,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -66,6 +67,7 @@ public class Content extends DOMNode implements Text {
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
+	public static final Property<Boolean> isContent                                      = new BooleanProperty("isContent", true).readOnly();
 
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<>();
 
@@ -77,10 +79,12 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
+		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
+	);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
+		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
+	);
 	//~--- static initializers --------------------------------------------
 
 	static {

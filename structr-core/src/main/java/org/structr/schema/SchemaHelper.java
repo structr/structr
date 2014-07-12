@@ -256,7 +256,7 @@ public class SchemaHelper {
 		try {
 
 			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-			long flagsValue = 0;
+			long flagsValue = 0;	// FIXME, this prevents public access but may be better than 255 as a default...
 
 			// set value from grant flags
 			if (flags != null) {
@@ -594,7 +594,7 @@ public class SchemaHelper {
 
 			src.append("\n\t@Override\n");
 			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean error = false;\n\n");
+			src.append("\t\tboolean error = !super.isValid(errorBuffer);\n\n");
 
 			for (final String validator : validators) {
 				src.append("\t\terror |= ").append(validator).append(";\n");

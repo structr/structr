@@ -34,7 +34,6 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -78,7 +77,7 @@ public class ListCommand extends AbstractCommand {
 		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
 		// important
-		if (FileBase.class.isAssignableFrom(type) && rootOnly) {
+		if (AbstractFile.class.isAssignableFrom(type) && rootOnly) {
 
 			query.and(AbstractFile.hasParent, false);
 		}

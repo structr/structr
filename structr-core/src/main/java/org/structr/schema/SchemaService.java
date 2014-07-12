@@ -53,8 +53,6 @@ public class SchemaService implements Service {
 	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
 	private static final Map<String, String> builtinTypeMap       = new LinkedHashMap<>();
 
-	private static ClassLoader lastClassLoader              = null;
-
 	@Override
 	public void injectArguments(final Command command) {
 	}
@@ -64,7 +62,7 @@ public class SchemaService implements Service {
 		reloadSchema(new ErrorBuffer());
 	}
 
-	public static void registerBuiltinType(final String type, final String fqcn) {
+	public static void registerBuiltinTypeOverride(final String type, final String fqcn) {
 		builtinTypeMap.put(type, fqcn);
 	}
 
@@ -88,15 +86,29 @@ public class SchemaService implements Service {
 
 					// collect node classes
 					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+
 						nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
-						nodeExtender.addClass("_" + schemaNode.getClassName() + "Helper", schemaNode.getAuxiliarySource());
+
+						final String auxSource = schemaNode.getAuxiliarySource();
+						if (auxSource != null) {
+
+							nodeExtender.addClass("_" + schemaNode.getClassName() + "Helper", auxSource);
+						}
+
 						dynamicViews.addAll(schemaNode.getViews());
 					}
 
 					// collect relationship classes
 					for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
+
 						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
-						nodeExtender.addClass("_" + schemaRelationship.getClassName() + "Helper", schemaRelationship.getAuxiliarySource());
+
+						final String auxSource = schemaRelationship.getAuxiliarySource();
+						if (auxSource != null) {
+							
+							nodeExtender.addClass("_" + schemaRelationship.getClassName() + "Helper", auxSource);
+						}
+
 						dynamicViews.addAll(schemaRelationship.getViews());
 					}
 
@@ -117,10 +129,7 @@ public class SchemaService implements Service {
 					if (success) {
 
 						config.registerDynamicViews(dynamicViews);
-
 						tx.success();
-
-						lastClassLoader = nodeExtender.getClassLoader();
 					}
 
 				} catch (Throwable t) {
@@ -136,10 +145,6 @@ public class SchemaService implements Service {
 		}
 
 		return success;
-	}
-
-	public static ClassLoader getClassLoader() {
-		return lastClassLoader;
 	}
 
 	@Override

@@ -61,19 +61,20 @@ public class User extends AbstractUser {
 	public static final Property<Folder>      homeDirectory    = new EndNode<>("homeDirectory", UserHomeDir.class);
 	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
 	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new PropertyNotion(id));
+	public static final Property<Boolean>     isUser           = new BooleanProperty("isUser", true).readOnly();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, eMail, isAdmin, password, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory
+		type, name, eMail, isAdmin, password, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory, isUser
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
-		type, name
+		type, name, isUser
 	);
 
 	static {
 
 	// register this type as an overridden builtin type
-		SchemaService.registerBuiltinType("User", User.class.getName());
+		SchemaService.registerBuiltinTypeOverride("User", User.class.getName());
 
 		User.eMail.addValidator(new TypeUniquenessValidator(User.class));
 		User.name.addValidator(new SimpleNonEmptyValueValidator());

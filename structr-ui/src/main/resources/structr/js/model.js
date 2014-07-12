@@ -54,45 +54,41 @@ var StructrModel = {
 
         var obj;
 
-        if (type === 'Page') {
+        if (data.isPage) {
 
             obj = new StructrPage(data);
 
-        } else if (type === 'Widget') {
+        } else if (data.isWidget) {
 
             obj = new StructrWidget(data);
 
-        } else if (type === 'Content' || type === 'Comment') {
+        } else if (data.isContent) {
 
             obj = new StructrContent(data);
 
-        } else if (type === 'Group') {
+        } else if (data.isGroup) {
 
             obj = new StructrGroup(data);
 
-        } else if (type === 'User') {
+        } else if (data.isUser) {
 
             obj = new StructrUser(data);
 
-        } else if (type === 'File') {
-
-            obj = new StructrFile(data);
-
-        } else if (type === 'Image') {
+        } else if (data.isImage) {
 
             obj = new StructrImage(data);
 
-        } else if (type === 'Folder') {
+        } else if (data.isFolder) {
 
             obj = new StructrFolder(data);
+
+        } else if (data.isFile) {
+
+            obj = new StructrFile(data);
 
         } else if (type === 'DataNode') {
 
             obj = new StructrDataNode(data);
-
-        } else if (type === 'PropertyDefinition') {
-
-            obj = new StructrPropertyDefinition(data);
 
         } else {
 
@@ -873,34 +869,6 @@ StructrContent.prototype.exists = function() {
 
     return Structr.node(this.id);
 }
-
-/**************************************
- * Structr PropertyDefinition
- **************************************/
-
-function StructrPropertyDefinition(data) {
-    var self = this;
-    $.each(Object.keys(data), function(i, key) {
-        self[key] = data[key];
-    });
-}
-
-StructrPropertyDefinition.prototype.save = function() {
-    StructrModel.save(this.id);
-}
-
-StructrPropertyDefinition.prototype.setProperty = function(key, value, recursive, callback) {
-    Command.setProperty(this.id, key, value, false, callback);
-}
-
-StructrPropertyDefinition.prototype.remove = function() {
-    alert('FIXME: Implement StructrPropertyDefinition.remove()!');
-}
-
-StructrPropertyDefinition.prototype.append = function(refNode) {
-    //_Types.registerPropertyDefinitionElement(this);
-}
-
 
 /**************************************
  * Search result

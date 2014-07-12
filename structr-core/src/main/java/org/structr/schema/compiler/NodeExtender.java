@@ -37,7 +37,6 @@ import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.Services;
 import org.structr.module.JarConfigurationProvider;
 
 /**
@@ -48,21 +47,21 @@ public class NodeExtender {
 
 	private static final Logger logger   = Logger.getLogger(NodeExtender.class.getName());
 
-	private JavaCompiler compiler        = null;
-	private JavaFileManager fileManager  = null;
+	private static final JavaCompiler compiler       = ToolProvider.getSystemJavaCompiler();
+	private static final JavaFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
+	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
+
 	private List<JavaFileObject> jfiles  = null;
 	private Set<String> fqcns            = null;
 
 	public NodeExtender() {
 
-		compiler    = ToolProvider.getSystemJavaCompiler();
-		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 		jfiles      = new ArrayList<>();
 		fqcns       = new LinkedHashSet<>();
 	}
 
-	public ClassLoader getClassLoader() {
-		return fileManager.getClassLoader(null);
+	public static ClassLoader getClassLoader() {
+		return classLoader;
 	}
 
 	public void addClass(final String className, final String content) throws ClassNotFoundException {
@@ -73,12 +72,12 @@ public class NodeExtender {
 
 			jfiles.add(new CharSequenceJavaFileObject(className, content));
 			fqcns.add(packageName.concat(".".concat(className)));
-
-			if ("true".equals(Services.getInstance().getConfigurationValue("NodeExtender.log"))) {
-
-				System.out.println("########################################################################################################################################################");
-				System.out.println(content);
-			}
+//
+//			if ("true".equals(Services.getInstance().getConfigurationValue("NodeExtender.log"))) {
+//
+//				System.out.println("########################################################################################################################################################");
+//				System.out.println(content);
+//			}
 		}
 	}
 

@@ -22,15 +22,14 @@ import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import static org.structr.web.entity.AbstractFile.parent;
-import org.structr.web.entity.Linkable;
 import org.structr.web.entity.relation.Folders;
 import org.structr.web.property.PathProperty;
 
@@ -50,9 +49,10 @@ public class FileBase extends AbstractFile implements Linkable {
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
 	public static final Property<String> path = new PathProperty("path").indexed().readOnly();
+	public static final Property<Boolean> isFile = new BooleanProperty("isFile", true).readOnly();
 
-	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path);
-	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path);
+	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
+	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile);
 
 	@Override
 	public void onNodeDeletion() {

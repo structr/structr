@@ -370,7 +370,7 @@ function wsConnect() {
 
                 $(result).each(function(i, entity) {
 
-                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'PropertyDefinition' || entity.type === 'Widget')) {
+                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
                     } else {
 

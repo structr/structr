@@ -12,6 +12,6 @@ public class File extends FileBase {
 	// register this type as an overridden builtin type
 	static {
 
-		SchemaService.registerBuiltinType("File", FileBase.class.getName());
+		SchemaService.registerBuiltinTypeOverride("File", FileBase.class.getName());
 	}
 }

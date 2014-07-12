@@ -64,14 +64,16 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		setProperty(hasParent, getProperty(parentId) != null);
-		return true;
+
+		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override
 	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		setProperty(hasParent, getProperty(parentId) != null);
-		return true;
+
+		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override

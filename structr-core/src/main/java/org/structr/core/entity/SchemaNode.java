@@ -262,47 +262,53 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
 		final Set<String> validators                           = new LinkedHashSet<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
-		final StringBuilder src                                = new StringBuilder();
 		final String _className                                = getProperty(name);
 		final ErrorBuffer dummyErrorBuffer                     = new ErrorBuffer();
 
-		src.append("package org.structr.dynamic;\n\n");
-
-		SchemaHelper.formatImportStatements(src, AbstractNode.class);
-
-
+		// extract properties
 		String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, saveActions, dummyErrorBuffer);
 		propertyDefinitions        = propertyDefinitions.replaceAll("public static final Property", "\tfinal Property");
 
-		src.append("public class _").append(_className).append("Helper {\n");
+		if (!propertyNames.isEmpty()) {
 
-		// formatting is important :)
-		if (!enums.isEmpty()) {
-			src.append("\n");
+			final StringBuilder src = new StringBuilder();
+
+			src.append("package org.structr.dynamic;\n\n");
+
+			SchemaHelper.formatImportStatements(src, AbstractNode.class);
+
+			src.append("public class _").append(_className).append("Helper {\n");
+
+			// output possible enum definitions
+			for (final String enumDefition : enums) {
+				src.append(enumDefition);
+			}
+
+			// formatting is important :)
+			if (!enums.isEmpty()) {
+				src.append("\n");
+			}
+
+			src.append("\n\tstatic {\n\n");
+
+			// extract properties from node
+			src.append(propertyDefinitions);
+
+			for (final String propertyName : propertyNames) {
+
+				src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
+				src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
+				src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
+
+			}
+
+			src.append("\t}\n");
+			src.append("}\n");
+
+			return src.toString();
 		}
 
-		// output possible enum definitions
-		for (final String enumDefition : enums) {
-			src.append(enumDefition);
-		}
-
-		src.append("\n\tstatic {\n\n");
-
-		// extract properties from node
-		src.append(propertyDefinitions);
-
-		for (final String propertyName : propertyNames) {
-
-			src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
-			src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
-			src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
-
-		}
-
-		src.append("\t}\n");
-		src.append("}\n");
-
-		return src.toString();
+		return null;
 	}
 
 	// ----- private methods -----

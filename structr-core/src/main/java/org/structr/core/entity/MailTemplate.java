@@ -60,7 +60,7 @@ public class MailTemplate extends AbstractNode {
 
 	// register this type as an overridden builtin type
 	static {
-		SchemaService.registerBuiltinType("MailTemplate", MailTemplate.class.getName());
+		SchemaService.registerBuiltinTypeOverride("MailTemplate", MailTemplate.class.getName());
 	}
 
 	//~--- get methods ----------------------------------------------------

@@ -76,7 +76,7 @@ var _Crud = {
     schemaLoaded: false,
     //allTypes : [],
 
-    types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
+    types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content' ],
     views: ['public', 'all', 'ui'],
     schema: [],
     keys: [],

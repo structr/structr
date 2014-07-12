@@ -44,7 +44,7 @@ var _Types = {
     schemaLoaded: false,
     //allTypes : [],
 
-    types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
+    types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content' ],
     views: ['public', 'all', 'ui'],
     schema: [],
     keys: [],
@@ -101,7 +101,7 @@ var _Types = {
 
         var t = $('a[href="#' + _Types.type + '"]');
         t.click();
-        
+
         _Crud.resize();
 
 
@@ -191,22 +191,22 @@ var _Types = {
 
                     // no schema entry found?
                     if(data.result_count === 0){
-                        
+
                         console.log("ERROR: loading Schema " + type);
                         //Structr.error("ERROR: loading Schema " + type, true);
-                        
-                        
+
+
                         var typeIndex = _Types.types.indexOf(type);
-                        
+
                         // Delete broken type from list
                         _Types.types.splice(typeIndex, 1);
-                        
-                        
+
+
                         if (_Types.isSchemaLoaded()) {
                             //console.log('Schema loaded successfully');
                             if (callback) {
                                 callback();
-                            }   
+                            }
                         }
                     }else{
 
@@ -278,42 +278,8 @@ var _Types = {
 
                     var raw = view[key].className, cls;
 
-                    if (raw === 'org.structr.core.entity.PropertyDefinition') {
-
-                        //console.log('custom property for kind', type, ': ', key, view[key]);
-                        var url = rootUrl + 'property_definitions?kind=' + type + '&name=' + key;
-                        $.ajax({
-                            url: url,
-                            dataType: 'json',
-                            contentType: 'application/json; charset=utf-8',
-                            //async: false,
-                            success: function(data) {
-                                var pd = data.result[0];
-                                cls = pd.dataType;
-                                $('.' + key + ' .dataType').html('<select id="_dataType_' + pd.id + '">\n\
-<option>String</option>\n\
-<option>Integer</option>\n\
-<option>Long</option>\n\
-<option>Double</option>\n\
-<option>Boolean</option>\n\
-<option>Date</option>\n\
-<option>Collection</option>\n\
-<option>Entity</option>\n\
-</select>');
-
-                                $('.' + key + ' .key').html('<input type="text" size="30" id="_key_' + pd.id + '" value="' + key + '">');
-                                $('.' + key + ' .readOnly').html('<input type="checkbox" id="_readOnly_' + pd.id + '"' + (pd.readOnlyProperty ? '" checked="checked"' : '') + '>');
-                                $('.' + key + ' .system').html('<input type="checkbox" id="_system_' + pd.id + '"' + (pd.systemProperty ? '" checked="checked"' : '') + '>');
-                                $('.' + key + ' .defaultValue').html('<input type="text" size="30" id="_defaultValue_' + pd.id + '" value="' + nvl(pd.defaultValue, '') + '">');
-
-                            }
-                        });
-
-
-                    } else {
-                        cls = raw.substring(raw.lastIndexOf('.') + 1);
-                        cls = cls.substring(0, cls.length - 'Property'.length);
-                    }
+                    cls = raw.substring(raw.lastIndexOf('.') + 1);
+                    cls = cls.substring(0, cls.length - 'Property'.length);
 
                     tb.append('<tr class="' + key + '">\n\
 <td class="key">' + key + '</td>\n\
@@ -335,46 +301,6 @@ var _Types = {
         _Crud.resize();
 
     },
-    propertyDialog: function(type) {
-        console.log(type);
-        Structr.dialog('Add property', function() {
-            return true;
-        }, function() {
-            return true;
-        });
-
-        dialog.append('<div><label for="attr">Attribute name:</label><input id="_attr" type="text" name="attr"></div>');
-        dialog.append('<div><label for="dataType">Data Type of first attribute:</label><select id="_dataType">\n\
-<option>String</option>\n\
-<option>Integer</option>\n\
-<option>Long</option>\n\
-<option>Double</option>\n\
-<option>Boolean</option>\n\
-<option>Date</option>\n\
-<option>Collection</option>\n\
-<option>Entity</option>\n\
-</select></div><br>');
-        dialog.append('<button id="addProperty">Add property</button>');
-
-        $('input#_attr').focus();
-
-        $('#addProperty').on('click', function(e) {
-            e.stopPropagation();
-
-            var attr = $('#_attr', dialog).val();
-            var dataType = $('#_dataType', dialog).val();
-            var entity = {};
-            entity.type = 'PropertyDefinition';
-            entity.kind = type;
-            entity.name = attr;
-            entity.dataType = dataType;
-
-            Command.create(entity, function() {
-                window.location.reload(true);
-            });
-        });
-
-    },
     addGrants: function(type) {
         Command.create({type: 'ResourceAccess', flags: 255, signature: type, visibleToPublicUsers: true});
         Command.create({type: 'ResourceAccess', flags: 255, signature: type + '/_Ui'});
@@ -382,46 +308,6 @@ var _Types = {
         Command.create({type: 'ResourceAccess', flags: 255, signature: type + '/_All'});
         Command.create({type: 'ResourceAccess', flags: 255, signature: '_schema/' + type});
     },
-//    refreshPropertyDefinitions: function() {
-//
-//        Command.list('PropertyDefinition', undefined, undefined, undefined, undefined, function(entity) {
-//            
-//            console.log(entity);
-//            
-//        });
-//    },
-//    registerPropertyDefinitionElement: function(propertyDefinition) {
-//
-//        var p = propertyDefinition;
-//
-//        if (p.kind && p.name) {
-//
-//            dynamicTypes[p.kind] = dynamicTypes[p.kind] || {};
-//            dynamicTypes[p.kind][p.name] = dynamicTypes[p.kind][p.name] || {};
-//
-//            dynamicTypes[p.kind][p.name].dataType = p.dataType;
-//            dynamicTypes[p.kind][p.name].relKind = p.relKind;
-//            dynamicTypes[p.kind][p.name].relType = p.relType;
-//            dynamicTypes[p.kind][p.name].incoming = p.incoming;
-//            dynamicTypes[p.kind][p.name].systemProperty = p.systemProperty;
-//            dynamicTypes[p.kind][p.name].readOnlyProperty = p.readOnlyProperty;
-//            dynamicTypes[p.kind][p.name].writeOnceProperty = p.writeOnceProperty;
-//            dynamicTypes[p.kind][p.name].indexedProperty = p.indexedProperty;
-//            dynamicTypes[p.kind][p.name].passivelyIndexedProperty = p.passivelyIndexedProperty;
-//            dynamicTypes[p.kind][p.name].searchableProperty = p.searchableProperty;
-//            dynamicTypes[p.kind][p.name].indexedWhenEmptyProperty = p.indexedWhenEmptyProperty;
-//
-//        }
-//
-//        //_Types.updateDynamicTypes();
-//    },
-//    updateDynamicTypes: function() {
-//        Object.keys(dynamicTypes).forEach(function(type) {
-//            if (types.children('#_' + type).length)
-//                return;
-//            types.append('<tr id="_' + type + '"><td>' + type + '</td></tr>');
-//        });
-//    }
     updateUrl: function(type) {
         if (type) {
             _Types.storeType();

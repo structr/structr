@@ -49,6 +49,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
@@ -104,20 +105,21 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
+	public static final Property<Boolean>       isPage  = new BooleanProperty("isPage", true).readOnly();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes
+		children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes
+		children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage
 	);
 
 	private Html5DocumentType docTypeNode = null;
 
 	// register this type as an overridden builtin type
 	static {
-		SchemaService.registerBuiltinType("Page", Page.class.getName());
+		SchemaService.registerBuiltinTypeOverride("Page", Page.class.getName());
 	}
 
 	public Page() {

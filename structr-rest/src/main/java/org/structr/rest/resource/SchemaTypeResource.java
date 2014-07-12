@@ -77,13 +77,6 @@ public class SchemaTypeResource extends Resource {
 
 		// create & add schema information
 		Class type = typeResource.getEntityClass();
-		if (type == null) {
-
-//			if (PropertyDefinition.exists(rawType)) {
-//				type = PropertyDefinition.nodeExtender.getType(rawType);
-//			}
-		}
-
 		if (type != null) {
 
 
@@ -212,7 +205,7 @@ public class SchemaTypeResource extends Resource {
 
 			final Class<? extends GraphObject> relatedType = property.relatedType();
 			if (relatedType != null) {
-				
+
 				propProperties.put("relatedType", relatedType.getName());
 				propProperties.put("type", relatedType.getSimpleName());
 
