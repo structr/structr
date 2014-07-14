@@ -53,6 +53,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
 import org.structr.core.entity.MailTemplate;
+import org.structr.core.graph.NodeFactory;
 import org.structr.web.servlet.HtmlServlet;
 
 //~--- classes ----------------------------------------------------------------
@@ -407,15 +408,11 @@ public class RegistrationResource extends Resource {
 
 			if (user != null) {
 
+				user = new NodeFactory<Principal>(securityContext).instantiate(user.getNode());
+
 				// convert to user
 				user.unlockReadOnlyPropertiesOnce();
 				user.setProperty(AbstractNode.type, User.class.getSimpleName());
-
-				user = new User();
-
-				user.init(securityContext, user.getNode());
-
-
 				user.setProperty(User.confirmationKey, confKey);
 
 			} else if (autoCreate) {
