@@ -293,7 +293,7 @@ public class PropertyMap {
 
 			} else {
 
-				logger.log(Level.WARNING, "No entity type found in source map");
+				logger.log(Level.WARNING, "No entity type found in source map: {0}", source);
 			}
 		}
 
@@ -375,7 +375,7 @@ public class PropertyMap {
 
 		PropertyMap map = new PropertyMap();
 
-		logger.log(Level.SEVERE, "Using fallback property set conversion without type safety!");
+		logger.log(Level.SEVERE, "Using GenericProperty for input {0}", source);
 		//Thread.dumpStack();
 
 		if (source != null) {
