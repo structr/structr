@@ -97,6 +97,7 @@ function StructrApp(baseUrl) {
             var a = btn.attr('data-structr-action').split(':');
             var action = a[0], type = a[1];
             var reload = btn.attr('data-structr-reload') === 'true';
+            var returnUrl = btn.attr('data-structr-return');
             var attrString = btn.attr('data-structr-attributes');
             var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
                 return s.trim();
@@ -118,17 +119,23 @@ function StructrApp(baseUrl) {
                     }
                     data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
                 });
-                s.create(type, data, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.create(type, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
             } else if (action === 'edit') {
-                s.editAction(btn, id, attrs, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
             } else if (action === 'cancel-edit') {
-                s.cancelEditAction(btn, id, attrs, reload);
+                s.cancelEditAction(btn, id, attrs, returnUrl || reload);
 
             } else if (action === 'delete') {
                 var f = s.field($('[data-structr-attr="name"]', container));
-                s.del(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
+                s.del(id, btn.attr('data-structr-confirm') === 'true', returnUrl || reload, f ? f.val : undefined);
+
+            } else if (action === 'login') {
+                s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn)}, function() {enableButton(btn)});
+
+            } else if (action === 'logout') {
+                s.logoutAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
             } else {
                 var data = {};
@@ -136,7 +143,7 @@ function StructrApp(baseUrl) {
                     var val = $('[data-structr-name="' + key + '"]').val();
                     data[key] = val ? val.parseIfJSON() : val;
                 });
-                s.customAction(id, type, action, data, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.customAction(id, type, action, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
             }
         });
     },
@@ -302,7 +309,7 @@ function StructrApp(baseUrl) {
     },
     
     this.cancelEditAction = function(btn, id, attrs, reload) {
-        if (reload) {
+        if (reload && typeof reload === 'boolean') {
             window.location.reload();
         } else {
             var container = $('[data-structr-id="' + id + '"]');
@@ -334,7 +341,65 @@ function StructrApp(baseUrl) {
             $('.chosen-container').remove();
         }
     },
-    
+
+    this.loginAction = function(btn, id, attrs, reload) {
+
+        var data = {};
+
+        if (attrs && attrs.length === 2) {
+            data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
+            data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+        }
+
+        var msgBox = $('#msg');
+        if (msgBox && msgBox.length) {
+            $('span', msgBox).remove();
+        }
+        
+        var btnText = btn.text(); console.log(btnText);
+        disableButton(btn, 'Checking...');
+
+        $.ajax({
+            type: 'POST',
+            method: 'POST',
+            contentType: 'application/json',
+            url: '/structr/rest/login',
+            data: JSON.stringify(data),
+            statusCode: {
+                200: function(data) {
+                    btn.text('Success!');
+                    redirectOrReload(reload);
+                },
+                401: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>Wrong username or password!</span>');
+                        $('#msg span').delay(1000).fadeOut(1000);
+                    } else {
+                        btn.text('Wrong username or password!');
+                        window.setTimeout(function() { btn.text(btnText); }, 1000);
+                    }
+                    enableButton(btn);
+                }
+            }
+        });
+
+    },
+    this.logoutAction = function(btn, id, attrs, reload) {
+        disableButton(btn, 'Processing...');
+        $.ajax({
+            type: 'POST',
+            method: 'POST',
+            contentType: 'application/json',
+            url: '/structr/rest/logout',
+            data: JSON.stringify({}),
+            statusCode: {
+                200: function() {
+                    redirectOrReload(reload);
+                }
+            }
+        });
+    },
+
     this.input = function(elements) {
         var el = $(elements[0]);
         var inp;
@@ -421,9 +486,7 @@ function StructrApp(baseUrl) {
                 200: function(data) {
                     s.dialog('success', successMsg);
                     if (reload) {
-                        window.setTimeout(function() {
-                            window.location.reload();
-                        }, 200);
+                        redirectOrReload(reload);
                     } else {
                         if (onSuccess) {
                             onSuccess(data);
@@ -433,9 +496,7 @@ function StructrApp(baseUrl) {
                 201: function(data) {
                     s.dialog('success', successMsg);
                     if (reload) {
-                        window.setTimeout(function() {
-                            window.location.reload();
-                        }, 200);
+                        redirectOrReload(reload);
                     } else {
                         if (onSuccess) {
                             onSuccess();
@@ -595,7 +656,8 @@ function StructrApp(baseUrl) {
                 statusCode: {
                     200: function() {
                         if (reload) {
-                            window.location.reload();
+                            redirectOrReload(reload);
+                            //window.location.reload();
                         }
                     }
                 }
@@ -904,4 +966,14 @@ function enableButton(btn) {
 function disableButton(btn) {
   btn.addClass('disabled');
   btn.attr('disabled', 'disabled');
+}
+
+function redirectOrReload(reload) {
+    if (reload) {
+        if (reload && typeof reload === 'string') {
+            window.location.href = reload;
+        } else if (reload === true) {
+            window.location.reload();
+        }
+    }
 }
