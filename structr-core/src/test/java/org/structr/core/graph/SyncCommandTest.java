@@ -79,7 +79,7 @@ public class SyncCommandTest extends StructrTest {
 
 				SyncCommand.exportToStream(
 					outputStream,
-					app.nodeQuery(NodeInterface.class).getAsList(),
+					app.nodeQuery(TestOne.class).getAsList(),
 					app.relationshipQuery(RelationshipInterface.class).getAsList(),
 					null,
 					false
@@ -103,7 +103,7 @@ public class SyncCommandTest extends StructrTest {
 			// 3. verify that database is empty
 			try (final Tx tx = app.tx()) {
 
-				assertEquals("Database should be empty", 0, app.nodeQuery(NodeInterface.class).getResult().size());
+				assertEquals("Database should contain not TestOne entities.", 0, app.nodeQuery(TestOne.class).getResult().size());
 				tx.success();
 			}
 

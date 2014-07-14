@@ -577,7 +577,11 @@ public class SchemaHelper {
 		src.append("import ").append(Export.class.getName()).append(";\n");
 		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import ").append(List.class.getName()).append(";\n");
-		src.append("import org.structr.rest.RestMethodResult;\n");
+
+		if (hasUiClasses()) {
+			src.append("import org.structr.rest.RestMethodResult;\n");
+		}
+
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
 		src.append("import org.structr.core.notion.*;\n");
@@ -895,5 +899,19 @@ public class SchemaHelper {
 
 		errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
 		throw new FrameworkException(422, errorBuffer);
+	}
+
+	private static boolean hasUiClasses() {
+
+		try {
+
+			Class.forName("org.structr.rest.RestMethodResult");
+
+			// success
+			return true;
+
+		} catch (Throwable t) {}
+
+		return false;
 	}
 }

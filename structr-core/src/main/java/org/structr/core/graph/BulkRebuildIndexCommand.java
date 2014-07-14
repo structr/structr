@@ -84,6 +84,8 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 					}
 
 				}
+
+				tx.success();
 			}
 
 			if (type == null) {

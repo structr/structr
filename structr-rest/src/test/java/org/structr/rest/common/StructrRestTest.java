@@ -95,7 +95,7 @@ public class StructrRestTest extends TestCase {
 		GraphDatabaseService graphDb = app.getGraphDatabaseService();
 
 		assertTrue(graphDb != null);
-		
+
 	}
 
 	@Override
@@ -289,7 +289,7 @@ public class StructrRestTest extends TestCase {
 		// enable "just testing" flag to avoid JAR resource scanning
 		config.setProperty(Services.TESTING, "true");
 
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService HttpService");
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService HttpService SchemaService");
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);

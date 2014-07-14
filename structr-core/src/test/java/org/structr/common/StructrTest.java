@@ -70,7 +70,7 @@ public class StructrTest extends TestCase {
 	protected WriteLogCommand writeLogCommand = null;
 	protected String basePath = null;
 	protected App app = null;
-	
+
 	@Rule
 	public TestRule watcher = new TestWatcher() {
 		@Override
@@ -78,7 +78,7 @@ public class StructrTest extends TestCase {
 			System.out.println("Starting test: " + description.getMethodName());
 		}
 	};
-	
+
 	//~--- methods --------------------------------------------------------
 
 	public void test00DbAvailable() {
@@ -334,7 +334,7 @@ public class StructrTest extends TestCase {
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService");
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService SchemaService");
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
