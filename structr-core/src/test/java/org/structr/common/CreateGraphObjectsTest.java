@@ -185,6 +185,8 @@ public class CreateGraphObjectsTest extends StructrTest {
 	 */
 	public void test04CheckNodeEntities() {
 
+		AccessControlTest.clearResourceAccess();
+
 		final PropertyMap props = new PropertyMap();
 
 		try (final Tx tx = app.tx()) {
@@ -230,7 +232,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 					// For ResourceAccess, fill mandatory fields
 					if (type.equals(ResourceAccess.class)) {
 
-						props.put(ResourceAccess.signature, "/");
+						props.put(ResourceAccess.signature, "/X");
 						props.put(ResourceAccess.flags, 6L);
 
 					}
@@ -238,7 +240,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 					// For DynamicResourceAccess, fill mandatory fields
 					if (type.equals(DynamicResourceAccess.class)) {
 
-						props.put(DynamicResourceAccess.signature, "/");
+						props.put(DynamicResourceAccess.signature, "/Y");
 						props.put(DynamicResourceAccess.flags, 6L);
 
 					}

@@ -68,10 +68,6 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			throw new FrameworkException(422, "Invalid type " + type);
 		}
 
-		// remove "type" so it won't be set later
-		properties.remove("type");
-
-
 		if (graphDb != null) {
 
 			Result<AbstractNode> nodes = null;
@@ -80,6 +76,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 					nodes = StructrApp.getInstance(securityContext).nodeQuery(cls).getResult();
+					tx.success();
 				}
 
 				properties.remove(AbstractNode.type.dbName());
@@ -88,8 +85,12 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 					nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+					tx.success();
 				}
 			}
+
+			// remove "type" so it won't be set later
+			properties.remove("type");
 
 			long nodeCount  = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
