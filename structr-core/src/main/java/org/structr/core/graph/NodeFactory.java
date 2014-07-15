@@ -23,7 +23,6 @@ import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
-import java.lang.reflect.Constructor;
 
 import java.util.*;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
@@ -43,12 +42,6 @@ import org.structr.core.entity.relationship.NodeHasLocation;
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
-	//~--- fields ---------------------------------------------------------
-
-	private Map<Class, Constructor<T>> constructors = new LinkedHashMap<>();
-
-	//~--- constructors ---------------------------------------------------
-
 	public NodeFactory(final SecurityContext securityContext) {
 		super(securityContext);
 	}
@@ -65,8 +58,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 	}
 
-	//~--- methods --------------------------------------------------------
-
 	@Override
 	public T instantiate(final Node node) throws FrameworkException {
 		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), false);
@@ -76,43 +67,21 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	public T instantiateWithType(final Node node, final Class<T> nodeClass, boolean isCreation) throws FrameworkException {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
+		T newNode                       = null;
 
-		long id = node.getId();
-		T newNode = (T)securityContext.lookup(id);
+		try {
+			newNode = nodeClass.newInstance();
 
-		// check for correct runtime type here!
-		if (newNode == null || !nodeClass.equals(newNode.getClass())) {
-
-			try {
-
-				Constructor<T> constructor = constructors.get(nodeClass);
-				if (constructor == null) {
-
-					constructor = nodeClass.getConstructor();
-
-					constructors.put(nodeClass, constructor);
-
-				}
-
-				// newNode = (AbstractNode) nodeClass.newInstance();
-				newNode = constructor.newInstance();
-
-			} catch (Throwable t) {
-
-				newNode = null;
-
-			}
-
-			if (newNode == null) {
-				newNode = (T)factoryDefinition.createGenericNode();
-			}
-
-			newNode.init(factoryProfile.getSecurityContext(), node);
-			newNode.onNodeInstantiation();
-
-			// cache node for this request
-			securityContext.store(id, newNode);
+		} catch (InstantiationException|IllegalAccessException itex) {
+			newNode = null;
 		}
+
+		if (newNode == null) {
+			newNode = (T)factoryDefinition.createGenericNode();
+		}
+
+		newNode.init(factoryProfile.getSecurityContext(), node);
+		newNode.onNodeInstantiation();
 
 		// check access
 		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
@@ -153,24 +122,10 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 			try {
 
-				Constructor<T> constructor = constructors.get(nodeClass);
-
-				if (constructor == null) {
-
-					constructor = nodeClass.getConstructor();
-
-					constructors.put(nodeClass, constructor);
-
-				}
-
-				newNode = constructor.newInstance();
+				newNode = nodeClass.newInstance();
 				newNode.init(factoryProfile.getSecurityContext(), entity);
 
-			} catch (Throwable t) {
-
-				newNode = null;
-
-			}
+			} catch (InstantiationException|IllegalAccessException itex) { itex.printStackTrace(); }
 
 		}
 

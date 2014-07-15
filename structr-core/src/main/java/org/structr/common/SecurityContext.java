@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.Node;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
@@ -60,7 +59,6 @@ public class SecurityContext {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Long, NodeInterface> cache = new ConcurrentHashMap<>();
 	private Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
 	private AccessMode accessMode          = AccessMode.Frontend;
 	private Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
@@ -97,29 +95,8 @@ public class SecurityContext {
 
 		this.request    = request;
 
-		initRequestBasedCache(request);
 		initializeCustomView(request);
 		initializeQueryRanges(request);
-	}
-
-	//~--- methods --------------------------------------------------------
-
-	private void initRequestBasedCache(HttpServletRequest request) {
-
-		// request-based caching
-		if (request != null && request.getServletContext() != null) {
-			cache = (Map<Long, NodeInterface>)request.getServletContext().getAttribute("NODE_CACHE");
-		}
-
-		if (cache == null) {
-
-			cache = new ConcurrentHashMap<>();
-
-			if (request != null && request.getServletContext() != null) {
-				request.getServletContext().setAttribute("NODE_CACHE", cache);
-			}
-		}
-
 	}
 
 	private void initializeCustomView(final HttpServletRequest request) {
@@ -212,19 +189,6 @@ public class SecurityContext {
 		}
 	}
 
-	public NodeInterface lookup(final long id) {
-		return cache.get(id);
-	}
-
-	public void store(final long id, final NodeInterface node) {
-
-		Node dbNode = node.getNode();
-		if (dbNode != null) {
-
-			cache.put(id, node);
-		}
-	}
-
 	public static void clearResourceFlag(final String resource, long flag) {
 
 		String name     = SchemaHelper.normalizeEntityName(resource);
@@ -233,7 +197,7 @@ public class SecurityContext {
 
 		if (flagObject != null) {
 
-			flags = flagObject.longValue();
+			flags = flagObject;
 		}
 
 		flags &= ~flag;
