@@ -128,10 +128,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			String path = request.getPathInfo();
 
 			// check for registration (has its own tx because of write access
-			final String registrationResult = checkRegistration(auth, request, response, path);
-			if (registrationResult != null) {
+			if (checkRegistration(auth, request, response, path)) {
 
-				path = registrationResult;
+				return;
 			}
 
 			// isolate request authentication in a transaction
@@ -601,16 +600,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private String checkRegistration(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
+	private boolean checkRegistration(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
 		logger.log(Level.FINE, "Checking registration ...");
 
 		String key = request.getParameter(CONFIRM_KEY_KEY);
 
 		if (StringUtils.isEmpty(key)) {
-
-			return null;
-
+			return false;
 		}
 
 		String targetPage = request.getParameter(TARGET_PAGE_KEY);
@@ -623,7 +620,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			Result<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
+				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();
 			}
 
 			if (!results.isEmpty()) {
@@ -641,22 +638,26 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					}
 
 					tx.success();
-
-					// Redirect to target page
-					if (StringUtils.isNotBlank(targetPage)) {
-						return "/" + targetPage;
-					}
 				}
+
+				// Redirect to target page
+				if (StringUtils.isNotBlank(targetPage)) {
+					response.sendRedirect("/" + targetPage);
+				}
+
+				return true;
 
 			} else {
 				// Redirect to error page
 				if (StringUtils.isNotBlank(errorPage)) {
-					return "/" + errorPage;
+					response.sendRedirect("/" + errorPage);
 				}
+
+				return true;
 			}
 		}
 
-		return null;
+		return false;
 	}
 
 	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, HttpServletRequest request, final String uuid) throws FrameworkException {
