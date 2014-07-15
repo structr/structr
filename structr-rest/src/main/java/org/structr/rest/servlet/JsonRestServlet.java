@@ -18,42 +18,34 @@
  */
 package org.structr.rest.servlet;
 
-import org.structr.rest.JsonInputGSONAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.JsonInput;
-import org.structr.rest.RestMethodResult;
-import org.structr.common.PagingHelper;
-import org.structr.rest.resource.Resource;
-import org.structr.core.Result;
-
-//~--- JDK imports ------------------------------------------------------------
-
-
 import java.io.IOException;
 import java.io.Writer;
-
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.neo4j.kernel.DeadlockDetectedException;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.*;
+import org.structr.common.PagingHelper;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.JsonInput;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -62,8 +54,12 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.PropertyKey;
+import org.structr.rest.JsonInputGSONAdapter;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
+import org.structr.rest.resource.Resource;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.rest.service.HttpService;
@@ -265,9 +261,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			if (securityContext != null) {
-				securityContext.cleanUp();
-			}
 		}
 	}
 
@@ -457,9 +450,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			if (securityContext != null) {
-				securityContext.cleanUp();
-			}
 		}
 	}
 
@@ -588,9 +578,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			if (securityContext != null) {
-				securityContext.cleanUp();
-			}
 		}
 	}
 
@@ -697,9 +684,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			if (securityContext != null) {
-				securityContext.cleanUp();
-			}
 		}
 	}
 
@@ -859,9 +843,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			if (securityContext != null) {
-				securityContext.cleanUp();
-			}
 		}
 	}
 
@@ -990,9 +971,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			if (securityContext != null) {
-				securityContext.cleanUp();
-			}
 		}
 	}
 

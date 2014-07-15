@@ -18,26 +18,28 @@
  */
 package org.structr.common;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.*;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SuperUser;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Node;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaHelper;
 
@@ -207,17 +209,6 @@ public class SecurityContext {
 					}
 				}
 			}
-		}
-	}
-
-	/**
-	 * Call this method after the request this context was
-	 * created for is finished and the resources can be freed.
-	 */
-	public void cleanUp() {
-
-		if (cache != null) {
-			cache.clear();
 		}
 	}
 
