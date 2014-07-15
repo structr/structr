@@ -637,19 +637,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					if (auth.getUserAutoLogin()){
 
-						String sessionIdFromRequest = null;
-						try {
-							sessionIdFromRequest = request.getRequestedSessionId();
-						} catch (UnsupportedOperationException uoe) {
-							// ignore
-						}
-
-						// Websocket connects don't have a session
-						if (sessionIdFromRequest != null) {
-
-							AuthHelper.clearSession(sessionIdFromRequest);
-							user.addSessionId(sessionIdFromRequest);
-						}
+						AuthHelper.doLogin(request, user);
 					}
 
 					tx.success();

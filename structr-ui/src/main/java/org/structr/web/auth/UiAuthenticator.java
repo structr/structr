@@ -295,27 +295,12 @@ public class UiAuthenticator implements Authenticator {
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException {
 
 		Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
-
 		if  (user != null) {
 
-			String sessionIdFromRequest = null;
-			try {
-				sessionIdFromRequest = request.getRequestedSessionId();
-			} catch (UnsupportedOperationException uoe) {
-				// ignore
-			}
-
-			// Websocket connects don't have a session
-			if (sessionIdFromRequest != null) {
-
-				AuthHelper.clearSession(sessionIdFromRequest);
-				user.addSessionId(sessionIdFromRequest);
-			}
-
+			AuthHelper.doLogin(request, user);
 		}
 
 		return user;
-
 	}
 
 	@Override
@@ -325,19 +310,12 @@ public class UiAuthenticator implements Authenticator {
 			Principal user = getUser(request, false);
 			if (user != null) {
 
-				final String sessionId = request.getRequestedSessionId();
-
-				if (sessionId != null) {
-
-					AuthHelper.clearSession(sessionId);
-					user.removeSessionId(sessionId);
-
-				}
+				AuthHelper.doLogout(request, user);
 			}
 
 			HttpSession session = request.getSession(false);
-
 			if (session != null) {
+
 				session.invalidate();
 			}
 
@@ -346,7 +324,6 @@ public class UiAuthenticator implements Authenticator {
 		} catch (ServletException | FrameworkException ex) {
 
 			logger.log(Level.WARNING, "Error while logging out user", ex);
-
 		}
 	}
 
@@ -422,10 +399,9 @@ public class UiAuthenticator implements Authenticator {
 
 					if (user != null) {
 
-						final String sessionId = UiAuthenticator.getSessionId(request);
-						AuthHelper.clearSession(sessionId);
-						user.addSessionId(sessionId);
+						AuthHelper.doLogin(request, user);
 						HtmlServlet.setNoCacheHeaders(response);
+
 						try {
 
 							logger.log(Level.FINE, "Response status: {0}", response.getStatus());
@@ -460,21 +436,18 @@ public class UiAuthenticator implements Authenticator {
 	protected static Principal checkSessionAuthentication(HttpServletRequest request) {
 
 		String sessionIdFromRequest = request.getRequestedSessionId();
-
 		if (sessionIdFromRequest == null) {
 
 			// create session id
 			request.getSession(true);
-			return null;
 
+			return null;
 		}
 
 		Principal user = AuthHelper.getPrincipalForSessionId(sessionIdFromRequest);
-
 		if (user != null) {
 
 			return user;
-
 		}
 
 		return null;
@@ -501,24 +474,6 @@ public class UiAuthenticator implements Authenticator {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
 		} catch (IOException ignore) {}
-
-	}
-
-	private static String getSessionId(final HttpServletRequest request) {
-
-		String existingSessionId = request.getRequestedSessionId();
-
-		if (existingSessionId == null) {
-
-			HttpSession session = request.getSession(true);
-
-			logger.log(Level.INFO, "Created new HTTP session: {0}", session.toString());
-
-			return session.getId();
-
-		}
-
-		return existingSessionId;
 
 	}
 

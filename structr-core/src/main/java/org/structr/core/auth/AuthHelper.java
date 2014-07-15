@@ -21,6 +21,8 @@ package org.structr.core.auth;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
@@ -220,6 +222,49 @@ public class AuthHelper {
 
 		return DigestUtils.sha512Hex(password);
 
+	}
+
+	public static void doLogin(final HttpServletRequest request, final Principal user) {
+
+		String sessionIdFromRequest = getSessionId(request);
+		if (sessionIdFromRequest != null) {
+
+			AuthHelper.clearSession(sessionIdFromRequest);
+			user.addSessionId(sessionIdFromRequest);
+		}
+	}
+
+	public static void doLogout(final HttpServletRequest request, final Principal user) {
+
+		final String sessionId = getSessionId(request);
+
+		if (sessionId != null) {
+
+			AuthHelper.clearSession(sessionId);
+			user.removeSessionId(sessionId);
+		}
+	}
+
+	public static String getSessionId(final HttpServletRequest request) {
+
+		String existingSessionId = null;
+
+		try {
+			existingSessionId = request.getRequestedSessionId();
+		} catch (UnsupportedOperationException uoe) {
+			// ignore
+		}
+
+		if (existingSessionId == null) {
+
+			HttpSession session = request.getSession(true);
+			if (session != null) {
+				
+				return session.getId();
+			}
+		}
+
+		return existingSessionId;
 	}
 
 	/**
