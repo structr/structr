@@ -298,7 +298,6 @@ public class UiAuthenticator implements Authenticator {
 
 		if  (user != null) {
 
-
 			String sessionIdFromRequest = null;
 			try {
 				sessionIdFromRequest = request.getRequestedSessionId();

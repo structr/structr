@@ -130,7 +130,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			// check for registration (has its own tx because of write access
 			final String registrationResult = checkRegistration(auth, request, response, path);
 			if (registrationResult != null) {
-				
+
 				path = registrationResult;
 			}
 
@@ -637,12 +637,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					if (auth.getUserAutoLogin()){
 
-						// Clear possible existing sessions
-						final String sessionId = request.getSession().getId();
-						AuthHelper.clearSession(sessionId);
+						String sessionIdFromRequest = null;
+						try {
+							sessionIdFromRequest = request.getRequestedSessionId();
+						} catch (UnsupportedOperationException uoe) {
+							// ignore
+						}
 
-						user.addSessionId(sessionId);
+						// Websocket connects don't have a session
+						if (sessionIdFromRequest != null) {
 
+							AuthHelper.clearSession(sessionIdFromRequest);
+							user.addSessionId(sessionIdFromRequest);
+						}
 					}
 
 					tx.success();
