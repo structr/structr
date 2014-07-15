@@ -128,8 +128,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			String path = request.getPathInfo();
 
 			// check for registration (has its own tx because of write access
-			if (checkRegistration(auth, request, response, path)) {
-				return;
+			final String registrationResult = checkRegistration(auth, request, response, path);
+			if (registrationResult != null) {
+				
+				path = registrationResult;
 			}
 
 			// isolate request authentication in a transaction
@@ -599,7 +601,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private boolean checkRegistration(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
+	private String checkRegistration(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
 		logger.log(Level.FINE, "Checking registration ...");
 
@@ -607,7 +609,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (StringUtils.isEmpty(key)) {
 
-			return false;
+			return null;
 
 		}
 
@@ -647,21 +649,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					// Redirect to target page
 					if (StringUtils.isNotBlank(targetPage)) {
-						response.sendRedirect("/" + targetPage);
-						return true;
+						return "/" + targetPage;
 					}
 				}
 
 			} else {
 				// Redirect to error page
 				if (StringUtils.isNotBlank(errorPage)) {
-					response.sendRedirect("/" + errorPage);
-					return true;
+					return "/" + errorPage;
 				}
 			}
 		}
-		return false;
 
+		return null;
 	}
 
 	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, HttpServletRequest request, final String uuid) throws FrameworkException {
