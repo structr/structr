@@ -41,7 +41,7 @@ import org.structr.core.property.TargetId;
 /**
  * A generic relationship entity that will be instantiated when an anonymous
  * relationship is encountered.
- * 
+ *
  * @author Axel Morgner
  *
  */
@@ -53,30 +53,30 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 	public static final View uiView = new View(GenericRelationship.class, PropertyView.Ui,
 		startNodeId, endNodeId, sourceId, targetId
 	);
-	
+
 	public GenericRelationship() {}
 
 	public GenericRelationship(SecurityContext securityContext, Relationship dbRelationship) {
-		init(securityContext, dbRelationship);
+		init(securityContext, dbRelationship, GenericRelationship.class);
 	}
-		
+
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
-		
+
 		Set<PropertyKey> keys = new LinkedHashSet<>();
 
 		keys.addAll((Set<PropertyKey>) super.getPropertyKeys(propertyView));
-		
+
 		keys.add(startNodeId);
 		keys.add(endNodeId);
-		
+
 		if (dbRelationship != null) {
-			
+
 			for (String key : dbRelationship.getPropertyKeys()) {
 				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key));
 			}
 		}
-		
+
 		return keys;
 	}
 

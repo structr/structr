@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
-import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -42,8 +41,6 @@ import org.structr.schema.SchemaService;
  *
  */
 public class Group extends AbstractUser implements Principal {
-
-	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
 	public static final Property<List<Principal>> members = new EndNodes<>("members", Groups.class);
 	public static final Property<Boolean>        isGroup  = new BooleanProperty("isGroup", true).readOnly();

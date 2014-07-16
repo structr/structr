@@ -18,8 +18,6 @@
  */
 package org.structr.web.entity;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import org.apache.commons.lang3.StringUtils;
 
 import org.structr.common.PropertyView;
@@ -35,8 +33,6 @@ import org.structr.web.entity.dom.DOMElement;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,8 +52,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
 public class View extends DOMElement {
 
 	private static final Logger logger = Logger.getLogger(View.class.getName());
-	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	
+
 	public static final Property<String> query             = new StringProperty("query").indexed();
 	public static final org.structr.common.View uiView     = new org.structr.common.View(View.class, PropertyView.Ui, query);
 	public static final org.structr.common.View publicView = new org.structr.common.View(View.class, PropertyView.Public, query);
@@ -108,23 +103,6 @@ public class View extends DOMElement {
 
 	}
 
-//      public static void main(String[] args) throws Exception {
-//              
-//              String rawQuery = "START n=node:keywordAllNodes(type='Page') MATCH n-[:CONTAINS*]->child WHERE (child.type = 'Content' AND child.content =~ /.*${request.search}.*/) RETURN DISTINCT n";
-//              
-//              Pattern pattern = Pattern.compile("\\$\\{request.(.*)\\}");
-//                      Matcher matcher = pattern.matcher(rawQuery);
-//
-//                      while (matcher.find()) {
-//
-//                              String key = matcher.group(1);
-//                              
-//                              System.out.println("key: " + key);
-//
-//
-//                      }       
-//              
-//      }
 	@Override
 	public short getNodeType() {
 
@@ -135,15 +113,8 @@ public class View extends DOMElement {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
-		double startView = System.nanoTime();
-		
-		HttpServletRequest request = renderContext.getRequest();
-
-		// fetch query results
-		List<GraphObject> results = getGraphObjects(request);
-		double endView            = System.nanoTime();
-
-		logger.log(Level.FINE, "Get graph objects for {0} in {1} seconds", new java.lang.Object[] { getUuid(), decimalFormat.format((endView - startView) / 1000000000.0) });
+		final HttpServletRequest request = renderContext.getRequest();
+		final List<GraphObject> results  = getGraphObjects(request);
 
 		for (GraphObject result : results) {
 

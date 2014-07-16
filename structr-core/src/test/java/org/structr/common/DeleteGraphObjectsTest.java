@@ -82,7 +82,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			props.put(AbstractNode.name, name);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				node = app.create(NodeInterface.class, props);
 				tx.success();
 			}
@@ -92,19 +92,19 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 				uuid = node.getUuid();
 			}
-			
+
 			try (final Tx tx = app.tx()) {
-				
+
 				app.delete(node);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(NodeInterface.class).uuid(uuid).getResult();
-				
+
 				assertEquals("Node should have been deleted", 0, result.size());
-				
+
 			} catch (FrameworkException fe) {}
 
 		} catch (FrameworkException ex) {
@@ -121,7 +121,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	public void test01DeleteRelationship() {
 
 		try {
-			
+
 			final TestOne testOne  = createTestNode(TestOne.class);
 			final TestSix testSix  = createTestNode(TestSix.class);
 			SixOneOneToOne rel     = null;
@@ -130,38 +130,38 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			assertNotNull(testSix);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				rel = app.create(testSix, testOne, SixOneOneToOne.class);
 				tx.success();
 			}
 
 			assertNotNull(rel);
-			
+
 			try {
 				// try to delete relationship
 				rel.getRelationship().delete();
-				
+
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
-			
+
 			// Relationship still there
 			assertNotNull(rel);
-			
+
 			try (final Tx tx = app.tx()) {
-				
+
 				app.delete(rel);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				String uuid = rel.getUuid();
 				fail("Deleted entity should have thrown an exception on access.");
-				
+
 			} catch (IllegalStateException iex) {
 			}
-			
-		
+
+
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
@@ -170,10 +170,10 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
-		
-		
-	}	
-	
+
+
+	}
+
 	/**
 	 * DELETE_NONE should not trigger any delete cascade
 	 */
@@ -203,15 +203,15 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			try {
 				deleteCascade(rel.getEndNode());
-				
+
 			} catch (FrameworkException fex) {
-				
+
 				assertEquals(422, fex.getStatus());
 				exception = true;
 			}
-			
+
 			assertTrue("Exception should be raised", exception);
-			
+
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
@@ -255,19 +255,19 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			try {
 				deleteCascade(rel.getEndNode());
-				
+
 			} catch (FrameworkException fex) {
-				
+
 				assertEquals(422, fex.getStatus());
 				exception = true;
 			}
-			
+
 			assertTrue("Exception should be raised", exception);
-			
+
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -288,8 +288,8 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			NodeInterface sourceNode;
 			NodeInterface targetNode;
 			String startNodeId;
-			String endNodeId; 
-		
+			String endNodeId;
+
 			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
@@ -328,7 +328,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 				// Start node should still exist deletion of end node
 				assertNodeExists(startNodeId);
 			}
-			
+
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
@@ -353,8 +353,8 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			NodeInterface sourceNode;
 			NodeInterface targetNode;
 			String startNodeId;
-			String endNodeId; 
-		
+			String endNodeId;
+
 			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
@@ -393,7 +393,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 				// Start node should not be found after deletion of end node
 				assertNodeNotFound(startNodeId);
 			}
-			
+
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
@@ -417,8 +417,8 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.CONSTRAINT_BASED);
 			NodeInterface sourceNode;
 			String startNodeId;
-			String endNodeId; 
-			
+			String endNodeId;
+
 			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
@@ -507,7 +507,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	private void deleteCascade(final NodeInterface node) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
-			
+
 			app.delete(node);
 			tx.success();
 		}

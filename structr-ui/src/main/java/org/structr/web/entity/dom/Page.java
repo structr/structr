@@ -307,8 +307,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public Text createTextNode(final String text) {
 
-		final App app = StructrApp.getInstance(securityContext);
-
 		try {
 
 			// create new content element
@@ -335,8 +333,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public Comment createComment(String comment) {
 
-		final App app = StructrApp.getInstance(securityContext);
-
 		try {
 
 			// create new content element
@@ -362,8 +358,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public CDATASection createCDATASection(String string) throws DOMException {
-
-		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 
@@ -867,6 +861,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	private Principal getOwner() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			Principal owner = getProperty(File.owner);
+			tx.success();
 			return owner;
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting owner of " + this, fex);
@@ -876,17 +871,30 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public String getOwnerName() {
+
+		String name = "";
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			Principal owner = getOwner();
-			return owner != null ? owner.getProperty(AbstractUser.name) : "";
+			if (owner != null) {
+
+				name = owner.getProperty(AbstractUser.name);
+			}
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting owner name of " + this, fex);
 		}
-		return null;
+
+		return name;
 	}
 
 	@Override
 	public String getGroupName() {
+
+		String name = "";
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
 			Principal owner = getOwner();
@@ -895,16 +903,17 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 				List<Principal> parents = owner.getParents();
 				if (!parents.isEmpty()) {
 
-					return parents.get(0).getProperty(AbstractNode.name);
-
+					name = parents.get(0).getProperty(AbstractNode.name);
 				}
 			}
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting group name of " + this, fex);
 		}
 
-		return "";
+		return name;
 	}
 
 	@Override
@@ -914,16 +923,24 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public long getLastModified() {
+
+		long lastModified = 0L;
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getProperty(lastModifiedDate).getTime();
+
+			lastModified = getProperty(lastModifiedDate).getTime();
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
 		}
-		return 0L;
+
+		return lastModified;
 	}
 
 	@Override
 	public boolean setLastModified(long time) {
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			setProperty(lastModifiedDate, new Date(time));
 			tx.success();
@@ -936,32 +953,53 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public long getSize() {
+
+		long size = 0L;
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getContent(RenderContext.EditMode.RAW).length();
+
+			size = getContent(RenderContext.EditMode.RAW).length();
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
 		}
-		return 0L;
+
+		return size;
 	}
 
 	@Override
 	public String getName() {
+
+		String name = null;
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getProperty(name);
+
+			name = getProperty(AbstractNode.name);
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in getName() of page", fex);
 		}
-		return null;
+
+		return name;
 	}
 
 	@Override
 	public boolean isHidden() {
+
+		boolean hidden = true;
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getProperty(hidden);
+
+			hidden = getProperty(Page.hidden);
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in isHidden() of page", fex);
 		}
-		return true;
+
+		return hidden;
 	}
 
 	@Override
@@ -1066,11 +1104,18 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public InputStream createInputStream(long offset) throws IOException {
+
+		ByteArrayInputStream bis = null;
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return new ByteArrayInputStream(getContent(RenderContext.EditMode.RAW).getBytes("UTF-8"));
+
+			bis = new ByteArrayInputStream(getContent(RenderContext.EditMode.RAW).getBytes("UTF-8"));
+			tx.success();
+
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
-		return null;
+
+		return bis;
 	}
 
 	// ----- interface Syncable -----

@@ -19,7 +19,6 @@
 package org.structr.core.entity;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -31,7 +30,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -75,8 +73,8 @@ import org.structr.schema.action.ActionContext;
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
-	private static final Logger logger                                        = Logger.getLogger(AbstractNode.class.getName());
 	private static final Map<Class, Object> relationshipTemplateInstanceCache = new LinkedHashMap<>();
+	private static final Logger logger                                        = Logger.getLogger(AbstractNode.class.getName());
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 
@@ -84,27 +82,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 
-	protected PropertyMap cachedConvertedProperties  = new PropertyMap();
-	protected PropertyMap cachedRawProperties        = new PropertyMap();
-	protected Class entityType                       = getClass();
-	protected Principal cachedOwnerNode              = null;
+	private boolean readOnlyPropertiesUnlocked = false;
 
-	// request parameters
-	protected SecurityContext securityContext        = null;
-	private boolean readOnlyPropertiesUnlocked       = false;
-
-	// reference to database node
-	protected String cachedUuid = null;
-	protected Node dbNode;
+	protected Class entityType                 = null;
+	protected Principal cachedOwnerNode        = null;
+	protected SecurityContext securityContext  = null;
+	protected String cachedUuid                = null;
+	protected Node dbNode                      = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public AbstractNode() {}
 
-	public AbstractNode(SecurityContext securityContext, final Node dbNode) {
-
-		init(securityContext, dbNode);
-
+	public AbstractNode(SecurityContext securityContext, final Node dbNode, final Class entityType) {
+		init(securityContext, dbNode, entityType);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -122,9 +113,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public final void init(final SecurityContext securityContext, final Node dbNode) {
+	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType) {
 
 		this.dbNode          = dbNode;
+		this.entityType      = entityType;
 		this.securityContext = securityContext;
 	}
 
@@ -151,7 +143,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			return false;
 		}
 
-		return (new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+		return (Integer.valueOf(this.hashCode()).equals(o.hashCode()));
 
 	}
 
@@ -196,32 +188,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public String toString() {
-
-//		if (dbNode == null) {
-//
-//			return "AbstractNode with null database node";
-//		}
-//
-//		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
-//
-//			String name = dbNode.hasProperty(AbstractNode.name.dbName())
-//				      ? (String) dbNode.getProperty(AbstractNode.name.dbName())
-//				      : "<null name>";
-//			String type = dbNode.hasProperty(AbstractNode.type.dbName())
-//				      ? (String) dbNode.getProperty(AbstractNode.type.dbName())
-//				      : "<AbstractNode>";
-//			String id   = dbNode.hasProperty(GraphObject.id.dbName())
-//				      ? (String) dbNode.getProperty(GraphObject.id.dbName())
-//				      : Long.toString(dbNode.getId());
-//
-//			return name + " (" + type + "," + id + ")";
-//
-//		} catch (Throwable ignore) {
-//			logger.log(Level.WARNING, ignore.getMessage());
-//		}
-//
-//		return "<AbstractNode>";
-
 		return getUuid();
 
 	}
@@ -334,7 +300,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public String getUuid() {
 
-		return getProperty(GraphObject.id);
+		if (cachedUuid == null) {
+			cachedUuid = getProperty(GraphObject.id);
+		}
+
+		return cachedUuid;
 
 	}
 
@@ -477,74 +447,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		logger.log(Level.WARNING, "Could not create MD5 hex out of value {0}", value);
 
 		return null;
-
-	}
-
-	/**
-	 * Returns the property value for the given key as a List of Strings,
-	 * split on [\r\n].
-	 *
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a List of Strings
-	 */
-	public List<String> getStringListProperty(final PropertyKey<List<String>> key) {
-
-		Object propertyValue = getProperty(key);
-		List<String> result  = new LinkedList<>();
-
-		if (propertyValue == null) {
-
-			return null;
-		}
-
-		if (propertyValue instanceof String) {
-
-			// Split by carriage return / line feed
-			String[] values = StringUtils.split(((String) propertyValue), "\r\n");
-
-			result = Arrays.asList(values);
-		} else if (propertyValue instanceof String[]) {
-
-			String[] values = (String[]) propertyValue;
-
-			result = Arrays.asList(values);
-
-		}
-
-		return result;
-
-	}
-
-	/**
-	 * Returns the property value for the given key as an Array of Strings.
-	 *
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as an Array of Strings
-	 */
-	public String getStringArrayPropertyAsString(final PropertyKey<String[]> key) {
-
-		Object propertyValue = getProperty(key);
-		StringBuilder result = new StringBuilder();
-
-		if (propertyValue instanceof String[]) {
-
-			int i           = 0;
-			String[] values = (String[]) propertyValue;
-
-			for (String value : values) {
-
-				result.append(value);
-
-				if (i < values.length - 1) {
-
-					result.append("\r\n");
-				}
-
-			}
-
-		}
-
-		return result.toString();
 
 	}
 
@@ -1010,43 +912,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return securityContext.isVisible(this);
 
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	/**
-	 * Split String value and set as String[] property in database backend
-	 *
-	 * @param key
-	 * @param value
-	 *
-	 */
-	public void setPropertyAsStringArray(final PropertyKey<String[]> key, final String value) throws FrameworkException {
-
-		String[] values = StringUtils.split(((String) value), "\r\n");
-
-		setProperty(key, values);
-
-	}
-
-	/**
-	 * Store a non-persistent value in this entity.
-	 *
-	 * @param key
-	 * @param value
-	 */
-	public void setTemporaryProperty(final PropertyKey key, Object value) {
-		cachedConvertedProperties.put(key, value);
-		cachedRawProperties.put(key, value);
-	}
-
-	/**
-	 * Retrieve a previously stored non-persistent value from this entity.
-	 * @param key
-	 * @return
-	 */
-	public Object getTemporaryProperty(final PropertyKey key) {
-		return cachedConvertedProperties.get(key);
 	}
 
 	/**

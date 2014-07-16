@@ -19,7 +19,6 @@
 package org.structr.web.entity;
 
 import java.util.List;
-import java.util.logging.Logger;
 import org.structr.common.KeyAndClass;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractUser;
@@ -50,8 +49,6 @@ import org.structr.web.property.ImageDataProperty;
  *
  */
 public class User extends AbstractUser {
-
-	private static final Logger logger = Logger.getLogger(User.class.getName());
 
 	public static final Property<String>      confirmationKey  = new StringProperty("confirmationKey").indexed();
 	public static final Property<Boolean>     backendUser      = new BooleanProperty("backendUser").indexed();
