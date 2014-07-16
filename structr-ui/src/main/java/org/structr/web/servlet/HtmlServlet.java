@@ -129,6 +129,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			// check for registration (has its own tx because of write access
 			if (checkRegistration(auth, request, response, path)) {
+
 				return;
 			}
 
@@ -606,9 +607,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		String key = request.getParameter(CONFIRM_KEY_KEY);
 
 		if (StringUtils.isEmpty(key)) {
-
 			return false;
-
 		}
 
 		String targetPage = request.getParameter(TARGET_PAGE_KEY);
@@ -621,7 +620,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			Result<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
+				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();
 			}
 
 			if (!results.isEmpty()) {
@@ -635,33 +634,30 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					if (auth.getUserAutoLogin()){
 
-						// Clear possible existing sessions
-						final String sessionId = request.getSession().getId();
-						AuthHelper.clearSession(sessionId);
-
-						user.addSessionId(sessionId);
-
+						AuthHelper.doLogin(request, user);
 					}
 
 					tx.success();
-
-					// Redirect to target page
-					if (StringUtils.isNotBlank(targetPage)) {
-						response.sendRedirect("/" + targetPage);
-						return true;
-					}
 				}
+
+				// Redirect to target page
+				if (StringUtils.isNotBlank(targetPage)) {
+					response.sendRedirect("/" + targetPage);
+				}
+
+				return true;
 
 			} else {
 				// Redirect to error page
 				if (StringUtils.isNotBlank(errorPage)) {
 					response.sendRedirect("/" + errorPage);
-					return true;
 				}
+
+				return true;
 			}
 		}
-		return false;
 
+		return false;
 	}
 
 	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, HttpServletRequest request, final String uuid) throws FrameworkException {
