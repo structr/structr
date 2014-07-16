@@ -19,13 +19,11 @@
 package org.structr.websocket;
 
 import com.google.gson.Gson;
-
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.StructrTransactionListener;
-import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.message.WebSocketMessage;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.util.ConcurrentHashSet;
@@ -33,8 +31,12 @@ import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -43,6 +45,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
@@ -180,6 +183,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				try {
 					final WebSocketMessage message = getMessageForEvent(securityContext, event);
 					if (message != null) {
+						logger.log(Level.FINE, "################### Broadcast message: {0}", message.getCommand());
 						broadcast(message);
 					}
 

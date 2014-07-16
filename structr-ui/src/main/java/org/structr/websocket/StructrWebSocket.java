@@ -248,7 +248,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 			String msg = gson.toJson(message, WebSocketMessage.class);
 
-			logger.log(Level.FINE, "############################################################ SENDING \n{0}", msg);
+			logger.log(Level.FINE, "################### Private message: {0}", message.getCommand());
+			logger.log(Level.FINEST, "############################################################ SENDING \n{0}", msg);
 
 			session.getRemote().sendString(msg);
 
