@@ -106,7 +106,7 @@ var _Entities = {
                 _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
             }
             _Entities.appendRowWithInputField(entity, t, 'data-structr-return', 'Return URI after successful action');
-
+            
         } else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
             // Input fields
             _Entities.appendRowWithInputField(entity, t, 'data-structr-name', 'Field name (for create action)');
@@ -293,9 +293,9 @@ var _Entities = {
 
         var tabTexts = [];
         tabTexts._html_ = 'HTML Attributes';
-        tabTexts.ui     = 'Node Properties';
-        tabTexts.in     = 'Incoming Relationships';
-        tabTexts.out    = 'Outgoing Relationships';
+        tabTexts.ui = 'Node Properties';
+        tabTexts.in = 'Incoming Relationships';
+        tabTexts.out = 'Outgoing Relationships';
 
         //dialog.empty();
         Structr.dialog('Edit Properties of ' + (entity.name ? entity.name : entity.id), function() {
@@ -319,15 +319,9 @@ var _Entities = {
             });
         }
 
-        // append 'main' view if entity type supports it, set active view to 'main' then..
-        var structrObj = StructrModel.obj(entity.id);
-
-        if (typeof(structrObj.showMainDialog) === 'function') {
-            structrObj.showMainDialog(mainTabs, entity);
-            activeView = 'main';
-        }
-
         _Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
+
+
     },
     appendPropTab: function(el, name, label, active, callback) {
         var ul = el.children('ul');
@@ -380,15 +374,8 @@ var _Entities = {
                 tabView.empty();
                 tabView.show();
 
-                var viewName = '/ui';
-
-                if (view === 'main') {
-                    viewName = '/main';
-                }
-
-
                 $.ajax({
-                    url: rootUrl + '_schema/' + entity.type + viewName,
+                    url: rootUrl + '_schema/' + entity.type + '/ui',
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
                     success: function(data) {
@@ -438,17 +425,9 @@ var _Entities = {
                             props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                         } else {
 
-                            props.append(
-                                '<tr><td class="key">'
-                              + (view === 'main' ? formatKey(key.replace('_html_', '')) : formatKey(key))
-                              + '</td><td class="value '
-                              + key
-                                + '_"></td><td><img class="nullIcon" id="null_'
-                                + key + '" src="icon/cross_small_grey.png"></td></tr>'
-                            );
-
+                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             var cell = $('.value.' + key + '_', props);
-
+                            
                             var type = typeInfo[key].type;
                             var isHidden = isIn(key, _Entities.hiddenAttrs);
                             var isReadOnly = typeInfo[key].readOnly; //isIn(key, _Entities.readOnlyAttrs);
@@ -458,7 +437,7 @@ var _Entities = {
                             var isArray = type.endsWith('[]');
                             var isRelated = typeInfo[key].relatedType;
 
-                            if (!(key.startsWith('_html_') && view !== 'main') && !isHidden) {
+                            if (!key.startsWith('_html_') && !isHidden) {
 
                                 if (isBoolean) {
                                     cell.removeClass('value').append('<input type="checkbox" class="' + key + '_">');
@@ -476,7 +455,7 @@ var _Entities = {
                                                     }
                                                     checkbox.prop('checked', newVal);
                                                 });
-
+                                                
                                             });
                                         } else {
                                             checkbox.prop('disabled', 'disabled');
@@ -497,13 +476,13 @@ var _Entities = {
                                         separator: 'T'
                                     });
                                 } else if (isRelated) {
-
+                                    
                                     var node = res[key];
                                     if (node && node.constructor === Object) {
                                         var displayName = _Crud.displayName(node);
                                         cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                                         var nodeEl = $('#_' + node.id, props);
-
+                                        
                                         nodeEl.on('click', function(e) {
                                             e.preventDefault();
                                             _Entities.showProperties(node);
@@ -528,7 +507,7 @@ var _Entities = {
                                 } else {
                                     cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
                                 }
-
+                                
                             }
                         }
 
@@ -608,7 +587,7 @@ var _Entities = {
                         input.data('changed', false);
                         log('existing key: Command.setProperty(', objId, key, val);
                         _Entities.setProperty(objId, key, val, false, function(newVal) {
-
+                            
                             if (isPassword || (newVal && newVal !== oldVal)) {
                                 blinkGreen(input);
                                 input.val(newVal);

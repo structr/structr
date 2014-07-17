@@ -40,7 +40,7 @@ public class A extends LinkSource {
 	public static final Property<String>            _media      = new HtmlProperty("media");
 	public static final Property<String>            _hreflang   = new HtmlProperty("hreflang");
 	public static final Property<String>            _type       = new HtmlProperty("type");
-
+  
 //	public static final Property<List<Content>> contents    = new EndNodes<>("contents", Content.class, RelType.CONTAINS, false);
 //	public static final Property<List<Span>>    spans       = new EndNodes<>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
 //	public static final Property<List<Img>>     imgs        = new EndNodes<>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
@@ -54,23 +54,19 @@ public class A extends LinkSource {
 //	public static final Property<List<H5>>     h5s         = new EndNodes<>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
 //	public static final Property<List<H6>>     h6s         = new EndNodes<>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
 //	public static final Property<List<Li>>      lis         = new EndNodes<>("lis", Li.class, RelType.CONTAINS, Direction.INCOMING, false);
-//
+// 
 //	public static final EndNodes<Div>     divParents  = new EndNodes<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
 //	public static final EndNodes<P>       pParents    = new EndNodes<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
-//
+// 
 
 	public static final View uiView = new View(A.class, PropertyView.Ui,
 		linkableId, linkable
 	);
-
+	
 	public static final View htmlView = new View(A.class, PropertyView.Html,
 		_href, _target, _ping, _rel, _media, _hreflang, _type
 	);
-
-	public static final View mainView = new View(A.class, PropertyView.Main,
-		_href, _target, _ping, _rel, _media, _hreflang, _type
-	);
-
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
