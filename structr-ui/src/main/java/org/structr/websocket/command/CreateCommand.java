@@ -36,6 +36,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.FileBase;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -71,7 +72,7 @@ public class CreateCommand extends AbstractCommand {
 			final NodeInterface newNode	= app.create(type, properties);
 
 			// check for File node and store in WebSocket to receive chunks
-			if (newNode instanceof File) {
+			if (newNode instanceof FileBase) {
 
 				long size		= (Long) webSocketData.getNodeData().get("size");
 				String contentType	= (String) webSocketData.getNodeData().get("contentType");
