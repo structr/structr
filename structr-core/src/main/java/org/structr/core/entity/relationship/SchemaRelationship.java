@@ -172,6 +172,24 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	}
 
 	@Override
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+		if (super.onDeletion(securityContext, errorBuffer, properties)) {
+
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+
+			return true;
+
+		}
+
+		return false;
+
+	}
+
+
+
+	@Override
 	public void onRelationshipDeletion() {
 
 		Services.getInstance().getConfigurationProvider().unregisterEntityType(getClassName());

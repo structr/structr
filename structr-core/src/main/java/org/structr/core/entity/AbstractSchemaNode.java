@@ -23,7 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import static org.structr.core.entity.AbstractNode.name;
+import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
@@ -87,6 +87,10 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 
 			SchemaHelper.removeDynamicGrants(getResourceSignature());
 		}
+
+		// register transaction post processing that recreates the schema information
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+
 	}
 
 	public String getResourceSignature() {
