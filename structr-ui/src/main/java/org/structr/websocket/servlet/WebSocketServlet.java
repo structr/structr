@@ -20,16 +20,17 @@ package org.structr.websocket.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.structr.websocket.WebSocketDataGSONAdapter;
-import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.StructrWebSocketCreator;
 import org.structr.websocket.SynchronizationController;
+import org.structr.websocket.WebSocketDataGSONAdapter;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,10 +56,18 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 	public void configure(final WebSocketServletFactory factory) {
 		
 		// create GSON serializer
-		final Gson gson = new GsonBuilder()
+		final GsonBuilder gsonBuilder = new GsonBuilder()
 			.setPrettyPrinting()
-			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getDefaultIdProperty(), config.getOutputNestingDepth()))
-			.create();
+			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getDefaultIdProperty(), config.getOutputNestingDepth()));
+		
+		final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
+		if (lenient) {
+			// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
+			gsonBuilder.serializeSpecialFloatingPointValues();
+			
+		}
+		
+		final Gson gson = gsonBuilder.create();
 		
 		final SynchronizationController syncController = new SynchronizationController(gson);
 		
