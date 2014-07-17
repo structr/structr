@@ -397,7 +397,9 @@ var _Schema = {
                             ],
                             ["Label", {
                                     cssClass: "label rel-type",
-                                    label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType) + ' <img alt="Edit schema relationship" class="edit icon" src="icon/pencil.png"></div>',
+                                    label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType)
+                                            + ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
+                                            + ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png"></div>',
                                     location: .5 + offset,
                                     id: "label",
                                     events: {
@@ -467,6 +469,20 @@ var _Schema = {
                             _Schema.loadRelationship(entity, dialogText);
                         });
 
+                        return false;
+                    });
+
+                    $('#rel_' + res.id + ' .remove').on('click', function(e) {
+                        e.stopPropagation();
+                        Structr.confirmation('<h3>Delete schema relationship?</h3>',
+                                function() {
+                                    $.unblockUI({
+                                        fadeOut: 25
+                                    });
+                                    _Schema.detach(res.id);
+                                    _Schema.reload();
+                                });
+                        _Schema.reload();
                         return false;
                     });
                 });
