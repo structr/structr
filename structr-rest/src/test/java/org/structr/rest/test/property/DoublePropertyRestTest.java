@@ -21,9 +21,8 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.response.Response;
+import static org.hamcrest.Matchers.equalTo;
 import org.structr.rest.common.StructrRestTest;
-
-import static org.hamcrest.Matchers.*;
 
 /**
  *
@@ -68,8 +67,9 @@ public class DoublePropertyRestTest extends StructrRestTest {
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 2.3 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 3.4 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'        : 'test' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : NaN } ").expect().statusCode(201).when().post("/test_threes");
 
-		// test for three elements
+		// test for five elements
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -79,7 +79,7 @@ public class DoublePropertyRestTest extends StructrRestTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
-			.body("result_count", equalTo(4))
+			.body("result_count", equalTo(5))
 		.when()
 			.get("/test_threes");
 
@@ -126,18 +126,36 @@ public class DoublePropertyRestTest extends StructrRestTest {
 			.body("result[0].name", equalTo("test"))
 		.when()
 			.get("/test_threes?doubleProperty=");
+
+		// test NaN value
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+		.when()
+			.get("/test_threes?doubleProperty=NaN");
 	}
 
 	public void testConverters() {
 
-		// test int property on regular node
+		// test double property on regular node
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : asdf } ").expect().statusCode(422).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 'asdf' } ").expect().statusCode(422).when().post("/test_threes");
 
-		// test int property on dynamic node
+		// test double property on dynamic node
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_doubleProperty': 'Double' } ").expect().statusCode(201).when().post("/schema_nodes");
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : asdf } ").expect().statusCode(422).when().post("/tests");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 'asdf' } ").expect().statusCode(422).when().post("/tests");
+		
+		// test NaN value on regular node
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : NaN } ").expect().statusCode(201).when().post("/test_threes");
+		
 	}
 }

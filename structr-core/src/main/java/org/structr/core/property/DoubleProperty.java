@@ -112,6 +112,15 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 
 		@Override
 		public Object revert(Double source) throws FrameworkException {
+			
+			if (Double.isNaN(source)) {
+				return null;
+			}
+			
+			if (Double.isInfinite(source)) {
+				return null;
+			}
+
 			return source;
 		}
 
