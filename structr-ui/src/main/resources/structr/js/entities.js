@@ -414,6 +414,10 @@ var _Entities = {
 
                         if (view === '_html_') {
                             if (key !== 'id') {
+                                props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td>'
+                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                            }
+                            if (key === '_html_class' || key === '_html_id') {
                                 props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
                                         + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             }
@@ -532,10 +536,20 @@ var _Entities = {
                             });
                         });
                     });
-                    props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
+                    props.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
                     $('.props tr td.value input', dialog).each(function(i, v) {
                         _Entities.activateInput(v, id);
                     });
+                    
+                    $('input[name="_html_class"]', props).focus();
+                    
+                    tabView.append('<button class="show-all">Show all attributes</button>');
+                    $('.show-all', tabView).on('click', function() {
+                        $('tr.hidden').toggle();
+                        $(this).remove();
+                    });
+                    
+                    
                 });
             }
         });
