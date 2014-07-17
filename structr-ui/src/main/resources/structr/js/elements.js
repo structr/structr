@@ -335,13 +335,28 @@ var _Elements = {
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
 
         var icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
-
+        
+        var classIdString = '<span class="class-id-attrs">' + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
+                + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '') + '</span>';
+        
         div.append('<img class="typeIcon" src="' + icon + '">'
                 + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b><span class="id">' + entity.id + '</span>'
-                + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
-                + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
+                + classIdString
                 + '</div>');
 
+        var classId = $('.class-id-attrs', div);
+        
+        if (!entity._html_id && !entity._html_class) {
+            div.on('mouseover', function() { console.log('over'); classId.html('click to set'); });
+            div.on('mouseout', function() { console.log('out'); classId.html(''); });
+        }
+
+
+//        classId.tooltip({ content: '<input type="text" id="edit-html-id" value="' + entity._html_id + '">' });
+//        classId.on('mousedown', function() {
+//           console.log('Clicked on class/id attributes'); 
+//        });
+        
         _Entities.appendExpandIcon(div, entity, hasChildren);
 
         // Prevent type icon from being draggable
