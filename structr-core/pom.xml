@@ -31,7 +31,7 @@
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <structr.version>1.0-SNAPSHOT</structr.version>
-        <neo4j.version>2.0.3</neo4j.version>
+        <neo4j.version>2.0.4</neo4j.version>
     </properties>
 
     <repositories>
