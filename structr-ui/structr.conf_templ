@@ -64,6 +64,10 @@ superuser.password =
 # Indent JSON
 json.indentation = true
 #
+# Use lenient serialization, f.e. allow to serialize NaN, -Infinity, Infinity instead of just returning null
+# Please note: As long as Javascript doesn't support NaN etc., most of the UI will be broken
+#json.lenient = true
+#
 # Neo4j shell
 neo4j.shell.enabled = true
 neo4j.shell.port = 1337

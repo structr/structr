@@ -407,11 +407,8 @@ var StructrModel = {
             callback = undefined;
             delete callback;
         }
-    },
-
-    mainDialog : function(entity, el) {
-
     }
+
 }
 
 
@@ -472,13 +469,6 @@ StructrFolder.prototype.append = function(refNode) {
     StructrModel.expand(_Files.appendFolderElement(this, refNode), this);
 }
 
-StructrElement.prototype.showMainDialog = function(mainTabs, entity) {
-
-    _Entities.appendPropTab(mainTabs, 'main', 'Main', false, function(c) {
-        _Dialogs.showFolderDialog(entity, c);
-    });
-}
-
 
 /**************************************
  * Structr File
@@ -534,13 +524,6 @@ StructrFile.prototype.append = function() {
         if (parentFolder) parentFolder.files.push(file);
     }
     StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
-}
-
-StructrElement.prototype.showMainDialog = function(mainTabs, entity) {
-
-    _Entities.appendPropTab(mainTabs, 'main', 'Main', false, function(c) {
-        _Dialogs.showFileDialog(entity, c);
-    });
 }
 
 
@@ -603,13 +586,6 @@ StructrImage.prototype.append = function(refNode) {
     }
 }
 
-StructrElement.prototype.showMainDialog = function(mainTabs, entity) {
-
-    _Entities.appendPropTab(mainTabs, 'main', 'Main', false, function(c) {
-        _Dialogs.showImageDialog(entity, c);
-    });
-}
-
 
 /**************************************
  * Structr User
@@ -663,13 +639,6 @@ StructrUser.prototype.append = function() {
     StructrModel.expand(_UsersAndGroups.appendUserElement(this, group), this);
 }
 
-StructrElement.prototype.showMainDialog = function(mainTabs, entity) {
-
-    _Entities.appendPropTab(mainTabs, 'main', 'Main', false, function(c) {
-        _Dialogs.showUserDialog(entity, c);
-    });
-}
-
 /**************************************
  * Structr Group
  **************************************/
@@ -691,13 +660,6 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrGroup.prototype.append = function(refNode) {
     StructrModel.expand(_UsersAndGroups.appendGroupElement(this, refNode), this);
-}
-
-StructrElement.prototype.showMainDialog = function(mainTabs, entity) {
-
-    _Entities.appendPropTab(mainTabs, 'main', 'Main', false, function(c) {
-        _Dialogs.showGroupDialog(entity, c);
-    });
 }
 
 /**************************************
@@ -813,16 +775,6 @@ StructrElement.prototype.exists = function() {
     return !isMasterComponent && Structr.node(obj.id);
 }
 
-StructrElement.prototype.hasMainDialog = function() {
-    return true;
-}
-
-StructrElement.prototype.showMainDialog = function(mainTabs, entity) {
-
-    _Entities.appendPropTab(mainTabs, 'main', 'Main', false, function(c) {
-        _Dialogs.showElementDialog(entity, c);
-    });
-}
 
 /**************************************
  * Structr Content

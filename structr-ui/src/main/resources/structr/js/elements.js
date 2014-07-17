@@ -344,12 +344,12 @@ var _Elements = {
                 + classIdString
                 + '</div>');
 
-        var classId = $('.class-id-attrs', div);
+//        var classId = $('.class-id-attrs', div);
         
-        if (!entity._html_id && !entity._html_class) {
-            div.on('mouseover', function() { console.log('over'); classId.html('click to set'); });
-            div.on('mouseout', function() { console.log('out'); classId.html(''); });
-        }
+//        if (!entity._html_id && !entity._html_class) {
+//            div.on('mouseover', function() { console.log('over'); classId.html('click to set'); });
+//            div.on('mouseout', function() { console.log('out'); classId.html(''); });
+//        }
 
 
 //        classId.tooltip({ content: '<input type="text" id="edit-html-id" value="' + entity._html_id + '">' });

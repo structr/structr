@@ -44,21 +44,17 @@ public class Link extends LinkSource {
 	public static final Property<String> _hreflang = new HtmlProperty("hreflang");
 	public static final Property<String> _type     = new HtmlProperty("type");
 	public static final Property<String> _sizes    = new HtmlProperty("sizes");
-
+	
 //	public static final EndNodes<Head> heads      = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
-
+	
 	public static final Property<Linkable> linkable   = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
 	public static final Property<String>   linkableId = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(Link.class, PropertyView.Ui,
 		linkableId, linkable
 	);
-
+	
 	public static final View htmlView = new View(Link.class, PropertyView.Html,
-		_href, _rel, _media, _hreflang, _type, _sizes
-	);
-
-	public static final View mainView = new View(Link.class, PropertyView.Main,
 		_href, _rel, _media, _hreflang, _type, _sizes
 	);
 
@@ -75,41 +71,41 @@ public class Link extends LinkSource {
 		return true;
 
 	}
-
+	
 //	@Override
 //	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-//
+//		
 //		Linkable target = getProperty(linkable);
-//
+//		
 //		if (target instanceof File) {
-//
+//			
 //			File file = (File) target;
-//
+//			
 //			String contentType = file.getProperty(File.contentType);
-//
+//			
 //			if (contentType != null) {
-//
+//				
 //				setProperty(_type, contentType);
-//
+//				
 //				if ("text/css".equals(contentType)) {
-//
+//				
 //					setProperty(_rel, "stylesheet");
 //					setProperty(_media, "screen");
-//
+//					
 //				}
-//
+//				
 //			}
-//
+//			
 //			if (getProperty(_href) == null) {
-//
+//				
 //				setProperty(_href, "${link.path}");
-//
+//				
 //			}
-//
+//			
 //		}
-//
+//		
 //		return true;
-//
+//		
 //	}
-
+	
 }

@@ -1038,13 +1038,23 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, config.getDefaultIdProperty(), outputNestingDepth);
 
 			// create GSON serializer
-			return new GsonBuilder()
+			final GsonBuilder gsonBuilder = new GsonBuilder()
 				.setPrettyPrinting()
 				.serializeNulls()
 				.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
 				.registerTypeAdapter(JsonInput.class, jsonInputAdapter)
-				.registerTypeAdapter(Result.class, resultGsonAdapter)
-				.create();
+				.registerTypeAdapter(Result.class, resultGsonAdapter);
+			
+		
+			final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
+			if (lenient) {
+
+				// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
+				gsonBuilder.serializeSpecialFloatingPointValues();
+
+			}
+			
+			return gsonBuilder.create();
 		}
 	}
 	// </editor-fold>

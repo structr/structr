@@ -38,7 +38,7 @@ var _Dialogs = {
 
         var id = entity.id;
 
-        el.append('<h3>General HTML properties</h3>');
+        el.append('<h3>Most used HTML properties</h3>');
         el.append('<table class="props" id="html-properties"></table>');
 
         el.append('<h3>Properties for type ' + entity.tag + '</h3>');
@@ -47,8 +47,8 @@ var _Dialogs = {
         var typeProperties = $('#type-properties');
         var htmlProperties = $('#html-properties');
 
-        _Dialogs.appendLabeledInput(htmlProperties, 'id', '_html_id', entity);
         _Dialogs.appendLabeledInput(htmlProperties, 'class', '_html_class', entity);
+        _Dialogs.appendLabeledInput(htmlProperties, 'id', '_html_id', entity);
         _Dialogs.appendLabeledInput(htmlProperties, 'style', '_html_style', entity);
 
         $.ajax({

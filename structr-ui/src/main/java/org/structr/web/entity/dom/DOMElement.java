@@ -46,7 +46,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
@@ -67,10 +66,6 @@ import org.structr.web.datasource.IdRequestParameterGraphDataSource;
 import org.structr.web.datasource.NodeGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
-import static org.structr.web.entity.dom.DOMNode.hideConditions;
-import static org.structr.web.entity.dom.DOMNode.hideForLocales;
-import static org.structr.web.entity.dom.DOMNode.showConditions;
-import static org.structr.web.entity.dom.DOMNode.showForLocales;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.relation.PageLink;
@@ -207,8 +202,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent
 	);
 
-	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui,
-		name, tag, pageId, path, parent, children, childrenIds, owner,
+	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
 		restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent,
 		renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
 		_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
@@ -1170,7 +1164,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private void renderStructrAppLib(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-
+		
 		if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
 
 			out
