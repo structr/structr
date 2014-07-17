@@ -24,6 +24,11 @@
     padding: 12px;
 }*/
 
+#schema-graph {
+	overflow: auto;
+	position: relative;
+}
+
 .large {
     width: 600px;
     height: 300px;
