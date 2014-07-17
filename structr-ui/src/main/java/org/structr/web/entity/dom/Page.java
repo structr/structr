@@ -115,6 +115,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage
 	);
 
+	public static final org.structr.common.View mainView = new org.structr.common.View(Page.class, PropertyView.Main,
+		contentType, position, showOnErrorCodes
+	);
+
 	private Html5DocumentType docTypeNode = null;
 
 	// register this type as an overridden builtin type

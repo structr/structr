@@ -45,17 +45,17 @@ import org.w3c.dom.Node;
 public class Script extends LinkSource {
 
 	private static final Logger logger = Logger.getLogger(Script.class.getName());
-	
+
 	public static final Property<String> _src     = new HtmlProperty("src");
 	public static final Property<String> _async   = new HtmlProperty("async");
 	public static final Property<String> _defer   = new HtmlProperty("defer");
 	public static final Property<String> _type    = new HtmlProperty("type");
 	public static final Property<String> _charset = new HtmlProperty("charset");
-		
+
 //	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 //	public static final EndNodes<Head>    heads    = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
 //	public static final EndNodes<Div>     divs     = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
- 
+
 	public static final Property<Linkable> linkable   = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
 	public static final Property<String>   linkableId = new EntityIdProperty("linkableId", linkable);
 
@@ -67,6 +67,10 @@ public class Script extends LinkSource {
 		_src, _async, _defer, _type, _charset
 	);
 
+	public static final View mainView = new View(Script.class, PropertyView.Main,
+		_src, _type
+	);
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -75,19 +79,19 @@ public class Script extends LinkSource {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
-	
+
 	@Override
 	protected void handleNewChild(final Node newChild) {
-		
+
 		if (newChild instanceof Content) {
 
 			try {
 				((Content)newChild).setProperty(Content.contentType, getProperty(_type));
-				
+
 			} catch (FrameworkException fex) {
-				
+
 				logger.log(Level.WARNING, "Unable to set property on new child: {0}", fex.getMessage());
-				
+
 			}
 		}
 	}

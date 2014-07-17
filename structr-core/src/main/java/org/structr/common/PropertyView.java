@@ -31,34 +31,39 @@ public interface PropertyView {
 	 * scanning the entities upon system start.
 	 */
 	public static final String All =	"all";
-	
+
 	/**
 	 * The "public" view, this is the default view for structr entities.
 	 */
 	public static final String Public =	"public";
-	
+
 	/**
 	 * The "protected" view, free to use.
 	 */
 	public static final String Protected =	"protected";
-	
+
 	/**
 	 * The "private" view, free to use.
 	 */
 	public static final String Private =	"private";
-	
+
 	/**
 	 * The "owner" view, free to use.
 	 */
 	public static final String Owner =	"owner";
-	
+
 	/**
 	 * The "ui" view used by structr UI.
 	 */
 	public static final String Ui	=	"ui";
-	
+
 	/**
 	 * The "html" view used by structr UI.
 	 */
 	public static final String Html =	"_html_";
+
+	/**
+	 * The "main" view used by structr UI.
+	 */
+	public static final String Main =	"main";
 }
