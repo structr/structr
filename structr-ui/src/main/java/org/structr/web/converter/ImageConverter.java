@@ -108,7 +108,7 @@ public class ImageConverter extends PropertyConverter {
 
 							if (img == null) {
 
-								img = (Image) ImageHelper.createFile64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+								img = (Image) ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
 
 							}
 

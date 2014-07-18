@@ -55,7 +55,7 @@ public class ThumbnailTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 			
-			TestImage img = (TestImage) ImageHelper.createFile64(securityContext, base64Image, TestImage.class);
+			TestImage img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
 			img.setProperty(AbstractNode.name, "test-image.png");
 			

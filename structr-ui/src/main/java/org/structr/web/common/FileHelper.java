@@ -100,7 +100,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.dynamic.File> T createFile64(final SecurityContext securityContext, final String rawData, final Class<T> t) throws FrameworkException, IOException {
+	public static <T extends org.structr.dynamic.File> T createFileBase64(final SecurityContext securityContext, final String rawData, final Class<T> t) throws FrameworkException, IOException {
 
 		Base64URIData uriData = new Base64URIData(rawData);
 

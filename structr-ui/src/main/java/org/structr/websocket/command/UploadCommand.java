@@ -61,7 +61,7 @@ public class UploadCommand extends AbstractCommand {
 
 			final String name    = (String) webSocketData.getNodeData().get("name");
 			final String rawData = (String) webSocketData.getNodeData().get("fileData");
-			File newFile     = FileHelper.createFile64(securityContext, rawData, null);
+			File newFile     = FileHelper.createFileBase64(securityContext, rawData, null);
 
 			newFile.setProperty(AbstractNode.name, name);
 
