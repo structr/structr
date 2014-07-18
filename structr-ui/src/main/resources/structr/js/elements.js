@@ -97,6 +97,28 @@ var _Elements = {
             'elements': ['details', 'summary', 'command', 'menu']
         }
     ],
+    mostUsedAttrs: [
+        {
+            'elements': ['input', 'button', 'select', 'option'],
+            'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder']
+        },
+        {
+            'elements': ['form'],
+            'attrs': ['action', 'method']
+        },
+        {
+            'elements': ['img'],
+            'attrs': ['alt', 'title', 'src']
+        },
+        {
+            'elements': ['script', 'link', 'a', 'img', 'object'],
+            'attrs': ['type', 'rel', 'href', 'media']
+        },
+        {
+            'elements': ['td', 'th'],
+            'attrs': ['colspan', 'rowspan']
+        },
+    ],
     /**
      * Reload widgets
      */

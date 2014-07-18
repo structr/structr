@@ -413,12 +413,18 @@ var _Entities = {
                     $(keys).each(function(i, key) {
 
                         if (view === '_html_') {
-                            if (key !== 'id') {
-                                props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td>'
-                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
-                            }
-                            if (key === '_html_class' || key === '_html_id') {
+                            var display = false;
+                            _Elements.mostUsedAttrs.forEach(function(mostUsed) {
+                                if (isIn(entity.tag, mostUsed.elements) && isIn(key.substring(6), mostUsed.attrs)) {
+                                    display = true;
+                                }
+                            });
+                            
+                            if (display || key === '_html_class' || key === '_html_id') {
                                 props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
+                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                            } else if (key !== 'id') {
+                                props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td>'
                                         + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             }
                         } else if (view === 'in' || view === 'out') {
