@@ -55,6 +55,21 @@ public class FileBase extends AbstractFile implements Linkable {
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile);
 
 	@Override
+	public void onNodeCreation() {
+
+		final String uuid = getUuid();
+		final String filePath = getDirectoryPath(uuid) + "/" + uuid;
+
+		try {
+			setProperty(relativeFilePath, filePath);
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING, "Exception while trying to set relative file path {0}: {1}", new Object[]{filePath, t});
+
+		}
+	}
+
+	@Override
 	public void onNodeDeletion() {
 
 		String filePath = null;
@@ -210,7 +225,8 @@ public class FileBase extends AbstractFile implements Linkable {
 
 						fis.close();
 
-					} catch (IOException ignore) {}
+					} catch (IOException ignore) {
+					}
 
 				}
 			}

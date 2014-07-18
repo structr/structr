@@ -18,26 +18,22 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.GraphObject;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -79,9 +75,7 @@ public class CreateCommand extends AbstractCommand {
 				String name		= (String) webSocketData.getNodeData().get("name");
 
 				File fileNode = (File) newNode;
-				String uuid   = newNode.getProperty(GraphObject.id);
 
-				fileNode.setProperty(File.relativeFilePath, File.getDirectoryPath(uuid) + "/" + uuid);
 				fileNode.setProperty(File.size, size);
 				fileNode.setProperty(File.contentType, contentType);
 				fileNode.setProperty(AbstractNode.name, name);
