@@ -394,7 +394,7 @@ var _Entities = {
     },
     listProperties: function(entity, view, tabView, typeInfo) {
         $.ajax({
-            url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
+            url: rootUrl + entity.id + (view ? '/' + view : ''),
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             success: function(data) {
@@ -440,7 +440,7 @@ var _Entities = {
                             
                             var type = typeInfo[key].type;
                             var isHidden = isIn(key, _Entities.hiddenAttrs);
-                            var isReadOnly = typeInfo[key].readOnly; //isIn(key, _Entities.readOnlyAttrs);
+                            var isReadOnly = typeInfo[key].readOnly && !isAdmin; //isIn(key, _Entities.readOnlyAttrs);
                             var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
                             var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
                             var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
