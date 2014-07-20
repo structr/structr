@@ -221,9 +221,25 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 			if (searchValues != null && !searchValues.isEmpty()) {
 
-				boolean allBlank = true;
+				final PropertyKey key                  = notion.getPrimaryPropertyKey();
+				final PropertyConverter inputConverter = key.inputConverter(securityContext);
+				final List<Object> transformedValues   = new LinkedList<>();
+				boolean allBlank                       = true;
 
+				// transform search values using input convert of notion property
 				for (T searchValue : searchValues) {
+
+					if (inputConverter != null) {
+
+						transformedValues.add(inputConverter.convert(searchValue));
+					} else {
+
+						transformedValues.add(searchValue);
+					}
+				}
+
+				// iterate over transformed values
+				for (Object searchValue : transformedValues) {
 
 					// check if the list contains non-empty search values
 					if (StringUtils.isBlank(searchValue.toString())) {
