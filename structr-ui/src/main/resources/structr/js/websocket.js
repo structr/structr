@@ -18,7 +18,7 @@
  */
 
 var ws;
-var loggedIn = false;
+var loggedIn = false, isAdmin = false;
 var user;
 var reconn, ping;
 var port = document.location.port;
@@ -129,9 +129,10 @@ function wsConnect() {
             if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
 
                 user = data.data.username;
+                isAdmin = data.data.isAdmin;
                 var oldUser = localStorage.getItem(userKey);
 
-                log(command, code, 'user:', user, ', oldUser:', oldUser, 'session valid:', sessionValid);
+                log(command, code, 'user:', user, ', oldUser:', oldUser, 'session valid:', sessionValid, 'isAdmin', isAdmin);
 
                 if (!sessionValid) {
                     localStorage.removeItem(userKey);
