@@ -90,11 +90,15 @@ public class NotionPropertyParser extends PropertyParser {
 				}
 
 				buf.append(", ");
+				buf.append(entity.getClassName());
+				buf.append(".");
 				buf.append(baseProperty);
 				buf.append("Property,");
 
+				final boolean isBoolean = (parts.length == 3 && ("true".equals(parts[2].toLowerCase())));
+
 				// use PropertyNotion when only a single element is given
-				if (parts.length == 2) {
+				if (parts.length == 2 || isBoolean) {
 
 					buf.append(" new PropertyNotion(");
 
@@ -107,8 +111,11 @@ public class NotionPropertyParser extends PropertyParser {
 
 					String propertyName = parts[i];
 
-					buf.append(relatedType);
-					buf.append(".");
+					if (!"true".equals(propertyName.toLowerCase())) {
+
+						buf.append(relatedType);
+						buf.append(".");
+					}
 
 					if (propertyName.startsWith("_")) {
 						propertyName = propertyName.substring(1) + "Property";

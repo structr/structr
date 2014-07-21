@@ -37,6 +37,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.Services;
 import org.structr.module.JarConfigurationProvider;
 
 /**
@@ -77,6 +78,12 @@ public class NodeExtender {
 
 			jfiles.add(new CharSequenceJavaFileObject(className, content));
 			fqcns.add(packageName.concat(".".concat(className)));
+
+			if ("true".equals(Services.getInstance().getConfigurationValue("NodeExtender.log"))) {
+
+				System.out.println("########################################################################################################################################################");
+				System.out.println(content);
+			}
 		}
 	}
 

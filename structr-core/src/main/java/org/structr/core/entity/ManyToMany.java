@@ -52,7 +52,7 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	public ManyEndpoint<T> getTarget() {
 		return new ManyEndpoint<>(this);
 	}
-	
+
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
@@ -64,7 +64,7 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 		final Class<? extends ManyToMany> clazz = getClass();
 
 		if (sourceNode != null) {
-			
+
 			// check existing relationships
 			final Iterable<Relation<S, ?, ?, ?>> outgoingRels = sourceNode.getOutgoingRelationships(clazz);
 
@@ -78,7 +78,7 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 			}
 		}
 	}
-	
+
 	@Override
 	public Notion getEndNodeNotion() {
 		return new RelationshipNotion(getTargetIdProperty());
@@ -89,22 +89,22 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	public Notion getStartNodeNotion() {
 		return new RelationshipNotion(getSourceIdProperty());
 	}
-	
+
 	@Override
 	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
 		return super.getDirectionForType(getSourceType(), getTargetType(), type);
 	}
-	
+
 	@Override
 	public Class getOtherType(final Class type) {
-		
+
 		switch (getDirectionForType(type)) {
-			
+
 			case INCOMING: return getSourceType();
 			case OUTGOING: return getTargetType();
 			case BOTH:     return getSourceType();	// don't know...
 		}
-		
+
 		return null;
 	}
 }

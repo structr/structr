@@ -55,7 +55,7 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	public OneEndpoint<T> getTarget() {
 		return new OneEndpoint<>(this);
 	}
-	
+
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
@@ -75,7 +75,8 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 			final Relation<S, ?, ?, ?> outgoingRel = sourceNode.getOutgoingRelationship(clazz);
 
 			// remove relationship if exists
-			if (outgoingRel != null && targetType.isAssignableFrom(outgoingRel.getTargetType())) {
+//			if (outgoingRel != null && targetType.isAssignableFrom(outgoingRel.getTargetType())) {
+			if (outgoingRel != null && targetType.isInstance(outgoingRel.getTargetNode())) {
 				app.delete(outgoingRel);
 			}
 		}
@@ -85,12 +86,13 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 			// check existing relationships
 			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
 
-			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
+//			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
+			if (incomingRel != null && sourceType.isInstance(incomingRel.getSourceNode())) {
 				app.delete(incomingRel);
 			}
 		}
 	}
-	
+
 	@Override
 	public Notion getEndNodeNotion() {
 		return new RelationshipNotion(getTargetIdProperty());
@@ -101,22 +103,22 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	public Notion getStartNodeNotion() {
 		return new RelationshipNotion(getSourceIdProperty());
 	}
-	
+
 	@Override
 	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
 		return super.getDirectionForType(getSourceType(), getTargetType(), type);
 	}
-	
+
 	@Override
 	public Class getOtherType(final Class type) {
-		
+
 		switch (getDirectionForType(type)) {
-			
+
 			case INCOMING: return getSourceType();
 			case OUTGOING: return getTargetType();
 			case BOTH:     return getSourceType();	// don't know...
 		}
-		
+
 		return null;
 	}
 }

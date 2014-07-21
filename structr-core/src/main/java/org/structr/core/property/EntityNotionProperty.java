@@ -54,19 +54,19 @@ import org.structr.core.notion.Notion;
  * @author Christian Morgner
  */
 public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T> {
-	
+
 	private static final Logger logger = Logger.getLogger(EntityNotionProperty.class.getName());
-	
+
 	private Property<S> entityProperty = null;
 	private Notion<S, T> notion        = null;
-	
+
 	public EntityNotionProperty(final String name, final Property<S> base, final Notion<S, T> notion) {
-		
+
 		super(name);
-		
+
 		this.notion = notion;
 		this.entityProperty   = base;
-		
+
 		notion.setType(base.relatedType());
 	}
 
@@ -79,27 +79,27 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> passivelyIndexed() {
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public boolean isSearchable() {
 		return true;
@@ -119,7 +119,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	public Integer getSortType() {
 		return null;
 	}
-	
+
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
@@ -142,27 +142,27 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		try {
 			return notion.getAdapterForGetter(securityContext).adapt(entityProperty.getProperty(securityContext, obj, applyConverter, predicate));
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			logger.log(Level.WARNING, "Unable to apply notion of type {0} to property {1}", new Object[] { notion.getClass(), this } );
 		}
-		
+
 		return null;
 	}
 
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
-		
+
 		if (value != null) {
-	
+
 			entityProperty.setProperty(securityContext, obj, notion.getAdapterForSetter(securityContext).adapt(value));
-			
+
 		} else {
-			
+
 			entityProperty.setProperty(securityContext, obj, null);
 		}
 	}
@@ -176,10 +176,10 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	public boolean isCollection() {
 		return false;
 	}
-	
+
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch, final Query query) {
-		
+
 		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
 		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
 		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
@@ -189,11 +189,16 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 			if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
 
-				final App app = StructrApp.getInstance(securityContext);
-				
+				final App app                          = StructrApp.getInstance(securityContext);
+				final PropertyKey key                  = notion.getPrimaryPropertyKey();
+				final PropertyConverter inputConverter = key.inputConverter(securityContext);
+
+				// transform search values using input convert of notion property
+				final Object transformedValue          = inputConverter != null ? inputConverter.convert(searchValue) : searchValue;
+
 				if (exactMatch) {
-					
-					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue).getResult();
+
+					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(key, transformedValue).getResult();
 
 					for (AbstractNode node : result.getResults()) {
 
@@ -224,11 +229,11 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 								break;
 						}
 					}
-					
+
 				} else {
 
-					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType(), false).and(notion.getPrimaryPropertyKey(), searchValue, false).getResult();
-					
+					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType(), false).and(key, transformedValue, false).getResult();
+
 					// loose search behaves differently, all results must be combined
 					for (AbstractNode node : result.getResults()) {
 
@@ -237,23 +242,23 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 				}
 
 				attr.setResult(intersectionResult);
-				
+
 			} else {
-				
+
 				// experimental filter attribute that
 				// removes entities with a non-empty
 				// value in the given field
 				return new EmptySearchAttribute(this, null);
 			}
-						
+
 		} catch (FrameworkException fex) {
-			
+
 			fex.printStackTrace();
 		}
-		
+
 		return attr;
 	}
-	
+
 	@Override
 	public void index(GraphObject entity, Object value) {
 		// no direct indexing
