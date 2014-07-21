@@ -258,6 +258,11 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	@Override
 	public String getAuxiliarySource() throws FrameworkException {
 
+		// only File needs to return auxiliary code!
+		if (!"org.structr.dynamic.File".equals(getClassName())) {
+			return null;
+		}
+
 		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
