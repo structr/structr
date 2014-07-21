@@ -1567,5 +1567,5 @@ var typeOptions = '<select class="property-type"><option value="">--Select type-
         + '<option value="Counter">Counter</option>'
         + '<option value="Function">Function</option>'
         + '<option value="Notion">Notion</option>'
-        + '<option value="Joint">Joint</option>'
+        + '<option value="Join">Join</option>'
         + '<option value="Cypher">Cypher</option>';

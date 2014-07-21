@@ -61,7 +61,7 @@ import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
 import org.structr.schema.parser.FunctionPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
-import org.structr.schema.parser.JointPropertyParser;
+import org.structr.schema.parser.JoinPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.PropertyParser;
@@ -77,7 +77,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Joint
+		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join
 	}
 
 	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
@@ -96,11 +96,11 @@ public class SchemaHelper {
 		parserMap.put(Type.Double,      DoublePropertyParser.class);
 		parserMap.put(Type.Notion,      NotionPropertyParser.class);
 		parserMap.put(Type.Cypher,      CypherPropertyParser.class);
-		parserMap.put(Type.Joint,       JointPropertyParser.class);
 		parserMap.put(Type.Long,        LongPropertyParser.class);
 		parserMap.put(Type.Enum,        EnumPropertyParser.class);
 		parserMap.put(Type.Date,        DatePropertyParser.class);
 		parserMap.put(Type.Count,       CountPropertyParser.class);
+		parserMap.put(Type.Join,        JoinPropertyParser.class);
 	}
 
 	/**
