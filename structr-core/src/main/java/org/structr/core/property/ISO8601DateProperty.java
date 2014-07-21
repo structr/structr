@@ -19,17 +19,13 @@
 package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
-
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.Date;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -132,7 +128,7 @@ public class ISO8601DateProperty extends DateProperty {
 						source = StringUtils.replace(source, "Z", "+0000");
 					}
 
-					return new SimpleDateFormat(pattern).parse(source);
+					return new SimpleDateFormat(format).parse(source);
 					
 				} catch (Throwable t) {
 
@@ -151,7 +147,7 @@ public class ISO8601DateProperty extends DateProperty {
 
 			if (source != null) {
 
-				return new SimpleDateFormat(pattern).format(source);
+				return new SimpleDateFormat(format).format(source);
 			}
 
 			return null;

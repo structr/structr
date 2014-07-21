@@ -450,6 +450,19 @@ var _Crud = {
         return (view && view[key] ? view[key].relatedType : null);
     },
     /**
+     * Return the format information stored about the given property key
+     */
+    getFormat: function(key, type) {
+        var typeDef = _Crud.schema[type];
+        var view = typeDef.views[_Crud.view[type]];
+        var format;
+        if (view && view[key]) {
+            format = view[key].format;
+        }
+        console.log(format);
+        return format;
+    },
+    /**
      * Append a pager for the given type to the given DOM element.
      */
     addPager: function(type, el) {
@@ -1469,6 +1482,8 @@ var _Crud = {
             } else if (propertyType === 'Date') {
                 cell.html(nvl(formatValue(value), '<img src="icon/calendar.png">'));
                 if (!readOnly) {
+                    //var dateTimeFormat = _Crud.getFormat(key, type).split('\'T\'');
+                    //console.log(dateTimeFormat);
                     cell.on('mouseup', function(event) {
                         event.preventDefault();
                         var self = $(this);
@@ -1478,9 +1493,11 @@ var _Crud = {
                         input.val(oldValue);
                         input.datetimepicker({
                             // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                            separator: 'T',
                             dateFormat: 'yy-mm-dd',
                             timeFormat: 'HH:mm:ssz',
+                            separator: 'T',
+                            //dateFormat: dateTimeFormat[0],
+                            //timeFormat: dateTimeFormat[1].replace(/Z/, 'z'),
                             onClose: function() {
                                 var newValue = input.val();
                                 if (id) {

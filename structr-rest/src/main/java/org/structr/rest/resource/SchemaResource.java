@@ -26,19 +26,20 @@ import java.util.Set;
 import java.util.TreeMap;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.CaseHelper;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.StringProperty;
-import org.structr.core.*;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.schema.SchemaHelper;
 
 /**
  *
@@ -103,7 +104,7 @@ public class SchemaResource extends Resource {
 						propProperties.put("jsonName", property.jsonName());
 						propProperties.put("className", property.getClass().getName());
 						propProperties.put("defaultValue", property.defaultValue());
-
+						propProperties.put("format", property.format());
 						propProperties.put("readOnly", property.isReadOnly());
 						propProperties.put("system", property.isUnvalidated());
 

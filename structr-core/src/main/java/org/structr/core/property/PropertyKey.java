@@ -84,6 +84,7 @@ public interface PropertyKey<T> {
 	 * Use this method to mark a property for indexing 
 	 * in the given index.
 	 * 
+	 * @param nodeIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> indexed(NodeService.NodeIndex nodeIndex);
@@ -92,6 +93,7 @@ public interface PropertyKey<T> {
 	 * Use this method to mark a property for indexing 
 	 * in the given index.
 	 * 
+	 * @param relIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> indexed(NodeService.RelationshipIndex relIndex);
@@ -114,6 +116,7 @@ public interface PropertyKey<T> {
 	 * the given property to be indexed at the end of a transaction instead
 	 * of immediately on setProperty().
 	 * 
+	 * @param nodeIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex);
@@ -124,6 +127,7 @@ public interface PropertyKey<T> {
 	 * the given property to be indexed at the end of a transaction instead
 	 * of immediately on setProperty().
 	 * 
+	 * @param relIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex);
@@ -134,6 +138,7 @@ public interface PropertyKey<T> {
 	/**
 	 * Returns the desired type name that will be used in the error message if a
 	 * wrong type was provided.
+	 * @return 
 	 */
 	public String typeName();
 	
@@ -152,6 +157,13 @@ public interface PropertyKey<T> {
 	 */
 	public T defaultValue();
 	
+	/**
+	 * Returns the format value for this property.
+	 * 
+	 * @return 
+	 */
+	public String format();
+
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext);
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity);
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext);

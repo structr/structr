@@ -72,6 +72,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean indexedWhenEmpty                     = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
+	protected String format                                = null;
 
 	private boolean requiresSynchronization                = false;
 
@@ -284,6 +285,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public T defaultValue() {
 		return defaultValue;
+	}
+
+	@Override
+	public String format() {
+		return format;
 	}
 
 	@Override

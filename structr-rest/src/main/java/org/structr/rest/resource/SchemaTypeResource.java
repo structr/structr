@@ -198,10 +198,12 @@ public class SchemaTypeResource extends Resource {
 
 			propProperties.put("declaringClass", declaringClass);
 			propProperties.put("defaultValue", property.defaultValue());
+			propProperties.put("format", property.format());
 			propProperties.put("readOnly", property.isReadOnly());
 			propProperties.put("system", property.isUnvalidated());
 			propProperties.put("indexed", property.isIndexed());
 			propProperties.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
+			//propProperties.put("format", property.)
 
 			final Class<? extends GraphObject> relatedType = property.relatedType();
 			if (relatedType != null) {
