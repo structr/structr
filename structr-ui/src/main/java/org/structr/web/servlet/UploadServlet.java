@@ -20,17 +20,12 @@ package org.structr.web.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import org.structr.common.*;
-import org.structr.common.SecurityContext;
-import org.structr.core.Services;
-
-//~--- JDK imports ------------------------------------------------------------
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItem;
@@ -38,7 +33,11 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
+import org.structr.common.AccessMode;
+import org.structr.common.PathHelper;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
@@ -110,7 +109,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			throw new ServletException("Content type is not multipart/form-data");
 		}
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
 			final SecurityContext securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
 
