@@ -20,16 +20,16 @@ package org.structr.core.entity;
 
 import java.util.Date;
 import java.util.List;
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EnumProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EnumProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 
@@ -55,6 +55,7 @@ public class TestOne extends AbstractNode {
 	public static final Property<String>        anotherString      = new StringProperty("anotherString");
 	public static final Property<String>        replaceString      = new StringProperty("replaceString");
 	public static final Property<String>        cleanTestString    = new StringProperty("cleanTestString");
+	public static final Property<String>        stringWithQuotes   = new StringProperty("stringWithQuotes");
 	public static final Property<Integer>       setTestInteger1    = new IntProperty("setTestInteger1");
 	public static final Property<Integer>       setTestInteger2    = new IntProperty("setTestInteger2");
 	public static final Property<Integer>       setTestInteger3    = new IntProperty("setTestInteger3");

@@ -46,6 +46,7 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.structr.common.GraphObjectComparator;
@@ -107,6 +108,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_REPLACE             = "Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}";
 	public static final String ERROR_MESSAGE_CLEAN               = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
 	public static final String ERROR_MESSAGE_URLENCODE           = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
+	public static final String ERROR_MESSAGE_ESCAPE_JS           = "Usage: ${escape_javascript(string)}. Example: ${escape_javascript(this.name)}";
 	public static final String ERROR_MESSAGE_IF                  = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
 	public static final String ERROR_MESSAGE_EMPTY               = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 	public static final String ERROR_MESSAGE_EQUAL               = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
@@ -860,6 +862,23 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_URLENCODE;
+			}
+
+		});
+		functions.put("escape_javascript", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
+					? StringEscapeUtils.escapeEcmaScript(sources[0].toString())
+					: "";
+
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_ESCAPE_JS;
 			}
 
 		});

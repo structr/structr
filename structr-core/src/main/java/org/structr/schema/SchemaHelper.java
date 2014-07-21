@@ -51,8 +51,8 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Actions;
 import org.structr.schema.action.ActionEntry;
+import org.structr.schema.action.Actions;
 import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
 import org.structr.schema.parser.CypherPropertyParser;
@@ -60,9 +60,9 @@ import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
 import org.structr.schema.parser.FunctionPropertyParser;
-import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
+import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.PropertyParser;
 import org.structr.schema.parser.StringArrayPropertyParser;
 import org.structr.schema.parser.StringPropertyParser;
@@ -827,7 +827,7 @@ public class SchemaHelper {
 						extractedValue = "";
 					}
 
-					String partValue = StringUtils.remove(extractedValue.toString(), "\\");
+					String partValue = extractedValue.toString();
 					if (partValue != null) {
 
 						replacements.put(group, partValue);
