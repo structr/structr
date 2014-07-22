@@ -156,7 +156,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 			src.append(enumDefition);
 		}
 
-		for (Entry<String, Set<String>> entry :viewProperties.entrySet()) {
+		for (Entry<String, Set<String>> entry : viewProperties.entrySet()) {
 
 			final String viewName  = entry.getKey();
 			final Set<String> view = entry.getValue();

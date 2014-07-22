@@ -123,7 +123,7 @@ if (typeof String.prototype.lpad !== 'function') {
 
 if (typeof String.prototype.contains !== 'function') {
     String.prototype.contains = function(pattern) {
-        return this.indexOf(pattern) > 0;
+        return this.indexOf(pattern) > -1;
     };
 }
 

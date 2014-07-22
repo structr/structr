@@ -459,7 +459,6 @@ var _Crud = {
         if (view && view[key]) {
             format = view[key].format;
         }
-        console.log(format);
         return format;
     },
     /**
@@ -1482,8 +1481,8 @@ var _Crud = {
             } else if (propertyType === 'Date') {
                 cell.html(nvl(formatValue(value), '<img src="icon/calendar.png">'));
                 if (!readOnly) {
-                    //var dateTimeFormat = _Crud.getFormat(key, type).split('\'T\'');
-                    //console.log(dateTimeFormat);
+                    var dateTimeFormat = _Crud.getFormat(key, type).split('\'T\'');
+                    var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
                     cell.on('mouseup', function(event) {
                         event.preventDefault();
                         var self = $(this);
@@ -1491,21 +1490,35 @@ var _Crud = {
                         self.html('<input name="' + key + '" class="value" type="text" size="40">');
                         var input = $('input', self);
                         input.val(oldValue);
-                        input.datetimepicker({
-                            // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                            dateFormat: 'yy-mm-dd',
-                            timeFormat: 'HH:mm:ssz',
-                            separator: 'T',
-                            //dateFormat: dateTimeFormat[0],
-                            //timeFormat: dateTimeFormat[1].replace(/Z/, 'z'),
-                            onClose: function() {
-                                var newValue = input.val();
-                                if (id) {
-                                    _Crud.crudUpdate(id, key, newValue);
+                        
+                        if (timeFormat) {
+                            input.datetimepicker({
+                                // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+                                dateFormat: 'yy-mm-dd',
+                                timeFormat: 'HH:mm:ssz',
+                                separator: 'T',
+                                onClose: function() {
+                                    var newValue = input.val();
+                                    var formattedValue = moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T'));
+                                    if (id) {
+                                        _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
+                                    }
                                 }
-                            }
-                        });
-                        input.datetimepicker('show');
+                            });
+                            input.datetimepicker('show');
+                        } else {
+                            input.datepicker({
+                                dateFormat: 'yy-mm-dd',
+                                onClose: function() {
+                                    var newValue = input.val();
+                                    var formattedValue = moment(newValue).formatWithJDF(dateFormat);
+                                    if (id) {
+                                        _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
+                                    }
+                                }
+                            });
+                            input.datepicker('show');
+                        }
                         self.off('mouseup');
                     });
                 }
