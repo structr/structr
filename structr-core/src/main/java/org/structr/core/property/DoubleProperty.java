@@ -113,6 +113,10 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 		@Override
 		public Object revert(Double source) throws FrameworkException {
 
+			if (source == null) {
+				return null;
+			}
+
 			final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
 
 			if (!lenient) {
