@@ -29,7 +29,7 @@ public class JoinPropertyParser extends PropertyParser {
 
 	@Override
 	public String getPropertyType() {
-		return JoinProperty.class.getName();
+		return JoinProperty.class.getSimpleName();
 	}
 
 	@Override
