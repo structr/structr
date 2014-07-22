@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.parser;
 
 import com.google.gson.Gson;
@@ -798,44 +816,13 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				String result;
-
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					if (StringUtils.isBlank(sources[0].toString())) {
 						return "";
 					}
 
-					String normalized = Normalizer.normalize(sources[0].toString(), Normalizer.Form.NFD)
-						.replaceAll("\\<", "")
-						.replaceAll("\\>", "")
-						.replaceAll("\\.", "")
-						.replaceAll("\\'", "-")
-						.replaceAll("\\?", "")
-						.replaceAll("\\(", "")
-						.replaceAll("\\)", "")
-						.replaceAll("\\{", "")
-						.replaceAll("\\}", "")
-						.replaceAll("\\[", "")
-						.replaceAll("\\]", "")
-						.replaceAll("\\+", "-")
-						.replaceAll("/", "-")
-						.replaceAll("–", "-")
-						.replaceAll("\\\\", "-")
-						.replaceAll("\\|", "-")
-						.replaceAll("'", "-")
-						.replaceAll("!", "")
-						.replaceAll(",", "")
-						.replaceAll("-", " ")
-						.replaceAll("_", " ")
-						.replaceAll("`", "-");
-
-					result = normalized.replaceAll("-", " ");
-					result = StringUtils.normalizeSpace(result.toLowerCase());
-					result = result.replaceAll("[^\\p{ASCII}]", "").replaceAll("\\p{P}", "-").replaceAll("\\-(\\s+\\-)+", "-");
-					result = result.replaceAll(" ", "-");
-
-					return result;
+					return cleanString(sources[0]);
 				}
 
 				return null;
@@ -2852,5 +2839,40 @@ public class Functions {
 		}
 
 		return null;
+	}
+
+	public static String cleanString(final Object input) {
+
+		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
+			.replaceAll("\\<", "")
+			.replaceAll("\\>", "")
+			.replaceAll("\\.", "")
+			.replaceAll("\\'", "-")
+			.replaceAll("\\?", "")
+			.replaceAll("\\(", "")
+			.replaceAll("\\)", "")
+			.replaceAll("\\{", "")
+			.replaceAll("\\}", "")
+			.replaceAll("\\[", "")
+			.replaceAll("\\]", "")
+			.replaceAll("\\+", "-")
+			.replaceAll("/", "-")
+			.replaceAll("–", "-")
+			.replaceAll("\\\\", "-")
+			.replaceAll("\\|", "-")
+			.replaceAll("'", "-")
+			.replaceAll("!", "")
+			.replaceAll(",", "")
+			.replaceAll("-", " ")
+			.replaceAll("_", " ")
+			.replaceAll("`", "-");
+
+		String result = normalized.replaceAll("-", " ");
+		result = StringUtils.normalizeSpace(result.toLowerCase());
+		result = result.replaceAll("[^\\p{ASCII}]", "").replaceAll("\\p{P}", "-").replaceAll("\\-(\\s+\\-)+", "-");
+		result = result.replaceAll(" ", "-");
+
+		return result;
+
 	}
 }
