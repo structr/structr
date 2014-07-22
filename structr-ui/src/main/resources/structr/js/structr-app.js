@@ -35,7 +35,7 @@ $(function() {
     s.activateButtons(buttonSelector);
     $(document).trigger('structr-ready');
     s.hideNonEdit();
-    
+
 
     $(window).on('keydown', function(e) {
         var k = e.which;
@@ -69,7 +69,7 @@ $(function() {
 
 /**
  * Base class for Structr apps
- * 
+ *
  * @param baseUrl
  * @returns {StructrApp}
  */
@@ -83,7 +83,7 @@ function StructrApp(baseUrl) {
     this.edit = false;
     this.data = {};
     this.btnLabel = undefined;
-    
+
     /**
      * Bind 'click' event to all Structr buttons
      */
@@ -150,16 +150,16 @@ function StructrApp(baseUrl) {
 
     this.editAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-id="' + id + '"]');
-        
-        //show edit elements and hide non-edit elements 
+
+        //show edit elements and hide non-edit elements
         s.hideEdit(container);
-                
+
         $.each(attrs, function(i, key) {
             var el = $('[data-structr-attr="' + key + '"]', container);
             if (!el.length) {
                 return;
             }
-            
+
             var f = s.field(el);
             f.id = id;
             if (!s.data[id]) s.data[id] = {};
@@ -173,13 +173,13 @@ function StructrApp(baseUrl) {
                 anchor.attr('data-structr-href', href);
             }
             //el.html(inputField(id, key, val));
-                    
+
             // don't replace select elements
             var inp = s.input(el);
             if (inp && inp.is('select')) {
                 return;
             }
-            
+
             var i; //console.log(f.id, f.type, f.key, f.val);
             if (f.type === 'Boolean') {
                 i = checkbox(f.id, f.type, f.key, f.val);
@@ -201,14 +201,14 @@ function StructrApp(baseUrl) {
             var el = container.find('[data-structr-attr="' + f.key + '"]');
             var inp = s.input(el);
             inp.css({fontFamily: 'sans-serif'});
-            
+
             //console.log('editAction: input element', inp);
             resizeInput(inp);
-            
+
             if (anchor.length) {
                 inp.attr('data-structr-href', href);
             }
-            
+
             if (f.type === 'Boolean') {
 //                inp.on('change', function(e) {
 //                    s.save(s.field($(this)));
@@ -223,17 +223,38 @@ function StructrApp(baseUrl) {
                 inp.on('mouseup', function(event) {
                     event.preventDefault();
                     var self = $(this);
-                    self.datetimepicker({
-                        // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                        separator: 'T',
-                        dateFormat: 'yy-mm-dd',
-                        timeFormat: 'HH:mm:ssz'
-                    });
+                    var dateFormat = 'yy-mm-dd';
+                    var timeFormat = 'HH:mm:ssz';
+                    var dateOnly   = false;
+
+                    if (el.attr('data-structr-date-format')) {
+                        dateFormat = el.attr('data-structr-date-format');
+                        dateOnly = true;
+                    }
+
+                    if (el.attr('data-structr-time-format')) {
+                        timeFormat = el.attr('data-structr-time-format');
+                        dateOnly = false;
+                    }
+
+                    if (dateOnly) {
+                        self.datepicker({
+                            // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+                            dateFormat: dateFormat
+                        });
+                    } else {
+                        self.datetimepicker({
+                            // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+                            separator: 'T',
+                            dateFormat: dateFormat,
+                            timeFormat: timeFormat
+                        });
+                    }
                     self.datetimepicker('show');
                     self.off('mouseup');
                 });
             }
-            
+
         });
         $('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
         var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
@@ -245,11 +266,11 @@ function StructrApp(baseUrl) {
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
         enableButton(btn);
     },
-    
+
     this.saveAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-id="' + id + '"]');
         $.each(attrs, function(i, key) {
-            
+
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
             var f = s.field(inp);
             if (!f) return;
@@ -261,31 +282,31 @@ function StructrApp(baseUrl) {
                 var local = prop[0];
                 var related = prop[1];
                 //console.log('related property (key, local, value)', key, local, related, f);
-                
+
                 key = local;
                 s.data[id][local] = {};
                 s.data[id][local][related] = f.val;
-                
+
             } else if (f.type === 'Boolean') {
-                
+
                 s.data[id][key] = (f.val === true ? true : false);
-                
+
             } else if (f.type === 'Integer') {
-                
+
                 s.data[id][key] = parseInt(f.val) || f.val;
-                
+
             } else if (f.type === 'Double' || f.type === 'Float') {
-                
+
                 s.data[id][key] = parseFloat(f.val) || f.val;
-                
+
             } else if (f.type === 'String' || f.type === 'Date') {
-                
+
                 if (f.val && f.val.length) {
                     s.data[id][key] = f.val;
                 } else {
                     s.data[id][key] = null;
                 }
-                
+
             } else {
                 var ids = [];
                 $('option:selected', inp).each(function() {
@@ -297,7 +318,7 @@ function StructrApp(baseUrl) {
                     s.data[id][key] = {'id':ids[0]};
                 } else {
                     s.data[id][key] = ids.map(function(id) {
-                       return {'id':id}; 
+                       return {'id':id};
                     });
                 }
             }
@@ -307,7 +328,7 @@ function StructrApp(baseUrl) {
             s.cancelEditAction(btn, id, attrs, reload);
         });
     },
-    
+
     this.cancelEditAction = function(btn, id, attrs, reload) {
         if (reload && typeof reload === 'boolean') {
             window.location.reload();
@@ -333,10 +354,10 @@ function StructrApp(baseUrl) {
             $('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
             btn.text(s.btnLabel).attr('data-structr-action', 'edit');
             enableButton(btn);
-            
+
             //hide non edit elements and show edit elements
             s.hideNonEdit(container);
-            
+
             //remove chosen containers
             $('.chosen-container').remove();
         }
@@ -355,7 +376,7 @@ function StructrApp(baseUrl) {
         if (msgBox && msgBox.length) {
             $('span', msgBox).remove();
         }
-        
+
         var btnText = btn.text(); console.log(btnText);
         disableButton(btn, 'Checking...');
 
@@ -429,7 +450,7 @@ function StructrApp(baseUrl) {
             }
         }
     },
-    
+
     this.field = function(el) {
         if (!el || !el.length) return;
         var type = el.attr('data-structr-type') || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
@@ -444,7 +465,7 @@ function StructrApp(baseUrl) {
             var inp = s.input(el);
             if (inp) {
                 if (inp.is('select')) {
-                    var selection = $(':selected', inp); 
+                    var selection = $(':selected', inp);
                     val = selection.attr('value');
                 } else {
                     val = rawVal || (inp.val() && inp.val().replace(/<br>/gi, '\n'));
@@ -687,13 +708,13 @@ function StructrApp(baseUrl) {
 
     this.checkInput = function(e, f, inp) {
         var k = e.which;
-        
+
         if (isTextarea(inp[0])) {
-            
+
             if (inp.val().indexOf('\n') === -1) {
 
                 var parent = inp.parent();
-                
+
                 // No new line in textarea content => transform to input field
                 inp.replaceWith(inputField(f.id, f.type, f.key, inp.val()));
                 inp = s.input(parent);
@@ -703,9 +724,9 @@ function StructrApp(baseUrl) {
                 });
 
                 setCaretToEnd(inp[0]);
-                
+
             }
-            
+
         } else if (k === 13) {// && shiftKey === true) {
 
             // Return key in input field => replace by textarea
@@ -744,61 +765,61 @@ function StructrApp(baseUrl) {
 
     };
     this.hideEdit = function(container) {
-        
+
         // show elements [data-structr-hide="non-edit"]
         $.each($('[data-structr-hide-id]', container), function() {
            var id = $(this).attr('data-structr-hide-id');
            $(this).replaceWith(hideNonEditElements[id]);
            delete hideNonEditElements[id];
-           
+
         });
-        
+
         // hide edit elements
         $.each($('[data-structr-hide="edit"]', container), function(i, obj) {
-            
+
             var random = Math.floor(Math.random()*1000000+1);
-            
+
             hideEditElements[random] = $(obj).clone(true,true);
             $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
         });
-        
+
         $(document).trigger("structr-edit");
     };
     this.hideNonEdit = function(container) {
-        
+
         //first call to hide all non-edit elements
         if (container === undefined){
-            
+
             // hide all non-edit elements
-            $.each($('[data-structr-hide="non-edit"]'), function(i, obj) { 
-                
+            $.each($('[data-structr-hide="non-edit"]'), function(i, obj) {
+
                 var random = Math.floor(Math.random()*1000000+1);
-                
+
                 hideNonEditElements[random] = $(obj).clone(true,true);
                 $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
             });
-            
+
         } else {
-            
+
             // show elements [data-structr-hide="edit"]
             $.each($('[data-structr-hide-id]', container), function() {
-            
+
                 var id = $(this).attr("data-structr-hide-id");
                 $(this).replaceWith(hideEditElements[id]);
                 delete hideNonEditElements[id];
 
              });
-            
+
             // hide non-edit elements
             $.each($('[data-structr-hide="non-edit"]', container), function(i, obj) {
-                
+
                 var random = Math.floor(Math.random()*1000000+1);
-                
+
                 hideNonEditElements[random] = $(obj).clone(true,true);
                 $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
-                
+
             });
-            
+
         }
     };
 }
