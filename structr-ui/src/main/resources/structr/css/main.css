@@ -1623,7 +1623,7 @@ button.add_property {
 
 .schema-details .add-icon:hover,
 .schema .toggle-view:hover,
-.schema .remove-icon:hover{
+.schema-details .remove-icon:hover {
     opacity: .6;
     cursor: pointer;
 }
@@ -1848,4 +1848,31 @@ table.push {
 
 .hidden {
     display: none;
+}
+
+/**
+ * Tooltips
+ */
+
+.tooltip {
+    width: 200px;
+    /*height: 24px;*/
+    font-size: 1.2em ! important;
+    color: #333;
+    line-height: 1.7em;
+    /*border-radius: 5px;*/
+    border-radius: 0 ! important;
+    border: 1px solid transparent;
+    padding: 12px;
+    margin: 0 0 0 11px;
+    background-color: #eee;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+    z-index: 9999;
+}
+
+.tooltip img {
+    vertical-align: middle;
+    margin: 0 4px 4px 0;
 }
