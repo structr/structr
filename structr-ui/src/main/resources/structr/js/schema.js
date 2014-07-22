@@ -742,8 +742,11 @@ var _Schema = {
 
                 var row = $('.new', el);
                 blinkGreen(row);
-                row.removeClass('new').addClass('local');
+                row.removeClass('new').addClass('local').addClass(key);
+                row = $('.local.' + key, el);
 
+                $('.remove-property', row).off('click');
+                
                 $('.remove-property', row).on('click', function() {
                     _Schema.removeLocalProperty(entity, key);
                 });
