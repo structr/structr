@@ -30,6 +30,8 @@ public class JoinProperty extends StringProperty {
 
 		this.format = messageFormat;
 		this.keys.addAll(Arrays.asList(keys));
+
+		this.passivelyIndexed();
 	}
 
 	@Override
