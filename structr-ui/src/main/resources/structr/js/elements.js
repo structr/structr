@@ -112,7 +112,7 @@ var _Elements = {
         },
         {
             'elements': ['script', 'link', 'a', 'img', 'object'],
-            'attrs': ['type', 'rel', 'href', 'media']
+            'attrs': ['type', 'rel', 'href', 'media', 'src']
         },
         {
             'elements': ['td', 'th'],
