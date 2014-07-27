@@ -38,6 +38,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.FileUploadHandler;
@@ -261,7 +262,7 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	// ----- file handling -----
-	public void createFileUploadHandler(File file) {
+	public void createFileUploadHandler(FileBase file) {
 
 		String uuid = file.getProperty(GraphObject.id);
 

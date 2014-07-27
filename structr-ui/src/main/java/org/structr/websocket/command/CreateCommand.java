@@ -70,13 +70,13 @@ public class CreateCommand extends AbstractCommand {
 			// check for File node and store in WebSocket to receive chunks
 			if (newNode instanceof FileBase) {
 
-				long size		= (Long) webSocketData.getNodeData().get("size");
+				Long size		= (Long) webSocketData.getNodeData().get("size");
 				String contentType	= (String) webSocketData.getNodeData().get("contentType");
 				String name		= (String) webSocketData.getNodeData().get("name");
 
-				File fileNode = (File) newNode;
+				FileBase fileNode = (FileBase) newNode;
 
-				fileNode.setProperty(File.size, size);
+				fileNode.setProperty(File.size, size != null ? size : 0L);
 				fileNode.setProperty(File.contentType, contentType);
 				fileNode.setProperty(AbstractNode.name, name);
 

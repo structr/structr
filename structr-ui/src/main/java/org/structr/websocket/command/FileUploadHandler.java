@@ -18,20 +18,16 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.error.FrameworkException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.FileOutputStream;
 import java.io.IOException;
-
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.FileBase;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,13 +41,13 @@ public class FileUploadHandler {
 
 	//~--- fields ---------------------------------------------------------
 
-	private File file                      = null;
+	private FileBase file                  = null;
 	private FileChannel privateFileChannel = null;
 	private Long size                      = 0L;
 
 	//~--- constructors ---------------------------------------------------
 
-	public FileUploadHandler(File file) {
+	public FileUploadHandler(FileBase file) {
 
 		this.size = file.getProperty(File.size);
 		this.file = file;
