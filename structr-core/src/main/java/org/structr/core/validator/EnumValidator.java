@@ -21,12 +21,12 @@ package org.structr.core.validator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.common.SecurityContext;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -38,10 +38,10 @@ import org.structr.core.PropertyValidator;
  */
 public class EnumValidator<T> implements PropertyValidator<T> {
 
-	private Set<T> values = new LinkedHashSet<T>();
+	private final Set<T> values = new LinkedHashSet<>();
 
 	public EnumValidator(T[] values) {
-		for(T t : values) {
+		for (final T t : values) {
 			this.values.add(t);
 		}
 	}
@@ -55,7 +55,7 @@ public class EnumValidator<T> implements PropertyValidator<T> {
 
 		} else {
 
-			if(values.contains(value)) {
+			if (values.contains(value)) {
 
 				return true;
 

@@ -55,7 +55,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 	@Override
 	public String typeName() {
-		return "String";
+		return "Enum";
 	}
 
 	@Override

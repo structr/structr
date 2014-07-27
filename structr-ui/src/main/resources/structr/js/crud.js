@@ -1052,12 +1052,12 @@ var _Crud = {
                         borderColor: '#933'
                     });
                 } else {
-                    $('td.' + key + ' span', dialogText).remove();
-                    $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
-                        backgroundColor: '#fee',
-                        borderColor: '#933',
-                        color: '#a5a5a5'
-                    });
+//                    $('td.' + key + ' span', dialogText).remove();
+//                    $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
+//                        backgroundColor: '#fee',
+//                        borderColor: '#933',
+//                        color: '#a5a5a5'
+//                    });
                 }
             });
             //_Crud.error('Error: ' + data.responseText, true);
@@ -1522,6 +1522,7 @@ var _Crud = {
                                 onClose: function() {
                                     var newValue = input.val();
                                     var formattedValue = moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T'));
+                                    input.val(formattedValue);
                                     if (id) {
                                         _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
                                     }
@@ -1534,6 +1535,7 @@ var _Crud = {
                                 onClose: function() {
                                     var newValue = input.val();
                                     var formattedValue = moment(newValue).formatWithJDF(dateFormat);
+                                    input.val(formattedValue);
                                     if (id) {
                                         _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
                                     }
@@ -1549,29 +1551,12 @@ var _Crud = {
                 cell.text(nvl(formatValue(value), ''));
                 if (!readOnly) {
                     cell.on('mouseup', function(event) {
-                        cell.off('mouseup');
                         event.preventDefault();
-                        var self = $(this);
-                        var input;
-                        var oldValue = cell.text();
-                        cell.empty().append('<select>');
-                        input = $('select', cell);
-                        input.focus();
-                        var values = format.split(',');
-                        values.forEach(function(value) {
-                           input.append('<option ' + (value === oldValue ? 'selected="selected"' : '') + 'value="' + value + '">' + value + '</option>') ;
-                        });
-                        input.on('change', function() {
-                            var newValue = input.val();
-                            if (id) {
-                                _Crud.crudUpdate(id, key, newValue, oldValue);
-                            }
-                        });
-                        input.on('blur', function() {
-                            //cell.empty().text(oldValue);
-                            _Crud.resetCell(id, key, oldValue);
-                        });
+                        _Crud.appendEnumSelect(cell, id, key, format);
                     });
+                    if (!id) { // create
+                        _Crud.appendEnumSelect(cell, id, key, format);
+                    }
                 }
             } else {
                 cell.text(nvl(formatValue(value), ''));
@@ -1581,6 +1566,9 @@ var _Crud = {
                         var self = $(this);
                         _Crud.activateTextInputField(self, id, key, propertyType);
                     });
+                    if (!id) { // create
+                        _Crud.activateTextInputField(cell, id, key, propertyType);
+                    }
                 }
             }
 
@@ -1623,6 +1611,28 @@ var _Crud = {
 
         }
         //searchField.focus();
+    },
+    appendEnumSelect: function(cell, id, key, format) {
+        cell.off('mouseup');
+        var input;
+        var oldValue = cell.text();
+        cell.empty().append('<select>');
+        input = $('select', cell);
+        input.focus();
+        var values = format.split(',');
+        input.append('<option></option>');
+        values.forEach(function(value) {
+           input.append('<option ' + (value === oldValue ? 'selected="selected"' : '') + 'value="' + value + '">' + value + '</option>');
+        });
+        input.on('change', function() {
+            var newValue = input.val();
+            if (id) {
+                _Crud.crudUpdate(id, key, newValue, oldValue);
+            }
+        });
+        input.on('blur', function() {
+            _Crud.resetCell(id, key, oldValue);
+        });
     },
     getAndAppendNode: function(parentType, parentId, key, obj, cell) {
         //console.log(parentType, parentId, key, obj, cell);

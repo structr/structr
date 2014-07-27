@@ -975,13 +975,13 @@ var _Schema = {
             }
 
             if (out) {
-                _Schema.setRelationshipProperty(rel.id, 'targetJsonName', newName, function() {
+                _Schema.setRelationshipProperty(rel, 'targetJsonName', newName, function() {
                     blinkGreen($('.' + key, el));
                 }, function() {
                     blinkRed($('.' + key, el));
                 });
             } else {
-                _Schema.setRelationshipProperty(rel.id, 'sourceJsonName', newName, function() {
+                _Schema.setRelationshipProperty(rel, 'sourceJsonName', newName, function() {
                     blinkGreen($('.' + key, el));
                 }, function() {
                     blinkRed($('.' + key, el));

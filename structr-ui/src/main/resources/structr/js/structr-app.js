@@ -180,78 +180,79 @@ function StructrApp(baseUrl) {
                 return;
             }
 
-            var i; //console.log(f.id, f.type, f.key, f.val);
             if (f.type === 'Boolean') {
-                i = checkbox(f.id, f.type, f.key, f.val);
+                el.html(checkbox(f.id, f.type, f.key, f.val));
             } else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Double' || f.type === 'Date') {
                 if (!f.val || f.val.indexOf('\n') === -1) {
-                    i = inputField(f.id, f.type, f.key, f.val);
+                    el.html(inputField(f.id, f.type + (f.type === 'Date' ? ' ' + f.format : ''), f.key, f.val));
                 } else {
-                    i = textarea(f.id, f.key, f.val);
+                    el.html(textarea(f.id, f.key, f.val));
                 }
+            } else if (f.type === 'Enum') {
+                el.html('<select data-structr-type="' + f.type + ' ' + f.format + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>');
+                var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
+                sel.append('<option></option>');
+                $.each(f.format.split(','), function(i, o) {
+                    sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
+                });
+                sel.chosen({allow_single_deselect: true});
             } else {
                 if (f.type.endsWith('[]')) {
-                    i = multiSelect(f.id, f.type, f.key, f.val);
+                    el.html(multiSelect(f.id, f.type, f.key, f.val));
                 } else {
-                    i = singleSelect(f.id, f.type, f.key, f.val);
+                    el.html(singleSelect(f.id, f.type, f.key, f.val));
                 }
             }
 
-            el.html(i);
-            var el = container.find('[data-structr-attr="' + f.key + '"]');
+            //var el = container.find('[data-structr-attr="' + f.key + '"]');
             var inp = s.input(el);
             inp.css({fontFamily: 'sans-serif'});
 
             //console.log('editAction: input element', inp);
-            resizeInput(inp);
+            if (f.type !== 'Enum') {
+                resizeInput(inp);
+            }
 
             if (anchor.length) {
                 inp.attr('data-structr-href', href);
             }
 
-            if (f.type === 'Boolean') {
-//                inp.on('change', function(e) {
-//                    s.save(s.field($(this)));
-//                });
-            } else {
-                inp.on('keyup', function(e) {
-                    s.checkInput(e, s.field(inp), $(this));
-                });
-            }
+            inp.on('keyup', function(e) {
+                s.checkInput(e, s.field(inp), $(this));
+            });
 
             if (f.type === 'Date') {
+                var dateTimeFormat = f.format.split('\'T\'');
+                var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+                
                 inp.on('mouseup', function(event) {
                     event.preventDefault();
-                    var self = $(this);
-                    var dateFormat = 'yy-mm-dd';
-                    var timeFormat = 'HH:mm:ssz';
-                    var dateOnly   = false;
+                    var input = $(this);
 
-                    if (el.attr('data-structr-date-format')) {
-                        dateFormat = el.attr('data-structr-date-format');
-                        dateOnly = true;
-                    }
-
-                    if (el.attr('data-structr-time-format')) {
-                        timeFormat = el.attr('data-structr-time-format');
-                        dateOnly = false;
-                    }
-
-                    if (dateOnly) {
-                        self.datepicker({
+                    if (timeFormat) {
+                        input.datetimepicker({
                             // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                            dateFormat: dateFormat
+                            dateFormat: 'yy-mm-dd',
+                            timeFormat: 'HH:mm:ssz',
+                            separator: 'T',
+                            onClose: function() {
+                                var newValue = input.val();
+                                var formattedValue = moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T'));
+                                input.val(formattedValue);
+                            }
                         });
                     } else {
-                        self.datetimepicker({
-                            // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                            separator: 'T',
-                            dateFormat: dateFormat,
-                            timeFormat: timeFormat
+                        input.datepicker({
+                            dateFormat: 'yy-mm-dd',
+                            onClose: function() {
+                                var newValue = input.val();
+                                var formattedValue = moment(newValue).formatWithJDF(dateFormat);
+                                input.val(formattedValue);
+                            }
                         });
                     }
-                    self.datetimepicker('show');
-                    self.off('mouseup');
+                    input.datetimepicker('show');
+                    input.off('mouseup');
                 });
             }
 
@@ -306,6 +307,9 @@ function StructrApp(baseUrl) {
                 } else {
                     s.data[id][key] = null;
                 }
+            } else if (f.type === 'Enum') {
+                var val = $('option:selected', inp).val();
+                s.data[id][key] = (val === '' ? null : val);
 
             } else {
                 var ids = [];
@@ -377,7 +381,7 @@ function StructrApp(baseUrl) {
             $('span', msgBox).remove();
         }
 
-        var btnText = btn.text(); console.log(btnText);
+        var btnText = btn.text();
         disableButton(btn, 'Checking...');
 
         $.ajax({
@@ -453,7 +457,9 @@ function StructrApp(baseUrl) {
 
     this.field = function(el) {
         if (!el || !el.length) return;
-        var type = el.attr('data-structr-type') || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+        var rawType = el.attr('data-structr-type');
+        var type = rawType.match(/^\S+/)[0] || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+        var format = rawType ? rawType.replace(type + ' ', '') : undefined;
         var val;
         if (type === 'Boolean') {
             if (el.is('input')) {
@@ -476,7 +482,7 @@ function StructrApp(baseUrl) {
             }
         }
         //console.log(el, type, id, key, val);
-        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal};
+        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format};
     };
 
     this.getRelatedType = function(type, key, callback) {
@@ -486,7 +492,7 @@ function StructrApp(baseUrl) {
     },
 
     this.create = function(type, data, reload, successCallback, errorCallback) {
-        console.log('Create', type, data, reload, successCallback, errorCallback);
+        //console.log('Create', type, data, reload, successCallback, errorCallback);
         s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
     };
 
@@ -940,6 +946,16 @@ function field(id, type, key, val) {
 
 function checkbox(id, type, key, val) {
     return '<input type="checkbox" data-structr-id="' + id + '" data-structr-attr="' + key + '" data-structr-type="' + type + '" ' + (val ? 'checked="checked"' : '') + '">';
+}
+
+function enumSelect(id, type, key, val, values) { console.log(id, type, key, val, values.split(','))
+    var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '"></select>';
+    var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
+    $.each(values.split(','), function(i, o) {
+        sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
+    });
+    sel.chosen({allow_single_deselect: true});
+    return inp;
 }
 
 function singleSelect(id, type, key, val) {

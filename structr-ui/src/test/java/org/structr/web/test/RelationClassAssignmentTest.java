@@ -38,7 +38,7 @@ import org.w3c.dom.Text;
  */
 public class RelationClassAssignmentTest extends StructrUiTest {
 	
-	private static final Logger logger = Logger.getLogger(CreatePageTest.class.getName());
+	private static final Logger logger = Logger.getLogger(CreateSimplePageTest.class.getName());
 
 	@Override
 	public void test00() {
