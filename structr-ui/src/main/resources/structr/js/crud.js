@@ -433,6 +433,15 @@ var _Crud = {
     },
     /**
      * Return true if the combination of the given property key
+     * and the given type is an Enum
+     */
+    isEnum: function(key, type) {
+        var typeDef = _Crud.schema[type];
+        var view = typeDef.views[_Crud.view[type]];
+        return (view && view[key] && view[key].className === 'org.structr.core.property.EnumProperty');
+    },
+    /**
+     * Return true if the combination of the given property key
      * and the given type is a read-only property
      */
     readOnly: function(key, type) {
@@ -1023,10 +1032,22 @@ var _Crud = {
 
             $.each(Object.keys(resp.errors[type]), function(i, key) {
                 var errorMsg = resp.errors[type][key][0];
-                //console.log(key, errorMsg);
+                console.log(key, errorMsg);
                 var input = $('td [name="' + key + '"]', dialogText);
                 if (input.length) {
-                    input.prop('placeholder', errorMsg.splitAndTitleize('_')).css({
+                    var errorText = '';
+                    if (typeof errorMsg === 'object') {
+                        $.each(Object.keys(errorMsg), function(l, k) {
+                            errorText += '"' + key + '" ' + k.replace(/_/gi, ' ') + ': ' + errorMsg[k];
+                        });
+                    } else {
+                        errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
+                    }
+                    
+                    dialogMsg.html('<div class="infoBox error">' + errorText + '</div>');
+                    $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                    
+                    input.css({
                         backgroundColor: '#fee',
                         borderColor: '#933'
                     });
@@ -1373,7 +1394,7 @@ var _Crud = {
         $.each(cells, function(i, cell) {
             cell.empty();
             _Crud.populateCell(id, key, _Crud.type, oldValue, cell);
-            blinkRed(cell);
+            //blinkRed(cell);
         });
     },
     refreshCell: function(id, key, newValue, type, oldValue) {
@@ -1456,6 +1477,7 @@ var _Crud = {
     },
     populateCell: function(id, key, type, value, cell) {
         var isCollection = _Crud.isCollection(key, type);
+        var isEnum = _Crud.isEnum(key, type);
         var relatedType = _Crud.relatedType(key, type);
         var readOnly = _Crud.readOnly(key, type);
         var simpleType;
@@ -1522,6 +1544,35 @@ var _Crud = {
                         self.off('mouseup');
                     });
                 }
+            } else if (isEnum) {
+                var format = _Crud.getFormat(key, type);
+                cell.text(nvl(formatValue(value), ''));
+                if (!readOnly) {
+                    cell.on('mouseup', function(event) {
+                        cell.off('mouseup');
+                        event.preventDefault();
+                        var self = $(this);
+                        var input;
+                        var oldValue = cell.text();
+                        cell.empty().append('<select>');
+                        input = $('select', cell);
+                        input.focus();
+                        var values = format.split(',');
+                        values.forEach(function(value) {
+                           input.append('<option ' + (value === oldValue ? 'selected="selected"' : '') + 'value="' + value + '">' + value + '</option>') ;
+                        });
+                        input.on('change', function() {
+                            var newValue = input.val();
+                            if (id) {
+                                _Crud.crudUpdate(id, key, newValue, oldValue);
+                            }
+                        });
+                        input.on('blur', function() {
+                            //cell.empty().text(oldValue);
+                            _Crud.resetCell(id, key, oldValue);
+                        });
+                    });
+                }
             } else {
                 cell.text(nvl(formatValue(value), ''));
                 if (!readOnly) {
@@ -1530,9 +1581,6 @@ var _Crud = {
                         var self = $(this);
                         _Crud.activateTextInputField(self, id, key, propertyType);
                     });
-                    if (!id) { // create
-                        _Crud.activateTextInputField(cell, id, key, propertyType);
-                    }
                 }
             }
 

@@ -671,7 +671,7 @@ var Structr = {
             }
         });
     },
-    errorFromResponse: function(response, url) {
+    errorFromResponse: function(response, url, callback) {
         var errorText = '';
         if (response.errors) {
             $.each(Object.keys(response.errors), function(i, err) {
@@ -693,10 +693,16 @@ var Structr = {
         } else {
             errorText += url + ': ' + response.code + ' ' + response.message;
         }
-        Structr.error(errorText, function() {
-        }, function() {
-        });
+        
+        if (callback) {
+            callback(errorText);
+        } else {
+            Structr.error(errorText, function() {
+            }, function() {
+            });
+        }
     },
+    
     tempInfo: function(text, autoclose) {
         window.clearTimeout(dialogId);
         if (text)
