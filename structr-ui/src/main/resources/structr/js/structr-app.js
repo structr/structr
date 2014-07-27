@@ -458,7 +458,7 @@ function StructrApp(baseUrl) {
     this.field = function(el) {
         if (!el || !el.length) return;
         var rawType = el.attr('data-structr-type');
-        var type = rawType.match(/^\S+/)[0] || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+        var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
         var format = rawType ? rawType.replace(type + ' ', '') : undefined;
         var val;
         if (type === 'Boolean') {
