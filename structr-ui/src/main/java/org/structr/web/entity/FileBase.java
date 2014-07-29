@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
+import org.parboiled.common.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.Syncable;
@@ -18,10 +19,12 @@ import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import static org.structr.core.GraphObject.type;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -29,6 +32,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
+import org.structr.web.common.ImageHelper;
 import static org.structr.web.entity.AbstractFile.parent;
 import org.structr.web.entity.relation.Folders;
 import org.structr.web.property.PathProperty;
@@ -245,7 +249,7 @@ public class FileBase extends AbstractFile implements Linkable {
 
 			try {
 
-				java.io.File fileOnDisk = new java.io.File(filePath);
+				final java.io.File fileOnDisk = new java.io.File(filePath);
 
 				// Return file output stream and save checksum and size after closing
 				FileOutputStream fos = new FileOutputStream(fileOnDisk) {
@@ -253,11 +257,21 @@ public class FileBase extends AbstractFile implements Linkable {
 					@Override
 					public void close() throws IOException {
 
-						super.close();
+						try (Tx tx = StructrApp.getInstance().tx()) {
 
-						try {
+							super.close();
+
+							final String _contentType = FileHelper.getContentMimeType(fileOnDisk);
+							
 							setProperty(checksum, FileHelper.getChecksum(FileBase.this));
 							setProperty(size, FileHelper.getSize(FileBase.this));
+							setProperty(contentType, _contentType);
+
+							if (StringUtils.startsWith(_contentType, "image") || ImageHelper.isImageType(getProperty(name))) {
+								setProperty(NodeInterface.type, Image.class.getSimpleName());
+							}
+							
+							tx.success();
 
 						} catch (FrameworkException ex) {
 

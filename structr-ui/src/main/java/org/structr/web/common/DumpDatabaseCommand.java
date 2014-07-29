@@ -16,16 +16,8 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
-import org.structr.rest.resource.MaintenanceParameterResource;
-
-/**
- *
- * @author Christian Morgner
- */
-
-
-
 import org.structr.dynamic.File;
+import org.structr.rest.resource.MaintenanceParameterResource;
 public class DumpDatabaseCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	static {
