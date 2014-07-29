@@ -70,6 +70,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.dynamic.File;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -78,7 +79,6 @@ import org.structr.web.diff.DeleteOperation;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.diff.MoveOperation;
 import org.structr.web.diff.UpdateOperation;
-import org.structr.dynamic.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.LinkSource;
@@ -220,7 +220,34 @@ public class Importer {
 				if (location != null) {
 					address = location.getValue();
 					client = new DefaultHttpClient();
-					resp = client.execute(new HttpGet(address));
+					
+					int attempts = 1;
+					boolean success = false;
+					
+					while (!success) {
+					
+						try {
+
+							resp = client.execute(new HttpGet(address));
+							
+							success = true;
+
+						} catch (IllegalStateException ise) {
+							
+							logger.log(Level.INFO, "Unable to establish connection to {0}, trying again after {1} sec...", new Object[]{ address, attempts*10 });
+							attempts++;
+							
+							if (attempts > 6) {
+								throw new FrameworkException(500, "Error while parsing content from " + address + ", couldn't establish connections after " + attempts + " attempts");
+							}
+							
+							try {
+								Thread.sleep(attempts*10*1000);
+								
+							} catch (InterruptedException ex) {}
+
+						}
+					}
 				}
 
 				// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
