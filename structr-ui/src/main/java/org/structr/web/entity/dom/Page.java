@@ -105,7 +105,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
-	public static final Property<Boolean>       isPage  = new BooleanProperty("isPage", true).readOnly();
+	public static final Property<Boolean> isPage = new BooleanProperty("isPage", true).readOnly();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
 		children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage
@@ -197,7 +197,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT);
 		}
 
-		if (!(otherNode instanceof Html)) {
+		if (!(otherNode instanceof Html || otherNode instanceof Comment)) {
 
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 		}
@@ -575,7 +575,17 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public Element getDocumentElement() {
-		return (Element) super.getFirstChild();
+		
+		Node node = super.getFirstChild();
+		
+		if (node instanceof Element) {
+			
+			return (Element) node;
+			
+		} else {
+			
+			return null;
+		}
 	}
 
 	@Override
@@ -1066,7 +1076,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			@Override
 			public void flush() throws IOException {
-
 
 				final String source = toString();
 
