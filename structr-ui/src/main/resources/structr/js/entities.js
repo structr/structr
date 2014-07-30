@@ -23,7 +23,8 @@ var activeElements = {};
 var _Entities = {
     numberAttrs: ['position', 'size'],
     hiddenAttrs: ['base'], //'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
-    //readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
+    readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
+    
     changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
         log('Change boolean attribute ', attrElement, ' to ', value);
@@ -440,7 +441,7 @@ var _Entities = {
                             
                             var type = typeInfo[key].type;
                             var isHidden = isIn(key, _Entities.hiddenAttrs);
-                            var isReadOnly = typeInfo[key].readOnly && !isAdmin; //isIn(key, _Entities.readOnlyAttrs);
+                            var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly && !isAdmin);
                             var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
                             var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
                             var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
@@ -485,35 +486,39 @@ var _Entities = {
                                         dateFormat: 'yy-mm-dd',
                                         separator: 'T'
                                     });
-                                } else if (isRelated) {
-                                    
-                                    var node = res[key];
-                                    if (node && node.constructor === Object) {
-                                        var displayName = _Crud.displayName(node);
-                                        cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
-                                        var nodeEl = $('#_' + node.id, props);
-                                        
-                                        nodeEl.on('click', function(e) {
-                                            e.preventDefault();
-                                            _Entities.showProperties(node);
-                                            return false;
-                                        });
-                                        $('.remove', nodeEl).on('click', function(e) {
-                                            e.preventDefault();
-                                            _Entities.setProperty(id, key, null, false, function(newVal) {
-                                                if (!newVal) {
-                                                    blinkGreen(cell);
-                                                    dialogMsg.html('<div class="infoBox success">Related node "' + displayName + '" was removed from property "' + key + '".</div>');
-                                                    $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
-                                                    cell.empty();
-                                                } else {
-                                                    blinkRed(cell);
-                                                }
+                                } else if (isRelated && res[key] !== null) {
+                                    if (res[key] && res[key].constructor === Object) {
+                                        _Entities.appendRelatedNode(cell, props, id, key, res[key], function(nodeEl) {
+                                            $('.remove', nodeEl).on('click', function(e) {
+                                                e.preventDefault();
+                                                _Entities.setProperty(id, key, null, false, function(newVal) {
+                                                    if (!newVal) {
+                                                        blinkGreen(cell);
+                                                        dialogMsg.html('<div class="infoBox success">Related node "' + displayName + '" was removed from property "' + key + '".</div>');
+                                                        $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                                                        cell.empty();
+                                                    } else {
+                                                        blinkRed(cell);
+                                                    }
+                                                });
+                                                return false;
                                             });
-                                            return false;
+                                            
+                                        });
+                                    } else {
+                                        res[key].forEach(function(node) {
+                                            _Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
+                                                $('.remove', nodeEl).on('click', function(e) {
+                                                    e.preventDefault();
+                                                    Command.removeFromCollection(id, key, node.id, function() {
+                                                        nodeEl.remove();
+                                                        blinkGreen(cell);
+                                                    });
+                                                    return false;
+                                                });
+                                            });
                                         });
                                     }
-
                                 } else {
                                     cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
                                 }
@@ -563,6 +568,21 @@ var _Entities = {
             }
         });
 
+    },
+    appendRelatedNode: function(cell, props, id, key, node, onDelete) {
+        var displayName = _Crud.displayName(node);
+        cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+        var nodeEl = $('#_' + node.id, props);
+
+        nodeEl.on('click', function(e) {
+            e.preventDefault();
+            _Entities.showProperties(node);
+            return false;
+        });
+        
+        if (onDelete) {
+            return onDelete(nodeEl);
+        }
     },
     activateInput: function(el, id) {
 
