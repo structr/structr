@@ -36,7 +36,6 @@ public class TestBulkCommands extends StructrTest {
 			final Set<Label> expectedLabels    = new LinkedHashSet<>();
 
 			expectedLabels.add(DynamicLabel.label("Principal"));
-			expectedLabels.add(DynamicLabel.label("Person"));
 			expectedLabels.add(DynamicLabel.label("Group"));
 			expectedLabels.add(DynamicLabel.label("AccessControllable"));
 			expectedLabels.add(DynamicLabel.label("AbstractUser"));
@@ -79,7 +78,7 @@ public class TestBulkCommands extends StructrTest {
 
 					final Set<Label> labels = Iterables.toSet(group.getNode().getLabels());
 
-					assertEquals(5, labels.size());
+					assertEquals(4, labels.size());
 					assertTrue(expectedLabels.containsAll(labels));
 				}
 

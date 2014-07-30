@@ -59,6 +59,7 @@ public class User extends AbstractUser {
 	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
 	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new PropertyNotion(id));
 	public static final Property<Boolean>     isUser           = new BooleanProperty("isUser", true).readOnly();
+	public static final Property<String>      eMail            = new StringProperty("eMail").indexed();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, eMail, isAdmin, password, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory, isUser
