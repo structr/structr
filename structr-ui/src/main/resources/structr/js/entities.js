@@ -547,13 +547,16 @@ var _Entities = {
                         _Entities.activateInput(v, id);
                     });
                     
-                    $('input[name="_html_class"]', props).focus();
                     
-                    tabView.append('<button class="show-all">Show all attributes</button>');
-                    $('.show-all', tabView).on('click', function() {
-                        $('tr.hidden').toggle();
-                        $(this).remove();
-                    });
+                    if (view === '_html_') {
+                        $('input[name="_html_class"]', props).focus();
+                        
+                        tabView.append('<button class="show-all">Show all attributes</button>');
+                        $('.show-all', tabView).on('click', function() {
+                            $('tr.hidden').toggle();
+                            $(this).remove();
+                        });
+                    }
                     
                     
                 });
