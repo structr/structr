@@ -18,24 +18,14 @@
  */
 package org.structr.web.entity;
 
-import org.structr.web.common.FileHelper;
-
-import org.structr.web.common.ImageHelper;
-import org.structr.web.common.ImageHelper.Thumbnail;
-import org.structr.common.PropertyView;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.IOException;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyView;
 import org.structr.common.ThumbnailParameters;
+import org.structr.common.error.FrameworkException;
 import static org.structr.core.GraphObject.type;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -46,10 +36,15 @@ import static org.structr.core.graph.NodeInterface.deleted;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.dynamic.File;
-import static org.structr.dynamic.File.relativeFilePath;
-import static org.structr.dynamic.File.size;
+import org.structr.web.common.FileHelper;
+import org.structr.web.common.ImageHelper;
+import org.structr.web.common.ImageHelper.Thumbnail;
+import static org.structr.web.entity.FileBase.relativeFilePath;
+import static org.structr.web.entity.FileBase.size;
 import org.structr.web.entity.relation.Thumbnails;
 import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
@@ -144,8 +139,8 @@ public class Image extends File {
 	 *
 	 * If no scaled image of the requested size exists or the image is newer than the scaled image, create a new one
 	 *
-	 * @maxWidthString
-	 * @maxHeightString
+	 * @param maxWidthString
+	 * @param maxHeightString
 	 *
 	 * @return
 	 */
@@ -203,8 +198,8 @@ public class Image extends File {
 
 			for (final Thumbnails r : thumbnailRelationships) {
 
-				Integer w = (Integer) r.getProperty(Image.width);
-				Integer h = (Integer) r.getProperty(Image.height);
+				Integer w = r.getProperty(Image.width);
+				Integer h = r.getProperty(Image.height);
 
 				if ((w != null) && (h != null)) {
 

@@ -409,7 +409,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * Returns the (converted, validated, transformed, etc.) property for the given
 	 * property key.
 	 *
-	 * @param propertyKey the property key to retrieve the value for
+	 * @param key the property key to retrieve the value for
 	 * @return the converted, validated, transformed property value
 	 */
 	@Override
@@ -483,12 +483,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 			// conversion failed, may the property value itself is comparable
-			if(propertyValue instanceof Comparable) {
+			if (propertyValue instanceof Comparable) {
 				return (Comparable)propertyValue;
 			}
 
 			// last try: convertFromInput to String to make comparable
-			if(propertyValue != null) {
+			if (propertyValue != null) {
 				return propertyValue.toString();
 			}
 		}
