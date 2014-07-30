@@ -233,6 +233,23 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send a REMOVE_FROM_COLLECTION command to the server.
+     * 
+     * The server will remove the object with the given idToRemove from the
+     * collection property with the given key of the object with the given id.
+     */
+    removeFromCollection: function(id, key, idToRemove, callback) {
+        var obj = {};
+        obj.command = 'REMOVE_FROM_COLLECTION';
+        obj.id = id;
+        var data = {};
+        data.key = key;
+        data.idToRemove = idToRemove;
+        obj.data = data;
+        log('removeFromCollection()', obj, callback);
+        return sendObj(obj, callback);
+    },
+    /**
      * Send an UPDATE command to the server.
      *
      * The server will set the given value as new value of the property with
