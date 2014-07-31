@@ -458,7 +458,7 @@ img.disabled {
     margin: -3px;
     background: #fff;
     border: 1px solid #c0c0c0;
-    width: 380px;
+    width: 100%;
 }
 
 .props textarea {
