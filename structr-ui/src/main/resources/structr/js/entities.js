@@ -486,7 +486,7 @@ var _Entities = {
                                         dateFormat: 'yy-mm-dd',
                                         separator: 'T'
                                     });
-                                } else if (isRelated && res[key] !== null) {
+                                } else if (isRelated && res[key] && (res[key].constructor === Object || res[key].constructor === Array)) {
                                     if (res[key] && res[key].constructor === Object) {
                                         _Entities.appendRelatedNode(cell, props, id, key, res[key], function(nodeEl) {
                                             $('.remove', nodeEl).on('click', function(e) {
@@ -505,7 +505,7 @@ var _Entities = {
                                             });
                                             
                                         });
-                                    } else {
+                                    } else if (res[key] && res[key].constructor === Array) {
                                         res[key].forEach(function(node) {
                                             _Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
                                                 $('.remove', nodeEl).on('click', function(e) {
