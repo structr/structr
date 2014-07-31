@@ -374,7 +374,6 @@ var _Pages = {
             e.stopPropagation();
             var key = autoRefreshDisabledKey + entity.id;
             var autoRefreshDisabled = localStorage.getItem(key) === '1';
-            console.log(localStorage.getItem(key), autoRefreshDisabled);
             if (autoRefreshDisabled) {
                 localStorage.removeItem(key);
             } else {
@@ -398,11 +397,10 @@ var _Pages = {
         element.hover(function(e) {
             icons.show();
             autoRefreshSelector.show()
-        },
-                function(e) {
-                    icons.hide();
-                    autoRefreshSelector.hide()
-                });
+        }, function(e) {
+            icons.hide();
+            autoRefreshSelector.hide()
+        });
 
         element.on('click', function(e) {
             e.stopPropagation();
@@ -502,7 +500,6 @@ var _Pages = {
     },
     makeTabEditable: function(element) {
         //element.off('dblclick');
-
         var id = element.prop('id').substring(5);
 
         element.off('hover');
@@ -520,6 +517,7 @@ var _Pages = {
         input.show().focus().select();
 
         input.on('blur', function() {
+            input.off('blur');
             log('blur');
             var self = $(this);
             var newName = self.val();
