@@ -630,7 +630,6 @@ var _Entities = {
                         input.data('changed', false);
                         log('existing key: Command.setProperty(', objId, key, val);
                         _Entities.setProperty(objId, key, val, false, function(newVal) {
-                            
                             if (isPassword || (newVal && newVal !== oldVal)) {
                                 blinkGreen(input);
                                 input.val(newVal);
@@ -638,7 +637,6 @@ var _Entities = {
                                 $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
 
                             } else {
-                                blinkRed(input);
                                 input.val(oldVal);
                             }
                             oldVal = newVal;
