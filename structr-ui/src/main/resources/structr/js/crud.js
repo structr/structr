@@ -393,9 +393,9 @@ var _Crud = {
             if (k && k.length) {
                 _Crud.keys[type] = k;
                 $.each(_Crud.filterKeys(type, _Crud.keys[type]), function(k, key) {
-                    tableHeader.append('<th class="' + key + '">' + _Crud.formatKey(key) + '</th>');
+                    tableHeader.append('<th class="__' + key + '">' + _Crud.formatKey(key) + '</th>');
                 });
-                tableHeader.append('<th class="_action_header">Actions</th>');
+                tableHeader.append('<th class="___action_header">Actions</th>');
             }
         }
         typeNode.append('<div class="infoFooter">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
@@ -518,16 +518,16 @@ var _Crud = {
         }
     },
     setCollectionPageSize: function(type, key, value) {
-        localStorage.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.' + key, value);
+        localStorage.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key, value);
     },
     getCollectionPageSize: function(type, key) {
-        return localStorage.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.' + key);
+        return localStorage.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key);
     },
     setCollectionPage: function(type, key, value) {
-        localStorage.setItem(crudPagerDataKey + '_collectionPage_' + type + '.' + key, value);
+        localStorage.setItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key, value);
     },
     getCollectionPage: function(type, key) {
-        return localStorage.getItem(crudPagerDataKey + '_collectionPage_' + type + '.' + key);
+        return localStorage.getItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key);
     },
     replaceSortHeader: function(type) {
         var table = _Crud.getTable(type);
@@ -536,11 +536,11 @@ var _Crud = {
         var view = res.views[_Crud.view[type]];
         $('th', table).each(function(i, t) {
             var th = $(t);
-            var key = th.attr('class');
+            var key = th.attr('class').substring(2);
             if (key === "_action_header") {
 
                 th.empty();
-                th.append('<img src="icon/application_view_detail.png" alt="Configure columns" title="Configure columns">');
+                th.append('Actions <img src="icon/application_view_detail.png" alt="Configure columns" title="Configure columns">');
                 $('img', th).on('click', function(event) {
 
                     _Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {
@@ -764,20 +764,23 @@ var _Crud = {
         var ranges = '';
         var keys = _Crud.keys[type];
         if (!keys) {
-            keys = Object.keys(typeDef.views[_Crud.view[type]]);
-        }
-
-        $.each(keys, function(i, key) {
-            if ( _Crud.isCollection(key, type)) {
-                var page = _Crud.getCollectionPage(type, key) || 1;
-                var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
-                var start = (page-1)*pageSize;
-                var end = page*pageSize;
-                ranges += key + '=' + start + '-' + end + ';'
+            var typeDef = _Crud.schema[type];
+            if (typeDef) {
+                keys = Object.keys(typeDef.views[_Crud.view[type]]);
             }
-        });
-        //console.log(ranges);
-        return ranges;
+        }
+        if (keys) {
+            $.each(keys, function(i, key) {
+                if ( _Crud.isCollection(key, type)) {
+                    var page = _Crud.getCollectionPage(type, key) || 1;
+                    var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
+                    var start = (page-1)*pageSize;
+                    var end = page*pageSize;
+                    ranges += key + '=' + start + '-' + end + ';'
+                }
+            });
+            return ranges;
+        }
     },
     crudExport: function(type) {
         var url = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
@@ -1369,12 +1372,12 @@ var _Crud = {
     },
     cells: function(id, key) {
         var row = _Crud.row(id);
-        var cellInMainTable = $('.' + key, row);
+        var cellInMainTable = $('.__' + key, row);
 
         var cellInDetailsTable;
         var table = $('#details_' + id);
         if (table) {
-            cellInDetailsTable = $('.' + key, table);
+            cellInDetailsTable = $('.__' + key, table);
         }
 
         if (cellInMainTable && !cellInDetailsTable) {
@@ -1419,10 +1422,10 @@ var _Crud = {
         el.off('mouseup');
         var input;
         if (propertyType === 'String') {
-            el.html('<textarea name="' + key + '" class="value" cols="40" rows="4"></textarea>');
+            el.html('<textarea name="' + key + '" class="__value" cols="40" rows="4"></textarea>');
             input = $('textarea', el);
         } else {
-            el.html('<input name="' + key + '" class="value" type="text" size="10">');
+            el.html('<input name="' + key + '" class="__value" type="text" size="10">');
             input = $('input', el);
         }
         input.val(oldValue);
@@ -1452,7 +1455,7 @@ var _Crud = {
         if (_Crud.keys[type]) {
             $.each(_Crud.filterKeys(type, _Crud.keys[type]), function(k, key) {
                 //console.log('populateRow for key', key, row);
-                row.append('<td class="' + key + '"></td>');
+                row.append('<td class="__' + key + '"></td>');
                 var cells = _Crud.cells(id, key);
                 $.each(cells, function(i, cell) {
                     _Crud.populateCell(id, key, type, item[key], cell);
@@ -1509,7 +1512,7 @@ var _Crud = {
                         event.preventDefault();
                         var self = $(this);
                         var oldValue = self.text();
-                        self.html('<input name="' + key + '" class="value" type="text" size="40">');
+                        self.html('<input name="' + key + '" class="__value" type="text" size="40">');
                         var input = $('input', self);
                         input.val(oldValue);
                         
@@ -2193,10 +2196,11 @@ var _Crud = {
                 });
             }
         }
-
+        var view = _Crud.view[type] || 'ui';
+        
         // load details
         $.ajax({
-            url: rootUrl + n.id + '/' + _Crud.view[type],
+            url: rootUrl + n.id + '/' + view,
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8;',
@@ -2209,8 +2213,14 @@ var _Crud = {
                 var node = data.result;
 
                 var typeDef = _Crud.schema[type];
-                //console.log('readonly', readonly);
-
+                
+                if (!typeDef) {
+                    _Crud.loadTypeDefinition(type, function() {
+                        _Crud.showDetails(n, type);
+                        return;
+                    });
+                }
+                
                 dialogText.html('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table>');
 
                 var table = $('table', dialogText);
@@ -2219,28 +2229,19 @@ var _Crud = {
                 if (!keys) {
                     keys = Object.keys(typeDef.views[_Crud.view[type]]);
                 }
+                if (!keys) {
+                    keys = Object.keys(node);
+                }
 
                 $.each(keys, function(i, key) {
-//                    var readOnly = _Crud.readOnly(key, type);
-//                    var isCollection = _Crud.isCollection(key, type);
-//                    var relatedType = _Crud.relatedType(key, type);
-//                    if (readOnly) {
-//                        return;
-//                    }
-
-                    table.append('<tr class="key"><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
-
-                    var cell = $('.' + key, table);
-
+                    table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="__value __' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+                    var cell = $('.__' + key, table);
                     if (_Crud.isCollection(key, type)) {
                         _Crud.appendPerCollectionPager(cell.prev('td'), type, key, function() {
                              _Crud.showDetails(n, typeParam);
                         });
                     }
-
                     if (node && node.id) {
-
-                        //console.log(node.id, key, type, node[key], cell);
                         _Crud.populateCell(node.id, key, node.type, node[key], cell);
 
                     } else {
@@ -2299,7 +2300,7 @@ var _Crud = {
             }
 
             table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
-            var cell = $('.' + key, table);
+            var cell = $('.__' + key, table);
             if (node && node.id) {
                 //console.log(node.id, key, type, node[key], cell);
                 _Crud.populateCell(node.id, key, node.type, node[key], cell);
@@ -2376,8 +2377,8 @@ var _Crud = {
             filteredKeys[key] = 0;
 
             // remove column(s) from table
-            $('th.' + key, table).remove();
-            $('td.' + key, table).each(function(i, t) {
+            $('th.__' + key, table).remove();
+            $('td.__' + key, table).each(function(i, t) {
                 t.remove();
             });
         }

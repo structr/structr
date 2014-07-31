@@ -46,10 +46,6 @@
     float: right;
 }
 
-.resourceBox td.value {
-    padding: 0;
-}
-
 .resourceBox td.save {
     color: #aaa;
 }
@@ -206,7 +202,7 @@ table.props td.key {
     width: 20%;
 }
 
-table.props td.value {
+table.props td.__value {
     width: 80%;
 }
 
