@@ -160,7 +160,10 @@ var StructrModel = {
         }
     },
     /**
-     * Deletes an object
+     * Deletes an object from the UI.
+     * 
+     * If object is page, remove preview and tab. If tab was the active tab,
+     * activate the tab to the left before removing it.
      */
     del: function(id) {
 
@@ -169,7 +172,16 @@ var StructrModel = {
             node.remove();
         }
         removeExpandedNode(id);
-        $('#show_' + id, previews).remove();
+        var iframe = $('#preview_' + id);
+        var tab = $('#show_' + id);
+
+        if (id === activeTab) {
+            _Pages.activateTab(tab.prev());
+        }
+        
+        tab.remove();
+        iframe.remove();
+        
         _Pages.reloadPreviews();
         if (graph) {
             graph.redrawRelationships();
@@ -291,9 +303,7 @@ var StructrModel = {
             tabNameElement.attr('title', newValue);
 
             log('Reload iframe', id, newValue);
-            window.setTimeout(function() {
-                _Pages.reloadIframe(id, newValue)
-            }, 100);
+            _Pages.reloadIframe(id)
         }
 
     },

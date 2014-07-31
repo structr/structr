@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var pages, shadowPage;
+var pages, shadowPage, pageVersion = {};
 var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
 var lsw, rsw;
 var components, elements;
@@ -437,7 +437,7 @@ var _Pages = {
         var id = element.prop('id').substring(5);
         activeTab = id;
 
-        _Pages.reloadIframe(id, name);
+        _Pages.loadIframe(id);
 
         element.addClass('active');
 
@@ -455,36 +455,60 @@ var _Pages = {
             _Entities.handleActiveElement(activeElement);
         });
     },
-    reloadIframe: function(id) {
-        _Pages.clearIframeDroppables();
+    /**
+     * Load and display the preview iframe with the given id.
+     */
+    loadIframe: function(id) {
+        _Pages.unloadIframes();
+        var iframe = $('#preview_' + id);
         Command.get(id, function(obj) {
-            var iframe = $('#preview_' + id);
-            if (iframe.parent().is(':hidden') || !localStorage.getItem(autoRefreshDisabledKey + id)) {
-                iframe.prop('src', viewRootUrl + obj.name + '?edit=2');
-                iframe.parent().show();
-            }
+            pageVersion[id] = obj.version;
+            iframe.prop('src', viewRootUrl + obj.name + '?edit=2');
+            log('iframe', id, 'activated');
+            iframe.parent().show();
             _Pages.resize();
-
             _Pages.refreshActiveElements(id);
         });
     },
-    reloadPreviews: function() {
-        log('all previews refreshed')
-        _Pages.clearIframeDroppables();
-        // add a small delay to avoid getting old data in very fast localhost envs
-        window.setTimeout(function() {
-            $('iframe', $('#previews')).each(function() {
-                var self = $(this);
-                var pageId = self.prop('id').substring('preview_'.length);
-                if (!localStorage.getItem(autoRefreshDisabledKey + pageId) && pageId === activeTab) {
-
-                    _Pages.reloadIframe(pageId);
-
-                    //var doc = this.contentDocument;
-                    //doc.location.reload(true);
+    /**
+     * Reload preview iframe with given id if it is the active tab
+     * and the page's version attribute is higher than the stored version.
+     */
+    reloadIframe: function(id) {
+        if (id !== activeTab) {
+            return false;
+        }
+        var autoRefreshDisabled = localStorage.getItem(autoRefreshDisabledKey + id);
+        if (!autoRefreshDisabled) {
+            Command.get(id, function(obj) {
+                log('reloading preview iframe', id, obj.name);
+                var v = obj.version || 0;
+                var s = pageVersion[id] || 0;
+                log('stored version:', s, 'current version:', v);
+                if (v > s) {
+                    pageVersion[id] = v;
+                    _Pages.loadIframe(id);
                 }
             });
-        }, 200);
+        }
+    },
+    unloadIframes: function() {
+        log('unloading all preview iframes');
+        _Pages.clearIframeDroppables();
+        $('iframe', $('#previews')).each(function() {
+            var self = $(this);
+            var pageId = self.prop('id').substring('preview_'.length);
+            var iframe = $('#preview_' + pageId);
+            iframe.prop('src', '');
+            log('iframe', pageId, 'deactivated');
+        });
+    },
+    /**
+     * Reload all previews. This means, reload only the active preview iframe.
+     * This method is typically called by websocket broadcasts.
+     */
+    reloadPreviews: function() {
+        _Pages.reloadIframe(activeTab);
     },
     clearIframeDroppables: function() {
         var droppablesArray = [];
