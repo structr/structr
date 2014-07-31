@@ -1070,6 +1070,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			}
 		}
 
+		try {
+
+			increasePageVersion();
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "Updating page version failed", ex);
+
+		}
+
 		return true;
 
 	}

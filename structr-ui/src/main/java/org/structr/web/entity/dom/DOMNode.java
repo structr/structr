@@ -297,14 +297,26 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	// ----- private methods -----
 	/**
-	 * Do necessary updates on all containing pages
+	 * Increase version of the page.
+	 * 
+	 * A {@link Page} is a {@link DOMNode} as well, so we have to check 'this' as well.
 	 *
 	 * @throws FrameworkException
 	 */
-	private void increasePageVersion() throws FrameworkException {
+	protected void increasePageVersion() throws FrameworkException {
 
-		Page page = (Page) getOwnerDocument();
-
+		Page page;
+		
+		if (this instanceof Page) {
+			
+			page = (Page) this;
+			
+		} else {
+			
+			page = (Page) getOwnerDocument();
+			
+		}
+		
 		if (page != null) {
 
 			page.unlockReadOnlyPropertiesOnce();
