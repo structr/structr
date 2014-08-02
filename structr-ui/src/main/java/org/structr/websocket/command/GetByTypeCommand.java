@@ -20,13 +20,14 @@ package org.structr.websocket.command;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.property.PropertyKey;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.common.PagingHelper;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
@@ -58,6 +59,7 @@ public class GetByTypeCommand extends AbstractCommand {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		final String rawType                   = (String) webSocketData.getNodeData().get("type");
+		final String properties                = (String) webSocketData.getNodeData().get("properties");
 		final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {
@@ -65,6 +67,10 @@ public class GetByTypeCommand extends AbstractCommand {
 			return;
 		}
 
+		if (properties != null) {
+			securityContext.setCustomView(StringUtils.split(properties, ","));
+		}
+		
 		final String sortOrder   = webSocketData.getSortOrder();
 		final String sortKey     = webSocketData.getSortKey();
 		final int pageSize       = webSocketData.getPageSize();

@@ -1478,11 +1478,11 @@ var _Schema = {
                     });
         });
 
-        Command.list('SchemaNode', true, 100, 1, 'name', 'asc', function(n) {
+        Command.list('SchemaNode', true, 100, 1, 'name', 'asc', 'id,name', function(n) {
             $('#node-type-selector').append('<option>' + n.name + '</option>');
         });
 
-        Command.list('SchemaRelationship', true, 100, 1, 'relationshipType', 'asc', function(r) {
+        Command.list('SchemaRelationship', true, 100, 1, 'relationshipType', 'asc', 'id,name', function(r) {
             $('#rel-type-selector').append('<option>' + r.relationshipType + '</option>');
         });
 

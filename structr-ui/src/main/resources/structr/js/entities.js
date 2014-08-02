@@ -692,25 +692,7 @@ var _Entities = {
                 dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
 
                 var tb = $('#principals tbody', dialogText);
-                tb.append('<tr id="new"><td><select id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
-                Command.getByType('User', 1000, 1, 'name', 'asc', function(user) {
-                    $('#newPrincipal').append('<option value="' + user.id + '">' + user.name + '</option>');
-                });
-                Command.getByType('Group', 1000, 1, 'name', 'asc', function(group) {
-                    $('#newPrincipal').append('<option value="' + group.id + '">' + group.name + '</option>');
-                });
-                $('#newPrincipal').on('change', function() {
-                    var sel = $(this);
-                    var pId = sel[0].value;
-                    var rec = $('#recursive', dialogText).is(':checked');
-                    Command.setPermission(entity.id, pId, 'grant', 'read', rec);
-                    $('#new', tb).selectedIndex = 0;
-
-                    Command.get(pId, function(p) {
-                        addPrincipal(entity, p, {'read': true});
-                    });
-
-                });
+                tb.append('<tr id="new"><td><select style="width: 300px;z-index: 999" id="newPrincipal"><option>Select Group/User</option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
 
                 $.ajax({
                     url: rootUrl + '/' + entity.id + '/in',
@@ -737,6 +719,28 @@ var _Entities = {
 
                         });
                     }
+                });
+
+                $('#newPrincipal').chosen();
+                Command.getByType('Group', 100, 1, 'name', 'asc', 'id,name', function(group) {
+                    $('#newPrincipal').append('<option value="' + group.id + '">' + group.name + '</option>');
+                    $('#newPrincipal').trigger("chosen:updated");
+                });
+                Command.getByType('User', 100, 1, 'name', 'asc', 'id,name', function(user) {
+                    $('#newPrincipal').append('<option value="' + user.id + '">' + user.name + '</option>');
+                    $('#newPrincipal').trigger("chosen:updated");
+                });
+                $('#newPrincipal').on('change', function() {
+                    var sel = $(this);
+                    var pId = sel[0].value;
+                    var rec = $('#recursive', dialogText).is(':checked');
+                    Command.setPermission(entity.id, pId, 'grant', 'read', rec);
+                    $('#new', tb).selectedIndex = 0;
+
+                    Command.get(pId, function(p) {
+                        addPrincipal(entity, p, {'read': true});
+                    });
+
                 });
 
             });
@@ -819,6 +823,7 @@ var _Entities = {
         });
 
         var select = $('#' + key + 'Select', element);
+        select.css({'width':'400px'}).chosen();
         select.on('change', function() {
 
             var value = select.val();
@@ -1305,7 +1310,7 @@ var _Entities = {
 function addPrincipal(entity, principal, permissions) {
 
     $('#newPrincipal option[value="' + principal.id + '"]').remove();
-    $('#new').before('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
+    $('#new').after('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
     var row = $('#_' + principal.id);
 

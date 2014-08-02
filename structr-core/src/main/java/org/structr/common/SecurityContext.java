@@ -580,6 +580,19 @@ public class SecurityContext {
 
 	}
 
+	public void setCustomView(final String... properties) {
+
+		if (customView == null) {
+			
+			customView = new LinkedHashSet<>();
+		}
+		
+		for (final String prop : properties) {
+			customView.add(prop);
+		}
+		
+	}
+	
 	public Authenticator getAuthenticator() {
 		return authenticator;
 	}

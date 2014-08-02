@@ -63,7 +63,7 @@ var Command = {
      *
      * The optional callback function will be executed for each node in the result set.
      */
-    getByType: function(type, pageSize, page, sort, order, callback) {
+    getByType: function(type, pageSize, page, sort, order, properties, callback) {
         var obj = {};
         obj.command = 'GET_BY_TYPE';
         var data = {};
@@ -72,8 +72,9 @@ var Command = {
         if (page) obj.page = page;
         if (sort) obj.sort = sort;
         if (order) obj.order = order;
+        if (properties) data.properties = properties;
         obj.data = data;
-        log('getByType()', obj, callback);
+        console.log('getByType()', obj, callback);
         return sendObj(obj, callback);
     },
     /**
@@ -84,12 +85,13 @@ var Command = {
      *
      * The optional callback function will be executed for each node in the result set.
      */
-    list: function(type, rootOnly, pageSize, page, sort, order, callback) {
+    list: function(type, rootOnly, pageSize, page, sort, order, properties, callback) {
         var obj = {};
         obj.command = 'LIST';
         var data = {};
         data.type = type;
         data.rootOnly = rootOnly;
+        if (properties) data.properties = properties;
         obj.pageSize = pageSize;
         obj.page = page;
         obj.sort = sort;

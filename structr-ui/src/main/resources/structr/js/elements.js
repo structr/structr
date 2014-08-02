@@ -159,7 +159,7 @@ var _Elements = {
         });
 
 
-        Command.list('Widget', true, 1000, 1, 'name', 'asc', function(entity) {
+        Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type', function(entity) {
             StructrModel.create(entity, null, false);
             _Widgets.appendWidgetElement(entity, false, widgets);
         });
@@ -224,7 +224,7 @@ var _Elements = {
         componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
         components = $('#componentsArea', componentsSlideout);
 
-        Command.getByType('ShadowDocument', 1, 1, null, null, function(entity) {
+        Command.getByType('ShadowDocument', 1, 1, null, null, null, function(entity) {
             shadowPage = entity;
         });
         components.droppable({
@@ -251,7 +251,7 @@ var _Elements = {
         });
         _Dragndrop.makeSortable(components);
 
-        Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
+        Command.listComponents(1000, 1, 'name', 'asc', 'id,name', function(entity) {
 
             if (!entity)
                 return false;
@@ -290,7 +290,7 @@ var _Elements = {
         });
 
         _Dragndrop.makeSortable(elements);
-        Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
+        Command.listUnattachedNodes(1000, 1, 'name', 'asc', 'id,name', function(entity) {
 
             if (!entity) {
                 return;

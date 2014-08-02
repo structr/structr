@@ -936,7 +936,7 @@ var Structr = {
                 $('.node', el).remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
             }
         });
 
@@ -947,7 +947,7 @@ var Structr = {
                 $('.node', el).remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
             }
         });
 
@@ -960,7 +960,7 @@ var Structr = {
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
         });
 
         pageRight.on('click', function() {
@@ -971,9 +971,9 @@ var Structr = {
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
         });
-        return Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+        return Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
     },
     makePagesMenuDroppable: function() {
 
@@ -1141,7 +1141,7 @@ var Structr = {
             syncables.empty();
             syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
 
-            Command.listSyncables(host, port, username, password, key, type, function(syncable) {
+            Command.listSyncables(host, port, username, password, key, type, 'id,name', function(syncable) {
 
                 syncables.append(
                       '<tr>'
