@@ -1430,7 +1430,6 @@ var _Crud = {
         }
         input.val(oldValue);
         input.off('mouseup');
-        //console.log('activateTextInputField', input, id, key);
         input.focus();
         input.on('blur', function() {
             var newValue = input.val();
@@ -2299,7 +2298,7 @@ var _Crud = {
                 return;
             }
 
-            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value __' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
             var cell = $('.__' + key, table);
             if (node && node.id) {
                 //console.log(node.id, key, type, node[key], cell);
