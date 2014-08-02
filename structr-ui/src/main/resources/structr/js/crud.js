@@ -1035,7 +1035,6 @@ var _Crud = {
 
             $.each(Object.keys(resp.errors[type]), function(i, key) {
                 var errorMsg = resp.errors[type][key][0];
-                console.log(key, errorMsg);
                 var input = $('td [name="' + key + '"]', dialogText);
                 if (input.length) {
                     var errorText = '';
@@ -1503,7 +1502,7 @@ var _Crud = {
                     });
                 }
             } else if (propertyType === 'Date') {
-                cell.html(nvl(formatValue(value), '<img src="icon/calendar.png">'));
+                cell.html(nvl(formatValue(value), '<img alt="Show calendar" title="Show calendar" src="icon/calendar.png">'));
                 if (!readOnly) {
                     var dateTimeFormat = _Crud.getFormat(key, type).split('\'T\'');
                     var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
@@ -1523,7 +1522,7 @@ var _Crud = {
                                 separator: 'T',
                                 onClose: function() {
                                     var newValue = input.val();
-                                    var formattedValue = moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T'));
+                                    var formattedValue = (newValue && newValue !== '') ? moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T')) : '';
                                     input.val(formattedValue);
                                     if (id) {
                                         _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
@@ -1536,7 +1535,7 @@ var _Crud = {
                                 dateFormat: 'yy-mm-dd',
                                 onClose: function() {
                                     var newValue = input.val();
-                                    var formattedValue = moment(newValue).formatWithJDF(dateFormat);
+                                    var formattedValue = (newValue && newValue !== '') ? moment(newValue).formatWithJDF(dateFormat) : '';
                                     input.val(formattedValue);
                                     if (id) {
                                         _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
@@ -1612,6 +1611,17 @@ var _Crud = {
             }
 
         }
+
+        if (!readOnly && propertyType !== 'Boolean' && !relatedType) {
+            cell.append('<img class="crud-clear-value" alt="Clear value" title="Clear value" src="icon/cross_small_grey.png">');
+            $('.crud-clear-value', cell).on('mouseup', function(e) {
+                e.preventDefault();
+               _Crud.crudRemoveProperty(id, key); 
+               return false;
+            });
+        }
+        
+
         //searchField.focus();
     },
     appendEnumSelect: function(cell, id, key, format) {
@@ -2151,26 +2161,34 @@ var _Crud = {
 
     },
     error: function(text, callback) {
-        if (text) {
-            $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        }
-        if (callback) {
-            $('#errorBox .closeButton').on('click', function(e) {
-                e.stopPropagation();
-                $.unblockUI({
-                    fadeOut: 25
-                });
-            });
-        }
-        $.blockUI.defaults.overlayCSS.opacity = .6;
-        $.blockUI.defaults.applyPlatformOpacityRules = false;
-        $.blockUI({
-            message: $('#errorBox'),
-            css: {
-                border: 'none',
-                backgroundColor: 'transparent'
+
+        if (!dialogBox.is(':visible')) {
+
+            if (text) {
+                $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
             }
-        });
+            if (callback) {
+                $('#errorBox .closeButton').on('click', function(e) {
+                    e.stopPropagation();
+                    $.unblockUI({
+                        fadeOut: 25
+                    });
+                });
+            }
+            $.blockUI.defaults.overlayCSS.opacity = .6;
+            $.blockUI.defaults.applyPlatformOpacityRules = false;
+            $.blockUI({
+                message: $('#errorBox'),
+                css: {
+                    border: 'none',
+                    backgroundColor: 'transparent'
+                }
+            });
+
+        } else {
+            dialogMsg.html('<div class="infoBox error">' + text + '</div>');
+            $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+        }
     },
     showDetails: function(n, typeParam) {
 
@@ -2401,11 +2419,6 @@ var _Crud = {
             }
         });
         return o;
-    },
-    displayError: function(errorText) {
-        var msgEl = $('.dialogMsg', $('#dialogBox'));
-        msgEl.empty();
-        msgEl.text(errorText);
     },
     idArray: function(ids) {
         var arr = [];

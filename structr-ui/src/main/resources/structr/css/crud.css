@@ -355,6 +355,17 @@ img.loader {
     margin-right: 12px;
 }
 
+.crud-clear-value {
+    float: right;
+    margin-left: 4px;
+    opacity: .6;
+}
+
+.crud-clear-value:hover {
+    cursor: pointer;
+    opacity: .8;
+}
+
 /*
 * Collection pager
 */
