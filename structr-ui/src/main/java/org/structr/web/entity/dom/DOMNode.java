@@ -263,7 +263,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 *
 	 * @return list of ancestors
 	 */
-	public List<Node> getAncestors() {
+	private List<Node> getAncestors() {
 
 		List<Node> ancestors = new LinkedList();
 
@@ -314,6 +314,16 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		} else {
 			
 			page = (Page) getOwnerDocument();
+			
+		}
+		
+		if (page == null) {
+			
+			final List<Node> ancestors = getAncestors();
+			final DOMNode rootNode = (DOMNode) ancestors.get(ancestors.size() - 1);
+			if (rootNode instanceof Page) {
+				page = (Page) rootNode;
+			}
 			
 		}
 		
@@ -567,7 +577,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		// TODO: implement?
 	}
 
-	@Override
+	 @Override
 	public Node getParentNode() {
 		// FIXME: type cast correct here?
 		return (Node) getProperty(parent);
