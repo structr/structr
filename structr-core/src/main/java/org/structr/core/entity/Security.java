@@ -241,11 +241,11 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	@Override
 	public Property<String> getSourceIdProperty() {
-		return null;
+		return principalId;
 	}
 
 	@Override
 	public Property<String> getTargetIdProperty() {
-		return null;
+		return accessControllableId;
 	}
 }

@@ -113,7 +113,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	public Property<String> getTargetIdProperty() {
-		return null;
+		return targetId;
 	}
 
 	@Override
