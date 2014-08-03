@@ -251,7 +251,7 @@ var _Elements = {
         });
         _Dragndrop.makeSortable(components);
 
-        Command.listComponents(1000, 1, 'name', 'asc', 'id,name', function(entity) {
+        Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
 
             if (!entity)
                 return false;
@@ -290,7 +290,7 @@ var _Elements = {
         });
 
         _Dragndrop.makeSortable(elements);
-        Command.listUnattachedNodes(1000, 1, 'name', 'asc', 'id,name', function(entity) {
+        Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
 
             if (!entity) {
                 return;
