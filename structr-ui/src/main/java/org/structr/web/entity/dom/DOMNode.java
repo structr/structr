@@ -320,9 +320,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		if (page == null) {
 			
 			final List<Node> ancestors = getAncestors();
-			final DOMNode rootNode = (DOMNode) ancestors.get(ancestors.size() - 1);
-			if (rootNode instanceof Page) {
-				page = (Page) rootNode;
+			if (!ancestors.isEmpty()) {
+				final DOMNode rootNode = (DOMNode) ancestors.get(ancestors.size() - 1);
+				if (rootNode instanceof Page) {
+					page = (Page) rootNode;
+				}
 			}
 			
 		}
