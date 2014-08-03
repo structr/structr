@@ -356,7 +356,7 @@ var _Schema = {
                     if (sId === res.sourceId && tId === res.targetId) {
                         radius += 10;
                         stub += 30;
-                        offset += .05;
+                        offset += .1;
                     } else {
                         radius = 20;
                         stub = 30;
@@ -377,7 +377,7 @@ var _Schema = {
                             ["Label", {
                                     cssClass: "label multiplicity",
                                     label: res.sourceMultiplicity ? res.sourceMultiplicity : '*',
-                                    location: .2 + offset,
+                                    location: .15 + offset,
                                     id: "sourceMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
@@ -423,7 +423,7 @@ var _Schema = {
                             ["Label", {
                                     cssClass: "label multiplicity",
                                     label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-                                    location: .8 - offset,
+                                    location: .85 - offset,
                                     id: "targetMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
@@ -1648,7 +1648,7 @@ var typeOptions = '<select class="property-type"><option value="">--Select type-
         + '<option value="Boolean">Boolean</option>'
         + '<option value="Enum">Enum</option>'
         + '<option value="Date">Date</option>'
-        + '<option value="Counter">Counter</option>'
+        + '<option value="Count">Count</option>'
         + '<option value="Function">Function</option>'
         + '<option value="Notion">Notion</option>'
         + '<option value="Join">Join</option>'
