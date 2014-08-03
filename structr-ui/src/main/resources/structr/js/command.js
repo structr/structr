@@ -74,7 +74,7 @@ var Command = {
         if (order) obj.order = order;
         if (properties) data.properties = properties;
         obj.data = data;
-        console.log('getByType()', obj, callback);
+        log('getByType()', obj, callback);
         return sendObj(obj, callback);
     },
     /**

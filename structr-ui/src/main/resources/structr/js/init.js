@@ -702,7 +702,15 @@ var Structr = {
             });
         }
     },
-    
+    loaderIcon: function(element, css) {
+      element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="img/ajax-loader.gif">');
+      var li = $('.loader-icon', element);
+      if (css) {
+          li.css(css);
+      }
+      return li;
+      
+    },
     tempInfo: function(text, autoclose) {
         window.clearTimeout(dialogId);
         if (text)

@@ -720,17 +720,25 @@ var _Entities = {
                         });
                     }
                 });
-
-                $('#newPrincipal').chosen();
-                Command.getByType('Group', 100, 1, 'name', 'asc', 'id,name', function(group) {
-                    $('#newPrincipal').append('<option value="' + group.id + '">' + group.name + '</option>');
-                    $('#newPrincipal').trigger("chosen:updated");
+                var select = $('#newPrincipal');
+                select.chosen({ width: '90%' });
+                var i=0, n=10000;
+                Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', function(group) {
+                    select.append('<option value="' + group.id + '">' + group.name + '</option>');
+                    if (++i >= n) {
+                        select.trigger("chosen:updated");
+                    }
                 });
-                Command.getByType('User', 100, 1, 'name', 'asc', 'id,name', function(user) {
-                    $('#newPrincipal').append('<option value="' + user.id + '">' + user.name + '</option>');
-                    $('#newPrincipal').trigger("chosen:updated");
+                i=0;
+                var al2 = Structr.loaderIcon(select.parent(), { float: 'right' });
+                Command.getByType('User', n, 1, 'name', 'asc', 'id,name', function(user) {
+                    select.append('<option value="' + user.id + '">' + user.name + '</option>');
+                    if (++i >= n) {
+                        select.trigger("chosen:updated");
+                        if (al2.length) al2.remove();
+                    }
                 });
-                $('#newPrincipal').on('change', function() {
+                select.on('change', function() {
                     var sel = $(this);
                     var pId = sel[0].value;
                     var rec = $('#recursive', dialogText).is(':checked');
@@ -740,7 +748,6 @@ var _Entities = {
                     Command.get(pId, function(p) {
                         addPrincipal(entity, p, {'read': true});
                     });
-
                 });
 
             });
@@ -807,32 +814,29 @@ var _Entities = {
         element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select"></select></span>');
         var selectElement = $('#' + key + 'Select');
         selectElement.append('<option></option>')
+        selectElement.css({'width':'400px'}).chosen();
 
-        $.ajax({
-            url: rootUrl + type + '/ui?pageSize=100',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            success: function(data) {
-                $(data.result).each(function(i, result) {
-
-                    var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
-                    var selected = (id === result.id ? 'selected' : '');
-                    selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
-                });
+        var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
+        var al = Structr.loaderIcon(el, { position: 'absolute', left: '416px', top: '32px' });
+        var i=0, n=10000;
+        Command.getByType(type, n, 1, 'name', 'asc', 'id,name', function(result) {
+            var selected = (id === result.id ? 'selected' : '');
+            selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
+            if (++i >= n) {
+                selectElement.trigger("chosen:updated");
+                if (al.length) al.remove();
             }
         });
 
-        var select = $('#' + key + 'Select', element);
-        select.css({'width':'400px'}).chosen();
-        select.on('change', function() {
+        selectElement.on('change', function() {
 
-            var value = select.val();
+            var value = selectElement.val();
             if (subKey) {
                 entity[key][subKey] = value;
             }
 
             entity.setProperty(key, value, false, function() {
-                blinkGreen(select);
+                blinkGreen($('#' + key + 'Select_chosen .chosen-single'));
             });
         });
     },

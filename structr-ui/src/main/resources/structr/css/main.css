@@ -1850,6 +1850,15 @@ table.push {
     display: none;
 }
 
+.chosen-container .chosen-results {
+    max-height: 120px ! important;
+}
+
+.loader-icon {
+    width: 24px;
+    height: 24px;
+}
+
 /**
  * Tooltips
  */
