@@ -579,13 +579,14 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 
 	}
+	
+	public void clearCustomView() {
+		customView = new LinkedHashSet<>();
+	}
 
 	public void setCustomView(final String... properties) {
 
-		if (customView == null) {
-			
-			customView = new LinkedHashSet<>();
-		}
+		customView = new LinkedHashSet<>();
 		
 		for (final String prop : properties) {
 			customView.add(prop);

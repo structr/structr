@@ -61,7 +61,6 @@ public class StructrWebSocket implements WebSocketListener {
 	//~--- fields ---------------------------------------------------------
 	private String callback = null;
 	private Session session = null;
-	private String sessionId = null;
 	private Gson gson = null;
 	private PropertyKey idProperty = null;
 	private HttpServletRequest request = null;
@@ -252,6 +251,9 @@ public class StructrWebSocket implements WebSocketListener {
 			logger.log(Level.FINE, "################### Private message: {0}", message.getCommand());
 			logger.log(Level.FINEST, "############################################################ SENDING \n{0}", msg);
 
+			// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
+			getSecurityContext().clearCustomView();
+			
 			session.getRemote().sendString(msg);
 
 		} catch (Throwable t) {
@@ -398,8 +400,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
-
-		this.sessionId = sessionId;
 
 		try {
 
