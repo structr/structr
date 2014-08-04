@@ -23,6 +23,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -138,6 +139,9 @@ public class NodeExtender {
 				}
 
 				errorBuffer.add(name, new DiagnosticErrorToken(diagnostic));
+                                
+                                // log also to log file
+                                logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });
 			}
 		}
 	}
