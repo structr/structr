@@ -21,10 +21,9 @@ package org.structr.web.auth;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.User;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -145,7 +144,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 			
 			return twitter.getScreenName();
 			
-		} catch (Exception ex) {
+		} catch (TwitterException | IllegalStateException ex) {
 			
 			logger.log(Level.SEVERE, null, ex);
 			
@@ -180,7 +179,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	@Override
 	public PropertyKey getCredentialKey() {
 		
-		return Person.twitterName;
+		return User.twitterName;
 		
 	}
 	
