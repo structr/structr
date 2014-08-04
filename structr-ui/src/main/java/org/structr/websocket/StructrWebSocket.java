@@ -252,7 +252,9 @@ public class StructrWebSocket implements WebSocketListener {
 			logger.log(Level.FINEST, "############################################################ SENDING \n{0}", msg);
 
 			// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
-			getSecurityContext().clearCustomView();
+			if (securityContext != null) {
+                            securityContext.clearCustomView();
+                        }
 			
 			session.getRemote().sendString(msg);
 
