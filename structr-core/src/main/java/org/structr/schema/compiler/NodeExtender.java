@@ -108,7 +108,8 @@ public class NodeExtender {
 
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { fqcn, t.getMessage() });
+					logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { fqcn, t.toString() });
+					t.printStackTrace();
 				}
 			}
 		}

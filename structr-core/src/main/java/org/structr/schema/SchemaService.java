@@ -135,6 +135,7 @@ public class SchemaService implements Service {
 				} catch (Throwable t) {
 
 					logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
+					t.printStackTrace();
 
 					success = false;
 				}
