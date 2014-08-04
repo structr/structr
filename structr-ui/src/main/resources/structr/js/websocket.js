@@ -249,8 +249,7 @@ function wsConnect() {
 
                     // Don't append a DOM node
                     //var obj = StructrModel.create(entity, undefined, false);
-
-                    StructrModel.callCallback(data.callback, entity);
+                    StructrModel.callCallback(data.callback, entity, result.length);
 
                 });
 
@@ -338,11 +337,10 @@ function wsConnect() {
                 Structr.updatePager(type, dialog.is(':visible') ? dialog : undefined);
 
                 $('.pageCount', $('.pager' + type)).val(pageCount[type]);
-
                 $(result).each(function(i, entity) {
 
                     //var obj = StructrModel.create(entity);
-                    StructrModel.callCallback(data.callback, entity);
+                    StructrModel.callCallback(data.callback, entity, result.length);
 
                 });
 
