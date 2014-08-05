@@ -278,13 +278,15 @@ var _Widgets = {
         div.append('<img title="Edit widget" alt="Edit widget ' + widget.id + '" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function(e) {
             e.stopPropagation();
-            var text = widget.source || '';
             Structr.dialog('Edit widget "' + widget.name + '"', function() {
                 log('Widget source saved')
             }, function() {
                 log('cancelled')
             });
-            _Widgets.editWidget(this, widget, text, dialogText);
+            Command.get(widget.id, function(entity) {
+                _Widgets.editWidget(this, entity, dialogText);
+            });
+            
         });
 
         if (!remote) {
@@ -305,8 +307,9 @@ var _Widgets = {
         return div;
     },
 
-    editWidget : function (button, entity, text, element) {
+    editWidget : function (button, entity, element) {
         if (isDisabled(button)) return;
+        var text = entity.source || '';
         var div = element.append('<div class="editor"></div>');
         log(div);
         var contentBox = $('.editor', element);
