@@ -459,6 +459,9 @@ var _Pages = {
      * Load and display the preview iframe with the given id.
      */
     loadIframe: function(id) {
+        if (!id) {
+            return;
+        }
         _Pages.unloadIframes();
         var iframe = $('#preview_' + id);
         Command.get(id, function(obj) {
@@ -479,7 +482,7 @@ var _Pages = {
             return false;
         }
         var autoRefreshDisabled = localStorage.getItem(autoRefreshDisabledKey + id);
-        if (!autoRefreshDisabled) {
+        if (!autoRefreshDisabled && id) {
             Command.get(id, function(obj) {
                 log('reloading preview iframe', id, obj.name);
                 var v = obj.version || 0;
@@ -992,7 +995,9 @@ var _Pages = {
 
     },
     showTypeData: function(id) {
-
+        if (!id) {
+            return;
+        }
         Command.get(id, function(t) {
 
             var typeKey = t.name.toLowerCase();
@@ -1112,6 +1117,9 @@ var _Pages = {
 
     },
     expandTreeNode: function(id, stack) {
+        if (!id) {
+            return;
+        }
         stack = stack || [];
         stack.push(id);
         Command.get(id, function(obj) {

@@ -260,6 +260,9 @@ var _Widgets = {
                 }, function() {
                     log('cancelled')
                 });
+                if (!widget.id) {
+                    return false;
+                }
                 Command.get(widget.id, function(entity) {
                     _Widgets.editWidget(this, entity, dialogText);
                 });

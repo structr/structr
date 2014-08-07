@@ -305,6 +305,10 @@ var _Schema = {
                         });
                         var id = getId($(this).closest('.schema.node'));
 
+                        if (!id) {
+                            return false;
+                        }
+
                         Command.get(id, function(entity) {
                             _Schema.loadNode(entity, dialogText);
                         });
@@ -1307,6 +1311,9 @@ var _Schema = {
 
         input.show().focus().select();
         input.on('blur', function() {
+            if (!id) {
+                return false;
+            }
             Command.get(id, function(entity) {
                 _Schema.changeName(entity, element, input, oldName);
             });
@@ -1316,6 +1323,9 @@ var _Schema = {
         input.keypress(function(e) {
             if (e.keyCode === 13 || e.keyCode === 9) {
                 e.preventDefault();
+                if (!id) {
+                    return false;
+                }
                 Command.get(id, function(entity) {
                     _Schema.changeName(entity, element, input, oldName);
                 });
@@ -1581,7 +1591,7 @@ var _Schema = {
     },
     expandView: function(id) {
 
-        if (id.contains('_')) {
+        if (!id || id.contains('_')) {
             return;
         }
 
