@@ -308,104 +308,99 @@ var _Dragndrop = {
 
         //var pattern = /^\[[a-zA-Z]+\]$/;
         var pattern = /\[[a-zA-Z:,]+\]/g;
-        
-        Command.get(source.id, function(widget) {
-            
-            var text = widget.source;
-            if (text) {
+        var text = source.source;
+        if (text) {
 
-                var rawMatches = text.match(pattern);
+            var rawMatches = text.match(pattern);
 
-                if (rawMatches) {
+            if (rawMatches) {
 
-                    var matches = $.unique(rawMatches);
+                var matches = $.unique(rawMatches);
 
-                    if (matches && matches.length) {
+                if (matches && matches.length) {
 
-                        Structr.dialog('Configure Widget', function() {
-                        }, function() {
-                        });
+                    Structr.dialog('Configure Widget', function() {
+                    }, function() {
+                    });
 
-                        dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
-                        var table = $('table', dialogText);
+                    dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
+                    var table = $('table', dialogText);
+
+                    $.each(matches, function(i, match) {
+
+                        var propertyKey = match.replace(/\[/, '').replace(/\]/, '')
+                        var options = '';
+                        var hasOptions = false;
+
+                        if (propertyKey.contains(":")) {
+
+                            var parts = propertyKey.split(":");
+                            if (parts.length === 2) {
+
+                                propertyKey = parts[0];
+                                options = parts[1];
+                                hasOptions = true;
+                            }
+                        }
+
+                        var label = _Crud.formatKey(propertyKey);
+
+                        if (hasOptions) {
+
+                            var buffer = '';
+
+                            buffer += '<tr><td><label for="' + label + '">' + label + '</label></td><td>';
+                            buffer += '<select id="' + propertyKey + '" class="input-field" >';
+
+                            $.each(options.split(","), function(i, option) {
+
+                                buffer += '<option>' + option + '</option>';
+                            });
+
+                            buffer += '</select>';
+                            buffer += '</td></tr>';
+
+                            table.append(buffer);
+
+                        } else {
+
+                            table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input class="input-field" type="text" id="' + propertyKey + '" placeholder="' + label + '"></td></tr>');
+                        }
+
+                    });
+
+                    dialog.append('<button id="appendWidget">Append Widget</button>');
+                    var attrs = {};
+                    $('#appendWidget').on('click', function(e) {
 
                         $.each(matches, function(i, match) {
 
-                            var propertyKey = match.replace(/\[/, '').replace(/\]/, '')
-                            var options     = '';
-                            var hasOptions  = false;
-
-                            if (propertyKey.contains(":")) {
-
-                                var parts = propertyKey.split(":");
-                                if (parts.length === 2) {
-
-                                    propertyKey = parts[0];
-                                    options     = parts[1];
-                                    hasOptions  = true;
-                                }
-                            }
-
-                            var label = _Crud.formatKey(propertyKey);
-
-                            if (hasOptions) {
-
-                                var buffer = '';
-
-                                buffer += '<tr><td><label for="' + label + '">' + label + '</label></td><td>';
-                                buffer += '<select id="' + propertyKey + '" class="input-field" >';
-
-                                $.each(options.split(","), function(i, option) {
-
-                                    buffer += '<option>' + option + '</option>';
-                                });
-
-                                buffer += '</select>';
-                                buffer += '</td></tr>';
-
-                                table.append(buffer);
-
-                            } else {
-
-                                table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input class="input-field" type="text" id="' + propertyKey + '" placeholder="' + label + '"></td></tr>');
-                            }
-
-                        });
-
-                        dialog.append('<button id="appendWidget">Append Widget</button>');
-                        var attrs = {};
-                        $('#appendWidget').on('click', function(e) {
-
-                            $.each(matches, function(i, match) {
-
-                                $.each($('.input-field', table), function(i, m) {
-                                    var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '')
-                                    attrs[key] = $(this).val();
-                                    //console.log(this, match, key, attrs[key]);
-                                });
-
+                            $.each($('.input-field', table), function(i, m) {
+                                var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '')
+                                attrs[key] = $(this).val();
+                                //console.log(this, match, key, attrs[key]);
                             });
 
-                            //console.log(source.source, elementId, pageId, attrs);
-                            e.stopPropagation();
-                            Command.appendWidget(text, target.id, pageId, widgetsUrl, attrs);
-
-                            dialogCancelButton.click();
-                            return false;
                         });
 
-                    }
+                        //console.log(source.source, elementId, pageId, attrs);
+                        e.stopPropagation();
+                        Command.appendWidget(text, target.id, pageId, widgetsUrl, attrs);
 
-                } else {
-
-                    // If no matches, directly append widget
-                    Command.appendWidget(text, target.id, pageId, widgetsUrl);
+                        dialogCancelButton.click();
+                        return false;
+                    });
 
                 }
 
+            } else {
+
+                // If no matches, directly append widget
+                Command.appendWidget(source.source, target.id, pageId, widgetsUrl);
+
             }
-        });
-        
+
+        }
 
         return;
 
