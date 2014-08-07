@@ -23,9 +23,8 @@ var win = $(window);
 $(document).ready(function() {
     Structr.registerModule('widgets', _Widgets);
     Structr.classes.push('widget');
-    _Widgets.resize();
     win.resize(function() {
-        _Widgets.resize();
+        Structr.resize();
     });
 });
 
@@ -37,20 +36,6 @@ var _Widgets = {
     init: function() {
 
         Structr.initPager('Widget', 1, 25);
-
-    },
-    resize: function() {
-
-        var windowWidth = win.width();
-        var windowHeight = win.height();
-        var headerOffsetHeight = 82;
-
-        if (widgets) {
-            widgets.css({
-                width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
-                height: windowHeight - headerOffsetHeight + 'px'
-            });
-        }
 
     },
     onload: function() {
@@ -67,6 +52,8 @@ var _Widgets = {
 
         _Widgets.refreshWidgets();
         _Widgets.refreshRemoteWidgets();
+        
+        Structr.resize();
     },
     unload: function() {
         $(main.children('table')).remove();
@@ -80,7 +67,7 @@ var _Widgets = {
             Command.create({'type': 'Widget'});
         });
         Structr.addPager(widgets, true, 'Widget');
-        _Widgets.resize();
+        Structr.resize();
     },
     refreshRemoteWidgets: function() {
         remoteWidgets.empty();
