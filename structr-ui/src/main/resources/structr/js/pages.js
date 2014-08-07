@@ -475,7 +475,7 @@ var _Pages = {
      * and the page's version attribute is higher than the stored version.
      */
     reloadIframe: function(id) {
-        if (id !== activeTab) {
+        if (!id || id !== activeTab) {
             return false;
         }
         var autoRefreshDisabled = localStorage.getItem(autoRefreshDisabledKey + id);
