@@ -107,7 +107,7 @@ $(function() {
         Structr.clearMain();
         Structr.activateMenuEntry('widgets');
         Structr.modules['widgets'].onload();
-        _Widgets.resize();
+        Structr.resize();
     });
 
     $('#types_').on('click', function(e) {
