@@ -241,7 +241,7 @@ var _Widgets = {
 
             delIcon = div.children('.delete_icon');
 
-            newDelIcon = '<img title="Delete file ' + widget.name + '\'" alt="Delete file \'' + widget.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+            newDelIcon = '<img title="Delete widget ' + widget.name + '\'" alt="Delete widget \'' + widget.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
             div.append(newDelIcon);
             delIcon = div.children('.delete_icon');
             div.children('.delete_icon').on('click', function(e) {
