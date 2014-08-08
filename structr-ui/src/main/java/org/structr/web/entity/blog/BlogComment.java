@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.blog.relation;
+package org.structr.web.entity.blog;
 
 import java.util.Date;
 import org.structr.core.property.Property;
@@ -31,6 +31,7 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
+import org.structr.web.entity.blog.relation.BlogAuthor;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.relation.BlogCommentContents;
 

@@ -28,7 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.OneToOne;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.web.entity.blog.relation.BlogComment;
+import org.structr.web.entity.blog.BlogComment;
 import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------

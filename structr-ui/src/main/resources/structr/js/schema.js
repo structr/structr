@@ -502,7 +502,7 @@ var _Schema = {
     loadNode: function(entity, el) {
         remotePropertyKeys = [];
         el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + entity.name + '</b>'
-                + (entity.isBuiltinType ? '' : ' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractNode">AbstractNode</option></select>')
+                + (entity.isBuiltinType ? '' : ' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractNode">org.structr.core.entity.AbstractNode</option></select>')
                 + '<h3>Local Attributes</h3><table class="local schema-props"><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th><th>Default</th><th>Action</th></table>'
                 + '<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">'
                 + '<h3>Methods</h3><table class="actions schema-props"><th>JSON Name</th><th>Code</th><th>Action</th></table>'
@@ -518,20 +518,17 @@ var _Schema = {
         });
 
         var classSelect = $('.extends-class-select', el);
-        _Crud.loadAccessibleResources(function() {
-            $.each(_Crud.types, function(t, type) {
-                if (!type || type.startsWith('_')) {
+        $.get(rootUrl + '_schema', function(data) {
+            var result = data.result;
+            $.each(result, function(t, cls) {
+                var type = cls.type;
+                var fqcn = cls.className;
+                if (!type || type.startsWith('_') || fqcn.startsWith('org.structr.web.entity.html')) {
                     return;
                 }
-                $.get(rootUrl + '_schema/' + type, function(data) {
-                    if (data && data.result && data.result.length) {
-                        var fqcn = data.result[0].className;
-                        classSelect.append('<option ' + (entity.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
-                    }
-                });
-
+                classSelect.append('<option ' + (entity.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
             });
-
+            classSelect.chosen({ search_contains: true });
         });
 
         classSelect.on('change', function() {

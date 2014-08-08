@@ -18,27 +18,21 @@
  */
 package org.structr.common;
 
-import org.neo4j.graphdb.RelationshipType;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.GenericRelationship;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.IOException;
 import java.util.Collections;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.Cache;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.DynamicResourceAccess;
+import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Person;
@@ -203,7 +197,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 			}
 
 			assertTrue(entityList.contains(AbstractNode.class));
-			assertTrue(entityList.contains(Cache.class));
 			assertTrue(entityList.contains(GenericNode.class));
 			assertTrue(entityList.contains(Location.class));
 			assertTrue(entityList.contains(Person.class));
