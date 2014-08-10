@@ -199,9 +199,9 @@ var StructrModel = {
     update: function(data) {
         var obj = StructrModel.obj(data.id);
 
-        if (obj) {
+        if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
-            $.each(Object.keys(data.data), function(i, key) {
+            $.each(data.modifiedProperties, function(i, key) {
                 log('update model', key, data.data[key]);
                 obj[key] = data.data[key];
                 //console.log('object ', obj, 'updated with key', key, '=', obj[key]);
@@ -304,7 +304,7 @@ var StructrModel = {
             tabNameElement.html(fitStringToWidth(newValue, w));
             tabNameElement.attr('title', newValue);
 
-            log('Reload iframe', id, newValue);
+            log('Model: Reload iframe', id, newValue);
             _Pages.reloadIframe(id)
         }
 
@@ -330,33 +330,21 @@ var StructrModel = {
                 StructrModel.refreshKey(id, key);
             });
 
-            // check display of HTML 'class' and 'id' attribute
-            var id = obj._html_id ? obj._html_id.replace(/\${.*}/g, '${…}') : '';
-            var cl = obj._html_class ? obj._html_class.replace(/\${.*}/g, '${…}') : '';
-
-            var idEl = $(element).children('._html_id_');
-            if (id) {
-                if (!idEl.length) {
-                    $('<span class="_html_id_"></span>').insertAfter($(element).children('b'));
-                    clEl = $(element).children('._html_id_');
+            // update HTML 'class' and 'id' attributes
+            if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
+                
+                var classIdAttrsEl = $(element).children('.class-id-attrs');
+                if (classIdAttrsEl.length) {
+                    classIdAttrsEl.remove();
                 }
-                idEl.text('#' + id);
-            } else {
-                idEl.empty();
-            }
 
-            var clEl = $(element).children('._html_class_');
-            if (cl) {
-                if (!clEl.length) {
-                    $('<span class="_html_class_"></span>').insertAfter(idEl.length ? idEl : $(element).children('b'));
-                    clEl = $(element).children('._html_class_');
+                var classIdString = _Elements.classIdString(obj._html_id, obj._html_class);
+                var idEl = $(element).children('.id');
+                if (idEl.length) {
+                    $(element).children('.id').after(classIdString);
                 }
-                clEl.text('.' + $.trim(cl).replace(/ /g, '.'));
-            } else {
-                clEl.empty();
             }
-
-
+            
             // check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
             var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
             var keyIcon = $(element).children('.key_icon');
@@ -456,7 +444,7 @@ StructrFolder.prototype.remove = function() {
 
     if (!parentFolder.files.length && !parentFolder.folders.length) {
         _Entities.removeExpandIcon(parentFolderEl);
-        enable(parentFolderEl.children('.delete_icon')[0]);
+        //enable(parentFolderEl.children('.delete_icon')[0]);
     }
 
     var folderEl = Structr.node(folder.id);
@@ -470,7 +458,7 @@ StructrFolder.prototype.remove = function() {
 
     folderEl.children('.delete_icon').on('click', function(e) {
         e.stopPropagation();
-        _Entities.deleteNode(this, folder);
+        _Entities.deleteNode(this, folder, true);
     });
 
     folders.append(folderEl);
@@ -512,7 +500,6 @@ StructrFile.prototype.remove = function() {
         parentFolder.files = removeFromArray(parentFolder.files, file);
         if (!parentFolder.files.length && !parentFolder.folders.length) {
             _Entities.removeExpandIcon(parentFolderEl);
-            enable(parentFolderEl.children('.delete_icon')[0]);
         }
 
         file.parent = undefined;

@@ -47,19 +47,19 @@ var _Entities = {
         Command.children(id);
 
     },
-    deleteNode: function(button, entity, callback) {
+    deleteNode: function(button, entity, rec, callback) {
         buttonClicked = button;
         if (isDisabled(button))
             return;
 
-        Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + '] ?</p>',
+        Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (rec?' recursively':'') + '?</p>',
                 function() {
-                    Command.deleteNode(entity.id);
+                    Command.deleteNode(entity.id, rec);
                     $.unblockUI({
                         fadeOut: 25
                     });
                     if (callback) {
-                        callback();
+                        callback(entity);
                     }
                 });
     },

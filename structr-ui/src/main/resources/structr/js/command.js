@@ -194,10 +194,15 @@ var Command = {
      * The server will delete the node with the given id and broadcast
      * a deletion notification.
      */
-    deleteNode: function(id) {
+    deleteNode: function(id, recursive) {
         var obj = {};
         obj.command = 'DELETE';
         obj.id = id;
+        var data = {};
+        if (recursive) {
+            data.recursive = recursive;
+        }
+        obj.data = data;
         log('deleteNode()', obj);
         return sendObj(obj);
     },

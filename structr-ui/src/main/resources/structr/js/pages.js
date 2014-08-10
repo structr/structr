@@ -434,6 +434,10 @@ var _Pages = {
             $(this).hide();
         });
 
+        if (!element.hasClass('page')) {
+            return false;
+        }
+
         var id = element.prop('id').substring(5);
         activeTab = id;
 

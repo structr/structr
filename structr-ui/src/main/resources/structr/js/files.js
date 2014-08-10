@@ -281,7 +281,6 @@ var _Files = {
                 e.stopPropagation();
                 Command.removeSourceFromTarget(file.id, folderId);
             });
-            disable(parent.children('.delete_icon')[0]);
 
         } else {
             newDelIcon = '<img title="Delete file ' + file.name + '\'" alt="Delete file \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
@@ -395,12 +394,14 @@ var _Files = {
             }
             div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
-                _Entities.deleteNode(this, folder);
+                _Entities.deleteNode(this, folder, true, function(folder) {
+                    Structr.node(folder.id).remove();
+                });
             });
         }
 
         var hasChildren = (folder.folders && folder.folders.length) || (folder.files && folder.files.length);
-
+        
         log(folder.name, 'has children?', hasChildren, 'is expanded?', isExpanded(folder.id));
 
         _Entities.appendExpandIcon(div, folder, hasChildren);
