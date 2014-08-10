@@ -17,22 +17,17 @@
  */
 package org.structr.websocket.command;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.PropertyKey;
-import org.structr.websocket.message.WebSocketMessage;
-import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.message.MessageBuilder;
-
-//~--- JDK imports ------------------------------------------------------------
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -40,6 +35,9 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.relationship.DOMChildren;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -63,10 +61,8 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
-		final String sortOrder = webSocketData.getSortOrder();
-		final String sortKey = webSocketData.getSortKey();
-		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, sortKey);
-		final Query query = app.nodeQuery().sort(sortProperty).order("desc".equals(sortOrder)).includeDeletedAndHidden();
+		
+		final Query query = app.nodeQuery().includeDeletedAndHidden();
 
 		query.orTypes(DOMElement.class);
 		query.orType(Content.class);
