@@ -167,11 +167,12 @@ var StructrModel = {
      */
     del: function(id) {
 
+        var node = Structr.node(id);
+        if (node) {
+            node.remove();
+        }
+
         if (lastMenuEntry === 'pages') {
-            var node = Structr.node(id);
-            if (node) {
-                node.remove();
-            }
             removeExpandedNode(id);
             var iframe = $('#preview_' + id);
             var tab = $('#show_' + id);
