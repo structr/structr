@@ -137,6 +137,9 @@ function StructrApp(baseUrl) {
             } else if (action === 'logout') {
                 s.logoutAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
+            } else if (action === 'registration') {
+                s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+
             } else {
                 var data = {};
                 $.each(attrs, function(i, key) {
@@ -424,7 +427,65 @@ function StructrApp(baseUrl) {
             }
         });
     },
+    this.registrationAction = function(btn, id, attrs, reload) {
 
+        var data = {};
+
+        if (attrs && attrs.length) {
+            attrs.forEach(function(attr) {
+                data[attr] = $('[data-structr-name="' + attr + '"]').val();
+            });
+        }
+
+        var msgBox = $('#msg');
+        if (msgBox && msgBox.length) {
+            $('span', msgBox).remove();
+        }
+
+        var btnText = btn.text();
+
+        disableButton(btn, 'Processing...');
+        
+        var successText = 'Thanks! Please check your inbox.';
+        
+        $.ajax({
+            type: 'POST',
+            method: 'POST',
+            contentType: 'application/json',
+            url: '/structr/rest/registration',
+            data: JSON.stringify(data),
+            statusCode: {
+                200: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>' + successText + '</span>');
+                        $('#msg span').delay(5000).fadeOut(5000);
+                    } else {
+                        btn.text(successText);
+                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                    }
+                },
+                201: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>' + successText + '</span>');
+                        $('#msg span').delay(5000).fadeOut(5000);
+                    } else {
+                        btn.text(successText);
+                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                    }
+                },
+                400: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>Please enter your e-mail address!</span>');
+                        $('#msg span').delay(1000).fadeOut(1000);
+                    } else {
+                        btn.text('Please enter your e-mail address!');
+                        window.setTimeout(function() { btn.text(btnText); }, 1000);
+                    }
+                    enableButton(btn);
+                }
+            }
+        });
+    },
     this.input = function(elements) {
         var el = $(elements[0]);
         var inp;
@@ -454,7 +515,6 @@ function StructrApp(baseUrl) {
             }
         }
     },
-
     this.field = function(el) {
         if (!el || !el.length) return;
         var rawType = el.attr('data-structr-type');
