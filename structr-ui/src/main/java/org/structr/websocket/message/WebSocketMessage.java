@@ -94,6 +94,13 @@ public class WebSocketMessage {
 		return newCopy;
 	}
 
+	public void clear() {
+		this.nodeData = new LinkedHashMap();
+		this.modifiedProperties = new LinkedHashSet();
+		this.removedProperties = new LinkedHashSet();
+		this.result = null;
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	public String getCommand() {

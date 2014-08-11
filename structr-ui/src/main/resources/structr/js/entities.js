@@ -95,7 +95,7 @@ var _Entities = {
 
             // Buttons
             _Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|edit|delete|login|logout]');
-            _Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create, edit and login action)');
+            _Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create, edit, login or registration actions)');
 
             t.append('<tr><td class="key">Reload</td><td class="value"id="reload"></td><td></td></tr>');
             _Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
@@ -1130,7 +1130,7 @@ var _Entities = {
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
-            self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToWidth(newName, w) + '</b>');
+            self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
             $('.name_', element).on('click', function(e) {
                 e.stopPropagation();
                 _Entities.makeNameEditable(element, w);
@@ -1143,7 +1143,7 @@ var _Entities = {
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
-                self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToWidth(newName, w) + '</b>');
+                self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
                 $('.name_', element).on('click', function(e) {
                     e.stopPropagation();
                     _Entities.makeNameEditable(element, w);
