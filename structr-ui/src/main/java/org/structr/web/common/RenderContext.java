@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -55,6 +57,8 @@ import org.structr.web.entity.html.relation.ResourceLink;
 
 public class RenderContext extends ActionContext {
 
+	private static final Logger logger = Logger.getLogger(RenderContext.class.getName());
+
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
 	private final long renderStartTime                 = System.currentTimeMillis();
 	private Locale locale                              = Locale.getDefault();
@@ -76,7 +80,7 @@ public class RenderContext extends ActionContext {
 
 	public enum EditMode {
 
-		NONE, DATA, CONTENT, RAW;
+		NONE, WIDGET, CONTENT, RAW;
 
 	}
 
@@ -169,7 +173,7 @@ public class RenderContext extends ActionContext {
 
 			case "1" :
 
-				edit = EditMode.DATA;
+				edit = EditMode.WIDGET;
 				break;
 
 			case "2" :
@@ -630,7 +634,14 @@ public class RenderContext extends ActionContext {
 			PropertyConverter converter = referenceKeyProperty.inputConverter(securityContext);
 
 			if (value != null && converter != null && !(referenceKeyProperty instanceof RelationProperty)) {
-				value = converter.revert(value);
+
+				try {
+					value = converter.revert(value);
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to convert property {0} of node {1}: {2}", new Object[] { referenceKeyProperty, _data, t.getMessage() } );
+				}
 			}
 
 			return value != null ? value : defaultValue;
@@ -648,7 +659,8 @@ public class RenderContext extends ActionContext {
 
 	@Override
 	public boolean returnRawValue(final SecurityContext securityContext) {
-		return ((EditMode.RAW.equals(getEditMode(securityContext.getUser(false)))));
+		EditMode editMode = getEditMode(securityContext.getUser(false));
+		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
 	}
 
 	public boolean hasTimeout(final long timeout) {

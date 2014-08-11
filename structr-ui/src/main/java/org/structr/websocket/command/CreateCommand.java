@@ -18,25 +18,22 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.GraphObject;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.File;
+import org.structr.web.entity.FileBase;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,9 +44,9 @@ import org.structr.websocket.StructrWebSocket;
 public class CreateCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateCommand.class.getName());
-	
+
 	static {
-		
+
 		StructrWebSocket.addCommand(CreateCommand.class);
 
 	}
@@ -65,31 +62,29 @@ public class CreateCommand extends AbstractCommand {
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 
 		try {
-			
+
 			final PropertyMap properties	= PropertyMap.inputTypeToJavaType(securityContext, nodeData);
 			Class type			= SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.type));
 			final NodeInterface newNode	= app.create(type, properties);
 
 			// check for File node and store in WebSocket to receive chunks
-			if (newNode instanceof File) {
-				
-				long size		= (Long) webSocketData.getNodeData().get("size");
+			if (newNode instanceof FileBase) {
+
+				Long size		= (Long) webSocketData.getNodeData().get("size");
 				String contentType	= (String) webSocketData.getNodeData().get("contentType");
 				String name		= (String) webSocketData.getNodeData().get("name");
 
-				File fileNode = (File) newNode;
-				String uuid   = newNode.getProperty(GraphObject.id);
+				FileBase fileNode = (FileBase) newNode;
 
-				fileNode.setProperty(File.relativeFilePath, File.getDirectoryPath(uuid) + "/" + uuid);
-				fileNode.setProperty(File.size, size);
+				fileNode.setProperty(File.size, size != null ? size : 0L);
 				fileNode.setProperty(File.contentType, contentType);
 				fileNode.setProperty(AbstractNode.name, name);
-				
+
 				getWebSocket().createFileUploadHandler(fileNode);
 
 			}
-			
-			
+
+
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Could not create node.", fex);

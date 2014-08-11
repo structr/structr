@@ -27,7 +27,6 @@ curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"_sc
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"_schema/File","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"_schema/Image","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"_schema/Content","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
-curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"_schema/PropertyDefinition","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"_schema/ResourceAccess","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"User","flags":255, "position":0, "visibleToPublicUsers":true}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
@@ -90,11 +89,4 @@ curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"Ima
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"Image/_Ui","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"Image/Id","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 
-curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"PropertyDefinition","flags":255, "position":7, "visibleToPublicUsers":true}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
-curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"PropertyDefinition/_All","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
-curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"PropertyDefinition/_Html","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
-curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"PropertyDefinition/_Public","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
-curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"PropertyDefinition/_Protected","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
-curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"PropertyDefinition/_Ui","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
-curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"PropertyDefinition/Id","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"ResourceAccess","flags":17}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD

@@ -35,7 +35,7 @@ $(function() {
     s.activateButtons(buttonSelector);
     $(document).trigger('structr-ready');
     s.hideNonEdit();
-    
+
 
     $(window).on('keydown', function(e) {
         var k = e.which;
@@ -69,7 +69,7 @@ $(function() {
 
 /**
  * Base class for Structr apps
- * 
+ *
  * @param baseUrl
  * @returns {StructrApp}
  */
@@ -83,7 +83,7 @@ function StructrApp(baseUrl) {
     this.edit = false;
     this.data = {};
     this.btnLabel = undefined;
-    
+
     /**
      * Bind 'click' event to all Structr buttons
      */
@@ -97,6 +97,7 @@ function StructrApp(baseUrl) {
             var a = btn.attr('data-structr-action').split(':');
             var action = a[0], type = a[1];
             var reload = btn.attr('data-structr-reload') === 'true';
+            var returnUrl = btn.attr('data-structr-return');
             var attrString = btn.attr('data-structr-attributes');
             var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
                 return s.trim();
@@ -107,20 +108,37 @@ function StructrApp(baseUrl) {
             if (action === 'create') {
                 var data = {};
                 $.each(attrs, function(i, key) {
-                    var val = $('[data-structr-name="' + key + '"]').val();
+                    var possibleFields = $('[data-structr-name="' + key + '"]');
+                    var val;
+                    if (possibleFields.length === 1) {
+                        val = possibleFields.val();
+                    } else {
+                        // none, or more than one field: try with type prefix
+                        possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
+                        val = possibleFields.val();
+                    }
                     data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
                 });
-                s.create(type, data, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.create(type, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
             } else if (action === 'edit') {
-                s.editAction(btn, id, attrs, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
             } else if (action === 'cancel-edit') {
-                s.cancelEditAction(btn, id, attrs, reload);
+                s.cancelEditAction(btn, id, attrs, returnUrl || reload);
 
             } else if (action === 'delete') {
                 var f = s.field($('[data-structr-attr="name"]', container));
-                s.del(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
+                s.del(id, btn.attr('data-structr-confirm') === 'true', returnUrl || reload, f ? f.val : undefined);
+
+            } else if (action === 'login') {
+                s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn)}, function() {enableButton(btn)});
+
+            } else if (action === 'logout') {
+                s.logoutAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+
+            } else if (action === 'registration') {
+                s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
             } else {
                 var data = {};
@@ -128,23 +146,23 @@ function StructrApp(baseUrl) {
                     var val = $('[data-structr-name="' + key + '"]').val();
                     data[key] = val ? val.parseIfJSON() : val;
                 });
-                s.customAction(id, type, action, data, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.customAction(id, type, action, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
             }
         });
     },
 
     this.editAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-id="' + id + '"]');
-        
-        //show edit elements and hide non-edit elements 
+
+        //show edit elements and hide non-edit elements
         s.hideEdit(container);
-                
+
         $.each(attrs, function(i, key) {
             var el = $('[data-structr-attr="' + key + '"]', container);
             if (!el.length) {
                 return;
             }
-            
+
             var f = s.field(el);
             f.id = id;
             if (!s.data[id]) s.data[id] = {};
@@ -158,80 +176,105 @@ function StructrApp(baseUrl) {
                 anchor.attr('data-structr-href', href);
             }
             //el.html(inputField(id, key, val));
-                    
+
             // don't replace select elements
             var inp = s.input(el);
             if (inp && inp.is('select')) {
                 return;
             }
-            
-            var i; //console.log(f.id, f.type, f.key, f.val);
+
             if (f.type === 'Boolean') {
-                i = checkbox(f.id, f.type, f.key, f.val);
+                el.html(checkbox(f.id, f.type, f.key, f.val));
             } else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Double' || f.type === 'Date') {
                 if (!f.val || f.val.indexOf('\n') === -1) {
-                    i = inputField(f.id, f.type, f.key, f.val);
+                    el.html(inputField(f.id, f.type + (f.type === 'Date' ? ' ' + f.format : ''), f.key, f.val));
                 } else {
-                    i = textarea(f.id, f.key, f.val);
+                    el.html(textarea(f.id, f.key, f.val));
                 }
+            } else if (f.type === 'Enum') {
+                el.html('<select data-structr-type="' + f.type + ' ' + f.format + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>');
+                var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
+                sel.append('<option></option>');
+                $.each(f.format.split(','), function(i, o) {
+                    sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
+                });
+                sel.chosen({allow_single_deselect: true});
             } else {
                 if (f.type.endsWith('[]')) {
-                    i = multiSelect(f.id, f.type, f.key, f.val);
+                    el.html(multiSelect(f.id, f.type, f.key, f.val));
                 } else {
-                    i = singleSelect(f.id, f.type, f.key, f.val);
+                    el.html(singleSelect(f.id, f.type, f.key, f.val));
                 }
             }
 
-            el.html(i);
-            var el = container.find('[data-structr-attr="' + f.key + '"]');
+            //var el = container.find('[data-structr-attr="' + f.key + '"]');
             var inp = s.input(el);
             inp.css({fontFamily: 'sans-serif'});
-            
+
             //console.log('editAction: input element', inp);
-            resizeInput(inp);
-            
+            if (f.type !== 'Enum') {
+                resizeInput(inp);
+            }
+
             if (anchor.length) {
                 inp.attr('data-structr-href', href);
             }
-            
-            if (f.type === 'Boolean') {
-//                inp.on('change', function(e) {
-//                    s.save(s.field($(this)));
-//                });
-            } else {
-                inp.on('keyup', function(e) {
-                    s.checkInput(e, s.field(inp), $(this));
+
+            inp.on('keyup', function(e) {
+                s.checkInput(e, s.field(inp), $(this));
+            });
+
+            if (f.type === 'Date') {
+                var dateTimeFormat = f.format.split('\'T\'');
+                var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+                
+                inp.on('mouseup', function(event) {
+                    event.preventDefault();
+                    var input = $(this);
+
+                    if (timeFormat) {
+                        input.datetimepicker({
+                            // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+                            dateFormat: 'yy-mm-dd',
+                            timeFormat: 'HH:mm:ssz',
+                            separator: 'T',
+                            onClose: function() {
+                                var newValue = input.val();
+                                var formattedValue = moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T'));
+                                input.val(formattedValue);
+                            }
+                        });
+                    } else {
+                        input.datepicker({
+                            dateFormat: 'yy-mm-dd',
+                            onClose: function() {
+                                var newValue = input.val();
+                                var formattedValue = moment(newValue).formatWithJDF(dateFormat);
+                                input.val(formattedValue);
+                            }
+                        });
+                    }
+                    input.datetimepicker('show');
+                    input.off('mouseup');
                 });
             }
 
-            if (f.type === 'Date') {
-                inp.on('mouseup', function(event) {
-                    event.preventDefault();
-                    var self = $(this);
-                    self.datetimepicker({
-                        // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                        separator: 'T',
-                        dateFormat: 'yy-mm-dd',
-                        timeFormat: 'HH:mm:ssz'
-                    });
-                    self.datetimepicker('show');
-                    self.off('mouseup');
-                });
-            }
-            
         });
         $('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
-        $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container).on('click', function() {
+        var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
+        saveButton.prop('class', btn.prop('class')).after(' ');
+        enableButton(saveButton);
+        saveButton.on('click', function() {
             s.saveAction(btn, id, attrs, reload);
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
         enableButton(btn);
     },
-    
+
     this.saveAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-id="' + id + '"]');
         $.each(attrs, function(i, key) {
-            
+
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
             var f = s.field(inp);
             if (!f) return;
@@ -243,31 +286,34 @@ function StructrApp(baseUrl) {
                 var local = prop[0];
                 var related = prop[1];
                 //console.log('related property (key, local, value)', key, local, related, f);
-                
+
                 key = local;
                 s.data[id][local] = {};
                 s.data[id][local][related] = f.val;
-                
+
             } else if (f.type === 'Boolean') {
-                
+
                 s.data[id][key] = (f.val === true ? true : false);
-                
+
             } else if (f.type === 'Integer') {
-                
+
                 s.data[id][key] = parseInt(f.val) || f.val;
-                
+
             } else if (f.type === 'Double' || f.type === 'Float') {
-                
+
                 s.data[id][key] = parseFloat(f.val) || f.val;
-                
+
             } else if (f.type === 'String' || f.type === 'Date') {
-                
+
                 if (f.val && f.val.length) {
                     s.data[id][key] = f.val;
                 } else {
                     s.data[id][key] = null;
                 }
-                
+            } else if (f.type === 'Enum') {
+                var val = $('option:selected', inp).val();
+                s.data[id][key] = (val === '' ? null : val);
+
             } else {
                 var ids = [];
                 $('option:selected', inp).each(function() {
@@ -279,7 +325,7 @@ function StructrApp(baseUrl) {
                     s.data[id][key] = {'id':ids[0]};
                 } else {
                     s.data[id][key] = ids.map(function(id) {
-                       return {'id':id}; 
+                       return {'id':id};
                     });
                 }
             }
@@ -289,9 +335,9 @@ function StructrApp(baseUrl) {
             s.cancelEditAction(btn, id, attrs, reload);
         });
     },
-    
+
     this.cancelEditAction = function(btn, id, attrs, reload) {
-        if (reload) {
+        if (reload && typeof reload === 'boolean') {
             window.location.reload();
         } else {
             var container = $('[data-structr-id="' + id + '"]');
@@ -315,15 +361,131 @@ function StructrApp(baseUrl) {
             $('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
             btn.text(s.btnLabel).attr('data-structr-action', 'edit');
             enableButton(btn);
-            
+
             //hide non edit elements and show edit elements
             s.hideNonEdit(container);
-            
+
             //remove chosen containers
             $('.chosen-container').remove();
         }
     },
-    
+
+    this.loginAction = function(btn, id, attrs, reload) {
+
+        var data = {};
+
+        if (attrs && attrs.length === 2) {
+            data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
+            data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+        }
+
+        var msgBox = $('#msg');
+        if (msgBox && msgBox.length) {
+            $('span', msgBox).remove();
+        }
+
+        var btnText = btn.text();
+        disableButton(btn, 'Checking...');
+
+        $.ajax({
+            type: 'POST',
+            method: 'POST',
+            contentType: 'application/json',
+            url: '/structr/rest/login',
+            data: JSON.stringify(data),
+            statusCode: {
+                200: function(data) {
+                    btn.text('Success!');
+                    redirectOrReload(reload);
+                },
+                401: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>Wrong username or password!</span>');
+                        $('#msg span').delay(1000).fadeOut(1000);
+                    } else {
+                        btn.text('Wrong username or password!');
+                        window.setTimeout(function() { btn.text(btnText); }, 1000);
+                    }
+                    enableButton(btn);
+                }
+            }
+        });
+
+    },
+    this.logoutAction = function(btn, id, attrs, reload) {
+        disableButton(btn, 'Processing...');
+        $.ajax({
+            type: 'POST',
+            method: 'POST',
+            contentType: 'application/json',
+            url: '/structr/rest/logout',
+            data: JSON.stringify({}),
+            statusCode: {
+                200: function() {
+                    redirectOrReload(reload);
+                }
+            }
+        });
+    },
+    this.registrationAction = function(btn, id, attrs, reload) {
+
+        var data = {};
+
+        if (attrs && attrs.length) {
+            attrs.forEach(function(attr) {
+                data[attr] = $('[data-structr-name="' + attr + '"]').val();
+            });
+        }
+
+        var msgBox = $('#msg');
+        if (msgBox && msgBox.length) {
+            $('span', msgBox).remove();
+        }
+
+        var btnText = btn.text();
+
+        disableButton(btn, 'Processing...');
+        
+        var successText = 'Thanks! Please check your inbox.';
+        
+        $.ajax({
+            type: 'POST',
+            method: 'POST',
+            contentType: 'application/json',
+            url: '/structr/rest/registration',
+            data: JSON.stringify(data),
+            statusCode: {
+                200: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>' + successText + '</span>');
+                        $('#msg span').delay(5000).fadeOut(5000);
+                    } else {
+                        btn.text(successText);
+                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                    }
+                },
+                201: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>' + successText + '</span>');
+                        $('#msg span').delay(5000).fadeOut(5000);
+                    } else {
+                        btn.text(successText);
+                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                    }
+                },
+                400: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>Please enter your e-mail address!</span>');
+                        $('#msg span').delay(1000).fadeOut(1000);
+                    } else {
+                        btn.text('Please enter your e-mail address!');
+                        window.setTimeout(function() { btn.text(btnText); }, 1000);
+                    }
+                    enableButton(btn);
+                }
+            }
+        });
+    },
     this.input = function(elements) {
         var el = $(elements[0]);
         var inp;
@@ -353,10 +515,11 @@ function StructrApp(baseUrl) {
             }
         }
     },
-    
     this.field = function(el) {
         if (!el || !el.length) return;
-        var type = el.attr('data-structr-type') || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+        var rawType = el.attr('data-structr-type');
+        var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+        var format = rawType ? rawType.replace(type + ' ', '') : undefined;
         var val;
         if (type === 'Boolean') {
             if (el.is('input')) {
@@ -368,7 +531,7 @@ function StructrApp(baseUrl) {
             var inp = s.input(el);
             if (inp) {
                 if (inp.is('select')) {
-                    var selection = $(':selected', inp); 
+                    var selection = $(':selected', inp);
                     val = selection.attr('value');
                 } else {
                     val = rawVal || (inp.val() && inp.val().replace(/<br>/gi, '\n'));
@@ -379,7 +542,7 @@ function StructrApp(baseUrl) {
             }
         }
         //console.log(el, type, id, key, val);
-        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal};
+        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format};
     };
 
     this.getRelatedType = function(type, key, callback) {
@@ -389,7 +552,7 @@ function StructrApp(baseUrl) {
     },
 
     this.create = function(type, data, reload, successCallback, errorCallback) {
-        console.log('Create', type, data, reload, successCallback, errorCallback);
+        //console.log('Create', type, data, reload, successCallback, errorCallback);
         s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
     };
 
@@ -410,9 +573,7 @@ function StructrApp(baseUrl) {
                 200: function(data) {
                     s.dialog('success', successMsg);
                     if (reload) {
-                        window.setTimeout(function() {
-                            window.location.reload();
-                        }, 200);
+                        redirectOrReload(reload);
                     } else {
                         if (onSuccess) {
                             onSuccess(data);
@@ -422,9 +583,7 @@ function StructrApp(baseUrl) {
                 201: function(data) {
                     s.dialog('success', successMsg);
                     if (reload) {
-                        window.setTimeout(function() {
-                            window.location.reload();
-                        }, 200);
+                        redirectOrReload(reload);
                     } else {
                         if (onSuccess) {
                             onSuccess();
@@ -584,7 +743,8 @@ function StructrApp(baseUrl) {
                 statusCode: {
                     200: function() {
                         if (reload) {
-                            window.location.reload();
+                            redirectOrReload(reload);
+                            //window.location.reload();
                         }
                     }
                 }
@@ -614,13 +774,13 @@ function StructrApp(baseUrl) {
 
     this.checkInput = function(e, f, inp) {
         var k = e.which;
-        
+
         if (isTextarea(inp[0])) {
-            
+
             if (inp.val().indexOf('\n') === -1) {
 
                 var parent = inp.parent();
-                
+
                 // No new line in textarea content => transform to input field
                 inp.replaceWith(inputField(f.id, f.type, f.key, inp.val()));
                 inp = s.input(parent);
@@ -630,9 +790,9 @@ function StructrApp(baseUrl) {
                 });
 
                 setCaretToEnd(inp[0]);
-                
+
             }
-            
+
         } else if (k === 13) {// && shiftKey === true) {
 
             // Return key in input field => replace by textarea
@@ -671,61 +831,61 @@ function StructrApp(baseUrl) {
 
     };
     this.hideEdit = function(container) {
-        
+
         // show elements [data-structr-hide="non-edit"]
         $.each($('[data-structr-hide-id]', container), function() {
            var id = $(this).attr('data-structr-hide-id');
            $(this).replaceWith(hideNonEditElements[id]);
            delete hideNonEditElements[id];
-           
+
         });
-        
+
         // hide edit elements
         $.each($('[data-structr-hide="edit"]', container), function(i, obj) {
-            
+
             var random = Math.floor(Math.random()*1000000+1);
-            
+
             hideEditElements[random] = $(obj).clone(true,true);
             $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
         });
-        
+
         $(document).trigger("structr-edit");
     };
     this.hideNonEdit = function(container) {
-        
+
         //first call to hide all non-edit elements
         if (container === undefined){
-            
+
             // hide all non-edit elements
-            $.each($('[data-structr-hide="non-edit"]'), function(i, obj) { 
-                
+            $.each($('[data-structr-hide="non-edit"]'), function(i, obj) {
+
                 var random = Math.floor(Math.random()*1000000+1);
-                
+
                 hideNonEditElements[random] = $(obj).clone(true,true);
                 $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
             });
-            
+
         } else {
-            
+
             // show elements [data-structr-hide="edit"]
             $.each($('[data-structr-hide-id]', container), function() {
-            
+
                 var id = $(this).attr("data-structr-hide-id");
                 $(this).replaceWith(hideEditElements[id]);
                 delete hideNonEditElements[id];
 
              });
-            
+
             // hide non-edit elements
             $.each($('[data-structr-hide="non-edit"]', container), function(i, obj) {
-                
+
                 var random = Math.floor(Math.random()*1000000+1);
-                
+
                 hideNonEditElements[random] = $(obj).clone(true,true);
                 $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
-                
+
             });
-            
+
         }
     };
 }
@@ -848,6 +1008,16 @@ function checkbox(id, type, key, val) {
     return '<input type="checkbox" data-structr-id="' + id + '" data-structr-attr="' + key + '" data-structr-type="' + type + '" ' + (val ? 'checked="checked"' : '') + '">';
 }
 
+function enumSelect(id, type, key, val, values) { console.log(id, type, key, val, values.split(','))
+    var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '"></select>';
+    var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
+    $.each(values.split(','), function(i, o) {
+        sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
+    });
+    sel.chosen({allow_single_deselect: true});
+    return inp;
+}
+
 function singleSelect(id, type, key, val) {
     var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '"></select>';
     $.ajax({
@@ -893,4 +1063,14 @@ function enableButton(btn) {
 function disableButton(btn) {
   btn.addClass('disabled');
   btn.attr('disabled', 'disabled');
+}
+
+function redirectOrReload(reload) {
+    if (reload) {
+        if (reload && typeof reload === 'string') {
+            window.location.href = reload;
+        } else if (reload === true) {
+            window.location.reload();
+        }
+    }
 }

@@ -97,6 +97,28 @@ var _Elements = {
             'elements': ['details', 'summary', 'command', 'menu']
         }
     ],
+    mostUsedAttrs: [
+        {
+            'elements': ['input', 'button', 'select', 'option'],
+            'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder']
+        },
+        {
+            'elements': ['form'],
+            'attrs': ['action', 'method']
+        },
+        {
+            'elements': ['img'],
+            'attrs': ['alt', 'title', 'src']
+        },
+        {
+            'elements': ['script', 'link', 'a', 'img', 'object'],
+            'attrs': ['type', 'rel', 'href', 'media', 'src']
+        },
+        {
+            'elements': ['td', 'th'],
+            'attrs': ['colspan', 'rowspan']
+        },
+    ],
     /**
      * Reload widgets
      */
@@ -120,7 +142,7 @@ var _Elements = {
                 var sourceId = getId(sourceEl);
 
                 $.ajax({
-                    url: viewRootUrl + sourceId + '?edit=3',
+                    url: viewRootUrl + sourceId + '?edit=1',
                     contentType: 'text/html',
                     statusCode: {
                         200: function(data) {
@@ -137,7 +159,7 @@ var _Elements = {
         });
 
 
-        Command.list('Widget', true, 1000, 1, 'name', 'asc', function(entity) {
+        Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type,source,treePath', function(entity) {
             StructrModel.create(entity, null, false);
             _Widgets.appendWidgetElement(entity, false, widgets);
         });
@@ -202,7 +224,7 @@ var _Elements = {
         componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
         components = $('#componentsArea', componentsSlideout);
 
-        Command.getByType('ShadowDocument', 1, 1, null, null, function(entity) {
+        Command.getByType('ShadowDocument', 1, 1, null, null, null, function(entity) {
             shadowPage = entity;
         });
         components.droppable({
@@ -263,7 +285,7 @@ var _Elements = {
                         $.unblockUI({
                             fadeOut: 25
                         });
-                        _Pages.closeSlideOuts([elementsSlideout]);
+                        Structr.closeSlideOuts([elementsSlideout]);
                     });
         });
 
@@ -335,12 +357,12 @@ var _Elements = {
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
 
         var icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
-
+        
         div.append('<img class="typeIcon" src="' + icon + '">'
-                + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b><span class="id">' + entity.id + '</span>'
-                + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
-                + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
-                + '</div>');
+            + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b><span class="id">' + entity.id + '</span>'
+            + _Elements.classIdString(entity._html_id, entity._html_class)
+            + '</div>');
+
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
 
@@ -576,6 +598,11 @@ var _Elements = {
             });
         }
         return div;
+    },
+    classIdString: function(idString, classString) {
+        var classIdString = '<span class="class-id-attrs">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
+                + (classString ? '<span class="_html_class_">.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '') + '</span>';
+        return classIdString;
     },
     expandFolder: function(e, entity, folder, callback) {
         if (folder.files.length + folder.folders.length === 0) {

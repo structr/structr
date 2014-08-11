@@ -19,25 +19,21 @@
 package org.structr.web.resource;
 
 
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.entity.Principal;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
-import org.structr.core.entity.Principal;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.User;
 
 //~--- classes ----------------------------------------------------------------
@@ -94,7 +90,7 @@ public class LoginResource extends Resource {
 
 		}
 
-		logger.log(Level.INFO, "Invalid credentials (name, password): {0}, {1}, {2}", new Object[]{ name, password });
+		logger.log(Level.INFO, "Invalid credentials (name, email, password): {0}, {1}, {2}", new Object[]{ name, email, password });
 
 		return new RestMethodResult(401);
 

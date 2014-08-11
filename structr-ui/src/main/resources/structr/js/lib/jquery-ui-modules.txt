@@ -4,5 +4,5 @@ See: http://jqueryui.com/download
 
 UI Core: All
 Interactions: All
-Widgets: Datepicker, Slider, Tabs
+Widgets: Datepicker, Slider, Tabs, Tooltip
 Effects: Effects Core, Slide Effect

@@ -91,58 +91,20 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	protected SecurityContext securityContext  = null;
 	protected Relationship dbRelationship      = null;
-	protected PropertyMap properties           = null;
-	protected Class entityType                 = getClass();
-	protected String cachedUuid                = null;
-	protected boolean isDirty                  = false;
+	protected Class entityType                 = null;
 
-	public AbstractRelationship() {
+	public AbstractRelationship() {}
 
-		this.properties = new PropertyMap();
-		isDirty         = true;
-	}
+	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final Class entityType) {
 
-	public AbstractRelationship(final PropertyMap properties) {
-
-		this.properties = properties;
-		isDirty         = true;
-
-	}
-
-	public AbstractRelationship(final SecurityContext securityContext, final PropertyMap data) {
-
-		if (data != null) {
-
-			this.securityContext = securityContext;
-			this.properties      = data;
-			this.isDirty         = true;
-		}
-	}
-
-	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel) {
-
-		init(securityContext, dbRel);
+		init(securityContext, dbRel, entityType);
 	}
 
 	@Override
-	public void init(final SecurityContext securityContext, final Relationship dbRel) {
+	public final void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType) {
 
 		this.dbRelationship  = dbRel;
-		this.isDirty         = false;
-		this.securityContext = securityContext;
-	}
-
-	public void init(final SecurityContext securityContext) {
-
-		this.securityContext = securityContext;
-		this.isDirty         = false;
-
-	}
-
-	public void init(final SecurityContext securityContext, final AbstractRelationship rel) {
-
-		this.dbRelationship  = rel.dbRelationship;
-		this.isDirty         = false;
+		this.entityType      = entityType;
 		this.securityContext = securityContext;
 	}
 
@@ -151,7 +113,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	public Property<String> getTargetIdProperty() {
-		return null;
+		return targetId;
 	}
 
 	@Override
@@ -293,9 +255,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public String getUuid() {
-
 		return getProperty(AbstractRelationship.id);
-
 	}
 
 	public long getRelationshipId() {

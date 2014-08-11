@@ -61,7 +61,7 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
 				final Class otherNodeType = otherNode.getClass();
 
-				return desiredType.isAssignableFrom(otherNodeType) || otherNodeType.isAssignableFrom(desiredType);
+				return desiredType.isAssignableFrom(otherNodeType);
 			}
 
 		} catch (FrameworkException fex) {

@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.parser;
 
 import com.google.gson.Gson;
@@ -46,6 +64,7 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.structr.common.GraphObjectComparator;
@@ -107,6 +126,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_REPLACE             = "Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}";
 	public static final String ERROR_MESSAGE_CLEAN               = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
 	public static final String ERROR_MESSAGE_URLENCODE           = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
+	public static final String ERROR_MESSAGE_ESCAPE_JS           = "Usage: ${escape_javascript(string)}. Example: ${escape_javascript(this.name)}";
 	public static final String ERROR_MESSAGE_IF                  = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
 	public static final String ERROR_MESSAGE_EMPTY               = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 	public static final String ERROR_MESSAGE_EQUAL               = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
@@ -116,6 +136,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_IS_COLLECTION       = "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
 	public static final String ERROR_MESSAGE_IS_ENTITY           = "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
 	public static final String ERROR_MESSAGE_EXTRACT             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
+	public static final String ERROR_MESSAGE_FILTER              = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
 	public static final String ERROR_MESSAGE_MERGE               = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
 	public static final String ERROR_MESSAGE_SORT                = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
 	public static final String ERROR_MESSAGE_LT                  = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
@@ -283,6 +304,9 @@ public class Functions {
 
 			case "each":
 				return new EachExpression();
+
+			case "filter":
+				return new FilterExpression();
 
 			case "data":
 				return new ValueExpression("data");
@@ -792,44 +816,13 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				String result;
-
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					if (StringUtils.isBlank(sources[0].toString())) {
 						return "";
 					}
 
-					String normalized = Normalizer.normalize(sources[0].toString(), Normalizer.Form.NFD)
-						.replaceAll("\\<", "")
-						.replaceAll("\\>", "")
-						.replaceAll("\\.", "")
-						.replaceAll("\\'", "-")
-						.replaceAll("\\?", "")
-						.replaceAll("\\(", "")
-						.replaceAll("\\)", "")
-						.replaceAll("\\{", "")
-						.replaceAll("\\}", "")
-						.replaceAll("\\[", "")
-						.replaceAll("\\]", "")
-						.replaceAll("\\+", "-")
-						.replaceAll("/", "-")
-						.replaceAll("–", "-")
-						.replaceAll("\\\\", "-")
-						.replaceAll("\\|", "-")
-						.replaceAll("'", "-")
-						.replaceAll("!", "")
-						.replaceAll(",", "")
-						.replaceAll("-", " ")
-						.replaceAll("_", " ")
-						.replaceAll("`", "-");
-
-					result = normalized.replaceAll("-", " ");
-					result = StringUtils.normalizeSpace(result.toLowerCase());
-					result = result.replaceAll("[^\\p{ASCII}]", "").replaceAll("\\p{P}", "-").replaceAll("\\-(\\s+\\-)+", "-");
-					result = result.replaceAll(" ", "-");
-
-					return result;
+					return cleanString(sources[0]);
 				}
 
 				return null;
@@ -856,6 +849,23 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_URLENCODE;
+			}
+
+		});
+		functions.put("escape_javascript", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
+					? StringEscapeUtils.escapeEcmaScript(sources[0].toString())
+					: "";
+
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_ESCAPE_JS;
 			}
 
 		});
@@ -1045,9 +1055,9 @@ public class Functions {
 				} else {
 					return false;
 				}
-				
+
 			}
-			
+
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_IS_COLLECTION;
@@ -1064,9 +1074,9 @@ public class Functions {
 				} else {
 					return false;
 				}
-				
+
 			}
-			
+
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_IS_ENTITY;
@@ -1095,8 +1105,6 @@ public class Functions {
 
 						return extraction;
 					}
-
-
 
 				} else if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -2785,6 +2793,12 @@ public class Functions {
 
 	protected static boolean valueEquals(final Object obj1, final Object obj2) {
 
+		if (obj1 instanceof Enum || obj2 instanceof Enum) {
+
+			return obj1.toString().equals(obj2.toString());
+
+		}
+
 		if (obj1 instanceof Number && obj2 instanceof Number) {
 
 			return ((Number)obj1).doubleValue() == ((Number)obj2).doubleValue();
@@ -2825,5 +2839,40 @@ public class Functions {
 		}
 
 		return null;
+	}
+
+	public static String cleanString(final Object input) {
+
+		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
+			.replaceAll("\\<", "")
+			.replaceAll("\\>", "")
+			.replaceAll("\\.", "")
+			.replaceAll("\\'", "-")
+			.replaceAll("\\?", "")
+			.replaceAll("\\(", "")
+			.replaceAll("\\)", "")
+			.replaceAll("\\{", "")
+			.replaceAll("\\}", "")
+			.replaceAll("\\[", "")
+			.replaceAll("\\]", "")
+			.replaceAll("\\+", "-")
+			.replaceAll("/", "-")
+			.replaceAll("–", "-")
+			.replaceAll("\\\\", "-")
+			.replaceAll("\\|", "-")
+			.replaceAll("'", "-")
+			.replaceAll("!", "")
+			.replaceAll(",", "")
+			.replaceAll("-", " ")
+			.replaceAll("_", " ")
+			.replaceAll("`", "-");
+
+		String result = normalized.replaceAll("-", " ");
+		result = StringUtils.normalizeSpace(result.toLowerCase());
+		result = result.replaceAll("[^\\p{ASCII}]", "").replaceAll("\\p{P}", "-").replaceAll("\\-(\\s+\\-)+", "-");
+		result = result.replaceAll(" ", "-");
+
+		return result;
+
 	}
 }

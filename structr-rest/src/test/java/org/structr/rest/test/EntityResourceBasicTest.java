@@ -82,7 +82,7 @@ public class EntityResourceBasicTest extends StructrRestTest {
 				.statusCode(200)
 				.body("result_count",       equalTo(1))
 				.body("query_time",         lessThan("0.1"))
-				.body("serialization_time", lessThan("0.01"))
+				.body("serialization_time", lessThan("0.02"))
 				.body("result.id",          equalTo(uuid))
 			.when()
 				.get("/test_objects/" + uuid)

@@ -51,55 +51,51 @@ var StructrModel = {
         if (!data) return;
 
         var type = data.type;
-        
+
         var obj;
-        
-        if (type === 'Page') {
+
+        if (data.isPage) {
 
             obj = new StructrPage(data);
 
-        } else if (type === 'Widget') {
+        } else if (data.isWidget) {
 
             obj = new StructrWidget(data);
 
-        } else if (type === 'Content' || type === 'Comment') {
+        } else if (data.isContent) {
 
             obj = new StructrContent(data);
 
-        } else if (type === 'Group') {
+        } else if (data.isGroup) {
 
             obj = new StructrGroup(data);
 
-        } else if (type === 'User') {
+        } else if (data.isUser) {
 
             obj = new StructrUser(data);
 
-        } else if (type === 'File') {
-
-            obj = new StructrFile(data);
-
-        } else if (type === 'Image') {
+        } else if (data.isImage) {
 
             obj = new StructrImage(data);
 
-        } else if (type === 'Folder') {
+        } else if (data.isFolder) {
 
             obj = new StructrFolder(data);
+
+        } else if (data.isFile) {
+
+            obj = new StructrFile(data);
 
         } else if (type === 'DataNode') {
 
             obj = new StructrDataNode(data);
-
-        } else if (type === 'PropertyDefinition') {
-
-            obj = new StructrPropertyDefinition(data);
 
         } else {
 
             obj = new StructrElement(data);
 
         }
-        
+
         // Store a reference of this object
         StructrModel.objects[data.id] = obj;
 
@@ -164,7 +160,10 @@ var StructrModel = {
         }
     },
     /**
-     * Deletes an object
+     * Deletes an object from the UI.
+     * 
+     * If object is page, remove preview and tab. If tab was the active tab,
+     * activate the tab to the left before removing it.
      */
     del: function(id) {
 
@@ -172,9 +171,21 @@ var StructrModel = {
         if (node) {
             node.remove();
         }
-        removeExpandedNode(id);
-        $('#show_' + id, previews).remove();
-        _Pages.reloadPreviews();
+
+        if (lastMenuEntry === 'pages') {
+            removeExpandedNode(id);
+            var iframe = $('#preview_' + id);
+            var tab = $('#show_' + id);
+
+            if (id === activeTab) {
+                _Pages.activateTab(tab.prev());
+            }
+
+            tab.remove();
+            iframe.remove();
+
+            _Pages.reloadPreviews();
+        }
         if (graph) {
             graph.redrawRelationships();
         }
@@ -182,16 +193,16 @@ var StructrModel = {
     },
     /**
      * Update the model with the given data.
-     * 
+     *
      * This function is usually triggered by a websocket message
      * and will trigger a UI refresh.
      **/
     update: function(data) {
         var obj = StructrModel.obj(data.id);
 
-        if (obj) {
+        if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
-            $.each(Object.keys(data.data), function(i, key) {
+            $.each(data.modifiedProperties, function(i, key) {
                 log('update model', key, data.data[key]);
                 obj[key] = data.data[key];
                 //console.log('object ', obj, 'updated with key', key, '=', obj[key]);
@@ -221,7 +232,7 @@ var StructrModel = {
      * the current model value for the given key
      */
     refreshKey: function(id, key, width) {
-        
+
         var w = width || 200;
 
         var obj = StructrModel.obj(id);
@@ -294,10 +305,8 @@ var StructrModel = {
             tabNameElement.html(fitStringToWidth(newValue, w));
             tabNameElement.attr('title', newValue);
 
-            log('Reload iframe', id, newValue);
-            window.setTimeout(function() {
-                _Pages.reloadIframe(id, newValue)
-            }, 100);
+            log('Model: Reload iframe', id, newValue);
+            _Pages.reloadIframe(id)
         }
 
     },
@@ -322,33 +331,21 @@ var StructrModel = {
                 StructrModel.refreshKey(id, key);
             });
 
-            // check display of HTML 'class' and 'id' attribute
-            var id = obj._html_id ? obj._html_id.replace(/\${.*}/g, '${…}') : '';
-            var cl = obj._html_class ? obj._html_class.replace(/\${.*}/g, '${…}') : '';
-
-            var idEl = $(element).children('._html_id_');
-            if (id) {
-                if (!idEl.length) {
-                    $('<span class="_html_id_"></span>').insertAfter($(element).children('b'));
-                    clEl = $(element).children('._html_id_');
+            // update HTML 'class' and 'id' attributes
+            if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
+                
+                var classIdAttrsEl = $(element).children('.class-id-attrs');
+                if (classIdAttrsEl.length) {
+                    classIdAttrsEl.remove();
                 }
-                idEl.text('#' + id);
-            } else {
-                idEl.empty();
-            }
 
-            var clEl = $(element).children('._html_class_');
-            if (cl) {
-                if (!clEl.length) {
-                    $('<span class="_html_class_"></span>').insertAfter(idEl.length ? idEl : $(element).children('b'));
-                    clEl = $(element).children('._html_class_');
+                var classIdString = _Elements.classIdString(obj._html_id, obj._html_class);
+                var idEl = $(element).children('.id');
+                if (idEl.length) {
+                    $(element).children('.id').after(classIdString);
                 }
-                clEl.text('.' + $.trim(cl).replace(/ /g, '.'));
-            } else {
-                clEl.empty();
             }
-
-
+            
             // check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
             var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
             var keyIcon = $(element).children('.key_icon');
@@ -394,17 +391,17 @@ var StructrModel = {
         //console.log('save', id, data);
         Command.setProperties(id, data);
     },
-            
-    callCallback: function(callback, entity) {
-        log('Calling callback', callback, 'on entity', entity);
+
+    callCallback: function(callback, entity, resultSize) {
+        log('Calling callback', callback, 'on entity', entity, resultSize);
         var callbackFunction = StructrModel.callbacks[callback];
         if (callback && callbackFunction) {
             log(callback, callbackFunction.toString());
-            StructrModel.callbacks[callback](entity);
+            StructrModel.callbacks[callback](entity, resultSize);
         }
 
     },
-            
+
     clearCallback : function(callback) {
         if (callback && StructrModel.callbacks[callback]) {
             delete StructrModel.callbacks[callback];
@@ -448,7 +445,7 @@ StructrFolder.prototype.remove = function() {
 
     if (!parentFolder.files.length && !parentFolder.folders.length) {
         _Entities.removeExpandIcon(parentFolderEl);
-        enable(parentFolderEl.children('.delete_icon')[0]);
+        //enable(parentFolderEl.children('.delete_icon')[0]);
     }
 
     var folderEl = Structr.node(folder.id);
@@ -462,7 +459,7 @@ StructrFolder.prototype.remove = function() {
 
     folderEl.children('.delete_icon').on('click', function(e) {
         e.stopPropagation();
-        _Entities.deleteNode(this, folder);
+        _Entities.deleteNode(this, folder, true);
     });
 
     folders.append(folderEl);
@@ -495,18 +492,17 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrFile.prototype.remove = function() {
     var file = this;
-    
+
     if (file.parent) {
-        
+
         var parentFolder = StructrModel.obj(file.parent.id);
         var parentFolderEl = Structr.node(parentFolder.id);
 
         parentFolder.files = removeFromArray(parentFolder.files, file);
         if (!parentFolder.files.length && !parentFolder.folders.length) {
             _Entities.removeExpandIcon(parentFolderEl);
-            enable(parentFolderEl.children('.delete_icon')[0]);
         }
-        
+
         file.parent = undefined;
     }
 
@@ -552,9 +548,9 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrImage.prototype.remove = function() {
     var file = this;
-    
+
     if (file.parent) {
-        
+
         var parentFolder = StructrModel.obj(file.parent.id);
         var parentFolderEl = Structr.node(parentFolder.id);
 
@@ -563,7 +559,7 @@ StructrImage.prototype.remove = function() {
             _Entities.removeExpandIcon(parentFolderEl);
             enable(parentFolderEl.children('.delete_icon')[0]);
         }
-        
+
         file.parent = undefined;
     }
 
@@ -612,7 +608,7 @@ StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrUser.prototype.remove = function() {
     var user = this;
-    
+
     var group = StructrModel.obj(user.groups[0]);
     var groupEl = Structr.node(group.id);
 
@@ -873,34 +869,6 @@ StructrContent.prototype.exists = function() {
 
     return Structr.node(this.id);
 }
-
-/**************************************
- * Structr PropertyDefinition
- **************************************/
-
-function StructrPropertyDefinition(data) {
-    var self = this;
-    $.each(Object.keys(data), function(i, key) {
-        self[key] = data[key];
-    });
-}
-
-StructrPropertyDefinition.prototype.save = function() {
-    StructrModel.save(this.id);
-}
-
-StructrPropertyDefinition.prototype.setProperty = function(key, value, recursive, callback) {
-    Command.setProperty(this.id, key, value, false, callback);
-}
-
-StructrPropertyDefinition.prototype.remove = function() {
-    alert('FIXME: Implement StructrPropertyDefinition.remove()!');
-}
-
-StructrPropertyDefinition.prototype.append = function(refNode) {
-    //_Types.registerPropertyDefinitionElement(this);
-}
-
 
 /**************************************
  * Search result

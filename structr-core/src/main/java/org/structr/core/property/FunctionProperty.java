@@ -14,12 +14,10 @@ import org.structr.schema.action.ActionContext;
  */
 public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 
-	private String expression = null;
-
 	public FunctionProperty(final String name, final String expression) {
 
 		super(name);
-		this.expression = expression;
+		this.format = expression;
 	}
 
 	@Override
@@ -39,7 +37,7 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 
 			try {
 
-				return (T)Functions.evaluate(securityContext, new ActionContext(), obj, expression);
+				return (T)Functions.evaluate(securityContext, new ActionContext(), obj, format);
 
 			} catch (Throwable t) {
 				t.printStackTrace();

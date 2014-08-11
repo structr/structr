@@ -19,7 +19,6 @@
 package org.structr.core.entity.relationship;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -58,6 +57,7 @@ import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
+import org.structr.schema.parser.Validator;
 
 /**
  *
@@ -172,6 +172,24 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	}
 
 	@Override
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+		if (super.onDeletion(securityContext, errorBuffer, properties)) {
+
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+
+			return true;
+
+		}
+
+		return false;
+
+	}
+
+
+
+	@Override
 	public void onRelationshipDeletion() {
 
 		Services.getInstance().getConfigurationProvider().unregisterEntityType(getClassName());
@@ -214,6 +232,10 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	}
 
 	public String getPropertySource(final String propertyName, final boolean outgoing) {
+		return getPropertySource(propertyName, outgoing, false);
+	}
+
+	public String getPropertySource(final String propertyName, final boolean outgoing, final boolean newStatementOnly) {
 
 		final StringBuilder buf          = new StringBuilder();
 		//final String _sourceJsonName     = getProperty(sourceJsonName);
@@ -230,34 +252,50 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			if ("1".equals(_targetMultiplicity)) {
 
-				buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-				buf.append(" = new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
+				if (!newStatementOnly) {
+
+					buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+					buf.append(" = ");
+				}
+				buf.append("new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
-				buf.append(");\n");
+				buf.append(newStatementOnly ? ")" : ");\n");
 
 			} else {
 
-				buf.append("\tpublic static final Property<java.util.List<").append(_targetType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-				buf.append(" = new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
+				if (!newStatementOnly) {
+
+					buf.append("\tpublic static final Property<java.util.List<").append(_targetType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+					buf.append(" = ");
+				}
+				buf.append("new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
-				buf.append(");\n");
+				buf.append(newStatementOnly ? ")" : ");\n");
 			}
 
 		} else {
 
 			if ("1".equals(_sourceMultiplicity)) {
 
-				buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-				buf.append(" = new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
+				if (!newStatementOnly) {
+
+					buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+					buf.append(" = ");
+				}
+				buf.append("new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
-				buf.append(");\n");
+				buf.append(newStatementOnly ? ")" : ");\n");
 
 			} else {
 
-				buf.append("\tpublic static final Property<java.util.List<").append(_sourceType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-				buf.append(" = new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
+				if (!newStatementOnly) {
+
+					buf.append("\tpublic static final Property<java.util.List<").append(_sourceType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+					buf.append(" = ");
+				}
+				buf.append("new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
-				buf.append(");\n");
+				buf.append(newStatementOnly ? ")" : ");\n");
 			}
 		}
 
@@ -350,14 +388,15 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final Map<Actions.Type, List<ActionEntry>> actions = new LinkedHashMap<>();
-		final Map<String, Set<String>> viewProperties     = new LinkedHashMap<>();
-		final StringBuilder src                           = new StringBuilder();
-		final Class baseType                              = AbstractRelationship.class;
-		final String _className                           = getClassName();
-		final String _sourceNodeType                      = getSchemaNodeSourceType();
-		final String _targetNodeType                      = getSchemaNodeTargetType();
-		final Set<String> validators                      = new LinkedHashSet<>();
-		final Set<String> enums                           = new LinkedHashSet<>();
+		final Map<String, Set<String>> viewProperties      = new LinkedHashMap<>();
+		final StringBuilder src                            = new StringBuilder();
+		final Class baseType                               = AbstractRelationship.class;
+		final String _className                            = getClassName();
+		final String _sourceNodeType                       = getSchemaNodeSourceType();
+		final String _targetNodeType                       = getSchemaNodeTargetType();
+		final Set<String> propertyNames                    = new LinkedHashSet<>();
+		final Set<Validator> validators                    = new LinkedHashSet<>();
+		final Set<String> enums                            = new LinkedHashSet<>();
 
 		src.append("package org.structr.dynamic;\n\n");
 
@@ -365,7 +404,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType()).append(" {\n\n");
 
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, actions, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, actions, errorBuffer));
 
 		// source and target id properties
 		src.append("\tpublic static final Property<String> sourceIdProperty = new SourceId(\"sourceId\");\n");
@@ -429,6 +468,46 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return dynamicViews;
 	}
 
+	@Override
+	public String getAuxiliarySource() throws FrameworkException {
+
+//		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+//		final String sourceNodeType             = getSchemaNodeSourceType();
+//		final String targetNodeType             = getSchemaNodeTargetType();
+//		final StringBuilder src                 = new StringBuilder();
+//		final String _className                 = getClassName();
+//		final Class baseType                    = AbstractRelationship.class;
+//
+//		src.append("package org.structr.dynamic;\n\n");
+//
+//		SchemaHelper.formatImportStatements(src, baseType);
+//
+//		src.append("public class _").append(_className).append("Helper {\n\n");
+//
+//		src.append("\n\tstatic {\n\n");
+//		src.append("\t\tfinal PropertyKey outKey = ");
+//		src.append(getPropertySource(getPropertyName(sourceNodeType, existingPropertyNames, true), true, true));
+//		src.append(";\n");
+//		src.append("\t\toutKey.setDeclaringClass(").append(sourceNodeType).append(".class);\n\n");
+//		src.append("\t\tfinal PropertyKey inKey = ");
+//		src.append(getPropertySource(getPropertyName(targetNodeType, existingPropertyNames, false), false, true));
+//		src.append(";\n");
+//		src.append("\t\tinKey.setDeclaringClass(").append(targetNodeType).append(".class);\n\n");
+//		src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(");
+//		src.append(sourceNodeType).append(".class, outKey);\n");
+//		src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(");
+//		src.append(targetNodeType).append(".class, inKey);\n\n");
+//		src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(sourceNodeType).append(".class, PropertyView.Ui, outKey);\n");
+//		src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(targetNodeType).append(".class, PropertyView.Ui, inKey);\n");
+//		src.append("\t}\n");
+//		src.append("}\n");
+//
+//		return src.toString();
+
+		return null;
+	}
+
+	// ----- public methods -----
 	public String getSchemaNodeSourceType() {
 		return getSourceNode().getProperty(SchemaNode.name);
 	}
@@ -437,7 +516,36 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return getTargetNode().getProperty(SchemaNode.name);
 	}
 
+	public String getResourceSignature() {
+
+		final String _sourceType = getSchemaNodeSourceType();
+		final String _targetType = getSchemaNodeTargetType();
+
+		return _sourceType + "/" + _targetType;
+	}
+
+	public String getInverseResourceSignature() {
+
+		final String _sourceType = getSchemaNodeSourceType();
+		final String _targetType = getSchemaNodeTargetType();
+
+		return _targetType + "/" + _sourceType;
+	}
+
 	// ----- private methods -----
+	private String getRelationshipType() {
+
+		String relType = getProperty(relationshipType);
+		if (relType == null) {
+
+			final String _sourceType = getSchemaNodeSourceType().toUpperCase();
+			final String _targetType = getSchemaNodeTargetType().toUpperCase();
+
+			relType = _sourceType + "_" + _targetType;
+		}
+
+		return relType;
+	}
 	private String getNotion(final String _className, final String notionSource) {
 
 		final StringBuilder buf = new StringBuilder();
@@ -532,36 +640,6 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		buf.append(">");
 
 		return buf.toString();
-	}
-
-	public String getResourceSignature() {
-
-		final String _sourceType = getSchemaNodeSourceType();
-		final String _targetType = getSchemaNodeTargetType();
-
-		return _sourceType + "/" + _targetType;
-	}
-
-	public String getInverseResourceSignature() {
-
-		final String _sourceType = getSchemaNodeSourceType();
-		final String _targetType = getSchemaNodeTargetType();
-
-		return _targetType + "/" + _sourceType;
-	}
-
-	private String getRelationshipType() {
-
-		String relType = getProperty(relationshipType);
-		if (relType == null) {
-
-			final String _sourceType = getSchemaNodeSourceType().toUpperCase();
-			final String _targetType = getSchemaNodeTargetType().toUpperCase();
-
-			relType = _sourceType + "_" + _targetType;
-		}
-
-		return relType;
 	}
 
 	// ----- interface Syncable -----

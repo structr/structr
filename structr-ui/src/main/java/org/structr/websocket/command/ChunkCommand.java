@@ -31,8 +31,8 @@ import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -44,9 +44,9 @@ import org.structr.websocket.StructrWebSocket;
 public class ChunkCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(ChunkCommand.class.getName());
-	
+
 	static {
-		
+
 		StructrWebSocket.addCommand(ChunkCommand.class);
 
 	}
@@ -57,7 +57,7 @@ public class ChunkCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		
+
 		try {
 
 			int sequenceNumber = ((Long) webSocketData.getNodeData().get("chunkId")).intValue();
@@ -83,28 +83,28 @@ public class ChunkCommand extends AbstractCommand {
 			}
 
 			final File file = (File) getNode(uuid);
-			
+
 			if (!securityContext.isAllowed(file, Permission.write)) {
 
 				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
 				return;
-				
+
 			}
 
 			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data, chunks);
-			
+
 			if (sequenceNumber+1 == chunks) {
-				
+
 				final long checksum = FileHelper.getChecksum(file);
 				final long size     = FileHelper.getSize(file);
-				
+
 				file.setProperty(File.checksum, checksum);
 				file.setProperty(File.size, size);
 				file.increaseVersion();
 
 				getWebSocket().removeFileUploadHandler(uuid);
-				
+
 				logger.log(Level.FINE, "File upload finished. Checksum: {0}, size: {1}", new Object[]{ checksum, size });
 
 			}

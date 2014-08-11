@@ -274,7 +274,7 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode) {
+	public void init(SecurityContext securityContext, Node dbNode, final Class entityType) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

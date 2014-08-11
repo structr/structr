@@ -60,7 +60,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final boolean isCreation) throws FrameworkException {
 
 		logger.log(Level.FINEST, "Instantiate relationship with type {0}", relClass.getName());
-		
+
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newRel          = null;
 
@@ -76,7 +76,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			newRel = (T)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
 		}
 
-		newRel.init(securityContext, relationship);
+		newRel.init(securityContext, relationship, relClass);
 
 		// try to set correct type property on relationship entity
 		final String type = newRel.getProperty(GraphObject.type);
@@ -151,7 +151,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			try {
 
 				newRel = relClass.newInstance();
-				newRel.init(factoryProfile.getSecurityContext(), entity);
+				newRel.init(factoryProfile.getSecurityContext(), entity, relClass);
 
 				// let rel. know of its instantiation so it can cache its start- and end node ID.
 				newRel.onRelationshipInstantiation();

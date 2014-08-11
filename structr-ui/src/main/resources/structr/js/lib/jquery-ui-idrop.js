@@ -35,8 +35,8 @@ $.ui.intersect = function(draggable, droppable, toleranceMode) {
         }
         
         var x2 = x1 + draggable.helperProportions.width, y2 = y1 + draggable.helperProportions.height,
-		l = droppable.offset.left, r = l + droppable.proportions.width,
-		t = droppable.offset.top, b = t + droppable.proportions.height;
+		l = droppable.offset.left, r = l + droppable.proportions().width,
+		t = droppable.offset.top, b = t + droppable.proportions().height;
 
 
 
@@ -51,7 +51,7 @@ $.ui.intersect = function(draggable, droppable, toleranceMode) {
 		case "pointer":
 			draggableLeft = ((draggable.positionAbs || draggable.position.absolute).left + (draggable.clickOffset || draggable.offset.click).left);
 			draggableTop = ((draggable.positionAbs || draggable.position.absolute).top + (draggable.clickOffset || draggable.offset.click).top);
-			return isOverAxis( draggableTop, t, droppable.proportions.height ) && isOverAxis( draggableLeft, l, droppable.proportions.width );
+			return isOverAxis( draggableTop, t, droppable.proportions().height ) && isOverAxis( draggableLeft, l, droppable.proportions().width );
 		case "touch":
 			return (
 				(y1 >= t && y1 <= b) ||	// Top edge touching

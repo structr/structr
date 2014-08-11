@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.Permission;
@@ -49,14 +48,12 @@ import org.structr.core.property.TargetId;
 /**
  * A generic relationship entity that will be instantiated when an anonymous
  * relationship is encountered.
- * 
+ *
  * @author Axel Morgner
  *
  */
 public class Security extends ManyToMany<Principal, NodeInterface> {
 
-	private static final Logger logger = Logger.getLogger(Security.class.getName());
-	
 	public static final SourceId           principalId          = new SourceId("principalId");
 	public static final TargetId           accessControllableId = new TargetId("accessControllableId");
 	public static final Property<String[]> allowed              = new ArrayProperty("allowed", String.class);
@@ -64,30 +61,30 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 	public static final View uiView = new View(Security.class, PropertyView.Ui,
 		allowed
 	);
-	
+
 	public Security() {}
 
 	public Security(SecurityContext securityContext, Relationship dbRelationship) {
-		init(securityContext, dbRelationship);
+		init(securityContext, dbRelationship, Security.class);
 	}
-		
+
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
-		
+
 		Set<PropertyKey> keys = new LinkedHashSet<>();
-		
+
 		keys.addAll((Set<PropertyKey>) super.getPropertyKeys(propertyView));
-		
+
 		keys.add(principalId);
 		keys.add(accessControllableId);
-		
+
 		if (dbRelationship != null) {
-			
+
 			for (String key : dbRelationship.getPropertyKeys()) {
 				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key));
 			}
 		}
-		
+
 		return keys;
 	}
 
@@ -162,7 +159,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		dbRelationship.setProperty(Security.allowed.dbName(), allowed);
 
 	}
-	
+
 	public String[] getPermissions() {
 
 		if (dbRelationship.hasProperty(Security.allowed.dbName())) {
@@ -213,19 +210,19 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		}
 
 		String[] newPermissions = (String[]) ArrayUtils.removeElement(_allowed, permission.name());
-		
+
 		if (newPermissions.length > 0) {
-		
+
 			setAllowed(newPermissions);
-			
+
 		} else {
-			
+
 			final App app = StructrApp.getInstance(securityContext);
 			app.delete(this);
 		}
 
 	}
-		
+
 	// ----- class Relation -----
 	@Override
 	public Class<Principal> getSourceType() {
@@ -244,11 +241,11 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	@Override
 	public Property<String> getSourceIdProperty() {
-		return null;
+		return principalId;
 	}
 
 	@Override
 	public Property<String> getTargetIdProperty() {
-		return null;
+		return accessControllableId;
 	}
 }

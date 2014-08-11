@@ -24,13 +24,14 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
-import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.entity.relationship.Groups;
+import org.structr.core.property.BooleanProperty;
+import org.structr.schema.SchemaService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,18 +41,21 @@ import org.structr.core.entity.relationship.Groups;
  *
  */
 public class Group extends AbstractUser implements Principal {
-	
-	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
 	public static final Property<List<Principal>> members = new EndNodes<>("members", Groups.class);
-	
+	public static final Property<Boolean>        isGroup  = new BooleanProperty("isGroup", true).readOnly();
+
 	public static final org.structr.common.View uiView = new org.structr.common.View(Group.class, PropertyView.Ui,
-		type, name, members, blocked
+		type, name, members, blocked, isGroup
 	);
-	
+
 	public static final org.structr.common.View publicView = new org.structr.common.View(Group.class, PropertyView.Public,
-		type, name, members, blocked
+		type, name, members, blocked, isGroup
 	);
+
+	static {
+		SchemaService.registerBuiltinTypeOverride("Group", Group.class.getName());
+	}
 
 	@Override
 	public String getEncryptedPassword() {
@@ -68,7 +72,7 @@ public class Group extends AbstractUser implements Principal {
 
 		setProperty(members, _users);
 	}
-	
+
 	public void removeMember(final Principal user) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
@@ -77,17 +81,17 @@ public class Group extends AbstractUser implements Principal {
 
 		setProperty(members, _users);
 	}
-	
+
 	@Override
 	public List<Principal> getParents() {
-		
+
 		final List<Principal> principals = new LinkedList<>();
 		for (final Groups groups : getIncomingRelationships(Groups.class)) {
-			
+
 			principals.add(groups.getSourceNode());
-			
+
 		}
-		
+
 		return principals;
 	}
 }

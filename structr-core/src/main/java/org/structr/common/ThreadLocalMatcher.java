@@ -43,7 +43,7 @@ public class ThreadLocalMatcher extends ThreadLocal<Matcher> {
 
 	public ThreadLocalMatcher(String pattern) {
 
-		this.pattern = Pattern.compile(pattern);
+		this.pattern = Pattern.compile(pattern, Pattern.DOTALL);
 
 	}
 

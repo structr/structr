@@ -54,12 +54,12 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		this.runOnError = runOnError;
 	}
 
-	public String getSource() {
+	public String getSource(final String objVariable) {
 
 		final StringBuilder buf = new StringBuilder();
 
 		buf.append(Actions.class.getSimpleName());
-		buf.append(".execute(securityContext, this, \"${");
+		buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
 		buf.append(replaceQuotes(call));
 		buf.append("}\")");
 

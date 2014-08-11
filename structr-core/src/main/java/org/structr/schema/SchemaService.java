@@ -23,16 +23,20 @@
 
 package org.structr.schema;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.StructrConf;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Service;
-import org.structr.core.Services;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
@@ -45,10 +49,9 @@ import org.structr.schema.compiler.NodeExtender;
  */
 public class SchemaService implements Service {
 
-	private static final Logger logger           = Logger.getLogger(SchemaService.class.getName());
-	private static final AtomicBoolean compiling = new AtomicBoolean(false);
-
-	private static ClassLoader lastClassLoader   = null;
+	private static final Logger logger                            = Logger.getLogger(SchemaService.class.getName());
+	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
+	private static final Map<String, String> builtinTypeMap       = new LinkedHashMap<>();
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -59,8 +62,13 @@ public class SchemaService implements Service {
 		reloadSchema(new ErrorBuffer());
 	}
 
+	public static void registerBuiltinTypeOverride(final String type, final String fqcn) {
+		builtinTypeMap.put(type, fqcn);
+	}
+
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
 
+		final ConfigurationProvider config = StructrApp.getConfiguration();
 		boolean success = true;
 
 		// compiling must only be done once
@@ -74,21 +82,45 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
+					SchemaService.ensureBuiltinTypesExist();
+
 					// collect node classes
 					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+
 						nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
+
+						final String auxSource = schemaNode.getAuxiliarySource();
+						if (auxSource != null) {
+
+							nodeExtender.addClass("_" + schemaNode.getClassName() + "Helper", auxSource);
+						}
+
 						dynamicViews.addAll(schemaNode.getViews());
 					}
 
 					// collect relationship classes
 					for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
+
 						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
+
+						final String auxSource = schemaRelationship.getAuxiliarySource();
+						if (auxSource != null) {
+							
+							nodeExtender.addClass("_" + schemaRelationship.getClassName() + "Helper", auxSource);
+						}
+
 						dynamicViews.addAll(schemaRelationship.getViews());
 					}
 
-					// compile all classes at once
-					for (final Class newType : nodeExtender.compile(errorBuffer).values()) {
-						Services.getInstance().getConfigurationProvider().registerEntityType(newType);
+					// compile all classes at once and register
+					Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
+					for (final Class newType : newTypes.values()) {
+
+						config.registerEntityType(newType);
+
+						// instantiate classes to execute
+						// static initializer of helpers
+						try { newType.newInstance(); } catch (Throwable t) {}
 					}
 
 					success = !errorBuffer.hasError();
@@ -96,15 +128,14 @@ public class SchemaService implements Service {
 					// inject views in configuration provider
 					if (success) {
 
-						Services.getInstance().getConfigurationProvider().registerDynamicViews(dynamicViews);
-						// TODO: add all views
+						config.registerDynamicViews(dynamicViews);
+						tx.success();
 					}
-
-					lastClassLoader = nodeExtender.getClassLoader();
 
 				} catch (Throwable t) {
 
 					logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
+					t.printStackTrace();
 
 					success = false;
 				}
@@ -117,8 +148,8 @@ public class SchemaService implements Service {
 		return success;
 	}
 
-	public static ClassLoader getClassLoader() {
-		return lastClassLoader;
+	@Override
+	public void initialized() {
 	}
 
 	@Override
@@ -133,5 +164,27 @@ public class SchemaService implements Service {
 	@Override
 	public boolean isRunning() {
 		return true;
+	}
+
+	// ----- private methods -----
+	public static void ensureBuiltinTypesExist() throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		for (final Entry<String, String> entry : builtinTypeMap.entrySet()) {
+
+			final String type = entry.getKey();
+			final String fqcn = entry.getValue();
+
+			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+			if (schemaNode == null) {
+
+				schemaNode = app.create(SchemaNode.class, type);
+			}
+
+			schemaNode.setProperty(SchemaNode.extendsClass, fqcn);
+			schemaNode.unlockReadOnlyPropertiesOnce();
+			schemaNode.setProperty(SchemaNode.isBuiltinType, true);
+		}
 	}
 }

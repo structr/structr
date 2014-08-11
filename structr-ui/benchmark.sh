@@ -13,7 +13,7 @@
 PAGE=http://localhost:8082/jumbotron
 
 # default name for the output file
-NOW=`date +%Y%m%d-%H%m`
+NOW=`date +%Y%m%d-%H%M%S`
 OUTFILE=structr-benchmark-$NOW.csv
 
 # initial number of threads

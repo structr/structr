@@ -43,7 +43,7 @@ var _Dragndrop = {
             drop: function(e, ui) {
 
                 log('Drop event', e, ui);
-                
+
                 if (dropBlocked) {
                     log('Drop in iframe was blocked');
                     dropBlocked = false;
@@ -329,8 +329,8 @@ var _Dragndrop = {
                     $.each(matches, function(i, match) {
 
                         var propertyKey = match.replace(/\[/, '').replace(/\]/, '')
-                        var options     = '';
-                        var hasOptions  = false;
+                        var options = '';
+                        var hasOptions = false;
 
                         if (propertyKey.contains(":")) {
 
@@ -338,8 +338,8 @@ var _Dragndrop = {
                             if (parts.length === 2) {
 
                                 propertyKey = parts[0];
-                                options     = parts[1];
-                                hasOptions  = true;
+                                options = parts[1];
+                                hasOptions = true;
                             }
                         }
 

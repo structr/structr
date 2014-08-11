@@ -49,20 +49,22 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
+import org.structr.dynamic.File;
 import org.structr.files.ftp.AbstractStructrFtpFile;
 import org.structr.files.ftp.StructrFtpFile;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.SchemaService;
 import org.structr.web.Importer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.diff.InvertibleModificationOperation;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import static org.structr.web.entity.Linkable.linkingElements;
 import static org.structr.web.entity.dom.DOMNode.children;
@@ -103,16 +105,22 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
+	public static final Property<Boolean> isPage = new BooleanProperty("isPage", true).readOnly();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes
+		children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes
+		children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage
 	);
 
 	private Html5DocumentType docTypeNode = null;
+
+	// register this type as an overridden builtin type
+	static {
+		SchemaService.registerBuiltinTypeOverride("Page", Page.class.getName());
+	}
 
 	public Page() {
 
@@ -189,7 +197,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT);
 		}
 
-		if (!(otherNode instanceof Html)) {
+		if (!(otherNode instanceof Html || otherNode instanceof Comment)) {
 
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 		}
@@ -299,8 +307,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public Text createTextNode(final String text) {
 
-		final App app = StructrApp.getInstance(securityContext);
-
 		try {
 
 			// create new content element
@@ -327,8 +333,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public Comment createComment(String comment) {
 
-		final App app = StructrApp.getInstance(securityContext);
-
 		try {
 
 			// create new content element
@@ -354,8 +358,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public CDATASection createCDATASection(String string) throws DOMException {
-
-		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 
@@ -573,7 +575,17 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public Element getDocumentElement() {
-		return (Element) super.getFirstChild();
+		
+		Node node = super.getFirstChild();
+		
+		if (node instanceof Element) {
+			
+			return (Element) node;
+			
+		} else {
+			
+			return null;
+		}
 	}
 
 	@Override
@@ -859,6 +871,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	private Principal getOwner() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			Principal owner = getProperty(File.owner);
+			tx.success();
 			return owner;
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting owner of " + this, fex);
@@ -868,17 +881,30 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public String getOwnerName() {
+
+		String name = "";
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			Principal owner = getOwner();
-			return owner != null ? owner.getProperty(AbstractUser.name) : "";
+			if (owner != null) {
+
+				name = owner.getProperty(AbstractUser.name);
+			}
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting owner name of " + this, fex);
 		}
-		return null;
+
+		return name;
 	}
 
 	@Override
 	public String getGroupName() {
+
+		String name = "";
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
 			Principal owner = getOwner();
@@ -887,16 +913,17 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 				List<Principal> parents = owner.getParents();
 				if (!parents.isEmpty()) {
 
-					return parents.get(0).getProperty(AbstractNode.name);
-
+					name = parents.get(0).getProperty(AbstractNode.name);
 				}
 			}
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting group name of " + this, fex);
 		}
 
-		return "";
+		return name;
 	}
 
 	@Override
@@ -906,16 +933,24 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public long getLastModified() {
+
+		long lastModified = 0L;
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getProperty(lastModifiedDate).getTime();
+
+			lastModified = getProperty(lastModifiedDate).getTime();
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
 		}
-		return 0L;
+
+		return lastModified;
 	}
 
 	@Override
 	public boolean setLastModified(long time) {
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			setProperty(lastModifiedDate, new Date(time));
 			tx.success();
@@ -928,32 +963,53 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public long getSize() {
+
+		long size = 0L;
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getContent(RenderContext.EditMode.RAW).length();
+
+			size = getContent(RenderContext.EditMode.RAW).length();
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
 		}
-		return 0L;
+
+		return size;
 	}
 
 	@Override
 	public String getName() {
+
+		String name = null;
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getProperty(name);
+
+			name = getProperty(AbstractNode.name);
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in getName() of page", fex);
 		}
-		return null;
+
+		return name;
 	}
 
 	@Override
 	public boolean isHidden() {
+
+		boolean hidden = true;
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getProperty(hidden);
+
+			hidden = getProperty(Page.hidden);
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in isHidden() of page", fex);
 		}
-		return true;
+
+		return hidden;
 	}
 
 	@Override
@@ -1021,7 +1077,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			@Override
 			public void flush() throws IOException {
 
-
 				final String source = toString();
 
 				final App app = StructrApp.getInstance();
@@ -1058,11 +1113,18 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public InputStream createInputStream(long offset) throws IOException {
+
+		ByteArrayInputStream bis = null;
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return new ByteArrayInputStream(getContent(RenderContext.EditMode.RAW).getBytes("UTF-8"));
+
+			bis = new ByteArrayInputStream(getContent(RenderContext.EditMode.RAW).getBytes("UTF-8"));
+			tx.success();
+
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
-		return null;
+
+		return bis;
 	}
 
 	// ----- interface Syncable -----

@@ -42,20 +42,20 @@ import org.structr.schema.SchemaHelper;
 public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
 	private static final Logger logger = Logger.getLogger(Factory.class.getName());
-	
+
 	public static final int DEFAULT_PAGE_SIZE	= Integer.MAX_VALUE;
 	public static final int DEFAULT_PAGE		= 1;
-	
+
 	/**
 	 * This limit is the number of objects up to which the overall count
 	 * will be accurate.
 	 */
 	public static final int RESULT_COUNT_ACCURATE_LIMIT	= 5000;
-	
+
 	// encapsulates all criteria for node creation
 	protected FactoryDefinition factoryDefinition = StructrApp.getConfiguration().getFactoryDefinition();
 	protected FactoryProfile factoryProfile       = null;
-	
+
 	public Factory(final SecurityContext securityContext) {
 
 		factoryProfile = new FactoryProfile(securityContext);
@@ -78,11 +78,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	public Factory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId) {
 		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 	}
-	
+
 	public abstract T instantiate(final S obj) throws FrameworkException;
-	
+
 	public abstract T instantiateWithType(final S obj, final Class<T> type, boolean isCreation) throws FrameworkException;
-	
+
 	public abstract T instantiate(final S obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException;
 
 	public abstract T instantiateDummy(final S entity, final String entityType) throws FrameworkException;
@@ -130,7 +130,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		return Result.EMPTY_RESULT;
 
 	}
-	
+
 	/**
 	 * Create structr nodes from all given underlying database nodes
 	 * No paging, but security check
@@ -163,9 +163,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		try {
 			return instantiate(s);
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			logger.log(Level.WARNING, "Unable to adapt", fex);
 		}
 
@@ -217,11 +217,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			T n = instantiate(node);
 
 			if (n == null) {
-				
+
 				continue;
-				
+
 			}
-			
+
 			nodesUpToOffset.add(n);
 
 			if (!gotOffset) {
@@ -249,12 +249,12 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
 		}
-		
+
 		if (offset < 0) {
-			
+
 			// Remove last item
 			nodesUpToOffset.remove(nodesUpToOffset.size()-1);
-			
+
 			return new Result(nodesUpToOffset, size, true, false);
 		}
 
@@ -349,12 +349,12 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		int count	    = 0;
 		int overallCount    = 0;
 		boolean pageFull    = false;
-		
+
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		
+
 		// In case of superuser or in public context, don't check the overall result count
 		boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
-		
+
 		for (S node : input) {
 
 			T n = instantiate(node);
@@ -370,25 +370,25 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 					if (++count > pageSize) {
 
 						pageFull = true;
-						
+
 						if (dontCheckCount) {
 							overallCount = overallResultCount;
 							break;
 						}
-						
+
 					}
-					
+
 					if (!pageFull) {
 
 						nodes.add(n);
 
 					}
-					
+
 					if (pageFull && (overallCount >= RESULT_COUNT_ACCURATE_LIMIT)) {
-						 
+
 						// The overall count may be inaccurate
 						return new Result(nodes, overallResultCount, true, false);
-						 
+
 					}
 				}
 

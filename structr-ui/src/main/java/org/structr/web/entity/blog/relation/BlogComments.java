@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.blog.relation;
 
+import org.structr.web.entity.blog.BlogComment;
 import org.structr.core.property.PropertyKey;
 
 //~--- JDK imports ------------------------------------------------------------

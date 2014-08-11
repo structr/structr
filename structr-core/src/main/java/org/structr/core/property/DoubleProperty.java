@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
@@ -30,13 +29,14 @@ import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.search.DoubleSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 
 /**
-* A property that stores and retrieves a simple Double value.
+ * A property that stores and retrieves a simple Double value.
  *
  * @author Christian Morgner
  */
@@ -112,17 +112,38 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 
 		@Override
 		public Object revert(Double source) throws FrameworkException {
+
+			if (source == null) {
+				return null;
+			}
+
+			final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
+
+			if (!lenient) {
+
+				if (Double.isNaN(source)) {
+					return null;
+				}
+
+				if (Double.isInfinite(source)) {
+					return null;
+				}
+
+			}
+
 			return source;
 		}
 
 		@Override
 		public Double convert(Object source) throws FrameworkException {
 
-			if (source == null) return null;
+			if (source == null) {
+				return null;
+			}
 
 			if (source instanceof Number) {
 
-				return ((Number)source).doubleValue();
+				return ((Number) source).doubleValue();
 
 			}
 
@@ -153,7 +174,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 			}
 
 			if (value instanceof Number) {
-				return ((Number)value).doubleValue();
+				return ((Number) value).doubleValue();
 			}
 
 			try {
@@ -176,6 +197,6 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 
 	@Override
 	public void index(GraphObject entity, Object value) {
-		super.index(entity, value != null ? ValueContext.numeric((Number)fixDatabaseProperty(value)) : value);
+		super.index(entity, value != null ? ValueContext.numeric((Number) fixDatabaseProperty(value)) : value);
 	}
 }

@@ -39,8 +39,16 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolException;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.protocol.HttpContext;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Comment;
@@ -62,6 +70,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.dynamic.File;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -70,7 +79,6 @@ import org.structr.web.diff.DeleteOperation;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.diff.MoveOperation;
 import org.structr.web.diff.UpdateOperation;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.LinkSource;
@@ -115,7 +123,7 @@ public class Importer {
 	//~--- fields ---------------------------------------------------------
 	private StringBuilder commentSource = new StringBuilder();
 	private String code;
-	private final String address;
+	private String address;
 	private final boolean authVisible;
 	private final String name;
 	private Document parsedDocument;
@@ -191,8 +199,59 @@ public class Importer {
 				get.setHeader("User-Agent", "Mozilla");
 				get.setHeader("Connection", "close");
 
+				client.setRedirectStrategy(new RedirectStrategy() {
+
+					@Override
+					public boolean isRedirected(HttpRequest hr, HttpResponse hr1, HttpContext hc) throws ProtocolException {
+						return false;
+					}
+
+					@Override
+					public HttpUriRequest getRedirect(HttpRequest hr, HttpResponse hr1, HttpContext hc) throws ProtocolException {
+						return new DefaultRedirectStrategy().getRedirect(hr, hr1, hc);
+					}
+				});
+
+
+				HttpResponse resp = client.execute(get);
+
+				Header location = resp.getFirstHeader("Location");
+
+				if (location != null) {
+					address = location.getValue();
+					client = new DefaultHttpClient();
+					
+					int attempts = 1;
+					boolean success = false;
+					
+					while (!success) {
+					
+						try {
+
+							resp = client.execute(new HttpGet(address));
+							
+							success = true;
+
+						} catch (IllegalStateException ise) {
+							
+							logger.log(Level.INFO, "Unable to establish connection to {0}, trying again after {1} sec...", new Object[]{ address, attempts*10 });
+							attempts++;
+							
+							if (attempts > 6) {
+								throw new FrameworkException(500, "Error while parsing content from " + address + ", couldn't establish connections after " + attempts + " attempts");
+							}
+							
+							try {
+								Thread.sleep(attempts*10*1000);
+								
+							} catch (InterruptedException ex) {}
+
+						}
+					}
+				}
+
 				// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-				code = IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
+				code = IOUtils.toString(resp.getEntity().getContent(), "UTF-8");
 
 				if (code.charAt(0) == 65279) {
 					code = code.substring(1);
@@ -611,17 +670,22 @@ public class Importer {
 
 						} else {
 
-							if ("link".equals(tag) && "href".equals(key) && !nodeAttr.getValue().startsWith("http")) {
+							String value =  nodeAttr.getValue();
+
+							boolean isLocal = StringUtils.isNotBlank(value) && !value.startsWith("http");
+							boolean isActive = StringUtils.isNotBlank(value) && (value.startsWith("${") || value.startsWith("/${"));
+
+							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
 
-							} else if (("href".equals(key) || "src".equals(key)) && !nodeAttr.getValue().startsWith("http")) {
+							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
 
 							} else {
 
-								newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+								newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), value);
 							}
 
 						}
@@ -656,7 +720,7 @@ public class Importer {
 
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
-		final String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
+		final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
 		final String filePath = FileHelper.getFilePath(relativeFilePath);
 		final java.io.File fileOnDisk = new java.io.File(filePath);
 
@@ -681,6 +745,9 @@ public class Importer {
 				// Try alternative baseUrl with trailing "/"
 				downloadUrl = new URL(new URL(address.concat("/")), downloadAddress);
 				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
+
+				// If successful, change address
+				address = address.concat("/");
 
 			} catch (MalformedURLException ex) {
 				logger.log(Level.SEVERE, "Could not resolve address " + address.concat("/"), ex);
@@ -712,17 +779,22 @@ public class Importer {
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 
 		final String fileName = PathHelper.getName(downloadAddress);
-		
+
 		String httpPrefix = "http://";
-		
-		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), address);
+
+		logger.log(Level.INFO, "Download URL: {0}, address: {1}, cleaned address: {2}",
+			new Object[] { downloadUrl, address, StringUtils.substringBeforeLast(address, "/") });
+
+		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
 			relativePath = downloadAddress;
 		}
-		
+
 		String path = StringUtils.substringBefore(((downloadAddress.contains(httpPrefix))
 			? StringUtils.substringAfter(downloadAddress, "http://")
 			: relativePath), fileName);
+
+		logger.log(Level.INFO, "Relative path: {0}, final path: {1}", new Object[] { relativePath, path });
 
 		if (contentType.equals("text/plain")) {
 

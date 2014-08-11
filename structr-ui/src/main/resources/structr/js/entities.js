@@ -23,7 +23,8 @@ var activeElements = {};
 var _Entities = {
     numberAttrs: ['position', 'size'],
     hiddenAttrs: ['base'], //'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
-    //readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
+    readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
+    
     changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
         log('Change boolean attribute ', attrElement, ' to ', value);
@@ -46,19 +47,19 @@ var _Entities = {
         Command.children(id);
 
     },
-    deleteNode: function(button, entity, callback) {
+    deleteNode: function(button, entity, rec, callback) {
         buttonClicked = button;
         if (isDisabled(button))
             return;
 
-        Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + '] ?</p>',
+        Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (rec?' recursively':'') + '?</p>',
                 function() {
-                    Command.deleteNode(entity.id);
+                    Command.deleteNode(entity.id, rec);
                     $.unblockUI({
                         fadeOut: 25
                     });
                     if (callback) {
-                        callback();
+                        callback(entity);
                     }
                 });
     },
@@ -93,9 +94,8 @@ var _Entities = {
         if (entity.type === 'Button' || entity.type === 'A') {
 
             // Buttons
-
-            _Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|edit|delete]');
-            _Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create and edit action)');
+            _Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|edit|delete|login|logout]');
+            _Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create, edit, login or registration actions)');
 
             t.append('<tr><td class="key">Reload</td><td class="value"id="reload"></td><td></td></tr>');
             _Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
@@ -106,6 +106,8 @@ var _Entities = {
                 t.append('<tr><td class="key">Confirm on delete?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
                 _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
             }
+            _Entities.appendRowWithInputField(entity, t, 'data-structr-return', 'Return URI after successful action');
+            
         } else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
             // Input fields
             _Entities.appendRowWithInputField(entity, t, 'data-structr-name', 'Field name (for create action)');
@@ -393,7 +395,7 @@ var _Entities = {
     },
     listProperties: function(entity, view, tabView, typeInfo) {
         $.ajax({
-            url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
+            url: rootUrl + entity.id + (view ? '/' + view : ''),
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             success: function(data) {
@@ -412,8 +414,18 @@ var _Entities = {
                     $(keys).each(function(i, key) {
 
                         if (view === '_html_') {
-                            if (key !== 'id') {
+                            var display = false;
+                            _Elements.mostUsedAttrs.forEach(function(mostUsed) {
+                                if (isIn(entity.tag, mostUsed.elements) && isIn(key.substring(6), mostUsed.attrs)) {
+                                    display = true;
+                                }
+                            });
+                            
+                            if (display || key === '_html_class' || key === '_html_id') {
                                 props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
+                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                            } else if (key !== 'id') {
+                                props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td>'
                                         + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             }
                         } else if (view === 'in' || view === 'out') {
@@ -429,7 +441,7 @@ var _Entities = {
                             
                             var type = typeInfo[key].type;
                             var isHidden = isIn(key, _Entities.hiddenAttrs);
-                            var isReadOnly = typeInfo[key].readOnly; //isIn(key, _Entities.readOnlyAttrs);
+                            var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly && !isAdmin);
                             var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
                             var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
                             var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
@@ -474,35 +486,39 @@ var _Entities = {
                                         dateFormat: 'yy-mm-dd',
                                         separator: 'T'
                                     });
-                                } else if (isRelated) {
-                                    
-                                    var node = res[key];
-                                    if (node && node.constructor === Object) {
-                                        var displayName = _Crud.displayName(node);
-                                        cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
-                                        var nodeEl = $('#_' + node.id, props);
-                                        
-                                        nodeEl.on('click', function(e) {
-                                            e.preventDefault();
-                                            _Entities.showProperties(node);
-                                            return false;
-                                        });
-                                        $('.remove', nodeEl).on('click', function(e) {
-                                            e.preventDefault();
-                                            _Entities.setProperty(id, key, null, false, function(newVal) {
-                                                if (!newVal) {
-                                                    blinkGreen(cell);
-                                                    dialogMsg.html('<div class="infoBox success">Related node "' + displayName + '" was removed from property "' + key + '".</div>');
-                                                    $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
-                                                    cell.empty();
-                                                } else {
-                                                    blinkRed(cell);
-                                                }
+                                } else if (isRelated && res[key] && (res[key].constructor === Object || res[key].constructor === Array)) {
+                                    if (res[key] && res[key].constructor === Object) {
+                                        _Entities.appendRelatedNode(cell, props, id, key, res[key], function(nodeEl) {
+                                            $('.remove', nodeEl).on('click', function(e) {
+                                                e.preventDefault();
+                                                _Entities.setProperty(id, key, null, false, function(newVal) {
+                                                    if (!newVal) {
+                                                        blinkGreen(cell);
+                                                        dialogMsg.html('<div class="infoBox success">Related node "' + displayName + '" was removed from property "' + key + '".</div>');
+                                                        $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                                                        cell.empty();
+                                                    } else {
+                                                        blinkRed(cell);
+                                                    }
+                                                });
+                                                return false;
                                             });
-                                            return false;
+                                            
+                                        });
+                                    } else if (res[key] && res[key].constructor === Array) {
+                                        res[key].forEach(function(node) {
+                                            _Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
+                                                $('.remove', nodeEl).on('click', function(e) {
+                                                    e.preventDefault();
+                                                    Command.removeFromCollection(id, key, node.id, function() {
+                                                        nodeEl.remove();
+                                                        blinkGreen(cell);
+                                                    });
+                                                    return false;
+                                                });
+                                            });
                                         });
                                     }
-
                                 } else {
                                     cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
                                 }
@@ -531,14 +547,42 @@ var _Entities = {
                             });
                         });
                     });
-                    props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
+                    props.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
                     $('.props tr td.value input', dialog).each(function(i, v) {
                         _Entities.activateInput(v, id);
                     });
+                    
+                    
+                    if (view === '_html_') {
+                        $('input[name="_html_class"]', props).focus();
+                        
+                        tabView.append('<button class="show-all">Show all attributes</button>');
+                        $('.show-all', tabView).on('click', function() {
+                            $('tr.hidden').toggle();
+                            $(this).remove();
+                        });
+                    }
+                    
+                    
                 });
             }
         });
 
+    },
+    appendRelatedNode: function(cell, props, id, key, node, onDelete) {
+        var displayName = _Crud.displayName(node);
+        cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+        var nodeEl = $('#_' + node.id, props);
+
+        nodeEl.on('click', function(e) {
+            e.preventDefault();
+            _Entities.showProperties(node);
+            return false;
+        });
+        
+        if (onDelete) {
+            return onDelete(nodeEl);
+        }
     },
     activateInput: function(el, id) {
 
@@ -586,7 +630,6 @@ var _Entities = {
                         input.data('changed', false);
                         log('existing key: Command.setProperty(', objId, key, val);
                         _Entities.setProperty(objId, key, val, false, function(newVal) {
-                            
                             if (isPassword || (newVal && newVal !== oldVal)) {
                                 blinkGreen(input);
                                 input.val(newVal);
@@ -594,7 +637,6 @@ var _Entities = {
                                 $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
 
                             } else {
-                                blinkRed(input);
                                 input.val(oldVal);
                             }
                             oldVal = newVal;
@@ -650,25 +692,7 @@ var _Entities = {
                 dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
 
                 var tb = $('#principals tbody', dialogText);
-                tb.append('<tr id="new"><td><select id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
-                Command.getByType('User', 1000, 1, 'name', 'asc', function(user) {
-                    $('#newPrincipal').append('<option value="' + user.id + '">' + user.name + '</option>');
-                });
-                Command.getByType('Group', 1000, 1, 'name', 'asc', function(group) {
-                    $('#newPrincipal').append('<option value="' + group.id + '">' + group.name + '</option>');
-                });
-                $('#newPrincipal').on('change', function() {
-                    var sel = $(this);
-                    var pId = sel[0].value;
-                    var rec = $('#recursive', dialogText).is(':checked');
-                    Command.setPermission(entity.id, pId, 'grant', 'read', rec);
-                    $('#new', tb).selectedIndex = 0;
-
-                    Command.get(pId, function(p) {
-                        addPrincipal(entity, p, {'read': true});
-                    });
-
-                });
+                tb.append('<tr id="new"><td><select style="width: 300px;z-index: 999" id="newPrincipal"><option>Select Group/User</option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
 
                 $.ajax({
                     url: rootUrl + '/' + entity.id + '/in',
@@ -695,6 +719,35 @@ var _Entities = {
 
                         });
                     }
+                });
+                var select = $('#newPrincipal');
+                select.chosen({ width: '90%' });
+                var i=0, n=10000;
+                Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', function(group, size) {
+                    select.append('<option value="' + group.id + '">' + group.name + '</option>');
+                    if (++i >= size) {
+                        select.trigger("chosen:updated");
+                    }
+                });
+                i=0;
+                var al2 = Structr.loaderIcon(select.parent(), { float: 'right' });
+                Command.getByType('User', n, 1, 'name', 'asc', 'id,name', function(user, size) {
+                    select.append('<option value="' + user.id + '">' + user.name + '</option>');
+                    if (++i >= size) {
+                        select.trigger("chosen:updated");
+                        if (al2.length) al2.remove();
+                    }
+                });
+                select.on('change', function() {
+                    var sel = $(this);
+                    var pId = sel[0].value;
+                    var rec = $('#recursive', dialogText).is(':checked');
+                    Command.setPermission(entity.id, pId, 'grant', 'read', rec);
+                    $('#new', tb).selectedIndex = 0;
+
+                    Command.get(pId, function(p) {
+                        addPrincipal(entity, p, {'read': true});
+                    });
                 });
 
             });
@@ -761,31 +814,29 @@ var _Entities = {
         element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select"></select></span>');
         var selectElement = $('#' + key + 'Select');
         selectElement.append('<option></option>')
+        selectElement.css({'width':'400px'}).chosen();
 
-        $.ajax({
-            url: rootUrl + type + '/ui?pageSize=100',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            success: function(data) {
-                $(data.result).each(function(i, result) {
-
-                    var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
-                    var selected = (id === result.id ? 'selected' : '');
-                    selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
-                });
+        var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
+        var al = Structr.loaderIcon(el, { position: 'absolute', left: '416px', top: '32px' });
+        var i=0, n=10000;
+        Command.getByType(type, n, 1, 'name', 'asc', 'id,name', function(result, size) {
+            var selected = (id === result.id ? 'selected' : '');
+            selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
+            if (++i >= size) {
+                selectElement.trigger("chosen:updated");
+                if (al.length) al.remove();
             }
         });
 
-        var select = $('#' + key + 'Select', element);
-        select.on('change', function() {
+        selectElement.on('change', function() {
 
-            var value = select.val();
+            var value = selectElement.val();
             if (subKey) {
                 entity[key][subKey] = value;
             }
 
             entity.setProperty(key, value, false, function() {
-                blinkGreen(select);
+                blinkGreen($('#' + key + 'Select_chosen .chosen-single'));
             });
         });
     },
@@ -949,7 +1000,7 @@ var _Entities = {
                 if (page.length) {
                     $('#preview_' + getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
                 }
-                self.addClass('nodeHover').children('img.button').show();
+                self.addClass('nodeHover').children('img.button').show().css('display', 'inline-block');
                 self.children('.icons').children('img.button').show();
             },
             mouseout: function(e) {
@@ -973,7 +1024,7 @@ var _Entities = {
         var node = el.closest('.node')
         if (node) {
             node.removeClass('nodeHover');
-            node.find('img.button').not('.donthide').hide();
+            node.find('img.button').not('.donthide').hide().css('display', 'none');
         }
         var page = node.closest('.page');
         if (page.length) {
@@ -1079,7 +1130,7 @@ var _Entities = {
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
-            self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToWidth(newName, w) + '</b>');
+            self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
             $('.name_', element).on('click', function(e) {
                 e.stopPropagation();
                 _Entities.makeNameEditable(element, w);
@@ -1092,7 +1143,7 @@ var _Entities = {
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
-                self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToWidth(newName, w) + '</b>');
+                self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
                 $('.name_', element).on('click', function(e) {
                     e.stopPropagation();
                     _Entities.makeNameEditable(element, w);
@@ -1263,7 +1314,7 @@ var _Entities = {
 function addPrincipal(entity, principal, permissions) {
 
     $('#newPrincipal option[value="' + principal.id + '"]').remove();
-    $('#new').before('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
+    $('#new').after('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
     var row = $('#_' + principal.id);
 

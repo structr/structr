@@ -3,36 +3,37 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket.command;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author Christian Morgner
@@ -40,31 +41,64 @@ import org.structr.websocket.StructrWebSocket;
 public class DeleteCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(DeleteCommand.class.getName());
-	
+
 	static {
-		
+
 		StructrWebSocket.addCommand(DeleteCommand.class);
 
 	}
 
 	//~--- methods --------------------------------------------------------
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
-		
+
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
-		AbstractNode node = getNode(webSocketData.getId());
+		final Boolean recursive = (Boolean) webSocketData.getNodeData().get("recursive");
+		final AbstractNode obj  = getNode(webSocketData.getId());
 
-		if (node != null) {
+		if (obj != null) {
 
 			final App app = StructrApp.getInstance(securityContext);
 
-			try {
-				app.delete(node);
+			if (Boolean.TRUE.equals(recursive)) {
 				
+				// Remove all child nodes first
+
+				try {
+
+					final List<AbstractNode> filteredResults = new LinkedList();
+					if (obj instanceof DOMNode) {
+
+						DOMNode node = (DOMNode) obj;
+
+						filteredResults.addAll(DOMNode.getAllChildNodes(node));
+
+					} else if (obj instanceof LinkedTreeNode) {
+						
+						LinkedTreeNode node = (LinkedTreeNode) obj;
+
+						filteredResults.addAll(node.getAllChildNodes());
+						
+					}
+
+					for (NodeInterface node : filteredResults) {
+						app.delete(node);
+					}
+
+				} catch (FrameworkException fex) {
+
+					logger.log(Level.WARNING, "Exception occured", fex);
+					getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+				}
+
+			}
+
+			try {
+				app.delete(obj);
+
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to delete node", fex);
+				logger.log(Level.WARNING, "Unable to delete node(s)", fex);
 			}
 
 		} else {
@@ -77,7 +111,6 @@ public class DeleteCommand extends AbstractCommand {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 		return "DELETE";

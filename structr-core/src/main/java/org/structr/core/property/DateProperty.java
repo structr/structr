@@ -45,24 +45,22 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	public static final String DATE_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 
-	protected String pattern = null;
-
 	public DateProperty(String name, String pattern) {
 		super(name);
 
-		this.pattern = pattern;
+		this.format = pattern;
 	}
 
 	public DateProperty(String name, String dbName, String pattern) {
 		super(name, dbName);
 
-		this.pattern = pattern;
+		this.format = pattern;
 	}
 
 	public DateProperty(String name, String dbName, Date defaultValue, String pattern) {
 		super(name, dbName, defaultValue);
 
-		this.pattern = pattern;
+		this.format = pattern;
 	}
 
 	@Override
@@ -112,7 +110,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 			try {
 
-				return new SimpleDateFormat(pattern).parse(value.toString()).getTime();
+				return new SimpleDateFormat(format).parse(value.toString()).getTime();
 
 			} catch (Throwable t) {
 			}
@@ -170,7 +168,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 						source = StringUtils.replace(source, "Z", "+0000");
 					}
 
-					return new SimpleDateFormat(pattern).parse(source);
+					return new SimpleDateFormat(format).parse(source);
 
 				} catch (Throwable t) {
 
@@ -188,7 +186,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		public String revert(Date source) throws FrameworkException {
 
 			if (source != null) {
-				return new SimpleDateFormat(pattern).format(source);
+				return new SimpleDateFormat(format).format(source);
 			}
 
 			return null;

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.Writer;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 
 /**
  *
@@ -36,6 +37,7 @@ public class StructrJsonWriter implements RestWriter {
 	public StructrJsonWriter(final SecurityContext securityContext, final Writer writer) {
 		this.securityContext = securityContext;
 		this.writer = new JsonWriter(writer);
+		this.writer.setLenient(Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false")));
 	}
 
 	@Override

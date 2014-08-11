@@ -43,7 +43,7 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void extractTypeValidation(final Schema entity, final String expression) throws FrameworkException {
+	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
 		if (StringUtils.isNotBlank(expression)) {
 
@@ -78,14 +78,7 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 						return;
 					}
 
-					final StringBuilder buf = new StringBuilder();
-
-					buf.append("ValidationHelper.check").append(getValueType()).append("InRangeError(this, ");
-					buf.append(className).append(".").append(propertyName).append("Property");
-					buf.append(", \"").append(expression);
-					buf.append("\", errorBuffer)");
-
-					globalValidators.add(buf.toString());
+					globalValidators.add(new Validator("check" + getValueType() + "inRangeError", className, propertyName));
 
 				} else {
 

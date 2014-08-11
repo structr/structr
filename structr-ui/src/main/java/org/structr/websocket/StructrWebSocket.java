@@ -37,7 +37,8 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.entity.File;
+import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.FileUploadHandler;
@@ -60,7 +61,6 @@ public class StructrWebSocket implements WebSocketListener {
 	//~--- fields ---------------------------------------------------------
 	private String callback = null;
 	private Session session = null;
-	private String sessionId = null;
 	private Gson gson = null;
 	private PropertyKey idProperty = null;
 	private HttpServletRequest request = null;
@@ -197,8 +197,13 @@ public class StructrWebSocket implements WebSocketListener {
 
 					fex.printStackTrace(System.out);
 
+					// Clear result in case of rollback
+					//webSocketData.clear();
+					
 					// send 400 Bad Request
 					send(MessageBuilder.status().code(400).message(fex.toString()).build(), true);
+					
+					return;
 
 				}
 
@@ -208,6 +213,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 				// send 400 Bad Request
 				send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
+				
+				return;
 
 			}
 
@@ -248,8 +255,14 @@ public class StructrWebSocket implements WebSocketListener {
 
 			String msg = gson.toJson(message, WebSocketMessage.class);
 
-			logger.log(Level.FINE, "############################################################ SENDING \n{0}", msg);
+			logger.log(Level.FINE, "################### Private message: {0}", message.getCommand());
+			logger.log(Level.FINEST, "############################################################ SENDING \n{0}", msg);
 
+			// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
+			if (securityContext != null) {
+                            securityContext.clearCustomView();
+                        }
+			
 			session.getRemote().sendString(msg);
 
 		} catch (Throwable t) {
@@ -260,7 +273,7 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	// ----- file handling -----
-	public void createFileUploadHandler(File file) {
+	public void createFileUploadHandler(FileBase file) {
 
 		String uuid = file.getProperty(GraphObject.id);
 
@@ -396,8 +409,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
-
-		this.sessionId = sessionId;
 
 		try {
 

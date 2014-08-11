@@ -3,38 +3,40 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket;
 
 import com.google.gson.Gson;
-
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.StructrTransactionListener;
-import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.message.WebSocketMessage;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.WebSocketException;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -43,6 +45,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
@@ -50,10 +53,10 @@ import org.structr.web.entity.dom.DOMNode;
  */
 public class SynchronizationController implements StructrTransactionListener {
 
-	private static final Logger logger          = Logger.getLogger(SynchronizationController.class.getName());
+	private static final Logger logger = Logger.getLogger(SynchronizationController.class.getName());
 
 	private final Set<StructrWebSocket> clients = new ConcurrentHashSet<>();
-	private Gson gson                           = null;
+	private Gson gson = null;
 
 	public SynchronizationController(final Gson gson) {
 
@@ -63,19 +66,13 @@ public class SynchronizationController implements StructrTransactionListener {
 
 	public void registerClient(final StructrWebSocket client) {
 
-		synchronized (clients) {
-
-			clients.add(client);
-		}
+		clients.add(client);
 
 	}
 
 	public void unregisterClient(final StructrWebSocket client) {
 
-		synchronized (clients) {
-
-			clients.remove(client);
-		}
+		clients.remove(client);
 
 	}
 
@@ -83,73 +80,86 @@ public class SynchronizationController implements StructrTransactionListener {
 	private void broadcast(final WebSocketMessage webSocketData) {
 
 		//logger.log(Level.FINE, "Broadcasting message to {0} clients..", clients.size());
-
 		// session must be valid to be received by the client
 		webSocketData.setSessionValid(true);
 
 		String message;
 		String pagePath = (String) webSocketData.getNodeData().get("pagePath");
 
-		synchronized (clients) {
+		List<StructrWebSocket> clientsToRemove = new LinkedList<>();
 
-			// create message
-			for (StructrWebSocket socket : clients) {
+		// create message
+		for (StructrWebSocket socket : clients) {
 
-				String clientPagePath = socket.getPagePath();
-				if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
-					continue;
+			String clientPagePath = socket.getPagePath();
+			if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
+				continue;
+			}
+
+			Session session = socket.getSession();
+
+			webSocketData.setCallback(socket.getCallback());
+
+			if ((session != null)) { //&& socket.isAuthenticated()) {
+
+				List<? extends GraphObject> result = webSocketData.getResult();
+
+				if ((result != null) && (result.size() > 0)
+					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
+
+					WebSocketMessage clientData = webSocketData.copy();
+					SecurityContext securityContext = socket.getSecurityContext();
+
+					// For non-authenticated clients, construct a security context without user
+					if (securityContext == null) {
+
+						try {
+
+							securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
+
+						} catch (FrameworkException ex) {
+
+							continue;
+						}
+					}
+
+					clientData.setResult(filter(securityContext, result));
+
+					message = gson.toJson(clientData, WebSocketMessage.class);
+
+				} else {
+
+					message = gson.toJson(webSocketData, WebSocketMessage.class);
 				}
 
-				Session session = socket.getSession();
+				// logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
+				try {
 
-				webSocketData.setCallback(socket.getCallback());
+					session.getRemote().sendString(message);
 
-				if ((session != null)) { //&& socket.isAuthenticated()) {
+				} catch (Throwable t) {
 
-					List<? extends GraphObject> result = webSocketData.getResult();
-
-					if ((result != null) && (result.size() > 0)
-						&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
-
-						WebSocketMessage clientData     = webSocketData.copy();
-						SecurityContext securityContext = socket.getSecurityContext();
-
-						// For non-authenticated clients, construct a security context without user
-						if (securityContext == null) {
-
-							try {
-
-								securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-
-							} catch (FrameworkException ex) {
-
-								continue;
-							}
+					if (t instanceof WebSocketException) {
+						
+						WebSocketException wse = (WebSocketException) t;
+						
+						if ("RemoteEndpoint unavailable, current state [CLOSED], expecting [OPEN or CONNECTED]".equals(wse.getMessage())) {
+							clientsToRemove.add(socket);
 						}
-
-						clientData.setResult(filter(securityContext, result));
-
-						message = gson.toJson(clientData, WebSocketMessage.class);
-
-					} else {
-
-						message = gson.toJson(webSocketData, WebSocketMessage.class);
 					}
 
-					// logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
-
-					try {
-
-						session.getRemote().sendString(message);
-
-					} catch (Throwable t) {
-
-						logger.log(Level.WARNING, "Error sending message to client.", t);
-					}
-
+					logger.log(Level.FINE, "Error sending message to client.", t);
 				}
 
 			}
+
+		}
+
+		for (StructrWebSocket s : clientsToRemove) {
+			
+			unregisterClient(s);
+			
+			logger.log(Level.WARNING, "Client removed from broadcast list: {0}", s);
 		}
 
 	}
@@ -159,7 +169,7 @@ public class SynchronizationController implements StructrTransactionListener {
 		List<T> filteredResult = new LinkedList<>();
 		for (T obj : all) {
 
-			if (securityContext.isVisible((AbstractNode)obj)) {
+			if (securityContext.isVisible((AbstractNode) obj)) {
 
 				filteredResult.add(obj);
 			}
@@ -180,10 +190,12 @@ public class SynchronizationController implements StructrTransactionListener {
 				try {
 					final WebSocketMessage message = getMessageForEvent(securityContext, event);
 					if (message != null) {
+						logger.log(Level.FINE, "################### Broadcast message: {0}", message.getCommand());
 						broadcast(message);
 					}
 
-				} catch (FrameworkException ignore) {}
+				} catch (FrameworkException ignore) {
+				}
 			}
 
 		} catch (FrameworkException ex) {
@@ -196,7 +208,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		if (modificationEvent.isNode()) {
 
-			final NodeInterface node = (NodeInterface)modificationEvent.getGraphObject();
+			final NodeInterface node = (NodeInterface) modificationEvent.getGraphObject();
 
 			if (modificationEvent.isDeleted()) {
 
@@ -212,7 +224,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				final WebSocketMessage message = createMessage("CREATE");
 
 				message.setGraphObject(node);
-				message.setResult(Arrays.asList(new GraphObject[] { node } ));
+				message.setResult(Arrays.asList(new GraphObject[]{node}));
 
 				return message;
 			}
@@ -222,7 +234,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				final WebSocketMessage message = createMessage("UPDATE");
 
 				message.setGraphObject(node);
-				message.setResult(Arrays.asList(new GraphObject[] { node } ));
+				message.setResult(Arrays.asList(new GraphObject[]{node}));
 				message.setId(node.getUuid());
 				message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties().keySet());
 				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());
@@ -234,8 +246,8 @@ public class SynchronizationController implements StructrTransactionListener {
 		} else {
 
 			// handle relationship
-			final RelationshipInterface relationship = (RelationshipInterface)modificationEvent.getGraphObject();
-			final RelationshipType relType           = modificationEvent.getRelationshipType();
+			final RelationshipInterface relationship = (RelationshipInterface) modificationEvent.getGraphObject();
+			final RelationshipType relType = modificationEvent.getRelationshipType();
 
 			// only interested in CONTAINS relationships
 			if (!("CONTAINS".equals(relType.name()))) {
@@ -254,12 +266,11 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			if (modificationEvent.isCreated()) {
 
-
 				final WebSocketMessage message = new WebSocketMessage();
-				final NodeInterface startNode  = relationship.getSourceNode();
-				final NodeInterface endNode    = relationship.getTargetNode();
+				final NodeInterface startNode = relationship.getSourceNode();
+				final NodeInterface endNode = relationship.getTargetNode();
 
-				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
+				message.setResult(Arrays.asList(new GraphObject[]{endNode}));
 				message.setId(endNode.getUuid());
 				message.setNodeData("parentId", startNode.getUuid());
 
@@ -294,8 +305,8 @@ public class SynchronizationController implements StructrTransactionListener {
 				message.setNodeData(modificationEvent.getData(securityContext));
 
 				final PropertyMap relProperties = relationship.getProperties();
-				final NodeInterface startNode   = relationship.getSourceNode();
-				final NodeInterface endNode     = relationship.getTargetNode();
+				final NodeInterface startNode = relationship.getSourceNode();
+				final NodeInterface endNode = relationship.getTargetNode();
 
 				relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
 				relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());

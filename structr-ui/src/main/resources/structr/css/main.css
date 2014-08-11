@@ -458,7 +458,7 @@ img.disabled {
     margin: -3px;
     background: #fff;
     border: 1px solid #c0c0c0;
-    width: 380px;
+    width: 100%;
 }
 
 .props textarea {
@@ -1581,6 +1581,14 @@ button.add_property {
     right: 46px;
 }
 
+.schema.light b {
+    color: #999;
+}
+
+#schema-graph .light {
+    opacity: .7;
+}
+
 #admin-tools {
     margin: 0 8px 3px 24px;
 }
@@ -1615,7 +1623,7 @@ button.add_property {
 
 .schema-details .add-icon:hover,
 .schema .toggle-view:hover,
-.schema .remove-icon:hover{
+.schema-details .remove-icon:hover {
     opacity: .6;
     cursor: pointer;
 }
@@ -1826,10 +1834,54 @@ button.add_property {
 }
 
 .page .push_icon {
-	position: relative ! important;
-	margin-left: 24px ! important;
+    position: relative ! important;
+    margin-left: 24px ! important;
 }
 
 table.push {
-	margin: 2em 0;
+    margin: 2em 0;
+}
+
+.widget b, .widget span {
+	cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+.chosen-container .chosen-results {
+    max-height: 120px ! important;
+}
+
+.loader-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/**
+ * Tooltips
+ */
+
+.tooltip {
+    width: 200px;
+    /*height: 24px;*/
+    font-size: 1.2em ! important;
+    color: #333;
+    line-height: 1.7em;
+    /*border-radius: 5px;*/
+    border-radius: 0 ! important;
+    border: 1px solid transparent;
+    padding: 12px;
+    margin: 0 0 0 11px;
+    background-color: #eee;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+    z-index: 9999;
+}
+
+.tooltip img {
+    vertical-align: middle;
+    margin: 0 4px 4px 0;
 }

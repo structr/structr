@@ -19,18 +19,6 @@
 package org.structr.rest.servlet;
 
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Value;
-import org.structr.core.property.PropertyKey;
-import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NoResultsException;
-import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.resource.Resource;
-import org.structr.rest.resource.ViewFilterResource;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -40,13 +28,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.Value;
 import org.structr.core.ViewTransformation;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
+import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NoResultsException;
+import org.structr.rest.exception.NotFoundException;
+import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.TransformationResource;
+import org.structr.rest.resource.ViewFilterResource;
 
 //~--- classes ----------------------------------------------------------------
 

@@ -108,7 +108,7 @@ public class StructrUiTest extends TestCase {
 	//~--- methods --------------------------------------------------------
 	@Override
 	protected void setUp() throws Exception {
-		
+
 		System.out.println("\n######################################################################################");
 		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
 		System.out.println("######################################################################################");
@@ -124,7 +124,7 @@ public class StructrUiTest extends TestCase {
 		config.setProperty(Services.TESTING, "true");
 
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService SchemaService");
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
 		config.setProperty(Services.DATABASE_PATH, basePath + "/db");

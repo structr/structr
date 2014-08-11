@@ -39,7 +39,7 @@ import org.structr.core.property.PropertyKey;
  * @author Axel Morgner
  *
  */
-public abstract class AbstractUser extends Person implements Principal {
+public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	private static final Logger logger = Logger.getLogger(AbstractUser.class.getName());
 

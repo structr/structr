@@ -30,9 +30,11 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaService;
 import org.structr.web.Importer;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -51,14 +53,20 @@ public class Widget extends AbstractNode implements Taggable {
 	public static final Property<String>      description = new StringProperty("description");
 	public static final Property<String>      treePath    = new StringProperty("treePath").indexed();
 	public static final Property<List<Image>> pictures    = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
+	public static final Property<Boolean>     isWidget    = new BooleanProperty("isWidget", true).readOnly();
 
-	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, source, description, pictures, tags, treePath
+	public static final org.structr.common.View uiView = new org.structr.common.View(Widget.class, PropertyView.Ui,
+		type, name, source, description, pictures, tags, treePath, isWidget
 	);
 
-	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
-		type, name, source, description, pictures, tags, treePath
+	public static final org.structr.common.View publicView = new org.structr.common.View(Widget.class, PropertyView.Public,
+		type, name, source, description, pictures, tags, treePath, isWidget
 	);
+
+	// register this type as an overridden builtin type
+	static {
+		SchemaService.registerBuiltinTypeOverride("Widget", Widget.class.getName());
+	}
 
 	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, String baseUrl, Map<String, Object> parameters) throws FrameworkException {
 

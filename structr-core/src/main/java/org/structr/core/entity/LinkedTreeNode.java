@@ -20,7 +20,9 @@ package org.structr.core.entity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -297,5 +299,29 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 				app.delete(rel);
 			}
 		}
+	}
+
+	/**
+	 * Return a set containing all child nodes of this node.
+	 * 
+	 * This node is not included.
+	 * There are no duplicates.
+	 * 
+	 * @return 
+	 */
+	public Set<T> getAllChildNodes() {
+
+		Set<T> allChildNodes = new HashSet();
+
+		List<T> childNodes = treeGetChildren();
+
+		for (final T child : childNodes) {
+			
+			allChildNodes.add(child);
+			allChildNodes.addAll(child.getAllChildNodes());
+			
+		}
+
+		return allChildNodes;
 	}
 }

@@ -55,7 +55,7 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	public ManyEndpoint<T> getTarget() {
 		return new ManyEndpoint<>(this);
 	}
-	
+
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
@@ -63,7 +63,7 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
-		
+
 		final App app                          = StructrApp.getInstance();
 		final Class<? extends OneToMany> clazz = this.getClass();
 		final Class<S> sourceType              = getSourceType();
@@ -72,13 +72,14 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 
 			// check existing relationships
 			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
-			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
+//			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
+			if (incomingRel != null && sourceType.isInstance(incomingRel.getSourceNode())) {
 
 				app.delete(incomingRel);
 			}
 		}
 	}
-	
+
 	@Override
 	public Notion getEndNodeNotion() {
 		return new RelationshipNotion(getTargetIdProperty());
@@ -88,23 +89,23 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	@Override
 	public Notion getStartNodeNotion() {
 		return new RelationshipNotion(getSourceIdProperty());
-	}	
-	
+	}
+
 	@Override
 	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
 		return super.getDirectionForType(getSourceType(), getTargetType(), type);
 	}
-	
+
 	@Override
 	public Class getOtherType(final Class type) {
-		
+
 		switch (getDirectionForType(type)) {
-			
+
 			case INCOMING: return getSourceType();
 			case OUTGOING: return getTargetType();
 			case BOTH:     return getSourceType();	// don't know...
 		}
-		
+
 		return null;
 	}
 }

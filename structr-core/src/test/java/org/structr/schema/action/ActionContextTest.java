@@ -63,11 +63,13 @@ public class ActionContextTest extends StructrTest {
 		final String numberString2        = numberFormat2.format(2.234);
 		final String numberString3        = numberFormat3.format(2.234);
 		MailTemplate template             = null;
+		MailTemplate template2             = null;
 		TestOne testOne                   = null;
 		TestTwo testTwo                   = null;
 		TestThree testThree               = null;
 		TestFour testFour                 = null;
 		List<TestSix> testSixs            = null;
+		int index                         = 0;
 
 		try (final Tx tx = app.tx()) {
 
@@ -77,11 +79,21 @@ public class ActionContextTest extends StructrTest {
 			testFour       = createTestNode(TestFour.class);
 			testSixs       = createTestNodes(TestSix.class, 20);
 
+			for (final TestSix testSix : testSixs) {
+				testSix.setProperty(TestSix.index, index++);
+			}
+
 			// create mail template
 			template = createTestNode(MailTemplate.class);
 			template.setProperty(MailTemplate.name, "TEST");
 			template.setProperty(MailTemplate.locale, "en_EN");
 			template.setProperty(MailTemplate.text, "This is a template for ${this.name}");
+
+			// create mail template
+			template2 = createTestNode(MailTemplate.class);
+			template2.setProperty(MailTemplate.name, "TEST2");
+			template2.setProperty(MailTemplate.locale, "en_EN");
+			template2.setProperty(MailTemplate.text, "${this.aDouble}");
 
 			// check existance
 			assertNotNull(testOne);
@@ -94,12 +106,14 @@ public class ActionContextTest extends StructrTest {
 			testOne.setProperty(TestOne.aLong, 235242522552L);
 			testOne.setProperty(TestOne.aDouble, 2.234);
 			testOne.setProperty(TestOne.aDate, now);
+			testOne.setProperty(TestOne.anEnum, TestOne.Status.One);
 			testOne.setProperty(TestOne.aBoolean, true);
 			testOne.setProperty(TestOne.testTwo, testTwo);
 			testOne.setProperty(TestOne.testThree, testThree);
 			testOne.setProperty(TestOne.testFour,  testFour);
 			testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
 			testOne.setProperty(TestOne.cleanTestString, "a<b>c.d'e?f(g)h{i}j[k]l+m/n–o\\p\\q|r's!t,u-v_w`x-y-zöäüßABCDEFGH");
+			testOne.setProperty(TestOne.stringWithQuotes, "A'B\"C");
 
 			tx.success();
 
@@ -245,17 +259,22 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid length() result", "4", testOne.replaceVariables(securityContext, ctx, "${length('test')}"));
 			assertEquals("Invalid length() result", "", testOne.replaceVariables(securityContext, ctx, "${length(this.alwaysNull)}"));
 
-			// clean (disabled for now, because literal strings pose problems in the matching process)
+			// clean
 			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", testOne.replaceVariables(securityContext, ctx, "${clean(this.cleanTestString)}"));
 			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", testOne.replaceVariables(securityContext, ctx, "${clean(get(this, \"cleanTestString\"))}"));
 			assertEquals("Invalid clean() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${clean(this.alwaysNull)}"));
 			assertEquals("Invalid usage message for clean()", Functions.ERROR_MESSAGE_CLEAN, testOne.replaceVariables(securityContext, ctx, "${clean()}"));
 
-			// urlencode (disabled for now, because literal strings pose problems in the matching process)
+			// urlencode
 			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", testOne.replaceVariables(securityContext, ctx, "${urlencode(this.cleanTestString)}"));
 			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", testOne.replaceVariables(securityContext, ctx, "${urlencode(get(this, \"cleanTestString\"))}"));
 			assertEquals("Invalid urlencode() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${urlencode(this.alwaysNull)}"));
 			assertEquals("Invalid usage message for urlencode()", Functions.ERROR_MESSAGE_URLENCODE, testOne.replaceVariables(securityContext, ctx, "${urlencode()}"));
+
+			// escape_javascript
+			assertEquals("Invalid escape_javascript() result", "A\\'B\\\"C", testOne.replaceVariables(securityContext, ctx, "${escape_javascript(this.stringWithQuotes)}"));
+			assertEquals("Invalid escape_javascript() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${escape_javascript(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for escape_javascript()", Functions.ERROR_MESSAGE_ESCAPE_JS, testOne.replaceVariables(securityContext, ctx, "${escape_javascript()}"));
 
 			// if etc.
 			assertEquals("Invalid if() result", "true",  testOne.replaceVariables(securityContext, ctx,  "${if(\"true\", \"true\", \"false\")}"));
@@ -291,6 +310,7 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, \"true\")}"));
 			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, true)}"));
 			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, false)}"));
+			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.anEnum, 'One')}"));
 
 			// if + equal
 			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(this.id, this.id), \"true\", \"false\")}"));
@@ -790,6 +810,21 @@ public class ActionContextTest extends StructrTest {
 			// test multiple nested dot-separated properties (this.parent.parent.parent)
 			assertEquals("Invalid multilevel property expression result", "false", testOne.replaceVariables(securityContext, ctx, "${empty(this.testThree.testOne.testThree)}"));
 
+			// test extract() with additional evaluation function
+			assertEquals("Invalid filter() result", "1",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, equal(data.index, 4)))}"));
+			assertEquals("Invalid filter() result", "9",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gt(data.index, 10)))}"));
+			assertEquals("Invalid filter() result", "10", testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gte(data.index, 10)))}"));
+
+			// test complex multiline statement replacement
+			final String test =
+				"${if(lte(template('TEST2', 'en_EN', this), 2), '<2', '>2')}\n" +		// first expression should evaluate to ">2"
+				"${if(lte(template('TEST2', 'en_EN', this), 3), '<3', '>3')}"			// second expression should evaluate to "<3"
+			;
+
+			final String result = testOne.replaceVariables(securityContext, ctx, test);
+
+			assertEquals("Invalid multiline and template() result", ">2\n<3", result);
+
 
 			tx.success();
 
@@ -801,3 +836,5 @@ public class ActionContextTest extends StructrTest {
 		}
 	}
 }
+
+

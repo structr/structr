@@ -18,20 +18,16 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.web.entity.File;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.FileOutputStream;
 import java.io.IOException;
-
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
+import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.FileBase;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,13 +41,13 @@ public class FileUploadHandler {
 
 	//~--- fields ---------------------------------------------------------
 
-	private File file                      = null;
+	private FileBase file                  = null;
 	private FileChannel privateFileChannel = null;
 	private Long size                      = 0L;
 
 	//~--- constructors ---------------------------------------------------
 
-	public FileUploadHandler(File file) {
+	public FileUploadHandler(FileBase file) {
 
 		this.size = file.getProperty(File.size);
 		this.file = file;
@@ -60,15 +56,15 @@ public class FileUploadHandler {
 
 			FileChannel channel;
 			try {
-				
+
 				channel = getChannel(false);
 				this.size = channel.size();
 				updateSize(this.size);
-				
+
 			} catch (IOException ex) {
 				logger.log(Level.SEVERE, "Could not access file", ex);
 			}
-			
+
 
 		}
 
@@ -81,30 +77,30 @@ public class FileUploadHandler {
 		FileChannel channel = getChannel(sequenceNumber > 0);
 
 		if (channel != null) {
-			
+
 			channel.position(sequenceNumber * chunkSize);
 			channel.write(ByteBuffer.wrap(data));
 
 			if (this.size == null) {
-				
+
 				this.size = channel.size();
-				
+
 			}
-			
+
 			// finish upload
 			if (sequenceNumber + 1 == chunks) {
-				
+
 				finish();
 				updateSize(this.size);
-				
+
 			}
-			
+
 		}
 
 	}
 
 	private void updateSize(final Long size) {
-		
+
 		if (size == null) {
 			return;
 		}
@@ -118,9 +114,9 @@ public class FileUploadHandler {
 			logger.log(Level.WARNING, "Could not set size to " + size, ex);
 
 		}
-		
+
 	}
-	
+
 	/**
 	 * Called when the WebSocket connection is closed
 	 */
@@ -134,9 +130,9 @@ public class FileUploadHandler {
 
 				channel.force(true);
 				channel.close();
-				
+
 				this.privateFileChannel = null;
-				
+
 				file.increaseVersion();
 
 			}

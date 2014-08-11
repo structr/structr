@@ -40,7 +40,7 @@ import org.structr.common.StructrConf;
 
 /**
  * The log service main class.
- * 
+ *
  * @author Axel Morgner
  */
 public class LogService implements SingletonService {
@@ -115,6 +115,9 @@ public class LogService implements SingletonService {
 	}
 
 	@Override
+	public void initialized() {}
+
+	@Override
 	public void shutdown() {
 
 		if (isRunning()) {
@@ -179,7 +182,7 @@ public class LogService implements SingletonService {
 
 	}
 	// </editor-fold>
-	
+
 	@Override
 	public boolean isRunning() {
 

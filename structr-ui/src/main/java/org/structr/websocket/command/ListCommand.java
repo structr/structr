@@ -17,23 +17,22 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyKey;
-import org.structr.websocket.message.WebSocketMessage;
-import org.structr.web.entity.Image;
-import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.message.MessageBuilder;
-
-//~--- JDK imports ------------------------------------------------------------
-import java.util.*;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Image;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -59,14 +58,20 @@ public class ListCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final Map<String, Object> properties = webSocketData.getNodeData();
-		final String rawType = (String) properties.get("type");
-		final boolean rootOnly = Boolean.TRUE.equals((Boolean) properties.get("rootOnly"));
+		final Map<String, Object> nodeData    = webSocketData.getNodeData();
+		final String rawType                  = (String) nodeData.get("type");
+		final String properties               = (String) webSocketData.getNodeData().get("properties");
+		
+		final boolean rootOnly = Boolean.TRUE.equals((Boolean) nodeData.get("rootOnly"));
 		Class type = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 			return;
+		}
+
+		if (properties != null) {
+			securityContext.setCustomView(StringUtils.split(properties, ","));
 		}
 
 		final String sortOrder         = webSocketData.getSortOrder();

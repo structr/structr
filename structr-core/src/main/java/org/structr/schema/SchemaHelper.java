@@ -26,15 +26,14 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.regex.Matcher;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -52,8 +51,8 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Actions;
 import org.structr.schema.action.ActionEntry;
+import org.structr.schema.action.Actions;
 import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
 import org.structr.schema.parser.CypherPropertyParser;
@@ -61,12 +60,14 @@ import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
 import org.structr.schema.parser.FunctionPropertyParser;
-import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
+import org.structr.schema.parser.JoinPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
+import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.PropertyParser;
 import org.structr.schema.parser.StringArrayPropertyParser;
 import org.structr.schema.parser.StringPropertyParser;
+import org.structr.schema.parser.Validator;
 
 /**
  *
@@ -76,10 +77,9 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher
+		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join
 	}
 
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher        = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
 	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
 	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new LinkedHashMap<>();
 
@@ -100,6 +100,7 @@ public class SchemaHelper {
 		parserMap.put(Type.Enum,        EnumPropertyParser.class);
 		parserMap.put(Type.Date,        DatePropertyParser.class);
 		parserMap.put(Type.Count,       CountPropertyParser.class);
+		parserMap.put(Type.Join,        JoinPropertyParser.class);
 	}
 
 	/**
@@ -258,7 +259,7 @@ public class SchemaHelper {
 		try {
 
 			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-			long flagsValue = 255;
+			long flagsValue = 0;	// FIXME, this prevents public access but may be better than 255 as a default...
 
 			// set value from grant flags
 			if (flags != null) {
@@ -351,7 +352,7 @@ public class SchemaHelper {
 
 	}
 
-	public static String extractProperties(final Schema entity, final Set<String> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
  		final StringBuilder src                   = new StringBuilder();
@@ -393,6 +394,9 @@ public class SchemaHelper {
 
 				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, dbName, rawType, notNull, defaultValue);
 				if (parser != null) {
+
+					// add property name to set for later use
+					propertyNames.add(parser.getPropertyName());
 
 					// append created source from parser
 					src.append(parser.getPropertySource(entity, errorBuffer));
@@ -562,6 +566,7 @@ public class SchemaHelper {
 	public static void formatImportStatements(final StringBuilder src, final Class baseType) {
 
 		src.append("import ").append(baseType.getName()).append(";\n");
+		src.append("import ").append(ConfigurationProvider.class.getName()).append(";\n");
 		src.append("import ").append(GraphObjectComparator.class.getName()).append(";\n");
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
@@ -570,10 +575,15 @@ public class SchemaHelper {
 		src.append("import ").append(Actions.class.getName()).append(";\n");
 		src.append("import ").append(PropertyView.class.getName()).append(";\n");
 		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
+		src.append("import ").append(StructrApp.class.getName()).append(";\n");
 		src.append("import ").append(Export.class.getName()).append(";\n");
 		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import ").append(List.class.getName()).append(";\n");
-		src.append("import org.structr.rest.RestMethodResult;\n");
+
+		if (hasUiClasses()) {
+			src.append("import org.structr.rest.RestMethodResult;\n");
+		}
+
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
 		src.append("import org.structr.core.notion.*;\n");
@@ -585,22 +595,38 @@ public class SchemaHelper {
 		return propertyName.replaceAll("[^\\w]+", "");
 	}
 
-	public static void formatValidators(final StringBuilder src, final Set<String> validators) {
+	public static void formatValidators(final StringBuilder src, final Set<Validator> validators) {
 
 		if (!validators.isEmpty()) {
 
 			src.append("\n\t@Override\n");
 			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean error = false;\n\n");
+			src.append("\t\tboolean error = !super.isValid(errorBuffer);\n\n");
 
-			for (final String validator : validators) {
-				src.append("\t\terror |= ").append(validator).append(";\n");
+			for (final Validator validator : validators) {
+				src.append("\t\terror |= ").append(validator.getSource("this", true)).append(";\n");
 			}
 
 			src.append("\n\t\treturn !error;\n");
 			src.append("\t}\n");
 		}
 
+	}
+
+	public static void formatDynamicValidators(final StringBuilder src, final Set<Validator> validators) {
+
+		if (!validators.isEmpty()) {
+
+			src.append("\tpublic static boolean isValid(final AbstractNode obj, final ErrorBuffer errorBuffer) {\n\n");
+			src.append("\t\tboolean error = false;\n\n");
+
+			for (final Validator validator : validators) {
+				src.append("\t\terror |= ").append(validator.getSource("obj", false)).append(";\n");
+			}
+
+			src.append("\n\t\treturn !error;\n");
+			src.append("\t}\n\n");
+		}
 	}
 
 	public static void formatSaveActions(final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
@@ -632,6 +658,32 @@ public class SchemaHelper {
 
 	}
 
+	public static void formatDynamicSaveActions(final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
+
+		// save actions..
+		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
+
+			final List<ActionEntry> actionList = entry.getValue();
+			final Actions.Type type            = entry.getKey();
+
+			if (!actionList.isEmpty()) {
+
+				switch (type) {
+
+					case Custom:
+						throw new UnsupportedOperationException("Active save actions are not supported for overridable types.");
+
+					default:
+						// passive actions are actions that are executed
+						// automtatically on creation / modification etc.
+						formatDynamicPassiveSaveActions(src, type, actionList);
+						break;
+				}
+			}
+		}
+
+	}
+
 	public static void formatActiveActions(final StringBuilder src, final List<ActionEntry> actionList) {
 
 		for (final ActionEntry action : actionList) {
@@ -642,7 +694,25 @@ public class SchemaHelper {
 			src.append("() throws FrameworkException {\n\n");
 
 			src.append("\t\t");
-			src.append(action.getSource());
+			src.append(action.getSource("this"));
+			src.append(";\n\n");
+
+			src.append("\t\treturn new RestMethodResult(200);\n");
+			src.append("\t}\n");
+		}
+
+	}
+
+	public static void formatDynamicActiveActions(final StringBuilder src, final List<ActionEntry> actionList) {
+
+		for (final ActionEntry action : actionList) {
+
+			src.append("\tpublic static RestMethodResult ");
+			src.append(action.getName());
+			src.append("(final AbstractNode obj) throws FrameworkException {\n\n");
+
+			src.append("\t\t");
+			src.append(action.getSource("obj"));
 			src.append(";\n\n");
 
 			src.append("\t\treturn new RestMethodResult(200);\n");
@@ -657,30 +727,68 @@ public class SchemaHelper {
 		src.append("\tpublic boolean ");
 		src.append(type.getMethod());
 		src.append("(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
-		src.append("\t\tboolean error = false;\n\n");
-
-		for (final ActionEntry action : actionList) {
-
-			if (action.runOnError()) {
-
-				src.append("\t\terror |= ").append(action.getSource()).append(";\n");
-
-			} else {
-
-				src.append("\t\tif (!error) {\n");
-				src.append("\t\t\terror |= ").append(action.getSource()).append(";\n");
-				src.append("\t\t}\n");
-
-			}
-		}
-
-		// don't forget super call
-		src.append("\t\terror |= !super.");
+		src.append("\t\tboolean error = !super.");
 		src.append(type.getMethod());
-		src.append("(securityContext, errorBuffer);\n");
+		src.append("(securityContext, errorBuffer);\n\n");
+
+		if (!actionList.isEmpty()) {
+
+			src.append("\t\tif (!error) {\n");
+
+			for (final ActionEntry action : actionList) {
+
+				if (action.runOnError()) {
+
+					src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
+
+				} else {
+
+					src.append("\t\tif (!error) {\n");
+					src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
+					src.append("\t\t}\n");
+
+				}
+			}
+
+			src.append("\t\t}\n");
+		}
 
 		src.append("\n\t\treturn !error;\n");
 		src.append("\t}\n");
+
+	}
+
+	public static void formatDynamicPassiveSaveActions(final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList) {
+
+		src.append("\tpublic static boolean ");
+		src.append(type.getMethod());
+		src.append("(final AbstractNode obj, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
+		src.append("\t\tboolean error = !obj.isValid(errorBuffer);\n\n");
+
+		if (!actionList.isEmpty()) {
+
+			src.append("\t\tif (!error) {\n");
+
+			for (final ActionEntry action : actionList) {
+
+				if (action.runOnError()) {
+
+					src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
+
+				} else {
+
+					src.append("\t\tif (!error) {\n");
+					src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
+					src.append("\t\t}\n");
+
+				}
+			}
+
+			src.append("\t\t}\n");
+		}
+
+		src.append("\n\t\treturn !error;\n");
+		src.append("\t}\n\n");
 
 	}
 
@@ -706,25 +814,25 @@ public class SchemaHelper {
 
 			if (!actionContext.returnRawValue(securityContext)) {
 
-				// re-use matcher from previous calls
-				Matcher matcher = threadLocalTemplateMatcher.get();
+				final Map<String, String> replacements = new LinkedHashMap<>();
 
-				matcher.reset(value);
+				int start = value.indexOf("${");
+				int end   = value.indexOf("}", start);
 
-				while (matcher.find()) {
+				while (start >= 0 && end >= 0) {
 
-					String group          = matcher.group();
-					String source         = group.substring(2, group.length() - 1);
+					String group          = value.substring(start,   end+1);
+					String source         = value.substring(start+2, end);
 					Object extractedValue = Functions.evaluate(securityContext, actionContext, entity, source);
 
 					if (extractedValue == null) {
 						extractedValue = "";
 					}
 
-					String partValue = StringUtils.remove(extractedValue.toString(), "\\");
+					String partValue = extractedValue.toString();
 					if (partValue != null) {
 
-						value = value.replace(group, partValue);
+						replacements.put(group, partValue);
 
 					} else {
 
@@ -732,8 +840,22 @@ public class SchemaHelper {
 						// replace it by null to make it possible for HTML attributes to not be rendered
 						// and avoid something like ... selected="" ... which is interpreted as selected==true by
 						// all browsers
-						value = value.equals(group) ? null : value.replace(group, "");
+						if (!value.equals(group)) {
+							replacements.put(group, "");
+						}
 					}
+
+					start = value.indexOf("${", end);
+					end   = value.indexOf("}", start);
+				}
+
+				// apply replacements
+				for (final Entry<String, String> entry : replacements.entrySet()) {
+
+					final String group       = entry.getKey();
+					final String replacement = entry.getValue();
+
+					value = value.replace(group, replacement);
 				}
 
 			}
@@ -779,5 +901,19 @@ public class SchemaHelper {
 
 		errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
 		throw new FrameworkException(422, errorBuffer);
+	}
+
+	private static boolean hasUiClasses() {
+
+		try {
+
+			Class.forName("org.structr.rest.RestMethodResult");
+
+			// success
+			return true;
+
+		} catch (Throwable t) {}
+
+		return false;
 	}
 }

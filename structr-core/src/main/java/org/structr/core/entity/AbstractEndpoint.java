@@ -21,7 +21,6 @@ package org.structr.core.entity;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -40,8 +39,6 @@ import org.structr.core.property.PropertyMap;
  * @author Christian Morgner
  */
 public abstract class AbstractEndpoint {
-
-	private static final Logger logger = Logger.getLogger(AbstractEndpoint.class.getName());
 
 	public Relationship getSingle(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType) {
 

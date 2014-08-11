@@ -76,7 +76,7 @@ var _Crud = {
     schemaLoaded: false,
     //allTypes : [],
 
-    types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
+    types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content' ],
     views: ['public', 'all', 'ui'],
     schema: [],
     keys: [],
@@ -393,9 +393,9 @@ var _Crud = {
             if (k && k.length) {
                 _Crud.keys[type] = k;
                 $.each(_Crud.filterKeys(type, _Crud.keys[type]), function(k, key) {
-                    tableHeader.append('<th class="' + key + '">' + _Crud.formatKey(key) + '</th>');
+                    tableHeader.append('<th class="__' + key + '">' + _Crud.formatKey(key) + '</th>');
                 });
-                tableHeader.append('<th class="_action_header">Actions</th>');
+                tableHeader.append('<th class="___action_header">Actions</th>');
             }
         }
         typeNode.append('<div class="infoFooter">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
@@ -433,6 +433,15 @@ var _Crud = {
     },
     /**
      * Return true if the combination of the given property key
+     * and the given type is an Enum
+     */
+    isEnum: function(key, type) {
+        var typeDef = _Crud.schema[type];
+        var view = typeDef.views[_Crud.view[type]];
+        return (view && view[key] && view[key].className === 'org.structr.core.property.EnumProperty');
+    },
+    /**
+     * Return true if the combination of the given property key
      * and the given type is a read-only property
      */
     readOnly: function(key, type) {
@@ -448,6 +457,18 @@ var _Crud = {
         var typeDef = _Crud.schema[type];
         var view = typeDef.views[_Crud.view[type]];
         return (view && view[key] ? view[key].relatedType : null);
+    },
+    /**
+     * Return the format information stored about the given property key
+     */
+    getFormat: function(key, type) {
+        var typeDef = _Crud.schema[type];
+        var view = typeDef.views[_Crud.view[type]];
+        var format;
+        if (view && view[key]) {
+            format = view[key].format;
+        }
+        return format;
     },
     /**
      * Append a pager for the given type to the given DOM element.
@@ -497,16 +518,16 @@ var _Crud = {
         }
     },
     setCollectionPageSize: function(type, key, value) {
-        localStorage.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.' + key, value);
+        localStorage.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key, value);
     },
     getCollectionPageSize: function(type, key) {
-        return localStorage.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.' + key);
+        return localStorage.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key);
     },
     setCollectionPage: function(type, key, value) {
-        localStorage.setItem(crudPagerDataKey + '_collectionPage_' + type + '.' + key, value);
+        localStorage.setItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key, value);
     },
     getCollectionPage: function(type, key) {
-        return localStorage.getItem(crudPagerDataKey + '_collectionPage_' + type + '.' + key);
+        return localStorage.getItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key);
     },
     replaceSortHeader: function(type) {
         var table = _Crud.getTable(type);
@@ -515,11 +536,11 @@ var _Crud = {
         var view = res.views[_Crud.view[type]];
         $('th', table).each(function(i, t) {
             var th = $(t);
-            var key = th.attr('class');
+            var key = th.attr('class').substring(2);
             if (key === "_action_header") {
 
                 th.empty();
-                th.append('<img src="icon/application_view_detail.png" alt="Configure columns" title="Configure columns">');
+                th.append('Actions <img src="icon/application_view_detail.png" alt="Configure columns" title="Configure columns">');
                 $('img', th).on('click', function(event) {
 
                     _Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {
@@ -571,11 +592,11 @@ var _Crud = {
                     th.append(
                         '<img src="icon/cross_small_grey.png" alt="Hide this column" title="Hide this column">'
                         + '<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
-                        
+
                     if (_Crud.isCollection(key, type)) {
                         _Crud.appendPerCollectionPager(th, type, key);
                     }
-                
+
                     $('a', th).on('click', function(event) {
                         event.preventDefault();
                         _Crud.sort[type] = key;
@@ -714,7 +735,7 @@ var _Crud = {
         //console.log('list', type, url, table);
         table.append('<tr></tr>');
         _Crud.clearList(type);
-        
+
         $.ajax({
             headers: {
                 Range: _Crud.ranges(type)
@@ -743,20 +764,23 @@ var _Crud = {
         var ranges = '';
         var keys = _Crud.keys[type];
         if (!keys) {
-            keys = Object.keys(typeDef.views[_Crud.view[type]]);
-        }
-
-        $.each(keys, function(i, key) {
-            if ( _Crud.isCollection(key, type)) {
-                var page = _Crud.getCollectionPage(type, key) || 1;
-                var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
-                var start = (page-1)*pageSize;
-                var end = page*pageSize;
-                ranges += key + '=' + start + '-' + end + ';'
+            var typeDef = _Crud.schema[type];
+            if (typeDef) {
+                keys = Object.keys(typeDef.views[_Crud.view[type]]);
             }
-        });
-        //console.log(ranges);
-        return ranges;
+        }
+        if (keys) {
+            $.each(keys, function(i, key) {
+                if ( _Crud.isCollection(key, type)) {
+                    var page = _Crud.getCollectionPage(type, key) || 1;
+                    var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
+                    var start = (page-1)*pageSize;
+                    var end = page*pageSize;
+                    ranges += key + '=' + start + '-' + end + ';'
+                }
+            });
+            return ranges;
+        }
     },
     crudExport: function(type) {
         var url = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
@@ -1011,20 +1035,31 @@ var _Crud = {
 
             $.each(Object.keys(resp.errors[type]), function(i, key) {
                 var errorMsg = resp.errors[type][key][0];
-                //console.log(key, errorMsg);
                 var input = $('td [name="' + key + '"]', dialogText);
                 if (input.length) {
-                    input.prop('placeholder', errorMsg.splitAndTitleize('_')).css({
+                    var errorText = '';
+                    if (typeof errorMsg === 'object') {
+                        $.each(Object.keys(errorMsg), function(l, k) {
+                            errorText += '"' + key + '" ' + k.replace(/_/gi, ' ') + ': ' + errorMsg[k];
+                        });
+                    } else {
+                        errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
+                    }
+                    
+                    dialogMsg.html('<div class="infoBox error">' + errorText + '</div>');
+                    $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                    
+                    input.css({
                         backgroundColor: '#fee',
                         borderColor: '#933'
                     });
                 } else {
-                    $('td.' + key + ' span', dialogText).remove();
-                    $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
-                        backgroundColor: '#fee',
-                        borderColor: '#933',
-                        color: '#a5a5a5'
-                    });
+//                    $('td.' + key + ' span', dialogText).remove();
+//                    $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
+//                        backgroundColor: '#fee',
+//                        borderColor: '#933',
+//                        color: '#a5a5a5'
+//                    });
                 }
             });
             //_Crud.error('Error: ' + data.responseText, true);
@@ -1336,12 +1371,12 @@ var _Crud = {
     },
     cells: function(id, key) {
         var row = _Crud.row(id);
-        var cellInMainTable = $('.' + key, row);
+        var cellInMainTable = $('.__' + key, row);
 
         var cellInDetailsTable;
         var table = $('#details_' + id);
         if (table) {
-            cellInDetailsTable = $('.' + key, table);
+            cellInDetailsTable = $('.__' + key, table);
         }
 
         if (cellInMainTable && !cellInDetailsTable) {
@@ -1361,7 +1396,7 @@ var _Crud = {
         $.each(cells, function(i, cell) {
             cell.empty();
             _Crud.populateCell(id, key, _Crud.type, oldValue, cell);
-            blinkRed(cell);
+            //blinkRed(cell);
         });
     },
     refreshCell: function(id, key, newValue, type, oldValue) {
@@ -1386,15 +1421,14 @@ var _Crud = {
         el.off('mouseup');
         var input;
         if (propertyType === 'String') {
-            el.html('<textarea name="' + key + '" class="value" cols="40" rows="4"></textarea>');
+            el.html('<textarea name="' + key + '" class="__value" cols="40" rows="4"></textarea>');
             input = $('textarea', el);
         } else {
-            el.html('<input name="' + key + '" class="value" type="text" size="10">');
+            el.html('<input name="' + key + '" class="__value" type="text" size="10">');
             input = $('input', el);
         }
         input.val(oldValue);
         input.off('mouseup');
-        //console.log('activateTextInputField', input, id, key);
         input.focus();
         input.on('blur', function() {
             var newValue = input.val();
@@ -1419,7 +1453,7 @@ var _Crud = {
         if (_Crud.keys[type]) {
             $.each(_Crud.filterKeys(type, _Crud.keys[type]), function(k, key) {
                 //console.log('populateRow for key', key, row);
-                row.append('<td class="' + key + '"></td>');
+                row.append('<td class="__' + key + '"></td>');
                 var cells = _Crud.cells(id, key);
                 $.each(cells, function(i, cell) {
                     _Crud.populateCell(id, key, type, item[key], cell);
@@ -1444,6 +1478,7 @@ var _Crud = {
     },
     populateCell: function(id, key, type, value, cell) {
         var isCollection = _Crud.isCollection(key, type);
+        var isEnum = _Crud.isEnum(key, type);
         var relatedType = _Crud.relatedType(key, type);
         var readOnly = _Crud.readOnly(key, type);
         var simpleType;
@@ -1467,30 +1502,62 @@ var _Crud = {
                     });
                 }
             } else if (propertyType === 'Date') {
-                cell.html(nvl(formatValue(value), '<img src="icon/calendar.png">'));
+                cell.html(nvl(formatValue(value), '<img alt="Show calendar" title="Show calendar" src="icon/calendar.png">'));
                 if (!readOnly) {
+                    var dateTimeFormat = _Crud.getFormat(key, type).split('\'T\'');
+                    var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
                     cell.on('mouseup', function(event) {
                         event.preventDefault();
                         var self = $(this);
                         var oldValue = self.text();
-                        self.html('<input name="' + key + '" class="value" type="text" size="40">');
+                        self.html('<input name="' + key + '" class="__value" type="text" size="40">');
                         var input = $('input', self);
                         input.val(oldValue);
-                        input.datetimepicker({
-                            // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                            separator: 'T',
-                            dateFormat: 'yy-mm-dd',
-                            timeFormat: 'HH:mm:ssz',
-                            onClose: function() {
-                                var newValue = input.val();
-                                if (id) {
-                                    _Crud.crudUpdate(id, key, newValue);
+                        
+                        if (timeFormat) {
+                            input.datetimepicker({
+                                // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+                                dateFormat: 'yy-mm-dd',
+                                timeFormat: 'HH:mm:ssz',
+                                separator: 'T',
+                                onClose: function() {
+                                    var newValue = input.val();
+                                    var formattedValue = (newValue && newValue !== '') ? moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T')) : '';
+                                    input.val(formattedValue);
+                                    if (id) {
+                                        _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
+                                    }
                                 }
-                            }
-                        });
-                        input.datetimepicker('show');
+                            });
+                            input.datetimepicker('show');
+                        } else {
+                            input.datepicker({
+                                dateFormat: 'yy-mm-dd',
+                                onClose: function() {
+                                    var newValue = input.val();
+                                    var formattedValue = (newValue && newValue !== '') ? moment(newValue).formatWithJDF(dateFormat) : '';
+                                    input.val(formattedValue);
+                                    if (id) {
+                                        _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
+                                    }
+                                }
+                            });
+                            input.datepicker('show');
+                        }
                         self.off('mouseup');
                     });
+                }
+            } else if (isEnum) {
+                var format = _Crud.getFormat(key, type);
+                cell.text(nvl(formatValue(value), ''));
+                if (!readOnly) {
+                    cell.on('mouseup', function(event) {
+                        event.preventDefault();
+                        _Crud.appendEnumSelect(cell, id, key, format);
+                    });
+                    if (!id) { // create
+                        _Crud.appendEnumSelect(cell, id, key, format);
+                    }
                 }
             } else {
                 cell.text(nvl(formatValue(value), ''));
@@ -1544,7 +1611,40 @@ var _Crud = {
             }
 
         }
+
+        if (!readOnly && propertyType !== 'Boolean' && !relatedType) {
+            cell.append('<img class="crud-clear-value" alt="Clear value" title="Clear value" src="icon/cross_small_grey.png">');
+            $('.crud-clear-value', cell).on('mouseup', function(e) {
+                e.preventDefault();
+               _Crud.crudRemoveProperty(id, key); 
+               return false;
+            });
+        }
+        
+
         //searchField.focus();
+    },
+    appendEnumSelect: function(cell, id, key, format) {
+        cell.off('mouseup');
+        var input;
+        var oldValue = cell.text();
+        cell.empty().append('<select>');
+        input = $('select', cell);
+        input.focus();
+        var values = format.split(',');
+        input.append('<option></option>');
+        values.forEach(function(value) {
+           input.append('<option ' + (value === oldValue ? 'selected="selected"' : '') + 'value="' + value + '">' + value + '</option>');
+        });
+        input.on('change', function() {
+            var newValue = input.val();
+            if (id) {
+                _Crud.crudUpdate(id, key, newValue, oldValue);
+            }
+        });
+        input.on('blur', function() {
+            _Crud.resetCell(id, key, oldValue);
+        });
     },
     getAndAppendNode: function(parentType, parentId, key, obj, cell) {
         //console.log(parentType, parentId, key, obj, cell);
@@ -1861,9 +1961,7 @@ var _Crud = {
                                     //async: false,
                                     statusCode: {
                                         200: function(data) {
-                                            //var rowEl = $('#' + id);
-                                            var nodeEl = $('.' + _Crud.id(relatedObj) + '_');
-                                            //console.log(rowEl, nodeEl);
+                                            var nodeEl = $('#_' + id + ' .__' + key + ' .' + _Crud.id(relatedObj) + '_');
                                             nodeEl.remove();
                                         },
                                         error: function(a, b, c) {
@@ -2061,26 +2159,34 @@ var _Crud = {
 
     },
     error: function(text, callback) {
-        if (text) {
-            $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        }
-        if (callback) {
-            $('#errorBox .closeButton').on('click', function(e) {
-                e.stopPropagation();
-                $.unblockUI({
-                    fadeOut: 25
-                });
-            });
-        }
-        $.blockUI.defaults.overlayCSS.opacity = .6;
-        $.blockUI.defaults.applyPlatformOpacityRules = false;
-        $.blockUI({
-            message: $('#errorBox'),
-            css: {
-                border: 'none',
-                backgroundColor: 'transparent'
+
+        if (!dialogBox.is(':visible')) {
+
+            if (text) {
+                $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
             }
-        });
+            if (callback) {
+                $('#errorBox .closeButton').on('click', function(e) {
+                    e.stopPropagation();
+                    $.unblockUI({
+                        fadeOut: 25
+                    });
+                });
+            }
+            $.blockUI.defaults.overlayCSS.opacity = .6;
+            $.blockUI.defaults.applyPlatformOpacityRules = false;
+            $.blockUI({
+                message: $('#errorBox'),
+                css: {
+                    border: 'none',
+                    backgroundColor: 'transparent'
+                }
+            });
+
+        } else {
+            dialogMsg.html('<div class="infoBox error">' + text + '</div>');
+            $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+        }
     },
     showDetails: function(n, typeParam) {
 
@@ -2105,10 +2211,11 @@ var _Crud = {
                 });
             }
         }
-
+        var view = _Crud.view[type] || 'ui';
+        
         // load details
         $.ajax({
-            url: rootUrl + n.id + '/' + _Crud.view[type],
+            url: rootUrl + n.id + '/' + view,
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8;',
@@ -2121,8 +2228,14 @@ var _Crud = {
                 var node = data.result;
 
                 var typeDef = _Crud.schema[type];
-                //console.log('readonly', readonly);
-
+                
+                if (!typeDef) {
+                    _Crud.loadTypeDefinition(type, function() {
+                        _Crud.showDetails(n, type);
+                        return;
+                    });
+                }
+                
                 dialogText.html('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table>');
 
                 var table = $('table', dialogText);
@@ -2131,28 +2244,19 @@ var _Crud = {
                 if (!keys) {
                     keys = Object.keys(typeDef.views[_Crud.view[type]]);
                 }
+                if (!keys) {
+                    keys = Object.keys(node);
+                }
 
                 $.each(keys, function(i, key) {
-//                    var readOnly = _Crud.readOnly(key, type);
-//                    var isCollection = _Crud.isCollection(key, type);
-//                    var relatedType = _Crud.relatedType(key, type);
-//                    if (readOnly) {
-//                        return;
-//                    }
-
-                    table.append('<tr class="key"><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
-
-                    var cell = $('.' + key, table);
-                    
+                    table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="__value __' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+                    var cell = $('.__' + key, table);
                     if (_Crud.isCollection(key, type)) {
                         _Crud.appendPerCollectionPager(cell.prev('td'), type, key, function() {
                              _Crud.showDetails(n, typeParam);
                         });
                     }
-                    
                     if (node && node.id) {
-
-                        //console.log(node.id, key, type, node[key], cell);
                         _Crud.populateCell(node.id, key, node.type, node[key], cell);
 
                     } else {
@@ -2210,8 +2314,8 @@ var _Crud = {
                 return;
             }
 
-            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
-            var cell = $('.' + key, table);
+            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value __' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+            var cell = $('.__' + key, table);
             if (node && node.id) {
                 //console.log(node.id, key, type, node[key], cell);
                 _Crud.populateCell(node.id, key, node.type, node[key], cell);
@@ -2288,8 +2392,8 @@ var _Crud = {
             filteredKeys[key] = 0;
 
             // remove column(s) from table
-            $('th.' + key, table).remove();
-            $('td.' + key, table).each(function(i, t) {
+            $('th.__' + key, table).remove();
+            $('td.__' + key, table).each(function(i, t) {
                 t.remove();
             });
         }
@@ -2313,11 +2417,6 @@ var _Crud = {
             }
         });
         return o;
-    },
-    displayError: function(errorText) {
-        var msgEl = $('.dialogMsg', $('#dialogBox'));
-        msgEl.empty();
-        msgEl.text(errorText);
     },
     idArray: function(ids) {
         var arr = [];

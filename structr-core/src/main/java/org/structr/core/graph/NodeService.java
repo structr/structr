@@ -47,7 +47,12 @@ import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.shell.ShellSettings;
+import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -256,6 +261,13 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
+	public void initialized() {
+
+		// check for empty database and seed file
+		importSeedFile(StructrApp.getConfigurationValue(Services.BASE_PATH));
+	}
+
+	@Override
 	public void shutdown() {
 
 		if (isRunning()) {
@@ -323,5 +335,42 @@ public class NodeService implements SingletonService {
 
 	public Index<Relationship> getRelationshipIndex(RelationshipIndex name) {
 		return relIndices.get(name);
+	}
+
+	private void importSeedFile(final String basePath) {
+
+		final File seedFile = new File(Services.trim(basePath) + "/" + Services.INITIAL_SEED_FILE);
+
+		if (seedFile.exists()) {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+				final String idName           = GraphObject.id.dbName();
+				boolean hasApplicationNodes   = false;
+
+				while (allNodes.hasNext()) {
+
+					if (allNodes.next().hasProperty(idName)) {
+
+						hasApplicationNodes = true;
+						break;
+					}
+				}
+
+				if (!hasApplicationNodes) {
+
+					logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
+
+					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
+			}
+		}
 	}
 }

@@ -39,9 +39,9 @@ import org.w3c.dom.Text;
  *
  * @author Axel Morgner
  */
-public class CreatePageTest extends StructrUiTest {
+public class CreateSimplePageTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(CreatePageTest.class.getName());
+	private static final Logger logger = Logger.getLogger(CreateSimplePageTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 //	@Override

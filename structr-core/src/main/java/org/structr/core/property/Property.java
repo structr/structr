@@ -72,6 +72,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean indexedWhenEmpty                     = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
+	protected String format                                = null;
 
 	private boolean requiresSynchronization                = false;
 
@@ -284,6 +285,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public T defaultValue() {
 		return defaultValue;
+	}
+
+	@Override
+	public String format() {
+		return format;
 	}
 
 	@Override
@@ -588,14 +594,3 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return Collections.emptySet();
 	}
 }
-
-/*
-
-	public static <T> SearchAttribute<T> andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
-	}
-
-	public static <T> SearchAttribute<T> orExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
-		return propertyKey.getSearchAttribute(securityContext, Occur.SHOULD, searchValue, true);
-	}
-
- */

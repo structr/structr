@@ -107,7 +107,7 @@ $(function() {
         Structr.clearMain();
         Structr.activateMenuEntry('widgets');
         Structr.modules['widgets'].onload();
-        _Widgets.resize();
+        Structr.resize();
     });
 
     $('#types_').on('click', function(e) {
@@ -671,7 +671,7 @@ var Structr = {
             }
         });
     },
-    errorFromResponse: function(response, url) {
+    errorFromResponse: function(response, url, callback) {
         var errorText = '';
         if (response.errors) {
             $.each(Object.keys(response.errors), function(i, err) {
@@ -693,9 +693,23 @@ var Structr = {
         } else {
             errorText += url + ': ' + response.code + ' ' + response.message;
         }
-        Structr.error(errorText, function() {
-        }, function() {
-        });
+        
+        if (callback) {
+            callback(errorText);
+        } else {
+            Structr.error(errorText, function() {
+            }, function() {
+            });
+        }
+    },
+    loaderIcon: function(element, css) {
+      element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="img/ajax-loader.gif">');
+      var li = $('.loader-icon', element);
+      if (css) {
+          li.css(css);
+      }
+      return li;
+      
     },
     tempInfo: function(text, autoclose) {
         window.clearTimeout(dialogId);
@@ -930,7 +944,7 @@ var Structr = {
                 $('.node', el).remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
             }
         });
 
@@ -941,7 +955,7 @@ var Structr = {
                 $('.node', el).remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
             }
         });
 
@@ -954,7 +968,7 @@ var Structr = {
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
         });
 
         pageRight.on('click', function() {
@@ -965,9 +979,9 @@ var Structr = {
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
         });
-        return Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
+        return Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
     },
     makePagesMenuDroppable: function() {
 

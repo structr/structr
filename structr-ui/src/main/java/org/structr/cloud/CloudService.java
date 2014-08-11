@@ -74,6 +74,9 @@ public class CloudService extends Thread implements RunnableService {
 	}
 
 	@Override
+	public void initialized() {}
+
+	@Override
 	public void shutdown() {
 
 		try {

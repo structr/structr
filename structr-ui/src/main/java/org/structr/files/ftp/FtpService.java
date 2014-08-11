@@ -31,49 +31,49 @@ import org.structr.core.Services;
 
 /**
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class FtpService implements RunnableService {
 
 	private static final Logger logger = Logger.getLogger(FtpService.class.getName());
 	private boolean isRunning          = false;
-	
+
 	private static int port;
 	private FtpServer server;
-	
+
 	public static final String APPLICATION_FTP_PORT          = "application.ftp.port";
 
 	@Override
 	public void startService() {
-		
+
 		try {
-			
+
 			FtpServerFactory serverFactory = new FtpServerFactory();
-			
+
 			serverFactory.setUserManager(new StructrUserManager());
 			serverFactory.setFileSystem( new StructrFileSystemFactory());
-			
+
 			ListenerFactory factory = new ListenerFactory();
 			factory.setPort(port);
 			serverFactory.addListener("default", factory.createListener());
-			
+
 			logger.log(Level.INFO, "Starting FTP server on port {0}", new Object[] { String.valueOf(port) });
 
-			server = serverFactory.createServer();         
+			server = serverFactory.createServer();
 			server.start();
-			
+
 			this.isRunning = true;
-			
+
 		} catch (FtpException ex) {
-			
+
 			logger.log(Level.SEVERE, null, ex);
 		}
-		
+
 	}
 
 	@Override
 	public void stopService() {
-		
+
 		if (isRunning) {
 			this.shutdown();
 		}
@@ -95,23 +95,23 @@ public class FtpService implements RunnableService {
 
 	@Override
 	public void initialize(final StructrConf config) {
-		
+
 		final StructrConf finalConfig = new StructrConf();
-		
+
 		// Default config
 		finalConfig.setProperty(APPLICATION_FTP_PORT,      "8022");
-		
+
 		Services.mergeConfiguration(finalConfig, config);
-		
+
 		final String configuredPort = finalConfig.getProperty(APPLICATION_FTP_PORT);
-		
+
 		try {
 			port = Integer.parseInt(configuredPort);
-			
+
 		} catch (Throwable t) {
-			
+
 			logger.log(Level.SEVERE, "Unable to parse FTP port {0}", configuredPort);
-			
+
 			port = -1;
 		}
 
@@ -119,6 +119,9 @@ public class FtpService implements RunnableService {
 			logger.log(Level.SEVERE, "Unable to start FTP service.");
 		}
 	}
+
+	@Override
+	public void initialized() {}
 
 	@Override
 	public void shutdown() {

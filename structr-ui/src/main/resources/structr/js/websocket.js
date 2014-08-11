@@ -18,7 +18,7 @@
  */
 
 var ws;
-var loggedIn = false;
+var loggedIn = false, isAdmin = false;
 var user;
 var reconn, ping;
 var port = document.location.port;
@@ -129,9 +129,10 @@ function wsConnect() {
             if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
 
                 user = data.data.username;
+                isAdmin = data.data.isAdmin;
                 var oldUser = localStorage.getItem(userKey);
 
-                log(command, code, 'user:', user, ', oldUser:', oldUser, 'session valid:', sessionValid);
+                log(command, code, 'user:', user, ', oldUser:', oldUser, 'session valid:', sessionValid, 'isAdmin', isAdmin);
 
                 if (!sessionValid) {
                     localStorage.removeItem(userKey);
@@ -248,8 +249,7 @@ function wsConnect() {
 
                     // Don't append a DOM node
                     //var obj = StructrModel.create(entity, undefined, false);
-
-                    StructrModel.callCallback(data.callback, entity);
+                    StructrModel.callCallback(data.callback, entity, result.length);
 
                 });
 
@@ -337,11 +337,10 @@ function wsConnect() {
                 Structr.updatePager(type, dialog.is(':visible') ? dialog : undefined);
 
                 $('.pageCount', $('.pager' + type)).val(pageCount[type]);
-
                 $(result).each(function(i, entity) {
 
                     //var obj = StructrModel.create(entity);
-                    StructrModel.callCallback(data.callback, entity);
+                    StructrModel.callCallback(data.callback, entity, result.length);
 
                 });
 
@@ -370,7 +369,7 @@ function wsConnect() {
 
                 $(result).each(function(i, entity) {
 
-                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'PropertyDefinition' || entity.type === 'Widget')) {
+                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
                     } else {
 

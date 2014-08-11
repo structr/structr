@@ -17,12 +17,10 @@ import org.structr.core.graph.CypherQueryCommand;
  */
 public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObject>> {
 
-	private String cypherQuery = null;
-
 	public CypherQueryProperty(final String name, final String cypherQuery) {
 
 		super(name);
-		this.cypherQuery = cypherQuery;
+		this.format = cypherQuery;
 	}
 
 	@Override
@@ -47,7 +45,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObje
 				parameters.put("id", obj.getUuid());
 				parameters.put("type", obj.getType());
 
-				return StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(cypherQuery, parameters);
+				return StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(format, parameters);
 
 			} catch (Throwable t) {
 				t.printStackTrace();

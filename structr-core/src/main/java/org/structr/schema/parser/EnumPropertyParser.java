@@ -61,7 +61,7 @@ public class EnumPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void extractTypeValidation(final Schema entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
 
 		final String[] enumTypes = expression.split("[, ]+");
 		if (StringUtils.isNotBlank(expression) && enumTypes.length > 0) {

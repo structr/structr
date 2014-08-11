@@ -114,6 +114,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public String format() {
+		return propertyKey.format();
+	}
+
+	@Override
 	public Integer getSortType() {
 		return propertyKey.getSortType();
 	}

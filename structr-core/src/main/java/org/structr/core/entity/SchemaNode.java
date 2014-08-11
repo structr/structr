@@ -38,6 +38,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -49,6 +50,7 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaNotion;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
+import org.structr.schema.parser.Validator;
 
 /**
  *
@@ -61,16 +63,17 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	public static final Property<String>            extendsClass     = new StringProperty("extendsClass").indexed();
 	public static final Property<String>            defaultSortKey   = new StringProperty("defaultSortKey");
 	public static final Property<String>            defaultSortOrder = new StringProperty("defaultSortOrder");
+	public static final Property<Boolean>           isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly();
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
 	);
 
-	private Set<String> dynamicViews = new LinkedHashSet<>();
+	private final Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
@@ -103,7 +106,8 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
 		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
-		final Set<String> validators                           = new LinkedHashSet<>();
+		final Set<String> propertyNames                        = new LinkedHashSet<>();
+		final Set<Validator> validators                        = new LinkedHashSet<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
 		final StringBuilder src                                = new StringBuilder();
 		final Class baseType                                   = AbstractNode.class;
@@ -113,7 +117,6 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		src.append("package org.structr.dynamic;\n\n");
 
 		SchemaHelper.formatImportStatements(src, baseType);
-
 
 		String superClass = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
 
@@ -146,14 +149,14 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		}
 
 		// extract properties from node
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, saveActions, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, saveActions, errorBuffer));
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
 			src.append(enumDefition);
 		}
 
-		for (Entry<String, Set<String>> entry :viewProperties.entrySet()) {
+		for (Entry<String, Set<String>> entry : viewProperties.entrySet()) {
 
 			final String viewName  = entry.getKey();
 			final Set<String> view = entry.getValue();
@@ -252,6 +255,75 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		return null;
 	}
 
+	@Override
+	public String getAuxiliarySource() throws FrameworkException {
+
+		// only File needs to return auxiliary code!
+		if (!"org.structr.dynamic.File".equals(getClassName())) {
+			return null;
+		}
+
+		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
+		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
+		final Set<String> propertyNames                        = new LinkedHashSet<>();
+		final Set<Validator> validators                        = new LinkedHashSet<>();
+		final Set<String> enums                                = new LinkedHashSet<>();
+		final String _className                                = getProperty(name);
+		final ErrorBuffer dummyErrorBuffer                     = new ErrorBuffer();
+
+		// extract properties
+		final String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, saveActions, dummyErrorBuffer);
+
+		if (!propertyNames.isEmpty() || validators.isEmpty() || !saveActions.isEmpty()) {
+
+			final StringBuilder src = new StringBuilder();
+
+			src.append("package org.structr.dynamic;\n\n");
+
+			SchemaHelper.formatImportStatements(src, AbstractNode.class);
+
+			src.append("public class _").append(_className).append("Helper {\n");
+
+			// output possible enum definitions
+			for (final String enumDefition : enums) {
+				src.append(enumDefition);
+			}
+
+			// formatting is important :)
+			if (!enums.isEmpty()) {
+				src.append("\n");
+			}
+
+			if (!propertyNames.isEmpty()) {
+
+				src.append("\n");
+
+				// extract properties from node
+				src.append(propertyDefinitions);
+
+				src.append("\n\tstatic {\n\n");
+
+				for (final String propertyName : propertyNames) {
+
+					src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
+					src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
+					src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
+
+				}
+
+				src.append("\t}\n\n");
+			}
+
+			SchemaHelper.formatDynamicValidators(src, validators);
+			SchemaHelper.formatDynamicSaveActions(src, saveActions);
+
+			src.append("}\n");
+
+			return src.toString();
+		}
+
+		return null;
+	}
 
 	// ----- private methods -----
 	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {

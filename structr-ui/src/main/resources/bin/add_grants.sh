@@ -59,7 +59,6 @@ post resource_access '{"signature":"_schema/Image","flags":255}'
 post resource_access '{"signature":"_schema/Content","flags":255}'
 post resource_access '{"signature":"_schema/NewsTickerItem","flags":255}'
 post resource_access '{"signature":"_schema/MailTemplate","flags":255}'
-post resource_access '{"signature":"_schema/PropertyDefinition","flags":255}'
 post resource_access '{"signature":"_schema/Post","flags":255}'
 post resource_access '{"signature":"_schema/Comment","flags":255}'
 post resource_access '{"signature":"_schema/ResourceAccess","flags":255}'
@@ -70,8 +69,8 @@ post resource_access '{"signature":"_schema/SchemaRelationship","flags":255}'
 
 
 ################################################
-#     Add your entities like so (and don't     
-#       forget the '_schema' entry above)      
+#     Add your entities like so (and don't
+#       forget the '_schema' entry above)
 #
 #
 #    post resource_access '{"signature":"ENTITIY_NAME","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
@@ -164,15 +163,6 @@ post resource_access '{"signature":"Image/_Public","flags":255}'
 post resource_access '{"signature":"Image/_Protected","flags":255}'
 post resource_access '{"signature":"Image/_Ui","flags":255}'
 post resource_access '{"signature":"Image/Id","flags":255}'
-
-post resource_access '{"signature":"PropertyDefinition","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
-((ELEM_POS++))
-post resource_access '{"signature":"PropertyDefinition/_All","flags":255}'
-post resource_access '{"signature":"PropertyDefinition/_Html","flags":255}'
-post resource_access '{"signature":"PropertyDefinition/_Public","flags":255}'
-post resource_access '{"signature":"PropertyDefinition/_Protected","flags":255}'
-post resource_access '{"signature":"PropertyDefinition/_Ui","flags":255}'
-post resource_access '{"signature":"PropertyDefinition/Id","flags":255}'
 
 post resource_access '{"signature":"Post","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
 ((ELEM_POS++))

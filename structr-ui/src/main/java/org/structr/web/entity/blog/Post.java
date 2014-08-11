@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity.blog;
 
-import org.structr.web.entity.blog.relation.BlogComment;
 import org.structr.web.entity.blog.relation.BlogComments;
 import org.structr.web.entity.blog.relation.PostContents;
 import java.util.Date;

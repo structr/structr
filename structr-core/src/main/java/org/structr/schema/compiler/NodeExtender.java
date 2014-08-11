@@ -21,11 +21,12 @@ package org.structr.schema.compiler;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.tools.Diagnostic;
@@ -48,21 +49,26 @@ public class NodeExtender {
 
 	private static final Logger logger   = Logger.getLogger(NodeExtender.class.getName());
 
-	private JavaCompiler compiler        = null;
-	private JavaFileManager fileManager  = null;
+	private static final JavaCompiler compiler       = ToolProvider.getSystemJavaCompiler();
+	private static final JavaFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
+	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
+	private static final Map<String, Class> classes  = new TreeMap<>();
+
 	private List<JavaFileObject> jfiles  = null;
 	private Set<String> fqcns            = null;
 
 	public NodeExtender() {
 
-		compiler    = ToolProvider.getSystemJavaCompiler();
-		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 		jfiles      = new ArrayList<>();
 		fqcns       = new LinkedHashSet<>();
 	}
 
-	public ClassLoader getClassLoader() {
-		return fileManager.getClassLoader(null);
+	public static ClassLoader getClassLoader() {
+		return classLoader;
+	}
+
+	public static Class getClass(final String fqcn) {
+		return classes.get(fqcn);
 	}
 
 	public void addClass(final String className, final String content) throws ClassNotFoundException {
@@ -84,12 +90,14 @@ public class NodeExtender {
 
 	public synchronized Map<String, Class> compile(final ErrorBuffer errorBuffer) throws ClassNotFoundException {
 
-		final Map<String, Class> classes = new LinkedHashMap<>();
-		final Writer errorWriter         = new StringWriter();
+		final Writer errorWriter = new StringWriter();
 
 		if (!jfiles.isEmpty()) {
 
 			logger.log(Level.INFO, "Compiling {0} dynamic entities", jfiles.size());
+
+			// clear classes map
+			classes.clear();
 
 			compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
 
@@ -101,7 +109,8 @@ public class NodeExtender {
 
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { fqcn, t.getMessage() });
+					logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { fqcn, t.toString() });
+					t.printStackTrace();
 				}
 			}
 		}
@@ -130,6 +139,9 @@ public class NodeExtender {
 				}
 
 				errorBuffer.add(name, new DiagnosticErrorToken(diagnostic));
+                                
+                                // log also to log file
+                                logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });
 			}
 		}
 	}

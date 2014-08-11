@@ -57,7 +57,7 @@ public class StringArrayPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void extractTypeValidation(final Schema entity, final String expression) throws FrameworkException {
+	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
 		if ("[]".equals(expression)) {
 			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_validation_expression", "Empty validation expression."));

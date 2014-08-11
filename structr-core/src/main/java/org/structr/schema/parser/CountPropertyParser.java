@@ -59,7 +59,7 @@ public class CountPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void extractTypeValidation(final Schema entity, final String expression) throws FrameworkException {
+	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
 		if (expression.isEmpty()) {
 			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_reference", "Empty property reference."));

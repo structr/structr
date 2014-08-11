@@ -281,7 +281,6 @@ var _Files = {
                 e.stopPropagation();
                 Command.removeSourceFromTarget(file.id, folderId);
             });
-            disable(parent.children('.delete_icon')[0]);
 
         } else {
             newDelIcon = '<img title="Delete file ' + file.name + '\'" alt="Delete file \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
@@ -395,12 +394,12 @@ var _Files = {
             }
             div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
-                _Entities.deleteNode(this, folder);
+                _Entities.deleteNode(this, folder, true);
             });
         }
 
         var hasChildren = (folder.folders && folder.folders.length) || (folder.files && folder.files.length);
-
+        
         log(folder.name, 'has children?', hasChildren, 'is expanded?', isExpanded(folder.id));
 
         _Entities.appendExpandIcon(div, folder, hasChildren);
@@ -524,27 +523,27 @@ var _Files = {
             }, function() {
                 log('cancelled')
             });
-            
+
             dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
             $.each(selectedElements, function(i, el) {
                 var entity = StructrModel.obj(getId(el));
                 $('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
                 $('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
-                
-                
+
+
                 $('#tab-' + entity.id).on('click', function(e) {
-                    
+
                     e.stopPropagation();
-                    
+
                     // Store current editor text
                     if (editor) {
                         fileContents[activeFileId] = editor.getValue();
                     }
-                    
+
                     activeFileId = getIdFromPrefixIdString($(this).prop('id'), 'tab-');
                     $('#content-tab-' + activeFileId).empty();
                     _Files.editContent(null, entity, $('#content-tab-' + activeFileId));
-                    
+
                     return false;
                 });
 
@@ -593,10 +592,10 @@ var _Files = {
                 if (scrollInfo) {
                     editor.scrollTo(scrollInfo.left, scrollInfo.top);
                 }
-                
+
                 editor.on('scroll', function() {
                     var scrollInfo = editor.getScrollInfo();
-                    localStorage.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo)); 
+                    localStorage.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
                 });
                 editor.id = file.id;
 
@@ -654,7 +653,7 @@ var _Files = {
                         dialogCancelButton.click();
                     }, 500);
                 });
-                
+
                 _Files.resize();
 
             },

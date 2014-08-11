@@ -341,7 +341,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
 
-			if (!(EditMode.RAW.equals(editMode))) {
+			if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
 				value = escapeForHtmlAttributes(value);
 
@@ -474,7 +474,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 						anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !((DOMElement) subNode).avoidWhitespace());
 					}
 
-					if (EditMode.RAW.equals(editMode)) {
+					if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 
 						subNode.render(securityContext, renderContext, depth + 1);
 
@@ -605,8 +605,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			}
 
 		}
-
-		double end = System.nanoTime();
 
 		// Set result for this level again, if there was any
 		if (localResult != null) {
@@ -1072,6 +1070,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			}
 		}
 
+		try {
+
+			increasePageVersion();
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "Updating page version failed", ex);
+
+		}
+
 		return true;
 
 	}
@@ -1094,7 +1102,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key));
 
-				if (!(EditMode.RAW.equals(editMode))) {
+				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
 					value = escapeForHtmlAttributes(value);
 
@@ -1110,7 +1118,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		}
 
-		if (EditMode.RAW.equals(editMode)) {
+		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 
 			Property[] rawProps = new Property[]{
 				dataKey, restQuery, cypherQuery, xpathQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
@@ -1165,17 +1173,21 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 */
 	private void renderStructrAppLib(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (!(EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
+		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+		
+		if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
 
 			out
 				.append(indent(depth))
-				.append("<script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-1.11.0.min.js\"><\\/script>'); }</script>")
+				.append("<script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-1.11.1.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
-				.append("<script>if (!window.jQuery.ui) { document.write('<script src=\"/structr/js/lib/jquery-ui-1.10.3.custom.min.js\"><\\/script>'); }</script>")
+				.append("<script>if (!window.jQuery.ui) { document.write('<script src=\"/structr/js/lib/jquery-ui-1.11.0.custom.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
 				.append("<script>if (!window.jQuery.ui.timepicker) { document.write('<script src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
 				.append("<script>if (!window.StructrApp) { document.write('<script src=\"/structr/js/structr-app.min.js\"><\\/script>'); }</script>")
+				.append(indent(depth))
+				.append("<script>if (!window.moment) { document.write('<script src=\"/structr/js/lib/moment.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
 				.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/jquery-ui-1.10.3.custom.min.css\">");
 

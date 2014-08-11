@@ -18,32 +18,25 @@
  */
 package org.structr.common;
 
-import org.neo4j.graphdb.RelationshipType;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.GenericRelationship;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.IOException;
 import java.util.Collections;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.Cache;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.DynamicResourceAccess;
+import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
-import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.TestNine;
@@ -186,6 +179,8 @@ public class CreateGraphObjectsTest extends StructrTest {
 	 */
 	public void test04CheckNodeEntities() {
 
+		AccessControlTest.clearResourceAccess();
+
 		final PropertyMap props = new PropertyMap();
 
 		try (final Tx tx = app.tx()) {
@@ -202,7 +197,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 			}
 
 			assertTrue(entityList.contains(AbstractNode.class));
-			assertTrue(entityList.contains(Cache.class));
 			assertTrue(entityList.contains(GenericNode.class));
 			assertTrue(entityList.contains(Location.class));
 			assertTrue(entityList.contains(Person.class));
@@ -212,7 +206,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 			// Don't test these, it would fail due to violated constraints
 			entityList.remove(TestTwo.class);
 			entityList.remove(TestNine.class);
-			entityList.remove(PropertyDefinition.class);
 			entityList.remove(MailTemplate.class);
 			entityList.remove(SchemaNode.class);
 
@@ -232,7 +225,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 					// For ResourceAccess, fill mandatory fields
 					if (type.equals(ResourceAccess.class)) {
 
-						props.put(ResourceAccess.signature, "/");
+						props.put(ResourceAccess.signature, "/X");
 						props.put(ResourceAccess.flags, 6L);
 
 					}
@@ -240,7 +233,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 					// For DynamicResourceAccess, fill mandatory fields
 					if (type.equals(DynamicResourceAccess.class)) {
 
-						props.put(DynamicResourceAccess.signature, "/");
+						props.put(DynamicResourceAccess.signature, "/Y");
 						props.put(DynamicResourceAccess.flags, 6L);
 
 					}

@@ -29,22 +29,23 @@ import org.structr.websocket.StructrWebSocket;
 
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
+import org.structr.dynamic.File;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Websocket command for uploading files.
- * 
+ *
  * This command expects a file name and a base64-encoded string.
- * 
+ *
  * @author Axel Morgner
  */
 public class UploadCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(UploadCommand.class.getName());
-	
+
 	static {
-		
+
 		StructrWebSocket.addCommand(UploadCommand.class);
 
 	}
@@ -55,13 +56,13 @@ public class UploadCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		
+
 		try {
 
-			final String name                   = (String) webSocketData.getNodeData().get("name");
-			final String rawData                = (String) webSocketData.getNodeData().get("fileData");
-			org.structr.web.entity.File newFile = FileHelper.createFileBase64(securityContext, rawData, null);
-			
+			final String name    = (String) webSocketData.getNodeData().get("name");
+			final String rawData = (String) webSocketData.getNodeData().get("fileData");
+			File newFile     = FileHelper.createFileBase64(securityContext, rawData, null);
+
 			newFile.setProperty(AbstractNode.name, name);
 
 		} catch (Throwable t) {
@@ -72,7 +73,7 @@ public class UploadCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(400).message("Could not upload file: ".concat((msg != null)
 				? msg
 				: "")).build(), true);
-			
+
 		}
 	}
 

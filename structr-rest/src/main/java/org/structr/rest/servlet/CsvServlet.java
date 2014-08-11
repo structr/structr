@@ -86,7 +86,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	public StructrHttpServiceConfig getConfig() {
 		return config;
 	}
-	
+
 	@Override
 	public void init() {
 
@@ -166,7 +166,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 				// Should line breaks be removed?
 				removeLineBreaks = StringUtils.equals(request.getParameter(REMOVE_LINE_BREAK_PARAM), "1");
-				
+
 				// Should a leading BOM be written?
 				writeBom = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
 
@@ -203,7 +203,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 					}
 
 					// gson.toJson(result, writer);
-					writeCsv(result, writer);
+					writeCsv(result, writer, propertyView.get(securityContext));
 					response.setStatus(HttpServletResponse.SC_OK);
 					writer.flush();
 					writer.close();
@@ -282,19 +282,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 		} catch (IOException ex) {
 			logger.log(Level.WARNING, "Unable to write UTF-8 BOM", ex);
 		}
-	}
-
-	/**
-	 * Write list of objects to output
-	 *
-	 * @param result
-	 * @param out
-	 * @throws IOException
-	 */
-	private void writeCsv(final Result result, Writer out) throws IOException {
-
-		writeCsv(result, out, defaultPropertyView);
-
 	}
 
 	/**

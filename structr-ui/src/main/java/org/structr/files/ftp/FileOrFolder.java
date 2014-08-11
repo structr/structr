@@ -33,9 +33,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**

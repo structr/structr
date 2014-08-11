@@ -63,7 +63,7 @@ var Command = {
      *
      * The optional callback function will be executed for each node in the result set.
      */
-    getByType: function(type, pageSize, page, sort, order, callback) {
+    getByType: function(type, pageSize, page, sort, order, properties, callback) {
         var obj = {};
         obj.command = 'GET_BY_TYPE';
         var data = {};
@@ -72,6 +72,7 @@ var Command = {
         if (page) obj.page = page;
         if (sort) obj.sort = sort;
         if (order) obj.order = order;
+        if (properties) data.properties = properties;
         obj.data = data;
         log('getByType()', obj, callback);
         return sendObj(obj, callback);
@@ -84,12 +85,13 @@ var Command = {
      *
      * The optional callback function will be executed for each node in the result set.
      */
-    list: function(type, rootOnly, pageSize, page, sort, order, callback) {
+    list: function(type, rootOnly, pageSize, page, sort, order, properties, callback) {
         var obj = {};
         obj.command = 'LIST';
         var data = {};
         data.type = type;
         data.rootOnly = rootOnly;
+        if (properties) data.properties = properties;
         obj.pageSize = pageSize;
         obj.page = page;
         obj.sort = sort;
@@ -192,10 +194,15 @@ var Command = {
      * The server will delete the node with the given id and broadcast
      * a deletion notification.
      */
-    deleteNode: function(id) {
+    deleteNode: function(id, recursive) {
         var obj = {};
         obj.command = 'DELETE';
         obj.id = id;
+        var data = {};
+        if (recursive) {
+            data.recursive = recursive;
+        }
+        obj.data = data;
         log('deleteNode()', obj);
         return sendObj(obj);
     },
@@ -231,6 +238,23 @@ var Command = {
         obj.data = data;
         log('removeChild()', obj);
         return sendObj(obj);
+    },
+    /**
+     * Send a REMOVE_FROM_COLLECTION command to the server.
+     * 
+     * The server will remove the object with the given idToRemove from the
+     * collection property with the given key of the object with the given id.
+     */
+    removeFromCollection: function(id, key, idToRemove, callback) {
+        var obj = {};
+        obj.command = 'REMOVE_FROM_COLLECTION';
+        obj.id = id;
+        var data = {};
+        data.key = key;
+        data.idToRemove = idToRemove;
+        obj.data = data;
+        log('removeFromCollection()', obj, callback);
+        return sendObj(obj, callback);
     },
     /**
      * Send an UPDATE command to the server.

@@ -56,7 +56,10 @@ public class PingCommand extends AbstractCommand {
 
 		if (currentUser != null) {
 
-			getWebSocket().send(MessageBuilder.status().data("username", currentUser.getProperty(AbstractNode.name)).code(100).build(), true);
+			getWebSocket().send(MessageBuilder.status()
+				.data("username", currentUser.getProperty(AbstractNode.name))
+				.data("isAdmin", currentUser.getProperty(Principal.isAdmin))
+				.code(100).build(), true);
 
 		} else {
 

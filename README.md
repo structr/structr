@@ -13,9 +13,9 @@ For detailed feature lists of these components see
 
 [OGM](Structr OGM.md)
 
-[Backend Features](Backend Features.md)
+[Backend Features](Backend.md)
 
-[Frontend Features](Structr UI Features.md)
+[Frontend Features](Frontend.md)
 
 ### Awards
 Structr was awarded with the Graphie Award for the Most Innovative Open Source Graph Application in 2012.

@@ -33,7 +33,6 @@ import java.util.logging.Logger;
 import javax.servlet.DispatcherType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.server.Authentication.User;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -88,7 +87,7 @@ public class HttpService implements RunnableService {
 	public static final String APPLICATION_HTTPS_ENABLED = "application.https.enabled";
 	public static final String APPLICATION_KEYSTORE_PATH = "application.keystore.path";
 	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
-	
+
 
 
 	// set of resource providers for this service
@@ -169,7 +168,7 @@ public class HttpService implements RunnableService {
 		finalConfig.setProperty("JsonRestServlet.path", "/structr/rest/*");
 		finalConfig.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
 		finalConfig.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
-		finalConfig.setProperty("JsonRestServlet.user.class", User.class.getName());
+		finalConfig.setProperty("JsonRestServlet.user.class", "org.structr.dynamic.User");
 		finalConfig.setProperty("JsonRestServlet.user.autocreate", "false");
 		finalConfig.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
 		finalConfig.setProperty("JsonRestServlet.outputdepth", "3");
@@ -446,6 +445,9 @@ public class HttpService implements RunnableService {
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
 	}
+
+	@Override
+	public void initialized() {}
 
 	@Override
 	public void shutdown() {

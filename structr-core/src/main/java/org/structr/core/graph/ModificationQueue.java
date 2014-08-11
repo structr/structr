@@ -45,10 +45,11 @@ public class ModificationQueue {
 
 	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
 
-	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
-	private Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
-	private Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
-	private Set<String> synchronizationKeys                                           = new TreeSet<>();
+	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
+	private final List<ModificationEvent> modificationEvents                                = new LinkedList<>();
+	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
+	private final Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
+	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
 
 	/**
 	 * Returns a set containing the different entity types of
@@ -146,6 +147,7 @@ public class ModificationQueue {
 		// clear collections afterwards
 		alreadyPropagated.clear();
 		modifications.clear();
+		modificationEvents.clear();
 	}
 
 	public void create(NodeInterface node) {
@@ -222,13 +224,6 @@ public class ModificationQueue {
 	}
 
 	public List<ModificationEvent> getModificationEvents() {
-
-		final List<ModificationEvent> modificationEvents = new LinkedList<>();
-		for (final GraphObjectModificationState state : modifications.values()) {
-
-			modificationEvents.add(state);
-		}
-
 		return modificationEvents;
 	}
 
@@ -285,6 +280,7 @@ public class ModificationQueue {
 
 			state = new GraphObjectModificationState(node);
 			modifications.put(hash, state);
+			modificationEvents.add(state);
 		}
 
 		return state;
@@ -299,6 +295,7 @@ public class ModificationQueue {
 
 			state = new GraphObjectModificationState(rel);
 			modifications.put(hash, state);
+			modificationEvents.add(state);
 		}
 
 		return state;

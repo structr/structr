@@ -46,10 +46,6 @@
     float: right;
 }
 
-.resourceBox td.value {
-    padding: 0;
-}
-
 .resourceBox td.save {
     color: #aaa;
 }
@@ -206,7 +202,7 @@ table.props td.key {
     width: 20%;
 }
 
-table.props td.value {
+table.props td.__value {
     width: 80%;
 }
 
@@ -357,6 +353,17 @@ h2.searchResultsTitle {
 img.loader {
     vertical-align: middle;
     margin-right: 12px;
+}
+
+.crud-clear-value {
+    float: right;
+    margin-left: 4px;
+    opacity: .6;
+}
+
+.crud-clear-value:hover {
+    cursor: pointer;
+    opacity: .8;
 }
 
 /*

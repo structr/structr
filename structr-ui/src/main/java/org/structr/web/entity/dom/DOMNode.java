@@ -263,7 +263,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 *
 	 * @return list of ancestors
 	 */
-	public List<Node> getAncestors() {
+	private List<Node> getAncestors() {
 
 		List<Node> ancestors = new LinkedList();
 
@@ -297,14 +297,38 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	// ----- private methods -----
 	/**
-	 * Do necessary updates on all containing pages
+	 * Increase version of the page.
+	 * 
+	 * A {@link Page} is a {@link DOMNode} as well, so we have to check 'this' as well.
 	 *
 	 * @throws FrameworkException
 	 */
-	private void increasePageVersion() throws FrameworkException {
+	protected void increasePageVersion() throws FrameworkException {
 
-		Page page = (Page) getOwnerDocument();
-
+		Page page;
+		
+		if (this instanceof Page) {
+			
+			page = (Page) this;
+			
+		} else {
+			
+			page = (Page) getOwnerDocument();
+			
+		}
+		
+		if (page == null) {
+			
+			final List<Node> ancestors = getAncestors();
+			if (!ancestors.isEmpty()) {
+				final DOMNode rootNode = (DOMNode) ancestors.get(ancestors.size() - 1);
+				if (rootNode instanceof Page) {
+					page = (Page) rootNode;
+				}
+			}
+			
+		}
+		
 		if (page != null) {
 
 			page.unlockReadOnlyPropertiesOnce();
@@ -426,8 +450,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 */
 	protected boolean displayForConditions(final SecurityContext securityContext, final RenderContext renderContext) {
 
-		// In raw mode, render everything
-		if (EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+		// In raw or widget mode, render everything
+		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 			return true;
 		}
 
@@ -470,8 +495,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 */
 	protected boolean displayForLocale(final RenderContext renderContext) {
 
-		// In raw mode, render everything
-		if (EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+		// In raw or widget mode, render everything
+		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 			return true;
 		}
 
@@ -553,7 +579,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		// TODO: implement?
 	}
 
-	@Override
+	 @Override
 	public Node getParentNode() {
 		// FIXME: type cast correct here?
 		return (Node) getProperty(parent);

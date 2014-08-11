@@ -19,7 +19,6 @@
 package org.structr.web.entity;
 
 import java.util.List;
-import java.util.logging.Logger;
 import org.structr.common.KeyAndClass;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractUser;
@@ -35,6 +34,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.core.validator.SimpleRegexValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.UserHomeDir;
 import org.structr.web.entity.relation.UserImage;
 import org.structr.web.entity.relation.UserWorkDir;
@@ -50,26 +50,30 @@ import org.structr.web.property.ImageDataProperty;
  */
 public class User extends AbstractUser {
 
-	private static final Logger logger = Logger.getLogger(User.class.getName());
-
 	public static final Property<String>      confirmationKey  = new StringProperty("confirmationKey").indexed();
 	public static final Property<Boolean>     backendUser      = new BooleanProperty("backendUser").indexed();
 	public static final Property<Boolean>     frontendUser     = new BooleanProperty("frontendUser").indexed();
 	public static final Property<Image>       img              = new StartNode<>("img", UserImage.class);
 	public static final ImageDataProperty     imageData        = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
-	public static final Property<Folder>      homeDirectory    = new EndNode<>("homeDirecory", UserHomeDir.class);
+	public static final Property<Folder>      homeDirectory    = new EndNode<>("homeDirectory", UserHomeDir.class);
 	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
 	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new PropertyNotion(id));
+	public static final Property<Boolean>     isUser           = new BooleanProperty("isUser", true).readOnly();
+	public static final Property<String>      eMail            = new StringProperty("eMail").indexed();
+	public static final Property<String>      twitterName      = new StringProperty("twitterName").indexed();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, eMail, isAdmin, password, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory
+		type, name, eMail, isAdmin, password, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory, isUser
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
-		type, name
+		type, name, isUser
 	);
 
 	static {
+
+	// register this type as an overridden builtin type
+		SchemaService.registerBuiltinTypeOverride("User", User.class.getName());
 
 		User.eMail.addValidator(new TypeUniquenessValidator(User.class));
 		User.name.addValidator(new SimpleNonEmptyValueValidator());

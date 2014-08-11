@@ -52,6 +52,9 @@ public class ResourceAccessTest extends StructrUiTest {
 //	}
 	public void test01ResourceAccessGET() {
 
+		// clear resource access objects that are created by the dynamic schema
+		clearResourceAccess();
+
 		Folder testFolder = null;
 		ResourceAccess folderGrant = null;
 
@@ -123,6 +126,9 @@ public class ResourceAccessTest extends StructrUiTest {
 
 	public void test02ResourceAccessPOST() {
 
+		// clear resource access objects that are created by the dynamic schema
+		clearResourceAccess();
+
 		ResourceAccess folderGrant = null;
 		try (final Tx tx = app.tx()) {
 
@@ -176,6 +182,9 @@ public class ResourceAccessTest extends StructrUiTest {
 	}
 
 	public void test03ResourceAccessPUT() {
+
+		// clear resource access objects that are created by the dynamic schema
+		clearResourceAccess();
 
 		final String name = "testuser-01";
 		final String password = "testpassword-01";
@@ -285,12 +294,15 @@ public class ResourceAccessTest extends StructrUiTest {
 
 	public void test04ResourceAccessDELETE() {
 
+		// clear resource access objects that are created by the dynamic schema
+		clearResourceAccess();
+
 		final String name = "testuser-01";
 		final String password = "testpassword-01";
 		Folder testFolder = null;
 		User testUser = null;
 		ResourceAccess folderGrant = null;
-		
+
 		try (final Tx tx = app.tx()) {
 
 			testFolder = createTestNodes(Folder.class, 1).get(0);
@@ -425,5 +437,23 @@ public class ResourceAccessTest extends StructrUiTest {
 		}
 
 		return null;
+	}
+
+	public static void clearResourceAccess() {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final ResourceAccess access : app.nodeQuery(ResourceAccess.class).getAsList()) {
+				app.delete(access);
+			}
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+		}
 	}
 }
