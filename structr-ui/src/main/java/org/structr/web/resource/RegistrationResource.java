@@ -19,41 +19,37 @@
 package org.structr.web.resource;
 
 import java.util.Collections;
-import org.structr.common.MailHelper;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.PropertyKey;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.NotAllowedException;
-import org.structr.rest.resource.Resource;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.MailHelper;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.NotAllowedException;
+import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
-import org.structr.core.entity.MailTemplate;
-import org.structr.core.graph.NodeFactory;
 import org.structr.web.servlet.HtmlServlet;
 
 //~--- classes ----------------------------------------------------------------
@@ -386,7 +382,7 @@ public class RegistrationResource extends Resource {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If a {@link Principal} is found, convert that object to a {@link Principal} object.
 	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
 	 *
 	 * @param securityContext
@@ -422,11 +418,17 @@ public class RegistrationResource extends Resource {
 				propertySet.remove(User.name.jsonName());
 				propertySet.remove(User.confirmationKey.jsonName());
 
-				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, propertySet);
+				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, Principal.class, propertySet);
 
 				props.put(credentialKey, credentialValue);
 				props.put(User.name, credentialValue);
 				props.put(User.confirmationKey, confKey);
+				
+				// Remove security-relevant properties
+				props.remove(Principal.isAdmin);
+				props.remove(Principal.ownedNodes);
+				props.remove(Principal.salt);
+				props.remove(Principal.sessionIds);
 
 				user = (Principal) StructrApp.getInstance(securityContext).create(userClass, props);
 

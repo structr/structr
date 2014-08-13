@@ -1648,7 +1648,7 @@ function denormalizeAttrs(attrs) {
 }
 
 var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
-        + '<option value="String">String</option>'
+        + '<option selected="selected" value="String">String</option>'
         + '<option value="Integer">Integer</option>'
         + '<option value="Long">Long</option>'
         + '<option value="Double">Double</option>'

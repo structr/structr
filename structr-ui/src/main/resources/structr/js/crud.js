@@ -1961,9 +1961,7 @@ var _Crud = {
                                     //async: false,
                                     statusCode: {
                                         200: function(data) {
-                                            //var rowEl = $('#' + id);
-                                            var nodeEl = $('.' + _Crud.id(relatedObj) + '_');
-                                            //console.log(rowEl, nodeEl);
+                                            var nodeEl = $('#_' + id + ' .__' + key + ' .' + _Crud.id(relatedObj) + '_');
                                             nodeEl.remove();
                                         },
                                         error: function(a, b, c) {

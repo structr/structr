@@ -65,8 +65,8 @@ public class Tx implements AutoCloseable {
 	}
 
 	public void success() throws FrameworkException {
-		success = true;
 		cmd.commitTx(doValidation);
+		success = true;
 	}
 
 	@Override

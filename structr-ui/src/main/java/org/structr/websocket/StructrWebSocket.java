@@ -197,8 +197,13 @@ public class StructrWebSocket implements WebSocketListener {
 
 					fex.printStackTrace(System.out);
 
+					// Clear result in case of rollback
+					//webSocketData.clear();
+					
 					// send 400 Bad Request
 					send(MessageBuilder.status().code(400).message(fex.toString()).build(), true);
+					
+					return;
 
 				}
 
@@ -208,6 +213,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 				// send 400 Bad Request
 				send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
+				
+				return;
 
 			}
 

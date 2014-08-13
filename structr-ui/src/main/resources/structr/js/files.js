@@ -394,9 +394,7 @@ var _Files = {
             }
             div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
-                _Entities.deleteNode(this, folder, true, function(folder) {
-                    Structr.node(folder.id).remove();
-                });
+                _Entities.deleteNode(this, folder, true);
             });
         }
 
