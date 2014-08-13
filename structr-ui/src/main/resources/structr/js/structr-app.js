@@ -201,9 +201,9 @@ function StructrApp(baseUrl) {
                 sel.chosen({allow_single_deselect: true});
             } else {
                 if (f.type.endsWith('[]')) {
-                    el.html(multiSelect(f.id, f.type, f.key, f.val));
+                    el.html(multiSelect(f.id, f.type, f.key, f.val, f.query));
                 } else {
-                    el.html(singleSelect(f.id, f.type, f.key, f.val));
+                    el.html(singleSelect(f.id, f.type, f.key, f.val, f.query));
                 }
             }
 
@@ -518,6 +518,7 @@ function StructrApp(baseUrl) {
     this.field = function(el) {
         if (!el || !el.length) return;
         var rawType = el.attr('data-structr-type');
+        var query = el.attr('data-structr-custom-options-query');
         var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
         var format = rawType ? rawType.replace(type + ' ', '') : undefined;
         var val;
@@ -542,7 +543,7 @@ function StructrApp(baseUrl) {
             }
         }
         //console.log(el, type, id, key, val);
-        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format};
+        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query};
     };
 
     this.getRelatedType = function(type, key, callback) {
@@ -1008,7 +1009,7 @@ function checkbox(id, type, key, val) {
     return '<input type="checkbox" data-structr-id="' + id + '" data-structr-attr="' + key + '" data-structr-type="' + type + '" ' + (val ? 'checked="checked"' : '') + '">';
 }
 
-function enumSelect(id, type, key, val, values) { console.log(id, type, key, val, values.split(','))
+function enumSelect(id, type, key, val, values) {
     var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '"></select>';
     var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
     $.each(values.split(','), function(i, o) {
@@ -1018,37 +1019,41 @@ function enumSelect(id, type, key, val, values) { console.log(id, type, key, val
     return inp;
 }
 
-function singleSelect(id, type, key, val) {
+function singleSelect(id, type, key, val, query) {
     var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '"></select>';
     $.ajax({
-        url: structrRestUrl + type + '/ui', method: 'GET', contentType: 'application/json',
+        url: structrRestUrl + (query ? query : type + '/ui'), method: 'GET', contentType: 'application/json',
         statusCode: {
             200: function(data) {
                 var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
                 sel.append('<option value="null"></option>');
-                $.each(data.result, function(i, o) {
-                    sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
-                });
-                sel.chosen({allow_single_deselect: true});
+                if (data.result && data.result.length) {
+                    $.each(data.result, function(i, o) {
+                        sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
+                    });
+                    sel.chosen({allow_single_deselect: true});
+                }
             }
         }
     });
     return inp;
 }
 
-function multiSelect(id, type, key, val) {
+function multiSelect(id, type, key, val, query) {
     var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '" multiple="multiple"></select>';
     type = type.substring(0, type.length-2);
     var valIds = val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
     $.ajax({
-        url: structrRestUrl + type + '/ui', method: 'GET', contentType: 'application/json',
+        url: structrRestUrl + (query ? query : type + '/ui'), method: 'GET', contentType: 'application/json',
         statusCode: {
             200: function(data) {
                 var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
-                $.each(data.result, function(i, o) {
-                    sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
-                });
-                sel.chosen();
+                if (data.result && data.result.length) {
+                    $.each(data.result, function(i, o) {
+                        sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
+                    });
+                    sel.chosen();
+                }
             }
         }
     });
