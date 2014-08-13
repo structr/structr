@@ -618,7 +618,7 @@ public class Functions {
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					try {
-						return Double.valueOf(sources[0].toString());
+						return getDoubleOrNull(sources[0]);
 
 					} catch (Throwable t) {
 						// ignore
@@ -645,7 +645,7 @@ public class Functions {
 					}
 
 					try {
-						return Double.valueOf(sources[0].toString()).intValue();
+						return getDoubleOrNull(sources[0]).intValue();
 
 					} catch (Throwable t) {
 						// ignore
@@ -2789,6 +2789,30 @@ public class Functions {
 		}
 
 		return 0.0;
+	}
+
+	protected static Double getDoubleOrNull(final Object obj) {
+
+		if (obj instanceof Date) {
+
+			return Double.valueOf(((Date)obj).getTime());
+
+		} else if (obj instanceof Number) {
+
+			return ((Number)obj).doubleValue();
+
+		} else {
+
+			try {
+				return Double.valueOf(obj.toString());
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+			}
+		}
+
+		return null;
 	}
 
 	protected static boolean valueEquals(final Object obj1, final Object obj2) {
