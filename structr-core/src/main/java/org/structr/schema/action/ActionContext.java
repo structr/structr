@@ -44,6 +44,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class ActionContext {
 
+	private Map<String, Object> tmpStore   = new LinkedHashMap<>();
 	private Map<Integer, Integer> counters = new LinkedHashMap<>();
 	private ErrorBuffer errorBuffer        = new ErrorBuffer();
 	private GraphObject parent             = null;
@@ -264,6 +265,14 @@ public class ActionContext {
 
 	public void resetCounter(final int level) {
 		counters.put(level, 0);
+	}
+
+	public void store(final String key, final Object value) {
+		tmpStore.put(key, value);
+	}
+
+	public Object retrieve(final String key) {
+		return tmpStore.get(key);
 	}
 
 	protected Object numberOrString(final String value) {

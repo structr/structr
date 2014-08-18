@@ -768,6 +768,12 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid replacement result", "A Nice Little Name For My Test Object", testOne.replaceVariables(securityContext, ctx, "${titleize(this.name, '-')}"));
 			assertEquals("Invalid replacement result", "STRINGtrueFALSE", testOne.replaceVariables(securityContext, ctx, "${upper(this.aString)}${lower(true)}${upper(false)}"));
 
+			// test store and retrieve
+			assertEquals("Invalid store() result", "", testOne.replaceVariables(securityContext, ctx, "${store('tmp', this.name)}"));
+			assertEquals("Invalid stored value", "A-nice-little-name-for-my-test-object", ctx.retrieve("tmp"));
+			assertEquals("Invalid retrieve() result", "A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${retrieve('tmp')}"));
+			assertEquals("Invalid retrieve() result", "", testOne.replaceVariables(securityContext, new ActionContext(), "${retrieve('tmp')}"));
+
 			// test replace() method
 			assertEquals("Invalid replace() result", "A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${replace(this.replaceString, this)}"));
 
@@ -836,5 +842,4 @@ public class ActionContextTest extends StructrTest {
 		}
 	}
 }
-
 

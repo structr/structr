@@ -169,6 +169,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_MERGE_PROPERTIES    = "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
 	public static final String ERROR_MESSAGE_KEYS                = "Usage: ${keys(entity, viewName)}. Example: ${keys(this, \"ui\")}";
 	public static final String ERROR_MESSAGE_EACH                = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
+	public static final String ERROR_MESSAGE_STORE               = "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
+	public static final String ERROR_MESSAGE_RETRIEVE            = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
 	public static final String ERROR_MESSAGE_PRINT               = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
 	public static final String ERROR_MESSAGE_READ                = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
 	public static final String ERROR_MESSAGE_WRITE               = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
@@ -2078,6 +2080,48 @@ public class Functions {
 		});
 
 		// ----- BEGIN functions with side effects -----
+		functions.put("retrieve", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
+
+					return ctx.retrieve(sources[0].toString());
+
+				} else {
+
+					return ERROR_MESSAGE_RETRIEVE;
+				}
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_RETRIEVE;
+			}
+		});
+		functions.put("store", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof String) {
+
+					ctx.store(sources[0].toString(), sources[1]);
+
+				} else {
+
+					return ERROR_MESSAGE_STORE;
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_STORE;
+			}
+		});
 		functions.put("print", new Function<Object, Object>() {
 
 			@Override
