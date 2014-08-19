@@ -259,7 +259,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	public String getAuxiliarySource() throws FrameworkException {
 
 		// only File needs to return auxiliary code!
-		if (!"org.structr.dynamic.File".equals(getClassName())) {
+		if (!"File".equals(getClassName())) {
 			return null;
 		}
 
