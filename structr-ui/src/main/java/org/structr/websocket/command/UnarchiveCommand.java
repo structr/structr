@@ -35,6 +35,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -80,25 +81,31 @@ public class UnarchiveCommand extends AbstractCommand {
 		try {
 
 			final String id = (String) webSocketData.getId();
+			final App app   = StructrApp.getInstance(securityContext);
+			final File file;
 
-			final App app = StructrApp.getInstance(securityContext);
+			try (final Tx tx = app.tx()) {
 
-			final File file = app.get(File.class, id);
+				file = app.get(File.class, id);
 
-			if (file == null) {
-				getWebSocket().send(MessageBuilder.status().code(400).message("File not found: ".concat(id)).build(), true);
-				return;
+				if (file == null) {
+					getWebSocket().send(MessageBuilder.status().code(400).message("File not found: ".concat(id)).build(), true);
+					return;
+				}
+
+				final String fileExtension = StringUtils.substringAfterLast(file.getName(), ".");
+				if (!supportedByArchiveStreamFactory.contains(fileExtension)) {
+
+					getWebSocket().send(MessageBuilder.status().code(400).message("Unsupported archive format: ".concat(fileExtension)).build(), true);
+					return;
+				}
+
+				tx.success();
 			}
 
-			final String fileExtension = StringUtils.substringAfterLast(file.getName(), ".");
-			if (supportedByArchiveStreamFactory.contains(fileExtension)) {
+			// no transaction here since this is a bulk command
+			unarchive(securityContext, file);
 
-				unarchive(securityContext, file);
-
-			} else {
-
-				getWebSocket().send(MessageBuilder.status().code(400).message("Unsupported archive format: ".concat(fileExtension)).build(), true);
-			}
 
 		} catch (Throwable t) {
 
@@ -108,6 +115,11 @@ public class UnarchiveCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(400).message("Could not unarchive file: ".concat((msg != null) ? msg : "")).build(), true);
 
 		}
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
 	}
 
 	/**
@@ -184,54 +196,86 @@ public class UnarchiveCommand extends AbstractCommand {
 
 	private void unarchive(final SecurityContext securityContext, final File file) throws ArchiveException, IOException, FrameworkException {
 
-		logger.log(Level.INFO, "Unarchiving file {0}", new Object[]{file});
+		final App app = StructrApp.getInstance(securityContext);
+		final InputStream is;
 
-		final InputStream is = file.getInputStream();
-		if (is == null) {
-			getWebSocket().send(MessageBuilder.status().code(400).message("Could not get input stream from file ".concat(file.getName())).build(), true);
-			return;
+		try (final Tx tx = app.tx()) {
+
+			final String fileName = file.getName();
+
+			logger.log(Level.INFO, "Unarchiving file {0}", fileName);
+
+			is = file.getInputStream();
+			tx.success();
+
+
+			if (is == null) {
+
+				getWebSocket().send(MessageBuilder.status().code(400).message("Could not get input stream from file ".concat(fileName)).build(), true);
+				return;
+			}
 		}
 
-		ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(new BufferedInputStream(is));
-
-		ArchiveEntry entry = in.getNextEntry();
-
-		final App app = StructrApp.getInstance(securityContext);
+		final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(new BufferedInputStream(is));
+		ArchiveEntry entry          = in.getNextEntry();
+		int overallCount            = 0;
 
 		while (entry != null) {
 
-			final String entryPath = "/" + PathHelper.clean(entry.getName());
-			logger.log(Level.INFO, "Entry path: {0}", entryPath);
+			try (final Tx tx = app.tx()) {
 
-			AbstractFile f = FileHelper.getFileByAbsolutePath(securityContext, entryPath);
+				int count = 0;
 
-			if (f == null) {
+				while (entry != null && count++ < 50) {
 
-				Folder parentFolder = createOrGetParentFolder(securityContext, entryPath);
+					final String entryPath = "/" + PathHelper.clean(entry.getName());
+					logger.log(Level.INFO, "Entry path: {0}", entryPath);
 
-				final String name = PathHelper.getName(entry.getName());
+					AbstractFile f = FileHelper.getFileByAbsolutePath(securityContext, entryPath);
 
-				if (StringUtils.isNotEmpty(name) && !(FileHelper.getFolderPath(parentFolder).equals(entryPath))) {
+					if (f == null) {
 
-					AbstractFile fileOrFolder = null;
+						Folder parentFolder = createOrGetParentFolder(securityContext, entryPath);
 
-					if (entry.isDirectory()) {
+						final String name = PathHelper.getName(entry.getName());
 
-						fileOrFolder = app.create(Folder.class, name);
+						if (StringUtils.isNotEmpty(name) && !(FileHelper.getFolderPath(parentFolder).equals(entryPath))) {
 
-					} else {
-						fileOrFolder = ImageHelper.isImageType(name)
-							? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
-							: FileHelper.createFile(securityContext, in, null, File.class, name);
+							AbstractFile fileOrFolder = null;
+
+							if (entry.isDirectory()) {
+
+								fileOrFolder = app.create(Folder.class, name);
+
+							} else {
+
+								fileOrFolder = ImageHelper.isImageType(name)
+									? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
+									: FileHelper.createFile(securityContext, in, null, File.class, name);
+							}
+
+							fileOrFolder.setProperty(AbstractFile.parent, parentFolder);
+
+							logger.log(Level.INFO, "Created {0} {1} with path {2}", new Object[]{fileOrFolder.getType(), fileOrFolder, FileHelper.getFolderPath(fileOrFolder)});
+
+							// create thumbnails while importing data
+							if (fileOrFolder instanceof Image) {
+								fileOrFolder.getProperty(Image.tnMid);
+								fileOrFolder.getProperty(Image.tnSmall);
+							}
+
+						}
 					}
 
-					fileOrFolder.setProperty(AbstractFile.parent, parentFolder);
-					logger.log(Level.INFO, "Created {0} {1} with path {2}", new Object[]{fileOrFolder.getType(), fileOrFolder, FileHelper.getFolderPath(fileOrFolder)});
+					entry = in.getNextEntry();
 
+					overallCount++;
 				}
-			}
 
-			entry = in.getNextEntry();
+				logger.log(Level.INFO, "Committing transaction after {0} files..", overallCount);
+
+				tx.success();
+			}
 
 		}
 

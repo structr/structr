@@ -161,6 +161,16 @@ public abstract class AbstractCommand {
 		return null;
 	}
 
+	/**
+	 * Override this method if the websocket command will create its own
+	 * transaction context
+	 *
+	 * @return a boolean
+	 */
+	public boolean requiresEnclosingTransaction() {
+		return true;
+	}
+
 	// ----- protected methods -----
 	protected String getIdFromNode(final AbstractNode node) {
 

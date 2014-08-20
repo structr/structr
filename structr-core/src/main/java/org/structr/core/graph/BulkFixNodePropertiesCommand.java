@@ -59,6 +59,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 					nodes.addAll(StructrApp.getInstance(securityContext).nodeQuery(type).getAsList());
+					tx.success();
 				}
 
 				if (type != null) {

@@ -149,16 +149,16 @@ public class StructrWebSocket implements WebSocketListener {
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		try (final Tx tx = app.tx()) {
+		this.callback = webSocketData.getCallback();
 
-			this.callback = webSocketData.getCallback();
+		final String command = webSocketData.getCommand();
+		final Class type = commandSet.get(command);
 
-			final String command = webSocketData.getCommand();
-			final Class type = commandSet.get(command);
+		final String sessionIdFromMessage = webSocketData.getSessionId();
 
-			final String sessionIdFromMessage = webSocketData.getSessionId();
+		if (type != null) {
 
-			if (type != null) {
+			try (final Tx tx = app.tx()) {
 
 				if (sessionIdFromMessage != null) {
 
@@ -175,55 +175,81 @@ public class StructrWebSocket implements WebSocketListener {
 					return;
 				}
 
+				tx.success();
+
+			} catch (FrameworkException t) {
+
+				logger.log(Level.WARNING, "Unable to parse message.", t);
+
+			}
+
+			// process message
+			try {
+
 				AbstractCommand abstractCommand = (AbstractCommand) type.newInstance();
 
 				abstractCommand.setWebSocket(this);
 				abstractCommand.setSession(session);
 				abstractCommand.setIdProperty(idProperty);
 
-				// store authenticated-Flag in webSocketData
-				// so the command can access it
-				webSocketData.setSessionValid(isAuthenticated());
+				// The below blocks allow a websocket command to manage its own
+				// transactions in case of bulk processing commands etc.
 
-				// process message
-				try {
+				if (abstractCommand.requiresEnclosingTransaction()) {
 
+					try (final Tx tx = app.tx()) {
+
+						// store authenticated-Flag in webSocketData
+						// so the command can access it
+						webSocketData.setSessionValid(isAuthenticated());
+
+						abstractCommand.processMessage(webSocketData);
+
+						// commit transaction
+						tx.success();
+					}
+
+				} else {
+
+					try (final Tx tx = app.tx()) {
+
+						// store authenticated-Flag in webSocketData
+						// so the command can access it
+						webSocketData.setSessionValid(isAuthenticated());
+
+						// commit transaction
+						tx.success();
+					}
+
+					// process message without transaction context!
 					abstractCommand.processMessage(webSocketData);
-
-					// commit transaction
-					tx.success();
-
-				} catch (FrameworkException fex) {
-
-					fex.printStackTrace(System.out);
-
-					// Clear result in case of rollback
-					//webSocketData.clear();
-					
-					// send 400 Bad Request
-					send(MessageBuilder.status().code(400).message(fex.toString()).build(), true);
-					
-					return;
 
 				}
 
-			} else {
+			} catch (FrameworkException | InstantiationException | IllegalAccessException t) {
 
-				logger.log(Level.WARNING, "Unknow command {0}", command);
+				t.printStackTrace(System.out);
+
+				// Clear result in case of rollback
+				//webSocketData.clear();
 
 				// send 400 Bad Request
-				send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
-				
+				send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
+
 				return;
 
 			}
 
-		} catch (FrameworkException | IllegalAccessException | InstantiationException t) {
+		} else {
 
-			logger.log(Level.WARNING, "Unable to parse message.", t);
+			logger.log(Level.WARNING, "Unknow command {0}", command);
+
+			// send 400 Bad Request
+			send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
+
+			return;
 
 		}
-
 	}
 
 	public void send(final WebSocketMessage message, final boolean clearSessionId) {
@@ -262,7 +288,7 @@ public class StructrWebSocket implements WebSocketListener {
 			if (securityContext != null) {
                             securityContext.clearCustomView();
                         }
-			
+
 			session.getRemote().sendString(msg);
 
 		} catch (Throwable t) {
