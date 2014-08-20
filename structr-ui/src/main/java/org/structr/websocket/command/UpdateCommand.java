@@ -50,6 +50,7 @@ public class UpdateCommand extends AbstractCommand {
 	}
 
 	private Tx tx     = null;
+	private int sum   = 0;
 	private int count = 0;
 
 	//~--- methods --------------------------------------------------------
@@ -97,8 +98,6 @@ public class UpdateCommand extends AbstractCommand {
 			try {
 
 				setProperties(app, obj, PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData()), rec);
-
-				logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
 
 				// commit and close transaction
 				tx.success();
@@ -149,10 +148,12 @@ public class UpdateCommand extends AbstractCommand {
 			obj.setProperty(key, value);
 		}
 
-		// commit transaction after 100 nodes
-		if (count++ > 100) {
+		sum++;
 
-			logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
+		// commit transaction after 100 nodes
+		if (count++ == 100) {
+
+			logger.log(Level.INFO, "Committing transaction after {0} objects..", sum);
 
 			count = 0;
 

@@ -49,6 +49,7 @@ public class SetPermissionCommand extends AbstractCommand {
 	}
 
 	private Tx tx     = null;
+	private int sum   = 0;
 	private int count = 0;
 
 	//~--- methods --------------------------------------------------------
@@ -160,10 +161,12 @@ public class SetPermissionCommand extends AbstractCommand {
 				break;
 		}
 
-		// commit transaction after 100 nodes
-		if (count++ > 100) {
+		sum++;
 
-			logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
+		// commit transaction after 100 nodes
+		if (count++ == 100) {
+
+			logger.log(Level.INFO, "Committing transaction after {0} objects..", sum);
 
 			count = 0;
 
