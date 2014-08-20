@@ -22,9 +22,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -44,6 +47,9 @@ public class SetPermissionCommand extends AbstractCommand {
 		StructrWebSocket.addCommand(SetPermissionCommand.class);
 
 	}
+
+	private Tx tx     = null;
+	private int count = 0;
 
 	//~--- methods --------------------------------------------------------
 	@Override
@@ -75,16 +81,36 @@ public class SetPermissionCommand extends AbstractCommand {
 
 		if (obj != null) {
 
-			if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.accessControl)) {
+			final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
+			try (final Tx tx = app.tx()) {
 
-				logger.log(Level.WARNING, "No access control permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
-				getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
-				return;
+				if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.accessControl)) {
 
+					logger.log(Level.WARNING, "No access control permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+					getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
+					tx.success();
+
+					return;
+
+				}
+
+				tx.success();
+
+			} catch (FrameworkException ex) {
+				ex.printStackTrace();
 			}
 
 			try {
-				setPermission(obj, principal, action, permission, rec);
+
+				setPermission(app, obj, principal, action, Permission.valueOf(permission), rec);
+
+				logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
+
+				// commit and close transaction
+				tx.success();
+				tx.close();
+				tx = null;
+
 				webSocketData.setResult(Arrays.asList(principal));
 
 				// send only over local connection (no broadcast)
@@ -106,7 +132,11 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
+
 	@Override
 	public String getCommand() {
 
@@ -114,27 +144,45 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
-	private void setPermission(final AbstractNode obj, final Principal principal, final String action, final String permission, final boolean rec) throws FrameworkException {
+	private void setPermission(final App app, final AbstractNode obj, final Principal principal, final String action, final Permission permission, final boolean rec) throws FrameworkException {
+
+		// create new transaction if not already present
+		if (tx == null) {
+			tx = app.tx();
+		}
 
 		switch (action) {
+
 			case "grant":
-				principal.grant(Permission.valueOf(permission), obj);
+				principal.grant(permission, obj);
 				break;
+
 			case "revoke":
-				principal.revoke(Permission.valueOf(permission), obj);
+				principal.revoke(permission, obj);
 				break;
 		}
 
-		if (rec) {
-			if (obj instanceof LinkedTreeNode) {
-				LinkedTreeNode ltn = (LinkedTreeNode) obj;
+		// commit transaction after 1000 nodes
+		if (count++ > 1000) {
 
-				for (Object t : ltn.treeGetChildren()) {
+			logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
 
-					setPermission((AbstractNode) t, principal, action, permission, rec);
+			count = 0;
 
-				}
+			// commit and close old transaction
+			tx.success();
+			tx.close();
+
+			// create new transaction
+			tx = app.tx();
+		}
+
+		if (rec && obj instanceof LinkedTreeNode) {
+
+			for (final Object t : ((LinkedTreeNode) obj).treeGetChildren()) {
+
+				setPermission(app, (AbstractNode) t, principal, action, permission, rec);
+
 			}
 		}
 

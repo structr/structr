@@ -23,8 +23,11 @@ import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.websocket.StructrWebSocket;
@@ -46,25 +49,39 @@ public class UpdateCommand extends AbstractCommand {
 
 	}
 
+	private Tx tx     = null;
+	private int count = 0;
+
 	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		GraphObject obj = getNode(webSocketData.getId());
-		Boolean recValue = (Boolean) webSocketData.getNodeData().get("recursive");
-
-		boolean rec = recValue != null ? recValue : false;
+		final App app          = StructrApp.getInstance(getWebSocket().getSecurityContext());
+		final Boolean recValue = (Boolean) webSocketData.getNodeData().get("recursive");
+		final boolean rec      = recValue != null ? recValue : false;
+		GraphObject obj        = getNode(webSocketData.getId());
 
 		webSocketData.getNodeData().remove("recursive");
 
 		if (obj != null) {
 
-			if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.write)) {
+			try (final Tx tx = app.tx()) {
 
-				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
-				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
-				return;
+				if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.write)) {
 
+					getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
+					logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+
+					tx.success();
+					return;
+
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
 			}
 
 		}
@@ -79,7 +96,14 @@ public class UpdateCommand extends AbstractCommand {
 
 			try {
 
-				setProperties(obj, PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData()), rec);
+				setProperties(app, obj, PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData()), rec);
+
+				logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
+
+				// commit and close transaction
+				tx.success();
+				tx.close();
+				tx = null;
 
 			} catch (FrameworkException ex) {
 
@@ -97,7 +121,11 @@ public class UpdateCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
+
 	@Override
 	public String getCommand() {
 
@@ -106,24 +134,45 @@ public class UpdateCommand extends AbstractCommand {
 	}
 
 	//~--- set methods ----------------------------------------------------
-	private void setProperties(final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
+	private void setProperties(final App app, final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
+
+		// create new transaction if not already present
+		if (tx == null) {
+			tx = app.tx();
+		}
 
 		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
 			PropertyKey key = entry.getKey();
-			Object value = entry.getValue();
+			Object value    = entry.getValue();
 
 			obj.setProperty(key, value);
+		}
 
-			if (rec && obj instanceof LinkedTreeNode) {
+		// commit transaction after 1000 nodes
+		if (count++ > 1000) {
 
-				LinkedTreeNode node = (LinkedTreeNode) obj;
+			logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
 
-				for (Object child : node.treeGetChildren()) {
+			count = 0;
 
-					setProperties((GraphObject) child, properties, true);
+			// commit and close old transaction
+			tx.success();
+			tx.close();
 
-				}
+			// create new transaction
+			tx = app.tx();
+		}
+
+
+		if (rec && obj instanceof LinkedTreeNode) {
+
+			LinkedTreeNode node = (LinkedTreeNode) obj;
+
+			for (Object child : node.treeGetChildren()) {
+
+				setProperties(app, (GraphObject) child, properties, true);
+
 			}
 		}
 	}

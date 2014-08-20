@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Widget;
@@ -123,9 +124,13 @@ public abstract class AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 
-		try {
+		try (final Tx tx = app.tx()) {
 
-			return (AbstractNode)app.get(id);
+			final AbstractNode node = (AbstractNode)app.get(id);
+
+			tx.success();
+
+			return node;
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get node", fex);
@@ -150,9 +155,13 @@ public abstract class AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 
-		try {
+		try (final Tx tx = app.tx()) {
 
-			return (AbstractRelationship)app.get(id);
+			final AbstractRelationship rel = (AbstractRelationship)app.get(id);
+
+			tx.success();
+
+			return rel;
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get relationship", fex);
