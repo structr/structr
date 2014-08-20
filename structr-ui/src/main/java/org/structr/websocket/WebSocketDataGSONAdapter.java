@@ -162,28 +162,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		// UPDATE only, serialize only removed and modified properties and use the correct values
 		if ((src.getGraphObject() != null)) {
 
-			GraphObject graphObject = src.getGraphObject();
-
 			if (!src.getModifiedProperties().isEmpty()) {
 
 				for (PropertyKey modifiedKey : src.getModifiedProperties()) {
-
 					modifiedProperties.add(toJsonPrimitive(modifiedKey));
-
-//					Object newValue = graphObject.getProperty(modifiedKey);
-//
-//					if (newValue != null) {
-//
-//						if (graphObject instanceof AbstractNode) {
-//
-//							src.getNodeData().put(modifiedKey.jsonName(), newValue);
-//						} else {
-//
-//							src.getRelData().put(modifiedKey.jsonName(), newValue);
-//						}
-//
-//					}
-
 				}
 
 				root.add("modifiedProperties", modifiedProperties);
@@ -193,7 +175,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			if (!src.getRemovedProperties().isEmpty()) {
 
 				for (PropertyKey removedKey : src.getRemovedProperties()) {
-
 					removedProperties.add(toJsonPrimitive(removedKey));
 				}
 
@@ -277,15 +258,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
 
 		}
-
-		// serialize result tree
-//		if (src.getResultTree() != null) {
-//
-//			TreeNode node = src.getResultTree();
-//
-//			root.add("root", buildTree(node, context));
-//
-//		}
 
 		return root;
 

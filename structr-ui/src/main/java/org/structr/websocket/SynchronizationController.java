@@ -132,7 +132,7 @@ public class SynchronizationController implements StructrTransactionListener {
 					message = gson.toJson(webSocketData, WebSocketMessage.class);
 				}
 
-				// logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
+				//logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
 				try {
 
 					session.getRemote().sendString(message);
@@ -140,9 +140,9 @@ public class SynchronizationController implements StructrTransactionListener {
 				} catch (Throwable t) {
 
 					if (t instanceof WebSocketException) {
-						
+
 						WebSocketException wse = (WebSocketException) t;
-						
+
 						if ("RemoteEndpoint unavailable, current state [CLOSED], expecting [OPEN or CONNECTED]".equals(wse.getMessage())) {
 							clientsToRemove.add(socket);
 						}
@@ -156,9 +156,9 @@ public class SynchronizationController implements StructrTransactionListener {
 		}
 
 		for (StructrWebSocket s : clientsToRemove) {
-			
+
 			unregisterClient(s);
-			
+
 			logger.log(Level.WARNING, "Client removed from broadcast list: {0}", s);
 		}
 

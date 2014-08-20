@@ -37,9 +37,9 @@ import org.structr.websocket.command.AbstractCommand;
  * @author Axel Morgner
  */
 public class DOMNodeChildrenCommand extends AbstractCommand {
-	
+
 	static {
-		
+
 		StructrWebSocket.addCommand(DOMNodeChildrenCommand.class);
 
 	}
@@ -53,14 +53,14 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 			return;
 		}
-		
-		List<GraphObject> result          = new LinkedList<GraphObject>();
-		DOMNode currentNode = (DOMNode) node.getFirstChild();
-		
+
+		List<GraphObject> result = new LinkedList<>();
+		DOMNode currentNode      = (DOMNode) node.getFirstChild();
+
 		while (currentNode != null) {
 
 			result.add(currentNode);
-			
+
 			currentNode = (DOMNode) currentNode.getNextSibling();
 
 		}

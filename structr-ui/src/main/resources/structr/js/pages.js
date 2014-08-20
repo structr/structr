@@ -572,7 +572,7 @@ var _Pages = {
     },
     appendPageElement: function(entity) {
 
-        var hasChildren = entity.children.length;
+        var hasChildren = true; //entity.children && entity.children.length;
 
 
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');

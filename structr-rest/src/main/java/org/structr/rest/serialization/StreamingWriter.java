@@ -50,7 +50,7 @@ public abstract class StreamingWriter {
 
 	private static final Logger logger                   = Logger.getLogger(StreamingWriter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
-	private static final Set<PropertyKey> idNameOnly         = new LinkedHashSet<>();
+	private static final Set<PropertyKey> idNameOnly     = new LinkedHashSet<>();
 
 	static {
 

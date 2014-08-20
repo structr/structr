@@ -48,7 +48,7 @@ public class ChildrenCommand extends AbstractCommand {
 		StructrWebSocket.addCommand(ChildrenCommand.class);
 
 	}
-	
+
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
@@ -60,8 +60,9 @@ public class ChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		Iterable<RelationshipInterface> rels = new IterableAdapter<>(node.getNode().getRelationships(RelType.CONTAINS, Direction.OUTGOING), factory);
-		List<GraphObject> result             = new LinkedList();
+		final Iterable<RelationshipInterface> rels = new IterableAdapter<>(node.getNode().getRelationships(RelType.CONTAINS, Direction.OUTGOING), factory);
+		final List<GraphObject> result             = new LinkedList();
+		int count                                  = 0;
 
 		for (RelationshipInterface rel : rels) {
 
@@ -71,8 +72,11 @@ public class ChildrenCommand extends AbstractCommand {
 				continue;
 			}
 
-			result.add(endNode);
+			if (count++ == 100) {
+				break;
+			}
 
+			result.add(endNode);
 		}
 
 		webSocketData.setView(PropertyView.Ui);

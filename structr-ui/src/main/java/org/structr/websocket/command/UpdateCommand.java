@@ -151,7 +151,7 @@ public class UpdateCommand extends AbstractCommand {
 		sum++;
 
 		// commit transaction after 100 nodes
-		if (count++ == 100) {
+		if (++count == 100) {
 
 			logger.log(Level.INFO, "Committing transaction after {0} objects..", sum);
 
@@ -161,8 +161,8 @@ public class UpdateCommand extends AbstractCommand {
 			tx.success();
 			tx.close();
 
-			// create new transaction
-			tx = app.tx();
+			// create new transaction, do not notify Ui
+			tx = app.tx(true, true, false);
 		}
 
 

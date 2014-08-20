@@ -53,7 +53,7 @@ public class GraphObjectGSONAdapter {
 
 	private static final Logger logger                   = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
-	
+
 	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<>();
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
@@ -64,8 +64,7 @@ public class GraphObjectGSONAdapter {
 	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
 	private JsonWriter writer                            = null;
-	private long startTime                               = 0;
- 	
+
 	//~--- constructors ---------------------------------------------------
 
 	public GraphObjectGSONAdapter(Value<String> propertyView, PropertyKey idProperty, final int outputNestingDepth) {
@@ -79,7 +78,7 @@ public class GraphObjectGSONAdapter {
 		serializers.put(PropertyMap.class, new PropertyMapSerializer());
 		serializers.put(Iterable.class,    new IterableSerializer());
 		serializers.put(Map.class,         new MapSerializer());
-		
+
 		nonSerializerClasses.add(Object.class);
 		nonSerializerClasses.add(String.class);
 		nonSerializerClasses.add(Integer.class);
@@ -97,11 +96,10 @@ public class GraphObjectGSONAdapter {
 	public JsonElement serialize(GraphObject src, long startTime) {
 
 		String localPropertyView  = propertyView.get(null);
-		this.startTime            = startTime;
 
 		// check for timeout
 		if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
-				
+
 			logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
 
 			return null;
@@ -115,7 +113,7 @@ public class GraphObjectGSONAdapter {
 		JsonElement p = null;
 
 		if (value != null) {
-			
+
 			if (value instanceof Number) {
 
 				p = new JsonPrimitive((Number) value);
@@ -141,7 +139,7 @@ public class GraphObjectGSONAdapter {
 
 		return p;
 	}
-	
+
 	private Serializer getSerializerForType(Class type) {
 
 		Class localType       = type;
@@ -151,7 +149,7 @@ public class GraphObjectGSONAdapter {
 
 			do {
 				serializer = serializers.get(localType);
-				
+
 				if (serializer == null) {
 
 					Set<Class> interfaces = new LinkedHashSet<>();
@@ -166,52 +164,52 @@ public class GraphObjectGSONAdapter {
 						}
 					}
 				}
-				
+
 				localType = localType.getSuperclass();
 
 			} while (serializer == null && !localType.equals(Object.class));
-			
-			
+
+
 			// cache found serializer
 			if (serializer != null) {
 				serializerCache.put(type, serializer);
 			}
 		}
-		
+
 		return serializer;
 	}
-	
+
 	private void collectAllInterfaces(Class type, Set<Class> interfaces) {
 
 		if (interfaces.contains(type)) {
 			return;
 		}
-		
+
 		for (Class iface : type.getInterfaces()) {
-			
+
 			collectAllInterfaces(iface, interfaces);
 			interfaces.add(iface);
 		}
 	}
-	
+
 	public abstract class Serializer<T> {
-		
+
 		public abstract JsonElement serialize(T value, String localPropertyView, int depth);
-		
+
 		public JsonElement serializeRoot(Object value, String localPropertyView, int depth) {
 
 			if (value != null) {
-				
+
 				Serializer serializer = getSerializerForType(value.getClass());
 				if (serializer != null) {
 
 					return serializer.serialize(value, localPropertyView, depth+1);
 				}
 			}
-			
+
 			return toPrimitive(value);
 		}
-		
+
 		public JsonElement serializeProperty(PropertyKey key, Object value, String localPropertyView, int depth) {
 
 			try {
@@ -240,16 +238,78 @@ public class GraphObjectGSONAdapter {
 					t.getMessage()
 				});
 			}
-			
+
 			return null;
 		}
 	}
-	
+
 	public class RootSerializer extends Serializer<GraphObject> {
 
 		@Override
 		public JsonElement serialize(GraphObject source, String localPropertyView, int depth) {
-			
+
+			JsonObject jsonObject = new JsonObject();
+
+			// prevent endless recursion by pruning at depth n
+			if (depth > outputNestingDepth) {
+
+				jsonObject.add("id", new JsonPrimitive(source.getUuid()));
+
+			} else {
+
+				// id (only if idProperty is not set)
+				if (idProperty == null) {
+
+					jsonObject.add("id", new JsonPrimitive(source.getId()));
+
+				} else {
+
+					Object idPropertyValue = source.getProperty(idProperty);
+
+					if (idPropertyValue != null) {
+
+						String idString = idPropertyValue.toString();
+
+						jsonObject.add("id", new JsonPrimitive(idString));
+
+					}
+
+				}
+
+				// property keys
+				Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
+				if (keys != null) {
+					for (PropertyKey key : keys) {
+
+						Object value = source.getProperty(key);
+						PropertyKey localKey = key;
+
+						if (localKey.equals(idProperty)) {
+
+							localKey = id;
+						}
+
+						if (value != null) {
+
+							jsonObject.add(localKey.jsonName(), serializeProperty(key, value, localPropertyView, depth+1));
+
+						} else {
+
+							jsonObject.add(localKey.jsonName(), null);
+						}
+					}
+				}
+			}
+
+			return jsonObject;
+		}
+	}
+
+	public class IterableSerializer extends Serializer<Iterable> {
+
+		@Override
+		public JsonElement serialize(Iterable value, String localPropertyView, int depth) {
+
 			// prevent endless recursion by pruning at depth n
 			if (depth > outputNestingDepth) {
 
@@ -257,119 +317,81 @@ public class GraphObjectGSONAdapter {
 
 			}
 
-			JsonObject jsonObject = new JsonObject();
-
-			// id (only if idProperty is not set)
-			if (idProperty == null) {
-
-				jsonObject.add("id", new JsonPrimitive(source.getId()));
-
-			} else {
-
-				Object idPropertyValue = source.getProperty(idProperty);
-
-				if (idPropertyValue != null) {
-
-					String idString = idPropertyValue.toString();
-
-					jsonObject.add("id", new JsonPrimitive(idString));
-
-				}
-
-			}
-
-			// property keys
-			Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
-			if (keys != null) {
-				for (PropertyKey key : keys) {
-
-					Object value = source.getProperty(key);
-					PropertyKey localKey = key;
-
-					if (localKey.equals(idProperty)) {
-
-						localKey = id;
-					}
-
-					if (value != null) {
-
-						jsonObject.add(localKey.jsonName(), serializeProperty(key, value, localPropertyView, depth));
-
-					} else {
-
-						jsonObject.add(localKey.jsonName(), null);
-
-					}
-
-				}
-			}
-
-			return jsonObject;
-		}
-	}
-	
-	public class IterableSerializer extends Serializer<Iterable> {
-
-		@Override
-		public JsonElement serialize(Iterable value, String localPropertyView, int depth) {
-
 			JsonArray array = new JsonArray();
-			
+
 			for (Object o : value) {
-				
+
 				array.add(serializeRoot(o, localPropertyView, depth));
 			}
-			
+
 			return array;
 		}
 	}
-	
+
 	public class MapSerializer extends Serializer {
 
 		@Override
 		public JsonElement serialize(Object source, String localPropertyView, int depth) {
 
 			JsonObject object = new JsonObject();
-			
-			for (Entry<String, Object> entry : ((Map<String, Object>)source).entrySet()) {
-				
-				String key = entry.getKey();
-				Object value = entry.getValue();
-				
-				// id property mapping again..
-				if (idProperty.jsonName().equals(key)) {
-					key = "id";
+
+			// prevent endless recursion by pruning at depth n
+			if (depth > outputNestingDepth) {
+
+				final Object value = ((Map<String, Object>)source).get("id");
+				object.add("id", toPrimitive(value));
+
+			} else {
+
+				for (Entry<String, Object> entry : ((Map<String, Object>)source).entrySet()) {
+
+					String key = entry.getKey();
+					Object value = entry.getValue();
+
+					// id property mapping again..
+					if (idProperty.jsonName().equals(key)) {
+						key = "id";
+					}
+
+					object.add(key, serializeRoot(value, localPropertyView, depth));
 				}
-				
-				object.add(key, serializeRoot(value, localPropertyView, depth));
 			}
-			
+
 			return object;
 		}
 	}
-	
+
 	public class PropertyMapSerializer extends Serializer<PropertyMap> {
-		
+
 		public PropertyMapSerializer() {}
 
 		@Override
 		public JsonElement serialize(PropertyMap source, String localPropertyView, int depth) {
 
 			JsonObject object = new JsonObject();
-			
-			for (Entry<PropertyKey, Object> entry : source.entrySet()) {
-				
-				PropertyKey key = entry.getKey();
-				if (key.equals(idProperty)) {
 
-					key = id;
+			// prevent endless recursion by pruning at depth n
+			if (depth > outputNestingDepth) {
+
+				final Object value = ((Map<String, Object>)source).get("id");
+				object.add("id", toPrimitive(value));
+
+			} else {
+
+				for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+
+					PropertyKey key = entry.getKey();
+					if (key.equals(idProperty)) {
+
+						key = id;
+					}
+
+					Object value = entry.getValue();
+
+					object.add(key.jsonName(), serializeProperty(key, value, localPropertyView, depth));
 				}
-				
-				Object value = entry.getValue();
-				
-				object.add(key.jsonName(), serializeProperty(key, value, localPropertyView, depth));
 			}
-			
+
 			return object;
 		}
 	}
