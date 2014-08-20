@@ -104,8 +104,6 @@ public class SetPermissionCommand extends AbstractCommand {
 
 				setPermission(app, obj, principal, action, Permission.valueOf(permission), rec);
 
-				logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
-
 				// commit and close transaction
 				tx.success();
 				tx.close();
@@ -162,8 +160,8 @@ public class SetPermissionCommand extends AbstractCommand {
 				break;
 		}
 
-		// commit transaction after 1000 nodes
-		if (count++ > 1000) {
+		// commit transaction after 100 nodes
+		if (count++ > 100) {
 
 			logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
 

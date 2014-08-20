@@ -149,8 +149,8 @@ public class UpdateCommand extends AbstractCommand {
 			obj.setProperty(key, value);
 		}
 
-		// commit transaction after 1000 nodes
-		if (count++ > 1000) {
+		// commit transaction after 100 nodes
+		if (count++ > 100) {
 
 			logger.log(Level.INFO, "Committing transaction after {0} objects..", count);
 
