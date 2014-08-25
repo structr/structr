@@ -62,7 +62,6 @@ public class ChildrenCommand extends AbstractCommand {
 
 		final Iterable<RelationshipInterface> rels = new IterableAdapter<>(node.getNode().getRelationships(RelType.CONTAINS, Direction.OUTGOING), factory);
 		final List<GraphObject> result             = new LinkedList();
-		int count                                  = 0;
 
 		for (RelationshipInterface rel : rels) {
 
@@ -70,10 +69,6 @@ public class ChildrenCommand extends AbstractCommand {
 			if (endNode == null) {
 
 				continue;
-			}
-
-			if (count++ == 100) {
-				break;
 			}
 
 			result.add(endNode);
