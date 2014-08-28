@@ -19,6 +19,7 @@ package org.structr.web.entity.dom;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -37,12 +38,14 @@ import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import static org.structr.core.GraphObject.id;
 import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.notion.PropertyNotion;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -62,6 +65,7 @@ import org.structr.web.entity.Renderable;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
+import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -95,6 +99,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC = "Document nodes cannot be adopted by another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME = "Renaming of nodes is not supported by this implementation.";
 
+	public static final Property<List<DOMNode>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
+	public static final Property<DOMNode> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
+
 	public static final Property<Boolean> hideOnIndex = new BooleanProperty("hideOnIndex").indexed();
 	public static final Property<Boolean> hideOnDetail = new BooleanProperty("hideOnDetail").indexed();
 	public static final Property<String> showForLocales = new StringProperty("showForLocales").indexed();
@@ -122,6 +129,44 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	static {
 
 		// extend set of builtin functions
+		
+		Functions.functions.put("render", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length == 1) {
+					
+					RenderContext innerCtx = new RenderContext((RenderContext) ctx);
+					
+					if (sources[0] instanceof DOMNode) {
+
+						((DOMNode) sources[0]).render(entity.getSecurityContext(), innerCtx, 0);
+					
+					} else if (sources[0] instanceof Collection) {
+						
+						for (final Object obj : (Collection) sources[0]) {
+							
+							if (obj instanceof DOMNode) {
+								((DOMNode) obj).render(entity.getSecurityContext(), innerCtx, 0);
+							}
+							
+						}
+					
+					}
+					
+					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
+				}
+
+				return usage();
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
+			}
+		});
+		
 		Functions.functions.put("GET", new Function<Object, Object>() {
 
 			@Override
@@ -180,7 +225,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			@Override
 			public String usage() {
-				return "ERROR! Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
+				return "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
 			}
 		});
 	}

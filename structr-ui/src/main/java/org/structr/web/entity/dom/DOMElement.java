@@ -93,9 +93,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
-	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMElement> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
-
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(1000);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
 	private static final String lowercaseBodyName = Body.class.getSimpleName().toLowerCase();
@@ -1061,7 +1058,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		for (Sync rel : getOutgoingRelationships(Sync.class)) {
 
-			DOMElement syncedNode = rel.getTargetNode();
+			DOMElement syncedNode = (DOMElement) rel.getTargetNode();
 
 			// sync HTML properties only
 			for (Property htmlProp : syncedNode.getHtmlAttributes()) {

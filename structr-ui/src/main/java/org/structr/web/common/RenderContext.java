@@ -87,6 +87,30 @@ public class RenderContext extends ActionContext {
 	public RenderContext() {
 	}
 
+	/**
+	 * Create a copy of this render context with a clean buffer.
+	 * 
+	 * @param other The render context to copy from
+	 */
+	public RenderContext(final RenderContext other) {
+		
+		this.dataObjects.putAll(other.dataObjects);
+		this.editMode          = other.editMode;
+		this.inBody            = other.inBody;
+		this.appLibRendered    = other.appLibRendered;
+		this.detailsDataObject = other.detailsDataObject;
+		this.currentDataObject = other.currentDataObject;
+		this.sourceDataObject  = other.sourceDataObject;
+		this.listSource        = other.listSource;
+		this.relatedProperty   = other.relatedProperty;
+		this.page              = other.page;
+		this.request           = other.request;
+		this.response          = other.response;
+		this.resourceProvider  = other.resourceProvider;
+		this.result            = other.result;
+		
+	}
+
 	public RenderContext(final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
 
 		this.request    = request;

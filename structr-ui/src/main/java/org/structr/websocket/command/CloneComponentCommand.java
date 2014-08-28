@@ -46,7 +46,6 @@ public class CloneComponentCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext	= getWebSocket().getSecurityContext();
 		String id				= webSocketData.getId();
 		Map<String, Object> nodeData		= webSocketData.getNodeData();
 		String parentId				= (String) nodeData.get("parentId");
@@ -81,13 +80,13 @@ public class CloneComponentCommand extends AbstractCommand {
 		}
 
 
-		final DOMElement node = (DOMElement) getDOMNode(id);
+		final DOMNode node = getDOMNode(id);
 
 		try {
 
-			DOMElement clonedNode = (DOMElement) node.cloneNode(false);
+			DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 			parentNode.appendChild(clonedNode);
-			clonedNode.setProperty(DOMElement.sharedComponent, node);
+			clonedNode.setProperty(DOMNode.sharedComponent, node);
 			
 		} catch (FrameworkException ex) {
 

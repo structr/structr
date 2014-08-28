@@ -572,8 +572,7 @@ var _Pages = {
     },
     appendPageElement: function(entity) {
 
-        var hasChildren = true; //entity.children && entity.children.length;
-
+        var hasChildren = entity.children && entity.children.length;
 
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
         var div = Structr.node(entity.id);
@@ -820,79 +819,81 @@ var _Pages = {
             });
 
         });
-
-        div.droppable({
-            accept: '#add_html, .html_element',
-            greedy: true,
-            hoverClass: 'nodeHover',
-            tolerance: 'pointer',
-            drop: function(event, ui) {
-
-                var self = $(this);
-                log('dropped onto', self);
-                // Only html elements are allowed, and only if none exists
-
-                if (getId(self) === getId(sortParent))
-                    return false;
-
-                _Entities.ensureExpanded(self);
-                sorting = false;
-                sortParent = undefined;
-
-                var nodeData = {};
-
-                var page = self.closest('.page')[0];
-
-                var contentId = getId(ui.draggable);
-                var elementId = getId(self);
-                log('elementId', elementId);
-
-                var source = StructrModel.obj(contentId);
-                var target = StructrModel.obj(elementId);
-
-                if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    Command.copyDOMNode(source.id, target.id);
-                    //_Entities.showSyncDialog(source, target);
-                    _Elements.reloadComponents();
-                    return;
-                } else {
-                    log('not copying node');
-                }
-
-                if (contentId === elementId) {
-                    log('drop on self not allowed');
-                    return;
-                }
-
-                var tag;
-                var cls = Structr.getClass($(ui.draggable));
-
-                if (!contentId) {
-                    tag = $(ui.draggable).text();
-
-                    if (tag !== 'html') {
-                        return false;
-                    }
-
-                    var pageId = (page ? getId(page) : target.pageId);
-
-                    Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
-                    return;
-
-                } else {
-                    tag = cls;
-                    log('appendChild', contentId, elementId);
-                    sorting = false;
-                    Command.appendChild(contentId, elementId);
-                    //$(ui.draggable).remove();
-
-                    return;
-                }
-                log('drop event in appendPageElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
-            }
-        });
+        
+        _Dragndrop.makeDroppable(div);
+        
+//        div.droppable({
+//            accept: '#add_html, .html_element, .template',
+//            greedy: true,
+//            hoverClass: 'nodeHover',
+//            tolerance: 'pointer',
+//            drop: function(event, ui) {
+//
+//                var self = $(this);
+//                log('dropped onto', self);
+//                // Only html elements are allowed, and only if none exists
+//
+//                if (getId(self) === getId(sortParent))
+//                    return false;
+//
+//                _Entities.ensureExpanded(self);
+//                sorting = false;
+//                sortParent = undefined;
+//
+//                var nodeData = {};
+//
+//                var page = self.closest('.page')[0];
+//
+//                var contentId = getId(ui.draggable);
+//                var elementId = getId(self);
+//                log('elementId', elementId);
+//
+//                var source = StructrModel.obj(contentId);
+//                var target = StructrModel.obj(elementId);
+//
+//                if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
+//                    event.preventDefault();
+//                    event.stopPropagation();
+//                    Command.copyDOMNode(source.id, target.id);
+//                    //_Entities.showSyncDialog(source, target);
+//                    _Elements.reloadComponents();
+//                    return;
+//                } else {
+//                    log('not copying node');
+//                }
+//
+//                if (contentId === elementId) {
+//                    log('drop on self not allowed');
+//                    return;
+//                }
+//
+//                var tag;
+//                var cls = Structr.getClass($(ui.draggable));
+//
+//                if (!contentId) {
+//                    tag = $(ui.draggable).text();
+//
+//                    if (tag !== 'html') {
+//                        return false;
+//                    }
+//
+//                    var pageId = (page ? getId(page) : target.pageId);
+//
+//                    Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
+//                    return;
+//
+//                } else {
+//                    tag = cls;
+//                    log('appendChild', contentId, elementId);
+//                    sorting = false;
+//                    Command.appendChild(contentId, elementId);
+//                    //$(ui.draggable).remove();
+//
+//                    return;
+//                }
+//                log('drop event in appendPageElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
+//            }
+//        });
 
         return div;
 

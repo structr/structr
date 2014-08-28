@@ -27,8 +27,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
@@ -92,6 +94,20 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						
 						newNode = (DOMNode) document.createComment("#comment");
 						
+					} else if (tagName != null && "template".equals(tagName)) {
+						
+						newNode = (DOMNode) document.createTextNode("#template");
+	
+						try {
+						
+							newNode.setProperty(NodeInterface.type, Template.class.getSimpleName());
+						
+						} catch (FrameworkException fex) {
+
+							logger.log(Level.WARNING, "Unable to set type of node {1} to Template: {3}", new Object[] { newNode.getUuid(), fex.getMessage() } );
+
+						}
+						
 					} else if (tagName != null && !tagName.isEmpty()) {
 
 						newNode = (DOMNode) document.createElement(tagName);
@@ -101,6 +117,9 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						newNode = (DOMNode) document.createTextNode("#text");
 					}
 
+					// Instantiate node again to get correct class
+					newNode = getDOMNode(newNode.getUuid());
+					
 					// append new node to parent
 					if (newNode != null) {
 

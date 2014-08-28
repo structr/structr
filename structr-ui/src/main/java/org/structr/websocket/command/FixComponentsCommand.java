@@ -99,13 +99,13 @@ public class FixComponentsCommand extends AbstractCommand {
 				
 				try {
 				
-					DOMElement clonedNode = (DOMElement) node.cloneNode(false);
+					DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 
 					moveChildNodes(node, clonedNode);
 					clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
 
-					createRel.execute((DOMElement) node, clonedNode, Sync.class);
-					createRel.execute(clonedNode, (DOMElement) node, Sync.class);
+					createRel.execute((DOMNode) node, clonedNode, Sync.class);
+					createRel.execute(clonedNode, (DOMNode) node, Sync.class);
 					
 				} catch (Exception ex) {
 					

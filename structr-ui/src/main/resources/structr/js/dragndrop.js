@@ -103,7 +103,7 @@ var _Dragndrop = {
                     target = {id: targetId};
                 }
 
-                log(source, target, pageId, tag, related);
+                console.log(source, target, pageId, tag, related);
                 if (_Dragndrop.dropAction(source, target, pageId, tag, related)) {
                     $(ui.draggable).remove();
                     sortParent = undefined;

@@ -54,7 +54,7 @@ var _Elements = {
     elementGroups: [
         {
             'name': 'Root',
-            'elements': ['html', 'content', 'comment']
+            'elements': ['html', 'content', 'comment', 'template']
         },
         {
             'name': 'Metadata',
@@ -236,9 +236,9 @@ var _Elements = {
                 var sourceId = getId(sourceEl);
                 if (!sourceId) return false;
                 var obj = StructrModel.obj(sourceId);
-                if (obj.type === 'Content' || obj.type === 'Comment') {
-                    return false;
-                }
+//                if (obj.type === 'Content' || obj.type === 'Comment') {
+//                    return false;
+//                }
                 if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
                     log('component dropped on components area, aborting');
                     return false;
@@ -257,10 +257,17 @@ var _Elements = {
                 return false;
 
             var obj = StructrModel.create(entity, null, false);
-            var el = _Pages.appendElementElement(obj, components, true);
+            var el;
+            console.log(obj);
+            if (obj.type === 'Content' || obj.type === 'Template') {
+                el = _Contents.appendContentElement(obj, components, true);
+            } else {
+                el = _Pages.appendElementElement(obj, components, true);
 
-            if (isExpanded(entity.id)) {
-                _Entities.ensureExpanded(el);
+                if (isExpanded(entity.id)) {
+                    _Entities.ensureExpanded(el);
+                }
+
             }
 
         });

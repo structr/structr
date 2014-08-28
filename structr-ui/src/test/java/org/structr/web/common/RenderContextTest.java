@@ -247,6 +247,8 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("true", p1.replaceVariables(securityContext, ctx, "${if(true, true, false)}"));
 			assertEquals("false", p1.replaceVariables(securityContext, ctx, "${if(false, true, false)}"));
 
+			assertEquals("${element} should evaluate to the current DOM node", p1.toString(), p1.replaceVariables(securityContext, ctx, "${element}"));
+
 			assertNull(p1.replaceVariables(securityContext, ctx, "${if(true, null, \"no\")}"));
 			assertNull(p1.replaceVariables(securityContext, ctx, "${null}"));
 

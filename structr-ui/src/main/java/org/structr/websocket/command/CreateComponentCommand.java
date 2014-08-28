@@ -48,17 +48,15 @@ public class CreateComponentCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app                         = StructrApp.getInstance(securityContext);
 		String id                             = webSocketData.getId();
 
 		if (id != null) {
 
-			final DOMElement node = (DOMElement) getDOMNode(id);
+			final DOMNode node = (DOMNode) getDOMNode(id);
 
 			try {
 
-				DOMElement clonedNode = (DOMElement) node.cloneNode(false);
+				DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 				moveChildNodes(node, clonedNode);
 
 				ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
@@ -69,7 +67,7 @@ public class CreateComponentCommand extends AbstractCommand {
 					child.setProperty((DOMNode.ownerDocument), hiddenDoc);
 				}
 
-				node.setProperty(DOMElement.sharedComponent, clonedNode);
+				node.setProperty(DOMNode.sharedComponent, clonedNode);
 				
 			} catch (FrameworkException ex) {
 

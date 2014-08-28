@@ -26,22 +26,22 @@ import org.structr.core.entity.OneToMany;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Sync extends OneToMany<DOMElement, DOMElement> implements Syncable {
+public class Sync extends OneToMany<DOMNode, DOMNode> implements Syncable {
 
 	@Override
-	public Class<DOMElement> getSourceType() {
-		return DOMElement.class;
+	public Class<DOMNode> getSourceType() {
+		return DOMNode.class;
 	}
 
 	@Override
-	public Class<DOMElement> getTargetType() {
-		return DOMElement.class;
+	public Class<DOMNode> getTargetType() {
+		return DOMNode.class;
 	}
 
 	@Override

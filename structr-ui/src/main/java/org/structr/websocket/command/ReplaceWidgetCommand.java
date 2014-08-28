@@ -148,13 +148,13 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	 */
 	private void moveSyncRels(final DOMElement source, final DOMElement target) throws FrameworkException {
 
-		List<DOMElement> syncedNodes = source.getProperty(DOMElement.syncedNodes);
+		List<DOMNode> syncedNodes = source.getProperty(DOMNode.syncedNodes);
 		
 		if (syncedNodes != null) {
 		
-			for (DOMElement syncedNode : syncedNodes) {
+			for (DOMNode syncedNode : syncedNodes) {
 
-				List<DOMElement> masterNodes = syncedNode.getProperty(DOMElement.syncedNodes);
+				List<DOMNode> masterNodes = syncedNode.getProperty(DOMElement.syncedNodes);
 				//masterNodes.remove(source);
 				masterNodes.add(target);
 				syncedNode.setProperty(DOMElement.syncedNodes, masterNodes);

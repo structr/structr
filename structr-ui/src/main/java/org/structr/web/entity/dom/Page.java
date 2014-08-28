@@ -197,7 +197,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT);
 		}
 
-		if (!(otherNode instanceof Html || otherNode instanceof Comment)) {
+		if (!(otherNode instanceof Html || otherNode instanceof Comment || otherNode instanceof Template)) {
 
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 		}
@@ -665,10 +665,19 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		renderContext.setPage(this);
 
-		renderContext.getBuffer().append("<!DOCTYPE html>\n");
-
 		// Skip DOCTYPE node
 		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();
+
+		if (subNode == null) {
+			
+			subNode = (DOMNode) super.getFirstChild();
+			
+			
+		} else {
+
+			renderContext.getBuffer().append("<!DOCTYPE html>\n");
+
+		}
 
 		while (subNode != null) {
 
@@ -680,7 +689,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			subNode = (DOMNode) subNode.getNextSibling();
 
 		}
-
+			
 	}
 
 	@Override

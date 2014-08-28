@@ -129,13 +129,13 @@ public class ActionContextTest extends StructrTest {
 			final ActionContext ctx = new ActionContext(testOne, null);
 
 			// test for "empty" return value
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${err}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.error}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.this.this.error}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.error}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.owner}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.alwaysNull}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.owner}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${err}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.error}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.this.this.error}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.error}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.owner}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.alwaysNull}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.owner}"));
 
 			assertEquals("${this} should evaluate to the current node", testOne.toString(), testOne.replaceVariables(securityContext, ctx, "${this}"));
 			assertEquals("${parent} should evaluate to the context parent node", testOne.toString(), testOne.replaceVariables(securityContext, ctx, "${parent}"));

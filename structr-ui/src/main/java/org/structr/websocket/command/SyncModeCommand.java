@@ -25,7 +25,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
 import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
@@ -49,8 +49,8 @@ public class SyncModeCommand extends AbstractCommand {
 		Map<String, Object> properties        = webSocketData.getNodeData();
 		String targetId                       = (String) properties.get("targetId");
 		final String syncMode                 = (String) properties.get("syncMode");
-		final DOMElement sourceNode           = (DOMElement) getNode(sourceId);
-		final DOMElement targetNode           = (DOMElement) getNode(targetId);
+		final DOMNode sourceNode              = (DOMNode) getNode(sourceId);
+		final DOMNode targetNode              = (DOMNode) getNode(targetId);
 		final App app                         = StructrApp.getInstance(securityContext);
 
 		if ((sourceNode != null) && (targetNode != null)) {
