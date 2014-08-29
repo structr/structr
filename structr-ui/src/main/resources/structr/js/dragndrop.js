@@ -121,7 +121,7 @@ var _Dragndrop = {
 
         var sortableOptions = {
             iframeFix: true,
-            sortable: '.node',
+            //sortable: '.node',
             appendTo: '#main',
             helper: 'clone',
             zIndex: 99,
@@ -129,11 +129,12 @@ var _Dragndrop = {
             start: function(event, ui) {
                 sorting = true;
                 sortParent = $(ui.item).parent();
+                console.log('### sortable start: sorting?', sorting, getId(el), getId(self), getId(sortParent));
             },
             update: function(event, ui) {
 
                 var el = $(ui.item);
-                //console.log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent));
+                console.log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent));
                 if (!sorting)
                     return false;
 

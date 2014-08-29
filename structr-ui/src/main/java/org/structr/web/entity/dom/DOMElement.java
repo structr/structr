@@ -66,6 +66,7 @@ import org.structr.web.datasource.IdRequestParameterGraphDataSource;
 import org.structr.web.datasource.NodeGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
+import static org.structr.web.entity.dom.Content.content;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.relation.PageLink;
@@ -1067,7 +1068,24 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			}
 		}
 
-		try {
+                final Sync rel = getIncomingRelationship(Sync.class);
+                
+                if (rel != null) {
+                
+                    final DOMElement otherNode = (DOMElement) rel.getSourceNode();
+
+                    if (otherNode != null) {
+
+                        // sync both ways
+                        for (Property htmlProp : otherNode.getHtmlAttributes()) {
+
+                                otherNode.setProperty(htmlProp, getProperty(htmlProp));
+                        }
+
+                    }
+                }
+
+                try {
 
 			increasePageVersion();
 

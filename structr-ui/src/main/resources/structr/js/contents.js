@@ -62,11 +62,11 @@ var _Contents = {
         _Dragndrop.makeSortable(div);
         _Dragndrop.makeDroppable(div);
 
-        if (isTemplate && !refNodeIsParent) {
+        if (isTemplate) {
             var hasChildren = entity.childrenIds && entity.childrenIds.length;
             _Entities.appendExpandIcon(div, entity, hasChildren);
         }
-
+        
         _Entities.appendAccessControlIcon(div, entity);
 
         div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
@@ -101,19 +101,20 @@ var _Contents = {
             log('cancelled')
         });
         Command.getProperty(entity.id, 'content', function(text) {
-            console.log(text);
             _Contents.editContent(this, entity, text, dialogText);        
         });
     },
     editContent: function(button, entity, text, element) {
-        if (isDisabled(button))
+        if (isDisabled(button)) {
             return;
+        }
         var div = element.append('<div class="editor"></div>');
         log(div);
         var contentBox = $('.editor', element);
         contentType = contentType ? contentType : entity.contentType;
-        //alert(contentType);
-        var text1, text2, timer;
+        var text1, text2;
+        
+        // Intitialize editor
         editor = CodeMirror(contentBox.get(0), {
             value: text,
             mode: contentType,
@@ -140,12 +141,7 @@ var _Contents = {
 
         editor.on('change', function(cm, change) {
 
-            var contentNode = Structr.node(entity.id)[0];
-
-            text1 = $(contentNode).children('.content_').text();
-            text2 = editor.getValue();
-
-            if (text1 === text2) {
+            if (text === editor.getValue()) {
                 dialogSaveButton.prop("disabled", true).addClass('disabled');
                 saveAndClose.prop("disabled", true).addClass('disabled');
             } else {
@@ -157,9 +153,9 @@ var _Contents = {
         dialogSaveButton.on('click', function(e) {
             e.stopPropagation();
 
-            var contentNode = Structr.node(entity.id)[0];
+            //var contentNode = Structr.node(entity.id)[0];
 
-            text1 = $(contentNode).children('.content_').text();
+            text1 = text;
             text2 = editor.getValue();
 
             if (!text1)
@@ -173,14 +169,19 @@ var _Contents = {
                 console.log('text2', text2);
             }
 
-            if (text1 === text2)
+            if (text1 === text2) {
                 return;
+            }
+            
             Command.patch(entity.id, text1, text2, function() {
                 dialogMsg.html('<div class="infoBox success">Content saved.</div>');
                 $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
                 _Pages.reloadPreviews();
                 dialogSaveButton.prop("disabled", true).addClass('disabled');
                 saveAndClose.prop("disabled", true).addClass('disabled');
+                Command.getProperty(entity.id, 'content', function(newText) {
+                    text = newText;
+                });
             });
 
         });

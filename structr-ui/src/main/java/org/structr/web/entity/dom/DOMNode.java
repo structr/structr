@@ -19,6 +19,7 @@ package org.structr.web.entity.dom;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -59,8 +60,10 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Renderable;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
@@ -167,7 +170,87 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 		});
 		
-		Functions.functions.put("GET", new Function<Object, Object>() {
+                /**
+                 * Conveniance method for ${render(find('DOMNode', 'name', name))}
+                 */
+		Functions.functions.put("include", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (Functions.arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
+					
+					final SecurityContext securityContext = entity.getSecurityContext();
+					final App app                         = StructrApp.getInstance(securityContext);
+
+                                        final RenderContext innerCtx = new RenderContext((RenderContext) ctx);
+                                        
+                                        DOMNode node = app.nodeQuery(DOMNode.class).andName((String) sources[0]).getFirst();
+
+					if (node != null) {
+
+						node.render(entity.getSecurityContext(), innerCtx, 0);
+					
+					} else {
+                                            
+                                            FileBase file = app.nodeQuery(FileBase.class).andName((String) sources[0]).getFirst();
+                                            
+                                            final String name        = file.getProperty(NodeInterface.name);
+                                            final String contentType = file.getProperty(FileBase.contentType);
+                                            final String charset     = StringUtils.substringAfterLast(contentType, "charset=");
+                                            final String extension   = StringUtils.substringAfterLast(name, ".");
+                                            
+                                            if (contentType == null || StringUtils.isBlank(extension)) {
+                                                
+                                                return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
+                                                
+                                            }
+                                            
+                                            if (contentType.startsWith("text/css")) {
+                                                
+                                                return "<link ref=\"stylesheet\" href=\"" + file.getPath() + "\">";
+                                                
+                                            } else if (contentType.contains("/javascript")) {
+                                                    
+                                                return "<script src=\"" + file.getPath() + "\"></script>";
+                                                    
+                                            } else if (contentType.startsWith("image/svg")) {
+                                                    
+                                                try {
+                                                    final byte[] buffer = new byte[file.getSize().intValue()];
+                                                    IOUtils.read(file.getInputStream(), buffer);
+                                                    return StringUtils.toEncodedString(buffer, Charset.forName(charset));
+                                                } catch (IOException ex) {
+                                                    logger.log(Level.SEVERE, null, ex);
+                                                }
+                                                
+                                                return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
+                                                    
+                                            } else if (contentType.startsWith("image/")) {
+                                                    
+                                                return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
+                                                    
+                                            } else {
+                                                
+                                                return "Don't know how to render content type or extension of  " + name + ".";
+                                                
+                                            }
+                                            
+                                        }
+
+					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
+				}
+
+				return usage();
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
+			}
+		});
+
+                Functions.functions.put("GET", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {

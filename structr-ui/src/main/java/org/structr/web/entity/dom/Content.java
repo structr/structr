@@ -20,6 +20,7 @@ package org.structr.web.entity.dom;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -191,7 +192,7 @@ public class Content extends DOMNode implements Text {
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
-		for (Sync rel : getOutgoingRelationships(Sync.class)) {
+		for (final Sync rel : getOutgoingRelationships(Sync.class)) {
 
 			Content syncedNode = (Content) rel.getTargetNode();
 
@@ -199,7 +200,22 @@ public class Content extends DOMNode implements Text {
 			syncedNode.setProperty(content, getProperty(content));
 		}
 
-		try {
+                final Sync rel = getIncomingRelationship(Sync.class);
+                
+                if (rel != null) {
+                
+                    final Content otherNode = (Content) rel.getSourceNode();
+
+                    if (otherNode != null) {
+
+                        // sync both ways
+                        otherNode.setProperty(content, getProperty(content));
+
+                    }
+                
+                }
+                
+                try {
 
 			increasePageVersion();
 
