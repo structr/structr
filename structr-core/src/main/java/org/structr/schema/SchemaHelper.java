@@ -726,10 +726,14 @@ public class SchemaHelper {
 		src.append("\n\t@Override\n");
 		src.append("\tpublic boolean ");
 		src.append(type.getMethod());
-		src.append("(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
+		src.append("(");
+      src.append(type.getSignature());
+      src.append(") throws FrameworkException {\n\n");
 		src.append("\t\tboolean error = !super.");
 		src.append(type.getMethod());
-		src.append("(securityContext, errorBuffer);\n\n");
+		src.append("(");
+      src.append(type.getParameters());
+      src.append(");\n\n");
 
 		if (!actionList.isEmpty()) {
 

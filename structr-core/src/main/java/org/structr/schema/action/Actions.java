@@ -12,16 +12,31 @@ public class Actions {
 
 	public enum Type {
 
-		Create("onCreation"), Save("onModification"), Delete("onDeletion"), Custom("");
+		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer"), 
+      Save("onModification","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer"), 
+      Delete("onDeletion","SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties", "securityContext, errorBuffer, properties"), 
+      Custom("", "", "");
 
-		Type(final String method) {
+		Type(final String method, final String signature, final String parameters) {
 			this.method = method;
+			this.signature = signature;
+			this.parameters = parameters;
 		}
 
 		private String method = null;
+		private String signature = null;
+		private String parameters = null;
 
 		public String getMethod() {
 			return method;
+		}
+
+		public String getSignature() {
+			return signature;
+		}
+
+		public String getParameters() {
+			return parameters;
 		}
 	}
 
