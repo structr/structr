@@ -727,13 +727,13 @@ public class SchemaHelper {
 		src.append("\tpublic boolean ");
 		src.append(type.getMethod());
 		src.append("(");
-      src.append(type.getSignature());
-      src.append(") throws FrameworkException {\n\n");
+		src.append(type.getSignature());
+		src.append(") throws FrameworkException {\n\n");
 		src.append("\t\tboolean error = !super.");
 		src.append(type.getMethod());
 		src.append("(");
-      src.append(type.getParameters());
-      src.append(");\n\n");
+		src.append(type.getParameters());
+		src.append(");\n\n");
 
 		if (!actionList.isEmpty()) {
 

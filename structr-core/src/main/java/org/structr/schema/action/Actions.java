@@ -12,10 +12,10 @@ public class Actions {
 
 	public enum Type {
 
-		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer"), 
-      Save("onModification","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer"), 
-      Delete("onDeletion","SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties", "securityContext, errorBuffer, properties"), 
-      Custom("", "", "");
+		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer"),
+		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer"),
+		Delete("onDeletion", "SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties", "securityContext, errorBuffer, properties"),
+		Custom("", "", "");
 
 		Type(final String method, final String signature, final String parameters) {
 			this.method = method;
