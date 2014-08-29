@@ -224,7 +224,7 @@ var StructrModel = {
             obj[key] = value;
         }
 
-        StructrModel.refreshKey(id, key);
+        //StructrModel.refreshKey(id, key);
 
     },
     /**
@@ -897,10 +897,12 @@ StructrSearchResult.prototype.append = function() {
 
 function removeFromArray(array, obj) {
     var newArray = [];
-    $.each(array, function(i, el) {
-        if (el.id !== obj.id && el !== obj.id) {
-            newArray.push(el);
-        }
-    });
+    if (array && array.length) {
+        $.each(array, function(i, el) {
+            if (el.id !== obj.id && el !== obj.id) {
+                newArray.push(el);
+            }
+        });
+    }
     return newArray;
 }

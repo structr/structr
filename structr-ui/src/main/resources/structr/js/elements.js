@@ -258,7 +258,6 @@ var _Elements = {
 
             var obj = StructrModel.create(entity, null, false);
             var el;
-            console.log(obj);
             if (obj.type === 'Content' || obj.type === 'Template') {
                 el = _Contents.appendContentElement(obj, components, true);
             } else {
@@ -388,7 +387,7 @@ var _Elements = {
             e.stopPropagation();
         });
 
-        // Prevent html class from being draggable
+        // Prevent html id from being draggable
         $('._html_id_', div).on('mousedown', function(e) {
             e.stopPropagation();
         });

@@ -710,7 +710,6 @@ var Command = {
      * The server will broadcast an UPDATE notification.
      */
     patch: function(id, text1, text2, callback) {
-        log(text1, text2);
 
         // no null values allowed
         if (!text1)

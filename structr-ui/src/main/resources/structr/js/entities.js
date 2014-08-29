@@ -286,7 +286,7 @@ var _Entities = {
 
         var views, activeView = 'ui';
 
-        if (isIn(entity.type, ['Comment', 'Content', 'Page', 'User', 'Group', 'Image', 'File', 'Folder', 'Widget'])) {
+        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'Image', 'File', 'Folder', 'Widget'])) {
             views = ['ui', 'in', 'out'];
         } else {
             views = ['_html_', 'ui', 'in', 'out'];
