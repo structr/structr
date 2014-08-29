@@ -2725,7 +2725,7 @@ public class Functions {
 	 * @param minLength If null, don't do length check
 	 * @return
 	 */
-	private static boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
+	public static boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
 
 		if (array == null) {
 			return false;
@@ -2751,7 +2751,7 @@ public class Functions {
 	 * @param length If null, don't do length check
 	 * @return
 	 */
-	private static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) {
+	public static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) {
 
 		if (array == null) {
 			return false;
