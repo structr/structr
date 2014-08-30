@@ -368,7 +368,7 @@ function wsConnect() {
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 
                 $(result).each(function(i, entity) {
-
+                    
                     if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
                     } else {
@@ -385,7 +385,7 @@ function wsConnect() {
                             var synced = entity.syncedNodes;
 
                             if (synced && synced.length) {
-
+                                
                                 // Change icon
                                 $.each(entity.syncedNodes, function(i, id) {
                                     var el = Structr.node(id);
@@ -406,6 +406,11 @@ function wsConnect() {
                         }, 2000);
                     } else if (command === 'CREATE' && (entity.type === 'File' || entity.type === 'Image')) {
                         _Files.uploadFile(entity);
+                    } else {
+                        // Shared component
+                        //window.setTimeout(function() {
+                           _Elements.reloadComponents();
+                        //}, 10);
                     }
 
                 });

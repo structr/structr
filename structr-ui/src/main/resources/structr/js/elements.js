@@ -245,7 +245,6 @@ var _Elements = {
                 }
                 Command.createComponent(sourceId);
                 dropBlocked = false;
-
             }
 
         });
