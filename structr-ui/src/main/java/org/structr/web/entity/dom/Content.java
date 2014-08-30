@@ -20,7 +20,6 @@ package org.structr.web.entity.dom;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -198,6 +197,7 @@ public class Content extends DOMNode implements Text {
 
 			// sync content only
 			syncedNode.setProperty(content, getProperty(content));
+			syncedNode.setProperty(name, getProperty(name));
 		}
 
                 final Sync rel = getIncomingRelationship(Sync.class);
@@ -210,6 +210,7 @@ public class Content extends DOMNode implements Text {
 
                         // sync both ways
                         otherNode.setProperty(content, getProperty(content));
+			otherNode.setProperty(name, getProperty(name));
 
                     }
                 
