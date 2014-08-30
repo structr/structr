@@ -19,13 +19,10 @@
 package org.structr.websocket.command;
 
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -57,7 +54,13 @@ public class CreateComponentCommand extends AbstractCommand {
 			try {
 
 				DOMNode clonedNode = (DOMNode) node.cloneNode(false);
-				moveChildNodes(node, clonedNode);
+				
+				// Child nodes of a template must stay in page tree
+				if (!(clonedNode instanceof Template)) {
+				
+					moveChildNodes(node, clonedNode);
+				
+				}
 
 				ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
 				clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
