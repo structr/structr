@@ -20,10 +20,12 @@ package org.structr.web.common;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.activation.MimetypesFileTypeMap;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatch;
@@ -57,6 +59,7 @@ public class FileHelper {
 
 	private static final String UNKNOWN_MIME_TYPE = "application/octet-stream";
 	private static final Logger logger = Logger.getLogger(FileHelper.class.getName());
+	private static final MimetypesFileTypeMap mimeTypeMap = new MimetypesFileTypeMap(FileHelper.class.getResourceAsStream("/mime.types"));
 
 	//~--- methods --------------------------------------------------------
 	/**
@@ -124,7 +127,7 @@ public class FileHelper {
 		throws FrameworkException, IOException {
 
 		final byte[] data = IOUtils.toByteArray(fileStream);
-		return createFile(securityContext, data, getContentMimeType(data), fileType, name);
+		return createFile(securityContext, data, contentType, fileType, name);
 
 	}
 
@@ -203,7 +206,7 @@ public class FileHelper {
 		throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
-		file.setProperty(org.structr.dynamic.File.contentType, contentType != null ? contentType : getContentMimeType(fileData));
+		file.setProperty(org.structr.dynamic.File.contentType, contentType != null ? contentType : getContentMimeType(file));
 		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
 		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
 
@@ -283,8 +286,10 @@ public class FileHelper {
 	 * @param data
 	 * @throws FrameworkException
 	 * @throws IOException
+	 *
+	 * @return the file on disk
 	 */
-	public static void writeToFile(final org.structr.dynamic.File fileNode, final byte[] data) throws FrameworkException, IOException {
+	public static File writeToFile(final org.structr.dynamic.File fileNode, final byte[] data) throws FrameworkException, IOException {
 
 		String id = fileNode.getProperty(GraphObject.id);
 		if (id == null) {
@@ -305,6 +310,8 @@ public class FileHelper {
 		fileOnDisk.getParentFile().mkdirs();
 		FileUtils.writeByteArrayToFile(fileOnDisk, data);
 
+		return fileOnDisk;
+
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -314,24 +321,46 @@ public class FileHelper {
 	 * @param file
 	 * @return
 	 */
-	public static String getContentMimeType(final File file) {
+	public static String getContentMimeType(final org.structr.web.entity.FileBase file) throws IOException {
+		return getContentMimeType(file.getFileOnDisk(), file.getProperty(AbstractNode.name));
+	}
 
-		MagicMatch match;
+	/**
+	 * Return mime type of given file
+	 *
+	 * @param file
+	 * @return
+	 */
+	public static String getContentMimeType(final java.io.File file, final String name) throws IOException {
 
-		try {
-
-			match = Magic.getMagicMatch(file, false, true);
-
-			return match.getMimeType();
-
-		} catch (MagicException | MagicMatchNotFoundException | MagicParseException e) {
-
-			logger.log(Level.FINE, "Could not determine content type", e);
-
+		// try name first
+		String mimeType = mimeTypeMap.getContentType(name);
+		if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
+			return mimeType;
 		}
 
-		return UNKNOWN_MIME_TYPE;
+		// then file content
+		mimeType = Files.probeContentType(file.toPath());
+		if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
 
+			return mimeType;
+		}
+
+		// fallback: jmimemagic
+		try {
+			final MagicMatch match = Magic.getMagicMatch(file, false, true);
+			if (match != null) {
+
+				return match.getMimeType();
+			}
+
+		} catch (MagicParseException | MagicMatchNotFoundException | MagicException ignore) {
+			// mex.printStackTrace();
+		}
+
+
+		// no success :(
+		return UNKNOWN_MIME_TYPE;
 	}
 
 	/**
@@ -340,9 +369,9 @@ public class FileHelper {
 	 * Use on streams.
 	 *
 	 * @param bytes
+	 * @param fileName
 	 * @return
-	 */
-	public static String getContentMimeType(final byte[] bytes) {
+	public static String getContentMimeType(final byte[] bytes, final String fileName) {
 
 		MagicMatch match;
 
@@ -361,13 +390,13 @@ public class FileHelper {
 		return UNKNOWN_MIME_TYPE;
 
 	}
+	 */
 
 	/**
 	 * Return mime type of given file
 	 *
 	 * @param file
 	 * @return
-	 */
 	public static String[] getContentMimeTypeAndExtension(final File file) {
 
 		MagicMatch match;
@@ -387,6 +416,7 @@ public class FileHelper {
 		return new String[]{UNKNOWN_MIME_TYPE, ".bin"};
 
 	}
+	 */
 
 	/**
 	 * Return mime type of given byte array.
@@ -395,7 +425,6 @@ public class FileHelper {
 	 *
 	 * @param bytes
 	 * @return
-	 */
 	public static String[] getContentMimeTypeAndExtension(final byte[] bytes) {
 
 		MagicMatch match;
@@ -415,6 +444,7 @@ public class FileHelper {
 		return new String[]{UNKNOWN_MIME_TYPE, ".bin"};
 
 	}
+	 */
 
 	/**
 	 * Calculate CRC32 checksum of given file
