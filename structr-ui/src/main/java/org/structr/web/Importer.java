@@ -220,30 +220,32 @@ public class Importer {
 				if (location != null) {
 					address = location.getValue();
 					client = new DefaultHttpClient();
-					
+
 					int attempts = 1;
 					boolean success = false;
-					
+
 					while (!success) {
-					
+
 						try {
 
 							resp = client.execute(new HttpGet(address));
-							
+
 							success = true;
 
 						} catch (IllegalStateException ise) {
-							
+
+							ise.printStackTrace();
+
 							logger.log(Level.INFO, "Unable to establish connection to {0}, trying again after {1} sec...", new Object[]{ address, attempts*10 });
 							attempts++;
-							
+
 							if (attempts > 6) {
 								throw new FrameworkException(500, "Error while parsing content from " + address + ", couldn't establish connections after " + attempts + " attempts");
 							}
-							
+
 							try {
 								Thread.sleep(attempts*10*1000);
-								
+
 							} catch (InterruptedException ex) {}
 
 						}
@@ -761,24 +763,22 @@ public class Importer {
 
 		}
 
+		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
+		final String fileName = PathHelper.getName(downloadAddress);
+
 		// TODO: Add security features like null/integrity/virus checking before copying it to
 		// the files repo
 		try {
 
-			size = fileOnDisk.length();
-
-			checksum = FileUtils.checksumCRC32(fileOnDisk);
+			contentType = FileHelper.getContentMimeType(fileOnDisk, fileName);
+			size        = fileOnDisk.length();
+			checksum    = FileUtils.checksumCRC32(fileOnDisk);
 
 		} catch (IOException ioe) {
 
-			logger.log(Level.WARNING, "Unable to calc checksum of " + fileOnDisk, ioe);
+			logger.log(Level.WARNING, "Unable to determine MIME type, size or checksum of " + fileOnDisk, ioe);
 			return null;
 		}
-
-		contentType = FileHelper.getContentMimeType(fileOnDisk);
-		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
-
-		final String fileName = PathHelper.getName(downloadAddress);
 
 		String httpPrefix = "http://";
 

@@ -25,10 +25,13 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
@@ -502,5 +505,32 @@ public class StructrUiTest extends TestCase {
 			((GraphObject) obj).setProperty(GraphObject.visibleToPublicUsers, true);
 		}
 
+	}
+
+	protected <T> List<T> toList(final T... elements) {
+		return Arrays.asList(elements);
+	}
+
+	protected Map<String, byte[]> toMap(final Pair... pairs) {
+
+		final Map<String, byte[]> map = new LinkedHashMap<>();
+
+		for (final Pair pair : pairs) {
+			map.put(pair.key, pair.value);
+		}
+
+		return map;
+	}
+
+	public static class Pair {
+
+		public String key   = null;
+		public byte[] value = null;
+
+		public Pair(final String key, final byte[] value) {
+
+			this.key = key;
+			this.value = value;
+		}
 	}
 }
