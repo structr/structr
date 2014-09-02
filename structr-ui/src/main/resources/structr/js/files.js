@@ -555,7 +555,7 @@ var _Files = {
     editContent: function(button, file, element) {
         var url = viewRootUrl + file.id + '?edit=1';
         log('editContent', button, file, element, url);
-        var text;
+        var text = '';
 
         var contentType = file.contentType;
         var dataType = 'text';
@@ -578,6 +578,7 @@ var _Files = {
             contentType: contentType,
             success: function(data) {
                 text = fileContents[file.id] || data;
+                console.log(fileContents, data);
                 if (isDisabled(button))
                     return;
                 element.append('<div class="editor"></div>');

@@ -103,7 +103,7 @@ var _Dragndrop = {
                     target = {id: targetId};
                 }
 
-                console.log(source, target, pageId, tag, related);
+                log(source, target, pageId, tag, related);
                 if (_Dragndrop.dropAction(source, target, pageId, tag, related)) {
                     $(ui.draggable).remove();
                     sortParent = undefined;
@@ -129,12 +129,12 @@ var _Dragndrop = {
             start: function(event, ui) {
                 sorting = true;
                 sortParent = $(ui.item).parent();
-                console.log('### sortable start: sorting?', sorting, getId(el), getId(self), getId(sortParent));
+                log('### sortable start: sorting?', sorting, getId(el), getId(self), getId(sortParent));
             },
             update: function(event, ui) {
 
                 var el = $(ui.item);
-                console.log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent));
+                log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent));
                 if (!sorting)
                     return false;
 
@@ -181,6 +181,7 @@ var _Dragndrop = {
             if (shadowPage && source.pageId === shadowPage.id) {
 
                 Command.cloneComponent(source.id, target.id);
+                log('dropped', source.id, 'onto', target.id, 'in page', pageId);
 
             } else {
 

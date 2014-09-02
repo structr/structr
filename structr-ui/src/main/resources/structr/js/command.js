@@ -525,12 +525,12 @@ var Command = {
      * The server will transform the node into a reusable component.
      *
      */
-    createComponent: function(id) {
+    createComponent: function(id, callback) {
         var obj = {};
         obj.command = 'CREATE_COMPONENT';
         obj.id = id;
         log('createComponent()', obj);
-        return sendObj(obj);
+        return sendObj(obj, callback);
     },
     /**
      * Send a CLONE_COMPONENT command to the server.

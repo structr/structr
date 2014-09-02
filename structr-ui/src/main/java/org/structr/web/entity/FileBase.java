@@ -261,8 +261,8 @@ public class FileBase extends AbstractFile implements Linkable {
 
 							super.close();
 
-							final String _contentType = FileHelper.getContentMimeType(fileOnDisk);
-							
+							final String _contentType = FileHelper.getContentMimeType(FileBase.this);
+
 							setProperty(checksum, FileHelper.getChecksum(FileBase.this));
 							setProperty(size, FileHelper.getSize(FileBase.this));
 							setProperty(contentType, _contentType);
@@ -270,7 +270,7 @@ public class FileBase extends AbstractFile implements Linkable {
 							if (StringUtils.startsWith(_contentType, "image") || ImageHelper.isImageType(getProperty(name))) {
 								setProperty(NodeInterface.type, Image.class.getSimpleName());
 							}
-							
+
 							tx.success();
 
 						} catch (FrameworkException ex) {
@@ -291,6 +291,17 @@ public class FileBase extends AbstractFile implements Linkable {
 
 		return null;
 
+	}
+
+	public java.io.File getFileOnDisk() {
+
+		final String path = getRelativeFilePath();
+		if (path != null) {
+
+			return new java.io.File(FileHelper.getFilePath(path));
+		}
+
+		return null;
 	}
 
 	// ----- interface Syncable -----

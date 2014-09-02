@@ -75,7 +75,7 @@ var _Contents = {
             _Entities.deleteNode(this, entity);
         });
 
-        div.append('<img title="Edit Content" alt="Edit Content of ' + entity.id + '" class="edit_icon button" src="icon/pencil.png">');
+        div.append('<img title="Edit Content" alt="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function(e) {
             e.stopPropagation();
             _Contents.openEditContentDialog(this, entity);
@@ -95,7 +95,7 @@ var _Contents = {
         return div;
     },
     openEditContentDialog: function(btn, entity) {
-        Structr.dialog('Edit content of ' + entity.id, function() {
+        Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
             log('content saved')
         }, function() {
             log('cancelled')

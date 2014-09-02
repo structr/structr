@@ -46,15 +46,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.GraphDataSource;
@@ -66,7 +63,6 @@ import org.structr.web.datasource.IdRequestParameterGraphDataSource;
 import org.structr.web.datasource.NodeGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
-import static org.structr.web.entity.dom.Content.content;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.relation.PageLink;
@@ -1066,6 +1062,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				syncedNode.setProperty(htmlProp, getProperty(htmlProp));
 			}
+			
+			syncedNode.setProperty(name, getProperty(name));
 		}
 
                 final Sync rel = getIncomingRelationship(Sync.class);
@@ -1081,6 +1079,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
                                 otherNode.setProperty(htmlProp, getProperty(htmlProp));
                         }
+			
+			otherNode.setProperty(name, getProperty(name));
 
                     }
                 }

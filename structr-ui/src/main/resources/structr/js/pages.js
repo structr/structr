@@ -577,6 +577,8 @@ var _Pages = {
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
         var div = Structr.node(entity.id);
 
+        _Dragndrop.makeSortable(div);
+
         $('.button', div).on('mousedown', function(e) {
             e.stopPropagation();
         });
