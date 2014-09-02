@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.servlet;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
@@ -41,9 +42,9 @@ import org.structr.websocket.message.WebSocketMessage;
 public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSocketServlet implements HttpServiceServlet {
 
 	private static final Logger logger           = Logger.getLogger(WebSocketServlet.class.getName());
-
+	
 	private static final int MAX_TEXT_MESSAGE_SIZE = 1024 * 1024;
-
+	
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
 	@Override
@@ -53,31 +54,34 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 
 	@Override
 	public void configure(final WebSocketServletFactory factory) {
-
+		
 		// create GSON serializer
-		final GsonBuilder gsonBuilderWithDepth1 = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getDefaultIdProperty(), 1));
-		final GsonBuilder gsonBuilderWithDepth2 = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getDefaultIdProperty(), 2));
-
+		final GsonBuilder gsonBuilder = new GsonBuilder()
+			.setPrettyPrinting()
+			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getDefaultIdProperty(), config.getOutputNestingDepth()));
+		
 		final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
 		if (lenient) {
 			// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
-			gsonBuilderWithDepth2.serializeSpecialFloatingPointValues();
-
+			gsonBuilder.serializeSpecialFloatingPointValues();
+			
 		}
-
-		final SynchronizationController syncController = new SynchronizationController(gsonBuilderWithDepth1.create());
-
+		
+		final Gson gson = gsonBuilder.create();
+		
+		final SynchronizationController syncController = new SynchronizationController(gson);
+		
 		// register (Structr) transaction listener
 		TransactionCommand.registerTransactionListener(syncController);
-
+		
 		factory.getPolicy().setIdleTimeout(61000);
-		factory.setCreator(new StructrWebSocketCreator(syncController, gsonBuilderWithDepth2.create(), config.getDefaultIdProperty(), config.getAuthenticator()));
+		factory.setCreator(new StructrWebSocketCreator(syncController, gson, config.getDefaultIdProperty(), config.getAuthenticator()));
 		factory.register(StructrWebSocket.class);
-
+		
 		// Disable compression (experimental features)
 		factory.getExtensionFactory().unregister("x-webkit-deflate-frame");
 		factory.getExtensionFactory().unregister("permessage-deflate");
-
+		
 		factory.getPolicy().setMaxTextMessageSize(MAX_TEXT_MESSAGE_SIZE);
 
 	}
