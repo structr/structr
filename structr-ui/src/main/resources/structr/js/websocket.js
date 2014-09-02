@@ -356,7 +356,7 @@ function wsConnect() {
 
             } else if (command.startsWith('APPEND_')) { /*********************** APPEND_* ************************/
 
-                StructrModel.create(result[0]);
+                StructrModel.create(result[0], data.data.refId);
 
             } else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 

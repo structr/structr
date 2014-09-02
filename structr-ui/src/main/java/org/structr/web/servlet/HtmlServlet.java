@@ -548,7 +548,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private Page findPage(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
-		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.getName(path));
+		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
 
 		for (Linkable node : entryPoints) {
 			if (node instanceof Page && path.equals(node.getPath())) {
@@ -689,7 +689,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPointsByName(final SecurityContext securityContext, HttpServletRequest request, final String name) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByPath(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
@@ -697,13 +697,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return possibleEntryPoints;
 		}
 
-		if (name.length() > 0) {
+		if (path.length() > 0) {
 
-			logger.log(Level.FINE, "Requested name: {0}", name);
+			logger.log(Level.FINE, "Requested path: {0}", path);
 
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
-			query.and(AbstractNode.name, name);
+			query.and(Page.path, path);
 			query.and().orType(Page.class).orTypes(File.class);
 
 			// Searching for pages needs super user context anyway
@@ -718,7 +718,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, HttpServletRequest request, final String name) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
@@ -726,14 +726,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return possibleEntryPoints;
 		}
 
-		if (name.length() > 0) {
+		if (path.length() > 0) {
 
-			logger.log(Level.FINE, "Requested name {0}", name);
+			logger.log(Level.FINE, "Requested name {0}", path);
 
-			possibleEntryPoints = findPossibleEntryPointsByName(securityContext, request, name);
+			possibleEntryPoints = findPossibleEntryPointsByPath(securityContext, request, path);
 
 			if (possibleEntryPoints.isEmpty()) {
-				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, name);
+				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, path);
 			}
 
 			return possibleEntryPoints;

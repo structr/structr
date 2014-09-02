@@ -419,7 +419,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		}
 
-		return true;
+		return isValid(errorBuffer);
 
 	}
 
