@@ -78,7 +78,14 @@ public class ClonePageCommand extends AbstractCommand {
 				if (pageToClone != null) {
 
 					//final List<DOMNode> elements = pageToClone.getProperty(Page.elements);
-					final DOMNode newHtmlNode = cloneAndAppendChildren(securityContext, (DOMNode) pageToClone.getFirstChild().getNextSibling());
+					
+					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
+					
+					if (firstChild == null) {
+						firstChild = (DOMNode) pageToClone.treeGetFirstChild();
+					}
+					
+					final DOMNode newHtmlNode = cloneAndAppendChildren(securityContext, firstChild);
 					final Page newPage = Page.createNewPage(securityContext, newName);
 					
 					newPage.appendChild(newHtmlNode);
