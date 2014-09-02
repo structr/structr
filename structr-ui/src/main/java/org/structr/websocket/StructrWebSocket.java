@@ -254,7 +254,16 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public void send(final WebSocketMessage message, final boolean clearSessionId) {
 
-		final boolean isAuthenticated = isAuthenticated();
+		boolean isAuthenticated = false;
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			isAuthenticated = isAuthenticated();
+
+		} catch (FrameworkException t) {
+			t.printStackTrace();
+		}
+		
 
 		// return session status to client
 		message.setSessionValid(isAuthenticated);

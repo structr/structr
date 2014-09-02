@@ -220,6 +220,7 @@ var _Elements = {
      */
     reloadComponents: function() {
 
+        if (!componentsSlideout) return;
         componentsSlideout.find(':not(.compTab)').remove();
         componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
         components = $('#componentsArea', componentsSlideout);

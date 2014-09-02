@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
+import org.structr.core.validator.SimpleRegexValidator;
 import org.structr.web.entity.html.relation.ResourceLink;
 
 //~--- interfaces -------------------------------------------------------------
@@ -41,4 +42,12 @@ public interface Linkable extends NodeInterface, Syncable {
 	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements);
 
 	public String getPath();
+        
+//        static class Impl {
+//
+//            static {
+//                Linkable.name.addValidator(new SimpleRegexValidator("[_a-zA-Z0-9\\-\\.]+"));
+//            }
+//        }
+        
 }

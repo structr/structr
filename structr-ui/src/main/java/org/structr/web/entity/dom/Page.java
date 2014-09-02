@@ -99,20 +99,21 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	private static final Logger logger = Logger.getLogger(Page.class.getName());
 
-	public static final Property<Integer> version = new IntProperty("version").indexed();
+	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
 	public static final Property<Integer> position = new IntProperty("position").indexed();
 	public static final Property<String> contentType = new StringProperty("contentType").indexed();
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
 	public static final Property<Boolean> isPage = new BooleanProperty("isPage", true).readOnly();
+        public static final Property<String> path = new StringProperty("path").indexed();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage
 	);
 
 	private Html5DocumentType docTypeNode = null;
@@ -157,6 +158,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		boolean valid = true;
 
 		valid &= nonEmpty(AbstractNode.name, errorBuffer);
+                valid &= getProperty(name).matches("[_a-zA-Z0-9\\-\\.]+");
 		valid &= super.isValid(errorBuffer);
 
 		return valid;
@@ -795,7 +797,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public String getPath() {
-		return "/".concat(getProperty(name));
+		return getProperty(path);
 	}
 
 	// ----- diff methods -----
@@ -839,10 +841,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public String getAbsolutePath() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			String path = getName();
-			return path;
+			return getPath();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
+			logger.log(Level.SEVERE, "Error in getPath() of abstract ftp file", fex);
 		}
 		return null;
 	}
