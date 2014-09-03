@@ -58,7 +58,7 @@ public abstract class AbstractCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	public abstract void processMessage(final WebSocketMessage webSocketData);
+	public abstract void processMessage(final WebSocketMessage webSocketData) throws FrameworkException;
 
 	//~--- get methods ----------------------------------------------------
 

@@ -17,7 +17,10 @@
  */
 package org.structr.websocket.command;
 
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
@@ -49,13 +52,12 @@ public class UpdateCommand extends AbstractCommand {
 
 	}
 
-	private Tx tx     = null;
 	private int sum   = 0;
 	private int count = 0;
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
 
 		final App app          = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final Boolean recValue = (Boolean) webSocketData.getNodeData().get("recursive");
@@ -79,12 +81,7 @@ public class UpdateCommand extends AbstractCommand {
 				}
 
 				tx.success();
-
-			} catch (FrameworkException fex) {
-
-				fex.printStackTrace();
 			}
-
 		}
 
 		if (obj == null) {
@@ -95,19 +92,35 @@ public class UpdateCommand extends AbstractCommand {
 
 		if (obj != null) {
 
-			try {
+			final Set<GraphObject> entities = new LinkedHashSet<>();
+			try (final Tx tx = app.tx()) {
 
-				setProperties(app, obj, PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData()), rec);
+				collectEntities(entities, obj, null, rec);
 
 				// commit and close transaction
 				tx.success();
-				tx.close();
-				tx = null;
+			}
 
-			} catch (FrameworkException ex) {
+			final PropertyMap properties         = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData());
+			final Iterator<GraphObject> iterator = entities.iterator();
 
-				logger.log(Level.SEVERE, "Unable to set properties: {0}", ((FrameworkException) ex).toString());
-				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+			while (iterator.hasNext()) {
+
+				count = 0;
+				try (final Tx tx = app.tx()) {
+
+					while (iterator.hasNext() && count++ < 100) {
+
+						setProperties(app, iterator.next(), properties, true);
+
+						sum++;
+					}
+
+					logger.log(Level.INFO, "Committing transaction after {0} objects..", sum);
+
+					// commit and close transaction
+					tx.success();
+				}
 
 			}
 
@@ -135,11 +148,6 @@ public class UpdateCommand extends AbstractCommand {
 	//~--- set methods ----------------------------------------------------
 	private void setProperties(final App app, final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
-		// create new transaction if not already present
-		if (tx == null) {
-			tx = app.tx();
-		}
-
 		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
 			PropertyKey key = entry.getKey();
@@ -147,24 +155,11 @@ public class UpdateCommand extends AbstractCommand {
 
 			obj.setProperty(key, value);
 		}
+	}
 
-		sum++;
+	private void collectEntities(final Set<GraphObject> entities, final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
-		// commit transaction after 100 nodes
-		if (++count == 100) {
-
-			logger.log(Level.INFO, "Committing transaction after {0} objects..", sum);
-
-			count = 0;
-
-			// commit and close old transaction
-			tx.success();
-			tx.close();
-
-			// create new transaction, do not notify Ui
-			tx = app.tx(true, true, false);
-		}
-
+		entities.add(obj);
 
 		if (rec && obj instanceof LinkedTreeNode) {
 
@@ -172,8 +167,7 @@ public class UpdateCommand extends AbstractCommand {
 
 			for (Object child : node.treeGetChildren()) {
 
-				setProperties(app, (GraphObject) child, properties, true);
-
+				collectEntities(entities, (GraphObject)child, properties, rec);
 			}
 		}
 	}

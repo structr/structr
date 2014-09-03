@@ -239,7 +239,7 @@ public class Importer {
 							logger.log(Level.INFO, "Unable to establish connection to {0}, trying again after {1} sec...", new Object[]{ address, attempts*10 });
 							attempts++;
 
-							if (attempts > 6) {
+							if (attempts > 3) {
 								throw new FrameworkException(500, "Error while parsing content from " + address + ", couldn't establish connections after " + attempts + " attempts");
 							}
 
