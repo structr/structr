@@ -369,7 +369,7 @@ function wsConnect() {
 
                 $(result).each(function(i, entity) {
 
-                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'Widget')) {
+                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'VideoFile' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
                     } else {
 
@@ -404,7 +404,7 @@ function wsConnect() {
                         setTimeout(function() {
                             _Pages.activateTab(tab)
                         }, 2000);
-                    } else if (command === 'CREATE' && (entity.type === 'File' || entity.type === 'Image')) {
+                    } else if (command === 'CREATE' && (entity.type === 'File' || entity.type === 'Image' || entity.type === 'VideoFile')) {
                         _Files.uploadFile(entity);
                     }
 
@@ -481,7 +481,7 @@ function send(text) {
 
 function log() {
     if (debug) {
-        log(arguments);
+        /*log(arguments);*/
         var msg = Array.prototype.slice.call(arguments).join(' ');
         var div = $('#log', footer);
         div.append(msg + '<br>');

@@ -399,7 +399,7 @@ var _Files = {
         }
 
         var hasChildren = (folder.folders && folder.folders.length) || (folder.files && folder.files.length);
-        
+
         log(folder.name, 'has children?', hasChildren, 'is expanded?', isExpanded(folder.id));
 
         _Entities.appendExpandIcon(div, folder, hasChildren);

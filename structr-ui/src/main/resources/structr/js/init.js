@@ -301,7 +301,7 @@ var Structr = {
         if (!loginBox.is(':visible')) {
 
             main.empty();
-            
+
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
             $.blockUI({
@@ -693,7 +693,7 @@ var Structr = {
         } else {
             errorText += url + ': ' + response.code + ' ' + response.message;
         }
-        
+
         if (callback) {
             callback(errorText);
         } else {
@@ -709,7 +709,7 @@ var Structr = {
           li.css(css);
       }
       return li;
-      
+
     },
     tempInfo: function(text, autoclose) {
         window.clearTimeout(dialogId);
@@ -1213,6 +1213,10 @@ function swapFgBg(el) {
 
 function isImage(contentType) {
     return (contentType && contentType.indexOf('image') > -1);
+}
+
+function isVideo(contentType) {
+    return (contentType && contentType.indexOf('video') > -1);
 }
 
 function addExpandedNode(id) {

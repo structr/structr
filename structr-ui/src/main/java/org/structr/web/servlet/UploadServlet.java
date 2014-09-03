@@ -46,6 +46,7 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.VideoFile;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -143,8 +144,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 					String contentType = fileItem.getContentType();
 					boolean isImage = (contentType != null && contentType.startsWith("image"));
+					boolean isVideo = (contentType != null && contentType.startsWith("video"));
 
-					Class type = isImage ? Image.class : org.structr.dynamic.File.class;
+					Class type = isImage ? Image.class : isVideo ? VideoFile.class : org.structr.dynamic.File.class;
 
 					String name = fileItem.getName().replaceAll("\\\\", "/");
 
