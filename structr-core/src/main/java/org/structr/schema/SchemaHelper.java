@@ -223,22 +223,18 @@ public class SchemaHelper {
 
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
 
-		final App app = StructrApp.getInstance();
-
 		try {
-
-			removeAllDynamicGrants();
 
 			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
 
-				createDynamicGrants(schemaNode.getResourceSignature(), null);
+				createDynamicGrants(schemaNode.getResourceSignature());
 
 			}
 
 			for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
 
-				createDynamicGrants(schemaRelationship.getResourceSignature(), null);
-				createDynamicGrants(schemaRelationship.getInverseResourceSignature(), null);
+				createDynamicGrants(schemaRelationship.getResourceSignature());
+				createDynamicGrants(schemaRelationship.getInverseResourceSignature());
 
 			}
 
@@ -251,48 +247,34 @@ public class SchemaHelper {
 
 	}
 
-	public static List<DynamicResourceAccess> createDynamicGrants(final String signature, final Long flags) {
+	public static List<DynamicResourceAccess> createDynamicGrants(final String signature) {
 
-		List<DynamicResourceAccess> grants = new LinkedList<>();
+		final List<DynamicResourceAccess> grants = new LinkedList<>();
+		final long initialFlagsValue             = 0;
 
 		final App app = StructrApp.getInstance();
 		try {
 
 			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-			long flagsValue = 0;	// FIXME, this prevents public access but may be better than 255 as a default...
-
-			// set value from grant flags
-			if (flags != null) {
-				flagsValue = flags.longValue();
-			}
-
 			if (grant == null) {
 
 				// create new grant
 				grants.add(app.create(DynamicResourceAccess.class,
 					new NodeAttribute(DynamicResourceAccess.signature, signature),
-					new NodeAttribute(DynamicResourceAccess.flags, flagsValue)
+					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
 
 				// create additional grant for the _schema resource
 				grants.add(app.create(DynamicResourceAccess.class,
 					new NodeAttribute(DynamicResourceAccess.signature, "_schema/" + signature),
-					new NodeAttribute(DynamicResourceAccess.flags, flagsValue)
+					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
 
 				// create additional grant for the Ui view
 				grants.add(app.create(DynamicResourceAccess.class,
 					new NodeAttribute(DynamicResourceAccess.signature, signature + "/_Ui"),
-					new NodeAttribute(DynamicResourceAccess.flags, flagsValue)
+					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
-
-			} else {
-
-				// modify flags of grant
-				// Caution: this means that the SchemaNode is the
-				// primary source for resource access flag values
-				// of dynamic nodes
-				grant.setProperty(ResourceAccess.flags, flagsValue);
 			}
 
 		} catch (Throwable t) {
