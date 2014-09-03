@@ -35,6 +35,7 @@ import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.Syncable;
+import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
@@ -158,7 +159,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		boolean valid = true;
 
 		valid &= nonEmpty(AbstractNode.name, errorBuffer);
-                valid &= getProperty(name).matches("[_a-zA-Z0-9\\-\\.]+");
+                valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_a-zA-Z0-9\\-\\.]+", errorBuffer);
 		valid &= super.isValid(errorBuffer);
 
 		return valid;
