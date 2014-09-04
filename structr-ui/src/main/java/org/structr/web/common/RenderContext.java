@@ -645,6 +645,23 @@ public class RenderContext extends ActionContext {
 
 				}
 
+				// special keyword "host":
+				if ("host".equals(part)) {
+
+					return securityContext.getRequest().getServerName();
+				}
+
+				// special keyword "port":
+				if ("port".equals(part)) {
+
+					return securityContext.getRequest().getServerPort();
+				}
+
+				// special keyword "path_info":
+				if ("path_info".equals(part)) {
+
+					return securityContext.getRequest().getPathInfo();
+				}
 			}
 
 		}
