@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.message;
 
+import com.google.gson.JsonElement;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -92,6 +93,11 @@ public class MessageBuilder {
 		for(Entry<String, Object> entry : data.entrySet()) {
 			this.data.setNodeData(entry.getKey(), entry.getValue());
 		}
+		return this;
+	}
+
+	public MessageBuilder jsonErrorObject(JsonElement error) {
+		data.setJsonErrorObject(error);
 		return this;
 	}
 

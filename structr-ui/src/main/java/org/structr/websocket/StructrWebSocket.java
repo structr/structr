@@ -236,7 +236,15 @@ public class StructrWebSocket implements WebSocketListener {
 				try (final Tx tx = app.tx()) {
 
 					// send 400 Bad Request
-					send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
+					if (t instanceof FrameworkException) {
+
+						send(MessageBuilder.status().message(t.toString()).jsonErrorObject(((FrameworkException) t).toJSON()).build(), true);
+						
+					} else {
+					
+						send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
+					
+					}
 
 					// commit transaction
 					tx.success();

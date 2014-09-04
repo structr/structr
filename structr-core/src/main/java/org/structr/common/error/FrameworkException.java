@@ -18,9 +18,12 @@
  */
 package org.structr.common.error;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletResponse;
 
 //~--- classes ----------------------------------------------------------------
@@ -119,6 +122,67 @@ public class FrameworkException extends Exception {
 
 	}
 
+	public JsonElement toJSON() {
+
+		JsonObject container = new JsonObject();
+		JsonObject error = new JsonObject();
+
+		container.add("code", new JsonPrimitive(getStatus()));
+
+		// add message if exists
+		if (getMessage() != null) {
+			container.add("message", new JsonPrimitive(getMessage()));
+		}
+
+		// add errors if there are any
+		ErrorBuffer errorBuffer = getErrorBuffer();
+		if (errorBuffer != null) {
+
+			Map<String, Map<String, Set<ErrorToken>>> tokens = errorBuffer.getErrorTokens();
+			if (!tokens.isEmpty()) {
+
+				for(Map.Entry<String, Map<String, Set<ErrorToken>>> tokensEntry : tokens.entrySet()) {
+
+					Map<String, Set<ErrorToken>> map = tokensEntry.getValue();
+					JsonObject typeEntry = new JsonObject();
+					String type = tokensEntry.getKey();
+					
+					error.add(type, typeEntry);
+					
+					for(Map.Entry<String, Set<ErrorToken>> mapEntry : map.entrySet()) {
+						
+						Set<ErrorToken> list = mapEntry.getValue();
+						String key = mapEntry.getKey();
+
+						if(!list.isEmpty()) {
+							
+//							if(list.size() == 1) {
+//
+//								ErrorToken token = list.iterator().next();
+//								typeEntry.add(key, token.getContent());
+//
+//							} else {
+
+								JsonArray array = new JsonArray();
+								for(ErrorToken token : list) {
+									array.add(token.getContent());
+								}
+								
+								typeEntry.add(key, array);
+//							}
+						}
+						
+					}
+				}
+
+				container.add("errors", error);
+			}
+		}
+
+		return container;
+		
+	}
+	
 	//~--- get methods ----------------------------------------------------
 
 	public ErrorBuffer getErrorBuffer() {
