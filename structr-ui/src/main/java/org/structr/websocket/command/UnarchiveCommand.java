@@ -77,11 +77,11 @@ public class UnarchiveCommand extends AbstractCommand {
 		}));
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try {
 
 			final String id = (String) webSocketData.getId();
-			final App app   = StructrApp.getInstance(securityContext);
 			final File file;
 
 			try (final Tx tx = app.tx()) {
@@ -109,10 +109,18 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
+
 			String msg = t.toString();
 
-			// return error message
-			getWebSocket().send(MessageBuilder.status().code(400).message("Could not unarchive file: ".concat((msg != null) ? msg : "")).build(), true);
+			try (final Tx tx = app.tx()) {
+
+				// return error message
+				getWebSocket().send(MessageBuilder.status().code(400).message("Could not unarchive file: ".concat((msg != null) ? msg : "")).build(), true);
+
+				tx.success();
+
+			} catch (FrameworkException ignore) {}
 
 		}
 	}
@@ -131,7 +139,8 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		final String[] parts = PathHelper.getParts(path);
 
-		if (parts == null) {
+		// string is empty or a single file in root dir
+		if (parts == null || parts.length == 1) {
 			return null;
 		}
 
@@ -151,7 +160,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 			// Root folder doesn't exist, so create it and all child folders
 			folder = app.create(Folder.class, parts[0]);
-			logger.log(Level.INFO, "Created root folder {0}", new Object[]{folder});
+			logger.log(Level.INFO, "Created root folder {0}", new Object[]{parts[0]});
 
 			for (int i = 1; i < parts.length - 1; i++) {
 				Folder childFolder = app.create(Folder.class, parts[i]);
@@ -231,15 +240,13 @@ public class UnarchiveCommand extends AbstractCommand {
 					final String entryPath = "/" + PathHelper.clean(entry.getName());
 					logger.log(Level.INFO, "Entry path: {0}", entryPath);
 
-					AbstractFile f = FileHelper.getFileByAbsolutePath(securityContext, entryPath);
-
+					final AbstractFile f = FileHelper.getFileByAbsolutePath(securityContext, entryPath);
 					if (f == null) {
 
-						Folder parentFolder = createOrGetParentFolder(securityContext, entryPath);
+						final Folder parentFolder = createOrGetParentFolder(securityContext, entryPath);
+						final String name         = PathHelper.getName(entry.getName());
 
-						final String name = PathHelper.getName(entry.getName());
-
-						if (StringUtils.isNotEmpty(name) && !(FileHelper.getFolderPath(parentFolder).equals(entryPath))) {
+						if (StringUtils.isNotEmpty(name) && (parentFolder == null || !(FileHelper.getFolderPath(parentFolder).equals(entryPath)))) {
 
 							AbstractFile fileOrFolder = null;
 
@@ -254,7 +261,9 @@ public class UnarchiveCommand extends AbstractCommand {
 									: FileHelper.createFile(securityContext, in, null, File.class, name);
 							}
 
-							fileOrFolder.setProperty(AbstractFile.parent, parentFolder);
+							if (parentFolder != null) {
+								fileOrFolder.setProperty(AbstractFile.parent, parentFolder);
+							}
 
 							logger.log(Level.INFO, "Created {0} {1} with path {2}", new Object[]{fileOrFolder.getType(), fileOrFolder, FileHelper.getFolderPath(fileOrFolder)});
 
