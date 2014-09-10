@@ -680,7 +680,8 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid nth() result",   testSixs.get( 2).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  2)}"));
 			assertEquals("Invalid nth() result",   testSixs.get( 7).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  7)}"));
 			assertEquals("Invalid nth() result",   testSixs.get( 9).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  9)}"));
-			assertEquals("Invalid ngth() result",  testSixs.get(12).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 12)}"));
+			assertEquals("Invalid nth() result",  testSixs.get(12).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 12)}"));
+			assertEquals("Invalid nth() result",  "", testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 21)}"));
 
 			// first / last / nth with null
 			assertEquals("Invalid first() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${first(this.alwaysNull)}"));
