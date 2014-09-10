@@ -224,7 +224,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					if (!requestUriContainsUuids) {
 
 						// Try to find a data node by name
-						dataNode = findFirstNodeByPath(securityContext, request, path);
+						dataNode = findFirstNodeByName(securityContext, request, path);
 
 					} else {
 
@@ -478,7 +478,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
-	 * Find first node whose name matches the given path
+	 * Find first node whose name matches the last part of the given path
 	 *
 	 * @param securityContext
 	 * @param request
@@ -486,16 +486,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private AbstractNode findFirstNodeByPath(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
-		// FIXME: Take full path into account
-		String name = PathHelper.getName(path);
+		final String name = PathHelper.getName(path);
 
 		if (!name.isEmpty()) {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
-			Result results = StructrApp.getInstance().nodeQuery().and(AbstractNode.name, name).getResult();
+			final Result results = StructrApp.getInstance(securityContext).nodeQuery().and(AbstractNode.name, name).getResult();
 
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
