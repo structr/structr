@@ -433,15 +433,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 */
 	protected void increasePageVersion() throws FrameworkException {
 
-		Page page;
+		Page page = null;
 		
 		if (this instanceof Page) {
 			
 			page = (Page) this;
-			
-		} else {
-			
-			page = (Page) getOwnerDocument();
 			
 		}
 		
