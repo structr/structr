@@ -422,6 +422,11 @@ var _Entities = {
                                 }
                             });
                             
+                            // Always show non-empty attributes
+                            if (res[key]) {
+                                display = true;
+                            }
+                            
                             if (display || key === '_html_class' || key === '_html_id') {
                                 props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
                                         + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
