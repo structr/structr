@@ -1918,7 +1918,7 @@ public class Functions {
 					return list.get(list.size() - 1);
 				}
 
-				return "";
+				return null;
 			}
 
 			@Override
@@ -1937,10 +1937,16 @@ public class Functions {
 					final int pos   = Double.valueOf(sources[1].toString()).intValue();
 					final int size  = list.size();
 
-					return list.get(Math.min(Math.max(0, pos), size));
+					if (pos >= size) {
+						
+						return null;
+
+					}
+					
+					return list.get(Math.min(Math.max(0, pos), size-1));
 				}
 
-				return "";
+				return null;
 			}
 
 			@Override
