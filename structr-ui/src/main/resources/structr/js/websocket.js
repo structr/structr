@@ -376,7 +376,12 @@ function wsConnect() {
                         if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
 
                             StructrModel.create(entity, null, false);
-                            var el = _Pages.appendElementElement(entity, components, true);
+                            var el;
+                            if (entity.type === 'Content' || entity.type === 'Template') {
+                                el = _Contents.appendContentElement(entity, components, true);
+                            } else {
+                                el = _Pages.appendElementElement(entity, components, true);
+                            }
 
                             if (isExpanded(entity.id)) {
                                 _Entities.ensureExpanded(el);
@@ -390,7 +395,7 @@ function wsConnect() {
                                 $.each(entity.syncedNodes, function(i, id) {
                                     var el = Structr.node(id);
                                     if (el && el.length) {
-                                        el.children('img.typeIcon').attr('src', _Elements.icon_comp);
+                                        el.children('img.typeIcon').attr('src', (entity.type === 'Template' ? _Elements.icon_shared_template : _Elements.icon_comp));
                                         _Entities.removeExpandIcon(el);
                                     }
                                 });
@@ -406,11 +411,6 @@ function wsConnect() {
                         }, 2000);
                     } else if (command === 'CREATE' && (entity.type === 'File' || entity.type === 'Image')) {
                         _Files.uploadFile(entity);
-                    } else {
-                        // Shared component
-                        //window.setTimeout(function() {
-                           _Elements.reloadComponents();
-                        //}, 10);
                     }
 
                 });
