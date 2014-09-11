@@ -591,7 +591,12 @@ public class RenderContext extends ActionContext {
 				if ("children".equals(part)) {
 
 					if (parts.length == 1) {
-						return getClosestTemplate((DOMNode) entity, _page).getChildNodes();
+						
+						final Template template = getClosestTemplate((DOMNode) entity, _page);
+						
+						if (template != null) {
+							return template.getChildNodes();
+						}
 					}
 
 					continue;
@@ -742,9 +747,21 @@ public class RenderContext extends ActionContext {
 				
 				Document doc = template.getOwnerDocument();
 				
+				if (doc == null) {
+					
+					doc = getClosestPage(node);
+				}
+				
 				if (doc != null && doc.equals(page)) {
+					
+					try {
+						template.setProperty(DOMNode.ownerDocument, (Page) doc);
+						
+						return template;
 
-					return template;
+					} catch (FrameworkException ex) {
+						ex.printStackTrace();
+					}
 					
 				}
 				
@@ -771,5 +788,21 @@ public class RenderContext extends ActionContext {
 		
 		return null;
 
+	}
+	
+	private Page getClosestPage(DOMNode node) {
+		
+		while (node != null) {
+
+			if (node instanceof Page) {
+				
+				return (Page) node;
+			}
+
+			node = (DOMNode) node.getParentNode();
+
+		}
+		
+		return null;
 	}
 }
