@@ -22,6 +22,7 @@ var contents, editor, contentType;
 var _Contents = {
     icon: 'icon/page_white.png',
     comment_icon: 'icon/comment.png',
+    comp_icon: 'icon/package_green.png',
     template_icon: 'icon/layout_content.png',
     add_icon: 'icon/page_white_add.png',
     delete_icon: 'icon/page_white_delete.png',
@@ -45,8 +46,13 @@ var _Contents = {
 
         var name = entity.name;
 
+        var isComment = (entity.type === 'Comment');
+        var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
+        //console.log('comment, component, template?', isComment, isComponent, isTemplate);
+        var icon = isComment ? _Contents.comment_icon : (isComponent ? _Contents.comp_icon : (isTemplate ? _Contents.template_icon : _Contents.icon));
+        
         var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
-                + '<img class="typeIcon" src="' + (entity.type === 'Comment' ? _Contents.comment_icon : (isTemplate ? _Contents.template_icon : _Contents.icon)) + '">'
+                + '<img class="typeIcon" src="' + icon + '">'
                 + (name ? ('<b title="' + name + '" class="tag_ name_">' + name + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
                 + '<span class="id">' + entity.id + '</span>'
                 + '</div>';

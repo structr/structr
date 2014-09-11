@@ -194,8 +194,10 @@ public class Importer {
 
 			try {
 
+				URL url = new URL(address);
+				
 				DefaultHttpClient client = new DefaultHttpClient();
-				HttpGet get = new HttpGet(address);
+				HttpGet get = new HttpGet(url.toString());
 				get.setHeader("User-Agent", "Mozilla");
 				get.setHeader("Connection", "close");
 
@@ -218,7 +220,8 @@ public class Importer {
 				Header location = resp.getFirstHeader("Location");
 
 				if (location != null) {
-					address = location.getValue();
+
+					address = new URL(url, location.getValue()).toString();
 					client = new DefaultHttpClient();
 
 					int attempts = 1;

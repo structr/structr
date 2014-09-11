@@ -280,6 +280,22 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return null;
 
 	}
+	@Override
+	protected void handleNewChild(Node newChild) {
+		
+		for (final DOMNode child : getAllChildNodes()) {
+			
+			try {
+				
+				child.setProperty(ownerDocument, this);
+				
+			} catch (FrameworkException ex) {
+				ex.printStackTrace();
+			}
+			
+		}
+		
+	}
 
 	@Override
 	public DocumentFragment createDocumentFragment() {

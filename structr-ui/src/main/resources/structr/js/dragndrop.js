@@ -134,7 +134,6 @@ var _Dragndrop = {
             update: function(event, ui) {
 
                 var el = $(ui.item);
-                log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent));
                 if (!sorting)
                     return false;
 
@@ -144,8 +143,11 @@ var _Dragndrop = {
 
                 var nextNode = el.next('.node');
                 var refId = getId(nextNode);
-                if (!refId)
+                if (!refId) {
                     refId = getComponentId(nextNode);
+                }
+                
+                log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent), nextNode, refId);
 
                 var parentId = getId(sortParent);
                 el.remove();
@@ -264,7 +266,7 @@ var _Dragndrop = {
             if (source && target && source.id && target.id) {
 
                 sorting = false;
-                log('appendChild', source, target);
+                console.log('appendChild', source, target);
                 Command.appendChild(source.id, target.id);
 
                 return true;

@@ -60,7 +60,6 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.FileBase;
@@ -343,7 +342,21 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * @param newChild
 	 */
 	protected void handleNewChild(Node newChild) {
-		// override me
+		
+		final Page page = (Page) getOwnerDocument();
+		
+		for (final DOMNode child : getAllChildNodes()) {
+			
+			try {
+				
+				child.setProperty(ownerDocument, page);
+				
+			} catch (FrameworkException ex) {
+				ex.printStackTrace();
+			}
+			
+		}
+		
 	}
 
 	@Override
