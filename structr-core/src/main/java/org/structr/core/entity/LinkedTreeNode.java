@@ -66,6 +66,8 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		if (lastChild != null) {
 			LinkedTreeNode.super.listInsertAfter(lastChild, childElement);
 		}
+		
+		ensureCorrectChildPositions();
 	}
 
 	public void treeInsertBefore(final T newChild, final T refChild) throws FrameworkException {
@@ -114,6 +116,8 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 		// insert new node in linked list
 		LinkedTreeNode.super.listInsertBefore(refChild, newChild);
+		
+		ensureCorrectChildPositions();
 	}
 
 	public void treeInsertAfter(final T newChild, final T refChild) throws FrameworkException {
@@ -149,6 +153,8 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 		// insert new node in linked list
 		LinkedTreeNode.super.listInsertAfter(refChild, newChild);
+		
+		ensureCorrectChildPositions();
 
 	}
 
@@ -180,6 +186,8 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		// replace element in linked list as well
 		LinkedTreeNode.super.listInsertBefore(oldChild, newChild);
 		LinkedTreeNode.super.listRemove(oldChild);
+		
+		ensureCorrectChildPositions();
 	}
 
 	public T treeGetFirstChild() {

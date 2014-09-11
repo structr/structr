@@ -219,7 +219,6 @@ var _Pages = {
                     Structr.closeSlideOuts([widgetsSlideout, paletteSlideout, elementsSlideout], activeTabRightKey);
                     Structr.openSlideOut(componentsSlideout, this, activeTabRightKey, function() {
                         _Elements.reloadComponents();
-                        console.log(ui);
                     });
                 }
             }

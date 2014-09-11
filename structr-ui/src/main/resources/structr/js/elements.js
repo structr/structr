@@ -263,11 +263,10 @@ var _Elements = {
                 el = _Contents.appendContentElement(obj, components, true);
             } else {
                 el = _Pages.appendElementElement(obj, components, true);
-
-                if (isExpanded(entity.id)) {
-                    _Entities.ensureExpanded(el);
-                }
-
+            }
+            
+            if (isExpanded(entity.id)) {
+                _Entities.ensureExpanded(el);
             }
 
         });
