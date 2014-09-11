@@ -20,10 +20,9 @@ package org.structr.websocket.command;
 
 
 import java.util.Map;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -62,7 +61,7 @@ public class CloneComponentCommand extends AbstractCommand {
 		// check for parent ID
 		if (parentId == null) {
 
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot clone compoinent node without parentId").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot clone component node without parentId").build(), true);
 
 			return;
 
@@ -87,6 +86,7 @@ public class CloneComponentCommand extends AbstractCommand {
 			DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 			parentNode.appendChild(clonedNode);
 			clonedNode.setProperty(DOMNode.sharedComponent, node);
+			clonedNode.setProperty(DOMNode.ownerDocument, (parentNode instanceof Page ? (Page) parentNode : parentNode.getProperty(DOMNode.ownerDocument)));
 			
 		} catch (FrameworkException ex) {
 
