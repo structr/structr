@@ -221,7 +221,8 @@ public class Importer {
 
 				if (location != null) {
 
-					address = new URL(url, location.getValue()).toString();
+					address = location.getValue();
+					final String newLocation = new URL(url, address).toString();
 					client = new DefaultHttpClient();
 
 					int attempts = 1;
@@ -231,7 +232,7 @@ public class Importer {
 
 						try {
 
-							resp = client.execute(new HttpGet(address));
+							resp = client.execute(new HttpGet(newLocation));
 
 							success = true;
 
@@ -239,11 +240,11 @@ public class Importer {
 
 							ise.printStackTrace();
 
-							logger.log(Level.INFO, "Unable to establish connection to {0}, trying again after {1} sec...", new Object[]{ address, attempts*10 });
+							logger.log(Level.INFO, "Unable to establish connection to {0}, trying again after {1} sec...", new Object[]{ newLocation, attempts*10 });
 							attempts++;
 
 							if (attempts > 3) {
-								throw new FrameworkException(500, "Error while parsing content from " + address + ", couldn't establish connections after " + attempts + " attempts");
+								throw new FrameworkException(500, "Error while parsing content from " + newLocation + ", couldn't establish connections after " + attempts + " attempts");
 							}
 
 							try {
