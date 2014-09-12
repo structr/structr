@@ -537,7 +537,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
-	 * Find a page with its name matching last path part
+	 * Find a page with matching path
 	 *
 	 * @param securityContext
 	 * @param request
