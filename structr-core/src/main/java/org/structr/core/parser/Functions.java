@@ -2917,6 +2917,13 @@ public class Functions {
 
 	public static String cleanString(final Object input) {
 
+		if (input == null) {
+			
+			return "";
+			
+		}
+		
+		
 		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
 			.replaceAll("\\<", "")
 			.replaceAll("\\>", "")
