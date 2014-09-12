@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -33,6 +34,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.jsoup.Jsoup;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Relationship;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.Syncable;
@@ -43,6 +47,7 @@ import static org.structr.core.GraphObject.id;
 import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -53,6 +58,7 @@ import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -60,13 +66,22 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.datasource.CypherGraphDataSource;
+import org.structr.web.datasource.IdRequestParameterGraphDataSource;
+import org.structr.web.datasource.NodeGraphDataSource;
+import org.structr.web.datasource.RestDataSource;
+import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Renderable;
+import static org.structr.web.entity.dom.DOMElement.dataKey;
+import static org.structr.web.entity.dom.DOMElement.renderDetails;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
+import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -84,6 +99,18 @@ import org.w3c.dom.UserDataHandler;
 public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable, Syncable {
 
 	private static final Logger logger = Logger.getLogger(DOMNode.class.getName());
+
+	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
+
+	static {
+
+		// register data sources
+		listSources.add(new IdRequestParameterGraphDataSource("nodeId"));
+		listSources.add(new CypherGraphDataSource());
+		listSources.add(new XPathGraphDataSource());
+		listSources.add(new NodeGraphDataSource());
+		listSources.add(new RestDataSource());
+	}
 
 	// ----- error messages for DOMExceptions -----
 	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE = "Permission denied.";
@@ -131,32 +158,31 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	static {
 
 		// extend set of builtin functions
-		
 		Functions.functions.put("render", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null && sources.length == 1) {
-					
+
 					RenderContext innerCtx = new RenderContext((RenderContext) ctx);
-					
+
 					if (sources[0] instanceof DOMNode) {
 
 						((DOMNode) sources[0]).render(entity.getSecurityContext(), innerCtx, 0);
-					
+
 					} else if (sources[0] instanceof Collection) {
-						
+
 						for (final Object obj : (Collection) sources[0]) {
-							
+
 							if (obj instanceof DOMNode) {
 								((DOMNode) obj).render(entity.getSecurityContext(), innerCtx, 0);
 							}
-							
+
 						}
-					
+
 					}
-					
+
 					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 				}
 
@@ -168,74 +194,79 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				return "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
 			}
 		});
-		
-                /**
-                 * Conveniance method for ${render(find('DOMNode', 'name', name))}
-                 */
+
+		/**
+		 * Conveniance method for ${render(find('DOMNode', 'name',
+		 * name))}
+		 */
 		Functions.functions.put("include", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (Functions.arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
-					
-					final SecurityContext securityContext = entity.getSecurityContext();
-					final App app                         = StructrApp.getInstance(securityContext);
 
-                                        final RenderContext innerCtx = new RenderContext((RenderContext) ctx);
-                                        
-                                        DOMNode node = app.nodeQuery(DOMNode.class).andName((String) sources[0]).getFirst();
+					final SecurityContext securityContext = entity.getSecurityContext();
+					final App app = StructrApp.getInstance(securityContext);
+
+					final RenderContext innerCtx = new RenderContext((RenderContext) ctx);
+
+					final DOMNode node = app.nodeQuery(DOMNode.class).andName((String) sources[0]).getFirst();
 
 					if (node != null) {
 
 						node.render(entity.getSecurityContext(), innerCtx, 0);
-					
+
 					} else {
-                                            
-                                            FileBase file = app.nodeQuery(FileBase.class).andName((String) sources[0]).getFirst();
-                                            
-                                            final String name        = file.getProperty(NodeInterface.name);
-                                            final String contentType = file.getProperty(FileBase.contentType);
-                                            final String charset     = StringUtils.substringAfterLast(contentType, "charset=");
-                                            final String extension   = StringUtils.substringAfterLast(name, ".");
-                                            
-                                            if (contentType == null || StringUtils.isBlank(extension)) {
-                                                
-                                                return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
-                                                
-                                            }
-                                            
-                                            if (contentType.startsWith("text/css")) {
-                                                
-                                                return "<link ref=\"stylesheet\" href=\"" + file.getPath() + "\">";
-                                                
-                                            } else if (contentType.contains("/javascript")) {
-                                                    
-                                                return "<script src=\"" + file.getPath() + "\"></script>";
-                                                    
-                                            } else if (contentType.startsWith("image/svg")) {
-                                                    
-                                                try {
-                                                    final byte[] buffer = new byte[file.getSize().intValue()];
-                                                    IOUtils.read(file.getInputStream(), buffer);
-                                                    return StringUtils.toEncodedString(buffer, Charset.forName(charset));
-                                                } catch (IOException ex) {
-                                                    logger.log(Level.SEVERE, null, ex);
-                                                }
-                                                
-                                                return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
-                                                    
-                                            } else if (contentType.startsWith("image/")) {
-                                                    
-                                                return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
-                                                    
-                                            } else {
-                                                
-                                                return "Don't know how to render content type or extension of  " + name + ".";
-                                                
-                                            }
-                                            
-                                        }
+
+						final FileBase file = app.nodeQuery(FileBase.class).andName((String) sources[0]).getFirst();
+
+						if (file != null) {
+
+							final String name = file.getProperty(NodeInterface.name);
+							final String contentType = file.getProperty(FileBase.contentType);
+							final String charset = StringUtils.substringAfterLast(contentType, "charset=");
+							final String extension = StringUtils.substringAfterLast(name, ".");
+
+							if (contentType == null || StringUtils.isBlank(extension)) {
+
+								return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
+
+							}
+
+							if (contentType.startsWith("text/css")) {
+
+								return "<link ref=\"stylesheet\" href=\"" + file.getPath() + "\">";
+
+							} else if (contentType.contains("/javascript")) {
+
+								return "<script src=\"" + file.getPath() + "\"></script>";
+
+							} else if (contentType.startsWith("image/svg")) {
+
+								try {
+									final byte[] buffer = new byte[file.getSize().intValue()];
+									IOUtils.read(file.getInputStream(), buffer);
+									return StringUtils.toEncodedString(buffer, Charset.forName(charset));
+								} catch (IOException ex) {
+									logger.log(Level.SEVERE, null, ex);
+								}
+
+								return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
+
+							} else if (contentType.startsWith("image/")) {
+
+								return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
+
+							} else {
+
+								return "Don't know how to render content type or extension of  " + name + ".";
+
+							}
+
+						}
+
+					}
 
 					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 				}
@@ -249,7 +280,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 		});
 
-                Functions.functions.put("GET", new Function<Object, Object>() {
+		Functions.functions.put("GET", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
@@ -313,7 +344,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	public abstract boolean isSynced();
+
 	public abstract boolean contentEquals(final DOMNode otherNode);
+
 	public abstract void updateFromNode(final DOMNode otherNode) throws FrameworkException;
 
 	public String getIdHash() {
@@ -342,21 +375,21 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * @param newChild
 	 */
 	protected void handleNewChild(Node newChild) {
-		
+
 		final Page page = (Page) getOwnerDocument();
-		
+
 		for (final DOMNode child : getAllChildNodes()) {
-			
+
 			try {
-				
+
 				child.setProperty(ownerDocument, page);
-				
+
 			} catch (FrameworkException ex) {
 				ex.printStackTrace();
 			}
-			
+
 		}
-		
+
 	}
 
 	@Override
@@ -399,6 +432,158 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	}
 
+	@Override
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		try {
+
+			increasePageVersion();
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "Updating page version failed", ex);
+
+		}
+
+		return isValid(errorBuffer);
+
+	}
+
+	/**
+	 * Render the node including data binding (outer rendering).
+	 * 
+	 * @param securityContext
+	 * @param renderContext
+	 * @param depth
+	 * @throws FrameworkException 
+	 */
+	@Override
+	public void render(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		if (!securityContext.isVisible(this)) {
+			return;
+		}
+
+		final GraphObject details = renderContext.getDetailsDataObject();
+		final boolean detailMode = details != null;
+
+		if (detailMode && getProperty(hideOnDetail)) {
+			return;
+		}
+
+		if (!detailMode && getProperty(hideOnIndex)) {
+			return;
+		}
+
+		final EditMode editMode  = renderContext.getEditMode(securityContext.getUser(false));
+
+		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+
+			renderContent(securityContext, renderContext, depth);
+
+		} else {
+
+			final String subKey = getProperty(dataKey);
+
+			if (StringUtils.isNotBlank(subKey)) {
+
+				setDataRoot(renderContext, this, subKey);
+
+				final GraphObject currentDataNode = renderContext.getDataObject();
+
+//			// Store query result of this level
+//			final Result newResult = renderContext.getResult();
+//			if (newResult != null) {
+//				localResult = newResult;
+//			}
+				// fetch (optional) list of external data elements
+				final List<GraphObject> listData = checkListSources(securityContext, renderContext);
+
+				final PropertyKey propertyKey;
+
+				if (getProperty(renderDetails) && detailMode) {
+
+					renderContext.setDataObject(details);
+					renderContext.putDataObject(subKey, details);
+					renderContent(securityContext, renderContext, depth);
+
+				} else {
+
+					if (listData.isEmpty() && currentDataNode != null) {
+
+					// There are two alternative ways of retrieving sub elements:
+						// First try to get generic properties,
+						// if that fails, try to create a propertyKey for the subKey
+						final Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
+						renderContext.setRelatedProperty(new GenericProperty(subKey));
+						renderContext.setSourceDataObject(currentDataNode);
+
+						if (elements != null) {
+
+							if (elements instanceof Iterable) {
+
+								for (Object o : (Iterable) elements) {
+
+									if (o instanceof GraphObject) {
+
+										GraphObject graphObject = (GraphObject) o;
+										renderContext.putDataObject(subKey, graphObject);
+										renderContent(securityContext, renderContext, depth);
+
+									}
+								}
+
+							}
+
+						} else {
+
+							propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+							renderContext.setRelatedProperty(propertyKey);
+
+							if (propertyKey != null) {
+
+								final Object value = currentDataNode.getProperty(propertyKey);
+								if (value != null) {
+
+									if (value instanceof Iterable) {
+
+										for (final Object o : ((Iterable) value)) {
+
+											if (o instanceof GraphObject) {
+
+												renderContext.putDataObject(subKey, (GraphObject) o);
+												renderContent(securityContext, renderContext, depth);
+
+											}
+										}
+									}
+								}
+							}
+
+						}
+
+						// reset data node in render context
+						renderContext.setDataObject(currentDataNode);
+						renderContext.setRelatedProperty(null);
+
+					} else {
+
+						renderContext.setListSource(listData);
+						renderNodeList(securityContext, renderContext, depth, subKey);
+
+					}
+
+				}
+
+			} else {
+				renderContent(securityContext, renderContext, depth);
+			}
+		}
+
+	}
+
+	// ----- private methods -----
+
 	/**
 	 * Get all ancestors of this node
 	 *
@@ -418,44 +603,121 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return ancestors;
 
 	}
+	
+	
+	// ----- protected methods -----
 
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	protected void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
+		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
+		for (RenderNode rel : node.getOutgoingRelationships(RenderNode.class)) {
 
+			NodeInterface dataRoot = rel.getTargetNode();
+
+			// set start node of this rendering to the data root node
+			renderContext.putDataObject(dataKey, dataRoot);
+
+			// allow only one data tree to be rendered for now
+			break;
+		}
+	}
+
+	protected void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
+
+		Iterable<GraphObject> listSource = renderContext.getListSource();
+		if (listSource != null) {
+			for (GraphObject dataObject : listSource) {
+
+				// make current data object available in renderContext
+				renderContext.putDataObject(dataKey, dataObject);
+
+				renderContent(securityContext, renderContext, depth + 1);
+
+			}
+			renderContext.clearDataObject(dataKey);
+		}
+	}
+
+	protected void migrateSyncRels() {
 		try {
 
-			increasePageVersion();
+			org.neo4j.graphdb.Node n = getNode();
+
+			Iterable<Relationship> incomingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.INCOMING);
+			Iterable<Relationship> outgoingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.OUTGOING);
+
+			if (getOwnerDocument() instanceof ShadowDocument) {
+
+				// We are a shared component and must not have any incoming SYNC rels
+				for (Relationship r : incomingSyncRels) {
+					r.delete();
+				}
+
+			} else {
+
+				for (Relationship r : outgoingSyncRels) {
+					r.delete();
+				}
+
+				for (Relationship r : incomingSyncRels) {
+
+					DOMElement possibleSharedComp = StructrApp.getInstance().get(DOMElement.class, (String) r.getStartNode().getProperty("id"));
+
+					if (!(possibleSharedComp.getOwnerDocument() instanceof ShadowDocument)) {
+
+						r.delete();
+
+					}
+
+				}
+			}
 
 		} catch (FrameworkException ex) {
-
-			logger.log(Level.WARNING, "Updating page version failed", ex);
-
+			Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
 		}
-
-		return isValid(errorBuffer);
 
 	}
 
-	// ----- private methods -----
+	protected List<GraphObject> checkListSources(SecurityContext securityContext, RenderContext renderContext) {
+
+		// try registered data sources first
+		for (GraphDataSource<List<GraphObject>> source : listSources) {
+
+			try {
+
+				List<GraphObject> graphData = source.getData(securityContext, renderContext, this);
+				if (graphData != null) {
+					return graphData;
+				}
+
+			} catch (FrameworkException fex) {
+
+				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[]{source, fex});
+			}
+		}
+
+		return Collections.EMPTY_LIST;
+	}
+
 	/**
 	 * Increase version of the page.
-	 * 
-	 * A {@link Page} is a {@link DOMNode} as well, so we have to check 'this' as well.
+	 *
+	 * A {@link Page} is a {@link DOMNode} as well, so we have to check
+	 * 'this' as well.
 	 *
 	 * @throws FrameworkException
 	 */
 	protected void increasePageVersion() throws FrameworkException {
 
 		Page page = null;
-		
+
 		if (this instanceof Page) {
-			
+
 			page = (Page) this;
-			
+
 		}
-		
+
 		if (page == null) {
-			
+
 			final List<Node> ancestors = getAncestors();
 			if (!ancestors.isEmpty()) {
 				final DOMNode rootNode = (DOMNode) ancestors.get(ancestors.size() - 1);
@@ -463,9 +725,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					page = (Page) rootNode;
 				}
 			}
-			
+
 		}
-		
+
 		if (page != null) {
 
 			page.unlockReadOnlyPropertiesOnce();
@@ -473,9 +735,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		}
 
+	}	
+	
+	protected boolean avoidWhitespace() {
+
+		return false;
+
 	}
 
-	// ----- protected methods -----
 	protected void checkIsChild(Node otherNode) throws DOMException {
 
 		if (otherNode instanceof DOMNode) {
@@ -716,7 +983,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		// TODO: implement?
 	}
 
-	 @Override
+	@Override
 	public Node getParentNode() {
 		// FIXME: type cast correct here?
 		return (Node) getProperty(parent);
@@ -779,7 +1046,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// the document fragment, so we must first remove
 			// the node from the document fragment and then
 			// add it to the new parent.
-			DocumentFragment fragment = (DocumentFragment)newChild;
+			DocumentFragment fragment = (DocumentFragment) newChild;
 			Node currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
@@ -808,7 +1075,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			try {
 
 				// do actual tree insertion here
-				treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
+				treeInsertBefore((DOMNode) newChild, (DOMNode) refChild);
 
 			} catch (FrameworkException frex) {
 
@@ -849,7 +1116,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// the node from the document fragment and then
 			// add it to the new parent.
 			// replace indirectly using insertBefore and remove
-			DocumentFragment fragment = (DocumentFragment)newChild;
+			DocumentFragment fragment = (DocumentFragment) newChild;
 			Node currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
@@ -880,7 +1147,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			try {
 				// replace directly
-				treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
+				treeReplaceChild((DOMNode) newChild, (DOMNode) oldChild);
 
 			} catch (FrameworkException frex) {
 
@@ -1180,11 +1447,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		return this;
-	}
-
-	@Override
-	public boolean flush() {
-		return false;
 	}
 
 	// ----- static methods -----

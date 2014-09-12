@@ -76,7 +76,8 @@ public class RenderContext extends ActionContext {
 	private HttpServletResponse response = null;
 	private ResourceProvider resourceProvider = null;
 	private Result result = null;
-
+	private boolean anyChildNodeCreatesNewLine = false;
+	
 	public enum EditMode {
 
 		NONE, WIDGET, CONTENT, RAW;
@@ -107,6 +108,7 @@ public class RenderContext extends ActionContext {
 		this.response = other.response;
 		this.resourceProvider = other.resourceProvider;
 		this.result = other.result;
+		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
 
 	}
 
@@ -323,6 +325,14 @@ public class RenderContext extends ActionContext {
 		return result;
 	}
 
+	public void setAnyChildNodeCreatesNewLine(final boolean anyChildNodeCreatesNewLine) {
+		this.anyChildNodeCreatesNewLine = anyChildNodeCreatesNewLine;
+	}
+	
+	public boolean getAnyChildNodeCreatesNewLine() {
+		return anyChildNodeCreatesNewLine;
+	}
+	
 	// ----- interface ActionContext -----
 	@Override
 	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {

@@ -197,6 +197,7 @@ public class Content extends DOMNode implements Text {
 
 			// sync content only
 			syncedNode.setProperty(content, getProperty(content));
+			syncedNode.setProperty(contentType, getProperty(contentType));
 			syncedNode.setProperty(name, getProperty(name));
 		}
 
@@ -210,6 +211,7 @@ public class Content extends DOMNode implements Text {
 
                         // sync both ways
                         otherNode.setProperty(content, getProperty(content));
+			otherNode.setProperty(contentType, getProperty(contentType));
 			otherNode.setProperty(name, getProperty(name));
 
                     }
@@ -303,7 +305,7 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
 			return;
@@ -411,11 +413,6 @@ public class Content extends DOMNode implements Text {
 			out.append("<!---->");
 		}
 
-	}
-
-	@Override
-	public boolean flush() {
-		return true;
 	}
 
 //	@Override

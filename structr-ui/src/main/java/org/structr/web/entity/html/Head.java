@@ -36,8 +36,4 @@ public class Head extends DOMElement {
 //	public static final EndNodes<Meta>   metas   = new EndNodes<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
 //	public static final EndNodes<Base>   bases   = new EndNodes<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
-	@Override
-	public boolean flush() {
-		return true;
-	}
 }

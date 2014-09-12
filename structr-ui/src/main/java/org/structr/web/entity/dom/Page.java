@@ -165,11 +165,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return valid;
 	}
 
-	@Override
-	public boolean flush() {
-		return true;
-	}
-
 	/**
 	 * Creates a new Page entity with the given name in the database.
 	 *
@@ -710,6 +705,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		}
 			
 	}
+
+	@Override
+	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	}	
 
 	@Override
 	public boolean hasFeature(String string, String string1) {
