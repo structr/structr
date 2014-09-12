@@ -228,10 +228,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					} else {
 
-						AbstractNode n = (AbstractNode) StructrApp.getInstance(securityContext).get(PathHelper.getName(path));
-						if (n != null) {
-							dataNode = n;
-						}
+						dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
 					}
 
@@ -506,6 +503,27 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
+	 * Find node by uuid
+	 *
+	 * @param securityContext
+	 * @param request
+	 * @param uuid
+	 * @return
+	 * @throws FrameworkException
+	 */
+	private AbstractNode findNodeByUuid(final SecurityContext securityContext, final String uuid) throws FrameworkException {
+
+		if (!uuid.isEmpty()) {
+
+			logger.log(Level.FINE, "Requested id: {0}", uuid);
+
+			return (AbstractNode) StructrApp.getInstance(securityContext).get(uuid);
+		}
+
+		return null;
+	}
+
+	/**
 	 * Find a file with its name matching last path part
 	 *
 	 * @param securityContext
@@ -537,7 +555,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
-	 * Find a page with matching path
+	 * Find a page with matching path.
+	 * 
+	 * To be compatible with older versions, fallback to name-only lookup.
 	 *
 	 * @param securityContext
 	 * @param request
@@ -548,9 +568,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private Page findPage(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
+		
+		if (entryPoints.isEmpty()) {
+			
+			entryPoints = findPossibleEntryPointsByName(securityContext, request, PathHelper.getName(path));
+			
+		}
 
 		for (Linkable node : entryPoints) {
-			if (node instanceof Page && path.equals(node.getPath())) {
+
+			if (node instanceof Page) { // && path.equals(node.getPath())) {
 				return (Page) node;
 			}
 		}
@@ -717,6 +744,35 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
+	private List<Linkable> findPossibleEntryPointsByName(final SecurityContext securityContext, HttpServletRequest request, final String name) throws FrameworkException {
+
+		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+
+		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
+			return possibleEntryPoints;
+		}
+
+		if (name.length() > 0) {
+
+			logger.log(Level.FINE, "Requested name: {0}", name);
+
+			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+
+			query.and(AbstractNode.name, name);
+			query.and().orType(Page.class).orTypes(File.class);
+
+			// Searching for pages needs super user context anyway
+			Result results = query.getResult();
+
+			logger.log(Level.FINE, "{0} results", results.size());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
+
+			return (List<Linkable>) results.getResults();
+		}
+
+		return Collections.EMPTY_LIST;
+	}
+
 	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
@@ -730,7 +786,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			logger.log(Level.FINE, "Requested name {0}", path);
 
 			possibleEntryPoints = findPossibleEntryPointsByPath(securityContext, request, path);
-
+			
 			if (possibleEntryPoints.isEmpty()) {
 				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, PathHelper.getName(path));
 			}
