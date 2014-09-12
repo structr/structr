@@ -64,6 +64,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.dynamic.File;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
@@ -72,7 +73,6 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
-import org.structr.dynamic.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -516,19 +516,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private File findFile(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
-		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.getName(path));
+		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
 
 		// If no results were found, try to replace whitespace by '+' or '%20'
 		if (entryPoints.isEmpty()) {
-			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.getName(PathHelper.replaceWhitespaceByPlus(path)));
+			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.replaceWhitespaceByPlus(path));
 		}
 
 		if (entryPoints.isEmpty()) {
-			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.getName(PathHelper.replaceWhitespaceByPercentTwenty(path)));
+			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.replaceWhitespaceByPercentTwenty(path));
 		}
 
 		for (Linkable node : entryPoints) {
-			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.clean(path)))) {
+			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
 				return (File) node;
 			}
 		}
@@ -732,7 +732,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			possibleEntryPoints = findPossibleEntryPointsByPath(securityContext, request, path);
 
 			if (possibleEntryPoints.isEmpty()) {
-				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, path);
+				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, PathHelper.getName(path));
 			}
 
 			return possibleEntryPoints;
