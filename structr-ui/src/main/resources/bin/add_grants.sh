@@ -63,6 +63,7 @@ post resource_access '{"signature":"_schema/Post","flags":255}'
 post resource_access '{"signature":"_schema/Comment","flags":255}'
 post resource_access '{"signature":"_schema/ResourceAccess","flags":255}'
 post resource_access '{"signature":"_schema/Person","flags":255}'
+post resource_access '{"signature":"_schema/Template","flags":255}'
 post resource_access '{"signature":"_schema/Widget","flags":255}'
 post resource_access '{"signature":"_schema/SchemaNode","flags":255}'
 post resource_access '{"signature":"_schema/SchemaRelationship","flags":255}'
@@ -199,6 +200,15 @@ post resource_access '{"signature":"MailTemplate/_Public","flags":255}'
 post resource_access '{"signature":"MailTemplate/_Protected","flags":255}'
 post resource_access '{"signature":"MailTemplate/_Ui","flags":255}'
 post resource_access '{"signature":"MailTemplate/Id","flags":255}'
+
+post resource_access '{"signature":"Template","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
+((ELEM_POS++))
+post resource_access '{"signature":"Template/_All","flags":255}'
+post resource_access '{"signature":"Template/_Html","flags":255}'
+post resource_access '{"signature":"Template/_Public","flags":255}'
+post resource_access '{"signature":"Template/_Protected","flags":255}'
+post resource_access '{"signature":"Template/_Ui","flags":255}'
+post resource_access '{"signature":"Template/Id","flags":255}'
 
 post resource_access '{"signature":"Widget","flags":1023, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
 ((ELEM_POS++))
