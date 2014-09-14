@@ -44,11 +44,11 @@ import org.structr.core.property.PropertyKey;
  */
 public class ActionContext {
 
-	private Map<String, Object> tmpStore   = new LinkedHashMap<>();
-	private Map<Integer, Integer> counters = new LinkedHashMap<>();
-	private ErrorBuffer errorBuffer        = new ErrorBuffer();
-	private GraphObject parent             = null;
-	private Object data                    = null;
+	protected Map<String, Object> tmpStore   = new LinkedHashMap<>();
+	protected Map<Integer, Integer> counters = new LinkedHashMap<>();
+	protected ErrorBuffer errorBuffer        = new ErrorBuffer();
+	protected GraphObject parent             = null;
+	protected Object data                    = null;
 
 	public ActionContext() {
 		this(null, null);
