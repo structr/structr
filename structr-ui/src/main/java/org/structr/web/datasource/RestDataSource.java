@@ -49,7 +49,7 @@ import org.structr.rest.servlet.ResourceHelper;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.UiResourceProvider;
-import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
 /**
  * List data source equivalent to a rest resource.
@@ -65,7 +65,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 	@Override
 	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
 
-		final String restQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.restQuery);
+		final String restQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMNode.restQuery);
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
 		}

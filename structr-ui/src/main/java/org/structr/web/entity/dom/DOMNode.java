@@ -76,8 +76,6 @@ import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Renderable;
-import static org.structr.web.entity.dom.DOMElement.dataKey;
-import static org.structr.web.entity.dom.DOMElement.renderDetails;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
@@ -100,18 +98,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	private static final Logger logger = Logger.getLogger(DOMNode.class.getName());
 
-	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
-
-	static {
-
-		// register data sources
-		listSources.add(new IdRequestParameterGraphDataSource("nodeId"));
-		listSources.add(new CypherGraphDataSource());
-		listSources.add(new XPathGraphDataSource());
-		listSources.add(new NodeGraphDataSource());
-		listSources.add(new RestDataSource());
-	}
-
 	// ----- error messages for DOMExceptions -----
 	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE = "Permission denied.";
 	protected static final String INVALID_ACCESS_ERR_MESSAGE = "Permission denied.";
@@ -127,6 +113,24 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC = "Document nodes cannot be imported into another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC = "Document nodes cannot be adopted by another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME = "Renaming of nodes is not supported by this implementation.";
+
+	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
+
+	static {
+
+		// register data sources
+		listSources.add(new IdRequestParameterGraphDataSource("nodeId"));
+		listSources.add(new CypherGraphDataSource());
+		listSources.add(new XPathGraphDataSource());
+		listSources.add(new NodeGraphDataSource());
+		listSources.add(new RestDataSource());
+	}
+	public static final Property<String> dataKey          = new StringProperty("dataKey").indexed();
+	public static final Property<String> cypherQuery      = new StringProperty("cypherQuery");
+	public static final Property<String> xpathQuery       = new StringProperty("xpathQuery");
+	public static final Property<String> restQuery        = new StringProperty("restQuery");
+	public static final Property<Boolean> renderDetails   = new BooleanProperty("renderDetails");
+
 
 	public static final Property<List<DOMNode>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
 	public static final Property<DOMNode> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
@@ -273,11 +277,28 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				return usage();
 			}
-
 			@Override
 			public String usage() {
 				return "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
 			}
+		});
+		
+		Functions.functions.put("strip_html", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				return (Functions.arrayHasMinLengthAndAllElementsNotNull(sources, 1))
+					? sources[0].toString().replaceAll("\\<.*?>","")
+					: "";
+
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${strip_html(html)}. Example: ${strip_html(\"<p>foo</p>\")}";
+			}
+
 		});
 
 		Functions.functions.put("GET", new Function<Object, Object>() {
@@ -677,7 +698,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	}
 
-	protected List<GraphObject> checkListSources(SecurityContext securityContext, RenderContext renderContext) {
+	protected List<GraphObject> checkListSources(final SecurityContext securityContext, final RenderContext renderContext) {
 
 		// try registered data sources first
 		for (GraphDataSource<List<GraphObject>> source : listSources) {

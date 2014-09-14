@@ -43,7 +43,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -81,15 +80,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(1000);	// use LURMap here to avoid infinite growing
 	private static final String lowercaseBodyName = Body.class.getSimpleName().toLowerCase();
 
-	public static final Property<Integer> version         = new IntProperty("version").indexed();
  	public static final Property<String> tag              = new StringProperty("tag").indexed();
  	public static final Property<String> path             = new StringProperty("path").indexed();
 	public static final Property<String> partialUpdateKey = new StringProperty("partialUpdateKey").indexed();
-	public static final Property<String> dataKey          = new StringProperty("dataKey").indexed();
-	public static final Property<String> cypherQuery      = new StringProperty("cypherQuery");
-	public static final Property<String> xpathQuery       = new StringProperty("xpathQuery");
-	public static final Property<String> restQuery        = new StringProperty("restQuery");
-	public static final Property<Boolean> renderDetails   = new BooleanProperty("renderDetails");
 
 	// Event-handler attributes
 	public static final Property<String> _onabort = new HtmlProperty("onabort");
