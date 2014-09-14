@@ -76,6 +76,7 @@ public class RenderContext extends ActionContext {
 	private HttpServletResponse response = null;
 	private ResourceProvider resourceProvider = null;
 	private Result result = null;
+	private boolean anyChildNodeCreatesNewLine = false;
 
 	public enum EditMode {
 
@@ -107,6 +108,13 @@ public class RenderContext extends ActionContext {
 		this.response = other.response;
 		this.resourceProvider = other.resourceProvider;
 		this.result = other.result;
+		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
+
+		this.tmpStore = other.tmpStore;
+		this.counters = other.counters;
+		this.parent = other.parent;
+		this.errorBuffer = other.errorBuffer;
+		this.data = other.data;
 
 	}
 
@@ -323,6 +331,14 @@ public class RenderContext extends ActionContext {
 		return result;
 	}
 
+	public void setAnyChildNodeCreatesNewLine(final boolean anyChildNodeCreatesNewLine) {
+		this.anyChildNodeCreatesNewLine = anyChildNodeCreatesNewLine;
+	}
+
+	public boolean getAnyChildNodeCreatesNewLine() {
+		return anyChildNodeCreatesNewLine;
+	}
+
 	// ----- interface ActionContext -----
 	@Override
 	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
@@ -534,7 +550,6 @@ public class RenderContext extends ActionContext {
 				// special keyword "template", references the closest Template node in the current page
 				if ("template".equals(part)) {
 
-
 					_data = getClosestTemplate((DOMNode) entity, _page);
 
 					if (parts.length == 1) {
@@ -591,9 +606,9 @@ public class RenderContext extends ActionContext {
 				if ("children".equals(part)) {
 
 					if (parts.length == 1) {
-						
+
 						final Template template = getClosestTemplate((DOMNode) entity, _page);
-						
+
 						if (template != null) {
 							return template.getChildNodes();
 						}
@@ -742,29 +757,29 @@ public class RenderContext extends ActionContext {
 		while (node != null) {
 
 			if (node instanceof Template) {
-				
+
 				final Template template = (Template) node;
-				
+
 				Document doc = template.getOwnerDocument();
-				
+
 				if (doc == null) {
-					
+
 					doc = getClosestPage(node);
 				}
-				
+
 				if (doc != null && doc.equals(page)) {
-					
+
 					try {
 						template.setProperty(DOMNode.ownerDocument, (Page) doc);
-						
+
 						return template;
 
 					} catch (FrameworkException ex) {
 						ex.printStackTrace();
 					}
-					
+
 				}
-				
+
 				final List<DOMNode> syncedNodes = template.getProperty(DOMNode.syncedNodes);
 
 				for (final DOMNode syncedNode : syncedNodes) {
@@ -778,31 +793,30 @@ public class RenderContext extends ActionContext {
 					}
 
 				}
-				
 
 			}
 
 			node = (DOMNode) node.getParentNode();
 
 		}
-		
+
 		return null;
 
 	}
-	
+
 	private Page getClosestPage(DOMNode node) {
-		
+
 		while (node != null) {
 
 			if (node instanceof Page) {
-				
+
 				return (Page) node;
 			}
 
 			node = (DOMNode) node.getParentNode();
 
 		}
-		
+
 		return null;
 	}
 }

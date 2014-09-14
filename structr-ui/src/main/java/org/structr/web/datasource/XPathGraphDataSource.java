@@ -32,7 +32,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -51,7 +50,7 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 	@Override
 	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
-		final String xpathQuery = referenceNode.getProperty(DOMElement.xpathQuery);
+		final String xpathQuery = referenceNode.getProperty(DOMNode.xpathQuery);
 
 		if (xpathQuery == null || xpathQuery.isEmpty()) {
 			return null;

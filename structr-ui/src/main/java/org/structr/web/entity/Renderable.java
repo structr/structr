@@ -29,12 +29,6 @@ import org.structr.web.common.RenderContext;
 public interface Renderable {
 
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException;
-	
-	/**
-	 * Overwrite and return true if output writer should be flushed after
-	 * rendering the content of this element.
-	 * 
-	 * @return 
-	 */
-	public boolean flush();
+	public void renderContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException;
+
 }

@@ -27,7 +27,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
@@ -38,7 +38,7 @@ public class CypherGraphDataSource implements GraphDataSource<List<GraphObject>>
 	@Override
 	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
-		final String cypherQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.cypherQuery);
+		final String cypherQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMNode.cypherQuery);
 		if (cypherQuery == null || cypherQuery.isEmpty()) {
 
 			return null;

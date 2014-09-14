@@ -353,8 +353,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 										tx.success();
 
-									} catch (FrameworkException fex) {
-										fex.printStackTrace();
+									} catch (Throwable t) {
+										t.printStackTrace();
+										final String errorMsg = t.getMessage();
+										try {
+											//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+											response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg);
+											finished.set(true);
+										} catch (IOException ex) {
+											ex.printStackTrace();
+										}
 									}
 								}
 

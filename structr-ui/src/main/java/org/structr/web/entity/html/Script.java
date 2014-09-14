@@ -92,9 +92,4 @@ public class Script extends LinkSource {
 		}
 	}
 
-	@Override
-	public boolean flush() {
-		return true;
-	}
-
 }

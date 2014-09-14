@@ -578,7 +578,7 @@ var _Files = {
             contentType: contentType,
             success: function(data) {
                 text = fileContents[file.id] || data;
-                console.log(fileContents, data);
+                log(fileContents, data);
                 if (isDisabled(button))
                     return;
                 element.append('<div class="editor"></div>');
