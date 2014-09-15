@@ -46,7 +46,6 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.relation.ResourceLink;
-import org.w3c.dom.Document;
 
 /**
  * Holds information about the context in which a resource is rendered, like
@@ -550,7 +549,7 @@ public class RenderContext extends ActionContext {
 				// special keyword "template", references the closest Template node in the current page
 				if ("template".equals(part)) {
 
-					_data = getClosestTemplate((DOMNode) entity, _page);
+					_data = ((DOMNode) entity).getClosestTemplate(_page);
 
 					if (parts.length == 1) {
 						return _data;
@@ -607,7 +606,7 @@ public class RenderContext extends ActionContext {
 
 					if (parts.length == 1) {
 
-						final Template template = getClosestTemplate((DOMNode) entity, _page);
+						final Template template = ((DOMNode) entity).getClosestTemplate(_page);
 
 						if (template != null) {
 							return template.getChildNodes();
@@ -752,71 +751,71 @@ public class RenderContext extends ActionContext {
 		return System.currentTimeMillis() > (renderStartTime + timeout);
 	}
 
-	private Template getClosestTemplate(DOMNode node, final Page page) {
-
-		while (node != null) {
-
-			if (node instanceof Template) {
-
-				final Template template = (Template) node;
-
-				Document doc = template.getOwnerDocument();
-
-				if (doc == null) {
-
-					doc = getClosestPage(node);
-				}
-
-				if (doc != null && doc.equals(page)) {
-
-					try {
-						template.setProperty(DOMNode.ownerDocument, (Page) doc);
-
-						return template;
-
-					} catch (FrameworkException ex) {
-						ex.printStackTrace();
-					}
-
-				}
-
-				final List<DOMNode> syncedNodes = template.getProperty(DOMNode.syncedNodes);
-
-				for (final DOMNode syncedNode : syncedNodes) {
-
-					doc = syncedNode.getOwnerDocument();
-
-					if (doc != null && doc.equals(page)) {
-
-						return (Template) syncedNode;
-
-					}
-
-				}
-
-			}
-
-			node = (DOMNode) node.getParentNode();
-
-		}
-
-		return null;
-
-	}
-
-	private Page getClosestPage(DOMNode node) {
-
-		while (node != null) {
-
-			if (node instanceof Page) {
-
-				return (Page) node;
-			}
-
-			node = (DOMNode) node.getParentNode();
-
-		}
-
-		return null;
-	}
+//	private Template getClosestTemplate(DOMNode node, final Page page) {
+//
+//		while (node != null) {
+//
+//			if (node instanceof Template) {
+//
+//				final Template template = (Template) node;
+//
+//				Document doc = template.getOwnerDocument();
+//
+//				if (doc == null) {
+//
+//					doc = getClosestPage(node);
+//				}
+//
+//				if (doc != null && doc.equals(page)) {
+//
+//					try {
+//						template.setProperty(DOMNode.ownerDocument, (Page) doc);
+//
+//						return template;
+//
+//					} catch (FrameworkException ex) {
+//						ex.printStackTrace();
+//					}
+//
+//				}
+//
+//				final List<DOMNode> syncedNodes = template.getProperty(DOMNode.syncedNodes);
+//
+//				for (final DOMNode syncedNode : syncedNodes) {
+//
+//					doc = syncedNode.getOwnerDocument();
+//
+//					if (doc != null && doc.equals(page)) {
+//
+//						return (Template) syncedNode;
+//
+//					}
+//
+//				}
+//
+//			}
+//
+//			node = (DOMNode) node.getParentNode();
+//
+//		}
+//
+//		return null;
+//
+//	}
+//
+//	private Page getClosestPage(DOMNode node) {
+//
+//		while (node != null) {
+//
+//			if (node instanceof Page) {
+//
+//				return (Page) node;
+//			}
+//
+//			node = (DOMNode) node.getParentNode();
+//
+//		}
+//
+//		return null;
+//	}
 }

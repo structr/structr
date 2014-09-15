@@ -603,6 +603,78 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	}
 
+	public Template getClosestTemplate(final Page page) {
+		
+		DOMNode node = this;
+
+		while (node != null) {
+
+			if (node instanceof Template) {
+
+				final Template template = (Template) node;
+
+				Document doc = template.getOwnerDocument();
+
+				if (doc == null) {
+
+					doc = node.getClosestPage();
+				}
+
+				if (doc != null && (page == null || doc.equals(page))) {
+
+					try {
+						template.setProperty(DOMNode.ownerDocument, (Page) doc);
+
+						return template;
+
+					} catch (FrameworkException ex) {
+						ex.printStackTrace();
+					}
+
+				}
+
+				final List<DOMNode> _syncedNodes = template.getProperty(DOMNode.syncedNodes);
+
+				for (final DOMNode syncedNode : _syncedNodes) {
+
+					doc = syncedNode.getOwnerDocument();
+
+					if (doc != null && (page == null || doc.equals(page))) {
+
+						return (Template) syncedNode;
+
+					}
+
+				}
+
+			}
+
+			node = (DOMNode) node.getParentNode();
+
+		}
+
+		return null;
+
+	}
+
+	public Page getClosestPage() {
+		
+		DOMNode node = this;
+
+		while (node != null) {
+
+			if (node instanceof Page) {
+
+				return (Page) node;
+			}
+
+			node = (DOMNode) node.getParentNode();
+
+		}
+
+		return null;
+	}
+
 	// ----- private methods -----
 
 	/**
@@ -744,6 +816,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				final DOMNode rootNode = (DOMNode) ancestors.get(ancestors.size() - 1);
 				if (rootNode instanceof Page) {
 					page = (Page) rootNode;
+				} else {
+					rootNode.increasePageVersion();
+				}
+			} else {
+				final List<DOMNode> _syncedNodes = getProperty(DOMNode.syncedNodes);
+				for (final DOMNode syncedNode : _syncedNodes) {
+					syncedNode.increasePageVersion();
 				}
 			}
 
