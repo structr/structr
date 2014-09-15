@@ -1,7 +1,20 @@
 #!/bin/bash
 
-BASE_DIR=.
-PIDFILE=$BASE_DIR/structr-ui.pid
+NAME=$1
+HEAPSIZE=$2
+
+if [ -z $NAME ]; then
+        NAME="default"
+fi
+
+if [ -z $HEAPSIZE ]; then
+        HEAPSIZE=1
+fi
+
+BASE_DIR=/opt/structrdb
+PIDFILE=$BASE_DIR/structrdb-$NAME.pid
 STRUCTR_SCRIPT=$BASE_DIR/run.sh
 
-start-stop-daemon --quiet --start --make-pidfile --pidfile $PIDFILE --chdir $BASE_DIR --exec $STRUCTR_SCRIPT
+# run structr script
+$STRUCTR_SCRIPT $NAME $HEAPSIZE
+

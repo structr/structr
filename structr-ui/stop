@@ -1,17 +1,16 @@
 #!/bin/bash
 
-BASE_DIR=.
-PIDFILE=$BASE_DIR/structr-ui.pid
+NAME=$1
+
+if [ -z $NAME ]; then
+        NAME="default"
+fi
+
+BASE_DIR=/opt/structrdb
+PIDFILE=$BASE_DIR/structrdb-$NAME.pid
 LOGS_DIR=$BASE_DIR/logs
 SERVER_LOG=$BASE_DIR/logs/server.log
 
-start-stop-daemon --stop --signal 15 --pidfile structr-ui.pid
-
-PID=`cat $PIDFILE`
-
-{ tail -q --pid=$PID -n0 -F $SERVER_LOG & } | sed -n '/Shutdown complete/q'
+start-stop-daemon --stop --signal 15 --pidfile $PIDFILE
 
 rm $PIDFILE
-
-echo "Structr stopped."
-
