@@ -266,7 +266,7 @@ var _Dragndrop = {
             if (source && target && source.id && target.id) {
 
                 sorting = false;
-                console.log('appendChild', source, target);
+                log('appendChild', source, target);
                 Command.appendChild(source.id, target.id);
 
                 return true;
