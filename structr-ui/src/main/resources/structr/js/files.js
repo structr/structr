@@ -511,6 +511,10 @@ var _Files = {
 
         $(parent.children('.edit_file_icon')).on('click', function(e) {
             e.stopPropagation();
+
+            fileContents = {};
+            editor = undefined;
+
             selectedElements = $('.node.selected');
             if (selectedElements.length > 1) {
                 selectedElements.removeClass('selected');
@@ -577,8 +581,8 @@ var _Files = {
             dataType: dataType,
             contentType: contentType,
             success: function(data) {
+                log(file.id, fileContents);
                 text = fileContents[file.id] || data;
-                log(fileContents, data);
                 if (isDisabled(button))
                     return;
                 element.append('<div class="editor"></div>');
