@@ -344,8 +344,10 @@ public abstract class ImageHelper extends FileHelper {
 	public static String getBase64String(final File file) {
 
 		try {
+         InputStream dataStream = file.getInputStream();
 
-			return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
+         if (dataStream != null)
+			   return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
 
 		} catch (IOException ex) {
 			logger.log(Level.SEVERE, "Could not get base64 string from file ", ex);
