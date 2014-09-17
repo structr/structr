@@ -23,11 +23,13 @@ import java.util.List;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.Syncable;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
+import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
@@ -77,6 +79,7 @@ public class Folder extends AbstractFile implements Syncable {
 		boolean valid = true;
 
 		valid &= nonEmpty(AbstractNode.name, errorBuffer);
+		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[:_a-zA-Z0-9\\s\\-\\.]+", errorBuffer);
 		valid &= super.isValid(errorBuffer);
 
 		return valid;

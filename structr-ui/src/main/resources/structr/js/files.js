@@ -511,6 +511,10 @@ var _Files = {
 
         $(parent.children('.edit_file_icon')).on('click', function(e) {
             e.stopPropagation();
+
+            fileContents = {};
+            editor = undefined;
+
             selectedElements = $('.node.selected');
             if (selectedElements.length > 1) {
                 selectedElements.removeClass('selected');
@@ -555,7 +559,7 @@ var _Files = {
     editContent: function(button, file, element) {
         var url = viewRootUrl + file.id + '?edit=1';
         log('editContent', button, file, element, url);
-        var text;
+        var text = '';
 
         var contentType = file.contentType;
         var dataType = 'text';
@@ -577,6 +581,7 @@ var _Files = {
             dataType: dataType,
             contentType: contentType,
             success: function(data) {
+                log(file.id, fileContents);
                 text = fileContents[file.id] || data;
                 if (isDisabled(button))
                     return;

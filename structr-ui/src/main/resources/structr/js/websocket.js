@@ -356,7 +356,7 @@ function wsConnect() {
 
             } else if (command.startsWith('APPEND_')) { /*********************** APPEND_* ************************/
 
-                StructrModel.create(result[0]);
+                StructrModel.create(result[0], data.data.refId);
 
             } else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
@@ -368,7 +368,7 @@ function wsConnect() {
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 
                 $(result).each(function(i, entity) {
-
+                    
                     if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
                     } else {
@@ -376,7 +376,12 @@ function wsConnect() {
                         if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
 
                             StructrModel.create(entity, null, false);
-                            var el = _Pages.appendElementElement(entity, components, true);
+                            var el;
+                            if (entity.type === 'Content' || entity.type === 'Template') {
+                                el = _Contents.appendContentElement(entity, components, true);
+                            } else {
+                                el = _Pages.appendElementElement(entity, components, true);
+                            }
 
                             if (isExpanded(entity.id)) {
                                 _Entities.ensureExpanded(el);
@@ -385,12 +390,12 @@ function wsConnect() {
                             var synced = entity.syncedNodes;
 
                             if (synced && synced.length) {
-
+                                
                                 // Change icon
                                 $.each(entity.syncedNodes, function(i, id) {
                                     var el = Structr.node(id);
                                     if (el && el.length) {
-                                        el.children('img.typeIcon').attr('src', _Elements.icon_comp);
+                                        el.children('img.typeIcon').attr('src', (entity.type === 'Template' ? _Elements.icon_shared_template : _Elements.icon_comp));
                                         _Entities.removeExpandIcon(el);
                                     }
                                 });

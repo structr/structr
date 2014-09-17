@@ -3,17 +3,18 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.entity.dom;
 
@@ -29,9 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
@@ -43,33 +41,20 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.datasource.CypherGraphDataSource;
-import org.structr.web.datasource.IdRequestParameterGraphDataSource;
-import org.structr.web.datasource.NodeGraphDataSource;
-import org.structr.web.datasource.RestDataSource;
-import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.relation.PageLink;
-import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
@@ -93,22 +78,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
-	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMElement> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
-
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(1000);	// use LURMap here to avoid infinite growing
-	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
 	private static final String lowercaseBodyName = Body.class.getSimpleName().toLowerCase();
 
-	public static final Property<Integer> version         = new IntProperty("version").indexed();
  	public static final Property<String> tag              = new StringProperty("tag").indexed();
  	public static final Property<String> path             = new StringProperty("path").indexed();
 	public static final Property<String> partialUpdateKey = new StringProperty("partialUpdateKey").indexed();
-	public static final Property<String> dataKey          = new StringProperty("dataKey").indexed();
-	public static final Property<String> cypherQuery      = new StringProperty("cypherQuery");
-	public static final Property<String> xpathQuery       = new StringProperty("xpathQuery");
-	public static final Property<String> restQuery        = new StringProperty("restQuery");
-	public static final Property<Boolean> renderDetails   = new BooleanProperty("renderDetails");
 
 	// Event-handler attributes
 	public static final Property<String> _onabort = new HtmlProperty("onabort");
@@ -225,16 +200,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		_ontimeupdate, _onvolumechange, _onwaiting, _role
 	);
 
-	static {
-
-		// register data sources
-		listSources.add(new IdRequestParameterGraphDataSource("nodeId"));
-		listSources.add(new CypherGraphDataSource());
-		listSources.add(new XPathGraphDataSource());
-		listSources.add(new NodeGraphDataSource());
-		listSources.add(new RestDataSource());
-	}
-
 	@Override
 	public boolean contentEquals(DOMNode otherNode) {
 
@@ -321,12 +286,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 	}
 
-	public boolean avoidWhitespace() {
-
-		return false;
-
-	}
-
 	public Property[] getHtmlAttributes() {
 
 		return htmlView.properties();
@@ -387,9 +346,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	/**
-	 * Main render method.
-	 *
-	 * TODO: This method is still way to long!
+	 * Render (inner) content.
 	 *
 	 * @param securityContext
 	 * @param renderContext
@@ -397,7 +354,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * @throws FrameworkException
 	 */
 	@Override
-	public void render(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		if (renderContext.hasTimeout(RENDER_TIMEOUT)) {
 			return;
@@ -416,7 +373,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		// non-final variables
 		Result localResult                 = renderContext.getResult();
 		boolean anyChildNodeCreatesNewLine = false;
-
+		
 		renderStructrAppLib(out, securityContext, renderContext, depth);
 
 		if (depth > 0 && !avoidWhitespace()) {
@@ -450,137 +407,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					}
 				}
 
-				for (AbstractRelationship rel : rels) {
+				for (final AbstractRelationship rel : rels) {
 
-					DOMNode subNode = (DOMNode) rel.getTargetNode();
-
-					if (!securityContext.isVisible(subNode)) {
-						continue;
-					}
-
-					GraphObject details = renderContext.getDetailsDataObject();
-					boolean detailMode = details != null;
-
-					if (detailMode && subNode.getProperty(hideOnDetail)) {
-						continue;
-					}
-
-					if (!detailMode && subNode.getProperty(hideOnIndex)) {
-						continue;
-					}
-
+					final DOMNode subNode = (DOMNode) rel.getTargetNode();
+					
 					if (subNode instanceof DOMElement) {
-						// Determine the "newline-situation" for the closing tag of this element
-						anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !((DOMElement) subNode).avoidWhitespace());
+						anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
 					}
-
-					if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
-
-						subNode.render(securityContext, renderContext, depth + 1);
-
-					} else {
-
-						String subKey = subNode.getProperty(dataKey);
-						if (StringUtils.isNotBlank(subKey)) {
-
-							setDataRoot(renderContext, subNode, subKey);
-
-							GraphObject currentDataNode = renderContext.getDataObject();
-
-							// Store query result of this level
-							final Result newResult = renderContext.getResult();
-							if (newResult != null) {
-								localResult = newResult;
-							}
-
-							// fetch (optional) list of external data elements
-							List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
-
-							PropertyKey propertyKey = null;
-
-							if (subNode.getProperty(renderDetails) && detailMode) {
-
-								renderContext.setDataObject(details);
-								renderContext.putDataObject(subKey, details);
-								subNode.render(securityContext, renderContext, depth + 1);
-
-							} else {
-
-								if (listData.isEmpty() && currentDataNode != null) {
-
-									// There are two alternative ways of retrieving sub elements:
-									// First try to get generic properties,
-									// if that fails, try to create a propertyKey for the subKey
-									Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
-									renderContext.setRelatedProperty(new GenericProperty(subKey));
-									renderContext.setSourceDataObject(currentDataNode);
-
-									if (elements != null) {
-
-										if (elements instanceof Iterable) {
-
-											for (Object o : (Iterable) elements) {
-
-												if (o instanceof GraphObject) {
-
-													GraphObject graphObject = (GraphObject) o;
-													renderContext.putDataObject(subKey, graphObject);
-													subNode.render(securityContext, renderContext, depth + 1);
-
-												}
-											}
-
-										}
-
-									} else {
-
-										propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
-										renderContext.setRelatedProperty(propertyKey);
-
-										if (propertyKey != null) {
-
-											final Object value = currentDataNode.getProperty(propertyKey);
-											if (value != null) {
-
-												if (value instanceof Iterable) {
-
-													for (Object o : ((Iterable) value)) {
-
-														if (o instanceof GraphObject) {
-
-															//renderContext.setStartNode(node);
-															renderContext.putDataObject(subKey, (GraphObject) o);
-															subNode.render(securityContext, renderContext, depth + 1);
-
-														}
-													}
-												}
-											}
-										}
-
-									}
-
-									// reset data node in render context
-									renderContext.setDataObject(currentDataNode);
-									renderContext.setRelatedProperty(null);
-
-								} else {
-
-									renderContext.setListSource(listData);
-									((DOMElement) subNode).renderNodeList(securityContext, renderContext, depth, subKey);
-
-								}
-
-							}
-
-						} else {
-							subNode.render(securityContext, renderContext, depth + 1);
-						}
-
-					}
+					
+					subNode.render(securityContext, renderContext, depth + 1);
 
 				}
-
+				
 			} catch (Throwable t) {
 
 				logger.log(Level.SEVERE, "Error while rendering node {0}: {1}", new java.lang.Object[]{getUuid(), t});
@@ -610,37 +448,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		if (localResult != null) {
 			renderContext.setResult(localResult);
 		}
-
-	}
-
-	private void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
-		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
-		for (RenderNode rel : node.getOutgoingRelationships(RenderNode.class)) {
-
-			NodeInterface dataRoot = rel.getTargetNode();
-
-			// set start node of this rendering to the data root node
-			renderContext.putDataObject(dataKey, dataRoot);
-
-			// allow only one data tree to be rendered for now
-			break;
-		}
-	}
-
-	private void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
-
-		Iterable<GraphObject> listSource = renderContext.getListSource();
-		if (listSource != null) {
-			for (GraphObject dataObject : listSource) {
-
-				// make current data object available in renderContext
-				renderContext.putDataObject(dataKey, dataObject);
-
-				render(securityContext, renderContext, depth + 1);
-
-			}
-			renderContext.clearDataObject(dataKey);
-		}
+		
 	}
 
 	public boolean isVoidElement() {
@@ -739,26 +547,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	// ----- private methods -----
-	private List<GraphObject> checkListSources(SecurityContext securityContext, RenderContext renderContext) {
-
-		// try registered data sources first
-		for (GraphDataSource<List<GraphObject>> source : listSources) {
-
-			try {
-
-				List<GraphObject> graphData = source.getData(securityContext, renderContext, this);
-				if (graphData != null) {
-					return graphData;
-				}
-
-			} catch (FrameworkException fex) {
-
-				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[]{source, fex});
-			}
-		}
-
-		return Collections.EMPTY_LIST;
-	}
 
 	// ----- interface org.w3c.dom.Element -----
 	@Override
@@ -1061,16 +849,37 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		for (Sync rel : getOutgoingRelationships(Sync.class)) {
 
-			DOMElement syncedNode = rel.getTargetNode();
+			DOMElement syncedNode = (DOMElement) rel.getTargetNode();
 
 			// sync HTML properties only
 			for (Property htmlProp : syncedNode.getHtmlAttributes()) {
 
 				syncedNode.setProperty(htmlProp, getProperty(htmlProp));
 			}
+			
+			syncedNode.setProperty(name, getProperty(name));
 		}
 
-		try {
+                final Sync rel = getIncomingRelationship(Sync.class);
+                
+                if (rel != null) {
+                
+                    final DOMElement otherNode = (DOMElement) rel.getSourceNode();
+
+                    if (otherNode != null) {
+
+                        // sync both ways
+                        for (Property htmlProp : otherNode.getHtmlAttributes()) {
+
+                                otherNode.setProperty(htmlProp, getProperty(htmlProp));
+                        }
+			
+			otherNode.setProperty(name, getProperty(name));
+
+                    }
+                }
+
+                try {
 
 			increasePageVersion();
 
@@ -1235,46 +1044,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public boolean isSynced() {
 		return hasIncomingRelationships(Sync.class) || hasOutgoingRelationships(Sync.class);
-	}
-
-	private void migrateSyncRels() {
-		try {
-
-			org.neo4j.graphdb.Node n = getNode();
-
-			Iterable<Relationship> incomingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.INCOMING);
-			Iterable<Relationship> outgoingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.OUTGOING);
-
-			if (getOwnerDocument() instanceof ShadowDocument) {
-
-				// We are a shared component and must not have any incoming SYNC rels
-				for (Relationship r : incomingSyncRels) {
-					r.delete();
-				}
-
-			} else {
-
-				for (Relationship r : outgoingSyncRels) {
-					r.delete();
-				}
-
-				for (Relationship r : incomingSyncRels) {
-
-					DOMElement possibleSharedComp = StructrApp.getInstance().get(DOMElement.class, (String) r.getStartNode().getProperty("id"));
-
-					if (!(possibleSharedComp.getOwnerDocument() instanceof ShadowDocument)) {
-
-						r.delete();
-
-					}
-
-				}
-			}
-
-		} catch (FrameworkException ex) {
-			Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
-		}
-
 	}
 
 	// ----- interface Syncable -----

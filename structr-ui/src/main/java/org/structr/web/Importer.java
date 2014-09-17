@@ -3,17 +3,18 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web;
 
@@ -194,8 +195,10 @@ public class Importer {
 
 			try {
 
+				URL url = new URL(address);
+				
 				DefaultHttpClient client = new DefaultHttpClient();
-				HttpGet get = new HttpGet(address);
+				HttpGet get = new HttpGet(url.toString());
 				get.setHeader("User-Agent", "Mozilla");
 				get.setHeader("Connection", "close");
 
@@ -218,7 +221,9 @@ public class Importer {
 				Header location = resp.getFirstHeader("Location");
 
 				if (location != null) {
+
 					address = location.getValue();
+					final String newLocation = new URL(url, address).toString();
 					client = new DefaultHttpClient();
 
 					int attempts = 1;
@@ -228,7 +233,7 @@ public class Importer {
 
 						try {
 
-							resp = client.execute(new HttpGet(address));
+							resp = client.execute(new HttpGet(newLocation));
 
 							success = true;
 
@@ -236,11 +241,11 @@ public class Importer {
 
 							ise.printStackTrace();
 
-							logger.log(Level.INFO, "Unable to establish connection to {0}, trying again after {1} sec...", new Object[]{ address, attempts*10 });
+							logger.log(Level.INFO, "Unable to establish connection to {0}, trying again after {1} sec...", new Object[]{ newLocation, attempts*10 });
 							attempts++;
 
 							if (attempts > 3) {
-								throw new FrameworkException(500, "Error while parsing content from " + address + ", couldn't establish connections after " + attempts + " attempts");
+								throw new FrameworkException(500, "Error while parsing content from " + newLocation + ", couldn't establish connections after " + attempts + " attempts");
 							}
 
 							try {

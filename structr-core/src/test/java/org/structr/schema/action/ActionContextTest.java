@@ -129,13 +129,13 @@ public class ActionContextTest extends StructrTest {
 			final ActionContext ctx = new ActionContext(testOne, null);
 
 			// test for "empty" return value
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${err}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.error}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.this.this.error}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.error}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.owner}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.alwaysNull}"));
-			assertEquals("Invalid expressions should yield and empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.owner}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${err}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.error}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.this.this.error}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.error}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.owner}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.alwaysNull}"));
+			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.owner}"));
 
 			assertEquals("${this} should evaluate to the current node", testOne.toString(), testOne.replaceVariables(securityContext, ctx, "${this}"));
 			assertEquals("${parent} should evaluate to the context parent node", testOne.toString(), testOne.replaceVariables(securityContext, ctx, "${parent}"));
@@ -680,7 +680,8 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid nth() result",   testSixs.get( 2).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  2)}"));
 			assertEquals("Invalid nth() result",   testSixs.get( 7).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  7)}"));
 			assertEquals("Invalid nth() result",   testSixs.get( 9).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  9)}"));
-			assertEquals("Invalid ngth() result",  testSixs.get(12).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 12)}"));
+			assertEquals("Invalid nth() result",  testSixs.get(12).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 12)}"));
+			assertEquals("Invalid nth() result",  "", testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 21)}"));
 
 			// first / last / nth with null
 			assertEquals("Invalid first() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${first(this.alwaysNull)}"));

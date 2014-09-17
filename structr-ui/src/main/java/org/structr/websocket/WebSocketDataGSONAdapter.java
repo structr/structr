@@ -92,6 +92,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			root.add("message", new JsonPrimitive(src.getMessage()));
 		}
 
+		if (src.getJsonErrorObject() != null) {
+			root.add("error", src.getJsonErrorObject());
+		}
+
 		if (src.getCode() != 0) {
 
 			root.add("code", new JsonPrimitive(src.getCode()));
@@ -256,7 +260,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			root.add("result", result);
 			root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
-
+			
 		}
 
 		return root;

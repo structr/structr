@@ -1918,7 +1918,7 @@ public class Functions {
 					return list.get(list.size() - 1);
 				}
 
-				return "";
+				return null;
 			}
 
 			@Override
@@ -1937,10 +1937,16 @@ public class Functions {
 					final int pos   = Double.valueOf(sources[1].toString()).intValue();
 					final int size  = list.size();
 
-					return list.get(Math.min(Math.max(0, pos), size));
+					if (pos >= size) {
+						
+						return null;
+
+					}
+					
+					return list.get(Math.min(Math.max(0, pos), size-1));
 				}
 
-				return "";
+				return null;
 			}
 
 			@Override
@@ -2725,7 +2731,7 @@ public class Functions {
 	 * @param minLength If null, don't do length check
 	 * @return
 	 */
-	private static boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
+	public static boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
 
 		if (array == null) {
 			return false;
@@ -2751,7 +2757,7 @@ public class Functions {
 	 * @param length If null, don't do length check
 	 * @return
 	 */
-	private static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) {
+	public static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) {
 
 		if (array == null) {
 			return false;
@@ -2911,6 +2917,13 @@ public class Functions {
 
 	public static String cleanString(final Object input) {
 
+		if (input == null) {
+			
+			return "";
+			
+		}
+		
+		
 		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
 			.replaceAll("\\<", "")
 			.replaceAll("\\>", "")

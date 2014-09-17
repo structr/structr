@@ -68,13 +68,6 @@ public class Img extends LinkSource {
 	}
 
 	@Override
-	public boolean flush() {
-
-		return true;
-
-	}
-
-	@Override
 	public Property[] getHtmlAttributes() {
 
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());

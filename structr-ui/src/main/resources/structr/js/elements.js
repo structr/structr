@@ -22,6 +22,7 @@ var elements, dropBlocked;
 var _Elements = {
     icon: 'icon/brick.png',
     icon_comp: 'icon/package.png',
+    icon_shared_template: 'icon/package_green.png',
     icon_repeater: 'icon/bricks.png',
     add_icon: 'icon/brick_add.png',
     delete_icon: 'icon/brick_delete.png',
@@ -54,7 +55,7 @@ var _Elements = {
     elementGroups: [
         {
             'name': 'Root',
-            'elements': ['html', 'content', 'comment']
+            'elements': ['html', 'content', 'comment', 'template']
         },
         {
             'name': 'Metadata',
@@ -220,6 +221,7 @@ var _Elements = {
      */
     reloadComponents: function() {
 
+        if (!componentsSlideout) return;
         componentsSlideout.find(':not(.compTab)').remove();
         componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
         components = $('#componentsArea', componentsSlideout);
@@ -236,16 +238,15 @@ var _Elements = {
                 var sourceId = getId(sourceEl);
                 if (!sourceId) return false;
                 var obj = StructrModel.obj(sourceId);
-                if (obj.type === 'Content' || obj.type === 'Comment') {
-                    return false;
-                }
+//                if (obj.type === 'Content' || obj.type === 'Comment') {
+//                    return false;
+//                }
                 if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
                     log('component dropped on components area, aborting');
                     return false;
                 }
                 Command.createComponent(sourceId);
                 dropBlocked = false;
-
             }
 
         });
@@ -257,8 +258,13 @@ var _Elements = {
                 return false;
 
             var obj = StructrModel.create(entity, null, false);
-            var el = _Pages.appendElementElement(obj, components, true);
-
+            var el;
+            if (obj.type === 'Content' || obj.type === 'Template') {
+                el = _Contents.appendContentElement(obj, components, true);
+            } else {
+                el = _Pages.appendElementElement(obj, components, true);
+            }
+            
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);
             }
@@ -381,7 +387,7 @@ var _Elements = {
             e.stopPropagation();
         });
 
-        // Prevent html class from being draggable
+        // Prevent html id from being draggable
         $('._html_id_', div).on('mousedown', function(e) {
             e.stopPropagation();
         });

@@ -3,17 +3,18 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket;
 
@@ -236,7 +237,15 @@ public class StructrWebSocket implements WebSocketListener {
 				try (final Tx tx = app.tx()) {
 
 					// send 400 Bad Request
-					send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
+					if (t instanceof FrameworkException) {
+
+						send(MessageBuilder.status().message(t.toString()).jsonErrorObject(((FrameworkException) t).toJSON()).build(), true);
+						
+					} else {
+					
+						send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
+					
+					}
 
 					// commit transaction
 					tx.success();
@@ -263,7 +272,16 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public void send(final WebSocketMessage message, final boolean clearSessionId) {
 
-		final boolean isAuthenticated = isAuthenticated();
+		boolean isAuthenticated = false;
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			isAuthenticated = isAuthenticated();
+
+		} catch (FrameworkException t) {
+			t.printStackTrace();
+		}
+		
 
 		// return session status to client
 		message.setSessionValid(isAuthenticated);

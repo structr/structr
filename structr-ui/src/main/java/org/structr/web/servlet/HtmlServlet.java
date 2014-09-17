@@ -3,17 +3,18 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.servlet;
 
@@ -64,6 +65,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.dynamic.File;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
@@ -72,7 +74,6 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
-import org.structr.dynamic.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -224,14 +225,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					if (!requestUriContainsUuids) {
 
 						// Try to find a data node by name
-						dataNode = findFirstNodeByPath(securityContext, request, path);
+						dataNode = findFirstNodeByName(securityContext, request, path);
 
 					} else {
 
-						AbstractNode n = (AbstractNode) StructrApp.getInstance(securityContext).get(PathHelper.getName(path));
-						if (n != null) {
-							dataNode = n;
-						}
+						dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
 					}
 
@@ -356,8 +354,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 										tx.success();
 
-									} catch (FrameworkException fex) {
-										fex.printStackTrace();
+									} catch (Throwable t) {
+										t.printStackTrace();
+										final String errorMsg = t.getMessage();
+										try {
+											//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+											response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg);
+											finished.set(true);
+										} catch (IOException ex) {
+											ex.printStackTrace();
+										}
 									}
 								}
 
@@ -478,7 +484,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
-	 * Find first node whose name matches the given path
+	 * Find first node whose name matches the last part of the given path
 	 *
 	 * @param securityContext
 	 * @param request
@@ -486,21 +492,41 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private AbstractNode findFirstNodeByPath(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
-		// FIXME: Take full path into account
-		String name = PathHelper.getName(path);
+		final String name = PathHelper.getName(path);
 
 		if (!name.isEmpty()) {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
-			Result results = StructrApp.getInstance().nodeQuery().and(AbstractNode.name, name).getResult();
+			final Result results = StructrApp.getInstance(securityContext).nodeQuery().and(AbstractNode.name, name).getResult();
 
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
 
 			return (results.size() > 0 ? (AbstractNode) results.get(0) : null);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Find node by uuid
+	 *
+	 * @param securityContext
+	 * @param request
+	 * @param uuid
+	 * @return
+	 * @throws FrameworkException
+	 */
+	private AbstractNode findNodeByUuid(final SecurityContext securityContext, final String uuid) throws FrameworkException {
+
+		if (!uuid.isEmpty()) {
+
+			logger.log(Level.FINE, "Requested id: {0}", uuid);
+
+			return (AbstractNode) StructrApp.getInstance(securityContext).get(uuid);
 		}
 
 		return null;
@@ -517,19 +543,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private File findFile(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
-		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.getName(path));
+		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
 
 		// If no results were found, try to replace whitespace by '+' or '%20'
 		if (entryPoints.isEmpty()) {
-			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.getName(PathHelper.replaceWhitespaceByPlus(path)));
+			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.replaceWhitespaceByPlus(path));
 		}
 
 		if (entryPoints.isEmpty()) {
-			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.getName(PathHelper.replaceWhitespaceByPercentTwenty(path)));
+			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.replaceWhitespaceByPercentTwenty(path));
 		}
 
 		for (Linkable node : entryPoints) {
-			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.clean(path)))) {
+			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
 				return (File) node;
 			}
 		}
@@ -538,7 +564,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
-	 * Find a page with its name matching last path part
+	 * Find a page with matching path.
+	 * 
+	 * To be compatible with older versions, fallback to name-only lookup.
 	 *
 	 * @param securityContext
 	 * @param request
@@ -548,10 +576,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private Page findPage(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
-		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.getName(path));
+		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
+		
+		if (entryPoints.isEmpty()) {
+			
+			entryPoints = findPossibleEntryPointsByName(securityContext, request, PathHelper.getName(path));
+			
+		}
 
 		for (Linkable node : entryPoints) {
-			if (node instanceof Page && path.equals(node.getPath())) {
+
+			if (node instanceof Page) { // && path.equals(node.getPath())) {
 				return (Page) node;
 			}
 		}
@@ -689,6 +724,35 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
+	private List<Linkable> findPossibleEntryPointsByPath(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+
+		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+
+		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
+			return possibleEntryPoints;
+		}
+
+		if (path.length() > 0) {
+
+			logger.log(Level.FINE, "Requested path: {0}", path);
+
+			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+
+			query.and(Page.path, path);
+			query.and().orType(Page.class).orTypes(File.class);
+
+			// Searching for pages needs super user context anyway
+			Result results = query.getResult();
+
+			logger.log(Level.FINE, "{0} results", results.size());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
+
+			return (List<Linkable>) results.getResults();
+		}
+
+		return Collections.EMPTY_LIST;
+	}
+
 	private List<Linkable> findPossibleEntryPointsByName(final SecurityContext securityContext, HttpServletRequest request, final String name) throws FrameworkException {
 
 		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
@@ -718,7 +782,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, HttpServletRequest request, final String name) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
@@ -726,14 +790,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return possibleEntryPoints;
 		}
 
-		if (name.length() > 0) {
+		if (path.length() > 0) {
 
-			logger.log(Level.FINE, "Requested name {0}", name);
+			logger.log(Level.FINE, "Requested name {0}", path);
 
-			possibleEntryPoints = findPossibleEntryPointsByName(securityContext, request, name);
-
+			possibleEntryPoints = findPossibleEntryPointsByPath(securityContext, request, path);
+			
 			if (possibleEntryPoints.isEmpty()) {
-				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, name);
+				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, PathHelper.getName(path));
 			}
 
 			return possibleEntryPoints;

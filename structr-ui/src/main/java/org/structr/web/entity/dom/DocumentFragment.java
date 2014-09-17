@@ -108,6 +108,10 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 		}
 
 	}
+	
+	@Override
+	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	}	
 
 	@Override
 	public Node doAdopt(Page newPage) throws DOMException {

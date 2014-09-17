@@ -3,17 +3,18 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.entity.dom;
 
@@ -35,6 +36,7 @@ import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.Syncable;
+import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
@@ -99,20 +101,21 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	private static final Logger logger = Logger.getLogger(Page.class.getName());
 
-	public static final Property<Integer> version = new IntProperty("version").indexed();
+	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
 	public static final Property<Integer> position = new IntProperty("position").indexed();
 	public static final Property<String> contentType = new StringProperty("contentType").indexed();
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
 	public static final Property<Boolean> isPage = new BooleanProperty("isPage", true).readOnly();
+        public static final Property<String> path = new StringProperty("path").indexed();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage
 	);
 
 	private Html5DocumentType docTypeNode = null;
@@ -157,14 +160,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		boolean valid = true;
 
 		valid &= nonEmpty(AbstractNode.name, errorBuffer);
+                valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_a-zA-Z0-9\\s\\-\\.]+", errorBuffer);
 		valid &= super.isValid(errorBuffer);
 
 		return valid;
-	}
-
-	@Override
-	public boolean flush() {
-		return true;
 	}
 
 	/**
@@ -197,7 +196,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT);
 		}
 
-		if (!(otherNode instanceof Html || otherNode instanceof Comment)) {
+		if (!(otherNode instanceof Html || otherNode instanceof Comment || otherNode instanceof Template)) {
 
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 		}
@@ -276,6 +275,22 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		return null;
 
+	}
+	@Override
+	protected void handleNewChild(Node newChild) {
+		
+		for (final DOMNode child : getAllChildNodes()) {
+			
+			try {
+				
+				child.setProperty(ownerDocument, this);
+				
+			} catch (FrameworkException ex) {
+				ex.printStackTrace();
+			}
+			
+		}
+		
 	}
 
 	@Override
@@ -665,10 +680,19 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		renderContext.setPage(this);
 
-		renderContext.getBuffer().append("<!DOCTYPE html>\n");
-
 		// Skip DOCTYPE node
 		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();
+
+		if (subNode == null) {
+			
+			subNode = (DOMNode) super.getFirstChild();
+			
+			
+		} else {
+
+			renderContext.getBuffer().append("<!DOCTYPE html>\n");
+
+		}
 
 		while (subNode != null) {
 
@@ -680,8 +704,12 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			subNode = (DOMNode) subNode.getNextSibling();
 
 		}
-
+			
 	}
+
+	@Override
+	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	}	
 
 	@Override
 	public boolean hasFeature(String string, String string1) {
@@ -786,7 +814,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public String getPath() {
-		return "/".concat(getProperty(name));
+		return getProperty(path);
 	}
 
 	// ----- diff methods -----
@@ -830,10 +858,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public String getAbsolutePath() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			String path = getName();
-			return path;
+			return getPath();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
+			logger.log(Level.SEVERE, "Error in getPath() of abstract ftp file", fex);
 		}
 		return null;
 	}

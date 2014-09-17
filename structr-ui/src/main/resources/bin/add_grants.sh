@@ -12,6 +12,8 @@
 #   NON_AUTH_USER_PUT     = 32
 #   NON_AUTH_USER_POST    = 64
 #   NON_AUTH_USER_DELETE  = 128
+#   AUTH_USER_OPTIONS     = 256
+#   NON_AUTH_USER_OPTIONS = 512
 #
 #   ELEM_POS is the position at which the resource will show
 #   up at in the structr UI. (your entities show up in the order of this file)
@@ -57,12 +59,10 @@ post resource_access '{"signature":"_schema/Folder","flags":255}'
 post resource_access '{"signature":"_schema/File","flags":255}'
 post resource_access '{"signature":"_schema/Image","flags":255}'
 post resource_access '{"signature":"_schema/Content","flags":255}'
-post resource_access '{"signature":"_schema/NewsTickerItem","flags":255}'
 post resource_access '{"signature":"_schema/MailTemplate","flags":255}'
-post resource_access '{"signature":"_schema/Post","flags":255}'
-post resource_access '{"signature":"_schema/Comment","flags":255}'
 post resource_access '{"signature":"_schema/ResourceAccess","flags":255}'
 post resource_access '{"signature":"_schema/Person","flags":255}'
+post resource_access '{"signature":"_schema/Template","flags":255}'
 post resource_access '{"signature":"_schema/Widget","flags":255}'
 post resource_access '{"signature":"_schema/SchemaNode","flags":255}'
 post resource_access '{"signature":"_schema/SchemaRelationship","flags":255}'
@@ -164,33 +164,6 @@ post resource_access '{"signature":"Image/_Protected","flags":255}'
 post resource_access '{"signature":"Image/_Ui","flags":255}'
 post resource_access '{"signature":"Image/Id","flags":255}'
 
-post resource_access '{"signature":"Post","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
-((ELEM_POS++))
-post resource_access '{"signature":"Post/_All","flags":255}'
-post resource_access '{"signature":"Post/_Html","flags":255}'
-post resource_access '{"signature":"Post/_Public","flags":255}'
-post resource_access '{"signature":"Post/_Protected","flags":255}'
-post resource_access '{"signature":"Post/_Ui","flags":255}'
-post resource_access '{"signature":"Post/Id","flags":255}'
-
-post resource_access '{"signature":"Comment","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
-((ELEM_POS++))
-post resource_access '{"signature":"Comment/_All","flags":255}'
-post resource_access '{"signature":"Comment/_Html","flags":255}'
-post resource_access '{"signature":"Comment/_Public","flags":255}'
-post resource_access '{"signature":"Comment/_Protected","flags":255}'
-post resource_access '{"signature":"Comment/_Ui","flags":255}'
-post resource_access '{"signature":"Comment/Id","flags":255}'
-
-post resource_access '{"signature":"NewsTickerItem","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
-((ELEM_POS++))
-post resource_access '{"signature":"NewsTickerItem/_All","flags":255}'
-post resource_access '{"signature":"NewsTickerItem/_Html","flags":255}'
-post resource_access '{"signature":"NewsTickerItem/_Public","flags":255}'
-post resource_access '{"signature":"NewsTickerItem/_Protected","flags":255}'
-post resource_access '{"signature":"NewsTickerItem/_Ui","flags":255}'
-post resource_access '{"signature":"NewsTickerItem/Id","flags":255}'
-
 post resource_access '{"signature":"MailTemplate","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
 ((ELEM_POS++))
 post resource_access '{"signature":"MailTemplate/_All","flags":255}'
@@ -199,6 +172,15 @@ post resource_access '{"signature":"MailTemplate/_Public","flags":255}'
 post resource_access '{"signature":"MailTemplate/_Protected","flags":255}'
 post resource_access '{"signature":"MailTemplate/_Ui","flags":255}'
 post resource_access '{"signature":"MailTemplate/Id","flags":255}'
+
+post resource_access '{"signature":"Template","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
+((ELEM_POS++))
+post resource_access '{"signature":"Template/_All","flags":255}'
+post resource_access '{"signature":"Template/_Html","flags":255}'
+post resource_access '{"signature":"Template/_Public","flags":255}'
+post resource_access '{"signature":"Template/_Protected","flags":255}'
+post resource_access '{"signature":"Template/_Ui","flags":255}'
+post resource_access '{"signature":"Template/Id","flags":255}'
 
 post resource_access '{"signature":"Widget","flags":1023, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
 ((ELEM_POS++))

@@ -114,7 +114,7 @@ var Command = {
         var data = {};
 
         var structrObj = StructrModel.obj(id);
-        if (structrObj instanceof StructrElement) {
+        if (structrObj instanceof StructrElement || structrObj.type === 'Template') {
             obj.command = 'DOM_NODE_CHILDREN';
             log('children of DOM node requested', structrObj);
         } else {
@@ -525,12 +525,12 @@ var Command = {
      * The server will transform the node into a reusable component.
      *
      */
-    createComponent: function(id) {
+    createComponent: function(id, callback) {
         var obj = {};
         obj.command = 'CREATE_COMPONENT';
         obj.id = id;
         log('createComponent()', obj);
-        return sendObj(obj);
+        return sendObj(obj, callback);
     },
     /**
      * Send a CLONE_COMPONENT command to the server.
@@ -710,7 +710,6 @@ var Command = {
      * The server will broadcast an UPDATE notification.
      */
     patch: function(id, text1, text2, callback) {
-        log(text1, text2);
 
         // no null values allowed
         if (!text1)

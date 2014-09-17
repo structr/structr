@@ -121,7 +121,7 @@ var _Dragndrop = {
 
         var sortableOptions = {
             iframeFix: true,
-            sortable: '.node',
+            //sortable: '.node',
             appendTo: '#main',
             helper: 'clone',
             zIndex: 99,
@@ -129,11 +129,11 @@ var _Dragndrop = {
             start: function(event, ui) {
                 sorting = true;
                 sortParent = $(ui.item).parent();
+                log('### sortable start: sorting?', sorting, getId(el), getId(self), getId(sortParent));
             },
             update: function(event, ui) {
 
                 var el = $(ui.item);
-                //console.log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent));
                 if (!sorting)
                     return false;
 
@@ -143,8 +143,11 @@ var _Dragndrop = {
 
                 var nextNode = el.next('.node');
                 var refId = getId(nextNode);
-                if (!refId)
+                if (!refId) {
                     refId = getComponentId(nextNode);
+                }
+                
+                log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent), nextNode, refId);
 
                 var parentId = getId(sortParent);
                 el.remove();
@@ -180,6 +183,7 @@ var _Dragndrop = {
             if (shadowPage && source.pageId === shadowPage.id) {
 
                 Command.cloneComponent(source.id, target.id);
+                log('dropped', source.id, 'onto', target.id, 'in page', pageId);
 
             } else {
 

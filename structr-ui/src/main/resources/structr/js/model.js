@@ -224,7 +224,7 @@ var StructrModel = {
             obj[key] = value;
         }
 
-        StructrModel.refreshKey(id, key);
+        //StructrModel.refreshKey(id, key);
 
     },
     /**
@@ -325,7 +325,7 @@ var StructrModel = {
                 return;
 
             log(obj, id, element);
-
+            
             // update values with given key
             $.each(Object.keys(obj), function(i, key) {
                 StructrModel.refreshKey(id, key);
@@ -359,6 +359,11 @@ var StructrModel = {
             } else {
                 keyIcon.hide();
                 keyIcon.removeClass('donthide');
+            }
+            
+            // Did name change from null?
+            if ((obj.type === 'Template' || obj.type === 'Content') && obj.name) {
+                $(element).children('.content_').replaceWith('<b title="' + obj.name + '" class="tag_ name_">' + obj.name + '</b>');
             }
 
         }
@@ -632,9 +637,12 @@ StructrUser.prototype.remove = function() {
 
 StructrUser.prototype.append = function() {
     var user = this;
-    var group = StructrModel.obj(user.groups[0]);
-    if (group) {
-        group.members.push(user.id);
+    console.log(user.groups);
+    if (user.groups && user.groups.length) {
+        var group = StructrModel.obj(user.groups[0]);
+        if (group) {
+            group.members.push(user.id);
+        }
     }
     StructrModel.expand(_UsersAndGroups.appendUserElement(this, group), this);
 }
@@ -897,10 +905,12 @@ StructrSearchResult.prototype.append = function() {
 
 function removeFromArray(array, obj) {
     var newArray = [];
-    $.each(array, function(i, el) {
-        if (el.id !== obj.id && el !== obj.id) {
-            newArray.push(el);
-        }
-    });
+    if (array && array.length) {
+        $.each(array, function(i, el) {
+            if (el.id !== obj.id && el !== obj.id) {
+                newArray.push(el);
+            }
+        });
+    }
     return newArray;
 }

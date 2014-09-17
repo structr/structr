@@ -35,6 +35,7 @@ import org.pegdown.PegDownProcessor;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.graph.search.SearchCommand;
@@ -48,6 +49,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
 import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
+import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -79,11 +81,13 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
+		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery,
+		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
 	);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
+		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery,
+		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
 	);
 	//~--- static initializers --------------------------------------------
 
@@ -185,6 +189,50 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		for (final Sync rel : getOutgoingRelationships(Sync.class)) {
+
+			Content syncedNode = (Content) rel.getTargetNode();
+
+			// sync content only
+			syncedNode.setProperty(content, getProperty(content));
+			syncedNode.setProperty(contentType, getProperty(contentType));
+			syncedNode.setProperty(name, getProperty(name));
+		}
+
+                final Sync rel = getIncomingRelationship(Sync.class);
+                
+                if (rel != null) {
+                
+                    final Content otherNode = (Content) rel.getSourceNode();
+
+                    if (otherNode != null) {
+
+                        // sync both ways
+                        otherNode.setProperty(content, getProperty(content));
+			otherNode.setProperty(contentType, getProperty(contentType));
+			otherNode.setProperty(name, getProperty(name));
+
+                    }
+                
+                }
+                
+                try {
+
+			increasePageVersion();
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "Updating page version failed", ex);
+
+		}
+
+		return true;
+
+	}
+
+	@Override
 	public boolean contentEquals(DOMNode otherNode) {
 
 		if (otherNode instanceof Content) {
@@ -257,7 +305,7 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
 			return;
@@ -365,11 +413,6 @@ public class Content extends DOMNode implements Text {
 			out.append("<!---->");
 		}
 
-	}
-
-	@Override
-	public boolean flush() {
-		return true;
 	}
 
 //	@Override

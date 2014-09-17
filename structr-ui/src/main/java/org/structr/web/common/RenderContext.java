@@ -45,38 +45,38 @@ import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.relation.ResourceLink;
 
 /**
- * Holds information about the context in which a resource is rendered,
- * like f.e. edit mode, language
+ * Holds information about the context in which a resource is rendered, like
+ * f.e. edit mode, language
  *
  * @author Axel Morgner
  */
-
-
 public class RenderContext extends ActionContext {
 
 	private static final Logger logger = Logger.getLogger(RenderContext.class.getName());
 
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
-	private final long renderStartTime                 = System.currentTimeMillis();
-	private Locale locale                              = Locale.getDefault();
-	private EditMode editMode                          = EditMode.NONE;
-	private AsyncBuffer buffer                         = new AsyncBuffer();
-	private int depth                                  = 0;
-	private boolean inBody                             = false;
-	private boolean appLibRendered                     = false;
-	private GraphObject detailsDataObject              = null;
-	private GraphObject currentDataObject              = null;
-	private GraphObject sourceDataObject               = null;
-	private Iterable<GraphObject> listSource           = null;
-	private PropertyKey relatedProperty                = null;
-	private Page page                                  = null;
-	private HttpServletRequest request                 = null;
-	private HttpServletResponse response               = null;
-	private ResourceProvider resourceProvider          = null;
-	private Result result                              = null;
+	private final long renderStartTime = System.currentTimeMillis();
+	private Locale locale = Locale.getDefault();
+	private EditMode editMode = EditMode.NONE;
+	private AsyncBuffer buffer = new AsyncBuffer();
+	private int depth = 0;
+	private boolean inBody = false;
+	private boolean appLibRendered = false;
+	private GraphObject detailsDataObject = null;
+	private GraphObject currentDataObject = null;
+	private GraphObject sourceDataObject = null;
+	private Iterable<GraphObject> listSource = null;
+	private PropertyKey relatedProperty = null;
+	private Page page = null;
+	private HttpServletRequest request = null;
+	private HttpServletResponse response = null;
+	private ResourceProvider resourceProvider = null;
+	private Result result = null;
+	private boolean anyChildNodeCreatesNewLine = false;
 
 	public enum EditMode {
 
@@ -87,15 +87,47 @@ public class RenderContext extends ActionContext {
 	public RenderContext() {
 	}
 
+	/**
+	 * Create a copy of this render context with a clean buffer.
+	 *
+	 * @param other The render context to copy from
+	 */
+	public RenderContext(final RenderContext other) {
+
+		this.dataObjects.putAll(other.dataObjects);
+		this.editMode = other.editMode;
+		this.inBody = other.inBody;
+		this.appLibRendered = other.appLibRendered;
+		this.detailsDataObject = other.detailsDataObject;
+		this.currentDataObject = other.currentDataObject;
+		this.sourceDataObject = other.sourceDataObject;
+		this.listSource = other.listSource;
+		this.relatedProperty = other.relatedProperty;
+		this.page = other.page;
+		this.request = other.request;
+		this.response = other.response;
+		this.resourceProvider = other.resourceProvider;
+		this.result = other.result;
+		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
+
+		this.tmpStore = other.tmpStore;
+		this.counters = other.counters;
+		this.parent = other.parent;
+		this.errorBuffer = other.errorBuffer;
+		this.data = other.data;
+
+	}
+
 	public RenderContext(final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
 
-		this.request    = request;
-		this.response   = response;
+		this.request = request;
+		this.response = response;
 
 		this.editMode = editMode;
 		this.locale = locale;
 
 	}
+
 	public static RenderContext getInstance(final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
 
 		String editString = StringUtils.defaultString(request.getParameter("edit"));
@@ -171,22 +203,22 @@ public class RenderContext extends ActionContext {
 
 		switch (editString) {
 
-			case "1" :
+			case "1":
 
 				edit = EditMode.WIDGET;
 				break;
 
-			case "2" :
+			case "2":
 
 				edit = EditMode.CONTENT;
 				break;
 
-			case "3" :
+			case "3":
 
 				edit = EditMode.RAW;
 				break;
 
-			default :
+			default:
 
 				edit = EditMode.NONE;
 
@@ -299,14 +331,22 @@ public class RenderContext extends ActionContext {
 		return result;
 	}
 
+	public void setAnyChildNodeCreatesNewLine(final boolean anyChildNodeCreatesNewLine) {
+		this.anyChildNodeCreatesNewLine = anyChildNodeCreatesNewLine;
+	}
+
+	public boolean getAnyChildNodeCreatesNewLine() {
+		return anyChildNodeCreatesNewLine;
+	}
+
 	// ----- interface ActionContext -----
 	@Override
 	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
-		final String[] parts           = refKey.split("[\\.]+");
-		String referenceKey            = parts[parts.length - 1];
-		String defaultValue            = null;
+		final String[] parts = refKey.split("[\\.]+");
+		String referenceKey = parts[parts.length - 1];
+		String defaultValue = null;
 
 		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
 
@@ -507,6 +547,18 @@ public class RenderContext extends ActionContext {
 
 				}
 
+				// special keyword "template", references the closest Template node in the current page
+				if ("template".equals(part)) {
+
+					_data = ((DOMNode) entity).getClosestTemplate(_page);
+
+					if (parts.length == 1) {
+						return _data;
+					}
+
+					continue;
+				}
+
 				// special keyword "ownerDocument", works only on root level
 				if ("page".equals(part)) {
 
@@ -523,7 +575,7 @@ public class RenderContext extends ActionContext {
 				// special keyword "link"
 				if (entity instanceof NodeInterface && "link".equals(part)) {
 
-					ResourceLink rel = ((NodeInterface)entity).getOutgoingRelationship(ResourceLink.class);
+					ResourceLink rel = ((NodeInterface) entity).getOutgoingRelationship(ResourceLink.class);
 
 					if (rel != null) {
 						_data = rel.getTargetNode();
@@ -540,7 +592,7 @@ public class RenderContext extends ActionContext {
 				// special keyword "parent"
 				if ("parent".equals(part)) {
 
-					_data = (DOMNode) ((DOMNode)entity).getParentNode();
+					_data = (DOMNode) ((DOMNode) entity).getParentNode();
 
 					if (parts.length == 1) {
 						return _data;
@@ -550,10 +602,26 @@ public class RenderContext extends ActionContext {
 
 				}
 
+				// special keyword "children", references the children of the closest Template node in the current page
+				if ("children".equals(part)) {
+
+					if (parts.length == 1) {
+
+						final Template template = ((DOMNode) entity).getClosestTemplate(_page);
+
+						if (template != null) {
+							return template.getChildNodes();
+						}
+					}
+
+					continue;
+
+				}
+
 				// special keyword "owner"
 				if (entity instanceof NodeInterface && "owner".equals(part)) {
 
-					Ownership rel = ((NodeInterface)entity).getIncomingRelationship(PrincipalOwnsNode.class);
+					Ownership rel = ((NodeInterface) entity).getIncomingRelationship(PrincipalOwnsNode.class);
 					if (rel != null) {
 
 						_data = rel.getSourceNode();
@@ -621,6 +689,23 @@ public class RenderContext extends ActionContext {
 
 				}
 
+				// special keyword "host":
+				if ("host".equals(part)) {
+
+					return securityContext.getRequest().getServerName();
+				}
+
+				// special keyword "port":
+				if ("port".equals(part)) {
+
+					return securityContext.getRequest().getServerPort();
+				}
+
+				// special keyword "path_info":
+				if ("path_info".equals(part)) {
+
+					return securityContext.getRequest().getPathInfo();
+				}
 			}
 
 		}
@@ -640,7 +725,7 @@ public class RenderContext extends ActionContext {
 
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "Unable to convert property {0} of node {1}: {2}", new Object[] { referenceKeyProperty, _data, t.getMessage() } );
+					logger.log(Level.WARNING, "Unable to convert property {0} of node {1}: {2}", new Object[]{referenceKeyProperty, _data, t.getMessage()});
 				}
 			}
 
@@ -666,4 +751,72 @@ public class RenderContext extends ActionContext {
 	public boolean hasTimeout(final long timeout) {
 		return System.currentTimeMillis() > (renderStartTime + timeout);
 	}
+
+//	private Template getClosestTemplate(DOMNode node, final Page page) {
+//
+//		while (node != null) {
+//
+//			if (node instanceof Template) {
+//
+//				final Template template = (Template) node;
+//
+//				Document doc = template.getOwnerDocument();
+//
+//				if (doc == null) {
+//
+//					doc = getClosestPage(node);
+//				}
+//
+//				if (doc != null && doc.equals(page)) {
+//
+//					try {
+//						template.setProperty(DOMNode.ownerDocument, (Page) doc);
+//
+//						return template;
+//
+//					} catch (FrameworkException ex) {
+//						ex.printStackTrace();
+//					}
+//
+//				}
+//
+//				final List<DOMNode> syncedNodes = template.getProperty(DOMNode.syncedNodes);
+//
+//				for (final DOMNode syncedNode : syncedNodes) {
+//
+//					doc = syncedNode.getOwnerDocument();
+//
+//					if (doc != null && doc.equals(page)) {
+//
+//						return (Template) syncedNode;
+//
+//					}
+//
+//				}
+//
+//			}
+//
+//			node = (DOMNode) node.getParentNode();
+//
+//		}
+//
+//		return null;
+//
+//	}
+//
+//	private Page getClosestPage(DOMNode node) {
+//
+//		while (node != null) {
+//
+//			if (node instanceof Page) {
+//
+//				return (Page) node;
+//			}
+//
+//			node = (DOMNode) node.getParentNode();
+//
+//		}
+//
+//		return null;
+//	}
 }

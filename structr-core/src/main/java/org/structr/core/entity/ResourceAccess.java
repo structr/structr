@@ -23,20 +23,19 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.LongProperty;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Access;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -54,6 +53,19 @@ import org.structr.core.validator.TypeUniquenessValidator;
  * <li>to invidual principals (when connected to a {link @Principal} node
  * </ul>
  * 
+ * <p>'flags' is a sum of any of the following values:
+ * 
+ *  FORBIDDEN             = 0
+ *  AUTH_USER_GET         = 1
+ *  AUTH_USER_PUT         = 2
+ *  AUTH_USER_POST        = 4
+ *  AUTH_USER_DELETE      = 8
+ *  NON_AUTH_USER_GET     = 16
+ *  NON_AUTH_USER_PUT     = 32
+ *  NON_AUTH_USER_POST    = 64
+ *  NON_AUTH_USER_DELETE  = 128
+ *  AUTH_USER_OPTIONS     = 256
+ *  NON_AUTH_USER_OPTIONS = 512
  * 
  * @author Christian Morgner
  * @author Axel Morgner

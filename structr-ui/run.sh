@@ -1,6 +1,6 @@
 #!/bin/bash
 JAVA=`which java`
-STRUCTR="-cp target/lib/*:target/structr-ui-1.0-SNAPSHOT.jar org.structr.Server"
+STRUCTR="-cp target/lib/*:target/structr-ui-1.0.0.jar org.structr.Server"
 STRUCTR_ARGS="-d64 -Xms4g -Xmx4g -XX:+UseNUMA -XX:+UseG1GC -Dinstance=your_instance_name"
 
 STRUCTR_CONF=`find . -name structr.conf`

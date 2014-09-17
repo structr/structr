@@ -22,85 +22,105 @@ var contents, editor, contentType;
 var _Contents = {
     icon: 'icon/page_white.png',
     comment_icon: 'icon/comment.png',
+    comp_icon: 'icon/package_green.png',
+    template_icon: 'icon/layout_content.png',
     add_icon: 'icon/page_white_add.png',
     delete_icon: 'icon/page_white_delete.png',
-    appendContentElement: function(content, refNode) {
-        log('Contents.appendContentElement', content, refNode);
+    appendContentElement: function(entity, refNode, refNodeIsParent) {
+        log('Contents.appendContentElement', entity, refNode);
 
         var parent;
 
-        if (content.parent && content.parent.id) {
-            parent = Structr.node(content.parent.id);
+        if (entity.parent && entity.parent.id) {
+            parent = Structr.node(entity.parent.id);
             _Entities.ensureExpanded(parent);
         } else {
-            parent = elements;
+            parent = refNode;
         }
 
         if (!parent)
             return false;
 
-        var isActiveNode = content.hideOnIndex || content.hideOnDetail || content.hideConditions || content.showConditions || content.dataKey;
+        var isActiveNode = entity.hideOnIndex || entity.hideOnDetail || entity.hideConditions || entity.showConditions || entity.dataKey;
+        var isTemplate = (entity.type === 'Template');
 
-        var html = '<div id="id_' + content.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
-                + '<img class="typeIcon" src="' + (content.type === 'Comment' ? _Contents.comment_icon : _Contents.icon) + '">'
-                + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
+        var name = entity.name;
+
+        var isComment = (entity.type === 'Comment');
+        var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
+        //console.log('comment, component, template?', isComment, isComponent, isTemplate);
+        var icon = isComment ? _Contents.comment_icon : (isComponent ? _Contents.comp_icon : (isTemplate ? _Contents.template_icon : _Contents.icon));
+        
+        var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
+                + '<img class="typeIcon" src="' + icon + '">'
+                + (name ? ('<b title="' + name + '" class="tag_ name_">' + name + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
+                + '<span class="id">' + entity.id + '</span>'
                 + '</div>';
 
-        if (refNode) {
+        if (refNode && !refNodeIsParent) {
             refNode.before(html);
         } else {
             parent.append(html);
         }
 
-        var div = Structr.node(content.id);
+        var div = Structr.node(entity.id);
 
         _Dragndrop.makeSortable(div);
         _Dragndrop.makeDroppable(div);
 
-        _Entities.appendAccessControlIcon(div, content);
+        if (isTemplate) {
+            var hasChildren = entity.childrenIds && entity.childrenIds.length;
+            _Entities.appendExpandIcon(div, entity, hasChildren);
+        }
+        
+        _Entities.appendAccessControlIcon(div, entity);
 
-        div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            _Entities.deleteNode(this, content);
+            _Entities.deleteNode(this, entity);
         });
 
-        div.append('<img title="Edit Content" alt="Edit Content of ' + content.id + '" class="edit_icon button" src="icon/pencil.png">');
+        div.append('<img title="Edit Content" alt="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function(e) {
             e.stopPropagation();
-            _Contents.openEditContentDialog(this, content);
+            _Contents.openEditContentDialog(this, entity);
             return false;
         });
 
         $('.content_', div).on('click', function(e) {
             e.stopPropagation();
-            _Contents.openEditContentDialog(this, content);
+            _Contents.openEditContentDialog(this, entity);
             return false;
         });
 
-        _Entities.appendEditPropertiesIcon(div, content);
+        _Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
+
+        _Entities.appendEditPropertiesIcon(div, entity);
 
         return div;
     },
     openEditContentDialog: function(btn, entity) {
-        var self = $(btn);
-        var text = self.parent().find('.content_').text();
-        Structr.dialog('Edit content of ' + entity.id, function() {
+        Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
             log('content saved')
         }, function() {
             log('cancelled')
         });
-        _Contents.editContent(this, entity, text, dialogText);
+        Command.getProperty(entity.id, 'content', function(text) {
+            _Contents.editContent(this, entity, text, dialogText);        
+        });
     },
     editContent: function(button, entity, text, element) {
-        if (isDisabled(button))
+        if (isDisabled(button)) {
             return;
+        }
         var div = element.append('<div class="editor"></div>');
         log(div);
         var contentBox = $('.editor', element);
         contentType = contentType ? contentType : entity.contentType;
-        //alert(contentType);
-        var text1, text2, timer;
+        var text1, text2;
+        
+        // Intitialize editor
         editor = CodeMirror(contentBox.get(0), {
             value: text,
             mode: contentType,
@@ -127,12 +147,7 @@ var _Contents = {
 
         editor.on('change', function(cm, change) {
 
-            var contentNode = Structr.node(entity.id)[0];
-
-            text1 = $(contentNode).children('.content_').text();
-            text2 = editor.getValue();
-
-            if (text1 === text2) {
+            if (text === editor.getValue()) {
                 dialogSaveButton.prop("disabled", true).addClass('disabled');
                 saveAndClose.prop("disabled", true).addClass('disabled');
             } else {
@@ -144,9 +159,9 @@ var _Contents = {
         dialogSaveButton.on('click', function(e) {
             e.stopPropagation();
 
-            var contentNode = Structr.node(entity.id)[0];
+            //var contentNode = Structr.node(entity.id)[0];
 
-            text1 = $(contentNode).children('.content_').text();
+            text1 = text;
             text2 = editor.getValue();
 
             if (!text1)
@@ -160,14 +175,19 @@ var _Contents = {
                 console.log('text2', text2);
             }
 
-            if (text1 === text2)
+            if (text1 === text2) {
                 return;
+            }
+            
             Command.patch(entity.id, text1, text2, function() {
                 dialogMsg.html('<div class="infoBox success">Content saved.</div>');
                 $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
                 _Pages.reloadPreviews();
                 dialogSaveButton.prop("disabled", true).addClass('disabled');
                 saveAndClose.prop("disabled", true).addClass('disabled');
+                Command.getProperty(entity.id, 'content', function(newText) {
+                    text = newText;
+                });
             });
 
         });
