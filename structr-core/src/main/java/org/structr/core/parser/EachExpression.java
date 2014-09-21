@@ -73,7 +73,7 @@ public class EachExpression extends Expression {
 
 			for (Object obj : source) {
 
-				eachExpression.evaluate(securityContext, new ActionContext(entity, obj), entity);
+				eachExpression.evaluate(securityContext, new ActionContext(ctx, entity, obj), entity);
 			}
 		}
 

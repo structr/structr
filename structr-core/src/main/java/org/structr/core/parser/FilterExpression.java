@@ -76,7 +76,7 @@ public class FilterExpression extends Expression {
 
 			for (Object obj : source) {
 
-				final Object result = filterExpression.evaluate(securityContext, new ActionContext(entity, obj), entity);
+				final Object result = filterExpression.evaluate(securityContext, new ActionContext(ctx, entity, obj), entity);
 				if (result instanceof Boolean) {
 
 					if ((Boolean)result) {

@@ -54,6 +54,23 @@ public class ActionContext {
 		this(null, null);
 	}
 
+	public ActionContext(final ActionContext other) {
+		this.tmpStore = other.tmpStore;
+		this.counters = other.counters;
+		this.parent = other.parent;
+		this.errorBuffer = other.errorBuffer;
+		this.data = other.data;
+	}
+	
+	public ActionContext(final ActionContext other, final GraphObject parent, final Object data) {
+		this.tmpStore = other.tmpStore;
+		this.counters = other.counters;
+		this.parent = other.parent;
+		this.errorBuffer = other.errorBuffer;
+		
+		this.data = data;
+	}
+
 	public ActionContext(final GraphObject parent, final Object data) {
 		this.parent = parent;
 		this.data   = data;

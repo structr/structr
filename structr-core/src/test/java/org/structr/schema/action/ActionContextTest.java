@@ -775,6 +775,11 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid retrieve() result", "A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${retrieve('tmp')}"));
 			assertEquals("Invalid retrieve() result", "", testOne.replaceVariables(securityContext, new ActionContext(), "${retrieve('tmp')}"));
 
+			// test store and retrieve within filter expression
+			assertEquals("Invalid store() result", "", testOne.replaceVariables(securityContext, ctx, "${store('tmp', 10)}"));
+			assertEquals("Invalid retrieve() result in filter expression", "9",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gt(data.index, 10)))}"));
+			assertEquals("Invalid retrieve() result in filter expression", "9",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gt(data.index, retrieve('tmp'))))}"));
+
 			// test replace() method
 			assertEquals("Invalid replace() result", "A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${replace(this.replaceString, this)}"));
 
