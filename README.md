@@ -11,11 +11,11 @@ Structr (pronounce it like 'structure') is a Java framework for mobile and web a
 
 For detailed feature lists of these components see
 
-[OGM](Structr OGM.md)
+[OGM](http://docs.structr.org/dev-guide#Object-to-graph mapping)
 
-[Backend Features](Backend.md)
+[Backend Features](http://docs.structr.org/rest-user-guide)
 
-[Frontend Features](Frontend.md)
+[Frontend Features](http://docs.structr.org/frontend-user-guide)
 
 ### Awards
 Structr was awarded with the Graphie Award for the Most Innovative Open Source Graph Application in 2012.
