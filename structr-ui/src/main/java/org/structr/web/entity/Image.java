@@ -281,6 +281,7 @@ public class Image extends File {
 
 					thumbnailRelationship.setProperty(Image.width, tnWidth);
 					thumbnailRelationship.setProperty(Image.height, tnHeight);
+					thumbnailRelationship.unlockReadOnlyPropertiesOnce();
 					thumbnailRelationship.setProperty(Image.checksum, newChecksum);
 
 //                                                      System.out.println("Thumbnail ID: " + thumbnail.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", orig. image checksum: " + originalImage.getProperty(checksum));
