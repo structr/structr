@@ -486,7 +486,7 @@ function send(text) {
 
 function log() {
     if (debug) {
-        log(arguments);
+        console.log(arguments);
         var msg = Array.prototype.slice.call(arguments).join(' ');
         var div = $('#log', footer);
         div.append(msg + '<br>');
