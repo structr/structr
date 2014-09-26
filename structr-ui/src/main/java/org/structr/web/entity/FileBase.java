@@ -271,9 +271,15 @@ public class FileBase extends AbstractFile implements Linkable {
 
 				// Return file output stream and save checksum and size after closing
 				FileOutputStream fos = new FileOutputStream(fileOnDisk) {
+					
+					private boolean closed = false;
 
 					@Override
 					public void close() throws IOException {
+						
+						if (closed) {
+							return;
+						}
 
 						try (Tx tx = StructrApp.getInstance().tx()) {
 
@@ -288,6 +294,9 @@ public class FileBase extends AbstractFile implements Linkable {
 							if (StringUtils.startsWith(_contentType, "image") || ImageHelper.isImageType(getProperty(name))) {
 								setProperty(NodeInterface.type, Image.class.getSimpleName());
 							}
+							
+							increaseVersion();
+							
 
 							tx.success();
 
@@ -296,6 +305,8 @@ public class FileBase extends AbstractFile implements Linkable {
 							logger.log(Level.SEVERE, "Could not determine or save checksum and size after closing file output stream", ex);
 
 						}
+
+						closed = true;
 					}
 				};
 
