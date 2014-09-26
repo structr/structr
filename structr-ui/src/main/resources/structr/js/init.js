@@ -214,7 +214,7 @@ $(function() {
     });
 
     $(window).on('keydown', function(e) {
-        if (e.ctrlKey && (e.which === 83)) {
+        if ( (e.ctrlKey && (e.which === 83)) ||  (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83)) ) {
             e.preventDefault();
             if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
                 dialogSaveButton.click();
