@@ -202,7 +202,7 @@
                         <argument>-Xms1g</argument>
                         <argument>-Xmx1g</argument>
                         <argument>-classpath</argument>
-                        <argument>target/lib/*:target/${project.artifactId}-${project.version}.jar</argument>
+                        <argument>target/lib/*${path.separator}target/${project.artifactId}-${project.version}.jar</argument>
                         <argument>org.structr.Server</argument>
                     </arguments>
                 </configuration>
