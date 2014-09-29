@@ -58,6 +58,7 @@ configured.services = NodeService AgentService CronService SchemaService LogServ
 # Superuser username and password
 # You have to set a superuser username and password in order to use
 # administration and maintenance tools
+# IMPORTANT: this is *not* used as the main login credentials
 superuser.username = superadmin
 superuser.password = 
 #
