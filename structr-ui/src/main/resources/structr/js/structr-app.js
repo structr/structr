@@ -27,7 +27,7 @@ $(function() { $('head').append('<link rel="stylesheet" type="text/css" href="//
 
 var structrRestUrl = '/structr/rest/'; // TODO: Auto-detect base URI
 var buttonSelector = '[data-structr-action]';
-var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
+var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
 $(function() {
 
@@ -48,6 +48,8 @@ $(function() {
             ctrlKey = true;
         if (k === 69)
             eKey = true;
+        if (navigator.platform === 'MacIntel' && k === 91)
+            cmdKey = true;
         //console.log('after down', k, altKey, ctrlKey, shiftKey, eKey)
     });
 
@@ -62,6 +64,8 @@ $(function() {
             ctrlKey = false;
         if (k === 69)
             eKey = false;
+        if (navigator.platform === 'MacIntel' && k === 91)
+            cmdKey = false;
         //console.log('after up', k, altKey, ctrlKey, shiftKey, eKey)
     });
 
