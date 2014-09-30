@@ -20,14 +20,42 @@ For detailed feature lists of these components see
 ### Awards
 Structr was awarded with the Graphie Award for the Most Innovative Open Source Graph Application in 2012.
 
+## Quick Start
+
+- Build and Run Structr from the source code -
+
+Prerequisites are the Java JDK 1.7, Maven and git.
+
+Verify the java/maven version with mvn -v, then:
+
+```
+git clone https://github.com/structr/structr.git
+
+cd structr
+mvn clean install -DskipTests
+cd structr-ui
+
+mvn exec:exec
+```
+
+Login with the credentials admin/admin at:
+
+http://localhost:8082/structr
+
+For documentation, please take a look here:
+
+http://docs.structr.org/
+
+
 ## Getting started
 Structr uses [Apache Maven](http://maven.apache.org/), so you can use Maven to get a demo project up and running in 5 minutes with our simple example archetype.
 
 - See the [screencast](http://vimeo.com/53235075) for a short introduction to the maven archetype and a small feature demo.
-- See the [structr quick start guide](http://structr.org/quick-start-guide) for more information on the CMS module.
 - See the [structr-android-client](https://github.com/structr/structr-android-client) project on github for more information on how to use structr as a mobile backend.
 
 ## Examples
+
+- REST look&feel -
 
 ### A simple “city” entity in Java..
 
@@ -109,6 +137,6 @@ In order to contribute to structr, you must sign the Structr Contributor’s Lic
 
 ## Copyright and License
 
-Copyright 2010-2013 Axel Morgner
+Copyright 2010-2014 Axel Morgner
 
 Structr is licensed under the GPLv3 and AGPLv3 (structr UI).
