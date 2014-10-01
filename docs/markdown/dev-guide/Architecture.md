@@ -3,5 +3,3 @@ Structr is a web application using the graph database Neo4j in embedded mode. Al
 The backend server is a Java web application, running an embedded Jetty servlet container.
 
 The user interface is a single-page web application made with HTML, CSS and jQuery.
-
-# title
