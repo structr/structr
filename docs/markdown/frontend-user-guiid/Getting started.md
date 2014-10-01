@@ -1,1 +1,0 @@
-This section will guide you on the first steps with the Structr User Interface. It's not intended to be a complete reference for everything you can do with Structr, but should give you at least an overview of the most important parts of the application.
