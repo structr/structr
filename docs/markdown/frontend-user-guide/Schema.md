@@ -1,0 +1,4 @@
+In Structr, you can define an application-level schema which holds all information about your data model. At runtime, the schema is represented as Java POJOs as it provides the best performance possible. The primary source of the schema are the built-in classes contained in the different modules ``structr-core``, ``structr-rest`` and ``structr-ui``.
+
+To extend the built-in data model or schema, it is possible to create custom data types by adding schema nodes and relationships to the underlying graph database. All graph objects can be modified at runtime, so it is possible to modify the custom schema information at runtime, too. On each modification of the in-graph schema, a process reads all schema nodes and relationships, creates Java source code which is then compiled, and the result is loaded dynamically into the running JVM. There's no functional or performance difference between the built-in classes and the classes created from the schema graph.
+
