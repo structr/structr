@@ -277,11 +277,6 @@ var Structr = {
         Structr.startPing();
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
-
-        // activate first page when local storage is empty
-        if (!localStorage.getItem('structrActiveTab')) {
-            window.setTimeout(function(e) {  _Pages.activateTab($('#previewTabs .page').first()); }, 1000);
-        }
     },
     ping: function() {
         if (sessionId) {

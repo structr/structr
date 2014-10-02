@@ -255,6 +255,12 @@ var _Pages = {
             $('#' + activeTabRight).addClass('active').click();
         }
 
+        // activate first page when local storage is empty
+        if (!localStorage.getItem('structrActiveTab')) {
+            console.log('activating first page...');
+            window.setTimeout(function(e) {  _Pages.activateTab($('#previewTabs .page').first()); }, 1000);
+        }
+
         //window.setTimeout('_Pages.resize(0,0)', 100);
 
     },
@@ -821,9 +827,9 @@ var _Pages = {
             });
 
         });
-        
+
         _Dragndrop.makeDroppable(div);
-        
+
 //        div.droppable({
 //            accept: '#add_html, .html_element, .template',
 //            greedy: true,
