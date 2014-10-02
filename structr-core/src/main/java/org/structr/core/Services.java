@@ -18,8 +18,10 @@
  */
 package org.structr.core;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -202,7 +204,33 @@ public class Services {
 		final StructrConf config = getBaseConfiguration();
 
 		// read structr.conf
-		final String configFileName = "structr.conf";	// TODO: make configurable
+		final String configTemplateFileName = "structr.conf_templ";
+		final String configFileName         = "structr.conf";
+		final File configTemplateFile       = new File(configTemplateFileName);
+		final File configFile               = new File(configFileName);
+
+		if (!configFile.exists() && !configTemplateFile.exists()) {
+
+			logger.log(Level.SEVERE, "Unable to create config file, {0} and {1} do not exist, aborting. Please create a {0} configuration file and try again.", new Object[] { configFileName, configTemplateFileName } );
+
+			// exit immediately, since we can not proceed without configuration file
+			System.exit(1);
+		}
+
+		if (!configFile.exists() && configTemplateFile.exists()) {
+
+			logger.log(Level.WARNING, "Configuration file {0} not found, copying from template {1}. Please adapt newly created {0} to your needs.", new Object[] { configFileName, configTemplateFileName } );
+
+			try {
+				Files.copy(configTemplateFile.toPath(), configFile.toPath());
+
+			} catch (IOException ioex) {
+
+				logger.log(Level.SEVERE, "Unable to create config file, copying of template failed.", ioex);
+
+				System.exit(1);
+			}
+		}
 
 		logger.log(Level.INFO, "Reading {0}..", configFileName);
 
@@ -214,6 +242,8 @@ public class Services {
 		} catch (IOException ioex) {
 
 			logger.log(Level.WARNING, "Unable to read configuration file {0}: {1}", new Object[] { configFileName, ioex.getMessage() } );
+
+			System.exit(1);
 		}
 
 		mergeConfiguration(config, structrConf);
@@ -249,7 +279,7 @@ public class Services {
 
 					final Service service = createService(serviceClass);
 					if (service != null) {
-						
+
 						service.initialized();
 					}
 				}

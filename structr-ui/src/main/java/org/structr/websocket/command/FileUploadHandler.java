@@ -133,11 +133,11 @@ public class FileUploadHandler {
 
 				this.privateFileChannel = null;
 
-				file.increaseVersion();
+				//file.increaseVersion();
 
 			}
 
-		} catch (IOException | FrameworkException e) {
+		} catch (IOException e) {
 
 			logger.log(Level.WARNING, "Unable to finish file upload", e);
 

@@ -94,6 +94,8 @@ public class RenderContext extends ActionContext {
 	 */
 	public RenderContext(final RenderContext other) {
 
+		super(other);
+		
 		this.dataObjects.putAll(other.dataObjects);
 		this.editMode = other.editMode;
 		this.inBody = other.inBody;
@@ -109,12 +111,6 @@ public class RenderContext extends ActionContext {
 		this.resourceProvider = other.resourceProvider;
 		this.result = other.result;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
-
-		this.tmpStore = other.tmpStore;
-		this.counters = other.counters;
-		this.parent = other.parent;
-		this.errorBuffer = other.errorBuffer;
-		this.data = other.data;
 
 	}
 

@@ -1434,10 +1434,13 @@ var _Crud = {
     activateTextInputField: function(el, id, key, propertyType) {
         var oldValue = el.text();
         el.off('mouseup');
+        var w = el.width(), h = el.height();
         var input;
         if (propertyType === 'String') {
-            el.html('<textarea name="' + key + '" class="__value" cols="40" rows="4"></textarea>');
+            el.html('<textarea name="' + key + '" class="__value"></textarea>');
             input = $('textarea', el);
+            input.width(w);
+            input.height(h);
         } else {
             el.html('<input name="' + key + '" class="__value" type="text" size="10">');
             input = $('input', el);

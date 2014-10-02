@@ -5,29 +5,47 @@
 Structr (pronounce it like 'structure') is a Java framework for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive Java API and a set of features common to most use cases. This enables developers to build a sophisticated web or mobile app based on Neo4j within hours.
 
 ### Main components
-- Object-to-Graph mapper (OGM)
-- REST server
-- CMS frontend
-
-For detailed feature lists of these components see
-
-[OGM](Structr OGM.md)
-
-[Backend Features](Backend.md)
-
-[Frontend Features](Frontend.md)
+- OGM (Object-to-Graph Μapper) - [docs](http://docs.structr.org/dev-guide#Object-to-graph mapping)
+- REST server - [docs](http://docs.structr.org/rest-user-guide)
+- CMS frontend - [docs](http://docs.structr.org/frontend-user-guide)
 
 ### Awards
 Structr was awarded with the Graphie Award for the Most Innovative Open Source Graph Application in 2012.
+
+## Quick Start
+
+Build and run Structr from the source code.
+
+Prerequisites are the Java JDK 1.7, Maven and git.
+
+Verify the java/maven version with mvn -v, then do:
+
+```
+git clone https://github.com/structr/structr.git
+
+cd structr
+mvn clean install -DskipTests
+cd structr-ui
+
+mvn exec:exec
+```
+
+Login with the credentials admin/admin at:
+
+http://localhost:8082/structr/
+
+For documentation, please take a look here:
+
+http://docs.structr.org/
+
 
 ## Getting started
 Structr uses [Apache Maven](http://maven.apache.org/), so you can use Maven to get a demo project up and running in 5 minutes with our simple example archetype.
 
 - See the [screencast](http://vimeo.com/53235075) for a short introduction to the maven archetype and a small feature demo.
-- See the [structr quick start guide](http://structr.org/quick-start-guide) for more information on the CMS module.
 - See the [structr-android-client](https://github.com/structr/structr-android-client) project on github for more information on how to use structr as a mobile backend.
 
-## Examples
+## Example - REST look&feel
 
 ### A simple “city” entity in Java..
 
@@ -109,6 +127,6 @@ In order to contribute to structr, you must sign the Structr Contributor’s Lic
 
 ## Copyright and License
 
-Copyright 2010-2013 Axel Morgner
+Copyright 2010-2014 Axel Morgner
 
 Structr is licensed under the GPLv3 and AGPLv3 (structr UI).

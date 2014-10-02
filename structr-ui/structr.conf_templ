@@ -58,13 +58,14 @@ configured.services = NodeService AgentService CronService SchemaService LogServ
 # Superuser username and password
 # You have to set a superuser username and password in order to use
 # administration and maintenance tools
+# IMPORTANT: this is *not* used as the main login credentials
 superuser.username = superadmin
 superuser.password = 
 #
 # Indent JSON
 json.indentation = true
 #
-# Use lenient serialization, f.e. allow to serialize NaN, -Infinity, Infinity instead of just returning null
+# Use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null
 # Please note: As long as Javascript doesn't support NaN etc., most of the UI will be broken
 #json.lenient = true
 #
@@ -90,7 +91,7 @@ tcp.port = 54555
 # Available servlets
 HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet
 #
-# Work asynchronously
+# Uncomment this if you encounter problems with async HTTP requests
 #HttpService.async = false
 #
 # JSON/REST servlet
@@ -177,7 +178,7 @@ log.requests = false
 log.name = structr-yyyy_mm_dd.request.log
 #
 # Log code generated for custom schema
-NodeExtender.log = true
+#NodeExtender.log = true
 #
 #############################################################################
 

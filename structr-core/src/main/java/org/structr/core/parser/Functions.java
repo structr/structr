@@ -1559,6 +1559,10 @@ public class Functions {
 
 						date = (Date)sources[0];
 
+					} else if (sources[0] instanceof Number) {
+
+						date = new Date(((Number)sources[0]).longValue());
+
 					} else {
 
 						try {
@@ -1938,11 +1942,11 @@ public class Functions {
 					final int size  = list.size();
 
 					if (pos >= size) {
-						
+
 						return null;
 
 					}
-					
+
 					return list.get(Math.min(Math.max(0, pos), size-1));
 				}
 
@@ -2918,12 +2922,12 @@ public class Functions {
 	public static String cleanString(final Object input) {
 
 		if (input == null) {
-			
+
 			return "";
-			
+
 		}
-		
-		
+
+
 		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
 			.replaceAll("\\<", "")
 			.replaceAll("\\>", "")
