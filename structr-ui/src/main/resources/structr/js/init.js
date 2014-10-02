@@ -277,6 +277,11 @@ var Structr = {
         Structr.startPing();
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
+
+        // activate first page when local storage is empty
+        if (!localStorage.getItem('structrActiveTab')) {
+            window.setTimeout(function(e) {  _Pages.activateTab($('#previewTabs .page').first()); }, 1000);
+        }
     },
     ping: function() {
         if (sessionId) {
@@ -323,7 +328,7 @@ var Structr = {
         if (!loginBox.is(':visible')) {
 
             main.empty();
-            
+
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
             $.blockUI({
@@ -715,7 +720,7 @@ var Structr = {
         } else {
             errorText += url + ': ' + response.code + ' ' + response.message;
         }
-        
+
         if (callback) {
             callback(errorText);
         } else {
@@ -731,7 +736,7 @@ var Structr = {
           li.css(css);
       }
       return li;
-      
+
     },
     tempInfo: function(text, autoclose) {
         window.clearTimeout(dialogId);
