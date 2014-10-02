@@ -129,13 +129,11 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			if (structrFile == null) {
 
 				final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), StringUtils.substringBeforeLast(newPath, "/"));
-				final App app = StructrApp.getInstance();
 
 				try {
-					structrFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class);
+					structrFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class, getName());
 					structrFile.setProperty(AbstractNode.type, File.class.getSimpleName());
 					structrFile.setProperty(AbstractNode.owner, owner.getStructrUser());
-					structrFile.setProperty(AbstractNode.name, getName());
 
 					if (parentFolder != null) {
 						structrFile.setProperty(AbstractFile.parent, parentFolder);
@@ -152,6 +150,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			return ((File) structrFile).getOutputStream();
 
 		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, null, fex);
 		}
 
 		return null;

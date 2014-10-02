@@ -45,9 +45,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.FileBase;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 
 //~--- classes ----------------------------------------------------------------
@@ -337,10 +337,14 @@ public class FileHelper {
 	 */
 	public static String getContentMimeType(final java.io.File file, final String name) throws IOException {
 
-		// try name first
-		String mimeType = mimeTypeMap.getContentType(name);
-		if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
-			return mimeType;
+		String mimeType;
+		
+		// try name first, if not null
+		if (name != null) {
+			mimeType = mimeTypeMap.getContentType(name);
+			if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
+				return mimeType;
+			}
 		}
 
 		// then file content
