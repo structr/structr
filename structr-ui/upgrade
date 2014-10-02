@@ -1,0 +1,34 @@
+#!/bin/bash
+
+cd /opt/structr
+git pull
+
+VERSION=$1
+
+# no version requested
+if [ -z $VERSION ]; then
+  echo "No version requested, falling back to develop branch"
+  git checkout develop
+else
+  echo "Checking out version $VERSION"
+  git checkout $VERSION
+fi
+
+mvn -U clean install -DskipTests
+cd structr-ui
+./stop
+
+sleep 5
+rm db/nioneo_logical.log.v*
+rm db/index/lucene.log.v*
+
+# make backup
+date=`date +%Y%m%d%H%M%S`
+cp -a db db-$date
+cp -a files files-$date
+tar cvfj db_files-$date.tar.bz2 db-$date files-$date
+#mv db_files-$date.tar.bz2 /data/backup/structrdb/
+rm -rf db-$date files-$date
+
+./start
+
