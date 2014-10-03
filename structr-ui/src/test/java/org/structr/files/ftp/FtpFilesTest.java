@@ -19,9 +19,12 @@
 package org.structr.files.ftp;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.structr.common.error.FrameworkException;
@@ -38,7 +41,7 @@ public class FtpFilesTest extends FtpTest {
 
 	private static final Logger logger = Logger.getLogger(FtpFilesTest.class.getName());
 
-	public void test01ListFiles() {
+	public void test00StoreFile() {
 
 		FTPClient ftp = setupFTPClient();
 		final String name1 = "file1";
@@ -51,6 +54,73 @@ public class FtpFilesTest extends FtpTest {
 			assertNotNull(files);
 			assertEquals(0, files.length);
 
+			ftp.setFileType(FTP.ASCII_FILE_TYPE);
+			ftp.setAutodetectUTF8(true);
+			
+			// Store a file
+			InputStream in = IOUtils.toInputStream("Test Content");
+			ftp.storeFile(name1, in);
+			
+			in.close();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		String[] fileNames = null;
+
+		try (final Tx tx = app.tx()) {
+
+			fileNames = ftp.listNames();
+
+			assertNotNull(fileNames);
+			assertEquals(1, fileNames.length);
+			assertEquals(name1, fileNames[0]);
+
+			// Create second file in /
+			createFTPFile(null, name2);
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			fileNames = ftp.listNames();
+
+			assertNotNull(fileNames);
+			assertEquals(2, fileNames.length);
+			assertEquals(name1, fileNames[0]);
+			assertEquals(name2, fileNames[1]);
+
+			ftp.disconnect();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+	}
+
+	public void test01ListFiles() {
+
+		FTPClient ftp = setupFTPClient();
+		final String name1 = "file1";
+		final String name2 = "file2";
+
+		try (final Tx tx = app.tx()) {
+
+			FTPFile[] files = ftp.listFiles();
+
+			assertNotNull(files);
+			assertEquals(0, files.length);
 
 			// Create files by API methods
 			createFTPFile(null, name1);
@@ -200,7 +270,6 @@ public class FtpFilesTest extends FtpTest {
 
 		try (final Tx tx = app.tx()) {
 
-
 			ftp.changeWorkingDirectory("/" + name2);
 
 			String[] fileNames = ftp.listNames();
@@ -303,7 +372,6 @@ public class FtpFilesTest extends FtpTest {
 			assertEquals(2, fileNames.length);
 			assertEquals(name2, fileNames[0]);
 			assertEquals(name1, fileNames[1]);
-
 
 			ftp.disconnect();
 
