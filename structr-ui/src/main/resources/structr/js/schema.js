@@ -126,7 +126,7 @@ var _Schema = {
              $('#do-layout').on('click', function() {
              _Schema.doLayout();
              });
-             
+
              $('.schema-input-container').append('<button class="btn" id="stop-layout"><img src="icon/wrench.png"> Stop</button>');
              $('#stop-layout').on('click', function() {
              _Layout.stopLayout();
@@ -721,7 +721,7 @@ var _Schema = {
                 row = $('.local.' + key, el);
 
                 $('.remove-property', row).off('click');
-                
+
                 $('.remove-property', row).on('click', function() {
                     _Schema.removeLocalProperty(entity, key);
                 });
@@ -741,7 +741,7 @@ var _Schema = {
                 return;
             }
         });
-        
+
         if (stillUsed) {
             $('.local .' + key + ' .remove-icon').tooltip({
                 tooltipClass: 'tooltip',
@@ -751,7 +751,7 @@ var _Schema = {
                 content: '<img src="/structr/icon/error.png"> <b>' + normalizedKey + '</b> is still in use.',
                 position: { my: "right top", at: "right bottom", collision: "flipfit" },
 //                open: function() {
-//                    
+//
 //                },
                 close: function() {
                     $('.local .' + key + ' .remove-icon').tooltip('disable');
@@ -770,7 +770,7 @@ var _Schema = {
                     });
                     _Schema.removePropertyDefinition(entity, key);
                 });
-        
+
     },
     appendRemoteProperties: function(el, id, compact) {
 
@@ -1329,7 +1329,7 @@ var _Schema = {
             } else {
                 _Schema.putPropertyDefinition(entity, JSON.stringify(obj));
             }
-            
+
         }
     },
     importGraphGist: function(graphGistUrl, text) {
@@ -1641,7 +1641,7 @@ function denormalizeAttrs(attrs) {
 }
 
 var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
-        + '<option selected="selected" value="String">String</option>'
+        + '<option value="String">String</option>'
         + '<option value="Integer">Integer</option>'
         + '<option value="Long">Long</option>'
         + '<option value="Double">Double</option>'
