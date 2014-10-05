@@ -74,7 +74,9 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 	public OutputStream createOutputStream(final long l) throws IOException {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			return ((File) structrFile).getOutputStream();
-		} catch (FrameworkException fex) {}
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, null, fex);
+		}
 		return null;
 	}
 
@@ -82,7 +84,9 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 	public InputStream createInputStream(final long l) throws IOException {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			return ((File) structrFile).getInputStream();
-		} catch (FrameworkException fex) {}
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, null, fex);
+		}
 		return null;
 	}
 

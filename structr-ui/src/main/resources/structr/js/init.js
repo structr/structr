@@ -42,6 +42,8 @@ var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var pushConfigKey = 'structrpushConfigKey_' + port;
 
+var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+
 $(function() {
 
     if (urlParam('debug')) {
@@ -179,14 +181,19 @@ $(function() {
 
     Structr.connect();
 
-    // This hack prevents FF from closing WS connections on ESC
-    $(window).keydown(function(e) {
-        if (e.keyCode === 27) {
-            e.preventDefault();
-        }
-    });
-
     $(window).keyup(function(e) {
+        var k = e.which;
+        if (k === 16)
+            shiftKey = false;
+        if (k === 17)
+            altKey = false;
+        if (k === 18)
+            ctrlKey = false;
+        if (k === 69)
+            eKey = false;
+        if (navigator.platform === 'MacIntel' && k === 91)
+            cmdKey = false;
+
         if (e.keyCode === 27) {
             if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
                 var saveBeforeExit = confirm('Save changes?');
@@ -214,7 +221,22 @@ $(function() {
     });
 
     $(window).on('keydown', function(e) {
-        if (e.ctrlKey && (e.which === 83)) {
+        // This hack prevents FF from closing WS connections on ESC
+        if (e.keyCode === 27) {
+            e.preventDefault();
+        }
+        var k = e.which;
+        if (k === 16)
+            shiftKey = true;
+        if (k === 17)
+            altKey = true;
+        if (k === 18)
+            ctrlKey = true;
+        if (k === 69)
+            eKey = true;
+        if (navigator.platform === 'MacIntel' && k === 91)
+            cmdKey = true;
+        if ( (e.ctrlKey && (e.which === 83)) ||  (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83)) ) {
             e.preventDefault();
             if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
                 dialogSaveButton.click();

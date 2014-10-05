@@ -126,7 +126,7 @@ var _Schema = {
              $('#do-layout').on('click', function() {
              _Schema.doLayout();
              });
-             
+
              $('.schema-input-container').append('<button class="btn" id="stop-layout"><img src="icon/wrench.png"> Stop</button>');
              $('#stop-layout').on('click', function() {
              _Layout.stopLayout();
@@ -263,7 +263,7 @@ var _Schema = {
 
                     if (!isBuiltinType) {
                         node.children('b').on('click', function() {
-                            _Schema.makeNameEditable(node);
+                            _Schema.makeAttrEditable(node, 'name');
                         });
                     }
 
@@ -410,7 +410,7 @@ var _Schema = {
                                         "click": function(label, evt) {
                                             evt.preventDefault();
                                             var overlay = rels[res.id].getOverlay('label');
-                                            var l = $(overlay.getLabel()).text();
+                                            var l = $(overlay.getLabel()).text().trim();
                                             if ((overlay.getLabel().substring(0, 6) !== '<input')) {
                                                 overlay.setLabel('<input class="relationship-label" type="text" size="15" id="id_'
                                                         + res.id + '_relationshipType" value="' + l + '">');
@@ -514,7 +514,7 @@ var _Schema = {
 
         var n = $('.schema-details', el);
         n.children('b').on('click', function() {
-            _Schema.makeNameEditable(n);
+            _Schema.makeAttrEditable(n, 'name');
         });
 
         var classSelect = $('.extends-class-select', el);
@@ -577,10 +577,7 @@ var _Schema = {
     },
     loadRelationship: function(entity, el) {
 
-        var source = nodes[entity.sourceId];
-        var target = nodes[entity.targetId];
-
-        el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + (entity.name || source.name + entity.relationshipType + target.name) + '</b>'
+        el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + entity.relationshipType + '</b>'
                 //+ ' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractRelationship">AbstractRelationship</option></select>'
                 + '<h3>Local Attributes</h3><table class="local schema-props"><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th><th>Default</th><th>Action</th></table>'
                 + '<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">'
@@ -592,31 +589,8 @@ var _Schema = {
 
         var n = $('.schema-details', el);
         n.children('b').on('click', function() {
-            _Schema.makeNameEditable(n);
+            _Schema.makeAttrEditable(n, 'relationshipType', true);
         });
-
-//        var classSelect = $('.extends-class-select', el);
-//        _Crud.loadAccessibleResources(function() {
-//            $.each(_Crud.types, function(t, type) {
-//                if (!type || type.startsWith('_')) {
-//                    return;
-//                }
-//                $.get(rootUrl + '_schema/' + type, function(data) {
-//                    if (data && data.result && data.result.length) {
-//                        var fqcn = data.result[0].className;
-//                        classSelect.append('<option ' + (entity.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
-//                    }
-//                });
-//
-//            });
-//
-//        });
-//
-//        classSelect.on('change', function() {
-//            var value = $(this).val();
-//            _Schema.putPropertyDefinition(entity.id, ' {"extendsClass":"' + value.escapeForJSON() + '"}');
-//
-//        });
 
         _Schema.appendLocalPropertiesAndActions(el, entity);
 
@@ -747,7 +721,7 @@ var _Schema = {
                 row = $('.local.' + key, el);
 
                 $('.remove-property', row).off('click');
-                
+
                 $('.remove-property', row).on('click', function() {
                     _Schema.removeLocalProperty(entity, key);
                 });
@@ -767,7 +741,7 @@ var _Schema = {
                 return;
             }
         });
-        
+
         if (stillUsed) {
             $('.local .' + key + ' .remove-icon').tooltip({
                 tooltipClass: 'tooltip',
@@ -777,7 +751,7 @@ var _Schema = {
                 content: '<img src="/structr/icon/error.png"> <b>' + normalizedKey + '</b> is still in use.',
                 position: { my: "right top", at: "right bottom", collision: "flipfit" },
 //                open: function() {
-//                    
+//
 //                },
                 close: function() {
                     $('.local .' + key + ' .remove-icon').tooltip('disable');
@@ -796,7 +770,7 @@ var _Schema = {
                     });
                     _Schema.removePropertyDefinition(entity, key);
                 });
-        
+
     },
     appendRemoteProperties: function(el, id, compact) {
 
@@ -1291,19 +1265,19 @@ var _Schema = {
         //Structr.dialog('Enter relationship details');
         _Schema.removeRelationshipDefinition(relationshipId);
     },
-    makeNameEditable: function(element) {
+    makeAttrEditable: function(element, key, isRel) {
         //element.off('dblclick');
 
         var id = element.prop('id').substring(3);
 
         element.off('hover');
         element.children('b').hide();
-        var oldName = $.trim(element.children('b').text());
-        var input = $('input.new-name', element);
+        var oldVal = $.trim(element.children('b').text());
+        var input = $('input.new-' + key, element);
 
         if (!input.length) {
-            element.prepend('<input type="text" size="' + (oldName.length + 8) + '" class="new-name" value="' + oldName + '">');
-            input = $('input.new-name', element);
+            element.prepend('<input type="text" size="' + (oldVal.length + 8) + '" class="new-' + key + '" value="' + oldVal + '">');
+            input = $('input.new-' + key, element);
         }
 
         input.show().focus().select();
@@ -1311,9 +1285,15 @@ var _Schema = {
             if (!id) {
                 return false;
             }
-            Command.get(id, function(entity) {
-                _Schema.changeName(entity, element, input, oldName);
-            });
+            if (isRel) {
+                Command.getRelationship(id, function(entity) {
+                    _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
+                });
+            } else {
+                Command.get(id, function(entity) {
+                    _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
+                });
+            }
             return false;
         });
 
@@ -1323,20 +1303,33 @@ var _Schema = {
                 if (!id) {
                     return false;
                 }
-                Command.get(id, function(entity) {
-                    _Schema.changeName(entity, element, input, oldName);
-                });
+                if (isRel) {
+                    Command.getRelationship(id, function(entity) {
+                        _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
+                    });
+                } else {
+                    Command.get(id, function(entity) {
+                        _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
+                    });
+                }
                 return false;
             }
         });
         element.off('click');
     },
-    changeName: function(entity, element, input, oldName) {
-        var newName = input.val();
+    changeAttr: function(entity, element, input, key, oldVal, isRel) {
+        var newVal = input.val();
         input.hide();
-        element.children('b').text(newName).show();
-        if (oldName !== newName) {
-            _Schema.putPropertyDefinition(entity, JSON.stringify({name: newName}));
+        element.children('b').text(newVal).show();
+        if (oldVal !== newVal) {
+            var obj = {};
+            obj[key] = newVal;
+            if (isRel) {
+                _Schema.setRelationshipProperty(entity, key, newVal);
+            } else {
+                _Schema.putPropertyDefinition(entity, JSON.stringify(obj));
+            }
+
         }
     },
     importGraphGist: function(graphGistUrl, text) {
@@ -1648,7 +1641,7 @@ function denormalizeAttrs(attrs) {
 }
 
 var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
-        + '<option selected="selected" value="String">String</option>'
+        + '<option value="String">String</option>'
         + '<option value="Integer">Integer</option>'
         + '<option value="Long">Long</option>'
         + '<option value="Double">Double</option>'

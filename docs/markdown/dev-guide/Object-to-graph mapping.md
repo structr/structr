@@ -1,0 +1,1 @@
+Structr's Java backend can be seen as an Object-to-Graph mapper (OGM), transforming graph structures to Java objects and back, following a schema. This schema consists of node and relationship entities, property definitions and configurable views.

@@ -5,9 +5,9 @@
 Structr (pronounce it like 'structure') is a Java framework for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive Java API and a set of features common to most use cases. This enables developers to build a sophisticated web or mobile app based on Neo4j within hours.
 
 ### Main components
-- OGM (Object-to-Graph Μapper) - [docu](http://docs.structr.org/dev-guide#Object-to-graph mapping)
-- REST server - [docu](http://docs.structr.org/rest-user-guide)
-- CMS frontend - [docu](http://docs.structr.org/frontend-user-guide)
+- OGM (Object-to-Graph Μapper) - [docs](http://docs.structr.org/dev-guide#Object-to-graph mapping)
+- REST server - [docs](http://docs.structr.org/rest-user-guide)
+- CMS frontend - [docs](http://docs.structr.org/frontend-user-guide)
 
 ### Awards
 Structr was awarded with the Graphie Award for the Most Innovative Open Source Graph Application in 2012.
