@@ -16,6 +16,7 @@ BACKUP_PORT=222
 BACKUP_LOCATION=structrdb-backup@server2.morgner.de
 BACKUP_DIR=/data/backup/structrdb/instances
 
+FILES=/opt/structrdb/files
 FROM=single://localhost
 
 # set mode and desired backup name
@@ -74,8 +75,11 @@ echo "Creating $MODE backup to $NAME"
 # set destination
 TO=/backup/$NAME
 
-# perform backup
-$NEO_BACKUP -from $FROM -to $TO
+# perform backup of database
+$NEO_BACKUP -from $FROM -to $TO/db
+
+# performa backup of files
+cp -a $FILES $TO/files
 
 # zip backup
 zip -r9 $TO.zip $TO
