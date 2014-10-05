@@ -16,7 +16,7 @@ Structr was awarded with the Graphie Award for the Most Innovative Open Source G
 
 Build and run Structr from the source code.
 
-Prerequisites are the Java JDK 1.7, Maven and git.
+Prerequisites are the Java JDK 1.7+, Maven 3.0.4+ and git.
 
 Verify the java/maven version with mvn -v, then do:
 
@@ -32,20 +32,20 @@ mvn exec:exec
 
 Login with the credentials admin/admin at:
 
-http://localhost:8082/structr/
+http://localhost:8082/structr
 
 For documentation, please take a look here:
 
-http://docs.structr.org/
+http://docs.structr.org
 
 
-## Getting started
-Structr uses [Apache Maven](http://maven.apache.org/), so you can use Maven to get a demo project up and running in 5 minutes with our simple example archetype.
+## Getting Started
+Using [Apache Maven](http://maven.apache.org/) archetypes, you get a demo project up and running in 5 minutes.
 
 - See the [screencast](http://vimeo.com/53235075) for a short introduction to the maven archetype and a small feature demo.
 - See the [structr-android-client](https://github.com/structr/structr-android-client) project on github for more information on how to use structr as a mobile backend.
 
-## Example - REST look&feel
+## Example - REST Look&Feel
 
 ### A simple “city” entity in Java..
 
@@ -111,14 +111,21 @@ Structr UI is a frontend for CRUD operations and basic CMS functionalitiy, e.g. 
 
 - [structr.org](http://structr.org)
 - [Neo4j](http://neo4j.org)
-
-For updates and news around Structr, follow @structr on Twitter.
+- [@structr](https://twitter.com/structr)
 
 ## Contribute
 
 For submitting feature requests or bug report, please use Github's issue tracking system.
 
 In order to contribute to structr, you must sign the Structr Contributor’s License Agreement, which can be found [here](http://structr.org/cla).
+
+## Commercial Services
+
+https://structr.org/services
+
+## Hosting Services
+
+https://structr.com/
 
 ## Authors
 
