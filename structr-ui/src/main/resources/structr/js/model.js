@@ -161,7 +161,7 @@ var StructrModel = {
     },
     /**
      * Deletes an object from the UI.
-     * 
+     *
      * If object is page, remove preview and tab. If tab was the active tab,
      * activate the tab to the left before removing it.
      */
@@ -333,7 +333,7 @@ var StructrModel = {
 
             // update HTML 'class' and 'id' attributes
             if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
-                
+
                 var classIdAttrsEl = $(element).children('.class-id-attrs');
                 if (classIdAttrsEl.length) {
                     classIdAttrsEl.remove();
@@ -345,7 +345,7 @@ var StructrModel = {
                     $(element).children('.id').after(classIdString);
                 }
             }
-            
+
             // check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
             var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
             var keyIcon = $(element).children('.key_icon');

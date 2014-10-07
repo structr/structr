@@ -215,7 +215,6 @@ public class StaticRelationshipResource extends SortableResource {
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final GraphObject sourceNode = typedIdResource.getEntity();
-		final App app = StructrApp.getInstance(securityContext);
 
 		if (sourceNode != null && propertyKey != null && propertyKey instanceof RelationProperty) {
 
@@ -494,6 +493,9 @@ public class StaticRelationshipResource extends SortableResource {
 
 		} else if (value instanceof List) {
 
+			return value;
+
+		} else if (value instanceof Map) {
 			return value;
 		}
 

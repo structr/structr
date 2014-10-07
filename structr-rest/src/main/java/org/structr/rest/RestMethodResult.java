@@ -103,11 +103,14 @@ public class RestMethodResult {
 			}
 
 			if (StringUtils.isNotEmpty(message)) {
-				
+
 				writer.append(jsonMessage(responseCode, message));
 
 			}
-			
+
+			// add newline
+			writer.append("\n");
+
 			//writer.flush();
 			//writer.close();
 		} catch (JsonIOException | IOException t) {
@@ -119,15 +122,15 @@ public class RestMethodResult {
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
-	
+
 	public static String jsonError(final int code, final String message) {
-		
+
 		return jsonMessage(code, message, "error");
 
 	}
 
 	public static String jsonMessage(final int code, final String message) {
-		
+
 		return jsonMessage(code, message, "message");
 
 	}
@@ -153,5 +156,5 @@ public class RestMethodResult {
 
 		return buf.toString();
 	}
-	
+
 }

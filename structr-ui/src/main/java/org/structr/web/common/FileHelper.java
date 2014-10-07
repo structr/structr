@@ -215,6 +215,21 @@ public class FileHelper {
 
 	}
 
+	/**
+	 * Update checksum content type and size of the given file
+	 *
+	 * @param file the file
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void updateMetadata(final org.structr.dynamic.File file) throws FrameworkException, IOException {
+
+		file.setProperty(org.structr.dynamic.File.contentType, getContentMimeType(file));
+		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
+		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
+
+	}
+
 	//~--- get methods ----------------------------------------------------
 	public static String getBase64String(final org.structr.dynamic.File file) {
 
@@ -370,89 +385,6 @@ public class FileHelper {
 		// no success :(
 		return UNKNOWN_MIME_TYPE;
 	}
-
-	/**
-	 * Return mime type of given byte array.
-	 *
-	 * Use on streams.
-	 *
-	 * @param bytes
-	 * @param fileName
-	 * @return
-	public static String getContentMimeType(final byte[] bytes, final String fileName) {
-
-		MagicMatch match;
-
-		try {
-
-			match = Magic.getMagicMatch(bytes, true);
-
-			return match.getMimeType();
-
-		} catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
-
-			logger.log(Level.FINE, "Could not determine content type", e);
-
-		}
-
-		return UNKNOWN_MIME_TYPE;
-
-	}
-	 */
-
-	/**
-	 * Return mime type of given file
-	 *
-	 * @param file
-	 * @return
-	public static String[] getContentMimeTypeAndExtension(final File file) {
-
-		MagicMatch match;
-
-		try {
-
-			match = Magic.getMagicMatch(file, false, true);
-
-			return new String[]{match.getMimeType(), match.getExtension()};
-
-		} catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
-
-			logger.log(Level.SEVERE, null, e);
-
-		}
-
-		return new String[]{UNKNOWN_MIME_TYPE, ".bin"};
-
-	}
-	 */
-
-	/**
-	 * Return mime type of given byte array.
-	 *
-	 * Use on streams.
-	 *
-	 * @param bytes
-	 * @return
-	public static String[] getContentMimeTypeAndExtension(final byte[] bytes) {
-
-		MagicMatch match;
-
-		try {
-
-			match = Magic.getMagicMatch(bytes, true);
-
-			return new String[]{match.getMimeType(), match.getExtension()};
-
-		} catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
-
-			logger.log(Level.SEVERE, null, e);
-
-		}
-
-		return new String[]{UNKNOWN_MIME_TYPE, ".bin"};
-
-	}
-	 */
 
 	/**
 	 * Calculate CRC32 checksum of given file
