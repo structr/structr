@@ -1,0 +1,1 @@
+The File Area displays a pageable list of file objects. To upload files, simply select and drag files from your operating system folder or desktop and drop them onto the file area. The files will be uploaded subsequently and stored in Structr.

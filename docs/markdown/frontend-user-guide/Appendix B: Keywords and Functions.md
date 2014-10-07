@@ -1,0 +1,1 @@
+Structr provides a number of built-in functions and keywords that can be used for output control and formatting in a web application. You can use so-called <i>template expressions</i> to substitute placeholders with values from the database and/or other sources.
