@@ -241,7 +241,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 							if (contentType.startsWith("text/css")) {
 
-								return "<link ref=\"stylesheet\" href=\"" + file.getPath() + "\">";
+								return "<link href=\"" + file.getPath() + "\" rel=\"stylesheet\">";
 
 							} else if (contentType.contains("/javascript")) {
 
