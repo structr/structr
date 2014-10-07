@@ -997,7 +997,7 @@ function textarea(id, key, val) {
 function inputField(id, type, key, val) {
     var size = (val ? val.length : (type && type === 'Date' ? 25 : key.length));
     return '<input data-structr-id="' + id + '" data-structr-attr="' + key + '" data-structr-type="' + type + '" type="text" placeholder="' + (key ? key.capitalize() : '')
-            + '" value="' + (val === 'null' ? '' : val)
+            + '" value="' + escapeForHtmlAttributes(val === 'null' ? '' : val)
             + '" size="' + size + '">';
 }
 
@@ -1078,4 +1078,17 @@ function redirectOrReload(reload) {
             window.location.reload();
         }
     }
+}
+
+function escapeForHtmlAttributes(str, escapeWhitespace) {
+    if (!(typeof str === 'string'))
+        return str;
+    var escapedStr = str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+    return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
 }

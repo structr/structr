@@ -167,7 +167,7 @@ var _Images = {
     },
 
     getIcon : function(file) {
-        var icon = file.tnSmall.path;
+        var icon = (file.contentType.startsWith('image/svg') ? file.path : (file.tnSmall ? file.tnSmall.path : _Images.icon));
         return icon;
     },
 
@@ -225,7 +225,13 @@ var _Images = {
         if (tnSmall) {
             _Images.showThumbnails(img, div);
         } else {
-            _Images.reloadThumbnail(img.id, div);
+            if (img.contentType.startsWith('image/svg')) {
+                img.tnSmall = img;
+                img.tnMid = img;
+                _Images.showThumbnails(img, div);
+            } else {
+                _Images.reloadThumbnail(img.id, div);
+            }
         }
         
         var iconArea = $('.icons', div);
