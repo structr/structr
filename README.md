@@ -11,7 +11,7 @@ Structr was awarded with the Graphie Award (by Neo4j maker Neo Technology) for t
 
 Build and run Structr from the source code.
 
-Prerequisites are the Java JDK 1.7+, Maven 3.0.4+ and git.
+Prerequisites are the Java JDK 1.7, Maven 3.0.4+ and git.
 
 Verify the java/maven version with mvn -v, then do:
 
@@ -27,7 +27,7 @@ mvn exec:exec
 
 Login with the credentials admin/admin at:
 
-http://localhost:8082/structr
+[http://localhost:8082/structr/](http://localhost:8082/structr/)
 
 For documentation, please take a look here:
 
@@ -71,7 +71,7 @@ https://structr.org/services
 
 ## Hosting Services
 
-https://structr.com/
+https://structr.com
 
 ## Authors
 
