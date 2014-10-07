@@ -351,7 +351,9 @@ var _Crud = {
         });
     },
     getPropertyType: function(type, key) {
-        return _Crud.schema[type].views.all[key].type;
+        if (_Crud.schema[type]) {
+            return _Crud.schema[type].views.all[key].type;
+        }
     },
     determinePagerData: function(type) {
 
@@ -428,8 +430,11 @@ var _Crud = {
      */
     isCollection: function(key, type) {
         var typeDef = _Crud.schema[type];
-        var view = typeDef.views[_Crud.view[type]];
-        return (view && view[key] && view[key].isCollection);
+        if (typeDef) {
+            var view = typeDef.views[_Crud.view[type]];
+            return (view && view[key] && view[key].isCollection);
+        }
+        return false;
     },
     /**
      * Return true if the combination of the given property key
@@ -437,8 +442,11 @@ var _Crud = {
      */
     isEnum: function(key, type) {
         var typeDef = _Crud.schema[type];
-        var view = typeDef.views[_Crud.view[type]];
-        return (view && view[key] && view[key].className === 'org.structr.core.property.EnumProperty');
+        if (typeDef) {
+            var view = typeDef.views[_Crud.view[type]];
+            return (view && view[key] && view[key].className === 'org.structr.core.property.EnumProperty');
+        }
+        return false;
     },
     /**
      * Return true if the combination of the given property key
@@ -446,8 +454,11 @@ var _Crud = {
      */
     readOnly: function(key, type) {
         var typeDef = _Crud.schema[type];
-        var view = typeDef.views[_Crud.view[type]];
-        return (view && view[key] && view[key].readOnly);
+        if (typeDef) {
+            var view = typeDef.views[_Crud.view[type]];
+            return (view && view[key] && view[key].readOnly);
+        }
+        return false;
     },
     /**
      * Return the related type of the given property key
@@ -455,20 +466,24 @@ var _Crud = {
      */
     relatedType: function(key, type) {
         var typeDef = _Crud.schema[type];
-        var view = typeDef.views[_Crud.view[type]];
-        return (view && view[key] ? view[key].relatedType : null);
+        if (typeDef) {
+            var view = typeDef.views[_Crud.view[type]];
+            return (view && view[key] ? view[key].relatedType : null);
+        }
     },
     /**
      * Return the format information stored about the given property key
      */
     getFormat: function(key, type) {
         var typeDef = _Crud.schema[type];
-        var view = typeDef.views[_Crud.view[type]];
-        var format;
-        if (view && view[key]) {
-            format = view[key].format;
+        if (typeDef) {
+            var view = typeDef.views[_Crud.view[type]];
+            var format;
+            if (view && view[key]) {
+                format = view[key].format;
+            }
+            return format;
         }
-        return format;
     },
     /**
      * Append a pager for the given type to the given DOM element.
@@ -1045,10 +1060,10 @@ var _Crud = {
                     } else {
                         errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
                     }
-                    
+
                     dialogMsg.html('<div class="infoBox error">' + errorText + '</div>');
                     $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
-                    
+
                     input.css({
                         backgroundColor: '#fee',
                         borderColor: '#933'
@@ -1513,7 +1528,7 @@ var _Crud = {
                         self.html('<input name="' + key + '" class="__value" type="text" size="40">');
                         var input = $('input', self);
                         input.val(oldValue);
-                        
+
                         if (timeFormat) {
                             input.datetimepicker({
                                 // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
@@ -1616,11 +1631,11 @@ var _Crud = {
             cell.append('<img class="crud-clear-value" alt="Clear value" title="Clear value" src="icon/cross_small_grey.png">');
             $('.crud-clear-value', cell).on('mouseup', function(e) {
                 e.preventDefault();
-               _Crud.crudRemoveProperty(id, key); 
+               _Crud.crudRemoveProperty(id, key);
                return false;
             });
         }
-        
+
 
         //searchField.focus();
     },
@@ -2212,7 +2227,7 @@ var _Crud = {
             }
         }
         var view = _Crud.view[type] || 'ui';
-        
+
         // load details
         $.ajax({
             url: rootUrl + n.id + '/' + view,
@@ -2228,14 +2243,14 @@ var _Crud = {
                 var node = data.result;
 
                 var typeDef = _Crud.schema[type];
-                
+
                 if (!typeDef) {
                     _Crud.loadTypeDefinition(type, function() {
                         _Crud.showDetails(n, type);
                         return;
                     });
                 }
-                
+
                 dialogText.html('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table>');
 
                 var table = $('table', dialogText);

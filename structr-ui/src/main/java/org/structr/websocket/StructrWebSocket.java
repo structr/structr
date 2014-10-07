@@ -233,8 +233,17 @@ public class StructrWebSocket implements WebSocketListener {
 				// Clear result in case of rollback
 				//webSocketData.clear();
 
-				// send 400 Bad Request
-				send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
+				try (final Tx tx = app.tx()) {
+
+					// send 400 Bad Request
+					send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
+
+					// commit transaction
+					tx.success();
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
 
 				return;
 
