@@ -41,7 +41,7 @@ import org.structr.core.app.StructrApp;
 public abstract class NodeServiceCommand extends Command {
 
 	private static final Logger logger                        = Logger.getLogger(NodeServiceCommand.class.getName());
-	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(1000);
+	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(100000);
 
 	@Override
 	public Class getServiceClass()	{

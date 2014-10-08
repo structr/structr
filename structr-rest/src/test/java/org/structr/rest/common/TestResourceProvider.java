@@ -21,6 +21,7 @@ package org.structr.rest.common;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.*;
 
@@ -50,6 +51,8 @@ public class TestResourceProvider implements ResourceProvider {
 
 		resourceMap.put(Pattern.compile("public"),		ViewFilterResource.class);		// public view (default)
 		resourceMap.put(Pattern.compile("all"),			ViewFilterResource.class);		// all view
+
+		resourceMap.put(Pattern.compile("log"),			LogResource.class);			// log resource
 
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterResource.class);	// maintenance parameter
 

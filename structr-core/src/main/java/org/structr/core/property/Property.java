@@ -555,6 +555,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 						throw new FrameworkException(400, "PropertyKey " + jsonName() + " must be indexedWhenEmpty() to be used in not-blank search query.");
 					}
+
+				} else {
+
+					throw new FrameworkException(422, "Invalid range pattern.");
 				}
 			}
  		}
