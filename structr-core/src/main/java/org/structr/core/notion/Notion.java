@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.notion;
@@ -39,11 +39,13 @@ import org.structr.core.graph.NodeInterface;
  * Combines a serialization strategy and a deserialization strategy to form a
  * notion of an object. A notion in this context is a viewer-specific selection
  * of properties that can be configured separately for each entity via
- * {@link SchemaHelper}. You can for example configure the User entity to
+ * SchemaHelper. You can for example configure the User entity to
  * return only its name when referenced from a Folder entity, but to return the
  * whole object when referenced from a Group entity.
  *
  * @author Christian Morgner
+ * @param <S>
+ * @param <T>
  */
 public abstract class Notion<S extends NodeInterface, T> {
 

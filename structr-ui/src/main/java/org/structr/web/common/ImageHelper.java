@@ -61,7 +61,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @param imageType defaults to Image.class if null
 	 * @param name
 	 * @param markAsThumbnail
-	 * @return
+	 * @return image
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -81,7 +81,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @param imageType defaults to Image.class if null
 	 * @param name
 	 * @param markAsThumbnail
-	 * @return
+	 * @return image
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -352,7 +352,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * content
 	 *
 	 * @param urlString
-	 * @return
+	 * @return true if is of image type
 	 */
 	public static boolean isImageType(final String urlString) {
 
@@ -387,7 +387,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * content
 	 *
 	 * @param urlString
-	 * @return
+	 * @return true if is swf file
 	 */
 	public static boolean isSwfType(final String urlString) {
 

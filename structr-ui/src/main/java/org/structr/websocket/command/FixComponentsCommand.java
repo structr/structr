@@ -80,7 +80,6 @@ public class FixComponentsCommand extends AbstractCommand {
 	 * - has child nodes
 	 * - has at least one SYNC relationship (out or in)
 	 * 
-	 * @return
 	 * @throws FrameworkException 
 	 */
 	private void fixLostComponents() throws FrameworkException {

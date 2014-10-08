@@ -55,7 +55,7 @@ public class NodeDataContainer extends DataContainer {
 	/**
 	 * Return id of node in source instance
 	 *
-	 * @return
+	 * @return source node id
 	 */
 	public String getSourceNodeId() {
 		return sourceNodeId;

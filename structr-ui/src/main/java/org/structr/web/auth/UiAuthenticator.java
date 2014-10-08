@@ -99,7 +99,7 @@ public class UiAuthenticator implements Authenticator {
 	 *
 	 * @param request
 	 * @param response
-	 * @return
+	 * @return security context
 	 * @throws FrameworkException
 	 */
 	@Override
@@ -332,7 +332,7 @@ public class UiAuthenticator implements Authenticator {
 	 *
 	 * @param request
 	 * @param response
-	 * @return
+	 * @return user
 	 */
 	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) {
 

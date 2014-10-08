@@ -1011,7 +1011,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * optional custom data-* attributes.
 	 *
 	 * @param propertyView
-	 * @return
+	 * @return property key
 	 */
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {

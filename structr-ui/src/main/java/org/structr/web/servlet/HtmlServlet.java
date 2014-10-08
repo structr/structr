@@ -489,7 +489,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @param securityContext
 	 * @param request
 	 * @param path
-	 * @return
+	 * @return node
 	 * @throws FrameworkException
 	 */
 	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
@@ -517,7 +517,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @param securityContext
 	 * @param request
 	 * @param uuid
-	 * @return
+	 * @return node
 	 * @throws FrameworkException
 	 */
 	private AbstractNode findNodeByUuid(final SecurityContext securityContext, final String uuid) throws FrameworkException {
@@ -538,7 +538,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @param securityContext
 	 * @param request
 	 * @param path
-	 * @return
+	 * @return file
 	 * @throws FrameworkException
 	 */
 	private File findFile(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
@@ -571,7 +571,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @param securityContext
 	 * @param request
 	 * @param path
-	 * @return
+	 * @return page
 	 * @throws FrameworkException
 	 */
 	private Page findPage(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
@@ -599,7 +599,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * current securit context
 	 *
 	 * @param securityContext
-	 * @return
+	 * @return page
 	 * @throws FrameworkException
 	 */
 	private Page findIndexPage(final SecurityContext securityContext) throws FrameworkException {
@@ -953,7 +953,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * Priority 1: URL parameter "locale" Priority 2: Browser locale
 	 *
 	 * @param request
-	 * @return
+	 * @return locale
 	 */
 	private Locale getEffectiveLocale(final HttpServletRequest request) {
 

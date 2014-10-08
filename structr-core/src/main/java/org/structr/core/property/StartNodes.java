@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
@@ -64,8 +64,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
 	 * @param name
-	 * @param destType
-	 * @param relType
+	 * @param relationClass
 	 */
 	public  StartNodes(final String name, final Class<? extends Relation<S, T, ManyStartpoint<S>, ? extends Target>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
@@ -75,8 +74,8 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
 	 * @param name
-	 * @param destType
-	 * @param relType
+	 * @param relationClass
+	 * @param notion
 	 */
 	public StartNodes(final String name, final Class<? extends Relation<S, T, ManyStartpoint<S>, ? extends Target>> relationClass, final Notion notion) {
 

@@ -297,7 +297,7 @@ public class RegistrationResource extends Resource {
 	 * @param securityContext
 	 * @param credentialKey
 	 * @param credentialValue
-	 * @return
+	 * @return user
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue) {
 
@@ -315,7 +315,7 @@ public class RegistrationResource extends Resource {
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param propertySet
-	 * @return
+	 * @return user
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet) {
 
@@ -333,7 +333,7 @@ public class RegistrationResource extends Resource {
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param autoCreate
-	 * @return
+	 * @return user
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate) {
 
@@ -352,7 +352,7 @@ public class RegistrationResource extends Resource {
 	 * @param credentialValue
 	 * @param autoCreate
 	 * @param userClass
-	 * @return
+	 * @return user
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass) {
 
@@ -371,7 +371,7 @@ public class RegistrationResource extends Resource {
 	 * @param credentialValue
 	 * @param propertySet
 	 * @param autoCreate
-	 * @return
+	 * @return user
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate) {
 
@@ -391,7 +391,7 @@ public class RegistrationResource extends Resource {
 	 * @param propertySet
 	 * @param autoCreate
 	 * @param userClass
-	 * @return
+	 * @return user
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass) {
 

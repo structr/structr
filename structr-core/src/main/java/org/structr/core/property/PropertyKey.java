@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
@@ -35,20 +35,21 @@ import org.structr.core.graph.search.SearchAttribute;
  * Base interface for typed property keys.
  *
  * @author Christian Morgner
+ * @param <T>
  */
 public interface PropertyKey<T> {
 
 	/**
 	 * Return the JSON name of this property.
 	 * 
-	 * @return 
+	 * @return jsonName
 	 */
 	public String jsonName();
 	
 	/**
 	 * Returns the database name of this property.
 	 * 
-	 * @return 
+	 * @return dbName
 	 */
 	public String dbName();
 	
@@ -138,7 +139,7 @@ public interface PropertyKey<T> {
 	/**
 	 * Returns the desired type name that will be used in the error message if a
 	 * wrong type was provided.
-	 * @return 
+	 * @return typeName
 	 */
 	public String typeName();
 	
@@ -146,21 +147,21 @@ public interface PropertyKey<T> {
 	 * Returns the type of the related property this property key references, or
 	 * null if this is not a relationship property.
 	 * 
-	 * @return 
+	 * @return relatedType
 	 */
 	public Class relatedType();
 	
 	/**
 	 * Returns the default value for this property.
 	 * 
-	 * @return 
+	 * @return defaultValue
 	 */
 	public T defaultValue();
 	
 	/**
 	 * Returns the format value for this property.
 	 * 
-	 * @return 
+	 * @return format
 	 */
 	public String format();
 
@@ -199,7 +200,7 @@ public interface PropertyKey<T> {
 	 * will throw a FrameworkException with error code 422 when the value
 	 * is modified.
 	 * 
-	 * @return 
+	 * @return isReadOnly
 	 */
 	public boolean isReadOnly();
 
@@ -208,7 +209,7 @@ public interface PropertyKey<T> {
 	 * will throw a FrameworkException with error code 422 when the value
 	 * is modified after it has been initially set.
 	 * 
-	 * @return 
+	 * @return isWriteOnce
 	 */
 	public boolean isWriteOnce();
 
@@ -216,7 +217,7 @@ public interface PropertyKey<T> {
 	 * Indicates whether this property is indexed, i.e. searchable using
 	 * REST queries.
 	 * 
-	 * @return 
+	 * @return isIndexed
 	 */
 	public boolean isIndexed();
 
@@ -227,13 +228,13 @@ public interface PropertyKey<T> {
 	 * indexing (and searchability) of properties that are never directly
 	 * set using setProperty.
 	 * 
-	 * @return 
+	 * @return isPassivelyIndexed
 	 */
 	public boolean isPassivelyIndexed();
 	
 	/**
 	 * Indicates whether this property is searchable.
-	 * @return 
+	 * @return isSearchable
 	 */
 	public boolean isSearchable();
 
@@ -242,7 +243,7 @@ public interface PropertyKey<T> {
 	 * This behaviour is achieved by storing a special value for empty
 	 * fields which can then later be found again.
 	 * 
-	 * @return 
+	 * @return isIndexedWhenEmpty
 	 */
 	public boolean isIndexedWhenEmpty();
 
@@ -250,13 +251,13 @@ public interface PropertyKey<T> {
 	 * Indicates whether this property represents a collection or a single
 	 * value in the JSON output.
 	 * 
-	 * @return 
+	 * @return isCollection
 	 */
 	public boolean isCollection();
 
 	/**
-	 * Returns the (lucene) sort type of this property.
-	 * @return 
+	 * Returns the lucene sort type of this property.
+	 * @return sortType
 	 */
 	public Integer getSortType();
 
@@ -269,6 +270,7 @@ public interface PropertyKey<T> {
 	/**
 	 * Returns the desired position of this property key type
 	 * in the processing order.
+	 * @return processingOrderPosition
 	 */
 	public int getProcessingOrderPosition();
 }

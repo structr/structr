@@ -127,7 +127,7 @@ public class Image extends File {
 	/**
 	 * Get thumbnail relationships
 	 *
-	 * @return
+	 * @return thumbnails
 	 */
 	public Iterable<Thumbnails> getThumbnailRelationships() {
 		return getOutgoingRelationships(Thumbnails.class);
@@ -142,7 +142,7 @@ public class Image extends File {
 	 * @param maxWidthString
 	 * @param maxHeightString
 	 *
-	 * @return
+	 * @return scaled image
 	 */
 	public Image getScaledImage(final String maxWidthString, final String maxHeightString) {
 
@@ -173,7 +173,7 @@ public class Image extends File {
 	 * @param maxHeight
 	 * @param cropToFit if true, scale down until the shorter edge fits inside the rectangle, and then crop
 	 *
-	 * @return
+	 * @return scaled image
 	 */
 	public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
@@ -318,7 +318,7 @@ public class Image extends File {
 	 *
 	 * This is determined by having at least one incoming THUMBNAIL relationship
 	 *
-	 * @return
+	 * @return true if is thumbnail
 	 */
 	public boolean isThumbnail() {
 
