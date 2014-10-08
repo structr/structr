@@ -272,11 +272,18 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				infos.add(relInfo);
 			}
 
-			// reduce relationship infos into one
 			final List<RelationshipInfo> reducedRelationshipInfos = new LinkedList<>();
-			for (final List<RelationshipInfo> infos : relTypeInfoMap.values()) {
+			if ("true".equals(Services.getInstance().getConfigurationValue("importer.inheritancedetection", "true"))) {
 
-				reducedRelationshipInfos.addAll(reduceNodeTypes(infos, reducedTypeInfoMap));
+				// reduce relationship infos into one
+				for (final List<RelationshipInfo> infos : relTypeInfoMap.values()) {
+
+					reducedRelationshipInfos.addAll(reduceNodeTypes(infos, reducedTypeInfoMap));
+				}
+
+			} else {
+
+				reducedRelationshipInfos.addAll(relationships);
 			}
 
 			// create schema nodes

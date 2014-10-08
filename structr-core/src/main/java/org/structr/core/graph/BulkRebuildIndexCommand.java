@@ -141,7 +141,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			// instantiate all relationships in a single list
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()));
+					final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()));
 				for (AbstractRelationship rel : unfilteredRels) {
 
 					if (relType == null || rel.getType().equals(relType)) {
@@ -149,6 +149,8 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 						rels.add(rel);
 					}
 				}
+
+				tx.success();
 			}
 
 			if (relType == null) {
