@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.auth;
@@ -55,7 +55,7 @@ public class AuthHelper {
 	 *
 	 * @param key
 	 * @param value
-	 * @return
+	 * @return principal
 	 */
 	public static <T> Principal getPrincipalForCredential(final PropertyKey<T> key, final T value) {
 
@@ -86,7 +86,7 @@ public class AuthHelper {
 	 * @param key
 	 * @param value
 	 * @param password
-	 * @return
+	 * @return principal
 	 * @throws AuthenticationException
 	 */
 	public static Principal getPrincipalForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException {
@@ -181,7 +181,7 @@ public class AuthHelper {
 	 * Find a {@link Principal} for the given session id
 	 *
 	 * @param sessionId
-	 * @return
+	 * @return principal
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
 		return getPrincipalForCredential(Principal.sessionIds, new String[]{ sessionId });
@@ -194,7 +194,7 @@ public class AuthHelper {
 	 *
 	 * @param password
 	 * @param salt
-	 * @return
+	 * @return hash
 	 */
 	public static String getHash(final String password, final String salt) {
 
@@ -212,7 +212,7 @@ public class AuthHelper {
 	 * Calculate a SHA-512 hash without salt
 	 *
 	 * @param password
-	 * @return
+	 * @return simple hash
 	 * @deprecated Use
 	 * {@link AuthHelper#getHash(java.lang.String, java.lang.String)}
 	 * instead

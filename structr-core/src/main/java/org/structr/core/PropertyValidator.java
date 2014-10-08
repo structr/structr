@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core;
@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
  * A validator that can be used to do validation checks on node properties.
  *
  * @author Christian Morgner
+ * @param <T>
  */
 public interface PropertyValidator<T> {
 
@@ -34,10 +35,11 @@ public interface PropertyValidator<T> {
 	 * key and parameter.
 	 *
 	 * @param securityContext
+	 * @param object
 	 * @param key
 	 * @param value
-	 * @param parameter
-	 * @return
+	 * @param errorBuffer
+	 * @return valid
 	 */
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer);
 	

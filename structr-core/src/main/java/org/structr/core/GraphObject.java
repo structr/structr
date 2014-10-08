@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core;
@@ -93,7 +93,7 @@ public interface GraphObject {
 	/**
 	 * Returns the underlying property container for this graph object.
 	 *
-	 * @return
+	 * @return property container
 	 */
 	public PropertyContainer getPropertyContainer();
 
@@ -108,6 +108,7 @@ public interface GraphObject {
 	/**
 	 * Sets the property with the given key to the given value.
 	 *
+	 * @param <T>
 	 * @param key the property key to set
 	 * @param value the value to set
 	 * @throws FrameworkException
@@ -118,6 +119,7 @@ public interface GraphObject {
 	 * Returns the (converted, validated, transformed, etc.) property for the given
 	 * property key.
 	 *
+	 * @param <T>
 	 * @param propertyKey the property key to retrieve the value for
 	 * @return the converted, validated, transformed property value
 	 */
@@ -127,6 +129,7 @@ public interface GraphObject {
 	 * Returns the (converted, validated, transformed, etc.) property for the given
 	 * property key with the given filter applied to it.
 	 *
+	 * @param <T>
 	 * @param propertyKey the property key to retrieve the value for
 	 * @param filter the filter to apply to all properties
 	 * @return the converted, validated, transformed property value
@@ -136,6 +139,7 @@ public interface GraphObject {
 	/**
 	 * Returns the property value for the given key as a Comparable
 	 *
+	 * @param <T>
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a Comparable
 	 */
@@ -159,7 +163,7 @@ public interface GraphObject {
 	public void removeProperty(final PropertyKey key) throws FrameworkException;
 
 	/**
-	 * Returns the default sort key for this entitiy.
+	 * Returns the default sort key for this entity.
 	 *
 	 * @return the default sort key
 	 */
@@ -173,7 +177,7 @@ public interface GraphObject {
 	public String getDefaultSortOrder();
 
 	/**
-	 * Unlock all read-only properties in this entitiy for a single <code>setProperty</code>
+	 * Unlock all read-only properties in this entity for a single <code>setProperty</code>
 	 * call.
 	 */
 	public void unlockReadOnlyPropertiesOnce();
@@ -210,6 +214,7 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the deletion takes place
 	 * @param errorBuffer the error buffer to put error tokens into
+	 * @param properties
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */

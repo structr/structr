@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.module;
@@ -327,7 +327,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * type.
 	 *
 	 * @param relType
-	 * @return
+	 * @return classes
 	 */
 	private List<Class<? extends RelationshipInterface>> getRelationClassCanditatesForRelType(final String relType) {
 
@@ -363,7 +363,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * @param targetTypeName
 	 * @param rel
 	 * @param candidate
-	 * @return
+	 * @return class
 	 */
 	private Class findNearestMatchingRelationClass(final String sourceTypeName, final String relType, final String targetTypeName) {
 
@@ -653,9 +653,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	/**
 	 * Registers a property group for the given key of the given entity
 	 * type. A property group can be used to combine a set of properties
-	 * into an object. {
-	 *
-	 * @see PropertyGroup}
+	 * into an object.
 	 *
 	 * @param type the type of the entities for which the property group
 	 * should be registered

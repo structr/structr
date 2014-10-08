@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.entity;
@@ -392,7 +392,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * or to get dates as long values.
 	 *
 	 * @param key
-	 * @return
+	 * @return property value for indexing
 	 */
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
@@ -409,6 +409,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * Returns the (converted, validated, transformed, etc.) property for the given
 	 * property key.
 	 *
+	 * @param <T>
 	 * @param key the property key to retrieve the value for
 	 * @return the converted, validated, transformed property value
 	 */
@@ -682,7 +683,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Return a list with the connected principals (user, group, role)
-	 * @return
+	 * @return list with principals
 	 */
 	public List<Principal> getSecurityPrincipals() {
 
@@ -717,8 +718,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	/**
 	 * Return true if this node has a relationship of given type and direction.
 	 *
+	 * @param <A>
+	 * @param <B>
+	 * @param <S>
+	 * @param <T>
 	 * @param type
-	 * @return
+	 * @return relationships
 	 */
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type) {
 		return this.getRelationships(type).iterator().hasNext();
@@ -900,7 +905,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	/**
 	 * Return true if node is the root node
 	 *
-	 * @return
+	 * @return isRootNode
 	 */
 	public boolean isRootNode() {
 

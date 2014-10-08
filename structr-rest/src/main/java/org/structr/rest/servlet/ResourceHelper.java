@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.servlet;
@@ -65,7 +65,7 @@ public class ResourceHelper {
 	 * @param resourceMap
 	 * @param propertyView
 	 * @param defaultIdProperty
-	 * @return
+	 * @return resourceChain
 	 * @throws FrameworkException 
 	 */
 	public static List<Resource> parsePath(final SecurityContext securityContext, final HttpServletRequest request, final Map<Pattern, Class<? extends Resource>> resourceMap, final Value<String> propertyView, final PropertyKey defaultIdProperty) throws FrameworkException {
@@ -175,9 +175,9 @@ public class ResourceHelper {
 	/**
 	 * Optimize the resource chain by trying to combine two resources to a new one
 	 * 
-	 * @param constraintChain
+	 * @param resourceChain
 	 * @param defaultIdProperty
-	 * @return
+	 * @return finalResource
 	 * @throws FrameworkException 
 	 */
 	public static Resource optimizeNestedResourceChain(final List<Resource> resourceChain, final PropertyKey defaultIdProperty) throws FrameworkException {
@@ -267,7 +267,7 @@ public class ResourceHelper {
 	 * @param securityContext
 	 * @param finalResource
 	 * @param propertyView
-	 * @return
+	 * @return transformedResource
 	 * @throws FrameworkException 
 	 */
 	public static Resource applyViewTransformation(final HttpServletRequest request, final SecurityContext securityContext, final Resource finalResource, final Value<String> propertyView) throws FrameworkException {

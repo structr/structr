@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.servlet;
@@ -69,10 +69,8 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Implements the structr REST API. The input and output format of the JSON
- * serialisation can be configured with the servlet init parameter "PropertyFormat".
- * ({@see PropertyFormat}).
- *
+ * Implements the structr REST API.
+ * 
  * @author Christian Morgner
  */
 public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
