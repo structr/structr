@@ -225,7 +225,7 @@ var _Images = {
         if (tnSmall) {
             _Images.showThumbnails(img, div);
         } else {
-            if (img.contentType.startsWith('image/svg')) {
+            if (img.contentType.startsWith('image/svg') || img.contentType.endsWith('image/vnd.microsoft.icon')) {
                 img.tnSmall = img;
                 img.tnMid = img;
                 _Images.showThumbnails(img, div);
