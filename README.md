@@ -83,4 +83,4 @@ https://structr.com/
 
 Copyright 2010-2014 Axel Morgner
 
-Structr is licensed under the GPLv3 and AGPLv3 (structr UI).
+Structr is licensed under the AGPLv3 (see LICENSE.txt).
