@@ -32,8 +32,8 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.rest.serialization.html.Document;
 import org.structr.rest.serialization.html.Tag;
-import org.structr.rest.serialization.html.attr.Css;
 import org.structr.rest.serialization.html.attr.AtDepth;
+import org.structr.rest.serialization.html.attr.Css;
 import org.structr.rest.serialization.html.attr.Href;
 import org.structr.rest.serialization.html.attr.If;
 import org.structr.rest.serialization.html.attr.Onload;
@@ -57,6 +57,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	private Tag currentElement              = null;
 	private boolean hasName                 = false;
 	private String lastName                 = null;
+	private final String restPath    = "/structr/rest";
 
 	static {
 
@@ -84,7 +85,6 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException {
 
-		String restPath    = "/structr/rest";
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
 
 		Tag head = doc.block("head");
@@ -241,7 +241,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		if ("id".equals(lastName)) {
 
-			currentElement.inline("a").css("id").attr(new Href(value)).text(value);
+			currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value)).text(value);
 
 		} else {
 

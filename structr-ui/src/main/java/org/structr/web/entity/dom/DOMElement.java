@@ -998,7 +998,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				.append(indent(depth))
 				.append("<script>if (!window.moment) { document.write('<script src=\"/structr/js/lib/moment.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
-				.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/jquery-ui-1.10.3.custom.min.css\">");
+				.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/lib/jquery-ui-1.10.3.custom.min.css\">");
 
 			renderContext.setAppLibRendered(true);
 
