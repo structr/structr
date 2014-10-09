@@ -196,7 +196,7 @@ public class Importer {
 			try {
 
 				URL url = new URL(address);
-				
+
 				DefaultHttpClient client = new DefaultHttpClient();
 				HttpGet get = new HttpGet(url.toString());
 				get.setHeader("User-Agent", "Mozilla");
@@ -679,6 +679,7 @@ public class Importer {
 
 							String value =  nodeAttr.getValue();
 
+							boolean isAnchor = StringUtils.isNotBlank(value) && value.startsWith("#");
 							boolean isLocal = StringUtils.isNotBlank(value) && !value.startsWith("http");
 							boolean isActive = StringUtils.isNotBlank(value) && (value.startsWith("${") || value.startsWith("/${"));
 
@@ -686,7 +687,7 @@ public class Importer {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
 
-							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive) {
+							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
 
