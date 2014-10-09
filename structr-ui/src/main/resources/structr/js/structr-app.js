@@ -14,7 +14,7 @@ $(function() { $('head').append('<link rel="stylesheet" type="text/css" href="//
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  GNU Affero General Public License for more details.
  *
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -36,7 +36,8 @@ $(function() {
     $(document).trigger('structr-ready');
     s.hideNonEdit();
 
-
+    $.datepicker.setDefaults( $.datepicker.regional[lang()] );
+    
     $(window).on('keydown', function(e) {
         var k = e.which;
         //console.log('before down', k, altKey, ctrlKey, shiftKey, eKey)
@@ -240,7 +241,7 @@ function StructrApp(baseUrl) {
                             separator: 'T',
                             onClose: function() {
                                 var newValue = input.val();
-                                var formattedValue = moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T'));
+                                var formattedValue = moment(newValue).formatWithJDF(dateTimeFormat);
                                 input.val(formattedValue);
                             }
                         });
@@ -520,7 +521,7 @@ function StructrApp(baseUrl) {
         var rawType = el.attr('data-structr-type');
         var query = el.attr('data-structr-custom-options-query');
         var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
-        var format = rawType ? rawType.replace(type + ' ', '') : undefined;
+        var format = (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : undefined;
         var val;
         if (type === 'Boolean') {
             if (el.is('input')) {
@@ -1091,4 +1092,22 @@ function escapeForHtmlAttributes(str, escapeWhitespace) {
             .replace(/'/g, '&#39;');
 
     return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
+}
+
+
+function lang() {
+    if (navigator.language.toLowerCase() === 'en-us') { return ''; }
+    else {
+        var l = navigator.language.toLowerCase().split('-');
+        if (l.length === 1) {
+            if ($.datepicker.regional[l[0]] !== undefined) return l[0];
+            else return '';
+        } else if (l.length > 1) {
+            if ($.datepicker.regional[l[0] + '-' + l[1].toUpperCase()] !== undefined) return l[0] + '-' + l[1].toUpperCase();
+            else if ($.datepicker.regional[l[0]] !== undefined) return l[0];
+            else return '';
+        } else {
+            return '';
+        }
+    }
 }
