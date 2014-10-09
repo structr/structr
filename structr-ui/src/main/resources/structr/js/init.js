@@ -1237,6 +1237,10 @@ function isImage(contentType) {
     return (contentType && contentType.indexOf('image') > -1);
 }
 
+function isVideo(contentType) {
+    return (contentType && contentType.indexOf('video') > -1);
+}
+
 function addExpandedNode(id) {
     log('addExpandedNode', id);
 

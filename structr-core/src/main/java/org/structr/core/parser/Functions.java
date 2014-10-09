@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.parser;
@@ -2733,7 +2733,7 @@ public class Functions {
 	 *
 	 * @param array
 	 * @param minLength If null, don't do length check
-	 * @return
+	 * @return true if array has min length and all elements are not null
 	 */
 	public static boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
 
@@ -2759,7 +2759,7 @@ public class Functions {
 	 *
 	 * @param array
 	 * @param length If null, don't do length check
-	 * @return
+	 * @return true if array has exact length and all elements are not null
 	 */
 	public static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) {
 

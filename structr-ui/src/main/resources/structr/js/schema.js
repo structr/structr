@@ -736,7 +736,7 @@ var _Schema = {
         var stillUsed = false;
         var normalizedKey = normalizeAttr(key);
         Object.keys(entity).forEach(function(k) {
-            if (entity[k] && (typeof entity[k] !== 'object') && entity[k].contains(normalizedKey)) {
+            if (entity[k] && (typeof entity[k] === 'string') && entity[k].contains(normalizedKey)) {
                 stillUsed = true;
                 return;
             }

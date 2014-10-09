@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core;
@@ -57,9 +57,7 @@ import org.structr.schema.ConfigurationProvider;
 /**
  * Provides access to the service layer in structr.
  *
- * <p>
- * Use the {@see #command} method to obtain an instance of the desired command.
- * </p>
+ * Use the command method to obtain an instance of the desired command.
  *
  * @author Christian Morgner
  */
@@ -444,7 +442,7 @@ public class Services {
 	 * Retrieve attribute value from service config
 	 *
 	 * @param name
-	 * @return
+	 * @return attribute
 	 */
 	public Object getAttribute(final String name) {
 		return attributes.get(name);
@@ -491,7 +489,7 @@ public class Services {
 	/**
 	 * Return all registered services
 	 *
-	 * @return
+	 * @return list of services
 	 */
 	public List<Service> getServices() {
 
@@ -523,7 +521,7 @@ public class Services {
          * means initialized and running.
 	 *
 	 * @param serviceClass
-	 * @return
+	 * @return isReady
 	 */
 	public boolean isReady(final Class serviceClass) {
                 Service service = serviceCache.get(serviceClass);

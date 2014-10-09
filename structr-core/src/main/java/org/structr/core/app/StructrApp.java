@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.app;
@@ -256,7 +256,7 @@ public class StructrApp implements App {
 	 * Constructs a new stateful App instance, initialized with the given
 	 * security context.
 	 *
-	 * @return
+	 * @return superuser app instance
 	 */
 	public static App getInstance() {
 		return new StructrApp(SecurityContext.getSuperUserInstance());
@@ -267,7 +267,7 @@ public class StructrApp implements App {
 	 * security context.
 	 *
 	 * @param securityContext
-	 * @return
+	 * @return app instance
 	 */
 	public static App getInstance(final SecurityContext securityContext) {
 		return new StructrApp(securityContext);

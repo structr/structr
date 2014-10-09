@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
@@ -51,8 +51,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_PROPAGATING_MODIFICATION = 128;
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 	
-	private PropertyMap modifiedProperties = new PropertyMap();
-	private PropertyMap removedProperties  = new PropertyMap();
+	private final PropertyMap modifiedProperties = new PropertyMap();
+	private final PropertyMap removedProperties  = new PropertyMap();
 	private RelationshipType relType       = null;
 	private boolean isNode                 = false;
 	private boolean modified               = false;
@@ -182,9 +182,10 @@ public class GraphObjectModificationState implements ModificationEvent {
 	/**
 	 * Call beforeModification/Creation/Deletion methods.
 	 * 
+	 * @param modificationQueue
 	 * @param securityContext
 	 * @param errorBuffer
-	 * @return
+	 * @return valid
 	 * @throws FrameworkException 
 	 */
 	public boolean doInnerCallback(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
@@ -261,9 +262,11 @@ public class GraphObjectModificationState implements ModificationEvent {
 	/**
 	 * Call beforeModification/Creation/Deletion methods.
 	 * 
+	 * @param modificationQueue
 	 * @param securityContext
 	 * @param errorBuffer
-	 * @return
+	 * @param doValidation
+	 * @return valid
 	 * @throws FrameworkException 
 	 */
 	public boolean doValidationAndIndexing(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
@@ -446,7 +449,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	 * 
 	 * @param securityContext
 	 * @param errorBuffer
-	 * @return 
+	 * @return valid
 	 */
 	private boolean validate(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 	

@@ -560,7 +560,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 * Return the content of this page depending on edit mode
 	 *
 	 * @param editMode
-	 * @return
+	 * @return content
 	 * @throws FrameworkException
 	 */
 	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {

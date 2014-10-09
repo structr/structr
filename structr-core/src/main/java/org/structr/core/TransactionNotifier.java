@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core;
@@ -22,9 +22,10 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.structr.common.SecurityContext;
 
 /**
- * An interface that allows you to be notified when a {@link GraphObject} is
- * modified, after the transaction is comitted. In order to use this
- * interface, you must register your implementation in {@link SchemaHelper}.
+ * An interface that allows you to be notified when a graph object is
+ * modified, after the transaction is committed.
+ * 
+ * In order to use this interface, you must register your implementation in SchemaHelper.
  *
  * @author Axel Morgner
  */

@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.converter;
@@ -49,7 +49,8 @@ public abstract class PropertyConverter<S, T> {
 	 * will be null if there is no value in the database.
 	 * 
 	 * @param source
-	 * @return 
+	 * @return reverted source
+	 * @throws org.structr.common.error.FrameworkException 
 	 */
 	public abstract S revert(T source) throws FrameworkException;
 	
@@ -58,7 +59,8 @@ public abstract class PropertyConverter<S, T> {
 	 * will be null if there is no value in the database.
 	 * 
 	 * @param source
-	 * @return 
+	 * @return converted source
+	 * @throws org.structr.common.error.FrameworkException 
 	 */
 	public abstract T convert(S source) throws FrameworkException;
 
@@ -67,9 +69,9 @@ public abstract class PropertyConverter<S, T> {
 	 * fine-grained control over the sorted results. Override 
 	 * this method to modify sorting behaviour of entities.
 	 * 
-	 * @param target
-	 * @param value
-	 * @return 
+	 * @param source
+	 * @return converted source
+	 * @throws org.structr.common.error.FrameworkException 
 	 */
 	public Comparable convertForSorting(S source) throws FrameworkException {
 		

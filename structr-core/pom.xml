@@ -13,7 +13,7 @@
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
     <version>1.1-SNAPSHOT</version>
-    <name>structr-core</name>
+    <name>Structr Core</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
         <developer>
@@ -257,6 +257,33 @@
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <header>header.txt</header>
+                    <includes>
+                        <include>src/**</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/README</exclude>
+                        <exclude>src/**/.directory</exclude>
+                        <exclude>src/**/*.properties</exclude>
+                    </excludes>
+                    <properties>
+                        <year>2014</year>
+                        <owner>Morgner UG (haftungsbeschränkt)</owner>
+                    </properties>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
                         </goals>
                     </execution>
                 </executions>

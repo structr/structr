@@ -216,13 +216,13 @@ public abstract class AbstractCommand {
 
 	}
 	/**
-	 * Search for a hidden page named __ShadowDocument__ of type {@see ShadowDocument.class}.
+	 * Search for a hidden page named __ShadowDocument__ of type.
 	 *
 	 * If found, return it, if not, create it.
 	 * The shadow page is the DOM document all reusable components are connected to.
 	 * It is necessary to comply with DOM standards.
 	 *
-	 * @return
+	 * @return shadow document
 	 * @throws FrameworkException
 	 */
 	protected ShadowDocument getOrCreateHiddenDocument() throws FrameworkException {

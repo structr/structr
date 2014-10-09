@@ -41,7 +41,7 @@ public abstract class DataContainer extends Message {
 	/**
 	 * Return the properties map
 	 *
-	 * @return
+	 * @return properties
 	 */
 	public Map<String, Object> getProperties() {
 		return properties;

@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core;
@@ -30,7 +30,7 @@ import org.structr.common.StructrConf;
 public interface Service {
 
 	/**
-	 * Called by {@link Services#createCommand()} before the command is returned to
+	 * Called by Services#createCommand before the command is returned to
 	 * the user. Use this method to inject service-specific resources into your command
 	 * objects so you can access them later in the <code>execute()</code> method.
 	 *
@@ -59,13 +59,13 @@ public interface Service {
 
 	/**
 	 * Return name of service
-	 * @return
+	 * @return name
 	 */
 	public String getName();
 
 	/**
 	 * Return true if Service is running.
-	 * @return
+	 * @return isRunning
 	 */
 	public boolean isRunning();
 

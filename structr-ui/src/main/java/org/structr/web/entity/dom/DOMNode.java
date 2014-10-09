@@ -951,7 +951,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 *
 	 * @param securityContext
 	 * @param renderContext
-	 * @return
+	 * @return true if node should be displayed
 	 */
 	protected boolean displayForConditions(final SecurityContext securityContext, final RenderContext renderContext) {
 
@@ -996,7 +996,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * settings.
 	 *
 	 * @param renderContext
-	 * @return
+	 * @return true if node should be displayed
 	 */
 	protected boolean displayForLocale(final RenderContext renderContext) {
 

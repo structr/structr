@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
@@ -41,7 +41,7 @@ import org.structr.core.app.StructrApp;
 public abstract class NodeServiceCommand extends Command {
 
 	private static final Logger logger                        = Logger.getLogger(NodeServiceCommand.class.getName());
-	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(1000);
+	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(100000);
 
 	@Override
 	public Class getServiceClass()	{
@@ -54,6 +54,8 @@ public abstract class NodeServiceCommand extends Command {
 	 * @param <T>
 	 * @param securityContext
 	 * @param nodes the nodes to operate on
+	 * @param commitCount
+	 * @param description
 	 * @param operation the operation to execute
 	 * @return the number of nodes processed
 	 * @throws FrameworkException
@@ -67,7 +69,10 @@ public abstract class NodeServiceCommand extends Command {
 	 * @param <T>
 	 * @param securityContext
 	 * @param nodes the nodes to operate on
+	 * @param commitCount
+	 * @param description
 	 * @param operation the operation to execute
+	 * @param validation
 	 * @return the number of nodes processed
 	 * @throws FrameworkException
 	 */
@@ -120,11 +125,10 @@ public abstract class NodeServiceCommand extends Command {
 	 * Executes the given transaction until the stop condition evaluates to
 	 * <b>true</b>.
 	 *
-	 * @param <T>
 	 * @param securityContext
 	 * @param commitCount the number of executions after which the transaction is committed
 	 * @param transaction the operation to execute
-	 * @return the number of nodes processed
+	 * @param stopCondition
 	 * @throws FrameworkException
 	 */
 	public static void bulkTransaction(final SecurityContext securityContext, final long commitCount, final StructrTransaction transaction, final Predicate<Long> stopCondition) throws FrameworkException {

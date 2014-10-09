@@ -241,7 +241,7 @@ var Command = {
     },
     /**
      * Send a REMOVE_FROM_COLLECTION command to the server.
-     * 
+     *
      * The server will remove the object with the given idToRemove from the
      * collection property with the given key of the object with the given id.
      */
@@ -787,7 +787,7 @@ var Command = {
         data.contentType = file.type;
         data.name = file.name;
         data.size = file.size;
-        data.type = isImage(file.type) ? 'Image' : 'File';
+        data.type = isImage(file.type) ? 'Image' : isVideo(file.type) ? 'VideoFile' : 'File';
         obj.data = data;
         log('createFile()', obj);
         return sendObj(obj, callback);
