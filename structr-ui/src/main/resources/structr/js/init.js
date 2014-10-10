@@ -371,7 +371,7 @@ var Structr = {
         if (sendObj(obj)) {
             localStorage.removeItem(userKey);
             $.cookie('JSESSIONID', null);
-            sessionId.lenght = 0;
+            sessionId.length = 0;
             Structr.clearMain();
             Structr.login(text);
             return true;
