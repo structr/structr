@@ -23,6 +23,10 @@ You cannot run structr-core stand-alone (it's a library).
 Currently, there is no dedicated documentation available. Some documentation
 can be found in the [dev-guide](http://docs.structr.org/dev-guide).
 
+Additionally, you can take a look at the standard javadoc documentation here:
+
+structr-core/target/apidocs/index.html
+
 ### Functionality
 
 - Service infrastructure (using the [command pattern](http://en.wikipedia.org/wiki/Command_pattern))
