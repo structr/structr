@@ -37,7 +37,7 @@ http://docs.structr.org
 
 A very simple CMS demo app, hands-on tutorial: 
 
-  [structr-demo-in-ten-minutes] https://structr.org/blog/structr-demo-in-ten-minutes
+A Structr Demo Application in Less Than Ten Minutes: [https://structr.org/blog/structr-demo-in-ten-minutes](https://structr.org/blog/structr-demo-in-ten-minutes)
 
 Using [Apache Maven](http://maven.apache.org/) archetypes, you get a demo project up and running in 5 minutes.
 
