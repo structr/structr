@@ -1,8 +1,33 @@
-### About structr-rest
+## About structr-rest
 
-The module structr-rest exposes the functionality of structr-core and Neo4j as a REST web service.
+The module structr-rest exposes the functionality of structr-core and Neo4j as
+a REST web service.
 
-With structr-rest you can easily build your own JSON/REST service backend based on your specific domain objects (nodes/relationships/hyper-relationships).
+With structr-rest you can easily build your own JSON/REST service backend based
+on your specific domain objects (nodes/relationships/hyper-relationships).
+
+It can be used in a stand-alone scenario like this:
+
+```
+[ Application  |                  ]
+[ structr-rest | REST-API         ]
+[ structr-core | java-API |       ]
+[ neo4j        | java-API         ]
+```
+
+### Build & Run
+
+Build with the usual maven commands (e.g. mvn clean install), with the options:
+-DskipTests
+
+You can run structr-core stand-alone, although at this point this functionality
+is not included in the maven POM. As a reference, see how structr-ui is started. 
+
+### Documentation
+
+[rest-user-guide](http://docs.structr.org/rest-user-guide)
+
+### Functionality
 
 - Mapping of REST resources to domain model
 - Serialization/deserialization between entities and JSON objects using GSON
@@ -15,11 +40,11 @@ With structr-rest you can easily build your own JSON/REST service backend based 
 
 ## Example - REST Look&Feel
 
-### A simple “city” entity in Java..
+### A simple "city" entity in Java..
 
 	public class City extends AbstractNode {
 
-		// define a 1:n relationship between “City” and “Person”
+		// define a 1:n relationship between "City" and "Person"
 		public static final Property<List<Person>> persons =
 
 			new CollectionProperty<Person>(

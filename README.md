@@ -34,6 +34,11 @@ For documentation, please take a look here:
 http://docs.structr.org
 
 ## Getting Started
+
+A very simple CMS demo app, hands-on tutorial: 
+
+  [structr-demo-in-ten-minutes] https://structr.org/blog/structr-demo-in-ten-minutes
+
 Using [Apache Maven](http://maven.apache.org/) archetypes, you get a demo project up and running in 5 minutes.
 
 - See the [screencast](http://vimeo.com/53235075) for a short introduction to the maven archetype and a small feature demo.
@@ -48,7 +53,7 @@ To get an overview of the components, just browse the source code and review the
 
 **structr-rest** - The REST server (add-on to structr-core) - [docs](http://docs.structr.org/rest-user-guide)
 
-**structr-ui**   - The Structr UI (add-on to structr-core) - [docs](http://docs.structr.org/frontend-user-guide)
+**structr-ui**   - The Structr UI (add-on to structr-rest) - [docs](http://docs.structr.org/frontend-user-guide)
 
 Structr UI is a browser based frontend for Visual Schema Design, CRUD operations and basic CMS functionalitiy, e.g. for handling pages, files, images, users/groups.
 
