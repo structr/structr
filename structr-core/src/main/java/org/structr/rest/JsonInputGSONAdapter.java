@@ -32,13 +32,20 @@ import com.google.gson.JsonSerializer;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.lang.reflect.Type;
 
+
+
+
+
+import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+
+import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
+import org.structr.core.JsonSingleInput;
 import org.structr.core.Value;
 import org.structr.core.property.PropertyKey;
 
@@ -49,7 +56,7 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Christian Morgner
  */
-public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSerializer<JsonInput>, JsonDeserializer<JsonInput> {
+public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSerializer<IJsonInput>, JsonDeserializer<IJsonInput> {
 
 	private static final Logger logger = Logger.getLogger(JsonInputGSONAdapter.class.getName());
 
@@ -69,22 +76,50 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public JsonInput createInstance(Type type) {
-		return new JsonInput();
-	}
-
-	@Override
-	public JsonElement serialize(JsonInput src, Type typeOfSrc, JsonSerializationContext context) {
+	public IJsonInput createInstance(Type type) {
+		try {
+			return (IJsonInput)type.getClass().newInstance();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 
 	@Override
-	public JsonInput deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public JsonElement serialize(IJsonInput src, Type typeOfSrc, JsonSerializationContext context) {
+		return null;
+	}
+
+	@Override
+	public IJsonInput deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+
+		IJsonInput jsonInput = null;
+		JsonInput wrapper = null;
+		if (json.isJsonObject()) {
+			jsonInput = new JsonSingleInput();
+			wrapper = deserialize(json, context);
+			jsonInput.add(wrapper);
+
+		} else if(json.isJsonArray()) {
+			jsonInput = new JsonSingleInput();
+
+			JsonArray array = json.getAsJsonArray();
+			for(JsonElement elem : array) {
+				wrapper = deserialize(elem, context);
+				jsonInput.add(wrapper);
+			}
+		}
+
+		return jsonInput;
+	}
+	
+	
+	private JsonInput deserialize(JsonElement json, JsonDeserializationContext context) throws JsonParseException {
 
 		JsonInput wrapper = new JsonInput();
-
 		if (json.isJsonObject()) {
-
 			JsonObject obj = json.getAsJsonObject();
 
 			for (Entry<String, JsonElement> entry : obj.entrySet()) {
@@ -105,7 +140,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 
 				} else if (elem.isJsonObject()) {
 
-					wrapper.add(key, deserialize(elem, typeOfT, context));
+					wrapper.add(key, deserialize(elem, context));
 
 				} else if (elem.isJsonArray()) {
 
@@ -116,7 +151,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 							list.add(fromPrimitive((element.getAsJsonPrimitive())));
 						} else if(element.isJsonObject()) {
 							// create map of values
-							list.add(deserialize(element, typeOfT, context));
+							list.add(deserialize(element, context));
 						}
 					}
 
@@ -134,13 +169,13 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 
 			JsonArray array = json.getAsJsonArray();
 			for(JsonElement elem : array) {
-
+				wrapper = new JsonInput();
 				if (elem.isJsonPrimitive()) {
 					wrapper.add(elem.toString(), fromPrimitive(elem.getAsJsonPrimitive()));
 				} else if(elem.isJsonObject()) {
-					wrapper.add(elem.toString(), deserialize(elem, typeOfT, context));
+					wrapper.add(elem.toString(), deserialize(elem, context));
 				} else if(elem.isJsonArray()) {
-					wrapper.add(elem.toString(), deserialize(elem, typeOfT, context));
+					wrapper.add(elem.toString(), deserialize(elem, context));
 				}
 			}
 		}

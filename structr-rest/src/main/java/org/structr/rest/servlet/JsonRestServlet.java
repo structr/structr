@@ -24,6 +24,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.Writer;
+import java.io.BufferedReader;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -42,11 +44,7 @@ import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.JsonInput;
-import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.Value;
+import org.structr.core.*;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -694,7 +692,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
-		JsonInput propertySet           = null;
+//		JsonInput propertySet           = null;
+		IJsonInput jsonInput 			= null;
 		Resource resource               = null;
 
 		try {
@@ -710,14 +709,25 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
-
+			
+			BufferedReader reader = new BufferedReader(request.getReader());
+			String line;
+			String tmp = "";
+			while((line = reader.readLine()) != null){
+				tmp += line;
+			}
+			
+			if(StringUtils.isBlank(tmp)){
+				tmp = "{}";
+			}
 			final App app = StructrApp.getInstance(securityContext);
 
 			// isolate input parsing (will include read and write operations)
 			try (final Tx tx = app.tx()) {
-				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
-				tx.success();
+			jsonInput   = gson.get().fromJson(tmp, IJsonInput.class);
+			tx.success();
 			}
+			for (JsonInput propertySet : jsonInput.getJsonInputs()) {	
 
 			if (securityContext != null) {
 
@@ -786,7 +796,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				}
 
 			}
-
+			}
 		} catch (FrameworkException frameworkException) {
 
 			// set status & write JSON output
@@ -1040,7 +1050,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				.setPrettyPrinting()
 				.serializeNulls()
 				.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
-				.registerTypeAdapter(JsonInput.class, jsonInputAdapter)
+				.registerTypeAdapter(IJsonInput.class, jsonInputAdapter)
 				.registerTypeAdapter(Result.class, resultGsonAdapter);
 			
 		
