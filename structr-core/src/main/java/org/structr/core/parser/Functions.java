@@ -1072,7 +1072,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-					return (sources[0] instanceof NodeInterface);
+					return (sources[0] instanceof GraphObject);
 				} else {
 					return false;
 				}
@@ -1812,36 +1812,36 @@ public class Functions {
 				final SecurityContext securityContext = entity.getSecurityContext();
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					NodeInterface node = null;
+					GraphObject dataObject = null;
 
-					if (sources[0] instanceof NodeInterface) {
-						node = (NodeInterface)sources[0];
+					if (sources[0] instanceof GraphObject) {
+						dataObject = (GraphObject)sources[0];
 					}
 
 					if (sources[0] instanceof List) {
 
 						final List list = (List)sources[0];
-						if (list.size() == 1 && list.get(0) instanceof NodeInterface) {
+						if (list.size() == 1 && list.get(0) instanceof GraphObject) {
 
-							node = (NodeInterface)list.get(0);
+							dataObject = (GraphObject)list.get(0);
 						}
 					}
 
-					if (node != null) {
+					if (dataObject != null) {
 
 						final String keyName     = sources[1].toString();
-						final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), keyName);
+						final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(dataObject.getClass(), keyName);
 
 						if (key != null) {
 
 							final PropertyConverter inputConverter = key.inputConverter(securityContext);
-							Object value = node.getProperty(key);
+							Object value = dataObject.getProperty(key);
 
 							if (inputConverter != null) {
 								return inputConverter.revert(value);
 							}
 
-							return node.getProperty(key);
+							return dataObject.getProperty(key);
 						}
 
 						return "";
@@ -2333,9 +2333,9 @@ public class Functions {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
-					if (sources[0] instanceof NodeInterface) {
+					if (sources[0] instanceof GraphObject) {
 
-						final NodeInterface source            = (NodeInterface)sources[0];
+						final GraphObject source              = (GraphObject)sources[0];
 						final Map<String, Object> properties  = new LinkedHashMap<>();
 						final SecurityContext securityContext = source.getSecurityContext();
 						final Gson gson                       = new GsonBuilder().create();

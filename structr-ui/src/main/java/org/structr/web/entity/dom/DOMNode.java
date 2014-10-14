@@ -389,7 +389,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 							final GraphObjectMap obj = new GraphObjectMap();
 							elements.add(obj);
 
-							recurse(obj, map);
+							recurse(obj, map, 0);
 						}
 
 						return elements;
@@ -408,7 +408,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				return "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
 			}
 
-			private void recurse(final GraphObjectMap target, final Map<String, Object> source) {
+			private void recurse(final GraphObjectMap target, final Map<String, Object> source, final int depth) {
+
+				if (depth > 20) {
+					return;
+				}
 
 				for (final Entry<String, Object> entry : source.entrySet()) {
 
@@ -422,7 +426,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 						target.put(new StringProperty(key), obj);
 
-						recurse(obj, map);
+						recurse(obj, map, depth + 1);
 
 					} else {
 
