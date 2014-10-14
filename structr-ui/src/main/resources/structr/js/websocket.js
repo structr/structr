@@ -40,7 +40,11 @@ function wsConnect() {
 
     try {
 
-        ws = undefined;
+        if (ws) {
+            ws.close();
+            ws.length = 0;
+        }
+        
         localStorage.removeItem(userKey);
 
         var isEnc = (window.location.protocol === 'https:');
@@ -444,7 +448,10 @@ function wsConnect() {
 
     } catch (exception) {
         log('Error in connect(): ' + exception);
-        ws.close();
+        if (ws) {
+            ws.close();
+            ws.length = 0;
+        }
     }
 
 }
