@@ -24,22 +24,23 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.Writer;
-import java.io.BufferedReader;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -53,6 +54,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.rest.JsonInputGSONAdapter;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
@@ -63,12 +65,13 @@ import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Implements the structr REST API.
- * 
+ *
  * @author Christian Morgner
  */
 public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
@@ -689,14 +692,14 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		RestMethodResult result         = null;
-//		JsonInput propertySet           = null;
-		IJsonInput jsonInput 			= null;
-		Resource resource               = null;
+		final List<RestMethodResult> results = new LinkedList<>();
+		SecurityContext securityContext      = null;
+		Authenticator authenticator          = null;
+		IJsonInput jsonInput 		     = null;
+		Resource resource                    = null;
 
 		try {
+
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -709,36 +712,27 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
-			
-			BufferedReader reader = new BufferedReader(request.getReader());
-			String line;
-			String tmp = "";
-			while((line = reader.readLine()) != null){
-				tmp += line;
-			}
-			
-			if(StringUtils.isBlank(tmp)){
-				tmp = "{}";
-			}
+
 			final App app = StructrApp.getInstance(securityContext);
+
+			String input = IOUtils.toString(request.getReader());
+			if (StringUtils.isBlank(input)) {
+				input = "{}";
+			}
 
 			// isolate input parsing (will include read and write operations)
 			try (final Tx tx = app.tx()) {
-			jsonInput   = gson.get().fromJson(tmp, IJsonInput.class);
-			tx.success();
+				jsonInput   = gson.get().fromJson(input, IJsonInput.class);
+				tx.success();
 			}
-			for (JsonInput propertySet : jsonInput.getJsonInputs()) {	
 
 			if (securityContext != null) {
-
-				// evaluate constraint chain
-				Map<String, Object> properties  = convertPropertySetToMap(propertySet);
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
 					resource = ResourceHelper.applyViewTransformation(request, securityContext,
-						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+							ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
@@ -752,7 +746,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 						try (final Tx tx = app.tx()) {
 
-							result = resource.doPost(properties);
+							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+							}
+
 							tx.success();
 							retry = false;
 
@@ -764,7 +762,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 						try {
 
-							result = resource.doPost(properties);
+							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+							}
+
 							retry = false;
 
 						} catch (DeadlockDetectedException ddex) {
@@ -779,7 +781,28 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 
-					if (result != null) {
+					if (!results.isEmpty()) {
+
+						final RestMethodResult result = results.get(0);
+						if (results.size() > 1) {
+
+							final GraphObjectMap tmpResult = new GraphObjectMap();
+							final List<String> idList      = new LinkedList<>();
+
+							tmpResult.put(new StringProperty("locations"), idList);
+
+							// copy Location header from all results into first result
+							for (final RestMethodResult r : results) {
+								idList.add(r.getHeaders().get("Location"));
+							}
+
+							// remove Location header if more than one object
+							// was written because it may only contain a single
+							// URL
+							result.addHeader("Location", null);
+							result.addContent(tmpResult);
+						}
+
 						result.commitResponse(gson.get(), response);
 					}
 
@@ -790,13 +813,13 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
-					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
-					result.commitResponse(gson.get(), response);
+
+					new RestMethodResult(HttpServletResponse.SC_FORBIDDEN).commitResponse(gson.get(), response);
 					tx.success();
 				}
 
 			}
-			}
+
 		} catch (FrameworkException frameworkException) {
 
 			// set status & write JSON output
@@ -860,11 +883,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		RestMethodResult result         = null;
-		JsonInput propertySet           = null;
-		Resource resource               = null;
+		final List<RestMethodResult> results = new LinkedList<>();
+		SecurityContext securityContext      = null;
+		Authenticator authenticator          = null;
+		IJsonInput jsonInput 		     = null;
+		Resource resource                    = null;
 
 		try {
 
@@ -880,25 +903,29 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 			}
 
-			final App app = StructrApp.getInstance(securityContext);
+			final App app      = StructrApp.getInstance(securityContext);
+
+			String input = IOUtils.toString(request.getReader());
+			if (StringUtils.isBlank(input)) {
+				input = "{}";
+			}
 
 			// isolate input parsing (will include read and write operations)
 			try (final Tx tx = app.tx()) {
-				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
+				jsonInput = gson.get().fromJson(input, IJsonInput.class);
 				tx.success();
 			}
 
 			if (securityContext != null) {
-
-				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
 					// evaluate constraint chain
 					resource = ResourceHelper.applyViewTransformation(request, securityContext,
-						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+							ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
+
 					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
@@ -908,7 +935,12 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				while (retry) {
 
 					try (final Tx tx = app.tx()) {
-						result = resource.doPut(properties);
+
+						for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+							results.add(resource.doPut(convertPropertySetToMap(propertySet)));
+						}
+
 						tx.success();
 						retry = false;
 
@@ -919,7 +951,32 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
-					result.commitResponse(gson.get(), response);
+
+					if (!results.isEmpty()) {
+
+						final RestMethodResult result = results.get(0);
+						if (results.size() > 1) {
+
+							final GraphObjectMap tmpResult = new GraphObjectMap();
+							final List<String> idList      = new LinkedList<>();
+
+							tmpResult.put(new StringProperty("locations"), idList);
+
+							// copy Location header from all results into first result
+							for (final RestMethodResult r : results) {
+								idList.add(r.getHeaders().get("Location"));
+							}
+
+							// remove Location header if more than one object
+							// was written because it may only contain a single
+							// URL
+							result.addHeader("Location", null);
+							result.addContent(tmpResult);
+						}
+
+						result.commitResponse(gson.get(), response);
+					}
+
 					tx.success();
 				}
 
@@ -927,8 +984,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
-					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
-					result.commitResponse(gson.get(), response);
+
+					new RestMethodResult(HttpServletResponse.SC_FORBIDDEN).commitResponse(gson.get(), response);
 					tx.success();
 				}
 
@@ -1052,8 +1109,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
 				.registerTypeAdapter(IJsonInput.class, jsonInputAdapter)
 				.registerTypeAdapter(Result.class, resultGsonAdapter);
-			
-		
+
+
 			final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
 			if (lenient) {
 
@@ -1061,7 +1118,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				gsonBuilder.serializeSpecialFloatingPointValues();
 
 			}
-			
+
 			return gsonBuilder.create();
 		}
 	}
