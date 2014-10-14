@@ -19,6 +19,7 @@
 package org.structr.web.entity.dom;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -27,6 +28,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +48,10 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import static org.structr.core.GraphObject.id;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Predicate;
+import org.structr.core.StaticValue;
+import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -65,12 +71,15 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.common.microformat.MicroformatParser;
 import org.structr.web.datasource.CypherGraphDataSource;
+import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
 import org.structr.web.datasource.NodeGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
@@ -121,15 +130,17 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		// register data sources
 		listSources.add(new IdRequestParameterGraphDataSource("nodeId"));
+		listSources.add(new RestDataSource());
+		listSources.add(new NodeGraphDataSource());
+		listSources.add(new FunctionDataSource());
 		listSources.add(new CypherGraphDataSource());
 		listSources.add(new XPathGraphDataSource());
-		listSources.add(new NodeGraphDataSource());
-		listSources.add(new RestDataSource());
 	}
 	public static final Property<String> dataKey          = new StringProperty("dataKey").indexed();
 	public static final Property<String> cypherQuery      = new StringProperty("cypherQuery");
 	public static final Property<String> xpathQuery       = new StringProperty("xpathQuery");
 	public static final Property<String> restQuery        = new StringProperty("restQuery");
+	public static final Property<String> functionQuery    = new StringProperty("functionQuery");
 	public static final Property<Boolean> renderDetails   = new BooleanProperty("renderDetails");
 
 
@@ -283,7 +294,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				return "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
 			}
 		});
-		
+
 		Functions.functions.put("strip_html", new Function<Object, Object>() {
 
 			@Override
@@ -327,11 +338,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 								selector = sources[2].toString();
 
-//								String raw = getFromUrl2(address);
-//								long t1 = System.currentTimeMillis();
-//								Jerry doc = jerry(raw);
-//								String html = doc.$(selector).html();
-//								logger.log(Level.INFO, "Jerry took {0} ms to get and {1} ms to parse page.", new Object[]{t1 - t0, System.currentTimeMillis() - t1});
 								String html = Jsoup.parse(new URL(address), 5000).select(selector).html();
 								return html;
 
@@ -361,6 +367,117 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			@Override
 			public String usage() {
 				return "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
+			}
+		});
+
+		Functions.functions.put("parse", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+
+				if (sources != null && sources.length > 1) {
+
+					try {
+
+						final String source                     = sources[0].toString();
+						final String selector                   = sources[1].toString();
+						final List<Map<String, Object>> objects = new MicroformatParser().parse(source, selector);
+						final List<GraphObjectMap> elements     = new LinkedList<>();
+
+						for (final Map<String, Object> map : objects) {
+
+							final GraphObjectMap obj = new GraphObjectMap();
+							elements.add(obj);
+
+							recurse(obj, map);
+						}
+
+						return elements;
+
+					} catch (Throwable t) {
+					}
+
+					return "";
+				}
+
+				return usage();
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
+			}
+
+			private void recurse(final GraphObjectMap target, final Map<String, Object> source) {
+
+				for (final Entry<String, Object> entry : source.entrySet()) {
+
+					final String key = entry.getKey();
+					final Object value = entry.getValue();
+
+					if (value instanceof Map) {
+
+						final Map<String, Object> map = (Map<String, Object>)value;
+						final GraphObjectMap obj      = new GraphObjectMap();
+
+						target.put(new StringProperty(key), obj);
+
+						recurse(obj, map);
+
+					} else {
+
+						target.put(new StringProperty(key), value);
+					}
+				}
+
+			}
+		});
+
+		Functions.functions.put("json", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+
+				if (sources != null && sources.length > 0 && sources[0] instanceof GraphObject) {
+
+					final SecurityContext securityContext = entity.getSecurityContext();
+
+					try {
+
+						final Value<String> view = new StaticValue<>("public");
+						if (sources.length > 1) {
+
+							view.set(securityContext, sources[1].toString());
+						}
+
+						int outputDepth = 3;
+						if (sources.length > 2) {
+
+							if (sources[2] instanceof Number) {
+								outputDepth = ((Number)sources[2]).intValue();
+							}
+						}
+
+						final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth);
+						final StringWriter writer              = new StringWriter();
+
+						jsonStreamer.streamSingle(securityContext, writer, (GraphObject)sources[0]);
+
+						return writer.getBuffer().toString();
+
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+
+					return "";
+				}
+
+				return usage();
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${json(obj [, view])}. Example: ${json(this)}";
 			}
 		});
 	}
@@ -473,11 +590,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	/**
 	 * Render the node including data binding (outer rendering).
-	 * 
+	 *
 	 * @param securityContext
 	 * @param renderContext
 	 * @param depth
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	@Override
 	public void render(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
@@ -513,11 +630,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				final GraphObject currentDataNode = renderContext.getDataObject();
 
-//			// Store query result of this level
-//			final Result newResult = renderContext.getResult();
-//			if (newResult != null) {
-//				localResult = newResult;
-//			}
 				// fetch (optional) list of external data elements
 				final List<GraphObject> listData = checkListSources(securityContext, renderContext);
 
@@ -605,7 +717,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	public Template getClosestTemplate(final Page page) {
-		
+
 		DOMNode node = this;
 
 		while (node != null) {
@@ -659,7 +771,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	public Page getClosestPage() {
-		
+
 		DOMNode node = this;
 
 		while (node != null) {
@@ -697,8 +809,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return ancestors;
 
 	}
-	
-	
+
+
 	// ----- protected methods -----
 
 	protected void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
@@ -779,7 +891,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			try {
 
 				List<GraphObject> graphData = source.getData(securityContext, renderContext, this);
-				if (graphData != null) {
+				if (graphData != null && !graphData.isEmpty()) {
 					return graphData;
 				}
 
@@ -836,8 +948,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		}
 
-	}	
-	
+	}
+
 	protected boolean avoidWhitespace() {
 
 		return false;

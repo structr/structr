@@ -16,19 +16,38 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.common;
+package org.structr.web.datasource;
 
+import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.parser.Functions;
+import org.structr.web.common.GraphDataSource;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMNode;
 
 /**
- * Defines an interface for graph database content retrieval.
  *
  * @author Christian Morgner
  */
+public class FunctionDataSource implements GraphDataSource<List<GraphObject>> {
 
-public interface GraphDataSource<T> {
+	@Override
+	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
-	public T getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException;
+		final String functionQuery = referenceNode.getProperty(DOMNode.functionQuery);
+		if (functionQuery == null || functionQuery.isEmpty()) {
+			return null;
+		}
+
+		final Object result = Functions.evaluate(securityContext, renderContext, referenceNode, functionQuery);
+		if (result instanceof List) {
+
+			return (List<GraphObject>)result;
+		}
+
+		return null;
+	}
 }

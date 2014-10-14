@@ -186,23 +186,26 @@ function wsConnect() {
                         } else {
 
                             var node = Structr.node(msgObj.id);
-                            var progr = node.find('.progress');
-                            progr.show();
+                            if (node) {
 
-                            var size = parseInt(node.find('.size').text());
-                            var part = msgObj.size;
+                                var progr = node.find('.progress');
+                                progr.show();
 
-                            node.find('.part').text(part);
-                            var pw = node.find('.progress').width();
-                            var w = pw / size * part;
+                                var size = parseInt(node.find('.size').text());
+                                var part = msgObj.size;
 
-                            node.find('.bar').css({width: w + 'px'});
+                                node.find('.part').text(part);
+                                var pw = node.find('.progress').width();
+                                var w = pw / size * part;
 
-                            if (part >= size) {
-                                blinkGreen(progr);
-                                window.setTimeout(function() {
-                                    progr.fadeOut('fast');
-                                }, 1000);
+                                node.find('.bar').css({width: w + 'px'});
+
+                                if (part >= size) {
+                                    blinkGreen(progr);
+                                    window.setTimeout(function() {
+                                        progr.fadeOut('fast');
+                                    }, 1000);
+                                }
                             }
                         }
 

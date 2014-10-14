@@ -45,7 +45,7 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 
 	private static final Logger logger = Logger.getLogger(XPathGraphDataSource.class.getName());
 
-	private Document document;
+
 
 	@Override
 	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
@@ -56,16 +56,9 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 			return null;
 		}
 
-		document = ((DOMNode) referenceNode).getOwnerDocument();
-
-		return getData(securityContext, renderContext, xpathQuery);
-	}
-
-	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final String xpathQuery) throws FrameworkException {
-
+		final Document document    = ((DOMNode) referenceNode).getOwnerDocument();
 		final XPathFactory factory = XPathFactory.newInstance();
-		final XPath xpath = factory.newXPath();
+		final XPath xpath          = factory.newXPath();
 
 		try {
 
@@ -105,5 +98,4 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 		return Collections.EMPTY_LIST;
 
 	}
-
 }

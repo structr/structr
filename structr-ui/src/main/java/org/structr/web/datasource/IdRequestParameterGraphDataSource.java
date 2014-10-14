@@ -48,23 +48,15 @@ public class IdRequestParameterGraphDataSource implements GraphDataSource<List<G
 			String nodeId = securityContext.getRequest().getParameter(parameterName);
 			if (nodeId != null) {
 
-				return getData(securityContext, renderContext, nodeId);
+				AbstractNode node = (AbstractNode) StructrApp.getInstance(securityContext).get(nodeId);
+				if (node != null) {
+
+					List<GraphObject> graphData = new LinkedList<>();
+					graphData.add(node);
+
+					return graphData;
+				}
 			}
-		}
-		return null;
-	}
-
-	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final String nodeId) throws FrameworkException {
-
-		AbstractNode node = (AbstractNode) StructrApp.getInstance(securityContext).get(nodeId);
-
-		if (node != null) {
-
-			List<GraphObject> graphData = new LinkedList<>();
-			graphData.add(node);
-
-			return graphData;
 		}
 
 		return null;

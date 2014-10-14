@@ -50,10 +50,4 @@ public class NodeGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		return null;
 	}
-
-	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final String queryString) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
 }

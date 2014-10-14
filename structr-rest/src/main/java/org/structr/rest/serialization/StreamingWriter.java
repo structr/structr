@@ -70,7 +70,7 @@ public abstract class StreamingWriter {
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
-	public StreamingWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
+	public StreamingWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth) {
 
 		this.outputNestingDepth = outputNestingDepth;
 		this.propertyView       = propertyView;
@@ -94,6 +94,21 @@ public abstract class StreamingWriter {
 
 		//this.writer = new StructrWriter(writer);
 		//this.writer.setIndent("   ");
+	}
+
+	public void streamSingle(final SecurityContext securityContext, final Writer output, final GraphObject obj) throws IOException {
+
+		final RestWriter writer = getRestWriter(securityContext, output);
+		final String view       = propertyView.get(securityContext);
+
+		if (indent) {
+			writer.setIndent("   ");
+		}
+
+		writer.beginDocument(null, view);
+		root.serialize(writer, obj, view, 0);
+		writer.endDocument();
+
 	}
 
 	public void stream(final SecurityContext securityContext, final Writer output, final Result result, final String baseUrl) throws IOException {

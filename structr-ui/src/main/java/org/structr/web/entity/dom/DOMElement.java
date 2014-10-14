@@ -174,11 +174,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _role = new HtmlProperty("role");
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-		name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent
+		name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, functionQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
-		restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent,
+		restQuery, cypherQuery, xpathQuery, functionQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent,
 		renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
 		_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 		_tabindex, _title, _translate, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
@@ -373,7 +373,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		// non-final variables
 		Result localResult                 = renderContext.getResult();
 		boolean anyChildNodeCreatesNewLine = false;
-		
+
 		renderStructrAppLib(out, securityContext, renderContext, depth);
 
 		if (depth > 0 && !avoidWhitespace()) {
@@ -410,15 +410,15 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				for (final AbstractRelationship rel : rels) {
 
 					final DOMNode subNode = (DOMNode) rel.getTargetNode();
-					
+
 					if (subNode instanceof DOMElement) {
 						anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
 					}
-					
+
 					subNode.render(securityContext, renderContext, depth + 1);
 
 				}
-				
+
 			} catch (Throwable t) {
 
 				logger.log(Level.SEVERE, "Error while rendering node {0}: {1}", new java.lang.Object[]{getUuid(), t});
@@ -448,7 +448,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		if (localResult != null) {
 			renderContext.setResult(localResult);
 		}
-		
+
 	}
 
 	public boolean isVoidElement() {
@@ -856,14 +856,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				syncedNode.setProperty(htmlProp, getProperty(htmlProp));
 			}
-			
+
 			syncedNode.setProperty(name, getProperty(name));
 		}
 
                 final Sync rel = getIncomingRelationship(Sync.class);
-                
+
                 if (rel != null) {
-                
+
                     final DOMElement otherNode = (DOMElement) rel.getSourceNode();
 
                     if (otherNode != null) {
@@ -873,7 +873,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
                                 otherNode.setProperty(htmlProp, getProperty(htmlProp));
                         }
-			
+
 			otherNode.setProperty(name, getProperty(name));
 
                     }
@@ -930,7 +930,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 
 			Property[] rawProps = new Property[]{
-				dataKey, restQuery, cypherQuery, xpathQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
+				dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
 			};
 
 //			// In raw mode, add query-related data
@@ -983,7 +983,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private void renderStructrAppLib(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-		
+
 		if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
 
 			out
