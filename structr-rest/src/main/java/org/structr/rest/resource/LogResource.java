@@ -100,6 +100,8 @@ public class LogResource extends Resource {
 			final String objectId   = request.getParameter(objectProperty.jsonName());
 			final String action     = request.getParameter(actionProperty.jsonName());
 			final List<Path> files  = new LinkedList<>();
+			
+			boolean inverse = false;
 
 			if (StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
@@ -129,6 +131,8 @@ public class LogResource extends Resource {
 
 			} else if (StringUtils.isEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
+				inverse = true;
+				
 				final String path           = getDirectoryPath(objectId, 8);
 				final Path directoryPath    = new File(filesPath + OBJECTS + path).toPath();
 
@@ -151,8 +155,8 @@ public class LogResource extends Resource {
 				try (final BufferedReader reader = Files.newBufferedReader(path, Charset.forName("utf-8"))) {
 
 					final String fileName       = path.getFileName().toString();
-					final String pathSubjectId  = fileName.substring(0, 32);
-					final String pathObjectId   = fileName.substring(33, 64);
+					String pathSubjectId  = inverse ? fileName.substring(33, 64) : fileName.substring(0, 32);
+					String pathObjectId   = inverse ? fileName.substring(0, 32)  : fileName.substring(33, 64);
 
 					String line = reader.readLine();
 					while (line != null) {

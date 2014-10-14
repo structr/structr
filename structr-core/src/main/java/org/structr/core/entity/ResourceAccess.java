@@ -207,7 +207,7 @@ public class ResourceAccess extends AbstractNode {
 			grant = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
 			if (grant == null) {
 
-				logger.log(Level.WARNING, "No resource access object found for {0}", signature);
+				logger.log(Level.FINE, "No resource access object found for {0}", signature);
 			}
 		}
 		
