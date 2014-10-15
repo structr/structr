@@ -52,7 +52,7 @@ public class LogResource extends Resource {
 	private static final Property<String>    actionProperty    = new StringProperty("action");
 	private static final Property<String>    messageProperty   = new StringProperty("message");
 	private static final ISO8601DateProperty timestampProperty = new ISO8601DateProperty("timestamp");
-
+	
 	public static final String LOG_RESOURCE_URI = "log";
 
 	@Override
@@ -63,6 +63,12 @@ public class LogResource extends Resource {
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
+		subjectProperty.setDeclaringClass(LogResource.class);
+		objectProperty.setDeclaringClass(LogResource.class);
+		actionProperty.setDeclaringClass(LogResource.class);
+		messageProperty.setDeclaringClass(LogResource.class);
+		timestampProperty.setDeclaringClass(LogResource.class);
+		
 		this.securityContext = securityContext;
 		this.securityContext.setRequest(request);
 
