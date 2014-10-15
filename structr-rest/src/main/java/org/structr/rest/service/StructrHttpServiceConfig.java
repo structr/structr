@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
@@ -84,7 +85,7 @@ public class StructrHttpServiceConfig {
 		final String defaultPropertyKeyValue = properties.getProperty(defaultPropertyKeyName);
 		final String outputDepthValue        = properties.getProperty(nestingDepthKeyName);
 
-		if (resourceProviderValue == null) {
+		if (StringUtils.isBlank(resourceProviderValue)) {
 
 			logger.log(Level.SEVERE, "Missing resource provider key {0}.resourceprovider in configuration file.", servletName);
 
@@ -101,7 +102,7 @@ public class StructrHttpServiceConfig {
 
 		}
 
-		if (authenticatorValue == null) {
+		if (StringUtils.isBlank(authenticatorValue)) {
 
 			logger.log(Level.SEVERE, "Missing authenticator key {0}.authenticator in configuration file.", servletName);
 
@@ -115,7 +116,7 @@ public class StructrHttpServiceConfig {
 
 		}
 
-		if (userClassValue != null) {
+		if (StringUtils.isNotBlank(userClassValue)) {
 
 			userClass = loadClass(userClassValue);
 
@@ -124,19 +125,19 @@ public class StructrHttpServiceConfig {
 			}
 		}
 
-		if (userAutoCreateValue != null) {
+		if (StringUtils.isNotBlank(userAutoCreateValue)) {
 			userAutoCreate = HttpService.parseBoolean(userAutoCreateValue, false);
 		}
 
-		if (userAutoLoginValue != null) {
+		if (StringUtils.isNotBlank(userAutoLoginValue)) {
 			userAutoLogin = HttpService.parseBoolean(userAutoLoginValue, false);
 		}
 
-		if (defaultPropertyKeyValue != null) {
+		if (StringUtils.isNotBlank(defaultPropertyKeyValue)) {
 			this.defaultPropertyView = defaultPropertyKeyValue;
 		}
 
-		if (outputDepthValue != null) {
+		if (StringUtils.isNotBlank(outputDepthValue)) {
 			this.outputNestingDepth = HttpService.parseInt(outputDepthValue, 3);
 		}
 	}

@@ -303,12 +303,13 @@ public class Services {
 		logger.log(Level.INFO, "Registering shutdown hook.");
 
 		// register shutdown hook
-		Runtime.getRuntime().addShutdownHook( new Thread()
-		{
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			
 			@Override
 			public void run() {
 
-			    shutdown();
+				Runtime.getRuntime().removeShutdownHook(this);
+				shutdown();
 			}
 		});
 
