@@ -106,6 +106,7 @@ public class StructrTest extends TestCase {
 			}
 
 		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 
 		super.tearDown();

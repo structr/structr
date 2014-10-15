@@ -212,10 +212,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.16</version>
                 <configuration>
-                    <forkCount>1</forkCount>
+<!--                    <forkCount>1</forkCount>-->
                     <reuseForks>false</reuseForks>
-                    <argLine>-server -Xmx512m -XX:MaxPermSize=128m -XX:+UseNUMA -Dfile.encoding=utf-8</argLine>
-                    <systemPropertyVariables>
+                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+		    <parallel>classes</parallel>
+		    <threadCount>8</threadCount>
+		    <systemPropertyVariables>
                         <user.timezone>UTC</user.timezone>
                     </systemPropertyVariables>
                 </configuration>

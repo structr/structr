@@ -57,6 +57,7 @@ import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
 
@@ -145,13 +146,13 @@ public class StructrUiTest extends TestCase {
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(HttpService.APPLICATION_HOST, host);
 		config.setProperty(HttpService.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
-		config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet CsvServlet HtmlServlet");
+		config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet HtmlServlet");
 
 		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
 		config.setProperty("JsonRestServlet.path", restUrl);
 		config.setProperty("JsonRestServlet.resourceprovider", UiResourceProvider.class.getName());
 		config.setProperty("JsonRestServlet.authenticator", UiAuthenticator.class.getName());
-		config.setProperty("JsonRestServlet.user.class", "");
+		config.setProperty("JsonRestServlet.user.class", User.class.getName());
 		config.setProperty("JsonRestServlet.user.autocreate", "false");
 		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
 		config.setProperty("JsonRestServlet.outputdepth", "3");
@@ -160,24 +161,16 @@ public class StructrUiTest extends TestCase {
 		config.setProperty("WebSocketServlet.path", wsUrl);
 		config.setProperty("WebSocketServlet.resourceprovider", UiResourceProvider.class.getName());
 		config.setProperty("WebSocketServlet.authenticator", UiAuthenticator.class.getName());
-		config.setProperty("WebSocketServlet.user.class", "");
+		config.setProperty("WebSocketServlet.user.class", User.class.getName());
 		config.setProperty("WebSocketServlet.user.autocreate", "false");
 		config.setProperty("WebSocketServlet.defaultview", PropertyView.Public);
 		config.setProperty("WebSocketServlet.outputdepth", "3");
 
-//		config.setProperty("CsvServlet.class", CsvServlet.class.getName());
-//		config.setProperty("CsvServlet.path", csvUrl);
-//		config.setProperty("CsvServlet.resourceprovider", UiResourceProvider.class.getName());
-//		config.setProperty("CsvServlet.authenticator", UiAuthenticator.class.getName());
-//		config.setProperty("CsvServlet.user.class", "");
-//		config.setProperty("CsvServlet.user.autocreate", "false");
-//		config.setProperty("CsvServlet.defaultview", PropertyView.Public);
-//		config.setProperty("CsvServlet.outputdepth", "3");
 		config.setProperty("HtmlServlet.class", HtmlServlet.class.getName());
 		config.setProperty("HtmlServlet.path", htmlUrl);
 		config.setProperty("HtmlServlet.resourceprovider", UiResourceProvider.class.getName());
 		config.setProperty("HtmlServlet.authenticator", UiAuthenticator.class.getName());
-		config.setProperty("HtmlServlet.user.class", "");
+		config.setProperty("HtmlServlet.user.class", User.class.getName());
 		config.setProperty("HtmlServlet.user.autocreate", "false");
 		config.setProperty("HtmlServlet.defaultview", PropertyView.Public);
 		config.setProperty("HtmlServlet.outputdepth", "3");

@@ -53,7 +53,6 @@ public class UpdateCommand extends AbstractCommand {
 
 	}
 
-	private int sum   = 0;
 	private int count = 0;
 
 	//~--- methods --------------------------------------------------------
@@ -113,11 +112,7 @@ public class UpdateCommand extends AbstractCommand {
 					while (iterator.hasNext() && count++ < 100) {
 
 						setProperties(app, iterator.next(), properties, true);
-
-						sum++;
 					}
-
-					logger.log(Level.INFO, "Committing transaction after {0} objects..", sum);
 
 					// commit and close transaction
 					tx.success();

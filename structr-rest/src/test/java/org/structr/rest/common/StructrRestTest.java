@@ -49,6 +49,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.module.JarConfigurationProvider;
+import org.structr.rest.DefaultResourceProvider;
 import static org.structr.rest.common.StructrRestTest.restUrl;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.service.HttpService;
@@ -120,9 +121,12 @@ public class StructrRestTest extends TestCase {
 					testDir.delete();
 				}
 
-			} catch(Throwable t) {}
+			} catch(Throwable t) {
 
-			try { Thread.sleep(500); } catch(Throwable t) {}
+				t.printStackTrace();
+			}
+
+			try { Thread.sleep(100); } catch(Throwable t) {}
 		}
 
 		super.tearDown();
@@ -309,7 +313,7 @@ public class StructrRestTest extends TestCase {
 		config.setProperty(HttpService.SERVLETS, "JsonRestServlet");
 		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
 		config.setProperty("JsonRestServlet.path", restUrl);
-		config.setProperty("JsonRestServlet.resourceprovider", TestResourceProvider.class.getName());
+		config.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
 		config.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
 		config.setProperty("JsonRestServlet.user.class", "");
 		config.setProperty("JsonRestServlet.user.autocreate", "false");
@@ -349,15 +353,8 @@ public class StructrRestTest extends TestCase {
 
 	}
 
-
 	private static String getEncodingInUse() {
 		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
 		return writer.getEncoding();
 	}
-
-	// disabled to be able to test on windows systems
-//	public void testCharset() {
-//		assertTrue(StringUtils.remove(getEncodingInUse().toLowerCase(), "-").equals("utf8"));
-//	}
-
 }

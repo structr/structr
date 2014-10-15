@@ -1,11 +1,21 @@
 language: java
+
 jdk:
   - oraclejdk7
+
 branches:
   only:
     - master
     - develop
+
 cache:
   directories:
     - $HOME/.m2
 
+env:
+  - TEST_MODULE=structr-core
+  - TEST_MODULE=structr-rest
+  - TEST_MODULE=structr-ui
+
+script:
+  mvn test -pl $TEST_MODULE

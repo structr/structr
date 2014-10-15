@@ -52,6 +52,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.module.JarConfigurationProvider;
+import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.CsvServlet;
@@ -304,7 +305,7 @@ public class StructrCsvTest extends TestCase {
 		config.setProperty(HttpService.SERVLETS, "JsonRestServlet CsvServlet");
 		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
 		config.setProperty("JsonRestServlet.path", restUrl);
-		config.setProperty("JsonRestServlet.resourceprovider", TestResourceProvider.class.getName());
+		config.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
 		config.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
 		config.setProperty("JsonRestServlet.user.class", "");
 		config.setProperty("JsonRestServlet.user.autocreate", "false");
@@ -313,7 +314,7 @@ public class StructrCsvTest extends TestCase {
 
 		config.setProperty("CsvServlet.class", CsvServlet.class.getName());
 		config.setProperty("CsvServlet.path", csvUrl);
-		config.setProperty("CsvServlet.resourceprovider", TestResourceProvider.class.getName());
+		config.setProperty("CsvServlet.resourceprovider", DefaultResourceProvider.class.getName());
 		config.setProperty("CsvServlet.authenticator", SuperUserAuthenticator.class.getName());
 		config.setProperty("CsvServlet.user.class", "");
 		config.setProperty("CsvServlet.user.autocreate", "false");
