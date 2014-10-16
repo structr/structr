@@ -181,6 +181,16 @@ $(function() {
 
     Structr.connect();
 
+    // Reset keys in case of window switching
+    
+    $(window).blur(function(e) {
+        altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+    });
+
+    $(window).focus(function(e) {
+        altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+    });
+
     $(window).keyup(function(e) {
         var k = e.which;
         if (k === 16)
