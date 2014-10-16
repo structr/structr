@@ -90,13 +90,19 @@ public class CacheExpression extends Expression {
 			return "Error: cache(): value expression may not be empty.";
 		}
 
+		final long timeout = ((Number)timeoutValue).longValue();
+
 		// get or create new cached value
 		final Services services = Services.getInstance();
 		CachedValue cachedValue = (CachedValue)services.getAttribute(key);
 		if (cachedValue == null) {
 
-			cachedValue = new CachedValue(((Number)timeoutValue).longValue());
+			cachedValue = new CachedValue(timeout);
 			services.setAttribute(key, cachedValue);
+
+		} else {
+
+			cachedValue.setTimeoutSeconds(timeout);
 		}
 
 		// refresh value from value expression (this is the only place the value expression is evaluated)
@@ -114,6 +120,10 @@ public class CacheExpression extends Expression {
 		private long timeout        = 0L;
 
 		public CachedValue(final long timeoutSeconds) {
+			this.timeoutSeconds = timeoutSeconds;
+		}
+
+		public void setTimeoutSeconds(final long timeoutSeconds) {
 			this.timeoutSeconds = timeoutSeconds;
 		}
 
