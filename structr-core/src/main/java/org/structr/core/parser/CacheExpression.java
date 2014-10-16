@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser;
 
+import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -115,15 +116,16 @@ public class CacheExpression extends Expression {
 
 	private static final class CachedValue {
 
+		private Random random       = new Random(System.currentTimeMillis());
 		private Object value        = null;
 		private long timeoutSeconds = 0L;
 		private long timeout        = 0L;
 
 		public CachedValue(final long timeoutSeconds) {
-			this.timeoutSeconds = timeoutSeconds;
+			setTimeoutSeconds(timeoutSeconds);
 		}
 
-		public void setTimeoutSeconds(final long timeoutSeconds) {
+		public final void setTimeoutSeconds(final long timeoutSeconds) {
 			this.timeoutSeconds = timeoutSeconds;
 		}
 
@@ -137,7 +139,7 @@ public class CacheExpression extends Expression {
 
 		public final void refresh(final Object value) {
 
-			this.timeout = System.currentTimeMillis() + (timeoutSeconds * 1000);
+			this.timeout = System.currentTimeMillis() + ((timeoutSeconds + random.nextInt(10)) * 1000);
 			this.value   = value;
 		}
 	}
