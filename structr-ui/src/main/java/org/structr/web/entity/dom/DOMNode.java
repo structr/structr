@@ -18,6 +18,9 @@
  */
 package org.structr.web.entity.dom;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
@@ -29,7 +32,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -389,7 +391,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 							final GraphObjectMap obj = new GraphObjectMap();
 							elements.add(obj);
 
-							recurse(obj, map, 0);
+							Functions.recursivelyConvertMapToGraphObjectMap(obj, map, 0);
 						}
 
 						return elements;
@@ -407,37 +409,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			public String usage() {
 				return "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
 			}
-
-			private void recurse(final GraphObjectMap target, final Map<String, Object> source, final int depth) {
-
-				if (depth > 20) {
-					return;
-				}
-
-				for (final Entry<String, Object> entry : source.entrySet()) {
-
-					final String key = entry.getKey();
-					final Object value = entry.getValue();
-
-					if (value instanceof Map) {
-
-						final Map<String, Object> map = (Map<String, Object>)value;
-						final GraphObjectMap obj      = new GraphObjectMap();
-
-						target.put(new StringProperty(key), obj);
-
-						recurse(obj, map, depth + 1);
-
-					} else {
-
-						target.put(new StringProperty(key), value);
-					}
-				}
-
-			}
 		});
 
-		Functions.functions.put("json", new Function<Object, Object>() {
+		Functions.functions.put("to_json", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
@@ -481,7 +455,64 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			@Override
 			public String usage() {
-				return "Usage: ${json(obj [, view])}. Example: ${json(this)}";
+				return "Usage: ${to_json(obj [, view])}. Example: ${to_json(this)}";
+			}
+		});
+
+		Functions.functions.put("from_json", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+
+				if (sources != null && sources.length > 0) {
+
+					try {
+
+						final List<GraphObjectMap> elements     = new LinkedList<>();
+						final String source                     = sources[0].toString();
+						final Gson gson                         = new GsonBuilder().create();
+						List<Map<String, Object>> objects       = new LinkedList<>();
+
+						if (StringUtils.startsWith(source, "[")) {
+
+							final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {}.getType());
+							if (list != null) {
+
+								objects.addAll(list);
+							}
+
+						} else if (StringUtils.startsWith(source, "{")) {
+
+							final Map<String, Object> value = gson.fromJson(source, new TypeToken<Map<String, Object>>() {}.getType());
+							if (value != null) {
+
+								objects.add(value);
+							}
+						}
+
+						for (final Map<String, Object> map : objects) {
+
+							final GraphObjectMap obj = new GraphObjectMap();
+							elements.add(obj);
+
+							Functions.recursivelyConvertMapToGraphObjectMap(obj, map, 0);
+						}
+
+						return elements;
+
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+
+					return "";
+				}
+
+				return usage();
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
 			}
 		});
 	}

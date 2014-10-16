@@ -2,7 +2,6 @@ Since 1.0.RC3, you can synchronise data between Structr instances (Pages, Folder
 
 You need to know the following parameters of the other instance:
 
-- TCP port (see ``tcp.port = 54555`` parameter in structr.conf)
+- TCP port (see tcp.port = 54555 parameter in structr.conf)
 - Username
 - Password
-

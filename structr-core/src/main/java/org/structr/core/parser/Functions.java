@@ -76,6 +76,7 @@ import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -88,6 +89,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -184,6 +186,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_FIND                = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_CREATE              = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
 	public static final String ERROR_MESSAGE_DELETE              = "Usage: ${delete(entity)}. Example: ${delete(this)}";
+	public static final String ERROR_MESSAGE_CACHE               = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -294,6 +297,9 @@ public class Functions {
 		}
 
 		switch (word) {
+
+			case "cache":
+				return new CacheExpression();
 
 			case "true":
 				return new ConstantExpression(true);
@@ -2958,6 +2964,34 @@ public class Functions {
 		result = result.replaceAll(" ", "-");
 
 		return result;
+
+	}
+
+	public static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap target, final Map<String, Object> source, final int depth) {
+
+		if (depth > 20) {
+			return;
+		}
+
+		for (final Map.Entry<String, Object> entry : source.entrySet()) {
+
+			final String key = entry.getKey();
+			final Object value = entry.getValue();
+
+			if (value instanceof Map) {
+
+				final Map<String, Object> map = (Map<String, Object>)value;
+				final GraphObjectMap obj      = new GraphObjectMap();
+
+				target.put(new StringProperty(key), obj);
+
+				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
+
+			} else {
+
+				target.put(new StringProperty(key), value);
+			}
+		}
 
 	}
 }
