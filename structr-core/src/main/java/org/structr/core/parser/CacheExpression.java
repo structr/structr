@@ -73,8 +73,15 @@ public class CacheExpression extends Expression {
 			return "Error: cache(): key expression may not be empty.";
 		}
 
-		final String key = keyExpression.evaluate(securityContext, ctx, entity).toString();
+		final Object keyObject = keyExpression.evaluate(securityContext, ctx, entity);
+		if (keyObject == null) {
+
+			return "Error: cache(): key may not be empty.";
+		}
+
+		final String key = keyObject.toString();
 		if (StringUtils.isBlank(key)) {
+
 			return "Error: cache(): key may not be empty.";
 		}
 
@@ -84,6 +91,7 @@ public class CacheExpression extends Expression {
 
 		final Object timeoutValue = timeoutExpression.evaluate(securityContext, ctx, entity);
 		if (timeoutValue == null || !(timeoutValue instanceof Number)) {
+			
 			return "Error: cache(): timeout must be non-empty and a number.";
 		}
 

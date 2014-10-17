@@ -932,6 +932,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			} catch (FrameworkException fex) {
 
+				fex.printStackTrace();
+
 				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[]{source, fex});
 			}
 		}
@@ -955,21 +957,31 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			page = (Page) this;
 
+		} else {
+
+			// ignore page-less nodes
+			if (getProperty(DOMNode.parent) == null) {
+				return;
+			}
 		}
 
 		if (page == null) {
 
 			final List<Node> ancestors = getAncestors();
 			if (!ancestors.isEmpty()) {
+
 				final DOMNode rootNode = (DOMNode) ancestors.get(ancestors.size() - 1);
 				if (rootNode instanceof Page) {
 					page = (Page) rootNode;
 				} else {
 					rootNode.increasePageVersion();
 				}
+
 			} else {
+
 				final List<DOMNode> _syncedNodes = getProperty(DOMNode.syncedNodes);
 				for (final DOMNode syncedNode : _syncedNodes) {
+
 					syncedNode.increasePageVersion();
 				}
 			}
@@ -1713,6 +1725,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		Set<DOMNode> allChildNodes = new HashSet();
 
+		getAllChildNodes(node, allChildNodes);
+
+		return allChildNodes;
+	}
+
+	private static void getAllChildNodes(final DOMNode node, final Set<DOMNode> allChildNodes) {
+
 		Node n = node.getFirstChild();
 
 		while (n != null) {
@@ -1721,16 +1740,20 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				DOMNode domNode = (DOMNode) n;
 
-				allChildNodes.add(domNode);
-				allChildNodes.addAll(getAllChildNodes(domNode));
+				if (!allChildNodes.contains(domNode)) {
 
+					allChildNodes.add(domNode);
+					allChildNodes.addAll(getAllChildNodes(domNode));
+
+				} else {
+
+					// break loop!
+					break;
+				}
 			}
 
 			n = n.getNextSibling();
-
 		}
-
-		return allChildNodes;
 	}
 
 	// ----- interface Syncable -----
