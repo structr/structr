@@ -18,9 +18,11 @@
  */
 package org.structr.websocket.command;
 
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -29,15 +31,11 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
@@ -58,20 +56,21 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
 
-		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app = StructrApp.getInstance(securityContext);
-		
-		final Query query = app.nodeQuery().includeDeletedAndHidden();
+		final SecurityContext securityContext        = getWebSocket().getSecurityContext();
+		final App app                                = StructrApp.getInstance(securityContext);
+		final Query query                            = app.nodeQuery();
+		final List<? extends GraphObject> resultList = new LinkedList<>();
+		final Set<AbstractNode> filteredResults      = new LinkedHashSet<>();
 
+		query.includeDeletedAndHidden();
 		query.orTypes(DOMElement.class);
 		query.orType(Content.class);
 
-		try {
+		try (final Tx tx = app.tx()) {
 
-			final List<AbstractNode> filteredResults = new LinkedList();
-			List<? extends GraphObject> resultList = query.getAsList();
+			resultList.addAll(query.getAsList());
 
 			// determine which of the nodes have incoming CONTAINS relationships and are not components
 			for (GraphObject obj : resultList) {
@@ -80,36 +79,51 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 					DOMNode node = (DOMNode) obj;
 
-					Page page = (Page) node.getProperty(DOMNode.ownerDocument);
-
-					if (!node.hasIncomingRelationships(DOMChildren.class) && !(page instanceof ShadowDocument)) {
-
+					if (node.getProperty(DOMNode.ownerDocument) == null) {
 						filteredResults.add(node);
-						filteredResults.addAll(DOMNode.getAllChildNodes(node));
 					}
 
+					for (final DOMNode child : DOMNode.getAllChildNodes(node)) {
+
+						if (child.getProperty(DOMNode.ownerDocument) == null) {
+							filteredResults.add(child);
+						}
+					}
 				}
-
 			}
 
-			for (NodeInterface node : filteredResults) {
-				app.delete(node);
-			}
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Exception occured", fex);
-			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+			tx.success();
 		}
 
+		final Iterator<AbstractNode> iterator = filteredResults.iterator();
+		int count                             = 0;
+
+		while (iterator.hasNext()) {
+
+			count = 0;
+			try (final Tx tx = app.tx()) {
+
+				while (iterator.hasNext() && count++ < 100) {
+
+					app.delete(iterator.next());
+				}
+
+				// commit and close transaction
+				tx.success();
+			}
+		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 
 		return "DELETE_UNATTACHED_NODES";
 
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
 	}
 
 }

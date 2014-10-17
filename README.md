@@ -47,36 +47,41 @@ Using [Apache Maven](http://maven.apache.org/) archetypes, you get a demo projec
 
 ## Components
 
-To get an overview of the components, just browse the source code and review the README's.
+To get an overview of the components, just browse the source code and review the READMEs.
 
-**structr-core** - The Structr Server (Neo4j, OGM, ...) - [docs](http://docs.structr.org/dev-guide#Object-to-graph mapping)
-
-**structr-rest** - The REST server (add-on to structr-core) - [docs](http://docs.structr.org/rest-user-guide)
-
-**structr-ui**   - The Structr UI (add-on to structr-rest) - [docs](http://docs.structr.org/frontend-user-guide)
+Name             | Description                              | Documentation
+---------------- | ---------------------------------------- | -----------------------------------------------------------------
+**structr-core** | The Structr Server (Neo4j, OGM, ...)     | [docs](http://docs.structr.org/dev-guide#Object-to-graph mapping)
+**structr-rest** | The REST server (add-on to structr-core) | [docs](http://docs.structr.org/rest-user-guide)
+**structr-ui**   | The Structr UI (add-on to structr-rest)  | [docs](http://docs.structr.org/frontend-user-guide)
 
 Structr UI is a browser based frontend for Visual Schema Design, CRUD operations and basic CMS functionalitiy, e.g. for handling pages, files, images, users/groups.
 
+## Google Group / Mailing List
 
-## Learn more
+For non-technical questions about Structr, Structr's licensing, use-cases etc. please use the [Structr Google Group](https://groups.google.com/forum/#!forum/structr) or send an e-mail to [structr@googlegroups.com](structr@googlegroups.com).
 
-- [structr.org](http://structr.org)
-- [Neo4j](http://neo4j.org)
-- [@structr](https://twitter.com/structr)
+## Report Bugs
+
+You can submit issues (bugs, feature requests etc.) on the [issue-tracker](https://github.com/structr/structr/issues).
 
 ## Contribute
 
-You can submit issues (bugs, feature requests etc.) on the [issue-tracker](https://github.com/structr/structr/issues)
-
-In order to contribute on docu or code level to structr, you must sign the Structr Contributor’s License Agreement, which can be found [here](http://structr.org/cla).
+For more information on how to contribute, please see [Contribute to Structr](http://docs.structr.org/contribute).
 
 ## Commercial Services
 
 https://structr.org/services
 
-## Hosting Services
+## Structr Hosting
 
 https://structr.com
+
+## Learn More
+
+- [structr.org](http://structr.org)
+- [Neo4j](http://neo4j.org)
+- [@structr](https://twitter.com/structr)
 
 ## Authors
 

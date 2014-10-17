@@ -304,11 +304,10 @@ public class Services {
 
 		// register shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
-			
+
 			@Override
 			public void run() {
 
-				Runtime.getRuntime().removeShutdownHook(this);
 				shutdown();
 			}
 		});

@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command;
 
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,6 +70,7 @@ public class RemoveCommand extends AbstractCommand {
 					try {
 
 						// Remove node from page
+						domNode.setProperty(DOMNode.syncedNodes, Collections.EMPTY_LIST);
 						domNode.setProperty(DOMNode.pageId, null);
 
 					} catch (FrameworkException ex) {
