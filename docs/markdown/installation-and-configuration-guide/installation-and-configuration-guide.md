@@ -1,0 +1,1 @@
+This document gives you an overview of the different installation and configuration options of Structr.
