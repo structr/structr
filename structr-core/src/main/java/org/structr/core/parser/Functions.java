@@ -51,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -121,6 +122,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_NUM                 = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_INT                 = "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_RANDOM              = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
+	public static final String ERROR_MESSAGE_RINT                = "Usage: ${rint(range)}. Example: ${rint(1000)}";
 	public static final String ERROR_MESSAGE_INDEX_OF            = "Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}";
 	public static final String ERROR_MESSAGE_CONTAINS            = "Usage: ${contains(string, word)}. Example: ${contains(this.name, \"the\")}";
 	public static final String ERROR_MESSAGE_SUBSTRING           = "Usage: ${substring(string, start, length)}. Example: ${substring(this.name, 19, 3)}";
@@ -689,6 +691,29 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_RANDOM;
+			}
+		});
+		functions.put("rint", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number) {
+
+					try {
+						new Random(System.currentTimeMillis()).nextInt(((Number)sources[0]).intValue());
+
+					} catch (Throwable t) {
+						// ignore
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_RINT;
 			}
 		});
 		functions.put("index_of", new Function<Object, Object>() {
