@@ -701,7 +701,7 @@ public class Functions {
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number) {
 
 					try {
-						new Random(System.currentTimeMillis()).nextInt(((Number)sources[0]).intValue());
+						return new Random(System.currentTimeMillis()).nextInt(((Number)sources[0]).intValue());
 
 					} catch (Throwable t) {
 						// ignore
