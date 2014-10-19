@@ -473,6 +473,11 @@ public class HttpService implements RunnableService {
 		return HttpService.class.getName();
 	}
 
+	@Override
+	public boolean isVital() {
+		return true;
+	}
+
 	public Set<ResourceProvider> getResourceProviders() {
 		return resourceProviders;
 	}

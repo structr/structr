@@ -69,4 +69,12 @@ public interface Service {
 	 */
 	public boolean isRunning();
 
+	/**
+	 * Return true if Service is vital for the start of Structr. The failure
+	 * of vital services will stop Structr from starting and display an
+	 * appropriate error message.
+	 * @return a boolean
+	 */
+	public boolean isVital();
+
 }

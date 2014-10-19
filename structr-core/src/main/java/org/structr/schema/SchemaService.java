@@ -105,7 +105,7 @@ public class SchemaService implements Service {
 
 						final String auxSource = schemaRelationship.getAuxiliarySource();
 						if (auxSource != null) {
-							
+
 							nodeExtender.addClass("_" + schemaRelationship.getClassName() + "Helper", auxSource);
 						}
 
@@ -186,5 +186,10 @@ public class SchemaService implements Service {
 			schemaNode.unlockReadOnlyPropertiesOnce();
 			schemaNode.setProperty(SchemaNode.isBuiltinType, true);
 		}
+	}
+
+	@Override
+	public boolean isVital() {
+		return true;
 	}
 }

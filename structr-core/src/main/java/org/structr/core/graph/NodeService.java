@@ -321,6 +321,11 @@ public class NodeService implements SingletonService {
 		return ((graphDb != null) && isInitialized);
 	}
 
+	@Override
+	public boolean isVital() {
+		return true;
+	}
+
 	public Collection<Index<Node>> getNodeIndices() {
 		return nodeIndices.values();
 	}

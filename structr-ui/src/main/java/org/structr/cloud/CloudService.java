@@ -135,6 +135,12 @@ public class CloudService extends Thread implements RunnableService {
 		return true;
 	}
 
+
+	@Override
+	public boolean isVital() {
+		return false;
+	}
+
 	// ----- public static methods -----
 	public static <T> T doRemote(final CloudTransmission<T> transmission, final CloudListener listener) throws FrameworkException {
 

@@ -270,23 +270,23 @@ public class Services {
 		// initialize other services
 		for (final String serviceClassName : configuredServiceClasses) {
 
-			try {
-
 				Class serviceClass = getServiceClassForName(serviceClassName);
 				if (serviceClass != null) {
 
-					final Service service = createService(serviceClass);
-					if (service != null) {
+					try {
 
-						service.initialized();
+						final Service service = createService(serviceClass);
+						if (service != null) {
+
+							service.initialized();
+						}
+
+					} catch (Throwable t) {
+
+						logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClassName, t });
+						t.printStackTrace();
 					}
 				}
-
-			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClassName, t });
-				t.printStackTrace();
-			}
 		}
 
 		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
@@ -462,25 +462,39 @@ public class Services {
 		logger.log(Level.FINE, "Creating service ", serviceClass.getName());
 
 		Service service = (Service) serviceClass.newInstance();
-		service.initialize(getCurrentConfig());
+		try {
 
-		if (service instanceof RunnableService) {
+			service.initialize(getCurrentConfig());
 
-			RunnableService runnableService = (RunnableService) service;
+			if (service instanceof RunnableService) {
 
-			if (runnableService.runOnStartup()) {
+				RunnableService runnableService = (RunnableService) service;
 
-				logger.log(Level.FINER, "Starting RunnableService instance ", serviceClass.getName());
+				if (runnableService.runOnStartup()) {
 
-				// start RunnableService and cache it
-				runnableService.startService();
+					logger.log(Level.FINER, "Starting RunnableService instance ", serviceClass.getName());
+
+					// start RunnableService and cache it
+					runnableService.startService();
+					serviceCache.put(serviceClass, service);
+				}
+
+			} else if (service instanceof SingletonService) {
+
+				// cache SingletonService
 				serviceCache.put(serviceClass, service);
 			}
 
-		} else if (service instanceof SingletonService) {
+		} catch (Throwable t) {
 
-			// cache SingletonService
-			serviceCache.put(serviceClass, service);
+			if (service.isVital()) {
+
+				logger.log(Level.SEVERE, "Vital service {0} failed to start with {1}, aborting.", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
+
+				// hard(est) exit
+				System.err.println("Vital service " + service.getClass().getSimpleName() + " failed to start with " + t.getMessage() + ", aborting.");
+				System.exit(1);
+			}
 		}
 
 		return service;
