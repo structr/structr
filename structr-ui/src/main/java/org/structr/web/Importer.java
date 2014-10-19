@@ -710,28 +710,33 @@ public class Importer {
 
 		fileOnDisk.getParentFile().mkdirs();
 
-		URL downloadUrl;
 		long size;
 		long checksum;
-
+		URL downloadUrl;
+		
 		try {
 
-			logger.log(Level.INFO, "Starting download from {0}", downloadAddress);
-
 			downloadUrl = new URL(originalUrl, downloadAddress);
+
+			logger.log(Level.INFO, "Starting download from {0}", downloadUrl);
+
 			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
 
 		} catch (IOException ioe) {
 
-			logger.log(Level.WARNING, "Unable to download from {0}", downloadAddress);
+			logger.log(Level.WARNING, "Unable to download from {0} {1}", new Object[] { originalUrl, downloadAddress });
 
 			try {
 				// Try alternative baseUrl with trailing "/"
+				
+				logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[] { originalUrl, address.concat("/"), downloadAddress });
+				
 				downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
 				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
 
 				// If successful, change address
-				address = address.concat("/");
+//				address = address.concat("/");
+//				originalUrl = new URL(originalUrl, address);
 
 			} catch (MalformedURLException ex) {
 				logger.log(Level.SEVERE, "Could not resolve address {0}", address.concat("/"));
