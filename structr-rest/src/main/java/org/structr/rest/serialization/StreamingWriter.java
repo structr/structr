@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -62,6 +63,7 @@ public abstract class StreamingWriter {
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
+	private final Set<Class> visitedTypes                = new ConcurrentHashSet<Class>();
 	private final DecimalFormat decimalFormat            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private int outputNestingDepth                       = 3;
 	private Value<String> propertyView                   = null;
@@ -382,6 +384,9 @@ public abstract class StreamingWriter {
 		@Override
 		public void serialize(RestWriter writer, GraphObject source, String localPropertyView, int depth) throws IOException {
 
+			// mark object as visited
+			visitedTypes.add(source.getClass());
+
 			writer.beginObject(source);
 
 			// prevent endless recursion by pruning at depth n
@@ -400,12 +405,21 @@ public abstract class StreamingWriter {
 
 						final Predicate predicate  = writer.getSecurityContext().getRange(key.jsonName());
 						final Object value         = source.getProperty(key, predicate);
+						final Class relatedType    = key.relatedType();
 						final PropertyKey localKey = key;
 
 						if (value != null) {
 
-							writer.name(localKey.jsonName());
-							serializeProperty(writer, key, value, localPropertyView, depth+1);
+							if (relatedType != null && visitedTypes.contains(key.relatedType())) {
+
+								continue;
+
+							} else {
+
+								writer.name(localKey.jsonName());
+								serializeProperty(writer, key, value, localPropertyView, depth+1);
+
+							}
 
 						} else {
 
@@ -416,6 +430,9 @@ public abstract class StreamingWriter {
 			}
 
 			writer.endObject(source);
+
+			// unmark (visiting only counts for children)
+			visitedTypes.remove(source.getClass());
 		}
 	}
 
@@ -477,10 +494,11 @@ public abstract class StreamingWriter {
 
 				for (Map.Entry<PropertyKey, Object> entry : source.entrySet()) {
 
-					PropertyKey key = entry.getKey();
+					final PropertyKey key   = entry.getKey();
+					final Object value      = entry.getValue();
 
 					writer.name(key.jsonName());
-					serializeProperty(writer, key, entry.getValue(), localPropertyView, depth+1);
+					serializeProperty(writer, key, value, localPropertyView, depth+1);
 				}
 			}
 
