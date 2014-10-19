@@ -19,7 +19,6 @@
 package org.structr.rest.test;
 
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
 import org.structr.rest.common.StructrRestTest;
 
@@ -28,24 +27,24 @@ import org.structr.rest.common.StructrRestTest;
  * @author alex
  */
 public class GroupPropertyTest extends StructrRestTest{
-	
+
 	public void test01GroupProperty(){
-		
+
 
 		String test011 = createEntity("/test_group_prop_one","{gP1:{sP:text,iP:1337},gP2:{dblP:13.37,dP:01.01.2013}}");
-		
+
 		String test021 = createEntity("/test_group_prop_two", "{gP1:{sP:text,iP:1337,dblP:0.1337,bP:true},gP2:{ep:two}}");
-		
+
 		String test031 = createEntity("/test_group_prop_three","{gP:{sP:text,iP:1337,gpNode:",test011,"}}");
 		String test032 = createEntity("/test_group_prop_three","{ggP:{igP:{gpNode:",test021,",isP:Alex}}}");
-		
+
 		// test011 check
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -56,14 +55,14 @@ public class GroupPropertyTest extends StructrRestTest{
 
 			.when()
 				.get(concat("/test_group_prop_one/"+test011));
-		
+
 		// test021 check
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -74,15 +73,15 @@ public class GroupPropertyTest extends StructrRestTest{
 
 			.when()
 				.get(concat("/test_group_prop_two/"+test021));
-		
+
 		// test031 check
 		// Node in groupProperty
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -92,15 +91,15 @@ public class GroupPropertyTest extends StructrRestTest{
 
 			.when()
 				.get(concat("/test_group_prop_three/"+test031));
-		
+
 		// test032 check
 		// Node in GroupProperty in GroupProperty
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -111,19 +110,19 @@ public class GroupPropertyTest extends StructrRestTest{
 			.when()
 				.get(concat("/test_group_prop_three/"+test032));
 	}
-	
+
 	public void test02SearchProperty(){
-		
+
 		String test01 = createEntity("/test_group_prop_four","{gP:{sP:text,iP:1337}}");
-		
+
 		// Test find sP in GroupProperty gP
 		// expected result is a single object
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -134,15 +133,15 @@ public class GroupPropertyTest extends StructrRestTest{
 
 			.when()
 				.get(concat("/test_group_prop_four/?gP.sP=text"));
-		
+
 		// Test find iP in GroupProperty gP
 		// expected result is empty
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -151,18 +150,18 @@ public class GroupPropertyTest extends StructrRestTest{
 
 			.when()
 				.get(concat("/test_group_prop_four/?gP.iP=1336"));
-		
+
 		String test02 = createEntity("/test_group_prop_four","{twitter:{uid:11111}}");
 		String test03 = createEntity("/test_group_prop_four","{facebook:{uid:11111}}");
-		
+
 		// Test find uid in GroupProperty twitter
 		// expected result is a single object
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -172,15 +171,15 @@ public class GroupPropertyTest extends StructrRestTest{
 
 			.when()
 				.get(concat("/test_group_prop_four/?twitter.uid=11111"));
-		
+
 		// Test find uid in GroupProperty facebook
 		// expected result is single object
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -191,20 +190,20 @@ public class GroupPropertyTest extends StructrRestTest{
 
 			.when()
 				.get(concat("/test_group_prop_four/?facebook.uid=11111"));
-		
+
 		String test04 = createEntity("/test_group_prop_four","{facebook:{uid:11111},twitter:{uid:22222}}");
 		String test05 = createEntity("/test_group_prop_four","{facebook:{uid:22222},twitter:{uid:11111}}");
 		String test06 = createEntity("/test_group_prop_four","{facebook:{uid:33333},twitter:{uid:22222}}");
 		String test07 = createEntity("/test_group_prop_four","{facebook:{uid:33333},twitter:{uid:33333}}");
-		
+
 		// find facebook AND Twitter with uid 11111
 		// expected result is empty
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -213,16 +212,16 @@ public class GroupPropertyTest extends StructrRestTest{
 
 			.when()
 				.get(concat("/test_group_prop_four/?facebook.uid=11111&twitter.uid=11111"));
-		
+
 		// find facebook with uid 33333
 		// expected result is a list of 2 objects
 		// sort desc on twitter.uid
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -237,15 +236,15 @@ public class GroupPropertyTest extends StructrRestTest{
 
 			.when()
 				.get(concat("/test_group_prop_four/?facebook.uid=33333&sort=twitter.uid&order=desc"));
-		
+
 		// find twitter with uid 33333
 		// expected result is a single object
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			
+
 			.expect()
 				.statusCode(200)
 

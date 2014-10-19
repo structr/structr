@@ -136,4 +136,9 @@ public class FtpService implements RunnableService {
 		return FtpServer.class.getSimpleName();
 	}
 
+	@Override
+	public boolean isVital() {
+		return false;
+	}
+
 }

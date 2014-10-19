@@ -325,7 +325,7 @@ var StructrModel = {
                 return;
 
             log(obj, id, element);
-            
+
             // update values with given key
             $.each(Object.keys(obj), function(i, key) {
                 StructrModel.refreshKey(id, key);
@@ -360,7 +360,7 @@ var StructrModel = {
                 keyIcon.hide();
                 keyIcon.removeClass('donthide');
             }
-            
+
             // Did name change from null?
             if ((obj.type === 'Template' || obj.type === 'Content') && obj.name) {
                 $(element).children('.content_').replaceWith('<b title="' + obj.name + '" class="tag_ name_">' + obj.name + '</b>');
@@ -526,7 +526,12 @@ StructrFile.prototype.append = function() {
     var file = this;
     if (file.parent) {
         var parentFolder = StructrModel.obj(file.parent.id);
-        if (parentFolder) parentFolder.files.push(file);
+        if (parentFolder) {
+            if (!parentFolder.files) {
+                parentFolder.files = [];
+            }
+            parentFolder.files.push(file);
+        }
     }
     StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
 }

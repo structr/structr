@@ -190,8 +190,8 @@ public class LogService implements SingletonService {
 
 	}
 
-
-//	@Override
-//	public void visitConfiguration(final StructrConf configuration) {
-//	}
+	@Override
+	public boolean isVital() {
+		return false;
+	}
 }

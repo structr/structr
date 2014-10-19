@@ -342,4 +342,8 @@ public class AgentService extends Thread implements RunnableService {
 		return (this.run);
 	}
 
+	@Override
+	public boolean isVital() {
+		return false;
+	}
 }

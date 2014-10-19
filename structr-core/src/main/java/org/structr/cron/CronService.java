@@ -156,4 +156,8 @@ public class CronService extends Thread implements RunnableService {
 		this.doRun = false;
 	}
 
+	@Override
+	public boolean isVital() {
+		return false;
+	}
 }
