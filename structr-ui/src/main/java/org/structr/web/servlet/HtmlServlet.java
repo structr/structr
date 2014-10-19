@@ -75,6 +75,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.Linkable;
+import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -161,7 +162,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					return;
 				}
 
-				Principal user = securityContext.getUser(false);
+				final Principal user = securityContext.getUser(false);
 				if (user != null) {
 
 					// Don't cache if a user is logged in
@@ -173,7 +174,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				renderContext.setResourceProvider(config.getResourceProvider());
 
-				EditMode edit = renderContext.getEditMode(user);
+				final EditMode edit = renderContext.getEditMode(user);
 
 				DOMNode rootElement = null;
 				AbstractNode dataNode = null;
@@ -233,7 +234,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					}
 
-					if (dataNode != null) {
+					if (dataNode != null && !(dataNode instanceof Linkable)) {
 
 						// Last path part matches a data node
 						// Remove last path part and try again searching for a page
@@ -492,7 +493,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @return node
 	 * @throws FrameworkException
 	 */
-	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		final String name = PathHelper.getName(path);
 
@@ -541,7 +542,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @return file
 	 * @throws FrameworkException
 	 */
-	private File findFile(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private File findFile(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
 
@@ -555,6 +556,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		for (Linkable node : entryPoints) {
+			
 			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
 				return (File) node;
 			}
@@ -574,7 +576,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @return page
 	 * @throws FrameworkException
 	 */
-	private Page findPage(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private Page findPage(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
 		
@@ -587,6 +589,30 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		for (Linkable node : entryPoints) {
 
 			if (node instanceof Page) { // && path.equals(node.getPath())) {
+				
+				final Page page = (Page) node;
+				final Site site = page.getProperty(Page.site);
+				
+				if (site != null) {
+					
+					final String serverName = request.getServerName();
+					final int    serverPort = request.getServerPort();
+					
+					if (StringUtils.isNotBlank(serverName) && !serverName.equals(site.getProperty(Site.hostname))) {
+						continue;
+					}
+					
+					Integer sitePort = site.getProperty(Site.port);
+					if (sitePort == null) {
+						sitePort = 80;
+					}
+					
+					if (serverPort != sitePort) {
+						continue;
+					}
+					
+				}
+				
 				return (Page) node;
 			}
 		}
@@ -596,7 +622,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	/**
 	 * Find the page with the lowest position value which is visible in the
-	 * current securit context
+	 * current security context
 	 *
 	 * @param securityContext
 	 * @return page
@@ -604,7 +630,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private Page findIndexPage(final SecurityContext securityContext) throws FrameworkException {
 
-		Result<Page> results = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getResult();
+		final Result<Page> results = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getResult();
 		Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
 		// Find first visible page
@@ -645,8 +671,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return false;
 		}
 
-		String targetPage = request.getParameter(TARGET_PAGE_KEY);
-		String errorPage = request.getParameter(ERROR_PAGE_KEY);
+		final String targetPage = request.getParameter(TARGET_PAGE_KEY);
+		final String errorPage = request.getParameter(ERROR_PAGE_KEY);
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -695,9 +721,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return false;
 	}
 
-	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, HttpServletRequest request, final String uuid) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, final HttpServletRequest request, final String uuid) throws FrameworkException {
 
-		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -724,9 +750,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPointsByPath(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByPath(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
-		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -753,9 +779,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPointsByName(final SecurityContext securityContext, HttpServletRequest request, final String name) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByName(final SecurityContext securityContext, final HttpServletRequest request, final String name) throws FrameworkException {
 
-		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -782,7 +808,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 

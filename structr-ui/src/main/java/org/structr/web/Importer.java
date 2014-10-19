@@ -124,6 +124,7 @@ public class Importer {
 	//~--- fields ---------------------------------------------------------
 	private StringBuilder commentSource = new StringBuilder();
 	private String code;
+	private URL originalUrl;
 	private String address;
 	private final boolean authVisible;
 	private final String name;
@@ -195,10 +196,10 @@ public class Importer {
 
 			try {
 
-				URL url = new URL(address);
+				originalUrl = new URL(address);
 
 				DefaultHttpClient client = new DefaultHttpClient();
-				HttpGet get = new HttpGet(url.toString());
+				HttpGet get = new HttpGet(originalUrl.toString());
 				get.setHeader("User-Agent", "Mozilla");
 				get.setHeader("Connection", "close");
 
@@ -219,11 +220,16 @@ public class Importer {
 				HttpResponse resp = client.execute(get);
 
 				Header location = resp.getFirstHeader("Location");
-
+				
+				logger.log(Level.INFO, "Location: {0}", new Object[]{ location });
+				
 				if (location != null) {
 
-					address = location.getValue();
-					final String newLocation = new URL(url, address).toString();
+					final String newLocation = new URL(originalUrl, location.getValue()).toString();
+					address = newLocation;
+					
+					logger.log(Level.INFO, "New location: {0}", new Object[]{ newLocation });
+					
 					client = new DefaultHttpClient();
 
 					int attempts = 1;
@@ -280,59 +286,29 @@ public class Importer {
 
 	public Page readPage() throws FrameworkException {
 
-		try {
-			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
+		Page page = Page.createNewPage(securityContext, name);
 
-			Page page = Page.createNewPage(securityContext, name);
+		if (page != null) {
 
-			if (page != null) {
-
-				page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
-				page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
-				createChildNodes(parsedDocument, page, page, baseUrl);
-				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
-
-			}
-
-			return page;
-
-		} catch (MalformedURLException ex) {
-
-			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
+			page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+			page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+			createChildNodes(parsedDocument, page, page);
+			logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
 
 		}
-		return null;
+
+		return page;
 
 	}
 
-	public void createChildNodes(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
+	public void createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
-		try {
-
-			createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
-
-		} catch (MalformedURLException ex) {
-
-			logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
-
-			createChildNodes(parsedDocument.body(), parent, page, null);
-
-		}
+		createChildNodes(parsedDocument, parent, page);
 	}
 
-	public void createChildNodesWithHtml(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
+	public void createChildNodesWithHtml(final DOMNode parent, final Page page) throws FrameworkException {
 
-		try {
-
-			createChildNodes(parsedDocument, parent, page, new URL(baseUrl));
-
-		} catch (MalformedURLException ex) {
-
-			logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
-
-			createChildNodes(parsedDocument, parent, page, null);
-
-		}
+		createChildNodes(parsedDocument, parent, page);
 	}
 
 	public void importDataComments() throws FrameworkException {
@@ -354,7 +330,7 @@ public class Importer {
 
 			if (importer.parse()) {
 
-				importer.createChildNodesWithHtml(page, page, "");
+				importer.createChildNodesWithHtml(page, page);
 			}
 
 			tx.success();
@@ -499,7 +475,7 @@ public class Importer {
 	}
 
 	// ----- private methods -----
-	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
+	private void createChildNodes(final Node startNode, final DOMNode parent, Page page) throws FrameworkException {
 
 		Linkable res = null;
 		final List<Node> children = startNode.childNodes();
@@ -539,10 +515,10 @@ public class Importer {
 					? "src" : ArrayUtils.contains(hrefElements, tag)
 					? "href" : null);
 
-				if (baseUrl != null && downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
+				if (downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
 					String downloadAddress = node.attr(downloadAddressAttr);
-					res = downloadFile(downloadAddress, baseUrl);
+					res = downloadFile(downloadAddress);
 
 				}
 
@@ -706,7 +682,7 @@ public class Importer {
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes
-				createChildNodes(node, newNode, page, baseUrl);
+				createChildNodes(node, newNode, page);
 
 			}
 		}
@@ -721,7 +697,7 @@ public class Importer {
 
 	}
 
-	private Linkable downloadFile(String downloadAddress, final URL baseUrl) {
+	private Linkable downloadFile(String downloadAddress) {
 
 		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 		String contentType;
@@ -740,28 +716,28 @@ public class Importer {
 
 		try {
 
-			downloadUrl = new URL(baseUrl, downloadAddress);
-			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
+			logger.log(Level.INFO, "Starting download from {0}", downloadAddress);
 
-			logger.log(Level.INFO, "Starting download from {0}", downloadUrl);
+			downloadUrl = new URL(originalUrl, downloadAddress);
+			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
 
 		} catch (IOException ioe) {
 
-			logger.log(Level.WARNING, "Unable to download from " + downloadAddress, ioe);
+			logger.log(Level.WARNING, "Unable to download from {0}", downloadAddress);
 
 			try {
 				// Try alternative baseUrl with trailing "/"
-				downloadUrl = new URL(new URL(address.concat("/")), downloadAddress);
+				downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
 				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
 
 				// If successful, change address
 				address = address.concat("/");
 
 			} catch (MalformedURLException ex) {
-				logger.log(Level.SEVERE, "Could not resolve address " + address.concat("/"), ex);
+				logger.log(Level.SEVERE, "Could not resolve address {0}", address.concat("/"));
 				return null;
 			} catch (IOException ex) {
-				logger.log(Level.WARNING, "Unable to download from " + address.concat("/"), ex);
+				logger.log(Level.WARNING, "Unable to download from {0}", address.concat("/"));
 				return null;
 			}
 
@@ -782,7 +758,7 @@ public class Importer {
 
 		} catch (IOException ioe) {
 
-			logger.log(Level.WARNING, "Unable to determine MIME type, size or checksum of " + fileOnDisk, ioe);
+			logger.log(Level.WARNING, "Unable to determine MIME type, size or checksum of {0}", fileOnDisk);
 			return null;
 		}
 
@@ -835,7 +811,7 @@ public class Importer {
 
 					if (contentType.equals("text/css")) {
 
-						processCssFileNode(fileNode, downloadUrl);
+						processCssFileNode(fileNode);
 					}
 				}
 
@@ -892,7 +868,7 @@ public class Importer {
 
 	}
 
-	private void processCssFileNode(File fileNode, final URL baseUrl) throws IOException {
+	private void processCssFileNode(File fileNode) throws IOException {
 
 		StringWriter sw = new StringWriter();
 
@@ -900,11 +876,11 @@ public class Importer {
 
 		String css = sw.toString();
 
-		processCss(css, baseUrl);
+		processCss(css);
 
 	}
 
-	private void processCss(final String css, final URL baseUrl) throws IOException {
+	private void processCss(final String css) throws IOException {
 
 		Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
 		Matcher matcher = pattern.matcher(css);
@@ -914,7 +890,7 @@ public class Importer {
 			String url = matcher.group(2);
 
 			logger.log(Level.INFO, "Trying to download from URL found in CSS: {0}", url);
-			downloadFile(url, baseUrl);
+			downloadFile(url);
 
 		}
 
