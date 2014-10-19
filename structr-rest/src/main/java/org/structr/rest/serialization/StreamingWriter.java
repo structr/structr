@@ -37,6 +37,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -63,8 +64,9 @@ public abstract class StreamingWriter {
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
-	private final Set<Class> visitedTypes                = new ConcurrentHashSet<Class>();
+	private final Set<Class> visitedTypes                = new ConcurrentHashSet<>();
 	private final DecimalFormat decimalFormat            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private boolean reduceRedundancy                     = false;
 	private int outputNestingDepth                       = 3;
 	private Value<String> propertyView                   = null;
 	protected boolean indent                             = true;
@@ -93,6 +95,12 @@ public abstract class StreamingWriter {
 		nonSerializerClasses.add(Character.class);
 		nonSerializerClasses.add(StringBuffer.class);
 		nonSerializerClasses.add(Boolean.class);
+
+		try {
+			this.reduceRedundancy = Boolean.valueOf(Services.getInstance().getConfigurationValue(Services.JSON_REDUNDANCY_REDUCTION, "false"));
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, "Unable to parse value for {0} from configuration file, invalid value.", Services.JSON_REDUNDANCY_REDUCTION);
+		}
 
 		//this.writer = new StructrWriter(writer);
 		//this.writer.setIndent("   ");
@@ -410,7 +418,7 @@ public abstract class StreamingWriter {
 
 						if (value != null) {
 
-							if (relatedType != null && visitedTypes.contains(key.relatedType())) {
+							if (reduceRedundancy && relatedType != null && visitedTypes.contains(key.relatedType())) {
 
 								continue;
 
