@@ -1,6 +1,6 @@
 Access to a REST endpoints is protected by a corresponding node of type "ResourceAccess". A ResourceAccess node has the following fields:
 
-    "signature": Normalized path of the REST endpoint, e.g.
+    "signature": Normalized path of the REST endpoint
     "flags": Integer bitmask
 
 Examples for the "signature" field:
