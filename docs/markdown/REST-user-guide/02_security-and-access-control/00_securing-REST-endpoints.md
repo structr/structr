@@ -5,10 +5,13 @@ Access to a REST endpoints is protected by a corresponding node of type "Resourc
 
 Examples for the "signature" field:
 
-    /foo, /foos, /Foo, /Foos, /foo/, /Foo/ => Foo
-    /foo/bar, /foo/Bar, /foo/Bars etc. (including variants of Foo) => Foo/Bar
-    /foo/45d94d5511ca477788e1de3e05abd4d6 => /Foo/Id
-    /foo/ui => /Foo/_Ui (here, 'ui' is a view)
+<table>
+<tr><td><b>Signature</b></td><td><b>Applies to endpoint(s)</b></td><td><b>Note</b></td></tr>
+<tr><td>Foo</td><td>/foo, /foos, /Foo, /Foos, /foo/, /Foo/</td><td>captures permutations of 'Foo' endpoints</td></tr>
+<tr><td>Foo/Bar</td><td>/foo/bar, /foo/Bar, /foo/Bars</td><td></tr></tr>
+<tr><td>/Foo/Id</td><td>/foo/45d94d5511ca477788e1de3e05abd4d6</td><td></td></tr>
+<tr><td>/Foo/_Ui</td><td>/foo/ui</td><td>(here, 'ui' is a view)</td></tr>
+</table>
 
 The "flags" field has the following semantics:
 
