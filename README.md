@@ -2,9 +2,23 @@
 
 [![Build Status](https://secure.travis-ci.org/structr/structr.png)](http://travis-ci.org/structr/structr)
 
-Structr (pronounce it like 'structure') is a Java framework for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive Java API and a set of features common to most use cases. This enables developers to build a sophisticated web or mobile app based on Neo4j within hours.
+Structr (pronounced: 'structure') is a **Next Generation Graph RAD-CMS** 
+Rapid App Development - Content Management System) based on the Java Graph
+Database Neo4j.
 
-Structr was awarded with the Graphie Award (by Neo4j maker Neo Technology) for the Most Innovative Open Source Graph Application in 2012.
+You can use Structr to create simple browser or mobile based web applications
+in hours. Those applications can then evolve and scale up to sophisticated
+distributed graph database systems.
+
+Structr reduces your Neo4j teach-in-time dramatically, providing you with
+a **powerful database frontend** containing tools like a Visual Schema Editor
+and much more. 
+
+Once you reach expert level, you can use the comprehensive Java API, or go
+down to the native Neo4j API itself.
+
+Structr was awarded with the Graphie Award (by Neo4j maker Neo Technology)
+for the Most Innovative Open Source Graph Application in 2012.
 
 
 ## Quick Start
