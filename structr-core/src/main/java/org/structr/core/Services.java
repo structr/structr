@@ -488,6 +488,8 @@ public class Services {
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
+
 			if (service.isVital()) {
 
 				logger.log(Level.SEVERE, "Vital service {0} failed to start with {1}, aborting.", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
