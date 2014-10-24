@@ -60,7 +60,7 @@ public class UiAuthenticator implements Authenticator {
 	protected static boolean userAutoLogin;
 	protected static Class   userClass;
 
-	private enum Method { GET, PUT, POST, DELETE, OPTIONS }
+	private enum Method { GET, PUT, POST, DELETE, HEAD, OPTIONS }
 	private static final Map<String, Method> methods = new LinkedHashMap();
 
 	// HTTP methods
@@ -69,6 +69,7 @@ public class UiAuthenticator implements Authenticator {
 		methods.put("GET", Method.GET);
 		methods.put("PUT", Method.PUT);
 		methods.put("POST", Method.POST);
+		methods.put("HEAD", Method.HEAD);
 		methods.put("DELETE", Method.DELETE);
 		methods.put("OPTIONS", Method.OPTIONS);
 
@@ -88,6 +89,9 @@ public class UiAuthenticator implements Authenticator {
 
 	public static final long AUTH_USER_OPTIONS	= 256;
 	public static final long NON_AUTH_USER_OPTIONS	= 512;
+
+	public static final long AUTH_USER_HEAD		= 1024;
+	public static final long NON_AUTH_USER_HEAD	= 2048;
 
 	//~--- methods --------------------------------------------------------
 
@@ -278,6 +282,22 @@ public class UiAuthenticator implements Authenticator {
 					}
 
 					if (validUser && resourceAccess.hasFlag(AUTH_USER_OPTIONS)) {
+
+						return;
+
+					}
+
+					break;
+
+				case HEAD :
+
+					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_HEAD)) {
+
+						return;
+
+					}
+
+					if (validUser && resourceAccess.hasFlag(AUTH_USER_HEAD)) {
 
 						return;
 
