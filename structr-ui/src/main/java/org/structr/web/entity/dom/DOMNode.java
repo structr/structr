@@ -397,6 +397,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						return elements;
 
 					} catch (Throwable t) {
+						t.printStackTrace();
 					}
 
 					return "";
