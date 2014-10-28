@@ -154,22 +154,22 @@ public class UiAuthenticator implements Authenticator {
 
 			final Services services = Services.getInstance();
 
-			response.setHeader("Access-Control-Allow-Origin",      origin);
+			response.setHeader("Access-Control-Allow-Origin", origin);
 
 			 // allow cross site resource sharing (read only)
 			final String maxAge = services.getConfigurationValue(Services.ACCESS_CONTROL_MAX_AGE);
 			if (StringUtils.isNotBlank(maxAge)) {
-				response.setHeader("Access-Control-MaxAge",            maxAge);
+				response.setHeader("Access-Control-MaxAge", maxAge);
 			}
 
 			final String allowMethods = services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_METHODS);
 			if (StringUtils.isNotBlank(allowMethods)) {
-				response.setHeader("Access-Control-Allow-Methods",     allowMethods);
+				response.setHeader("Access-Control-Allow-Methods", allowMethods);
 			}
 
 			final String allowHeaders = services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_HEADERS);
 			if (StringUtils.isNotBlank(allowHeaders)) {
-				response.setHeader("Access-Control-Allow-Headers",     allowHeaders);
+				response.setHeader("Access-Control-Allow-Headers", allowHeaders);
 			}
 
 			final String allowCredentials = services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_CREDENTIALS);
@@ -179,7 +179,7 @@ public class UiAuthenticator implements Authenticator {
 
 			final String exposeHeaders = services.getConfigurationValue(Services.ACCESS_CONTROL_EXPOSE_HEADERS);
 			if (StringUtils.isNotBlank(exposeHeaders)) {
-				response.setHeader("Access-Control-Expose-Headers",    exposeHeaders);
+				response.setHeader("Access-Control-Expose-Headers", exposeHeaders);
 			}
 		 }
 
