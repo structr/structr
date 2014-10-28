@@ -112,6 +112,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 
 	// non-final fields
+	private boolean jsonPostLocationInBody   = false;
 	private Value<String> propertyView       = null;
 	private ThreadLocalGson gson             = null;
 	private Writer logWriter                 = null;
@@ -140,8 +141,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		resourceMap.putAll(config.getResourceProvider().getResources());
 
 		// initialize variables
-		this.propertyView       = new ThreadLocalPropertyView();
-		this.gson               = new ThreadLocalGson(config.getOutputNestingDepth());
+		this.propertyView           = new ThreadLocalPropertyView();
+		this.gson                   = new ThreadLocalGson(config.getOutputNestingDepth());
+		this.jsonPostLocationInBody = "true".equals(Services.getInstance().getConfigurationValue(Services.JSON_POST_LOCATION_IN_BODY, "false"));
 	}
 
 	@Override
@@ -784,7 +786,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					if (!results.isEmpty()) {
 
 						final RestMethodResult result = results.get(0);
-						if (results.size() > 1) {
+						
+						if (results.size() > 1 || jsonPostLocationInBody) {
 
 							final GraphObjectMap tmpResult = new GraphObjectMap();
 							final List<String> idList      = new LinkedList<>();
@@ -796,10 +799,13 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 								idList.add(r.getHeaders().get("Location"));
 							}
 
-							// remove Location header if more than one object
-							// was written because it may only contain a single
-							// URL
-							result.addHeader("Location", null);
+							if (results.size() > 1) {
+
+								// remove Location header if more than one object was
+								// written because it may only contain a single URL
+								result.addHeader("Location", null);
+							}
+
 							result.addContent(tmpResult);
 						}
 
