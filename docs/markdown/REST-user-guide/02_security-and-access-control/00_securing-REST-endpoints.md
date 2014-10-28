@@ -26,12 +26,16 @@ The "flags" field has the following semantics:
 		NON_AUTH_USER_DELETE        = 128;
 		AUTH_USER_OPTIONS           = 256;
 		NON_AUTH_USER_OPTIONS       = 512;
+		AUTH_USER_HEAD              = 1024;
+		NON_AUTH_USER_HEAD          = 2048;
+		
+		
 To make the resource visible in Structr's backend UI, you just have to make the ResourceAccess object 'visibleToAuthenticatedUsers' (setting the boolean field to true).
 
 So for example, if you want to grant GET and PUT access to authenticated users on the REST endpoint "/foo/bar" and make it accessible in the Data UI, you have to create a ResourceAccess node as follows:
 
     post resource_access '{"signature":"Foo/Bar", "flags":3, "visibleToAuthenticatedUsers":true}'
 
-Another excample: To allow POST to non-authenticated users, but not GET, PUT, DELETE and OPTIONS to "/registration", but hide the endpoint for the Data UI:
+Another excample: To allow POST to non-authenticated users, but not GET, PUT, DELETE, OPTIONS and HEAD to "/registration", but hide the endpoint for the Data UI:
 
     post resource_access '{"signature":"Registration", "flags": 64}'
