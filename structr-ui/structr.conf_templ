@@ -170,9 +170,10 @@ StructrUiHandler.welcomeFiles = index.html
 
 
 #############################################################################
-#        CORS configuration
+# Cross Origin Resource Sharing configuration
 #############################################################################
-#
+# This section configures the HTTP headers sent by Structr to control cross
+# origin resource sharing, see http://www.w3.org/TR/cors.
 #
 access.control.max.age = 3600
 access.control.allow.methods = GET
