@@ -170,6 +170,19 @@ StructrUiHandler.welcomeFiles = index.html
 
 
 #############################################################################
+#        CORS configuration
+#############################################################################
+#
+#
+access.control.max.age = 3600
+access.control.allow.methods = GET
+access.control.allow.headers = 
+access.control.allow.credentials = false
+access.control.expose.headers =
+#############################################################################
+
+
+#############################################################################
 # Logging
 #############################################################################
 #

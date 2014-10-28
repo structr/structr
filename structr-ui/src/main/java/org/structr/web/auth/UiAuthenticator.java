@@ -32,6 +32,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -151,11 +152,15 @@ public class UiAuthenticator implements Authenticator {
 		String origin = request.getHeader("Origin");
 		if (!StringUtils.isBlank(origin)) {
 
-			 // allow cross site resource sharing (read only)
-			response.setHeader("Access-Control-Allow-Origin", origin);
-			response.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,HEAD,OPTIONS");
-			response.setHeader("Access-Control-Allow-Headers", "Content-Type,Location");
+			final Services services = Services.getInstance();
 
+			 // allow cross site resource sharing (read only)
+			response.setHeader("Access-Control-Allow-Origin",      origin);
+			response.setHeader("Access-Control-MaxAge",            services.getConfigurationValue(Services.ACCESS_CONTROL_MAX_AGE));
+			response.setHeader("Access-Control-Allow-Methods",     services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_METHODS));
+			response.setHeader("Access-Control-Allow-Headers",     services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_HEADERS));
+			response.setHeader("Access-Control-Allow-Credentials", services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_METHODS));
+			response.setHeader("Access-Control-Expose-Headers",    services.getConfigurationValue(Services.ACCESS_CONTROL_EXPOSE_HEADERS));
 		 }
 
 		examined = true;
