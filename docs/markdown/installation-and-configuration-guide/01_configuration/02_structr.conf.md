@@ -1,4 +1,4 @@
-You find the following example file in Structr's GitHub repo: <a href="https://raw.github.com/structr/structr/develop/structr-ui/structr.conf_templ">https://raw.github.com/structr/structr/develop/structr-ui/structr.conf_templ</a>
+You find the following example file in Structr's GitHub repo: <a href="https://raw.github.com/structr/structr/master/structr-ui/structr.conf_templ">https://raw.github.com/structr/structr/master/structr-ui/structr.conf_templ</a>
 
 	#############################################################################
 	# Structr global configuration file
@@ -60,11 +60,16 @@ You find the following example file in Structr's GitHub repo: <a href="https://r
 	# Superuser username and password
 	# You have to set a superuser username and password in order to use
 	# administration and maintenance tools
+	# IMPORTANT: this is *not* used as the main login credentials
 	superuser.username = superadmin
 	superuser.password = 
 	#
 	# Indent JSON
 	json.indentation = true
+	#
+	# Use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null
+	# Please note: As long as Javascript doesn't support NaN etc., most of the UI will be broken
+	#json.lenient = true
 	#
 	# Neo4j shell
 	neo4j.shell.enabled = true
@@ -75,7 +80,7 @@ You find the following example file in Structr's GitHub repo: <a href="https://r
 	smtp.port = 25
 	#
 	# Ports for low-level binary protocols
-	#tcp.port = 54555
+	tcp.port = 54555
 	#udp.port = 57555
 	#
 	#############################################################################
@@ -87,6 +92,9 @@ You find the following example file in Structr's GitHub repo: <a href="https://r
 	#
 	# Available servlets
 	HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet
+	#
+	# Uncomment this if you encounter problems with async HTTP requests
+	#HttpService.async = false
 	#
 	# JSON/REST servlet
 	JsonRestServlet.authenticator = org.structr.web.auth.UiAuthenticator
@@ -164,6 +172,20 @@ You find the following example file in Structr's GitHub repo: <a href="https://r
 
 
 	#############################################################################
+	# Cross Origin Resource Sharing configuration
+	#############################################################################
+	# This section configures the HTTP headers sent by Structr to control cross
+	# origin resource sharing, see http://www.w3.org/TR/cors.
+	#
+	access.control.max.age = 3600
+	access.control.allow.methods = GET
+	access.control.allow.headers = 
+	access.control.allow.credentials = false
+	access.control.expose.headers =
+	#############################################################################
+
+
+	#############################################################################
 	# Logging
 	#############################################################################
 	#
@@ -172,7 +194,7 @@ You find the following example file in Structr's GitHub repo: <a href="https://r
 	log.name = structr-yyyy_mm_dd.request.log
 	#
 	# Log code generated for custom schema
-	NodeExtender.log = true
+	#NodeExtender.log = true
 	#
 	#############################################################################
 
