@@ -786,8 +786,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					if (!results.isEmpty()) {
 
 						final RestMethodResult result = results.get(0);
-						
-						if (results.size() > 1 || jsonPostLocationInBody) {
+						final int resultCount         = results.size();
+
+						if (resultCount > 1 || (jsonPostLocationInBody && resultCount > 0)) {
 
 							final GraphObjectMap tmpResult = new GraphObjectMap();
 							final List<String> idList      = new LinkedList<>();
@@ -799,7 +800,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 								idList.add(r.getHeaders().get("Location"));
 							}
 
-							if (results.size() > 1) {
+							if (resultCount > 1) {
 
 								// remove Location header if more than one object was
 								// written because it may only contain a single URL

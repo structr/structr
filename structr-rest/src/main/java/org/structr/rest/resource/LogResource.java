@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.GraphObjectComparator;
@@ -35,6 +36,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalMethodException;
 
 /**
  *
@@ -52,7 +54,7 @@ public class LogResource extends Resource {
 	private static final Property<String>    actionProperty    = new StringProperty("action");
 	private static final Property<String>    messageProperty   = new StringProperty("message");
 	private static final ISO8601DateProperty timestampProperty = new ISO8601DateProperty("timestamp");
-	
+
 	public static final String LOG_RESOURCE_URI = "log";
 
 	@Override
@@ -68,7 +70,7 @@ public class LogResource extends Resource {
 		actionProperty.setDeclaringClass(LogResource.class);
 		messageProperty.setDeclaringClass(LogResource.class);
 		timestampProperty.setDeclaringClass(LogResource.class);
-		
+
 		this.securityContext = securityContext;
 		this.securityContext.setRequest(request);
 
@@ -106,7 +108,7 @@ public class LogResource extends Resource {
 			final String objectId   = request.getParameter(objectProperty.jsonName());
 			final String action     = request.getParameter(actionProperty.jsonName());
 			final List<Path> files  = new LinkedList<>();
-			
+
 			boolean inverse = false;
 
 			if (StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
@@ -138,7 +140,7 @@ public class LogResource extends Resource {
 			} else if (StringUtils.isEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
 				inverse = true;
-				
+
 				final String path           = getDirectoryPath(objectId, 8);
 				final Path directoryPath    = new File(filesPath + OBJECTS + path).toPath();
 
@@ -272,6 +274,31 @@ public class LogResource extends Resource {
 
 		// no request object, this is fatal
 		throw new FrameworkException(500, "No request object present, aborting.");
+	}
+
+	@Override
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
+		throw new IllegalMethodException();
+	}
+
+	@Override
+	public RestMethodResult doDelete() throws FrameworkException {
+		throw new IllegalMethodException();
+	}
+
+	@Override
+	public RestMethodResult doHead() throws FrameworkException {
+		throw new IllegalMethodException();
+	}
+
+	@Override
+	public RestMethodResult doOptions() throws FrameworkException {
+
+		final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_OK);
+
+		result.addHeader("Allow", "GET,POST,OPTIONS");
+
+		return result;
 	}
 
 	private Path write(final String basePath, final String fileName, final String data) throws IOException {
