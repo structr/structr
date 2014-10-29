@@ -96,7 +96,7 @@ function StructrApp(baseUrl) {
             disableButton(btn);
             s.btnLabel = s.btnLabel || btn.text();
             var a = btn.attr('data-structr-action').split(':');
-            var action = a[0], type = a[1];
+            var action = a[0], type = a[1], suffix = a[2];
             var reload = btn.attr('data-structr-reload') === 'true';
             var returnUrl = btn.attr('data-structr-return');
             var attrString = btn.attr('data-structr-attributes');
@@ -105,19 +105,32 @@ function StructrApp(baseUrl) {
             });
             var id = btn.attr('data-structr-id');
             var container = $('[data-structr-id="' + id + '"]');
-
+            
             if (action === 'create') {
                 var data = {};
+                var form = btn.closest('form');
                 $.each(attrs, function(i, key) {
-                    var possibleFields = $('[data-structr-name="' + key + '"]');
-                    var val;
-                    if (possibleFields.length === 1) {
-                        val = possibleFields.val();
+                    var possibleFields;
+                    
+                    if (typeof suffix === 'string' && suffix.length) {
+                        // if a suffix is given, use only input elements with that suffix
+                        possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
+                    } else if (form && form.length) {
+                        // if we are in a form, try to find input elements in form only
+                        possibleFields = form.find('[data-structr-name="' + key + '"]');
                     } else {
+                        possibleFields = $('[data-structr-name="' + key + '"]');
+                    }
+                    var val;
+                    if (possibleFields.length !== 1) {
                         // none, or more than one field: try with type prefix
                         possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
-                        val = possibleFields.val();
                     }
+                    if (possibleFields.length !== 1) {
+                        // if still not found, try both, type prefix and suffix
+                        possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
+                    }
+                    val = possibleFields.val();
                     data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
                 });
                 s.create(type, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
