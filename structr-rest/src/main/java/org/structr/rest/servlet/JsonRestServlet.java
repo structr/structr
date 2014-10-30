@@ -112,7 +112,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 
 	// non-final fields
-	private boolean jsonPostLocationInBody   = false;
 	private Value<String> propertyView       = null;
 	private ThreadLocalGson gson             = null;
 	private Writer logWriter                 = null;
@@ -143,7 +142,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		// initialize variables
 		this.propertyView           = new ThreadLocalPropertyView();
 		this.gson                   = new ThreadLocalGson(config.getOutputNestingDepth());
-		this.jsonPostLocationInBody = "true".equals(Services.getInstance().getConfigurationValue(Services.JSON_POST_LOCATION_IN_BODY, "false"));
 	}
 
 	@Override
@@ -788,19 +786,16 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						final RestMethodResult result = results.get(0);
 						final int resultCount         = results.size();
 
-						if (resultCount > 1 || (jsonPostLocationInBody && resultCount > 0)) {
+						if (resultCount > 1) {
 
-							final GraphObjectMap tmpResult = new GraphObjectMap();
-							final List<String> idList      = new LinkedList<>();
-
-							// copy Location header from all results into first result
 							for (final RestMethodResult r : results) {
 
-								final String value = r.getHeaders().get("Location");
-								if (!StringUtils.isBlank(value)) {
+								final GraphObject objectCreated = r.getContent().get(0);
+								if (!result.getContent().contains(objectCreated)) {
 
-									idList.add(value);
+									result.addContent(objectCreated);
 								}
+
 							}
 
 							if (resultCount > 1) {
@@ -810,14 +805,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 								result.addHeader("Location", null);
 							}
 
-							if (!idList.isEmpty()) {
-
-								tmpResult.put(new StringProperty("locations"), idList);
-								result.addContent(tmpResult);
-							}
 						}
 
-						result.commitResponse(gson.get(), response);
+						result.commitResponse(gson.get(), response, true);
 					}
 
 					tx.success();
@@ -897,11 +887,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		final List<RestMethodResult> results = new LinkedList<>();
-		SecurityContext securityContext      = null;
-		Authenticator authenticator          = null;
-		IJsonInput jsonInput 		     = null;
-		Resource resource                    = null;
+		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		RestMethodResult result         = null;
+		JsonInput propertySet           = null;
+		Resource resource               = null;
 
 		try {
 
@@ -917,29 +907,25 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 			}
 
-			final App app      = StructrApp.getInstance(securityContext);
-
-			String input = IOUtils.toString(request.getReader());
-			if (StringUtils.isBlank(input)) {
-				input = "{}";
-			}
+			final App app = StructrApp.getInstance(securityContext);
 
 			// isolate input parsing (will include read and write operations)
 			try (final Tx tx = app.tx()) {
-				jsonInput = gson.get().fromJson(input, IJsonInput.class);
+				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
 				tx.success();
 			}
 
 			if (securityContext != null) {
+
+				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
 					// evaluate constraint chain
 					resource = ResourceHelper.applyViewTransformation(request, securityContext,
-							ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-
 					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
@@ -949,12 +935,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				while (retry) {
 
 					try (final Tx tx = app.tx()) {
-
-						for (JsonInput propertySet : jsonInput.getJsonInputs()) {
-
-							results.add(resource.doPut(convertPropertySetToMap(propertySet)));
-						}
-
+						result = resource.doPut(properties);
 						tx.success();
 						retry = false;
 
@@ -965,32 +946,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
-
-					if (!results.isEmpty()) {
-
-						final RestMethodResult result = results.get(0);
-						if (results.size() > 1) {
-
-							final GraphObjectMap tmpResult = new GraphObjectMap();
-							final List<String> idList      = new LinkedList<>();
-
-							tmpResult.put(new StringProperty("locations"), idList);
-
-							// copy Location header from all results into first result
-							for (final RestMethodResult r : results) {
-								idList.add(r.getHeaders().get("Location"));
-							}
-
-							// remove Location header if more than one object
-							// was written because it may only contain a single
-							// URL
-							result.addHeader("Location", null);
-							result.addContent(tmpResult);
-						}
-
-						result.commitResponse(gson.get(), response);
-					}
-
+					result.commitResponse(gson.get(), response);
 					tx.success();
 				}
 
@@ -998,8 +954,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
-
-					new RestMethodResult(HttpServletResponse.SC_FORBIDDEN).commitResponse(gson.get(), response);
+					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+					result.commitResponse(gson.get(), response);
 					tx.success();
 				}
 

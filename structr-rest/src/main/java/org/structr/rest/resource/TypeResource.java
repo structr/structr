@@ -189,10 +189,11 @@ public class TypeResource extends SortableResource {
 
 			newNode = createNode(propertySet);
 
-			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+			final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 			if (newNode != null) {
 
 				result.addHeader("Location", buildLocationHeader(newNode));
+				result.addContent(newNode);
 			}
 
 			// finally: return 201 Created
