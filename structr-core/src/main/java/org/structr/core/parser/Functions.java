@@ -142,6 +142,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_EXTRACT             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_FILTER              = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
 	public static final String ERROR_MESSAGE_MERGE               = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
+	public static final String ERROR_MESSAGE_UNWIND              = "Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}";
 	public static final String ERROR_MESSAGE_SORT                = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
 	public static final String ERROR_MESSAGE_LT                  = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
 	public static final String ERROR_MESSAGE_GT                  = "Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}";
@@ -1189,6 +1190,52 @@ public class Functions {
 							if (obj != null) {
 
 								list.add(obj);
+							}
+						}
+
+					} else if (source != null) {
+
+						list.add(source);
+					}
+				}
+
+				return list;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MERGE;
+			}
+
+		});
+		functions.put("unwind", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List list = new ArrayList();
+				for (final Object source : sources) {
+
+					if (source instanceof Collection) {
+
+						// filter null objects
+						for (Object obj : (Collection)source) {
+							if (obj != null) {
+
+								if (obj instanceof Collection) {
+
+									for (final Object elem : (Collection)obj) {
+
+										if (elem != null) {
+											
+											list.add(elem);
+										}
+									}
+
+								} else {
+
+									list.add(obj);
+								}
 							}
 						}
 

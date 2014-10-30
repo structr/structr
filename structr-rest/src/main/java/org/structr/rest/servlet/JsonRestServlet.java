@@ -793,11 +793,14 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 							final GraphObjectMap tmpResult = new GraphObjectMap();
 							final List<String> idList      = new LinkedList<>();
 
-							tmpResult.put(new StringProperty("locations"), idList);
-
 							// copy Location header from all results into first result
 							for (final RestMethodResult r : results) {
-								idList.add(r.getHeaders().get("Location"));
+
+								final String value = r.getHeaders().get("Location");
+								if (!StringUtils.isBlank(value)) {
+
+									idList.add(value);
+								}
 							}
 
 							if (resultCount > 1) {
@@ -807,7 +810,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 								result.addHeader("Location", null);
 							}
 
-							result.addContent(tmpResult);
+							if (!idList.isEmpty()) {
+
+								tmpResult.put(new StringProperty("locations"), idList);
+								result.addContent(tmpResult);
+							}
 						}
 
 						result.commitResponse(gson.get(), response);
