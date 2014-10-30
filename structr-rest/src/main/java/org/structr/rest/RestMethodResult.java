@@ -102,11 +102,11 @@ public class RestMethodResult {
 				gson.toJson(result, writer);
 			}
 
-			//if (StringUtils.isNotEmpty(message)) {
+			if (content == null) {
 
 				writer.append(jsonMessage(responseCode, message));
 
-			//}
+			}
 
 			// add newline
 			writer.append("\n");

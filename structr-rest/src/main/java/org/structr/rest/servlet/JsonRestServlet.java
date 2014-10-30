@@ -54,7 +54,6 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.rest.JsonInputGSONAdapter;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
