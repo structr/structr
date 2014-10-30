@@ -56,7 +56,6 @@ public class Receiver extends Thread {
 				}
 
 			} catch (Throwable t) {
-
 				connection.close();
 			}
 		}

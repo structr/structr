@@ -78,6 +78,8 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 		// reset sequence number
 		sequenceNumber = 0;
 
+		try { Thread.sleep(1000); } catch (Throwable t) {}
+
 		// send child nodes when recursive sending is requested
 		final Set<NodeInterface> nodes = exportSet.getNodes();
 		for (final NodeInterface n : nodes) {

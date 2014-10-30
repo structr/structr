@@ -38,7 +38,8 @@ import org.structr.core.Services;
 /**
  * The cloud service handles networking between structr instances
  *
- * @author axel
+ * @author Axel Morgner
+ * @author Christian Morgner
  */
 public class CloudService extends Thread implements RunnableService {
 
