@@ -196,6 +196,8 @@ public class TypeResource extends SortableResource {
 				result.addContent(newNode);
 			}
 
+			result.serializeAsPrimitiveArray(true);
+			
 			// finally: return 201 Created
 			return result;
 
@@ -232,6 +234,8 @@ public class TypeResource extends SortableResource {
 					result.addHeader("Location", buildLocationHeader(newRelationship));
 				}
 
+				result.serializeAsPrimitiveArray(true);
+				
 				// finally: return 201 Created
 				return result;
 			}

@@ -797,16 +797,13 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 							}
 
-							if (resultCount > 1) {
-
-								// remove Location header if more than one object was
-								// written because it may only contain a single URL
-								result.addHeader("Location", null);
-							}
-
+							// remove Location header if more than one object was
+							// written because it may only contain a single URL
+							result.addHeader("Location", null);
 						}
 
-						result.commitResponse(gson.get(), response, true);
+						result.commitResponse(gson.get(), response);
+							
 					}
 
 					tx.success();
