@@ -186,7 +186,7 @@ public class PathHelper {
 
 		String cleanedPath = clean(path);
 		
-		if (cleanedPath.contains(PATH_SEP)) {
+		if (cleanedPath != null && cleanedPath.contains(PATH_SEP)) {
 
 			return StringUtils.substringAfterLast(cleanedPath, PATH_SEP);
 
