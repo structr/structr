@@ -92,7 +92,6 @@ public class Services {
 	public static final String UDP_PORT                         = "udp.port";
 	public static final String JSON_INDENTATION                 = "json.indentation";
 	public static final String JSON_REDUNDANCY_REDUCTION        = "json.redundancyReduction";
-	public static final String JSON_POST_LOCATION_IN_BODY       = "json.post.location.in.body";
 	public static final String GEOCODING_PROVIDER               = "geocoding.provider";
 	public static final String GEOCODING_LANGUAGE               = "geocoding.language";
 	public static final String GEOCODING_APIKEY                 = "geocoding.apikey";

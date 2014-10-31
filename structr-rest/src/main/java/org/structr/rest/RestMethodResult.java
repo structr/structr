@@ -80,7 +80,7 @@ public class RestMethodResult {
 		this.content.add(graphObject);
 	}
 
-	public void commitResponse(final Gson gson, final HttpServletResponse response) {
+	public void commitResponse(final Gson gson, final HttpServletResponse response, final boolean idOnly) {
 
 		// set headers
 		for (Entry<String, String> header : headers.entrySet()) {
@@ -96,13 +96,13 @@ public class RestMethodResult {
 			if (content != null) {
 
 				// create result set
-				Result result = new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, false);
+				Result result = new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, idOnly);
 
 				// serialize result set
 				gson.toJson(result, writer);
 			}
 
-			if (StringUtils.isNotEmpty(message)) {
+			if (content == null) {
 
 				writer.append(jsonMessage(responseCode, message));
 
@@ -118,9 +118,18 @@ public class RestMethodResult {
 			logger.log(Level.WARNING, "Unable to commit HttpServletResponse", t);
 		}
 	}
+	public void commitResponse(final Gson gson, final HttpServletResponse response) {
+		
+		commitResponse(gson, response, false);
+
+	}
 
 	public Map<String, String> getHeaders() {
 		return headers;
+	}
+
+	public List<GraphObject> getContent() {
+		return content;
 	}
 
 	public static String jsonError(final int code, final String message) {
