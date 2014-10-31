@@ -49,6 +49,7 @@ public class RestMethodResult {
 	private int responseCode                          = 0;
 	private String message                            = null;
 	private boolean serializeSingleObjectAsCollection = false;
+	private boolean serializeAsPrimitiveArray         = false;
 
 	public RestMethodResult(final int responseCode) {
 		this.headers      = new LinkedHashMap<>();
@@ -80,7 +81,7 @@ public class RestMethodResult {
 		this.content.add(graphObject);
 	}
 
-	public void commitResponse(final Gson gson, final HttpServletResponse response, final boolean idOnly) {
+	public void commitResponse(final Gson gson, final HttpServletResponse response) {
 
 		// set headers
 		for (Entry<String, String> header : headers.entrySet()) {
@@ -96,7 +97,7 @@ public class RestMethodResult {
 			if (content != null) {
 
 				// create result set
-				Result result = new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, idOnly);
+				Result result = new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, serializeAsPrimitiveArray);
 
 				// serialize result set
 				gson.toJson(result, writer);
@@ -118,9 +119,10 @@ public class RestMethodResult {
 			logger.log(Level.WARNING, "Unable to commit HttpServletResponse", t);
 		}
 	}
-	public void commitResponse(final Gson gson, final HttpServletResponse response) {
+
+	public void serializeAsPrimitiveArray(final boolean value) {
 		
-		commitResponse(gson, response, false);
+		this.serializeAsPrimitiveArray = value;
 
 	}
 
