@@ -36,6 +36,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
@@ -48,6 +49,7 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.VideoFile;
 
@@ -110,16 +112,22 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
-		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			if (!ServletFileUpload.isMultipartContent(request)) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("Request does not contain multipart content.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
 				return;
 			}
 
 			final SecurityContext securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
 
+			if (securityContext.getUser(false) == null && Boolean.FALSE.equals(Boolean.parseBoolean(StructrApp.getConfigurationValue("UploadServlet.allowAnonymousUploads", "false")))) {
+				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+				response.getOutputStream().write("ERROR (403): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
+				return;
+			}
+			
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
@@ -198,7 +206,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			
 			if (!matcher.matches()) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("URL path doesn't end with UUID.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes("UTF-8"));
 				return;
 			}
 
@@ -234,15 +242,25 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 					if (node == null) {
 
 						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-						response.getOutputStream().write("File not found.\n".getBytes("UTF-8"));
+						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes("UTF-8"));
 
 					}
 
 					if (node instanceof org.structr.web.entity.AbstractFile) {
 
 						final org.structr.dynamic.File file = (org.structr.dynamic.File) node;
+						
+						if (securityContext.isAllowed(file, Permission.write)) {
 
-						FileHelper.writeToFile(file, fileItem.getInputStream());
+							FileHelper.writeToFile(file, fileItem.getInputStream());
+							file.increaseVersion();
+							
+						} else {
+
+							response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+							response.getOutputStream().write("ERROR (403): Write access forbidden.\n".getBytes("UTF-8"));
+							
+						}
 					}
 
 				} catch (IOException ex) {
