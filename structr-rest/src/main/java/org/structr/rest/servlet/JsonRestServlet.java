@@ -886,7 +886,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
-		JsonInput propertySet           = null;
+		IJsonInput jsonInput            = null;
 		Resource resource               = null;
 
 		try {
@@ -905,15 +905,18 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance(securityContext);
 
+			String input = IOUtils.toString(request.getReader());
+			if (StringUtils.isBlank(input)) {
+				input = "{}";
+			}
+
 			// isolate input parsing (will include read and write operations)
 			try (final Tx tx = app.tx()) {
-				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
+				jsonInput   = gson.get().fromJson(input, IJsonInput.class);
 				tx.success();
 			}
 
 			if (securityContext != null) {
-
-				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
@@ -931,7 +934,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				while (retry) {
 
 					try (final Tx tx = app.tx()) {
-						result = resource.doPut(properties);
+						result = resource.doPut(convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
 						tx.success();
 						retry = false;
 

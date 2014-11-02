@@ -31,7 +31,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 
 	public void testViaRest() {
 
-		RestAssured.given()
+		String location = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { 'stringArrayProperty' : ['one', 'two', 'three', 'four', 'five'] } ")
 		.expect()
@@ -40,7 +40,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 			.post("/test_threes")
 			.getHeader("Location");
 
-
+		String uuid = getUuidFromLocation(location);
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -56,6 +56,25 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes");
 
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(" { 'stringArrayProperty' : ['three', 'four', 'five'] } ")
+		.expect()
+			.statusCode(200)
+		.when()
+			.put("/test_threes/" + uuid);
+		
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result[0].stringArrayProperty[0]", equalTo("three"))
+			.body("result[0].stringArrayProperty[1]", equalTo("four"))
+			.body("result[0].stringArrayProperty[2]", equalTo("five"))
+		.when()
+			.get("/test_threes");
 	}
 
 	public void testSearch() {

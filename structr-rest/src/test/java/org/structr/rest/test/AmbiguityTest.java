@@ -31,7 +31,7 @@ public class AmbiguityTest extends StructrRestTest {
 	 * Tests {@link TypeAndPropertySetDeserializationStrategy} for ambiguity avoidance.
 	 * 
 	 * Before fixing a bug in {@link TypeAndPropertySetDeserializationStrategy}, the creation
-	 * of test03 was not possibly because the a search was conducted internally with the values
+	 * of test03 was not possible because the a search was conducted internally with the values
 	 * given in the 'testSeven' object, and the result was ambiguous.
 	 */
 	public void testAmbiguity() {
