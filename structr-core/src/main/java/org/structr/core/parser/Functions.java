@@ -1227,7 +1227,7 @@ public class Functions {
 									for (final Object elem : (Collection)obj) {
 
 										if (elem != null) {
-											
+
 											list.add(elem);
 										}
 									}
@@ -2691,11 +2691,6 @@ public class Functions {
 							final PropertyKey key3 = config.getPropertyKeyForJSONName(type, sources[5].toString());
 							if (key3 != null) {
 
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key3.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key3.jsonName() + " is not indexed.");
-								}
-
 								final PropertyConverter inputConverter = key3.inputConverter(securityContext);
 								Object value                           = sources[6].toString();
 
@@ -2711,11 +2706,6 @@ public class Functions {
 
 							final PropertyKey key2 = config.getPropertyKeyForJSONName(type, sources[3].toString());
 							if (key2 != null) {
-
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key2.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key2.jsonName() + " is not indexed.");
-								}
 
 								final PropertyConverter inputConverter = key2.inputConverter(securityContext);
 								Object value                           = sources[4].toString();
@@ -2733,11 +2723,6 @@ public class Functions {
 							final PropertyKey key1 = config.getPropertyKeyForJSONName(type, sources[1].toString());
 							if (key1 != null) {
 
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key1.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key1.jsonName() + " is not indexed.");
-								}
-
 								final PropertyConverter inputConverter = key1.inputConverter(securityContext);
 								Object value                           = sources[2].toString();
 
@@ -2753,7 +2738,7 @@ public class Functions {
 
 					if (type != null) {
 
-						app.create(type, propertyMap);
+						return app.create(type, propertyMap);
 
 					} else {
 
@@ -3004,7 +2989,6 @@ public class Functions {
 			return "";
 
 		}
-
 
 		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
 			.replaceAll("\\<", "")
