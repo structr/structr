@@ -212,7 +212,7 @@ function StructrApp(baseUrl) {
                 $.each(f.format.split(','), function(i, o) {
                     sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
                 });
-                sel.chosen({allow_single_deselect: true});
+                sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
             } else {
                 if (f.type.endsWith('[]')) {
                     el.html(multiSelect(f.id, f.type, f.key, f.val, f.query));
@@ -1029,7 +1029,7 @@ function enumSelect(id, type, key, val, values) {
     $.each(values.split(','), function(i, o) {
         sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
     });
-    sel.chosen({allow_single_deselect: true});
+    sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
     return inp;
 }
 
@@ -1045,7 +1045,7 @@ function singleSelect(id, type, key, val, query) {
                     $.each(data.result, function(i, o) {
                         sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
                     });
-                    sel.chosen({allow_single_deselect: true});
+                    sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
                 }
             }
         }
@@ -1066,7 +1066,7 @@ function multiSelect(id, type, key, val, query) {
                     $.each(data.result, function(i, o) {
                         sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
                     });
-                    sel.chosen();
+                    sel.chosen({inherit_select_classes: true});
                 }
             }
         }

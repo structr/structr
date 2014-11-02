@@ -303,7 +303,7 @@ public class Importer {
 
 	public void createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
-		createChildNodes(parsedDocument, parent, page);
+		createChildNodes(parsedDocument.body(), parent, page);
 	}
 
 	public void createChildNodesWithHtml(final DOMNode parent, final Page page) throws FrameworkException {
