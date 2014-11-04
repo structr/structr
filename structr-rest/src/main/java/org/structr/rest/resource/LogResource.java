@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import org.structr.core.Services;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -49,11 +51,15 @@ public class LogResource extends Resource {
 	private static final String SUBJECTS = "/s/";
 	private static final String OBJECTS  = "/o/";
 
-	private static final Property<String>    subjectProperty   = new StringProperty("subject");
-	private static final Property<String>    objectProperty    = new StringProperty("object");
-	private static final Property<String>    actionProperty    = new StringProperty("action");
-	private static final Property<String>    messageProperty   = new StringProperty("message");
-	private static final ISO8601DateProperty timestampProperty = new ISO8601DateProperty("timestamp");
+	private static final Property<String>    subjectProperty    = new StringProperty("subject");
+	private static final Property<String>    objectProperty     = new StringProperty("object");
+	private static final Property<String>    actionProperty     = new StringProperty("action");
+	private static final Property<String>    actionsProperty    = new StringProperty("actions");
+	private static final Property<String>    messageProperty    = new StringProperty("message");
+	private static final Property<Integer>   entryCountProperty = new IntProperty("entryCount");
+	private static final ISO8601DateProperty timestampProperty  = new ISO8601DateProperty("timestamp");
+	private static final ISO8601DateProperty firstEntryProperty = new ISO8601DateProperty("firstEntry");
+	private static final ISO8601DateProperty lastEntryProperty  = new ISO8601DateProperty("lastEntry");
 
 	public static final String LOG_RESOURCE_URI = "log";
 
@@ -103,13 +109,19 @@ public class LogResource extends Resource {
 		final HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
 
-			final String filesPath  = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
-			final String subjectId  = request.getParameter(subjectProperty.jsonName());
-			final String objectId   = request.getParameter(objectProperty.jsonName());
-			final String action     = request.getParameter(actionProperty.jsonName());
-			final List<Path> files  = new LinkedList<>();
+			final String filesPath             = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+			final String subjectId             = request.getParameter(subjectProperty.jsonName());
+			final String objectId              = request.getParameter(objectProperty.jsonName());
+			final String action                = request.getParameter(actionProperty.jsonName());
+			final GraphObjectMap overviewMap   = new GraphObjectMap();
+			final Map<String, Integer> actions = new LinkedHashMap<>();
+			final List<Path> files             = new LinkedList<>();
 
-			boolean inverse = false;
+			boolean overview    = false;
+			boolean inverse     = false;
+			long beginTimestamp = Long.MAX_VALUE;
+			long endTimestamp   = 0L;
+			int entryCount           = 0;
 
 			if (StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
@@ -153,6 +165,18 @@ public class LogResource extends Resource {
 				} catch (IOException ioex) {
 					ioex.printStackTrace();
 				}
+
+			} else if (StringUtils.isNotEmpty(action)) {
+
+				collectFiles(new File(filesPath + SUBJECTS).toPath(), files);
+
+			} else {
+
+				collectFiles(new File(filesPath + SUBJECTS).toPath(), files);
+
+				// create overview of existing logs
+				overview = true;
+
 			}
 
 			final List<GraphObject> entries = new LinkedList<>();
@@ -162,7 +186,7 @@ public class LogResource extends Resource {
 
 				try (final BufferedReader reader = Files.newBufferedReader(path, Charset.forName("utf-8"))) {
 
-					final String fileName       = path.getFileName().toString();
+					final String fileName = path.getFileName().toString();
 					String pathSubjectId  = inverse ? fileName.substring(33, 64) : fileName.substring(0, 32);
 					String pathObjectId   = inverse ? fileName.substring(0, 32)  : fileName.substring(33, 64);
 
@@ -178,23 +202,49 @@ public class LogResource extends Resource {
 							final String part1        = line.substring(pos0+1, pos1);
 							final String part2        = line.substring(pos1+1);
 
-							final Date date           = new Date(Long.valueOf(part0));
+							final long timestamp      = Long.valueOf(part0);
+							final Date date           = new Date(timestamp);
 							final String entryAction  = part1;
 							final String entryMessage = part2;
 
-							// action present or matching?
-							if (action == null || action.equals(entryAction)) {
+							if (overview) {
 
-								final GraphObjectMap map = new GraphObjectMap();
-								map.put(subjectProperty, pathSubjectId);
-								map.put(objectProperty, pathObjectId);
-								map.put(actionProperty, entryAction);
-								map.put(timestampProperty, date);
-								map.put(messageProperty, entryMessage);
+								Integer actionCount = actions.get(entryAction);
+								if (actionCount == null) {
 
-								// date predicate present?
-								if (date == null || datePredicate.accept(map)) {
-									entries.add(map);
+									actions.put(entryAction, 1);
+
+								} else {
+
+									actions.put(entryAction, actionCount + 1);
+								}
+
+								if (timestamp <= beginTimestamp) {
+									beginTimestamp = timestamp;
+								}
+
+								if (timestamp >= endTimestamp) {
+									endTimestamp = timestamp;
+								}
+
+								entryCount++;
+
+							} else {
+
+								// action present or matching?
+								if (action == null || action.equals(entryAction)) {
+
+									final GraphObjectMap map = new GraphObjectMap();
+									map.put(subjectProperty, pathSubjectId);
+									map.put(objectProperty, pathObjectId);
+									map.put(actionProperty, entryAction);
+									map.put(timestampProperty, date);
+									map.put(messageProperty, entryMessage);
+
+									// date predicate present?
+									if (date == null || datePredicate.accept(map)) {
+										entries.add(map);
+									}
 								}
 							}
 
@@ -206,10 +256,22 @@ public class LogResource extends Resource {
 				} catch (IOException ioex) {}
 			}
 
-			// sort result
-			Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
+			if (overview) {
 
-			return new Result(entries, entries.size(), true, true);
+				overviewMap.put(actionsProperty, actions);
+				overviewMap.put(entryCountProperty, entryCount);
+				overviewMap.put(firstEntryProperty, new Date(beginTimestamp));
+				overviewMap.put(lastEntryProperty, new Date(endTimestamp));
+
+				return new Result(overviewMap, false);
+
+			} else {
+
+				// sort result
+				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
+
+				return new Result(entries, entries.size(), true, false);
+			}
 		}
 
 		// no request object, this is fatal
@@ -299,6 +361,29 @@ public class LogResource extends Resource {
 		result.addHeader("Allow", "GET,POST,OPTIONS");
 
 		return result;
+	}
+
+	private void collectFiles(final Path dir, final List<Path> files) {
+
+		try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*")) {
+
+			for (final Path p : stream) {
+
+				if (Files.isDirectory(p)) {
+
+					collectFiles(p, files);
+
+				} else {
+
+					files.add(p);
+				}
+
+			}
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+
 	}
 
 	private Path write(final String basePath, final String fileName, final String data) throws IOException {
