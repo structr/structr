@@ -24,7 +24,7 @@ var _Entities = {
     numberAttrs: ['position', 'size'],
     hiddenAttrs: ['base'], //'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
     readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
-    
+
     changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
         log('Change boolean attribute ', attrElement, ' to ', value);
@@ -108,7 +108,7 @@ var _Entities = {
                 _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
             }
             _Entities.appendRowWithInputField(entity, t, 'data-structr-return', 'Return URI after successful action');
-            
+
         } else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
             // Input fields
             _Entities.appendRowWithInputField(entity, t, 'data-structr-name', 'Field name (for create action)');
@@ -149,12 +149,13 @@ var _Entities = {
         _Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
         _Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
 
-        el.append('<div id="data-tabs" class="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
-                + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
+        el.append('<div id="data-tabs" class="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li><li id="tab-function">Function Query</li></ul>'
+                + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div><div id="content-tab-function"></div></div>');
 
         _Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
         _Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
         _Entities.appendTextarea($('#content-tab-xpath'), entity, 'xpathQuery', 'XPath Query', '');
+        _Entities.appendTextarea($('#content-tab-function'), entity, 'functionQuery', 'Function Query', '');
 
         _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
                 'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
@@ -286,7 +287,7 @@ var _Entities = {
 
         var views, activeView = 'ui';
 
-        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'Image', 'File', 'Folder', 'Widget'])) {
+        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'VideoFile', 'Image', 'File', 'Folder', 'Widget'])) {
             views = ['ui', 'in', 'out'];
         } else {
             views = ['_html_', 'ui', 'in', 'out'];
@@ -309,7 +310,7 @@ var _Entities = {
         dialog.append('<div id="tabs"><ul></ul></div>');
         var mainTabs = $('#tabs', dialog);
 
-        if (!isIn(entity.type, ['Comment', 'Content', 'User', 'Group', 'Image', 'File', 'Folder', 'Widget'])) {
+        if (!isIn(entity.type, ['Comment', 'Content', 'User', 'Group', 'VideoFile', 'Image', 'File', 'Folder', 'Widget'])) {
 
             _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function(c) {
                 _Entities.queryDialog(entity, c);
@@ -421,12 +422,12 @@ var _Entities = {
                                     display = true;
                                 }
                             });
-                            
+
                             // Always show non-empty attributes
                             if (res[key]) {
                                 display = true;
                             }
-                            
+
                             if (display || key === '_html_class' || key === '_html_id') {
                                 props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
                                         + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
@@ -444,7 +445,7 @@ var _Entities = {
 
                             props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             var cell = $('.value.' + key + '_', props);
-                            
+
                             var type = typeInfo[key].type;
                             var isHidden = isIn(key, _Entities.hiddenAttrs);
                             var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly && !isAdmin);
@@ -472,7 +473,7 @@ var _Entities = {
                                                     }
                                                     checkbox.prop('checked', newVal);
                                                 });
-                                                
+
                                             });
                                         } else {
                                             checkbox.prop('disabled', 'disabled');
@@ -509,7 +510,7 @@ var _Entities = {
                                                 });
                                                 return false;
                                             });
-                                            
+
                                         });
                                     } else if (res[key] && res[key].constructor === Array) {
                                         res[key].forEach(function(node) {
@@ -528,7 +529,7 @@ var _Entities = {
                                 } else {
                                     cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
                                 }
-                                
+
                             }
                         }
 
@@ -557,19 +558,19 @@ var _Entities = {
                     $('.props tr td.value input', dialog).each(function(i, v) {
                         _Entities.activateInput(v, id);
                     });
-                    
-                    
+
+
                     if (view === '_html_') {
                         $('input[name="_html_class"]', props).focus();
-                        
+
                         tabView.append('<button class="show-all">Show all attributes</button>');
                         $('.show-all', tabView).on('click', function() {
                             $('tr.hidden').toggle();
                             $(this).remove();
                         });
                     }
-                    
-                    
+
+
                 });
             }
         });
@@ -585,7 +586,7 @@ var _Entities = {
             _Entities.showProperties(node);
             return false;
         });
-        
+
         if (onDelete) {
             return onDelete(nodeEl);
         }

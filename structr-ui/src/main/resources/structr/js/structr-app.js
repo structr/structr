@@ -14,7 +14,7 @@ $(function() { $('head').append('<link rel="stylesheet" type="text/css" href="//
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  GNU Affero General Public License for more details.
  *
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -36,7 +36,8 @@ $(function() {
     $(document).trigger('structr-ready');
     s.hideNonEdit();
 
-
+    $.datepicker.setDefaults( $.datepicker.regional[lang()] );
+    
     $(window).on('keydown', function(e) {
         var k = e.which;
         //console.log('before down', k, altKey, ctrlKey, shiftKey, eKey)
@@ -95,7 +96,7 @@ function StructrApp(baseUrl) {
             disableButton(btn);
             s.btnLabel = s.btnLabel || btn.text();
             var a = btn.attr('data-structr-action').split(':');
-            var action = a[0], type = a[1];
+            var action = a[0], type = a[1], suffix = a[2];
             var reload = btn.attr('data-structr-reload') === 'true';
             var returnUrl = btn.attr('data-structr-return');
             var attrString = btn.attr('data-structr-attributes');
@@ -104,19 +105,32 @@ function StructrApp(baseUrl) {
             });
             var id = btn.attr('data-structr-id');
             var container = $('[data-structr-id="' + id + '"]');
-
+            
             if (action === 'create') {
                 var data = {};
+                var form = btn.closest('form');
                 $.each(attrs, function(i, key) {
-                    var possibleFields = $('[data-structr-name="' + key + '"]');
-                    var val;
-                    if (possibleFields.length === 1) {
-                        val = possibleFields.val();
+                    var possibleFields;
+                    
+                    if (typeof suffix === 'string' && suffix.length) {
+                        // if a suffix is given, use only input elements with that suffix
+                        possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
+                    } else if (form && form.length) {
+                        // if we are in a form, try to find input elements in form only
+                        possibleFields = form.find('[data-structr-name="' + key + '"]');
                     } else {
+                        possibleFields = $('[data-structr-name="' + key + '"]');
+                    }
+                    var val;
+                    if (possibleFields.length !== 1) {
                         // none, or more than one field: try with type prefix
                         possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
-                        val = possibleFields.val();
                     }
+                    if (possibleFields.length !== 1) {
+                        // if still not found, try both, type prefix and suffix
+                        possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
+                    }
+                    val = possibleFields.val();
                     data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
                 });
                 s.create(type, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
@@ -198,7 +212,7 @@ function StructrApp(baseUrl) {
                 $.each(f.format.split(','), function(i, o) {
                     sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
                 });
-                sel.chosen({allow_single_deselect: true});
+                sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
             } else {
                 if (f.type.endsWith('[]')) {
                     el.html(multiSelect(f.id, f.type, f.key, f.val, f.query));
@@ -240,7 +254,7 @@ function StructrApp(baseUrl) {
                             separator: 'T',
                             onClose: function() {
                                 var newValue = input.val();
-                                var formattedValue = moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T'));
+                                var formattedValue = moment(newValue).formatWithJDF(dateTimeFormat);
                                 input.val(formattedValue);
                             }
                         });
@@ -520,7 +534,7 @@ function StructrApp(baseUrl) {
         var rawType = el.attr('data-structr-type');
         var query = el.attr('data-structr-custom-options-query');
         var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
-        var format = rawType ? rawType.replace(type + ' ', '') : undefined;
+        var format = (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : undefined;
         var val;
         if (type === 'Boolean') {
             if (el.is('input')) {
@@ -1015,7 +1029,7 @@ function enumSelect(id, type, key, val, values) {
     $.each(values.split(','), function(i, o) {
         sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
     });
-    sel.chosen({allow_single_deselect: true});
+    sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
     return inp;
 }
 
@@ -1031,7 +1045,7 @@ function singleSelect(id, type, key, val, query) {
                     $.each(data.result, function(i, o) {
                         sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
                     });
-                    sel.chosen({allow_single_deselect: true});
+                    sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
                 }
             }
         }
@@ -1052,7 +1066,7 @@ function multiSelect(id, type, key, val, query) {
                     $.each(data.result, function(i, o) {
                         sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
                     });
-                    sel.chosen();
+                    sel.chosen({inherit_select_classes: true});
                 }
             }
         }
@@ -1091,4 +1105,22 @@ function escapeForHtmlAttributes(str, escapeWhitespace) {
             .replace(/'/g, '&#39;');
 
     return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
+}
+
+
+function lang() {
+    if (navigator.language.toLowerCase() === 'en-us') { return ''; }
+    else {
+        var l = navigator.language.toLowerCase().split('-');
+        if (l.length === 1) {
+            if ($.datepicker.regional[l[0]] !== undefined) return l[0];
+            else return '';
+        } else if (l.length > 1) {
+            if ($.datepicker.regional[l[0] + '-' + l[1].toUpperCase()] !== undefined) return l[0] + '-' + l[1].toUpperCase();
+            else if ($.datepicker.regional[l[0]] !== undefined) return l[0];
+            else return '';
+        } else {
+            return '';
+        }
+    }
 }

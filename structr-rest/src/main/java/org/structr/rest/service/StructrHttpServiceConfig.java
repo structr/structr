@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,16 +13,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.rest.service;
 
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
@@ -85,7 +85,7 @@ public class StructrHttpServiceConfig {
 		final String defaultPropertyKeyValue = properties.getProperty(defaultPropertyKeyName);
 		final String outputDepthValue        = properties.getProperty(nestingDepthKeyName);
 
-		if (resourceProviderValue == null) {
+		if (StringUtils.isBlank(resourceProviderValue)) {
 
 			logger.log(Level.SEVERE, "Missing resource provider key {0}.resourceprovider in configuration file.", servletName);
 
@@ -102,7 +102,7 @@ public class StructrHttpServiceConfig {
 
 		}
 
-		if (authenticatorValue == null) {
+		if (StringUtils.isBlank(authenticatorValue)) {
 
 			logger.log(Level.SEVERE, "Missing authenticator key {0}.authenticator in configuration file.", servletName);
 
@@ -116,7 +116,7 @@ public class StructrHttpServiceConfig {
 
 		}
 
-		if (userClassValue != null) {
+		if (StringUtils.isNotBlank(userClassValue)) {
 
 			userClass = loadClass(userClassValue);
 
@@ -125,19 +125,19 @@ public class StructrHttpServiceConfig {
 			}
 		}
 
-		if (userAutoCreateValue != null) {
+		if (StringUtils.isNotBlank(userAutoCreateValue)) {
 			userAutoCreate = HttpService.parseBoolean(userAutoCreateValue, false);
 		}
 
-		if (userAutoLoginValue != null) {
+		if (StringUtils.isNotBlank(userAutoLoginValue)) {
 			userAutoLogin = HttpService.parseBoolean(userAutoLoginValue, false);
 		}
 
-		if (defaultPropertyKeyValue != null) {
+		if (StringUtils.isNotBlank(defaultPropertyKeyValue)) {
 			this.defaultPropertyView = defaultPropertyKeyValue;
 		}
 
-		if (outputDepthValue != null) {
+		if (StringUtils.isNotBlank(outputDepthValue)) {
 			this.outputNestingDepth = HttpService.parseInt(outputDepthValue, 3);
 		}
 	}

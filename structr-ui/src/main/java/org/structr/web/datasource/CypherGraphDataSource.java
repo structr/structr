@@ -44,12 +44,6 @@ public class CypherGraphDataSource implements GraphDataSource<List<GraphObject>>
 			return null;
 		}
 
-		return getData(securityContext, renderContext, cypherQuery);
-	}
-
-	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final String cypherQuery) throws FrameworkException {
-
 		return StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(cypherQuery);
 	}
 }

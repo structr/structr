@@ -19,25 +19,17 @@
 package org.structr.web.common;
 
 import com.mortennobel.imagescaling.ResampleOp;
-
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
-
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.Image;
 import org.structr.util.Base64;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.awt.image.BufferedImage;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
@@ -46,16 +38,13 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyMap;
 import static org.structr.web.common.FileHelper.setFileData;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author Axel Morgner
  */
 
-
-
 import org.structr.dynamic.File;
+
 public abstract class ImageHelper extends FileHelper {
 
 	private static final Logger logger = Logger.getLogger(ImageHelper.class.getName());
@@ -72,7 +61,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @param imageType defaults to Image.class if null
 	 * @param name
 	 * @param markAsThumbnail
-	 * @return
+	 * @return image
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -92,7 +81,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @param imageType defaults to Image.class if null
 	 * @param name
 	 * @param markAsThumbnail
-	 * @return
+	 * @return image
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -363,7 +352,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * content
 	 *
 	 * @param urlString
-	 * @return
+	 * @return true if is of image type
 	 */
 	public static boolean isImageType(final String urlString) {
 
@@ -398,7 +387,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * content
 	 *
 	 * @param urlString
-	 * @return
+	 * @return true if is swf file
 	 */
 	public static boolean isSwfType(final String urlString) {
 

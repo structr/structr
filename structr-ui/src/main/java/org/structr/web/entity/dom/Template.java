@@ -25,23 +25,23 @@ import org.structr.core.property.StringProperty;
 
 /**
  * Content element that can act as an outer template.
- * 
+ *
  * @author Axel Morgner
  */
 
 
 public class Template extends Content {
-	
+
 	public static final Property<String> configuration                                   = new StringProperty("configuration").indexed();
-	
+
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		children, childrenIds, content, contentType, parent, pageId, hideOnDetail, hideOnIndex, sharedComponent, syncedNodes, dataKey, restQuery, cypherQuery, xpathQuery,
+		children, childrenIds, content, contentType, parent, pageId, hideOnDetail, hideOnIndex, sharedComponent, syncedNodes, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
 		showForLocales, hideForLocales, showConditions, hideConditions, isContent, configuration
 	);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		children, childrenIds, content, contentType, parent, pageId, hideOnDetail, hideOnIndex, sharedComponent, syncedNodes, dataKey, restQuery, cypherQuery, xpathQuery,
+		children, childrenIds, content, contentType, parent, pageId, hideOnDetail, hideOnIndex, sharedComponent, syncedNodes, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
 		showForLocales, hideForLocales, showConditions, hideConditions, isContent, configuration
 	);
-	
+
 }

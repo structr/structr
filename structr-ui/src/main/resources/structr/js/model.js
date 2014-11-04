@@ -161,7 +161,7 @@ var StructrModel = {
     },
     /**
      * Deletes an object from the UI.
-     * 
+     *
      * If object is page, remove preview and tab. If tab was the active tab,
      * activate the tab to the left before removing it.
      */
@@ -325,7 +325,7 @@ var StructrModel = {
                 return;
 
             log(obj, id, element);
-            
+
             // update values with given key
             $.each(Object.keys(obj), function(i, key) {
                 StructrModel.refreshKey(id, key);
@@ -333,7 +333,7 @@ var StructrModel = {
 
             // update HTML 'class' and 'id' attributes
             if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
-                
+
                 var classIdAttrsEl = $(element).children('.class-id-attrs');
                 if (classIdAttrsEl.length) {
                     classIdAttrsEl.remove();
@@ -345,7 +345,7 @@ var StructrModel = {
                     $(element).children('.id').after(classIdString);
                 }
             }
-            
+
             // check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
             var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
             var keyIcon = $(element).children('.key_icon');
@@ -360,7 +360,7 @@ var StructrModel = {
                 keyIcon.hide();
                 keyIcon.removeClass('donthide');
             }
-            
+
             // Did name change from null?
             if ((obj.type === 'Template' || obj.type === 'Content') && obj.name) {
                 $(element).children('.content_').replaceWith('<b title="' + obj.name + '" class="tag_ name_">' + obj.name + '</b>');
@@ -526,7 +526,12 @@ StructrFile.prototype.append = function() {
     var file = this;
     if (file.parent) {
         var parentFolder = StructrModel.obj(file.parent.id);
-        if (parentFolder) parentFolder.files.push(file);
+        if (parentFolder) {
+            if (!parentFolder.files) {
+                parentFolder.files = [];
+            }
+            parentFolder.files.push(file);
+        }
     }
     StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
 }

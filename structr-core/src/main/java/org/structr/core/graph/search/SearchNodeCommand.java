@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,13 +13,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph.search;
 
 
-import java.util.Iterator;
 import org.structr.core.graph.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -40,16 +39,17 @@ import org.structr.core.graph.NodeService;
  * The execute method takes four parameters:
  * <p>
  * <ol>
- * <li>{@see AbstractNode} top node: search only below this node
+ * <li>top node: search only below this node
  *     <p>if null, search everywhere (top node = root node)
  * <li>boolean include deleted and hidden: if true, return deleted and hidden nodes as well
  * <li>boolean public only: if true, return only public nodes
- * <li>List<{@see TextualSearchAttribute}> search attributes: key/value pairs with search operator
+ * <li>List&lt;TextualSearchAttribute> search attributes: key/value pairs with search operator
  *    <p>if no TextualSearchAttribute is given, return any node matching the other
  *       search criteria
  * </ol>
  *
  * @author Axel Morgner
+ * @param <T>
  */
 public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<Node, T> {
 

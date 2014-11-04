@@ -35,7 +35,7 @@ import org.structr.core.graph.NodeInterface;
 public class NodeDataContainer extends DataContainer {
 
 	protected String sourceNodeId = null;
-	protected Class type          = null;
+	protected String type         = null;
 
 	public NodeDataContainer() {
 		super(0);
@@ -45,9 +45,8 @@ public class NodeDataContainer extends DataContainer {
 
 		super(sequenceNumber);
 
-		type         = node.getClass();
+		type         = node.getClass().getSimpleName();
 		sourceNodeId = node.getUuid();
-		//Map properties = new HashMap<String, Object>();
 
 		collectProperties(node.getNode());
 	}
@@ -55,13 +54,13 @@ public class NodeDataContainer extends DataContainer {
 	/**
 	 * Return id of node in source instance
 	 *
-	 * @return
+	 * @return source node id
 	 */
 	public String getSourceNodeId() {
 		return sourceNodeId;
 	}
 
-	public Class getType() {
+	public String getType() {
 		return type;
 	}
 

@@ -13,7 +13,7 @@
     <artifactId>structr-ui</artifactId>
     <packaging>jar</packaging>
     <version>1.1-SNAPSHOT</version>
-    <name>structr-ui</name>
+    <name>Structr UI</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
         <developer>
@@ -212,10 +212,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.16</version>
                 <configuration>
-                    <forkCount>1</forkCount>
+<!--                    <forkCount>1</forkCount>-->
                     <reuseForks>false</reuseForks>
-                    <argLine>-server -Xmx512m -XX:MaxPermSize=128m -XX:+UseNUMA -Dfile.encoding=utf-8</argLine>
-                    <systemPropertyVariables>
+                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+		    <parallel>classes</parallel>
+		    <threadCount>8</threadCount>
+		    <systemPropertyVariables>
                         <user.timezone>UTC</user.timezone>
                     </systemPropertyVariables>
                 </configuration>
@@ -382,6 +384,43 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <header>header.txt</header>
+                    <includes>
+                        <include>src/**</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/README</exclude>
+                        <exclude>src/**/.directory</exclude>
+                        <exclude>src/**/*.sh</exclude>
+                        <exclude>src/main/resources/**/*.html</exclude>
+                        <exclude>src/main/resources/**/*.xml</exclude>
+                        <exclude>src/main/resources/bin/**</exclude>
+                        <exclude>src/main/resources/mime.types</exclude>
+                        <exclude>src/main/resources/structr/codemirror/**</exclude>
+                        <exclude>src/main/resources/structr/js/lib/**</exclude>
+                        <exclude>src/main/resources/structr/css/lib/**</exclude>
+                        <exclude>src/test/javascript/casperjs/**</exclude>
+                        <exclude>src/test/javascript/bin/**</exclude>
+                        <exclude>src/main/deb/**</exclude>
+                    </excludes>
+                    <properties>
+                        <year>2014</year>
+                        <owner>Morgner UG (haftungsbeschränkt)</owner>
+                    </properties>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
@@ -448,7 +487,7 @@
 
     <licenses>
         <license>
-            <name>GNU General Public License, Version 3</name>
+            <name>GNU Affero General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
                 Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt), structr &lt;structr@structr.org&gt;
@@ -463,7 +502,7 @@
                 structr is distributed in the hope that it will be useful,
                 but WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-                GNU General Public License for more details.
+                GNU Affero General Public License for more details.
 
                 You should have received a copy of the GNU Affero General Public License
                 along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.

@@ -183,7 +183,7 @@ public class RenderContext extends ActionContext {
 	 * editing for public sessions.
 	 *
 	 * @param user
-	 * @return
+	 * @return edit mode
 	 */
 	public EditMode getEditMode(final Principal user) {
 		return user == null ? EditMode.NONE : editMode;

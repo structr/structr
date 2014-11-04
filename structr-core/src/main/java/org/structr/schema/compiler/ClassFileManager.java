@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.schema.compiler;
@@ -35,16 +35,16 @@ import javax.tools.StandardJavaFileManager;
 public class ClassFileManager extends ForwardingJavaFileManager {
 
 	/**
-	 * Instance of JavaClassObject that will store the compiled bytecode of
+	 * Instance of JavaClassObject that will store the compiled byte code of
 	 * our class
 	 */
-	private Map<String, JavaClassObject> objects = new LinkedHashMap<>();
+	private final Map<String, JavaClassObject> objects = new LinkedHashMap<>();
 
 	/**
 	 * Will initialize the manager with the specified standard java file
 	 * manager
 	 *
-	 * @param standardManger
+	 * @param standardManager
 	 */
 	public ClassFileManager(final StandardJavaFileManager standardManager) {
 		super(standardManager);
@@ -55,6 +55,8 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	 * creates an anonymous class extending the SecureClassLoader which uses
 	 * the byte code created by the compiler and stored in the
 	 * JavaClassObject, and returns the Class for it
+	 * @param location
+	 * @return class loader
 	 */
 	@Override
 	public ClassLoader getClassLoader(final Location location) {
@@ -79,6 +81,12 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	/**
 	 * Gives the compiler an instance of the JavaClassObject so that the
 	 * compiler can write the byte code into it.
+	 * @param location
+	 * @param className
+	 * @param kind
+	 * @param sibling
+	 * @return file object
+	 * @throws java.io.IOException
 	 */
 	@Override
 	public JavaFileObject getJavaFileForOutput(final Location location, final String className, final Kind kind, final FileObject sibling) throws IOException {

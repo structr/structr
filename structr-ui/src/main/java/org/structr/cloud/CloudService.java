@@ -38,7 +38,8 @@ import org.structr.core.Services;
 /**
  * The cloud service handles networking between structr instances
  *
- * @author axel
+ * @author Axel Morgner
+ * @author Christian Morgner
  */
 public class CloudService extends Thread implements RunnableService {
 
@@ -133,6 +134,12 @@ public class CloudService extends Thread implements RunnableService {
 	@Override
 	public boolean runOnStartup() {
 		return true;
+	}
+
+
+	@Override
+	public boolean isVital() {
+		return false;
 	}
 
 	// ----- public static methods -----

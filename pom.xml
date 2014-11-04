@@ -12,7 +12,7 @@
     <artifactId>structr</artifactId>
     <packaging>pom</packaging>
     <version>1.1-SNAPSHOT</version>
-    <name>structr</name>
+    <name>Structr</name>
     <url>http://structr.org</url>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
@@ -37,12 +37,11 @@
     </properties>
 
     <modules>
-        <module>structr-simple-example-archetype</module>
-        <module>structr-base-archetype</module>
-        <module>structr-ui-archetype</module>
         <module>structr-core</module>
         <module>structr-rest</module>
         <module>structr-ui</module>
+        <module>structr-archetype</module>
+        
     </modules>
 
     <build>
@@ -156,6 +155,28 @@
                 GNU General Public License for more details.
 
                 You should have received a copy of the GNU General Public License
+                along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+            </comments>
+        </license>
+        <license>
+            <name>GNU Affero General Public License, Version 3</name>
+            <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
+            <comments>
+                Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt), structr &lt;structr@structr.org&gt;
+
+                This file is part of structr &lt;http://structr.org&gt;.
+
+                structr is free software: you can redistribute it and/or modify
+                it under the terms of the GNU Affero General Public License as
+                published by the Free Software Foundation, either version 3 of the
+                License, or (at your option) any later version.
+
+                structr is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                GNU Affero General Public License for more details.
+
+                You should have received a copy of the GNU Affero General Public License
                 along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
             </comments>
         </license>

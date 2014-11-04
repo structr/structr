@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.csv.test;
@@ -52,6 +52,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.module.JarConfigurationProvider;
+import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.CsvServlet;
@@ -304,7 +305,7 @@ public class StructrCsvTest extends TestCase {
 		config.setProperty(HttpService.SERVLETS, "JsonRestServlet CsvServlet");
 		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
 		config.setProperty("JsonRestServlet.path", restUrl);
-		config.setProperty("JsonRestServlet.resourceprovider", TestResourceProvider.class.getName());
+		config.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
 		config.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
 		config.setProperty("JsonRestServlet.user.class", "");
 		config.setProperty("JsonRestServlet.user.autocreate", "false");
@@ -313,7 +314,7 @@ public class StructrCsvTest extends TestCase {
 
 		config.setProperty("CsvServlet.class", CsvServlet.class.getName());
 		config.setProperty("CsvServlet.path", csvUrl);
-		config.setProperty("CsvServlet.resourceprovider", TestResourceProvider.class.getName());
+		config.setProperty("CsvServlet.resourceprovider", DefaultResourceProvider.class.getName());
 		config.setProperty("CsvServlet.authenticator", SuperUserAuthenticator.class.getName());
 		config.setProperty("CsvServlet.user.class", "");
 		config.setProperty("CsvServlet.user.autocreate", "false");

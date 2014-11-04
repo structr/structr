@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest;
@@ -49,9 +49,11 @@ public class DefaultResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("public"),		ViewFilterResource.class);		// public view (default)
 		resourceMap.put(Pattern.compile("all"),			ViewFilterResource.class);		// all view
 
-		resourceMap.put(Pattern.compile("[a-zA-Z]+"),		   MaintenanceParameterResource.class);	// maintenance parameter
+		resourceMap.put(Pattern.compile("log"),			LogResource.class);			// log resource
 
-		resourceMap.put(Pattern.compile("_schema"),		   SchemaResource.class);		// special resource for schema information
+		resourceMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterResource.class);	// maintenance parameter
+
+		resourceMap.put(Pattern.compile("_schema"),		SchemaResource.class);			// special resource for schema information
 		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), TypeResource.class);			// any type match
 
 		return resourceMap;

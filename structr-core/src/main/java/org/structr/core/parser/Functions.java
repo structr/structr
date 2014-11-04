@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.parser;
@@ -51,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -76,6 +77,7 @@ import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -88,6 +90,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -119,6 +122,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_NUM                 = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_INT                 = "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_RANDOM              = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
+	public static final String ERROR_MESSAGE_RINT                = "Usage: ${rint(range)}. Example: ${rint(1000)}";
 	public static final String ERROR_MESSAGE_INDEX_OF            = "Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}";
 	public static final String ERROR_MESSAGE_CONTAINS            = "Usage: ${contains(string, word)}. Example: ${contains(this.name, \"the\")}";
 	public static final String ERROR_MESSAGE_SUBSTRING           = "Usage: ${substring(string, start, length)}. Example: ${substring(this.name, 19, 3)}";
@@ -138,6 +142,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_EXTRACT             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_FILTER              = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
 	public static final String ERROR_MESSAGE_MERGE               = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
+	public static final String ERROR_MESSAGE_UNWIND              = "Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}";
 	public static final String ERROR_MESSAGE_SORT                = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
 	public static final String ERROR_MESSAGE_LT                  = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
 	public static final String ERROR_MESSAGE_GT                  = "Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}";
@@ -184,6 +189,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_FIND                = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_CREATE              = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
 	public static final String ERROR_MESSAGE_DELETE              = "Usage: ${delete(entity)}. Example: ${delete(this)}";
+	public static final String ERROR_MESSAGE_CACHE               = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -294,6 +300,9 @@ public class Functions {
 		}
 
 		switch (word) {
+
+			case "cache":
+				return new CacheExpression();
 
 			case "true":
 				return new ConstantExpression(true);
@@ -685,6 +694,29 @@ public class Functions {
 				return ERROR_MESSAGE_RANDOM;
 			}
 		});
+		functions.put("rint", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number) {
+
+					try {
+						return new Random(System.currentTimeMillis()).nextInt(((Number)sources[0]).intValue());
+
+					} catch (Throwable t) {
+						// ignore
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_RINT;
+			}
+		});
 		functions.put("index_of", new Function<Object, Object>() {
 
 			@Override
@@ -1072,7 +1104,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-					return (sources[0] instanceof NodeInterface);
+					return (sources[0] instanceof GraphObject);
 				} else {
 					return false;
 				}
@@ -1158,6 +1190,52 @@ public class Functions {
 							if (obj != null) {
 
 								list.add(obj);
+							}
+						}
+
+					} else if (source != null) {
+
+						list.add(source);
+					}
+				}
+
+				return list;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MERGE;
+			}
+
+		});
+		functions.put("unwind", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List list = new ArrayList();
+				for (final Object source : sources) {
+
+					if (source instanceof Collection) {
+
+						// filter null objects
+						for (Object obj : (Collection)source) {
+							if (obj != null) {
+
+								if (obj instanceof Collection) {
+
+									for (final Object elem : (Collection)obj) {
+
+										if (elem != null) {
+
+											list.add(elem);
+										}
+									}
+
+								} else {
+
+									list.add(obj);
+								}
 							}
 						}
 
@@ -1812,36 +1890,36 @@ public class Functions {
 				final SecurityContext securityContext = entity.getSecurityContext();
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					NodeInterface node = null;
+					GraphObject dataObject = null;
 
-					if (sources[0] instanceof NodeInterface) {
-						node = (NodeInterface)sources[0];
+					if (sources[0] instanceof GraphObject) {
+						dataObject = (GraphObject)sources[0];
 					}
 
 					if (sources[0] instanceof List) {
 
 						final List list = (List)sources[0];
-						if (list.size() == 1 && list.get(0) instanceof NodeInterface) {
+						if (list.size() == 1 && list.get(0) instanceof GraphObject) {
 
-							node = (NodeInterface)list.get(0);
+							dataObject = (GraphObject)list.get(0);
 						}
 					}
 
-					if (node != null) {
+					if (dataObject != null) {
 
 						final String keyName     = sources[1].toString();
-						final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), keyName);
+						final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(dataObject.getClass(), keyName);
 
 						if (key != null) {
 
 							final PropertyConverter inputConverter = key.inputConverter(securityContext);
-							Object value = node.getProperty(key);
+							Object value = dataObject.getProperty(key);
 
 							if (inputConverter != null) {
 								return inputConverter.revert(value);
 							}
 
-							return node.getProperty(key);
+							return dataObject.getProperty(key);
 						}
 
 						return "";
@@ -2333,9 +2411,9 @@ public class Functions {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
-					if (sources[0] instanceof NodeInterface) {
+					if (sources[0] instanceof GraphObject) {
 
-						final NodeInterface source            = (NodeInterface)sources[0];
+						final GraphObject source              = (GraphObject)sources[0];
 						final Map<String, Object> properties  = new LinkedHashMap<>();
 						final SecurityContext securityContext = source.getSecurityContext();
 						final Gson gson                       = new GsonBuilder().create();
@@ -2613,11 +2691,6 @@ public class Functions {
 							final PropertyKey key3 = config.getPropertyKeyForJSONName(type, sources[5].toString());
 							if (key3 != null) {
 
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key3.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key3.jsonName() + " is not indexed.");
-								}
-
 								final PropertyConverter inputConverter = key3.inputConverter(securityContext);
 								Object value                           = sources[6].toString();
 
@@ -2633,11 +2706,6 @@ public class Functions {
 
 							final PropertyKey key2 = config.getPropertyKeyForJSONName(type, sources[3].toString());
 							if (key2 != null) {
-
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key2.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key2.jsonName() + " is not indexed.");
-								}
 
 								final PropertyConverter inputConverter = key2.inputConverter(securityContext);
 								Object value                           = sources[4].toString();
@@ -2655,11 +2723,6 @@ public class Functions {
 							final PropertyKey key1 = config.getPropertyKeyForJSONName(type, sources[1].toString());
 							if (key1 != null) {
 
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key1.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key1.jsonName() + " is not indexed.");
-								}
-
 								final PropertyConverter inputConverter = key1.inputConverter(securityContext);
 								Object value                           = sources[2].toString();
 
@@ -2675,7 +2738,7 @@ public class Functions {
 
 					if (type != null) {
 
-						app.create(type, propertyMap);
+						return app.create(type, propertyMap);
 
 					} else {
 
@@ -2733,7 +2796,7 @@ public class Functions {
 	 *
 	 * @param array
 	 * @param minLength If null, don't do length check
-	 * @return
+	 * @return true if array has min length and all elements are not null
 	 */
 	public static boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
 
@@ -2759,7 +2822,7 @@ public class Functions {
 	 *
 	 * @param array
 	 * @param length If null, don't do length check
-	 * @return
+	 * @return true if array has exact length and all elements are not null
 	 */
 	public static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) {
 
@@ -2927,7 +2990,6 @@ public class Functions {
 
 		}
 
-
 		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
 			.replaceAll("\\<", "")
 			.replaceAll("\\>", "")
@@ -2958,6 +3020,34 @@ public class Functions {
 		result = result.replaceAll(" ", "-");
 
 		return result;
+
+	}
+
+	public static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap target, final Map<String, Object> source, final int depth) {
+
+		if (depth > 20) {
+			return;
+		}
+
+		for (final Map.Entry<String, Object> entry : source.entrySet()) {
+
+			final String key = entry.getKey();
+			final Object value = entry.getValue();
+
+			if (value instanceof Map) {
+
+				final Map<String, Object> map = (Map<String, Object>)value;
+				final GraphObjectMap obj      = new GraphObjectMap();
+
+				target.put(new StringProperty(key), obj);
+
+				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
+
+			} else {
+
+				target.put(new StringProperty(key), value);
+			}
+		}
 
 	}
 }

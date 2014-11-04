@@ -66,10 +66,11 @@ public class FileHelper {
 	/**
 	 * Transform an existing file into the target class.
 	 *
+	 * @param <T>
 	 * @param securityContext
 	 * @param uuid
 	 * @param fileType
-	 * @return
+	 * @return transformed file
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -100,7 +101,7 @@ public class FileHelper {
 	 * @param securityContext
 	 * @param rawData
 	 * @param t defaults to File.class if null
-	 * @return
+	 * @return file
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -115,12 +116,13 @@ public class FileHelper {
 	/**
 	 * Create a new file node from the given input stream
 	 *
+	 * @param <T>
 	 * @param securityContext
 	 * @param fileStream
 	 * @param contentType
 	 * @param fileType defaults to File.class if null
 	 * @param name
-	 * @return
+	 * @return file
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -141,7 +143,7 @@ public class FileHelper {
 	 * @param contentType if null, try to auto-detect content type
 	 * @param t
 	 * @param name
-	 * @return
+	 * @return file
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -167,7 +169,7 @@ public class FileHelper {
 	 * @param fileData
 	 * @param contentType
 	 * @param t defaults to File.class if null
-	 * @return
+	 * @return file
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -208,9 +210,26 @@ public class FileHelper {
 
 		FileHelper.writeToFile(file, fileData);
 		file.setProperty(org.structr.dynamic.File.contentType, contentType != null ? contentType : getContentMimeType(file));
-        file.unlockReadOnlyPropertiesOnce();
+		file.unlockReadOnlyPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
-        file.unlockReadOnlyPropertiesOnce();
+		file.unlockReadOnlyPropertiesOnce();
+		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
+		file.unlockReadOnlyPropertiesOnce();
+		file.setProperty(org.structr.dynamic.File.version, 1);
+
+	}
+
+	/**
+	 * Update checksum content type and size of the given file
+	 *
+	 * @param file the file
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void updateMetadata(final org.structr.dynamic.File file) throws FrameworkException, IOException {
+
+		file.setProperty(org.structr.dynamic.File.contentType, getContentMimeType(file));
+		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
 		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
 
 	}
@@ -289,7 +308,6 @@ public class FileHelper {
 	 * @param data
 	 * @throws FrameworkException
 	 * @throws IOException
-	 *
 	 * @return the file on disk
 	 */
 	public static File writeToFile(final org.structr.dynamic.File fileNode, final byte[] data) throws FrameworkException, IOException {
@@ -323,7 +341,8 @@ public class FileHelper {
 	 * Return mime type of given file
 	 *
 	 * @param file
-	 * @return
+	 * @return content type
+	 * @throws java.io.IOException
 	 */
 	public static String getContentMimeType(final org.structr.web.entity.FileBase file) throws IOException {
 		return getContentMimeType(file.getFileOnDisk(), file.getProperty(AbstractNode.name));
@@ -333,7 +352,9 @@ public class FileHelper {
 	 * Return mime type of given file
 	 *
 	 * @param file
-	 * @return
+	 * @param name
+	 * @return content type
+	 * @throws java.io.IOException
 	 */
 	public static String getContentMimeType(final java.io.File file, final String name) throws IOException {
 
@@ -372,93 +393,10 @@ public class FileHelper {
 	}
 
 	/**
-	 * Return mime type of given byte array.
-	 *
-	 * Use on streams.
-	 *
-	 * @param bytes
-	 * @param fileName
-	 * @return
-	public static String getContentMimeType(final byte[] bytes, final String fileName) {
-
-		MagicMatch match;
-
-		try {
-
-			match = Magic.getMagicMatch(bytes, true);
-
-			return match.getMimeType();
-
-		} catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
-
-			logger.log(Level.FINE, "Could not determine content type", e);
-
-		}
-
-		return UNKNOWN_MIME_TYPE;
-
-	}
-	 */
-
-	/**
-	 * Return mime type of given file
-	 *
-	 * @param file
-	 * @return
-	public static String[] getContentMimeTypeAndExtension(final File file) {
-
-		MagicMatch match;
-
-		try {
-
-			match = Magic.getMagicMatch(file, false, true);
-
-			return new String[]{match.getMimeType(), match.getExtension()};
-
-		} catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
-
-			logger.log(Level.SEVERE, null, e);
-
-		}
-
-		return new String[]{UNKNOWN_MIME_TYPE, ".bin"};
-
-	}
-	 */
-
-	/**
-	 * Return mime type of given byte array.
-	 *
-	 * Use on streams.
-	 *
-	 * @param bytes
-	 * @return
-	public static String[] getContentMimeTypeAndExtension(final byte[] bytes) {
-
-		MagicMatch match;
-
-		try {
-
-			match = Magic.getMagicMatch(bytes, true);
-
-			return new String[]{match.getMimeType(), match.getExtension()};
-
-		} catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
-
-			logger.log(Level.SEVERE, null, e);
-
-		}
-
-		return new String[]{UNKNOWN_MIME_TYPE, ".bin"};
-
-	}
-	 */
-
-	/**
 	 * Calculate CRC32 checksum of given file
 	 *
 	 * @param file
-	 * @return
+	 * @return checksum
 	 */
 	public static Long getChecksum(final FileBase file) {
 
@@ -493,7 +431,7 @@ public class FileHelper {
 	 * Return size of file on disk, or -1 if not possible
 	 *
 	 * @param file
-	 * @return
+	 * @return size
 	 */
 	public static long getSize(final FileBase file) {
 
@@ -531,7 +469,7 @@ public class FileHelper {
 	 *
 	 * @param securityContext
 	 * @param absolutePath
-	 * @return
+	 * @return file
 	 */
 	public static AbstractFile getFileByAbsolutePath(final SecurityContext securityContext, final String absolutePath) {
 
@@ -613,7 +551,7 @@ public class FileHelper {
 	 *
 	 * @param securityContext
 	 * @param name
-	 * @return
+	 * @return file
 	 */
 	public static AbstractFile getFirstRootFileByName(final SecurityContext securityContext, final String name) {
 
@@ -644,7 +582,7 @@ public class FileHelper {
 	 * {@link org.structr.web.entity.Folder}
 	 *
 	 * @param file
-	 * @return
+	 * @return path
 	 */
 	public static String getFolderPath(final AbstractFile file) {
 
@@ -689,7 +627,7 @@ public class FileHelper {
 	 *
 	 * @param securityContext
 	 * @param path
-	 * @return
+	 * @return folder
 	 * @throws FrameworkException
 	 */
 	public static Folder createFolderPath(final SecurityContext securityContext, final String path) throws FrameworkException {

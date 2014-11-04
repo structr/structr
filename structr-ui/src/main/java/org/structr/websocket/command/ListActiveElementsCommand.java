@@ -196,6 +196,10 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			return ActiveElementState.Query;
 		}
 
+		if (!StringUtils.isEmpty(node.getProperty(DOMElement.functionQuery))) {
+			return ActiveElementState.Query;
+		}
+
 		/*
 		 attributes to check for !isEmpty:
 		  - data-structr-action

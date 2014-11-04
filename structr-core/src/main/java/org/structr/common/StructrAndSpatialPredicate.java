@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,18 +13,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.common;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.neo4j.collections.rtree.RTreeRelationshipTypes;
 import org.neo4j.gis.spatial.SpatialRelationshipTypes;
+import org.neo4j.gis.spatial.rtree.RTreeRelationshipTypes;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;

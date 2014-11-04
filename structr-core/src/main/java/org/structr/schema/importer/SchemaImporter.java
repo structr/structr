@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.schema.importer;
@@ -272,11 +272,18 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				infos.add(relInfo);
 			}
 
-			// reduce relationship infos into one
 			final List<RelationshipInfo> reducedRelationshipInfos = new LinkedList<>();
-			for (final List<RelationshipInfo> infos : relTypeInfoMap.values()) {
+			if ("true".equals(Services.getInstance().getConfigurationValue("importer.inheritancedetection", "true"))) {
 
-				reducedRelationshipInfos.addAll(reduceNodeTypes(infos, reducedTypeInfoMap));
+				// reduce relationship infos into one
+				for (final List<RelationshipInfo> infos : relTypeInfoMap.values()) {
+
+					reducedRelationshipInfos.addAll(reduceNodeTypes(infos, reducedTypeInfoMap));
+				}
+
+			} else {
+
+				reducedRelationshipInfos.addAll(relationships);
 			}
 
 			// create schema nodes

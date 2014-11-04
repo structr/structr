@@ -49,6 +49,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
 import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
+import org.structr.web.entity.html.Textarea;
 import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -81,12 +82,12 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery,
+		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
 		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
 	);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery,
+		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
 		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
 	);
 	//~--- static initializers --------------------------------------------
@@ -202,9 +203,9 @@ public class Content extends DOMNode implements Text {
 		}
 
                 final Sync rel = getIncomingRelationship(Sync.class);
-                
+
                 if (rel != null) {
-                
+
                     final Content otherNode = (Content) rel.getSourceNode();
 
                     if (otherNode != null) {
@@ -215,9 +216,9 @@ public class Content extends DOMNode implements Text {
 			otherNode.setProperty(name, getProperty(name));
 
                     }
-                
+
                 }
-                
+
                 try {
 
 			increasePageVersion();
@@ -391,7 +392,11 @@ public class Content extends DOMNode implements Text {
 			// replace newlines with <br /> for rendering
 			if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
 
-				_content = _content.replaceAll("[\\n]{1}", "<br>");
+				final DOMNode _parent = getProperty(Content.parent);
+				if (_parent == null || !(_parent instanceof Textarea)) {
+
+					_content = _content.replaceAll("[\\n]{1}", "<br>");
+				}
 			}
 		//}
 

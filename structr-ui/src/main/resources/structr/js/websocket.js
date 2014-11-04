@@ -40,7 +40,11 @@ function wsConnect() {
 
     try {
 
-        ws = undefined;
+        if (ws) {
+            ws.close();
+            ws.length = 0;
+        }
+        
         localStorage.removeItem(userKey);
 
         var isEnc = (window.location.protocol === 'https:');
@@ -186,23 +190,26 @@ function wsConnect() {
                         } else {
 
                             var node = Structr.node(msgObj.id);
-                            var progr = node.find('.progress');
-                            progr.show();
+                            if (node) {
 
-                            var size = parseInt(node.find('.size').text());
-                            var part = msgObj.size;
+                                var progr = node.find('.progress');
+                                progr.show();
 
-                            node.find('.part').text(part);
-                            var pw = node.find('.progress').width();
-                            var w = pw / size * part;
+                                var size = parseInt(node.find('.size').text());
+                                var part = msgObj.size;
 
-                            node.find('.bar').css({width: w + 'px'});
+                                node.find('.part').text(part);
+                                var pw = node.find('.progress').width();
+                                var w = pw / size * part;
 
-                            if (part >= size) {
-                                blinkGreen(progr);
-                                window.setTimeout(function() {
-                                    progr.fadeOut('fast');
-                                }, 1000);
+                                node.find('.bar').css({width: w + 'px'});
+
+                                if (part >= size) {
+                                    blinkGreen(progr);
+                                    window.setTimeout(function() {
+                                        progr.fadeOut('fast');
+                                    }, 1000);
+                                }
                             }
                         }
 
@@ -368,8 +375,7 @@ function wsConnect() {
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 
                 $(result).each(function(i, entity) {
-                    
-                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'Widget')) {
+                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'VideoFile' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
                     } else {
 
@@ -390,7 +396,7 @@ function wsConnect() {
                             var synced = entity.syncedNodes;
 
                             if (synced && synced.length) {
-                                
+
                                 // Change icon
                                 $.each(entity.syncedNodes, function(i, id) {
                                     var el = Structr.node(id);
@@ -409,7 +415,7 @@ function wsConnect() {
                         setTimeout(function() {
                             _Pages.activateTab(tab)
                         }, 2000);
-                    } else if (command === 'CREATE' && (entity.type === 'File' || entity.type === 'Image')) {
+                    } else if (command === 'CREATE' && (entity.type === 'File' || entity.type === 'Image' || entity.type === 'VideoFile')) {
                         _Files.uploadFile(entity);
                     }
 
@@ -445,7 +451,10 @@ function wsConnect() {
 
     } catch (exception) {
         log('Error in connect(): ' + exception);
-        ws.close();
+        if (ws) {
+            ws.close();
+            ws.length = 0;
+        }
     }
 
 }
@@ -486,7 +495,7 @@ function send(text) {
 
 function log() {
     if (debug) {
-        console.log(arguments);
+        /*log(arguments);*/
         var msg = Array.prototype.slice.call(arguments).join(' ');
         var div = $('#log', footer);
         div.append(msg + '<br>');

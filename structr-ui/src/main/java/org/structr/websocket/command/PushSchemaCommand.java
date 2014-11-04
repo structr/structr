@@ -64,7 +64,10 @@ public class PushSchemaCommand extends AbstractCommand {
 				final PushTransmission tms = new PushTransmission(username, password, host, port.intValue());
 
 				for (final SchemaNode node : app.nodeQuery(SchemaNode.class).getAsList()) {
-					tms.getExportSet().add(node);
+
+					if (isFalseOrNull(node.getProperty(SchemaNode.isBuiltinType))) {
+						tms.getExportSet().add(node);
+					}
 				}
 
 				for (final SchemaRelationship rel : app.relationshipQuery(SchemaRelationship.class).getAsList()) {
@@ -73,6 +76,8 @@ public class PushSchemaCommand extends AbstractCommand {
 
 				// push schema
 				CloudService.doRemote(tms, new WebsocketProgressListener(getWebSocket(), key));
+
+				tx.success();
 
 			} catch (FrameworkException fex) {
 
@@ -86,7 +91,10 @@ public class PushSchemaCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
+	public boolean isFalseOrNull(final Boolean value) {
+		return value == null || !value;
+	}
+
 
 	@Override
 	public String getCommand() {

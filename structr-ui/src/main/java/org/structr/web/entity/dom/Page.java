@@ -56,6 +56,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
@@ -69,10 +70,13 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.Linkable;
 import static org.structr.web.entity.Linkable.linkingElements;
+import org.structr.web.entity.Site;
 import static org.structr.web.entity.dom.DOMNode.children;
 import org.structr.web.entity.html.Html;
 import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.entity.relation.PageLink;
+import org.structr.web.entity.relation.Pages;
+import org.structr.web.property.UiNotion;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -109,13 +113,14 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
 	public static final Property<Boolean> isPage = new BooleanProperty("isPage", true).readOnly();
         public static final Property<String> path = new StringProperty("path").indexed();
+	public static final Property<Site> site = new StartNode<>("Site", Pages.class, new UiNotion()).indexedWhenEmpty();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage, site
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site
 	);
 
 	private Html5DocumentType docTypeNode = null;
@@ -560,7 +565,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 * Return the content of this page depending on edit mode
 	 *
 	 * @param editMode
-	 * @return
+	 * @return content
 	 * @throws FrameworkException
 	 */
 	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {

@@ -32,6 +32,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -60,7 +61,7 @@ public class UiAuthenticator implements Authenticator {
 	protected static boolean userAutoLogin;
 	protected static Class   userClass;
 
-	private enum Method { GET, PUT, POST, DELETE, OPTIONS }
+	private enum Method { GET, PUT, POST, DELETE, HEAD, OPTIONS }
 	private static final Map<String, Method> methods = new LinkedHashMap();
 
 	// HTTP methods
@@ -69,6 +70,7 @@ public class UiAuthenticator implements Authenticator {
 		methods.put("GET", Method.GET);
 		methods.put("PUT", Method.PUT);
 		methods.put("POST", Method.POST);
+		methods.put("HEAD", Method.HEAD);
 		methods.put("DELETE", Method.DELETE);
 		methods.put("OPTIONS", Method.OPTIONS);
 
@@ -89,6 +91,9 @@ public class UiAuthenticator implements Authenticator {
 	public static final long AUTH_USER_OPTIONS	= 256;
 	public static final long NON_AUTH_USER_OPTIONS	= 512;
 
+	public static final long AUTH_USER_HEAD		= 1024;
+	public static final long NON_AUTH_USER_HEAD	= 2048;
+
 	//~--- methods --------------------------------------------------------
 
 	/**
@@ -99,7 +104,7 @@ public class UiAuthenticator implements Authenticator {
 	 *
 	 * @param request
 	 * @param response
-	 * @return
+	 * @return security context
 	 * @throws FrameworkException
 	 */
 	@Override
@@ -147,11 +152,35 @@ public class UiAuthenticator implements Authenticator {
 		String origin = request.getHeader("Origin");
 		if (!StringUtils.isBlank(origin)) {
 
-			 // allow cross site resource sharing (read only)
-			response.setHeader("Access-Control-Allow-Origin", origin);
-			response.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST");
-			response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+			final Services services = Services.getInstance();
 
+			response.setHeader("Access-Control-Allow-Origin", origin);
+
+			 // allow cross site resource sharing (read only)
+			final String maxAge = services.getConfigurationValue(Services.ACCESS_CONTROL_MAX_AGE);
+			if (StringUtils.isNotBlank(maxAge)) {
+				response.setHeader("Access-Control-MaxAge", maxAge);
+			}
+
+			final String allowMethods = services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_METHODS);
+			if (StringUtils.isNotBlank(allowMethods)) {
+				response.setHeader("Access-Control-Allow-Methods", allowMethods);
+			}
+
+			final String allowHeaders = services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_HEADERS);
+			if (StringUtils.isNotBlank(allowHeaders)) {
+				response.setHeader("Access-Control-Allow-Headers", allowHeaders);
+			}
+
+			final String allowCredentials = services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_CREDENTIALS);
+			if (StringUtils.isNotBlank(allowCredentials)) {
+				response.setHeader("Access-Control-Allow-Credentials", allowCredentials);
+			}
+
+			final String exposeHeaders = services.getConfigurationValue(Services.ACCESS_CONTROL_EXPOSE_HEADERS);
+			if (StringUtils.isNotBlank(exposeHeaders)) {
+				response.setHeader("Access-Control-Expose-Headers", exposeHeaders);
+			}
 		 }
 
 		examined = true;
@@ -284,6 +313,22 @@ public class UiAuthenticator implements Authenticator {
 					}
 
 					break;
+
+				case HEAD :
+
+					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_HEAD)) {
+
+						return;
+
+					}
+
+					if (validUser && resourceAccess.hasFlag(AUTH_USER_HEAD)) {
+
+						return;
+
+					}
+
+					break;
 			}
 		}
 
@@ -332,7 +377,7 @@ public class UiAuthenticator implements Authenticator {
 	 *
 	 * @param request
 	 * @param response
-	 * @return
+	 * @return user
 	 */
 	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) {
 

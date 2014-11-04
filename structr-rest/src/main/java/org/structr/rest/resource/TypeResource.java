@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.resource;
@@ -59,8 +59,7 @@ import org.structr.schema.SchemaHelper;
  * Represents a bulk type match. A TypeResource will always result in a
  * list of elements when it is the last element in an URI. A TypeResource
  * that is not the first element in an URI will try to find a pre-defined
- * relationship between preceding and the node type (defined by
- * {@see AbstractNode#getRelationshipWith}) and follow that path.
+ * relationship between preceding and the node type and follow that path.
  *
  * @author Christian Morgner
  */
@@ -190,12 +189,15 @@ public class TypeResource extends SortableResource {
 
 			newNode = createNode(propertySet);
 
-			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+			final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 			if (newNode != null) {
 
 				result.addHeader("Location", buildLocationHeader(newNode));
+				result.addContent(newNode);
 			}
 
+			result.serializeAsPrimitiveArray(true);
+			
 			// finally: return 201 Created
 			return result;
 
@@ -232,6 +234,8 @@ public class TypeResource extends SortableResource {
 					result.addHeader("Location", buildLocationHeader(newRelationship));
 				}
 
+				result.serializeAsPrimitiveArray(true);
+				
 				// finally: return 201 Created
 				return result;
 			}

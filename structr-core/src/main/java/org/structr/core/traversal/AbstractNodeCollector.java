@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.traversal;
@@ -38,15 +38,17 @@ import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
-import org.structr.schema.SchemaHelper;
 
 /**
  * Abstract base class for node collector implementations that can be plugged into
- * {@link TraversingConverter}. To use this collector, subclass it, add predicates
- * and an optional notion to it and use {@link SchemaHelper} to register it as the
+ * TraversingConverter.
+ * 
+ * To use this collector, subclass it, add predicates
+ * and an optional notion to it and use SchemaHelper to register it as the
  * value parameter of a TraversingConverter.
  *
  * @author Christian Morgner
+ * @param <T>
  */
 public abstract class AbstractNodeCollector<T extends AbstractNode> implements TraverserInterface<T>, Value<TraverserInterface<T>> {
 

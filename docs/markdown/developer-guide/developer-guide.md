@@ -1,0 +1,1 @@
+This document is intended to support developers using Structr as a Java library.

@@ -64,6 +64,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;
@@ -83,8 +84,8 @@ public class CloudConnection<T> extends Thread {
 	private final Map<String, Object> data = new LinkedHashMap<>();
 
 	// private fields
+	private final ConfigurationProvider config = Services.getInstance().getConfigurationProvider();
 	private final Set<String> localMessageIds = new LinkedHashSet<>();
-	private final Set<String> remoteMessageIds = new LinkedHashSet<>();
 	private App app = StructrApp.getInstance();
 	private long transmissionAbortTime = 0L;
 	private ExportContext context = null;
@@ -158,9 +159,6 @@ public class CloudConnection<T> extends Thread {
 
 					// refresh transmission timeout
 					refreshTransmissionTimeout();
-
-					// mark as "received"
-					remoteMessageIds.add(request.getId());
 
 					if (wasSentFromHere(request)) {
 
@@ -242,6 +240,7 @@ public class CloudConnection<T> extends Thread {
 			try {
 				Thread.sleep(10);
 			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 	}
@@ -268,6 +267,7 @@ public class CloudConnection<T> extends Thread {
 			try {
 				Thread.sleep(10);
 			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 	}
@@ -283,6 +283,7 @@ public class CloudConnection<T> extends Thread {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 
@@ -324,10 +325,20 @@ public class CloudConnection<T> extends Thread {
 
 	public NodeInterface storeNode(final DataContainer receivedData) throws FrameworkException {
 
+		final SecurityContext securityContext    = SecurityContext.getSuperUserInstance();
 		final NodeDataContainer receivedNodeData = (NodeDataContainer) receivedData;
-		final PropertyMap properties = PropertyMap.databaseTypeToJavaType(SecurityContext.getSuperUserInstance(), receivedNodeData.getType(), receivedNodeData.getProperties());
-		final String uuid = receivedNodeData.getSourceNodeId();
-		NodeInterface newOrExistingNode = null;
+		final String typeName                    = receivedNodeData.getType();
+		final Class nodeType                     = config.getNodeEntityClass(typeName);
+
+		if (nodeType == null) {
+
+			logger.log(Level.SEVERE, "Unknown entity type {0}", typeName);
+			return null;
+		}
+
+		final PropertyMap properties             = PropertyMap.databaseTypeToJavaType(securityContext, nodeType, receivedNodeData.getProperties());
+		final String uuid                        = receivedNodeData.getSourceNodeId();
+		NodeInterface newOrExistingNode          = null;
 
 		final NodeInterface existingCandidate = app.nodeQuery().and(GraphObject.id, uuid).includeDeletedAndHidden().getFirst();
 		if (existingCandidate != null && existingCandidate instanceof NodeInterface) {
@@ -340,7 +351,7 @@ public class CloudConnection<T> extends Thread {
 		} else {
 
 			// create
-			newOrExistingNode = app.create(receivedNodeData.getType(), properties);
+			newOrExistingNode = app.create(nodeType, properties);
 		}
 
 		idMap.put(receivedNodeData.getSourceNodeId(), newOrExistingNode.getUuid());
@@ -374,10 +385,11 @@ public class CloudConnection<T> extends Thread {
 		if (targetStartNodeId != null && targetEndNodeId != null) {
 
 			// Get new start and end node
-			final NodeInterface targetStartNode = (NodeInterface) app.get(targetStartNodeId);
-			final NodeInterface targetEndNode = (NodeInterface) app.get(targetEndNodeId);
-			final Class relType = receivedRelationshipData.getType();
 			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+			final NodeInterface targetStartNode   = (NodeInterface) app.get(targetStartNodeId);
+			final NodeInterface targetEndNode     = (NodeInterface) app.get(targetEndNodeId);
+			final String typeName                 = receivedRelationshipData.getType();
+			final Class relType                   = config.getRelationshipEntityClass(typeName);
 
 			if (targetStartNode != null && targetEndNode != null) {
 

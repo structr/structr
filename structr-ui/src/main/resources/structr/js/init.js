@@ -181,6 +181,16 @@ $(function() {
 
     Structr.connect();
 
+    // Reset keys in case of window switching
+    
+    $(window).blur(function(e) {
+        altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+    });
+
+    $(window).focus(function(e) {
+        altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+    });
+
     $(window).keyup(function(e) {
         var k = e.which;
         if (k === 16)
@@ -371,7 +381,7 @@ var Structr = {
         if (sendObj(obj)) {
             localStorage.removeItem(userKey);
             $.cookie('JSESSIONID', null);
-            sessionId.lenght = 0;
+            sessionId.length = 0;
             Structr.clearMain();
             Structr.login(text);
             return true;
@@ -1235,6 +1245,10 @@ function swapFgBg(el) {
 
 function isImage(contentType) {
     return (contentType && contentType.indexOf('image') > -1);
+}
+
+function isVideo(contentType) {
+    return (contentType && contentType.indexOf('video') > -1);
 }
 
 function addExpandedNode(id) {

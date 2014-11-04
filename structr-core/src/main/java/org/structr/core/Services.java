@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core;
@@ -57,48 +57,52 @@ import org.structr.schema.ConfigurationProvider;
 /**
  * Provides access to the service layer in structr.
  *
- * <p>
- * Use the {@see #command} method to obtain an instance of the desired command.
- * </p>
+ * Use the command method to obtain an instance of the desired command.
  *
  * @author Christian Morgner
  */
 public class Services {
 
 	private static final Logger logger                       = Logger.getLogger(StructrApp.class.getName());
-	private static StructrConf baseConf                      = null;
+	private static StructrConf baseConf                         = null;
 
 	// Configuration constants
-	public static final String INITIAL_SEED_FILE             = "seed.zip";
-	public static final String BASE_PATH                     = "base.path";
-	public static final String CONFIGURED_SERVICES           = "configured.services";
-	public static final String CONFIG_FILE_PATH              = "configfile.path";
-	public static final String DATABASE_PATH                 = "database.path";
-	public static final String FILES_PATH                    = "files.path";
-	public static final String DATA_EXCHANGE_PATH            = "data.exchange.path";
-	public static final String LOG_DATABASE_PATH             = "log.database.path";
-	public static final String FOREIGN_TYPE                  = "foreign.type.key";
-	public static final String NEO4J_SHELL_ENABLED           = "neo4j.shell.enabled";
-	public static final String NEO4J_SHELL_PORT              = "neo4j.shell.port";
-	public static final String LOG_SERVICE_INTERVAL          = "structr.logging.interval";
-	public static final String LOG_SERVICE_THRESHOLD         = "structr.logging.threshold";
-	public static final String SERVER_IP                     = "server.ip";
-	public static final String SMTP_HOST                     = "smtp.host";
-	public static final String SMTP_PORT                     = "smtp.port";
-	public static final String SMTP_USER                     = "smtp.user";
-	public static final String SMTP_PASSWORD                 = "smtp.password";
-	public static final String SUPERUSER_USERNAME            = "superuser.username";
-	public static final String SUPERUSER_PASSWORD            = "superuser.password";
-	public static final String TCP_PORT                      = "tcp.port";
-	public static final String TMP_PATH                      = "tmp.path";
-	public static final String UDP_PORT                      = "udp.port";
-	public static final String JSON_INDENTATION              = "json.indentation";
-	public static final String GEOCODING_PROVIDER            = "geocoding.provider";
-	public static final String GEOCODING_LANGUAGE            = "geocoding.language";
-	public static final String GEOCODING_APIKEY              = "geocoding.apikey";
-	public static final String CONFIGURATION                 = "configuration.provider";
-	public static final String TESTING                       = "testing";
-	public static final String MIGRATION_KEY                 = "NodeService.migration";
+	public static final String INITIAL_SEED_FILE                = "seed.zip";
+	public static final String BASE_PATH                        = "base.path";
+	public static final String CONFIGURED_SERVICES              = "configured.services";
+	public static final String CONFIG_FILE_PATH                 = "configfile.path";
+	public static final String DATABASE_PATH                    = "database.path";
+	public static final String FILES_PATH                       = "files.path";
+	public static final String DATA_EXCHANGE_PATH               = "data.exchange.path";
+	public static final String LOG_DATABASE_PATH                = "log.database.path";
+	public static final String FOREIGN_TYPE                     = "foreign.type.key";
+	public static final String NEO4J_SHELL_ENABLED              = "neo4j.shell.enabled";
+	public static final String NEO4J_SHELL_PORT                 = "neo4j.shell.port";
+	public static final String LOG_SERVICE_INTERVAL             = "structr.logging.interval";
+	public static final String LOG_SERVICE_THRESHOLD            = "structr.logging.threshold";
+	public static final String SERVER_IP                        = "server.ip";
+	public static final String SMTP_HOST                        = "smtp.host";
+	public static final String SMTP_PORT                        = "smtp.port";
+	public static final String SMTP_USER                        = "smtp.user";
+	public static final String SMTP_PASSWORD                    = "smtp.password";
+	public static final String SUPERUSER_USERNAME               = "superuser.username";
+	public static final String SUPERUSER_PASSWORD               = "superuser.password";
+	public static final String TCP_PORT                         = "tcp.port";
+	public static final String TMP_PATH                         = "tmp.path";
+	public static final String UDP_PORT                         = "udp.port";
+	public static final String JSON_INDENTATION                 = "json.indentation";
+	public static final String JSON_REDUNDANCY_REDUCTION        = "json.redundancyReduction";
+	public static final String GEOCODING_PROVIDER               = "geocoding.provider";
+	public static final String GEOCODING_LANGUAGE               = "geocoding.language";
+	public static final String GEOCODING_APIKEY                 = "geocoding.apikey";
+	public static final String CONFIGURATION                    = "configuration.provider";
+	public static final String TESTING                          = "testing";
+	public static final String MIGRATION_KEY                    = "NodeService.migration";
+	public static final String ACCESS_CONTROL_MAX_AGE           = "access.control.max.age";
+	public static final String ACCESS_CONTROL_ALLOW_METHODS     = "access.control.allow.methods";
+	public static final String ACCESS_CONTROL_ALLOW_HEADERS     = "access.control.allow.headers";
+	public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS = "access.control.allow.credentials";
+	public static final String ACCESS_CONTROL_EXPOSE_HEADERS    = "access.control.expose.headers";
 
 	// singleton instance
 	private static Services singletonInstance = null;
@@ -272,23 +276,23 @@ public class Services {
 		// initialize other services
 		for (final String serviceClassName : configuredServiceClasses) {
 
-			try {
-
 				Class serviceClass = getServiceClassForName(serviceClassName);
 				if (serviceClass != null) {
 
-					final Service service = createService(serviceClass);
-					if (service != null) {
+					try {
 
-						service.initialized();
+						final Service service = createService(serviceClass);
+						if (service != null) {
+
+							service.initialized();
+						}
+
+					} catch (Throwable t) {
+
+						logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClassName, t });
+						t.printStackTrace();
 					}
 				}
-
-			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClassName, t });
-				t.printStackTrace();
-			}
 		}
 
 		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
@@ -305,12 +309,12 @@ public class Services {
 		logger.log(Level.INFO, "Registering shutdown hook.");
 
 		// register shutdown hook
-		Runtime.getRuntime().addShutdownHook( new Thread()
-		{
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+
 			@Override
 			public void run() {
 
-			    shutdown();
+				shutdown();
 			}
 		});
 
@@ -444,7 +448,7 @@ public class Services {
 	 * Retrieve attribute value from service config
 	 *
 	 * @param name
-	 * @return
+	 * @return attribute
 	 */
 	public Object getAttribute(final String name) {
 		return attributes.get(name);
@@ -464,25 +468,41 @@ public class Services {
 		logger.log(Level.FINE, "Creating service ", serviceClass.getName());
 
 		Service service = (Service) serviceClass.newInstance();
-		service.initialize(getCurrentConfig());
+		try {
 
-		if (service instanceof RunnableService) {
+			service.initialize(getCurrentConfig());
 
-			RunnableService runnableService = (RunnableService) service;
+			if (service instanceof RunnableService) {
 
-			if (runnableService.runOnStartup()) {
+				RunnableService runnableService = (RunnableService) service;
 
-				logger.log(Level.FINER, "Starting RunnableService instance ", serviceClass.getName());
+				if (runnableService.runOnStartup()) {
 
-				// start RunnableService and cache it
-				runnableService.startService();
+					logger.log(Level.FINER, "Starting RunnableService instance ", serviceClass.getName());
+
+					// start RunnableService and cache it
+					runnableService.startService();
+					serviceCache.put(serviceClass, service);
+				}
+
+			} else if (service instanceof SingletonService) {
+
+				// cache SingletonService
 				serviceCache.put(serviceClass, service);
 			}
 
-		} else if (service instanceof SingletonService) {
+		} catch (Throwable t) {
 
-			// cache SingletonService
-			serviceCache.put(serviceClass, service);
+			t.printStackTrace();
+
+			if (service.isVital()) {
+
+				logger.log(Level.SEVERE, "Vital service {0} failed to start with {1}, aborting.", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
+
+				// hard(est) exit
+				System.err.println("Vital service " + service.getClass().getSimpleName() + " failed to start with " + t.getMessage() + ", aborting.");
+				System.exit(1);
+			}
 		}
 
 		return service;
@@ -491,7 +511,7 @@ public class Services {
 	/**
 	 * Return all registered services
 	 *
-	 * @return
+	 * @return list of services
 	 */
 	public List<Service> getServices() {
 
@@ -523,7 +543,7 @@ public class Services {
          * means initialized and running.
 	 *
 	 * @param serviceClass
-	 * @return
+	 * @return isReady
 	 */
 	public boolean isReady(final Class serviceClass) {
                 Service service = serviceCache.get(serviceClass);

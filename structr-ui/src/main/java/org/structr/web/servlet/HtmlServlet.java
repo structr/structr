@@ -75,6 +75,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.Linkable;
+import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -161,7 +162,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					return;
 				}
 
-				Principal user = securityContext.getUser(false);
+				final Principal user = securityContext.getUser(false);
 				if (user != null) {
 
 					// Don't cache if a user is logged in
@@ -173,7 +174,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				renderContext.setResourceProvider(config.getResourceProvider());
 
-				EditMode edit = renderContext.getEditMode(user);
+				final EditMode edit = renderContext.getEditMode(user);
 
 				DOMNode rootElement = null;
 				AbstractNode dataNode = null;
@@ -233,7 +234,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					}
 
-					if (dataNode != null) {
+					if (dataNode != null && !(dataNode instanceof Linkable)) {
 
 						// Last path part matches a data node
 						// Remove last path part and try again searching for a page
@@ -451,6 +452,261 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
+	@Override
+	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) {
+
+		final Authenticator auth = config.getAuthenticator();
+		final SecurityContext securityContext;
+		final App app;
+
+		try {
+			String path = request.getPathInfo();
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				securityContext = auth.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			app = StructrApp.getInstance(securityContext);
+
+			try (final Tx tx = app.tx()) {
+
+				// Ensure access mode is frontend
+				securityContext.setAccessMode(AccessMode.Frontend);
+
+				request.setCharacterEncoding("UTF-8");
+
+				// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
+				response.setCharacterEncoding("UTF-8");
+				response.setContentLength(0);
+
+				boolean dontCache = false;
+
+				logger.log(Level.FINE, "Path info {0}", path);
+
+				// don't continue on redirects
+				if (response.getStatus() == 302) {
+					return;
+				}
+
+				final Principal user = securityContext.getUser(false);
+				if (user != null) {
+
+					// Don't cache if a user is logged in
+					dontCache = true;
+
+				}
+
+				final RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
+
+				renderContext.setResourceProvider(config.getResourceProvider());
+
+				final EditMode edit = renderContext.getEditMode(user);
+
+				DOMNode rootElement = null;
+				AbstractNode dataNode = null;
+
+				String[] uriParts = PathHelper.getParts(path);
+				if ((uriParts == null) || (uriParts.length == 0)) {
+
+					// find a visible page
+					rootElement = findIndexPage(securityContext);
+
+					logger.log(Level.FINE, "No path supplied, trying to find index page");
+
+				} else {
+
+					if (rootElement == null) {
+
+						rootElement = findPage(securityContext, request, path);
+
+					} else {
+						dontCache = true;
+					}
+				}
+
+				if (rootElement == null) { // No page found
+
+					// Look for a file
+					File file = findFile(securityContext, request, path);
+					if (file != null) {
+
+						//streamFile(securityContext, file, request, response, edit);
+						return;
+
+					}
+
+					// store remaining path parts in request
+					Matcher matcher = threadLocalUUIDMatcher.get();
+					boolean requestUriContainsUuids = false;
+
+					for (int i = 0; i < uriParts.length; i++) {
+
+						request.setAttribute(uriParts[i], i);
+						matcher.reset(uriParts[i]);
+
+						// set to "true" if part matches UUID pattern
+						requestUriContainsUuids |= matcher.matches();
+
+					}
+
+					if (!requestUriContainsUuids) {
+
+						// Try to find a data node by name
+						dataNode = findFirstNodeByName(securityContext, request, path);
+
+					} else {
+
+						dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
+
+					}
+
+					if (dataNode != null && !(dataNode instanceof Linkable)) {
+
+						// Last path part matches a data node
+						// Remove last path part and try again searching for a page
+						// clear possible entry points
+						request.removeAttribute(POSSIBLE_ENTRY_POINTS);
+
+						rootElement = findPage(securityContext, request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP));
+
+						renderContext.setDetailsDataObject(dataNode);
+
+						// Start rendering on data node
+						if (rootElement == null && dataNode instanceof DOMNode) {
+
+							rootElement = ((DOMNode) dataNode);
+
+						}
+
+					}
+
+				}
+
+				// Still nothing found, do error handling
+				if (rootElement == null) {
+
+					// Check if security context has set an 401 status
+					if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
+
+						try {
+
+							UiAuthenticator.writeUnauthorized(response);
+
+						} catch (IllegalStateException ise) {
+						}
+
+					} else {
+
+						rootElement = notFound(response, securityContext);
+
+					}
+
+				}
+
+				if (rootElement == null) {
+
+					// no content
+					response.setContentLength(0);
+					response.getOutputStream().close();
+
+					return;
+				}
+
+				if (EditMode.WIDGET.equals(edit) || dontCache) {
+
+					setNoCacheHeaders(response);
+
+				}
+
+				if (!securityContext.isVisible(rootElement)) {
+
+					rootElement = notFound(response, securityContext);
+					if (rootElement == null) {
+						return;
+					}
+
+				}
+
+				if (securityContext.isVisible(rootElement)) {
+
+					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
+
+						response.getOutputStream().close();
+
+					} else {
+
+						// prepare response
+						response.setCharacterEncoding("UTF-8");
+
+						String contentType = rootElement.getProperty(Page.contentType);
+
+						if (contentType != null && contentType.equals("text/html")) {
+
+							contentType = contentType.concat(";charset=UTF-8");
+							response.setContentType(contentType);
+
+						} else {
+
+							// Default
+							response.setContentType("text/html;charset=UTF-8");
+						}
+
+						response.setHeader("Strict-Transport-Security", "max-age=60");
+						response.setHeader("X-Content-Type-Options", "nosniff");
+						response.setHeader("X-Frame-Options", "SAMEORIGIN");
+						response.setHeader("X-XSS-Protection", "1; mode=block");
+
+						response.getOutputStream().close();
+					}
+
+				} else {
+
+					notFound(response, securityContext);
+
+					response.getOutputStream().close();
+				}
+
+				tx.success();
+
+			} catch (Throwable fex) {
+				fex.printStackTrace();
+				logger.log(Level.SEVERE, "Exception while processing request", fex);
+			}
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			logger.log(Level.SEVERE, "Exception while processing request", t);
+			UiAuthenticator.writeInternalServerError(response);
+		}
+	}
+
+	@Override
+	protected void doOptions(final HttpServletRequest request, final HttpServletResponse response) {
+
+		final Authenticator auth = config.getAuthenticator();
+
+		try {
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				auth.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			response.setContentLength(0);
+			response.setHeader("Allow", "GET,HEAD,OPTIONS");
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			logger.log(Level.SEVERE, "Exception while processing request", t);
+			UiAuthenticator.writeInternalServerError(response);
+		}
+	}
+
 	/**
 	 * Handle 404 Not Found
 	 *
@@ -489,10 +745,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @param securityContext
 	 * @param request
 	 * @param path
-	 * @return
+	 * @return node
 	 * @throws FrameworkException
 	 */
-	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		final String name = PathHelper.getName(path);
 
@@ -517,7 +773,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @param securityContext
 	 * @param request
 	 * @param uuid
-	 * @return
+	 * @return node
 	 * @throws FrameworkException
 	 */
 	private AbstractNode findNodeByUuid(final SecurityContext securityContext, final String uuid) throws FrameworkException {
@@ -538,10 +794,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @param securityContext
 	 * @param request
 	 * @param path
-	 * @return
+	 * @return file
 	 * @throws FrameworkException
 	 */
-	private File findFile(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private File findFile(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
 
@@ -555,6 +811,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		for (Linkable node : entryPoints) {
+
 			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
 				return (File) node;
 			}
@@ -565,28 +822,52 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	/**
 	 * Find a page with matching path.
-	 * 
+	 *
 	 * To be compatible with older versions, fallback to name-only lookup.
 	 *
 	 * @param securityContext
 	 * @param request
 	 * @param path
-	 * @return
+	 * @return page
 	 * @throws FrameworkException
 	 */
-	private Page findPage(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private Page findPage(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
-		
+
 		if (entryPoints.isEmpty()) {
-			
+
 			entryPoints = findPossibleEntryPointsByName(securityContext, request, PathHelper.getName(path));
-			
+
 		}
 
 		for (Linkable node : entryPoints) {
 
 			if (node instanceof Page) { // && path.equals(node.getPath())) {
+
+				final Page page = (Page) node;
+				final Site site = page.getProperty(Page.site);
+
+				if (site != null) {
+
+					final String serverName = request.getServerName();
+					final int    serverPort = request.getServerPort();
+
+					if (StringUtils.isNotBlank(serverName) && !serverName.equals(site.getProperty(Site.hostname))) {
+						continue;
+					}
+
+					Integer sitePort = site.getProperty(Site.port);
+					if (sitePort == null) {
+						sitePort = 80;
+					}
+
+					if (serverPort != sitePort) {
+						continue;
+					}
+
+				}
+
 				return (Page) node;
 			}
 		}
@@ -596,15 +877,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	/**
 	 * Find the page with the lowest position value which is visible in the
-	 * current securit context
+	 * current security context
 	 *
 	 * @param securityContext
-	 * @return
+	 * @return page
 	 * @throws FrameworkException
 	 */
 	private Page findIndexPage(final SecurityContext securityContext) throws FrameworkException {
 
-		Result<Page> results = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getResult();
+		final Result<Page> results = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getResult();
 		Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
 		// Find first visible page
@@ -645,8 +926,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return false;
 		}
 
-		String targetPage = request.getParameter(TARGET_PAGE_KEY);
-		String errorPage = request.getParameter(ERROR_PAGE_KEY);
+		final String targetPage = request.getParameter(TARGET_PAGE_KEY);
+		final String errorPage = request.getParameter(ERROR_PAGE_KEY);
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -695,9 +976,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return false;
 	}
 
-	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, HttpServletRequest request, final String uuid) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, final HttpServletRequest request, final String uuid) throws FrameworkException {
 
-		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -724,9 +1005,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPointsByPath(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByPath(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
-		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -753,9 +1034,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPointsByName(final SecurityContext securityContext, HttpServletRequest request, final String name) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByName(final SecurityContext securityContext, final HttpServletRequest request, final String name) throws FrameworkException {
 
-		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -782,7 +1063,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, HttpServletRequest request, final String path) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
@@ -795,7 +1076,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			logger.log(Level.FINE, "Requested name {0}", path);
 
 			possibleEntryPoints = findPossibleEntryPointsByPath(securityContext, request, path);
-			
+
 			if (possibleEntryPoints.isEmpty()) {
 				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, PathHelper.getName(path));
 			}
@@ -953,7 +1234,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * Priority 1: URL parameter "locale" Priority 2: Browser locale
 	 *
 	 * @param request
-	 * @return
+	 * @return locale
 	 */
 	private Locale getEffectiveLocale(final HttpServletRequest request) {
 

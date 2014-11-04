@@ -85,7 +85,11 @@ public class PushNodesCommand extends AbstractCommand {
 					getWebSocket().send(MessageBuilder.status().code(404).message("Entity with ID " + sourceId + " not found.").build(), true);
 				}
 
+				tx.success();
+
 			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
 			}

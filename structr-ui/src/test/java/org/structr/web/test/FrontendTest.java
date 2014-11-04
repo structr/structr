@@ -73,7 +73,7 @@ public class FrontendTest extends StructrUiTest {
 			Integer exitValue = null;
 			try {
 				exitValue = proc.exitValue();
-				
+
 			} catch (IllegalThreadStateException ex) {
 				logger.log(Level.WARNING, "Subprocess has not properly exited", ex);
 				ex.printStackTrace();

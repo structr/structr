@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.servlet;
@@ -28,6 +28,8 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -38,15 +40,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.JsonInput;
-import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.Value;
+import org.structr.core.*;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -65,13 +64,12 @@ import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Implements the structr REST API. The input and output format of the JSON
- * serialisation can be configured with the servlet init parameter "PropertyFormat".
- * ({@see PropertyFormat}).
+ * Implements the structr REST API.
  *
  * @author Christian Morgner
  */
@@ -141,8 +139,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		resourceMap.putAll(config.getResourceProvider().getResources());
 
 		// initialize variables
-		this.propertyView       = new ThreadLocalPropertyView();
-		this.gson               = new ThreadLocalGson(config.getOutputNestingDepth());
+		this.propertyView           = new ThreadLocalPropertyView();
+		this.gson                   = new ThreadLocalGson(config.getOutputNestingDepth());
 	}
 
 	@Override
@@ -693,13 +691,14 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		RestMethodResult result         = null;
-		JsonInput propertySet           = null;
-		Resource resource               = null;
+		final List<RestMethodResult> results = new LinkedList<>();
+		SecurityContext securityContext      = null;
+		Authenticator authenticator          = null;
+		IJsonInput jsonInput 		     = null;
+		Resource resource                    = null;
 
 		try {
+
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -715,22 +714,24 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance(securityContext);
 
+			String input = IOUtils.toString(request.getReader());
+			if (StringUtils.isBlank(input)) {
+				input = "{}";
+			}
+
 			// isolate input parsing (will include read and write operations)
 			try (final Tx tx = app.tx()) {
-				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
+				jsonInput   = gson.get().fromJson(input, IJsonInput.class);
 				tx.success();
 			}
 
 			if (securityContext != null) {
 
-				// evaluate constraint chain
-				Map<String, Object> properties  = convertPropertySetToMap(propertySet);
-
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
 					resource = ResourceHelper.applyViewTransformation(request, securityContext,
-						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+							ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
@@ -744,7 +745,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 						try (final Tx tx = app.tx()) {
 
-							result = resource.doPost(properties);
+							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+							}
+
 							tx.success();
 							retry = false;
 
@@ -756,7 +761,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 						try {
 
-							result = resource.doPost(properties);
+							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+							}
+
 							retry = false;
 
 						} catch (DeadlockDetectedException ddex) {
@@ -771,8 +780,30 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 
-					if (result != null) {
+					if (!results.isEmpty()) {
+
+						final RestMethodResult result = results.get(0);
+						final int resultCount         = results.size();
+
+						if (resultCount > 1) {
+
+							for (final RestMethodResult r : results) {
+
+								final GraphObject objectCreated = r.getContent().get(0);
+								if (!result.getContent().contains(objectCreated)) {
+
+									result.addContent(objectCreated);
+								}
+
+							}
+
+							// remove Location header if more than one object was
+							// written because it may only contain a single URL
+							result.addHeader("Location", null);
+						}
+
 						result.commitResponse(gson.get(), response);
+							
 					}
 
 					tx.success();
@@ -782,8 +813,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
-					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
-					result.commitResponse(gson.get(), response);
+
+					new RestMethodResult(HttpServletResponse.SC_FORBIDDEN).commitResponse(gson.get(), response);
 					tx.success();
 				}
 
@@ -855,7 +886,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
-		JsonInput propertySet           = null;
+		IJsonInput jsonInput            = null;
 		Resource resource               = null;
 
 		try {
@@ -874,15 +905,18 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance(securityContext);
 
+			String input = IOUtils.toString(request.getReader());
+			if (StringUtils.isBlank(input)) {
+				input = "{}";
+			}
+
 			// isolate input parsing (will include read and write operations)
 			try (final Tx tx = app.tx()) {
-				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
+				jsonInput   = gson.get().fromJson(input, IJsonInput.class);
 				tx.success();
 			}
 
 			if (securityContext != null) {
-
-				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
@@ -900,7 +934,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				while (retry) {
 
 					try (final Tx tx = app.tx()) {
-						result = resource.doPut(properties);
+						result = resource.doPut(convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
 						tx.success();
 						retry = false;
 
@@ -1042,10 +1076,10 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				.setPrettyPrinting()
 				.serializeNulls()
 				.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
-				.registerTypeAdapter(JsonInput.class, jsonInputAdapter)
+				.registerTypeAdapter(IJsonInput.class, jsonInputAdapter)
 				.registerTypeAdapter(Result.class, resultGsonAdapter);
-			
-		
+
+
 			final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
 			if (lenient) {
 
@@ -1053,7 +1087,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				gsonBuilder.serializeSpecialFloatingPointValues();
 
 			}
-			
+
 			return gsonBuilder.create();
 		}
 	}

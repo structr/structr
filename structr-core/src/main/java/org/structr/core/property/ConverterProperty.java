@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
@@ -27,10 +27,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 
 /**
- * A property that applies a given converter to its value. This is needed for backwards compatibiliy only
+ * A property that applies a given converter to its value. This is needed for backwards compatibility only
  * and will be removed in future releases.
  *
- * @Deprecated This property is needed for backwards compatibility only and will be removed in future releases
+ * @deprecated This property is needed for backwards compatibility only and will be removed in future releases
  * 
  * @author Christian Morgner
  */

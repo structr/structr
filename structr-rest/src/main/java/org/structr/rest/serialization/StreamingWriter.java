@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.serialization;
@@ -31,11 +31,13 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -62,7 +64,9 @@ public abstract class StreamingWriter {
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
+	private final Set<Class> visitedTypes                = new ConcurrentHashSet<>();
 	private final DecimalFormat decimalFormat            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private boolean reduceRedundancy                     = false;
 	private int outputNestingDepth                       = 3;
 	private Value<String> propertyView                   = null;
 	protected boolean indent                             = true;
@@ -70,7 +74,7 @@ public abstract class StreamingWriter {
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
-	public StreamingWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
+	public StreamingWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth) {
 
 		this.outputNestingDepth = outputNestingDepth;
 		this.propertyView       = propertyView;
@@ -92,8 +96,29 @@ public abstract class StreamingWriter {
 		nonSerializerClasses.add(StringBuffer.class);
 		nonSerializerClasses.add(Boolean.class);
 
+		try {
+			this.reduceRedundancy = Boolean.valueOf(Services.getInstance().getConfigurationValue(Services.JSON_REDUNDANCY_REDUCTION, "false"));
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, "Unable to parse value for {0} from configuration file, invalid value.", Services.JSON_REDUNDANCY_REDUCTION);
+		}
+
 		//this.writer = new StructrWriter(writer);
 		//this.writer.setIndent("   ");
+	}
+
+	public void streamSingle(final SecurityContext securityContext, final Writer output, final GraphObject obj) throws IOException {
+
+		final RestWriter writer = getRestWriter(securityContext, output);
+		final String view       = propertyView.get(securityContext);
+
+		if (indent) {
+			writer.setIndent("   ");
+		}
+
+		writer.beginDocument(null, view);
+		root.serialize(writer, obj, view, 0);
+		writer.endDocument();
+
 	}
 
 	public void stream(final SecurityContext securityContext, final Writer output, final Result result, final String baseUrl) throws IOException {
@@ -367,6 +392,9 @@ public abstract class StreamingWriter {
 		@Override
 		public void serialize(RestWriter writer, GraphObject source, String localPropertyView, int depth) throws IOException {
 
+			// mark object as visited
+			visitedTypes.add(source.getClass());
+
 			writer.beginObject(source);
 
 			// prevent endless recursion by pruning at depth n
@@ -385,12 +413,21 @@ public abstract class StreamingWriter {
 
 						final Predicate predicate  = writer.getSecurityContext().getRange(key.jsonName());
 						final Object value         = source.getProperty(key, predicate);
+						final Class relatedType    = key.relatedType();
 						final PropertyKey localKey = key;
 
 						if (value != null) {
 
-							writer.name(localKey.jsonName());
-							serializeProperty(writer, key, value, localPropertyView, depth+1);
+							if (reduceRedundancy && relatedType != null && visitedTypes.contains(key.relatedType())) {
+
+								continue;
+
+							} else {
+
+								writer.name(localKey.jsonName());
+								serializeProperty(writer, key, value, localPropertyView, depth+1);
+
+							}
 
 						} else {
 
@@ -401,6 +438,9 @@ public abstract class StreamingWriter {
 			}
 
 			writer.endObject(source);
+
+			// unmark (visiting only counts for children)
+			visitedTypes.remove(source.getClass());
 		}
 	}
 
@@ -462,10 +502,11 @@ public abstract class StreamingWriter {
 
 				for (Map.Entry<PropertyKey, Object> entry : source.entrySet()) {
 
-					PropertyKey key = entry.getKey();
+					final PropertyKey key   = entry.getKey();
+					final Object value      = entry.getValue();
 
 					writer.name(key.jsonName());
-					serializeProperty(writer, key, entry.getValue(), localPropertyView, depth+1);
+					serializeProperty(writer, key, value, localPropertyView, depth+1);
 				}
 			}
 

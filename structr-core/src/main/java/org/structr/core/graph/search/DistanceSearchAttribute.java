@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph.search;
@@ -26,10 +26,6 @@ import org.structr.core.GraphObject;
  * Represents a distance search.
  *
  * Here, the key is a search string to be passed to geocoding, and value is a distance in km.
- *
- * <p> Used in {
- *
- * @see SearchNodeCommand}.
  *
  * @author Axel Morgner
  */

@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest;
@@ -49,6 +49,7 @@ public class RestMethodResult {
 	private int responseCode                          = 0;
 	private String message                            = null;
 	private boolean serializeSingleObjectAsCollection = false;
+	private boolean serializeAsPrimitiveArray         = false;
 
 	public RestMethodResult(final int responseCode) {
 		this.headers      = new LinkedHashMap<>();
@@ -96,18 +97,21 @@ public class RestMethodResult {
 			if (content != null) {
 
 				// create result set
-				Result result = new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, false);
+				Result result = new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, serializeAsPrimitiveArray);
 
 				// serialize result set
 				gson.toJson(result, writer);
 			}
 
-			if (StringUtils.isNotEmpty(message)) {
-				
+			if (content == null) {
+
 				writer.append(jsonMessage(responseCode, message));
 
 			}
-			
+
+			// add newline
+			writer.append("\n");
+
 			//writer.flush();
 			//writer.close();
 		} catch (JsonIOException | IOException t) {
@@ -116,18 +120,28 @@ public class RestMethodResult {
 		}
 	}
 
+	public void serializeAsPrimitiveArray(final boolean value) {
+		
+		this.serializeAsPrimitiveArray = value;
+
+	}
+
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
-	
+
+	public List<GraphObject> getContent() {
+		return content;
+	}
+
 	public static String jsonError(final int code, final String message) {
-		
+
 		return jsonMessage(code, message, "error");
 
 	}
 
 	public static String jsonMessage(final int code, final String message) {
-		
+
 		return jsonMessage(code, message, "message");
 
 	}
@@ -153,5 +167,5 @@ public class RestMethodResult {
 
 		return buf.toString();
 	}
-	
+
 }

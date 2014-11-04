@@ -4,7 +4,7 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.common;
@@ -97,7 +97,7 @@ public class PathHelper {
 	 *
 	 * @param basePath
 	 * @param targetPath
-	 * @return
+	 * @return relative node path
 	 */
 	public static String getRelativeNodePath(String basePath, String targetPath) {
 
@@ -177,16 +177,16 @@ public class PathHelper {
 	}
 
 	/**
-	 * Return last part of path after {@link PATH_SEP} or the path if no path separator was found.
+	 * Return last part of path after separator or the path if no path separator was found.
 	 * 
 	 * @param path
-	 * @return 
+	 * @return name
 	 */
 	public static String getName(final String path) {
 
 		String cleanedPath = clean(path);
 		
-		if (cleanedPath.contains(PATH_SEP)) {
+		if (cleanedPath != null && cleanedPath.contains(PATH_SEP)) {
 
 			return StringUtils.substringAfterLast(cleanedPath, PATH_SEP);
 
@@ -201,7 +201,7 @@ public class PathHelper {
 	 * Return array of path parts.
 	 * 
 	 * @param path
-	 * @return 
+	 * @return path parts
 	 */
 	public static String[] getParts(final String path) {
 

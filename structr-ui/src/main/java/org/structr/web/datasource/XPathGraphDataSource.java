@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -45,27 +46,18 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 
 	private static final Logger logger = Logger.getLogger(XPathGraphDataSource.class.getName());
 
-	private Document document;
-
 	@Override
 	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
 		final String xpathQuery = referenceNode.getProperty(DOMNode.xpathQuery);
 
-		if (xpathQuery == null || xpathQuery.isEmpty()) {
+		if (StringUtils.isBlank(xpathQuery)) {
 			return null;
 		}
 
-		document = ((DOMNode) referenceNode).getOwnerDocument();
-
-		return getData(securityContext, renderContext, xpathQuery);
-	}
-
-	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final String xpathQuery) throws FrameworkException {
-
+		final Document document    = ((DOMNode) referenceNode).getOwnerDocument();
 		final XPathFactory factory = XPathFactory.newInstance();
-		final XPath xpath = factory.newXPath();
+		final XPath xpath          = factory.newXPath();
 
 		try {
 
@@ -99,11 +91,12 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
+
 			logger.log(Level.WARNING, "Unable to execute xpath query: {0}", t.getMessage());
 		}
 
 		return Collections.EMPTY_LIST;
 
 	}
-
 }

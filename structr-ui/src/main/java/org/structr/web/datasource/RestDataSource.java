@@ -73,7 +73,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		return getData(securityContext, renderContext, restQuery);
 	}
 
-	@Override
+	// FIXME: this method is needed by the websocket search command because there is no reference node for the above method
 	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final String restQuery) throws FrameworkException {
 
 		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();

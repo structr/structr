@@ -114,8 +114,8 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 	 * @param client the client to send over
 	 * @param file the file to split and send
 	 * @param chunkSize the chunk size for a single chunk
-	 *
-	 * @return the number of objects that have been sent over the network
+	 * @throws org.structr.common.error.FrameworkException
+	 * @throws java.io.IOException
 	 */
 	public static void sendFile(final CloudConnection client, final File file, final int chunkSize) throws FrameworkException, IOException {
 

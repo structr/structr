@@ -13,7 +13,7 @@
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
     <version>1.1-SNAPSHOT</version>
-    <name>structr-core</name>
+    <name>Structr Core</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
         <developer>
@@ -31,7 +31,7 @@
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <structr.version>1.1-SNAPSHOT</structr.version>
-        <neo4j.version>2.0.4</neo4j.version>
+        <neo4j.version>2.1.5</neo4j.version>
     </properties>
 
     <repositories>
@@ -73,7 +73,7 @@
             <scope>test</scope>
             <optional>false</optional>
         </dependency>
-<!-- Comment in the following two dependencies when using Neo4j enterprise        
+<!-- Comment in the following two dependencies when using Neo4j enterprise
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -103,7 +103,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-spatial</artifactId>
-            <version>0.12-neo4j-${neo4j.version}</version>
+            <version>0.13-neo4j-2.1.4</version>
             <exclusions>
             </exclusions>
         </dependency>
@@ -257,6 +257,47 @@
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+<!--                    <forkCount>1</forkCount>-->
+                    <reuseForks>false</reuseForks>
+                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+		    <parallel>classes</parallel>
+		    <threadCount>8</threadCount>
+                    <systemPropertyVariables>
+                        <user.timezone>UTC</user.timezone>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <header>header.txt</header>
+                    <includes>
+                        <include>src/**</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/README</exclude>
+                        <exclude>src/**/.directory</exclude>
+                        <exclude>src/**/*.properties</exclude>
+                    </excludes>
+                    <properties>
+                        <year>2014</year>
+                        <owner>Morgner UG (haftungsbeschränkt)</owner>
+                    </properties>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
                         </goals>
                     </execution>
                 </executions>
