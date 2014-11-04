@@ -119,7 +119,7 @@ public class LogResource extends Resource {
 
 			boolean overview    = false;
 			boolean inverse     = false;
-			long beginTimestamp = 0L;
+			long beginTimestamp = Long.MAX_VALUE;
 			long endTimestamp   = 0L;
 			int entryCount           = 0;
 
