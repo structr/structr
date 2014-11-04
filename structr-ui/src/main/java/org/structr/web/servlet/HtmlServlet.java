@@ -312,16 +312,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						String contentType = rootElement.getProperty(Page.contentType);
 
-						if (contentType != null && contentType.equals("text/html")) {
-
-							contentType = contentType.concat(";charset=UTF-8");
-							response.setContentType(contentType);
-
-						} else {
-
+						if (contentType == null) {
+							
 							// Default
-							response.setContentType("text/html;charset=UTF-8");
+							contentType = "text/html;charset=UTF-8";
 						}
+						
+						if (contentType.equals("text/html")) {
+							contentType = contentType.concat(";charset=UTF-8");
+						}
+
+						response.setContentType(contentType);
 
 						response.setHeader("Strict-Transport-Security", "max-age=60");
 						response.setHeader("X-Content-Type-Options", "nosniff");
@@ -642,16 +643,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						String contentType = rootElement.getProperty(Page.contentType);
 
-						if (contentType != null && contentType.equals("text/html")) {
-
-							contentType = contentType.concat(";charset=UTF-8");
-							response.setContentType(contentType);
-
-						} else {
-
+						if (contentType == null) {
+							
 							// Default
-							response.setContentType("text/html;charset=UTF-8");
+							contentType = "text/html;charset=UTF-8";
 						}
+						
+						if (contentType.equals("text/html")) {
+							contentType = contentType.concat(";charset=UTF-8");
+						}
+
+						response.setContentType(contentType);
 
 						response.setHeader("Strict-Transport-Security", "max-age=60");
 						response.setHeader("X-Content-Type-Options", "nosniff");
