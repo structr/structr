@@ -248,12 +248,16 @@ public class LogResource extends Resource {
 								}
 							}
 
-						} catch (Throwable ignore) {}
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
 
 						line = reader.readLine();
 					}
 
-				} catch (IOException ioex) {}
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
 			}
 
 			if (overview) {
