@@ -282,7 +282,7 @@ public class LogResource extends Resource {
 
 				return new Result(overviewMap, false);
 
-			} else if (StringUtils.isNotBlank(aggregate) && entries.size() > 1) {
+			} else if (StringUtils.isNotBlank(aggregate)) {
 
 				// sort result
 				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
