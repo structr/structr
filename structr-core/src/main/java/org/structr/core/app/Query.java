@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -57,7 +58,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public Query<T> orType(final Class<T> type);
 	public Query<T> andTypes(final Class<T> type);
 	public Query<T> orTypes(final Class<T> type);
-	
+
 	public Query<T> andName(final String name);
 	public Query<T> orName(final String name);
 
@@ -72,15 +73,16 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public <P> Query<T> or(final PropertyKey<P> key, P value, boolean exact);
 	public <P> Query<T> or(final PropertyMap attributes);
 	public Query<T> notBlank(final PropertyKey key);
-	
+
 	public <P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
 	public <P> Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
-	
+
 	public Query<T> or();
 	public Query<T> not();
-	
+
 	public Query<T> parent();
 	public Query<T> attributes(final List<SearchAttribute> attributes);
-	
+
 	public Predicate<GraphObject> toPredicate();
+	public SearchAttributeGroup getRootAttributeGroup();
 }

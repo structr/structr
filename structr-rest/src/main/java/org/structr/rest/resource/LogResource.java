@@ -36,6 +36,9 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.search.RangeSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -186,7 +189,9 @@ public class LogResource extends Resource {
 			}
 
 			final List<GraphObject> entries = new LinkedList<>();
-			final Predicate datePredicate   = getTimestampPredicate();
+			final Query query               = getTimestampQuery();
+			final Range<Long> range         = getRangeFromQuery(query);
+			final Predicate datePredicate   = query.toPredicate();
 
 			for (final Path path : files) {
 
@@ -213,6 +218,16 @@ public class LogResource extends Resource {
 							final String entryAction  = part1;
 							final String entryMessage = part2;
 
+							// determine first timestamp
+							if (timestamp <= beginTimestamp) {
+								beginTimestamp = timestamp;
+							}
+
+							// determine last timestamp
+							if (timestamp >= endTimestamp) {
+								endTimestamp = timestamp;
+							}
+
 							if (overview) {
 
 								Integer actionCount = actions.get(entryAction);
@@ -223,14 +238,6 @@ public class LogResource extends Resource {
 								} else {
 
 									actions.put(entryAction, actionCount + 1);
-								}
-
-								if (timestamp <= beginTimestamp) {
-									beginTimestamp = timestamp;
-								}
-
-								if (timestamp >= endTimestamp) {
-									endTimestamp = timestamp;
 								}
 
 								entryCount++;
@@ -280,8 +287,11 @@ public class LogResource extends Resource {
 				// sort result
 				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
 
+				final long intervalStart = range != null ? range.start : beginTimestamp;
+				final long intervalEnd   = range != null ? range.end : endTimestamp;
+
 				// aggregate results
-				return aggregate(entries, aggregate);
+				return aggregate(entries, aggregate, intervalStart, intervalEnd);
 
 			} else {
 
@@ -472,33 +482,64 @@ public class LogResource extends Resource {
 		return buf.toString();
 	}
 
-	private Predicate getTimestampPredicate() throws FrameworkException {
+	private Query getTimestampQuery() throws FrameworkException {
 
 		final Query dummyQuery = StructrApp.getInstance(securityContext).nodeQuery();
 		timestampProperty.extractSearchableAttribute(securityContext, securityContext.getRequest(), dummyQuery);
 
-		return dummyQuery.toPredicate();
+		return dummyQuery;
 	}
 
-	private Result aggregate(final List<GraphObject> entries, final String dateFormat) {
+	private Range<Long> getRangeFromQuery(final Query query) throws FrameworkException {
+
+		final SearchAttributeGroup rootGroup = query.getRootAttributeGroup();
+		final RangeSearchAttribute range     = findRange(rootGroup);
+
+		if (range != null) {
+
+			final Object start = range.getRangeStart();
+			final Object end   = range.getRangeEnd();
+
+			if (start instanceof Date && end instanceof Date) {
+				return new Range<>(((Date)start).getTime(), ((Date)end).getTime());
+			}
+		}
+
+		return null;
+	}
+
+	private RangeSearchAttribute findRange(final SearchAttributeGroup group) {
+
+		for (final SearchAttribute attr : group.getSearchAttributes()) {
+
+			if (attr instanceof RangeSearchAttribute) {
+				return (RangeSearchAttribute)attr;
+			}
+
+			if (attr instanceof SearchAttributeGroup) {
+
+				final RangeSearchAttribute result = findRange((SearchAttributeGroup)attr);
+				if (result != null) {
+
+					return result;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private Result aggregate(final List<GraphObject> entries, final String dateFormat, final long startTimestamp, final long endTimestamp) {
 
 		final GraphObjectMap result           = new GraphObjectMap();
 		final SimpleDateFormat format         = new SimpleDateFormat(dateFormat);
-		final GraphObject firstEntry          = entries.get(0);
-		final GraphObject lastEntry           = entries.get(entries.size() - 1);
-		final Date firstDate                  = firstEntry.getProperty(timestampProperty);
-		final Date lastDate                   = lastEntry.getProperty(timestampProperty);
-		final long startTimestamp             = firstDate.getTime();
-		final long endTimestamp               = lastDate.getTime();
 		final long interval                   = findInterval(dateFormat);
 		final long start                      = alignDateOnFormat(dateFormat, startTimestamp);
 		final TreeMap<Long, Integer> countMap = toCountMap(entries);
 
-
 		for (long current = start; current <= endTimestamp; current += interval) {
 
 			final Map<Long, Integer> counts = countMap.subMap(current, true, current+interval, false);
-			final String formattedDate      = format.format(current);
 			long sum                        = 0;
 
 			for (final Integer count : counts.values()) {
@@ -506,6 +547,7 @@ public class LogResource extends Resource {
 			}
 
 			result.put(new LongProperty(Long.toString(current)), sum);
+//			result.put(new LongProperty(format.format(current)), sum);	// uncomment this for human-readable debug output
 		}
 
 		return new Result(result, false);
@@ -532,8 +574,8 @@ public class LogResource extends Resource {
 	private long findInterval(final String dateFormat) {
 
 
-		final long max                = TimeUnit.DAYS.toMillis(365);
-		final long step               = TimeUnit.SECONDS.toMillis(60);
+		final long max  = TimeUnit.DAYS.toMillis(365);
+		final long step = TimeUnit.SECONDS.toMillis(60);
 
 		try {
 
@@ -577,6 +619,17 @@ public class LogResource extends Resource {
 		}
 
 		return countMap;
+	}
+
+	private static class Range<T> {
+
+		private T start = null;
+		private T end   = null;
+
+		public Range(final T start, final T end) {
+			this.start = start;
+			this.end   = end;
+		}
 	}
 }
 
