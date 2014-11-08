@@ -10,12 +10,16 @@ import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -116,12 +120,13 @@ public class LogResource extends Resource {
 			final GraphObjectMap overviewMap   = new GraphObjectMap();
 			final Map<String, Integer> actions = new LinkedHashMap<>();
 			final List<Path> files             = new LinkedList<>();
+			final String aggregate             = request.getParameter("aggregate");
 
 			boolean overview    = false;
 			boolean inverse     = false;
 			long beginTimestamp = Long.MAX_VALUE;
 			long endTimestamp   = 0L;
-			int entryCount           = 0;
+			int entryCount      = 0;
 
 			if (StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
@@ -269,6 +274,14 @@ public class LogResource extends Resource {
 
 				return new Result(overviewMap, false);
 
+			} else if (StringUtils.isNotBlank(aggregate) && entries.size() > 1) {
+
+				// sort result
+				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
+
+				// aggregate results
+				return aggregate(entries, aggregate);
+
 			} else {
 
 				// sort result
@@ -367,6 +380,12 @@ public class LogResource extends Resource {
 		return result;
 	}
 
+	@Override
+	public boolean createPostTransaction() {
+		return false;
+	}
+
+	// ----- private methods -----
 	private void collectFiles(final Path dir, final List<Path> files) {
 
 		try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*")) {
@@ -460,8 +479,103 @@ public class LogResource extends Resource {
 		return dummyQuery.toPredicate();
 	}
 
-	@Override
-	public boolean createPostTransaction() {
-		return false;
+	private Result aggregate(final List<GraphObject> entries, final String dateFormat) {
+
+		final GraphObjectMap result           = new GraphObjectMap();
+		final SimpleDateFormat format         = new SimpleDateFormat(dateFormat);
+		final GraphObject firstEntry          = entries.get(0);
+		final GraphObject lastEntry           = entries.get(entries.size() - 1);
+		final Date firstDate                  = firstEntry.getProperty(timestampProperty);
+		final Date lastDate                   = lastEntry.getProperty(timestampProperty);
+		final long startTimestamp             = firstDate.getTime();
+		final long endTimestamp               = lastDate.getTime();
+		final long interval                   = findInterval(dateFormat);
+		final long start                      = alignDateOnFormat(dateFormat, startTimestamp);
+		final TreeMap<Long, Integer> countMap = toCountMap(entries);
+
+
+		for (long current = start; current <= endTimestamp; current += interval) {
+
+			final Map<Long, Integer> counts = countMap.subMap(current, true, current+interval, false);
+			final String formattedDate      = format.format(current);
+			int sum                         = 0;
+
+			for (final Integer count : counts.values()) {
+				sum += count;
+			}
+
+			result.put(new IntProperty(formattedDate), sum);
+		}
+
+		return new Result(result, false);
+	}
+
+	private long alignDateOnFormat(final String dateFormat, final long timestamp) {
+
+		try {
+
+			final SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+			return format.parse(format.format(timestamp)).getTime();
+
+		} catch (ParseException pex) {
+			pex.printStackTrace();
+		}
+
+		return 0L;
+	}
+
+	/**
+	 * This method takes a date format and finds the time interval
+	 * that it represents.
+	 */
+	private long findInterval(final String dateFormat) {
+
+
+		final long max                = TimeUnit.DAYS.toMillis(365);
+		final long step               = TimeUnit.SECONDS.toMillis(60);
+
+		try {
+
+			final SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+			final long initial            = format.parse(format.format(3600)).getTime();
+
+			for (long i=initial; i<max; i+=step) {
+
+				final long current = format.parse(format.format(i)).getTime();
+
+				if (initial != current) {
+					return i-initial;
+				}
+			}
+
+			return max;
+
+		} catch (ParseException pex) {
+			pex.printStackTrace();
+		}
+
+		return max;
+	}
+
+	private TreeMap<Long, Integer> toCountMap(final List<GraphObject> entries) {
+
+		final TreeMap<Long, Integer> countMap = new TreeMap<>();
+
+		for (final GraphObject entry : entries) {
+
+			final long timestamp = entry.getProperty(timestampProperty).getTime();
+			Integer count        = countMap.get(timestamp);
+
+			if (count == null) {
+				count = 1;
+			} else {
+				count = count + 1;
+			}
+
+			countMap.put(timestamp, count);
+		}
+
+		return countMap;
 	}
 }
+
