@@ -38,6 +38,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -498,13 +499,13 @@ public class LogResource extends Resource {
 
 			final Map<Long, Integer> counts = countMap.subMap(current, true, current+interval, false);
 			final String formattedDate      = format.format(current);
-			int sum                         = 0;
+			long sum                        = 0;
 
 			for (final Integer count : counts.values()) {
 				sum += count;
 			}
 
-			result.put(new IntProperty(formattedDate), sum);
+			result.put(new LongProperty(Long.toString(current)), sum);
 		}
 
 		return new Result(result, false);
