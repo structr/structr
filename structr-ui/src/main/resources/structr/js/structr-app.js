@@ -239,8 +239,10 @@ function StructrApp(baseUrl) {
             });
 
             if (f.type === 'Date') {
-                var dateTimeFormat = f.format.split('\'T\'');
-                var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+                var dateTimeFormat = f.format ? f.format.split('\'T\'') : 'yyyy-MM-ddTHH:mm:ssZ';
+                console.log(dateTimeFormat);
+                var dateFormat = dateTimeFormat ? dateTimeFormat[0] : 'yyyy-MM-dd',
+                    timeFormat = (dateTimeFormat && dateTimeFormat.length > 1) ? dateTimeFormat[1] : undefined;
                 
                 inp.on('mouseup', function(event) {
                     event.preventDefault();
