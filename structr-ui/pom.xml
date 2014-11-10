@@ -30,6 +30,7 @@
     <properties>
         <netbeans.hint.license>structr-agpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <neo4j.version>2.1.5</neo4j.version>
     </properties>
     <repositories>
         <repository>
@@ -90,14 +91,9 @@
             <version>2.2</version>
         </dependency>
         <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-            <version>2.0-m09</version>
-        </dependency>
-        <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>1.9-ea04</version>
+            <version>1.9</version>
         </dependency>
         <dependency>
             <groupId>com.flagstone</groupId>
@@ -176,6 +172,27 @@
             <artifactId>asciidoctor-java-integration</artifactId>
             <version>0.1.4</version>
         </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+            <version>1.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j.app</groupId>
+            <artifactId>neo4j-server</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j.app</groupId>
+            <artifactId>neo4j-server</artifactId>
+            <version>${neo4j.version}</version>
+            <classifier>static-web</classifier>
+        </dependency>        
     </dependencies>
     <build>
         <resources>
@@ -212,12 +229,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.16</version>
                 <configuration>
-<!--                    <forkCount>1</forkCount>-->
+                    <!--                    <forkCount>1</forkCount>-->
                     <reuseForks>false</reuseForks>
                     <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
-		    <parallel>classes</parallel>
-		    <threadCount>8</threadCount>
-		    <systemPropertyVariables>
+                    <parallel>classes</parallel>
+                    <threadCount>8</threadCount>
+                    <systemPropertyVariables>
                         <user.timezone>UTC</user.timezone>
                     </systemPropertyVariables>
                 </configuration>

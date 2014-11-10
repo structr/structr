@@ -38,6 +38,20 @@ application.ftp.port = 8021
 # application.keystore.path = [KEYSTORE_FILE]
 # application.keystore.password = [KEYSTORE_PASSWORD]
 #
+# Neo4j server port
+#
+########################################################
+#                                                      #
+#             !!!!!!!!! WARNING !!!!!!!!!              #
+#                                                      #
+# Don't expose this port to an untrusted networkr, as  #
+# unauthorized users can access the database directly, #
+# bypassing Structr's security measures                #
+#                                                      #
+########################################################
+neo4j.server.host = localhost
+neo4j.server.port = 7474
+#
 #
 # Paths
 base.path = .
@@ -50,6 +64,7 @@ tmp.path = /tmp
 configuration.provider = org.structr.module.JarConfigurationProvider
 #
 # Configure services to automatically run at start-up
+#configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService Neo4jService
 configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService
 #
 # Support migration from 0.8.x and earlier versions
