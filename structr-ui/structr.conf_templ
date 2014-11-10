@@ -44,9 +44,9 @@ application.ftp.port = 8021
 #                                                      #
 #             !!!!!!!!! WARNING !!!!!!!!!              #
 #                                                      #
-# Don't expose this port to an untrusted networkr, as  #
+# Don't expose this port to an untrusted network, as   #
 # unauthorized users can access the database directly, #
-# bypassing Structr's security measures                #
+# bypassing Structr's security measures.               #
 #                                                      #
 ########################################################
 neo4j.server.host = localhost
