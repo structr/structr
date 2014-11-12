@@ -27,3 +27,5 @@ Response:
        ],
        "serialization_time": "0.006950845"
     }
+
+<p class="info">Please note that the properties list of the Accept header must not contain spaces.</p>
