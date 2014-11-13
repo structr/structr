@@ -55,6 +55,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	private SecurityContext securityContext = null;
 	private Document doc                    = null;
 	private Tag currentElement              = null;
+	private Tag previousElement             = null;
 	private boolean hasName                 = false;
 	private String lastName                 = null;
 	private final String restPath    = "/structr/rest";
@@ -141,6 +142,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginArray() throws IOException {
 
+		currentElement.inline("span").text("[");	// print [
 		currentElement = currentElement.block(UL).attr(new AtDepth(CLOSE_LEVEL, new Css("collapsibleList")));
 
 		hasName = false;
@@ -152,6 +154,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter endArray() throws IOException {
 
 		currentElement = currentElement.parent();	// end LI
+		currentElement.inline("span").text("]");	// print ]
+		previousElement = currentElement;
 		currentElement = currentElement.parent();	// end UL
 
 		return this;
@@ -166,32 +170,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
 
 		if (!hasName) {
-
 			currentElement = currentElement.block(LI);
-
-			Tag b = currentElement.block("b");
-
-			if (graphObject != null) {
-
-				final String name = graphObject.getProperty(AbstractNode.name);
-				final String uuid = graphObject.getUuid();
-				final String type = graphObject.getType();
-
-				if (name != null) {
-
-					b.inline("span").css("name").text(name);
-				}
-
-				if (uuid != null) {
-
-					b.inline("span").css("id").text(uuid);
-				}
-
-				if (type != null) {
-
-					b.inline("span").css("type").text(type);
-				}
-			}
 		}
 
 		currentElement.inline("span").text("{");
@@ -213,6 +192,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		currentElement = currentElement.parent();	// end UL
 		currentElement.inline("span").text("}");	// print }
+		previousElement = currentElement;
 		currentElement = currentElement.parent();	// end LI
 
 		return this;
@@ -221,9 +201,14 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter name(String name) throws IOException {
 
+		if (previousElement != null) {
+			previousElement.appendComma();
+		}
+		previousElement = currentElement;
+
 		currentElement = currentElement.block(LI);
 
-		currentElement.inline("b").text(name, ":");
+		currentElement.inline("b").text("\"", name, "\":");
 
 		lastName = name;
 		hasName = true;
@@ -241,11 +226,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		if ("id".equals(lastName)) {
 
-			currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value)).text(value);
+			currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value)).text("\"", value, "\"");
 
 		} else {
 
-			currentElement.inline("span").css("string").text(value);
+			currentElement.inline("span").css("string").text("\"", value, "\"");
 
 		}
 
