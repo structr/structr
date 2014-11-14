@@ -98,6 +98,7 @@ function StructrApp(baseUrl) {
             var a = btn.attr('data-structr-action').split(':');
             var action = a[0], type = a[1], suffix = a[2];
             var reload = btn.attr('data-structr-reload') === 'true';
+            var appendId = btn.attr('data-structr-append-id') === 'true';
             var returnUrl = btn.attr('data-structr-return');
             var attrString = btn.attr('data-structr-attributes');
             var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
@@ -133,7 +134,7 @@ function StructrApp(baseUrl) {
                     val = possibleFields.val();
                     data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
                 });
-                s.create(type, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.create(type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn)});
 
             } else if (action === 'edit') {
                 s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
@@ -160,7 +161,7 @@ function StructrApp(baseUrl) {
                     var val = $('[data-structr-name="' + key + '"]').val();
                     data[key] = val ? val.parseIfJSON() : val;
                 });
-                s.customAction(id, type, action, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.customAction(id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn)});
             }
         });
     },
@@ -347,7 +348,7 @@ function StructrApp(baseUrl) {
             }
         });
         //console.log('PUT', structrRestUrl + id, s.data[id]);
-        s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+        s.request('PUT', structrRestUrl + id, s.data[id], false, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
         });
     },
@@ -563,22 +564,22 @@ function StructrApp(baseUrl) {
     };
 
     this.getRelatedType = function(type, key, callback) {
-        s.request('GET', structrRestUrl + '_schema', null, false, null, null, function(data) {
+        s.request('GET', structrRestUrl + '_schema', null, false, false, null, null, function(data) {
             //console.log(data);
         });
     },
 
-    this.create = function(type, data, reload, successCallback, errorCallback) {
+    this.create = function(type, data, reload, appendId, successCallback, errorCallback) {
         //console.log('Create', type, data, reload, successCallback, errorCallback);
-        s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
+        s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
     };
 
-    this.customAction = function(id, type, action, data, reload, successCallback, errorCallback) {
+    this.customAction = function(id, type, action, data, reload, appendId, successCallback, errorCallback) {
         //console.log('Custom action', action, type, data, reload);
-        s.request('POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+        s.request('POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
     };
 
-    this.request = function(method, url, data, reload, successMsg, errorMsg, onSuccess, onError) {
+    this.request = function(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
         var dataString = JSON.stringify(data);
         //console.log(dataString);
         $.ajax({
@@ -600,6 +601,9 @@ function StructrApp(baseUrl) {
                 201: function(data) {
                     s.dialog('success', successMsg);
                     if (reload) {
+                        if (appendId) {
+                            reload += '/' + data.result[0];
+                        }
                         redirectOrReload(reload);
                     } else {
                         if (onSuccess) {

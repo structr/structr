@@ -98,7 +98,7 @@ var _Entities = {
             _Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|edit|delete|login|logout]');
             _Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create, edit, login or registration actions)');
 
-            t.append('<tr><td class="key">Reload</td><td class="value"id="reload"></td><td></td></tr>');
+            t.append('<tr><td class="key">Reload</td><td class="value" id="reload"></td><td></td></tr>');
             _Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
 
             if (entity['data-structr-action'] === 'delete') {
@@ -108,6 +108,10 @@ var _Entities = {
                 _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
             }
             _Entities.appendRowWithInputField(entity, t, 'data-structr-return', 'Return URI after successful action');
+
+            t.append('<tr><td class="key">Append ID</td><td class="value" id="append-id"></td><td></td></tr>');
+            _Entities.appendBooleanSwitch($('#append-id', t), entity, 'data-structr-append-id', '', 'On create, append ID of (first) created object to return URI.');
+
 
         } else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
             // Input fields
