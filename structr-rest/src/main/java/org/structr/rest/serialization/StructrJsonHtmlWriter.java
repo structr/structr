@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -239,6 +240,9 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 			value = value.replaceAll("\\\\", "\\\\\\\\");           // escape backslashes in strings
 			value = value.replaceAll("\"", "\\\\\\\"");             // escape quotation marks inside strings
+			
+			// Escape for HTML output
+			value = StringUtils.replaceEach(value, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
 
 			currentElement.inline("span").css("string").text("\"", value, "\"");
 
