@@ -724,6 +724,13 @@ public class Importer {
 
 		} catch (IOException ioe) {
 
+			if (originalUrl == null || address == null) {
+
+				logger.log(Level.INFO, "Cannot download from {0} without base address", downloadAddress);
+				return null;
+
+			}
+
 			logger.log(Level.WARNING, "Unable to download from {0} {1}", new Object[] { originalUrl, downloadAddress });
 
 			try {
