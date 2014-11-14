@@ -37,8 +37,6 @@ import org.structr.rest.serialization.html.attr.Css;
 import org.structr.rest.serialization.html.attr.Href;
 import org.structr.rest.serialization.html.attr.If;
 import org.structr.rest.serialization.html.attr.Onload;
-import org.structr.rest.serialization.html.attr.Rel;
-import org.structr.rest.serialization.html.attr.Src;
 import org.structr.rest.serialization.html.attr.Type;
 
 /**
@@ -238,6 +236,9 @@ public class StructrJsonHtmlWriter implements RestWriter {
 			currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value)).text("\"", value, "\"");
 
 		} else {
+
+			value = value.replaceAll("\\\\", "\\\\\\\\");           // escape backslashes in strings
+			value = value.replaceAll("\"", "\\\\\\\"");             // escape quotation marks inside strings
 
 			currentElement.inline("span").css("string").text("\"", value, "\"");
 
