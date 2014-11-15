@@ -144,7 +144,7 @@ function StructrApp(baseUrl) {
 
             } else if (action === 'delete') {
                 var f = s.field($('[data-structr-attr="name"]', container));
-                s.del(id, btn.attr('data-structr-confirm') === 'true', returnUrl || reload, f ? f.val : undefined);
+                s.del(btn, id, btn.attr('data-structr-confirm') === 'true', returnUrl || reload, f ? f.val : undefined);
 
             } else if (action === 'login') {
                 s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn)}, function() {enableButton(btn)});
@@ -752,7 +752,7 @@ function StructrApp(baseUrl) {
 
     };
 
-    this.del = function(id, conf, reload, name) {
+    this.del = function(btn, id, conf, reload, name) {
         //console.log('Delete', id, conf, reload);
         var sure = true;
         if (conf) {
@@ -766,10 +766,14 @@ function StructrApp(baseUrl) {
                         if (reload) {
                             redirectOrReload(reload);
                             //window.location.reload();
+                        } else {
+                            enableButton(btn);
                         }
                     }
                 }
             });
+        } else {
+            enableButton(btn);
         }
     };
 
