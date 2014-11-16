@@ -144,7 +144,7 @@ function StructrApp(baseUrl) {
 
             } else if (action === 'delete') {
                 var f = s.field($('[data-structr-attr="name"]', container));
-                s.del(btn, id, btn.attr('data-structr-confirm') === 'true', returnUrl || reload, f ? f.val : undefined);
+                s.del(btn, id, type, btn.attr('data-structr-confirm') === 'true', returnUrl || reload, f ? f.val : undefined);
 
             } else if (action === 'login') {
                 s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn)}, function() {enableButton(btn)});
@@ -201,10 +201,15 @@ function StructrApp(baseUrl) {
             if (f.type === 'Boolean') {
                 el.html(checkbox(f.id, f.type, f.key, f.val));
             } else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Double' || f.type === 'Date') {
-                if (!f.val || f.val.indexOf('\n') === -1) {
-                    el.html(inputField(f.id, f.type + (f.type === 'Date' ? ' ' + f.format : ''), f.key, f.val));
-                } else {
+                //console.log(f.format);
+                if (f.format && f.format === 'multi-line') {
                     el.html(textarea(f.id, f.key, f.val));
+                } else {
+                    if (!f.val || f.val.indexOf('\n') === -1) {
+                        el.html(inputField(f.id, f.type + (f.type === 'Date' ? ' ' + f.format : ''), f.key, f.val));
+                    } else {
+                        el.html(textarea(f.id, f.key, f.val));
+                    }
                 }
             } else if (f.type === 'Enum') {
                 el.html('<select data-structr-type="' + f.type + ' ' + f.format + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>');
@@ -213,7 +218,8 @@ function StructrApp(baseUrl) {
                 $.each(f.format.split(','), function(i, o) {
                     sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
                 });
-                sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
+                //sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
+                //sel.chosen({allow_single_deselect: true});
             } else {
                 if (f.type.endsWith('[]')) {
                     el.html(multiSelect(f.id, f.type, f.key, f.val, f.query));
@@ -224,7 +230,7 @@ function StructrApp(baseUrl) {
 
             //var el = container.find('[data-structr-attr="' + f.key + '"]');
             var inp = s.input(el);
-            inp.css({fontFamily: 'sans-serif'});
+            inp.addClass(f.class);
 
             //console.log('editAction: input element', inp);
             if (f.type !== 'Enum') {
@@ -241,7 +247,7 @@ function StructrApp(baseUrl) {
 
             if (f.type === 'Date') {
                 var dateTimeFormat = f.format ? f.format.split('\'T\'') : 'yyyy-MM-ddTHH:mm:ssZ';
-                console.log(dateTimeFormat);
+                //console.log(dateTimeFormat);
                 var dateFormat = dateTimeFormat ? dateTimeFormat[0] : 'yyyy-MM-dd',
                     timeFormat = (dateTimeFormat && dateTimeFormat.length > 1) ? dateTimeFormat[1] : undefined;
                 
@@ -535,9 +541,11 @@ function StructrApp(baseUrl) {
     this.field = function(el) {
         if (!el || !el.length) return;
         var rawType = el.attr('data-structr-type');
+        var clazz = el.attr('data-structr-edit-class');
         var query = el.attr('data-structr-custom-options-query');
         var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
         var format = (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : undefined;
+        //console.log('field', rawType, query, type, id, key, rawVal, format);
         var val;
         if (type === 'Boolean') {
             if (el.is('input')) {
@@ -560,7 +568,7 @@ function StructrApp(baseUrl) {
             }
         }
         //console.log(el, type, id, key, val);
-        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query};
+        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz};
     };
 
     this.getRelatedType = function(type, key, callback) {
@@ -752,15 +760,15 @@ function StructrApp(baseUrl) {
 
     };
 
-    this.del = function(btn, id, conf, reload, name) {
-        //console.log('Delete', id, conf, reload);
+    this.del = function(btn, id, type, conf, reload, name) {
+        //console.log('Delete', type, id, conf, reload);
         var sure = true;
         if (conf) {
             sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
         }
         if (!conf || sure) {
             $.ajax({
-                url: structrRestUrl + id, method: 'DELETE', contentType: 'application/json',
+                url: structrRestUrl + (type ? type + '/' : '') + id, method: 'DELETE', contentType: 'application/json',
                 statusCode: {
                     200: function() {
                         if (reload) {
@@ -1039,7 +1047,7 @@ function enumSelect(id, type, key, val, values) {
     $.each(values.split(','), function(i, o) {
         sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
     });
-    sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
+    sel.chosen({allow_single_deselect: true});
     return inp;
 }
 
@@ -1055,7 +1063,7 @@ function singleSelect(id, type, key, val, query) {
                     $.each(data.result, function(i, o) {
                         sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
                     });
-                    sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
+                    sel.chosen({allow_single_deselect: true});
                 }
             }
         }
@@ -1076,7 +1084,7 @@ function multiSelect(id, type, key, val, query) {
                     $.each(data.result, function(i, o) {
                         sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
                     });
-                    sel.chosen({inherit_select_classes: true});
+                    sel.chosen();
                 }
             }
         }

@@ -91,11 +91,12 @@ var _Entities = {
         _Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query for value options');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value', 'Raw value (unformatted value for Date or Number fields)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-hide', 'Hide [edit|non-edit|edit,non-edit]');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-edit-class', 'Custom CSS class in edit mode');
 
         if (entity.type === 'Button' || entity.type === 'A') {
 
             // Buttons
-            _Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|edit|delete|login|logout]');
+            _Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|delete:&lt;Type&gt;|edit|login|logout]');
             _Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create, edit, login or registration actions)');
 
             t.append('<tr><td class="key">Reload</td><td class="value" id="reload"></td><td></td></tr>');
@@ -109,8 +110,8 @@ var _Entities = {
             }
             _Entities.appendRowWithInputField(entity, t, 'data-structr-return', 'Return URI after successful action');
 
-            t.append('<tr><td class="key">Append ID</td><td class="value" id="append-id"></td><td></td></tr>');
-            _Entities.appendBooleanSwitch($('#append-id', t), entity, 'data-structr-append-id', '', 'On create, append ID of (first) created object to return URI.');
+            t.append('<tr><td class="key">Append ID on create</td><td class="value" id="append-id"></td><td></td></tr>');
+            _Entities.appendBooleanSwitch($('#append-id', t), entity, 'data-structr-append-id', '', 'On create, append ID of first created object to the return URI.');
 
 
         } else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
