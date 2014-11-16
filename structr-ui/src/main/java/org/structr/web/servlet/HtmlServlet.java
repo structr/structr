@@ -281,6 +281,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					return;
 				}
 
+				// check dont cache flag on page (if root element is a page)
+				// but don't modify true to false
+				dontCache |= rootElement.getProperty(Page.dontCache);
+
+
+				
 				if (EditMode.WIDGET.equals(edit) || dontCache) {
 
 					setNoCacheHeaders(response);
@@ -313,11 +319,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						String contentType = rootElement.getProperty(Page.contentType);
 
 						if (contentType == null) {
-							
+
 							// Default
 							contentType = "text/html;charset=UTF-8";
 						}
-						
+
 						if (contentType.equals("text/html")) {
 							contentType = contentType.concat(";charset=UTF-8");
 						}
@@ -615,6 +621,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					return;
 				}
 
+				// check dont cache flag on page (if root element is a page)
+				// but don't modify true to false
+				dontCache |= rootElement.getProperty(Page.dontCache);
+
 				if (EditMode.WIDGET.equals(edit) || dontCache) {
 
 					setNoCacheHeaders(response);
@@ -644,11 +654,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						String contentType = rootElement.getProperty(Page.contentType);
 
 						if (contentType == null) {
-							
+
 							// Default
 							contentType = "text/html;charset=UTF-8";
 						}
-						
+
 						if (contentType.equals("text/html")) {
 							contentType = contentType.concat(";charset=UTF-8");
 						}
