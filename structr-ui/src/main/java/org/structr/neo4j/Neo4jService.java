@@ -18,13 +18,8 @@
  */
 package org.structr.neo4j;
 
-import org.structr.files.ftp.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.ftpserver.FtpServer;
-import org.apache.ftpserver.FtpServerFactory;
-import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.ftpserver.listener.ListenerFactory;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.server.WrappingNeoServerBootstrapper;
 import org.neo4j.server.configuration.Configurator;
@@ -34,7 +29,6 @@ import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import static org.structr.rest.service.HttpService.APPLICATION_HOST;
 
 /**
  *
