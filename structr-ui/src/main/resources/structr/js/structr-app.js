@@ -807,7 +807,7 @@ function StructrApp(baseUrl) {
 
     this.checkInput = function(e, f, inp) {
         var k = e.which;
-
+        var clazz = inp.prop('class');
         if (isTextarea(inp[0])) {
 
             if (inp.val().indexOf('\n') === -1) {
@@ -817,6 +817,7 @@ function StructrApp(baseUrl) {
                 // No new line in textarea content => transform to input field
                 inp.replaceWith(inputField(f.id, f.type, f.key, inp.val()));
                 inp = s.input(parent);
+
 
                 inp.on('keyup', function(e) {
                     s.checkInput(e, f, $(this));
@@ -833,16 +834,16 @@ function StructrApp(baseUrl) {
 
             inp.replaceWith(textarea(f.id, f.key, inp.val() + '\n'));
             inp = s.input(parent);
-
+            
             inp.on('keyup', function(e) {
                 s.checkInput(e, f, $(this));
             });
 
-            inp.css({fontFamily: 'sans-serif'});
-
             setCaretToEnd(inp[0]);
 
         }
+
+        inp.addClass(clazz);
 
         resizeInput(inp);
 
