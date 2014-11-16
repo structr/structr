@@ -64,7 +64,15 @@ public class StringPropertyParser extends PropertyParser {
 			return;
 		}
 
-		localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
+		if ("multi-line".equals(expression)) {
+
+			localValidator = ", \""  + expression + "\"";
+			
+		} else {
+
+			localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
+			
+		}
 	}
 
 	@Override

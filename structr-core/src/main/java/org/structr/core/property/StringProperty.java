@@ -30,8 +30,20 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class StringProperty extends AbstractPrimitiveProperty<String> {
 	
-	public StringProperty(String name) {
-		this(name, name, new PropertyValidator[0]);
+	public StringProperty(String jsonName) {
+		this(jsonName, jsonName, new PropertyValidator[0]);
+	}
+
+	public StringProperty(String jsonName, String pattern) {
+		super(jsonName);
+
+		this.format = pattern;
+	}
+
+	public StringProperty(String name, String dbName, String pattern) {
+		super(name, dbName);
+
+		this.format = pattern;
 	}
 	
 	public StringProperty(String name, PropertyValidator<String>... validators) {
