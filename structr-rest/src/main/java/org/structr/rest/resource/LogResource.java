@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -75,7 +76,7 @@ public class LogResource extends Resource {
 	private static final ISO8601DateProperty firstEntryProperty = new ISO8601DateProperty("firstEntry");
 	private static final ISO8601DateProperty lastEntryProperty  = new ISO8601DateProperty("lastEntry");
 
-	private static final Set<String> ReservedRequestParameters = new LinkedHashSet<>(Arrays.asList( new String[] { "subject", "object", "action", "message", "timestamp", "aggregate" } ));
+	private static final Set<String> ReservedRequestParameters = new LinkedHashSet<>(Arrays.asList( new String[] { "subject", "object", "action", "message", "timestamp", "aggregate", "histogram" } ));
 
 	public static final String LOG_RESOURCE_URI = "log";
 
@@ -133,6 +134,7 @@ public class LogResource extends Resource {
 			final Map<String, Integer> actions = new LinkedHashMap<>();
 			final List<Path> files             = new LinkedList<>();
 			final String aggregate             = request.getParameter("aggregate");
+			final String histogram             = request.getParameter("histogram");
 
 			boolean overview    = false;
 			boolean inverse     = false;
@@ -289,6 +291,21 @@ public class LogResource extends Resource {
 				overviewMap.put(lastEntryProperty, new Date(endTimestamp));
 
 				return new Result(overviewMap, false);
+
+			} else if (StringUtils.isNotBlank(histogram)) {
+
+				if (StringUtils.isBlank(aggregate)) {
+					throw new FrameworkException(400, "To use the histogram function, please supply an aggregation pattern.");
+				}
+
+				// sort result
+				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
+
+				final long intervalStart = range != null ? range.start : beginTimestamp;
+				final long intervalEnd   = range != null ? range.end : endTimestamp;
+
+				// aggregate results
+				return histogram(entries, aggregate, intervalStart, intervalEnd, histogram);
 
 			} else if (StringUtils.isNotBlank(aggregate)) {
 
@@ -544,7 +561,52 @@ public class LogResource extends Resource {
 		final GraphObjectMap result               = new GraphObjectMap();
 		final long interval                       = findInterval(dateFormat);
 		final long start                          = alignDateOnFormat(dateFormat, startTimestamp);
-		final TreeMap<Long, GraphObject> countMap = toCountMap(entries, aggregationPatterns);
+		final TreeMap<Long, GraphObject> countMap = toAggregatedCountMap(entries, aggregationPatterns);
+		final Set<IntProperty> countProperties    = getCountProperties(countMap);
+
+		for (long current = start; current <= endTimestamp; current += interval) {
+
+			final Map<Long, GraphObject> counts = countMap.subMap(current, true, current+interval, false);
+			final GraphObject sum               = new GraphObjectMap();
+
+			// initialize interval sums with 0 (so each
+			// interval contains all keys regardless of
+			// whether there are actual values or not)
+			for (final IntProperty key : countProperties) {
+				sum.setProperty(key, 0);
+			}
+
+			// evaluate counts
+			for (final GraphObject count : counts.values()) {
+
+				for (final IntProperty key : countProperties) {
+
+					Integer sumValue   = sum.getProperty(key);
+					if (sumValue == null) {
+						sumValue = 0;
+					}
+
+					Integer entryValue = count.getProperty(key);
+					if (entryValue == null) {
+						entryValue = 0;
+					}
+
+					sum.setProperty(key, sumValue + entryValue);
+				}
+			}
+
+			result.put(new GenericProperty(Long.toString(current)), sum);
+		}
+
+		return new Result(result, false);
+	}
+
+	private Result histogram(final List<GraphObject> entries, final String dateFormat, final long startTimestamp, final long endTimestamp, final String capturePattern) throws FrameworkException {
+
+		final GraphObjectMap result               = new GraphObjectMap();
+		final long interval                       = findInterval(dateFormat);
+		final long start                          = alignDateOnFormat(dateFormat, startTimestamp);
+		final TreeMap<Long, GraphObject> countMap = toHistogramCountMap(entries, capturePattern);
 		final Set<IntProperty> countProperties    = getCountProperties(countMap);
 
 		for (long current = start; current <= endTimestamp; current += interval) {
@@ -631,7 +693,7 @@ public class LogResource extends Resource {
 		return max;
 	}
 
-	private TreeMap<Long, GraphObject> toCountMap(final List<GraphObject> entries, final Map<String, Pattern> aggregationPatterns) throws FrameworkException {
+	private TreeMap<Long, GraphObject> toAggregatedCountMap(final List<GraphObject> entries, final Map<String, Pattern> aggregationPatterns) throws FrameworkException {
 
 		final TreeMap<Long, GraphObject> countMap = new TreeMap<>();
 
@@ -668,6 +730,53 @@ public class LogResource extends Resource {
 
 					obj.setProperty(patternKeyProperty, c);
 				}
+			}
+
+			countMap.put(timestamp, obj);
+		}
+
+		return countMap;
+	}
+
+	private TreeMap<Long, GraphObject> toHistogramCountMap(final List<GraphObject> entries, final String capturePattern) throws FrameworkException {
+
+		final Pattern pattern                     = Pattern.compile(capturePattern);
+		final Matcher matcher                     = pattern.matcher("");
+		final TreeMap<Long, GraphObject> countMap = new TreeMap<>();
+
+		for (final GraphObject entry : entries) {
+
+			final String message = entry.getProperty(messageProperty);
+			final long timestamp = entry.getProperty(timestampProperty).getTime();
+			GraphObject obj      = countMap.get(timestamp);
+
+			if (obj == null) {
+				obj = new GraphObjectMap();
+			}
+
+			Integer count = obj.getProperty(totalProperty);
+			if (count == null) {
+				count = 1;
+			} else {
+				count = count + 1;
+			}
+			obj.setProperty(totalProperty, count);
+
+			// iterate over patterns
+			matcher.reset(message);
+			if (matcher.matches()) {
+
+				final String key = matcher.group(1);
+
+				final IntProperty patternKeyProperty = new IntProperty(key);
+				Integer c = obj.getProperty(patternKeyProperty);
+				if (c == null) {
+					c = 1;
+				} else {
+					c = c + 1;
+				}
+
+				obj.setProperty(patternKeyProperty, c);
 			}
 
 			countMap.put(timestamp, obj);
