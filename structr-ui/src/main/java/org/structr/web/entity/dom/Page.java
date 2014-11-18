@@ -556,11 +556,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	}
 
-	@Override
-	public String toString() {
-
-		return getClass().getSimpleName() + " " + getName() + " [" + getUuid() + "] (" + getTextContent() + ")";
-	}
+//	@Override
+//	public String toString() {
+//
+//		return getClass().getSimpleName() + " " + getName() + " [" + getUuid() + "] (" + getTextContent() + ")";
+//	}
 
 	/**
 	 * Return the content of this page depending on edit mode
