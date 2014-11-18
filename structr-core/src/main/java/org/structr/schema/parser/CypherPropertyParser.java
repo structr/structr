@@ -33,8 +33,8 @@ public class CypherPropertyParser extends PropertyParser {
 
 	private String auxType = "";
 
-	public CypherPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
-		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
+	public CypherPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
+		super(errorBuffer, className, propertyName, params);
 	}
 
 	@Override

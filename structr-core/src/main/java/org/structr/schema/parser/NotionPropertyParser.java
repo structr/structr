@@ -35,8 +35,8 @@ public class NotionPropertyParser extends PropertyParser {
 	private String propertyType = null;
 	private String relatedType  = null;
 
-	public NotionPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
-		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
+	public NotionPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
+		super(errorBuffer, className, propertyName, params);
 	}
 
 	@Override
