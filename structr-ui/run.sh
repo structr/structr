@@ -1,6 +1,6 @@
 #!/bin/bash
 JAVA=`which java`
-STRUCTR="-Duser.country=US -Duser.language=en -cp target/lib/*:target/structr-ui-1.1-SNAPSHOT.jar org.structr.Server"
+STRUCTR="-Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -cp target/lib/*:target/structr-ui-1.1-SNAPSHOT.jar org.structr.Server"
 STRUCTR_ARGS="-d64 -Xms1g -Xmx1g -XX:+UseNUMA -XX:+UseG1GC -Dinstance=your_instance_name"
 
 STRUCTR_CONF=`find . -name structr.conf`
