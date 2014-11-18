@@ -38,8 +38,7 @@ application.ftp.port = 8021
 # application.keystore.path = [KEYSTORE_FILE]
 # application.keystore.password = [KEYSTORE_PASSWORD]
 #
-# Neo4j server port
-#
+# Neo4j server settings
 ########################################################
 #                                                      #
 #             !!!!!!!!! WARNING !!!!!!!!!              #
