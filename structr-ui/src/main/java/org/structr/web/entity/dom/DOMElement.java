@@ -909,7 +909,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			if (key.startsWith("data-")) {
 
-				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key));
+				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key)).trim();
 
 				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
