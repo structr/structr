@@ -64,6 +64,7 @@ import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.JoinPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
+import org.structr.schema.parser.PropertyParameters;
 import org.structr.schema.parser.PropertyParser;
 import org.structr.schema.parser.StringArrayPropertyParser;
 import org.structr.schema.parser.StringPropertyParser;
@@ -346,35 +347,7 @@ public class SchemaHelper {
 
 				String rawType = propertyContainer.getProperty(propertyName).toString();
 
-				String dbName = null;
-				// detect optional db name
-				if (rawType.contains("|")) {
-
-					dbName = rawType.substring(0, rawType.indexOf("|"));
-					rawType = rawType.substring(rawType.indexOf("|")+1);
-
-				}
-
-				boolean notNull = false;
-
-				// detect and remove not-null constraint
-				if (rawType.startsWith("+")) {
-					rawType = rawType.substring(1);
-					notNull = true;
-				}
-
-				String defaultValue = null;
-
-				// detect and remove default value
-				if (rawType.contains(":") && !rawType.startsWith(Type.Cypher.name())) {
-
-					final int lastIndex = rawType.lastIndexOf(":");
-					defaultValue = rawType.substring(lastIndex+1);
-					rawType = rawType.substring(0, lastIndex);
-
-				}
-
-				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, dbName, rawType, notNull, defaultValue);
+				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, rawType);
 				if (parser != null) {
 
 					// add property name to set for later use
@@ -551,6 +524,7 @@ public class SchemaHelper {
 		src.append("import ").append(ConfigurationProvider.class.getName()).append(";\n");
 		src.append("import ").append(GraphObjectComparator.class.getName()).append(";\n");
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
+		src.append("import ").append(DatePropertyParser.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
 		src.append("import ").append(SecurityContext.class.getName()).append(";\n");
 		src.append("import ").append(GraphObject.class.getName()).append(";\n");
@@ -866,17 +840,18 @@ public class SchemaHelper {
 	}
 
 	// ----- private methods -----
-	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String source, final boolean notNull, final String defaultValue) throws FrameworkException {
+	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String source) throws FrameworkException {
 
+		final PropertyParameters params = PropertyParser.detectDbNameNotNullAndDefaultValue(source);
+		
 		for (final Map.Entry<Type, Class<? extends PropertyParser>> entry : parserMap.entrySet()) {
 
-			if (source.startsWith(entry.getKey().name())) {
+			if (params.source.startsWith(entry.getKey().name())) {
 
 				try {
 
-					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, String.class, String.class, String.class).newInstance(errorBuffer, className, propertyName, dbName, source, defaultValue);
-					parser.setNotNull(notNull);
-
+					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, PropertyParameters.class).newInstance(errorBuffer, className, propertyName, params);
+					
 					return parser;
 
 				} catch (Throwable t) {

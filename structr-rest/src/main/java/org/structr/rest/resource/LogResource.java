@@ -10,12 +10,23 @@ import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +42,12 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.search.RangeSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -49,11 +65,18 @@ public class LogResource extends Resource {
 	private static final String SUBJECTS = "/s/";
 	private static final String OBJECTS  = "/o/";
 
-	private static final Property<String>    subjectProperty   = new StringProperty("subject");
-	private static final Property<String>    objectProperty    = new StringProperty("object");
-	private static final Property<String>    actionProperty    = new StringProperty("action");
-	private static final Property<String>    messageProperty   = new StringProperty("message");
-	private static final ISO8601DateProperty timestampProperty = new ISO8601DateProperty("timestamp");
+	private static final Property<String>    subjectProperty    = new StringProperty("subject");
+	private static final Property<String>    objectProperty     = new StringProperty("object");
+	private static final Property<String>    actionProperty     = new StringProperty("action");
+	private static final Property<String>    actionsProperty    = new StringProperty("actions");
+	private static final Property<String>    messageProperty    = new StringProperty("message");
+	private static final Property<Integer>   entryCountProperty = new IntProperty("entryCount");
+	private static final Property<Integer>   totalProperty      = new IntProperty("total");
+	private static final ISO8601DateProperty timestampProperty  = new ISO8601DateProperty("timestamp");
+	private static final ISO8601DateProperty firstEntryProperty = new ISO8601DateProperty("firstEntry");
+	private static final ISO8601DateProperty lastEntryProperty  = new ISO8601DateProperty("lastEntry");
+
+	private static final Set<String> ReservedRequestParameters = new LinkedHashSet<>(Arrays.asList( new String[] { "subject", "object", "action", "message", "timestamp", "aggregate", "histogram" } ));
 
 	public static final String LOG_RESOURCE_URI = "log";
 
@@ -103,13 +126,21 @@ public class LogResource extends Resource {
 		final HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
 
-			final String filesPath  = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
-			final String subjectId  = request.getParameter(subjectProperty.jsonName());
-			final String objectId   = request.getParameter(objectProperty.jsonName());
-			final String action     = request.getParameter(actionProperty.jsonName());
-			final List<Path> files  = new LinkedList<>();
+			final String filesPath             = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+			final String subjectId             = request.getParameter(subjectProperty.jsonName());
+			final String objectId              = request.getParameter(objectProperty.jsonName());
+			final String action                = request.getParameter(actionProperty.jsonName());
+			final GraphObjectMap overviewMap   = new GraphObjectMap();
+			final Map<String, Integer> actions = new LinkedHashMap<>();
+			final List<Path> files             = new LinkedList<>();
+			final String aggregate             = request.getParameter("aggregate");
+			final String histogram             = request.getParameter("histogram");
 
-			boolean inverse = false;
+			boolean overview    = false;
+			boolean inverse     = false;
+			long beginTimestamp = Long.MAX_VALUE;
+			long endTimestamp   = 0L;
+			int entryCount      = 0;
 
 			if (StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
@@ -153,18 +184,32 @@ public class LogResource extends Resource {
 				} catch (IOException ioex) {
 					ioex.printStackTrace();
 				}
+
+			} else if (StringUtils.isNotEmpty(action)) {
+
+				collectFiles(new File(filesPath + SUBJECTS).toPath(), files);
+
+			} else {
+
+				collectFiles(new File(filesPath + SUBJECTS).toPath(), files);
+
+				// create overview of existing logs
+				overview = true;
+
 			}
 
 			final List<GraphObject> entries = new LinkedList<>();
-			final Predicate datePredicate   = getTimestampPredicate();
+			final Query query               = getTimestampQuery();
+			final Range<Long> range         = getRangeFromQuery(query);
+			final Predicate datePredicate   = query.toPredicate();
 
 			for (final Path path : files) {
 
 				try (final BufferedReader reader = Files.newBufferedReader(path, Charset.forName("utf-8"))) {
 
-					final String fileName       = path.getFileName().toString();
-					String pathSubjectId  = inverse ? fileName.substring(33, 64) : fileName.substring(0, 32);
-					String pathObjectId   = inverse ? fileName.substring(0, 32)  : fileName.substring(33, 64);
+					final String fileName = path.getFileName().toString();
+					String pathSubjectId  = inverse ? fileName.substring(32, 64) : fileName.substring(0, 32);
+					String pathObjectId   = inverse ? fileName.substring(0, 32)  : fileName.substring(32, 64);
 
 					String line = reader.readLine();
 					while (line != null) {
@@ -178,38 +223,110 @@ public class LogResource extends Resource {
 							final String part1        = line.substring(pos0+1, pos1);
 							final String part2        = line.substring(pos1+1);
 
-							final Date date           = new Date(Long.valueOf(part0));
+							final long timestamp      = Long.valueOf(part0);
+							final Date date           = new Date(timestamp);
 							final String entryAction  = part1;
 							final String entryMessage = part2;
 
-							// action present or matching?
-							if (action == null || action.equals(entryAction)) {
+							// determine first timestamp
+							if (timestamp <= beginTimestamp) {
+								beginTimestamp = timestamp;
+							}
 
-								final GraphObjectMap map = new GraphObjectMap();
-								map.put(subjectProperty, pathSubjectId);
-								map.put(objectProperty, pathObjectId);
-								map.put(actionProperty, entryAction);
-								map.put(timestampProperty, date);
-								map.put(messageProperty, entryMessage);
+							// determine last timestamp
+							if (timestamp >= endTimestamp) {
+								endTimestamp = timestamp;
+							}
 
-								// date predicate present?
-								if (date == null || datePredicate.accept(map)) {
-									entries.add(map);
+							if (overview) {
+
+								Integer actionCount = actions.get(entryAction);
+								if (actionCount == null) {
+
+									actions.put(entryAction, 1);
+
+								} else {
+
+									actions.put(entryAction, actionCount + 1);
+								}
+
+								entryCount++;
+
+							} else {
+
+								// action present or matching?
+								if (action == null || action.equals(entryAction)) {
+
+									final GraphObjectMap map = new GraphObjectMap();
+									map.put(subjectProperty, pathSubjectId);
+									map.put(objectProperty, pathObjectId);
+									map.put(actionProperty, entryAction);
+									map.put(timestampProperty, date);
+									map.put(messageProperty, entryMessage);
+
+									// date predicate present?
+									if (date == null || datePredicate.accept(map)) {
+										entries.add(map);
+									}
 								}
 							}
 
-						} catch (Throwable ignore) {}
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
 
 						line = reader.readLine();
 					}
 
-				} catch (IOException ioex) {}
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
 			}
 
-			// sort result
-			Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
+			if (overview) {
 
-			return new Result(entries, entries.size(), true, true);
+				overviewMap.put(actionsProperty, actions);
+				overviewMap.put(entryCountProperty, entryCount);
+				overviewMap.put(firstEntryProperty, new Date(beginTimestamp));
+				overviewMap.put(lastEntryProperty, new Date(endTimestamp));
+
+				return new Result(overviewMap, false);
+
+			} else if (StringUtils.isNotBlank(histogram)) {
+
+				if (StringUtils.isBlank(aggregate)) {
+					throw new FrameworkException(400, "To use the histogram function, please supply an aggregation pattern.");
+				}
+
+				// sort result
+				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
+
+				final long intervalStart = range != null ? range.start : beginTimestamp;
+				final long intervalEnd   = range != null ? range.end : endTimestamp;
+
+				// aggregate results
+				return histogram(entries, aggregate, intervalStart, intervalEnd, histogram);
+
+			} else if (StringUtils.isNotBlank(aggregate)) {
+
+				final Map<String, Pattern> aggregationPatterns = getAggregationPatterns(request);
+
+				// sort result
+				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
+
+				final long intervalStart = range != null ? range.start : beginTimestamp;
+				final long intervalEnd   = range != null ? range.end : endTimestamp;
+
+				// aggregate results
+				return aggregate(entries, aggregate, intervalStart, intervalEnd, aggregationPatterns);
+
+			} else {
+
+				// sort result
+				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
+
+				return new Result(entries, entries.size(), true, false);
+			}
 		}
 
 		// no request object, this is fatal
@@ -301,6 +418,35 @@ public class LogResource extends Resource {
 		return result;
 	}
 
+	@Override
+	public boolean createPostTransaction() {
+		return false;
+	}
+
+	// ----- private methods -----
+	private void collectFiles(final Path dir, final List<Path> files) {
+
+		try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*")) {
+
+			for (final Path p : stream) {
+
+				if (Files.isDirectory(p)) {
+
+					collectFiles(p, files);
+
+				} else {
+
+					files.add(p);
+				}
+
+			}
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+
+	}
+
 	private Path write(final String basePath, final String fileName, final String data) throws IOException {
 
 		final String path           = getDirectoryPath(fileName, 8);
@@ -363,16 +509,326 @@ public class LogResource extends Resource {
 		return buf.toString();
 	}
 
-	private Predicate getTimestampPredicate() throws FrameworkException {
+	private Query getTimestampQuery() throws FrameworkException {
 
 		final Query dummyQuery = StructrApp.getInstance(securityContext).nodeQuery();
 		timestampProperty.extractSearchableAttribute(securityContext, securityContext.getRequest(), dummyQuery);
 
-		return dummyQuery.toPredicate();
+		return dummyQuery;
 	}
 
-	@Override
-	public boolean createPostTransaction() {
-		return false;
+	private Range<Long> getRangeFromQuery(final Query query) throws FrameworkException {
+
+		final SearchAttributeGroup rootGroup = query.getRootAttributeGroup();
+		final RangeSearchAttribute range     = findRange(rootGroup);
+
+		if (range != null) {
+
+			final Object start = range.getRangeStart();
+			final Object end   = range.getRangeEnd();
+
+			if (start instanceof Date && end instanceof Date) {
+				return new Range<>(((Date)start).getTime(), ((Date)end).getTime());
+			}
+		}
+
+		return null;
+	}
+
+	private RangeSearchAttribute findRange(final SearchAttributeGroup group) {
+
+		for (final SearchAttribute attr : group.getSearchAttributes()) {
+
+			if (attr instanceof RangeSearchAttribute) {
+				return (RangeSearchAttribute)attr;
+			}
+
+			if (attr instanceof SearchAttributeGroup) {
+
+				final RangeSearchAttribute result = findRange((SearchAttributeGroup)attr);
+				if (result != null) {
+
+					return result;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private Result aggregate(final List<GraphObject> entries, final String dateFormat, final long startTimestamp, final long endTimestamp, final Map<String, Pattern> aggregationPatterns) throws FrameworkException {
+
+		final GraphObjectMap result               = new GraphObjectMap();
+		final long interval                       = findInterval(dateFormat);
+		final long start                          = alignDateOnFormat(dateFormat, startTimestamp);
+		final TreeMap<Long, GraphObject> countMap = toAggregatedCountMap(entries, aggregationPatterns);
+		final Set<IntProperty> countProperties    = getCountProperties(countMap);
+
+		for (long current = start; current <= endTimestamp; current += interval) {
+
+			final Map<Long, GraphObject> counts = countMap.subMap(current, true, current+interval, false);
+			final GraphObject sum               = new GraphObjectMap();
+
+			// initialize interval sums with 0 (so each
+			// interval contains all keys regardless of
+			// whether there are actual values or not)
+			for (final IntProperty key : countProperties) {
+				sum.setProperty(key, 0);
+			}
+
+			// evaluate counts
+			for (final GraphObject count : counts.values()) {
+
+				for (final IntProperty key : countProperties) {
+
+					Integer sumValue   = sum.getProperty(key);
+					if (sumValue == null) {
+						sumValue = 0;
+					}
+
+					Integer entryValue = count.getProperty(key);
+					if (entryValue == null) {
+						entryValue = 0;
+					}
+
+					sum.setProperty(key, sumValue + entryValue);
+				}
+			}
+
+			result.put(new GenericProperty(Long.toString(current)), sum);
+		}
+
+		return new Result(result, false);
+	}
+
+	private Result histogram(final List<GraphObject> entries, final String dateFormat, final long startTimestamp, final long endTimestamp, final String capturePattern) throws FrameworkException {
+
+		final GraphObjectMap result               = new GraphObjectMap();
+		final long interval                       = findInterval(dateFormat);
+		final long start                          = alignDateOnFormat(dateFormat, startTimestamp);
+		final TreeMap<Long, GraphObject> countMap = toHistogramCountMap(entries, capturePattern);
+		final Set<IntProperty> countProperties    = getCountProperties(countMap);
+
+		for (long current = start; current <= endTimestamp; current += interval) {
+
+			final Map<Long, GraphObject> counts = countMap.subMap(current, true, current+interval, false);
+			final GraphObject sum               = new GraphObjectMap();
+
+			// initialize interval sums with 0 (so each
+			// interval contains all keys regardless of
+			// whether there are actual values or not)
+			for (final IntProperty key : countProperties) {
+				sum.setProperty(key, 0);
+			}
+
+			// evaluate counts
+			for (final GraphObject count : counts.values()) {
+
+				for (final IntProperty key : countProperties) {
+
+					Integer sumValue   = sum.getProperty(key);
+					if (sumValue == null) {
+						sumValue = 0;
+					}
+
+					Integer entryValue = count.getProperty(key);
+					if (entryValue == null) {
+						entryValue = 0;
+					}
+
+					sum.setProperty(key, sumValue + entryValue);
+				}
+			}
+
+			result.put(new GenericProperty(Long.toString(current)), sum);
+		}
+
+		return new Result(result, false);
+	}
+
+	private long alignDateOnFormat(final String dateFormat, final long timestamp) {
+
+		try {
+
+			final SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+			return format.parse(format.format(timestamp)).getTime();
+
+		} catch (ParseException pex) {
+			pex.printStackTrace();
+		}
+
+		return 0L;
+	}
+
+	/**
+	 * This method takes a date format and finds the time interval
+	 * that it represents.
+	 */
+	private long findInterval(final String dateFormat) {
+
+
+		final long max  = TimeUnit.DAYS.toMillis(365);
+		final long step = TimeUnit.SECONDS.toMillis(60);
+
+		try {
+
+			final SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+			final long initial            = format.parse(format.format(3600)).getTime();
+
+			for (long i=initial; i<max; i+=step) {
+
+				final long current = format.parse(format.format(i)).getTime();
+
+				if (initial != current) {
+					return i-initial;
+				}
+			}
+
+			return max;
+
+		} catch (ParseException pex) {
+			pex.printStackTrace();
+		}
+
+		return max;
+	}
+
+	private TreeMap<Long, GraphObject> toAggregatedCountMap(final List<GraphObject> entries, final Map<String, Pattern> aggregationPatterns) throws FrameworkException {
+
+		final TreeMap<Long, GraphObject> countMap = new TreeMap<>();
+
+		for (final GraphObject entry : entries) {
+
+			final String message = entry.getProperty(messageProperty);
+			final long timestamp = entry.getProperty(timestampProperty).getTime();
+			GraphObject obj      = countMap.get(timestamp);
+
+			if (obj == null) {
+				obj = new GraphObjectMap();
+			}
+
+			Integer count = obj.getProperty(totalProperty);
+			if (count == null) {
+				count = 1;
+			} else {
+				count = count + 1;
+			}
+			obj.setProperty(totalProperty, count);
+
+			// iterate over patterns
+			for (final Entry<String, Pattern> patternEntry : aggregationPatterns.entrySet()) {
+
+				if (patternEntry.getValue().matcher(message).matches()) {
+
+					final IntProperty patternKeyProperty = new IntProperty(patternEntry.getKey());
+					Integer c = obj.getProperty(patternKeyProperty);
+					if (c == null) {
+						c = 1;
+					} else {
+						c = c + 1;
+					}
+
+					obj.setProperty(patternKeyProperty, c);
+				}
+			}
+
+			countMap.put(timestamp, obj);
+		}
+
+		return countMap;
+	}
+
+	private TreeMap<Long, GraphObject> toHistogramCountMap(final List<GraphObject> entries, final String capturePattern) throws FrameworkException {
+
+		final Pattern pattern                     = Pattern.compile(capturePattern);
+		final Matcher matcher                     = pattern.matcher("");
+		final TreeMap<Long, GraphObject> countMap = new TreeMap<>();
+
+		for (final GraphObject entry : entries) {
+
+			final String message = entry.getProperty(messageProperty);
+			final long timestamp = entry.getProperty(timestampProperty).getTime();
+			GraphObject obj      = countMap.get(timestamp);
+
+			if (obj == null) {
+				obj = new GraphObjectMap();
+			}
+
+			Integer count = obj.getProperty(totalProperty);
+			if (count == null) {
+				count = 1;
+			} else {
+				count = count + 1;
+			}
+			obj.setProperty(totalProperty, count);
+
+			// iterate over patterns
+			matcher.reset(message);
+			if (matcher.matches()) {
+
+				final String key = matcher.group(1);
+
+				final IntProperty patternKeyProperty = new IntProperty(key);
+				Integer c = obj.getProperty(patternKeyProperty);
+				if (c == null) {
+					c = 1;
+				} else {
+					c = c + 1;
+				}
+
+				obj.setProperty(patternKeyProperty, c);
+			}
+
+			countMap.put(timestamp, obj);
+		}
+
+		return countMap;
+	}
+
+	private Set<IntProperty> getCountProperties(final Map<Long, GraphObject> entries) {
+
+		final Set<IntProperty> result = new LinkedHashSet<>();
+
+		for (final GraphObject obj : entries.values()) {
+
+			for (final PropertyKey key : obj.getPropertyKeys(null)) {
+
+				if (key instanceof IntProperty) {
+
+					result.add((IntProperty)key);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private Map<String, Pattern> getAggregationPatterns(final HttpServletRequest request) {
+
+		final Map<String, Pattern> patterns = new LinkedHashMap<>();
+
+		for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+
+			final String key     = entry.getKey();
+			final String[] value = entry.getValue();
+
+			if (value.length > 0 && !ReservedRequestParameters.contains(key)) {
+				patterns.put(key, Pattern.compile(value[0]));
+			}
+		}
+
+		return patterns;
+	}
+
+	private static class Range<T> {
+
+		private T start = null;
+		private T end   = null;
+
+		public Range(final T start, final T end) {
+			this.start = start;
+			this.end   = end;
+		}
 	}
 }
+

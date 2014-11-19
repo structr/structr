@@ -127,6 +127,14 @@ public abstract class Tag {
 		return parent;
 	}
 
+	public void appendComma () {
+		if (this.children.size() > 0) {
+			((LinkedList<Tag>)getChildren()).getLast().appendComma();
+		} else if (this.text != null) {
+			this.text = this.text.concat(",");
+		}
+	}
+
 	// ----- protected methods -----
 	protected void render(final PrintWriter writer, final int level) throws IOException {
 		

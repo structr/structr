@@ -752,7 +752,7 @@ var _Schema = {
                 tooltipClass: 'tooltip',
                 items: '.remove-icon',
                 show: { effect: 'fadeIn', duration: 50 },
-                hide: { effect: 'fadeOut', duration: 500 },
+                hide: { effect: 'fadeOut', duration: 1000 },
                 content: '<img src="/structr/icon/error.png"> <b>' + normalizedKey + '</b> is still in use.',
                 position: { my: "right top", at: "right bottom", collision: "flipfit" },
 //                open: function() {
@@ -980,12 +980,16 @@ var _Schema = {
             if (out) {
                 _Schema.setRelationshipProperty(rel, 'targetJsonName', newName, function() {
                     blinkGreen($('.' + key, el));
+                    remotePropertyKeys.push('_' + newName);
+                    remotePropertyKeys = without('_' + key, remotePropertyKeys);
                 }, function() {
                     blinkRed($('.' + key, el));
                 });
             } else {
                 _Schema.setRelationshipProperty(rel, 'sourceJsonName', newName, function() {
                     blinkGreen($('.' + key, el));
+                    remotePropertyKeys.push('_' + newName);
+                    remotePropertyKeys = without('_' + key, remotePropertyKeys);
                 }, function() {
                     blinkRed($('.' + key, el));
                 });

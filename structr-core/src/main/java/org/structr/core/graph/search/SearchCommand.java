@@ -611,52 +611,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return this;
 	}
 
-	private void types(final Class type) {
-
-		final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
-		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
-		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
-
-		/* FIXME: how can that work at all???????
-		if (type == null) {
-
-			// no entity class for the given type found, examine interface types and subclasses
-			Set<Class> classesForInterface = configuration.getClassesForInterface(type.getSimpleName());
-
-			if (classesForInterface != null) {
-
-				for (Class clazz : classesForInterface) {
-
-					attrs.addAll(getTypeAndSubtypesInternal(clazz, isExactMatch));
-				}
-
-			}
-
-			return attrs;
-		}
-		*/
-
-		for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
-
-			Class<? extends NodeInterface> entityClass = entity.getValue();
-
-			if (type.isAssignableFrom(entityClass)) {
-
-				orType(entityClass);
-			}
-		}
-
-		for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
-
-			Class<? extends RelationshipInterface> entityClass = entity.getValue();
-
-			if (type.isAssignableFrom(entityClass)) {
-
-				orType(entityClass);
-			}
-		}
-	}
-
 	@Override
 	public org.structr.core.app.Query<T> andName(final String name) {
 		return and(AbstractNode.name, name);
@@ -841,6 +795,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return null;
 	}
 
+	@Override
+	public SearchAttributeGroup getRootAttributeGroup() {
+		return rootGroup;
+	}
+
 	// ----- static methods -----
 	public static String escapeForLucene(String input) {
 
@@ -971,6 +930,5 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			return result;
 		}
-
 	}
 }

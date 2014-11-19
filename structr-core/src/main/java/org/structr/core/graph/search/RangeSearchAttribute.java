@@ -142,4 +142,12 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> {
 	public String getValueForEmptyField() {
 		return null;
 	}
+
+	public T getRangeStart() {
+		return rangeStart;
+	}
+
+	public T getRangeEnd() {
+		return rangeEnd;
+	}
 }

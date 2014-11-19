@@ -36,7 +36,7 @@ function sortArray(arrayIn, sortBy) {
 
 function without(s, array) {
     if (!isIn(s, array)) {
-        return;
+        return array;
     }
 
     var res = [];
