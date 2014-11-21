@@ -541,6 +541,9 @@ public class HttpService implements RunnableService {
 									resourceHandler.setDirectoriesListed(Boolean.parseBoolean(directoriesListed));
 									resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
 									resourceHandler.setResourceBase(resourceBase);
+									resourceHandler.setCacheControl("max-age=0");
+									resourceHandler.setEtags(true);
+
 									ContextHandler staticResourceHandler = new ContextHandler();
 									staticResourceHandler.setContextPath(contextPath);
 									staticResourceHandler.setHandler(resourceHandler);
