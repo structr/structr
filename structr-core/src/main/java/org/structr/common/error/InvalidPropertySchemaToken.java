@@ -31,11 +31,11 @@ public class InvalidPropertySchemaToken extends SemanticErrorToken {
 	private String source     = null;
 	private String reason     = null;
 	private String errorToken = null;
-	
+
 	public InvalidPropertySchemaToken(final String source, final String errorToken, final String reason) {
-		
+
 		super(base);
-		
+
 		this.source     = source;
 		this.reason     = reason;
 		this.errorToken = errorToken;
@@ -46,7 +46,10 @@ public class InvalidPropertySchemaToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-                obj.add(getErrorToken(), new JsonPrimitive(source));
+		if (source != null) {
+	                obj.add(getErrorToken(), new JsonPrimitive(source));
+		}
+		
                 obj.add("reason", new JsonPrimitive(reason));
 
 		return obj;

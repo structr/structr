@@ -78,7 +78,7 @@ public abstract class PropertyParser {
 		source               = source.substring(keyName.length());
 
 		setNotNull(notNull);
-		
+
 		// second: uniqueness and/or non-null, check until the two methods to not change the length of the string any more
 		extractUniqueness();
 
@@ -162,11 +162,11 @@ public abstract class PropertyParser {
 	public String getDefaultValueSource() {
 		return defaultValue;
 	}
-	
+
 	public static PropertyParameters detectDbNameNotNullAndDefaultValue(final String rawSource) {
-		
+
 		final PropertyParameters params = new PropertyParameters(rawSource);
-		
+
 		// detect optional db name
 		if (rawSource.contains("|")) {
 
@@ -184,11 +184,12 @@ public abstract class PropertyParser {
 		// detect and remove format: <type>(...)
 		if (StringUtils.isNotBlank(params.source)) {
 
-			params.format = StringUtils.substringBetween(params.source, "(", ")");
+			params.format = substringBetween(params.source, "(", ")");
+//			params.format = StringUtils.substringBetween(params.source, "(", ")");
 			params.source = params.source.replaceFirst("\\(.*\\)", "");
-		
+
 		}
-		
+
 		// detect and remove default value
 		if (params.source.contains(":")) {
 
@@ -199,9 +200,21 @@ public abstract class PropertyParser {
 			params.source       = params.source.substring(0, firstIndex);
 
 		}
-		
+
 		return params;
 
 	}
 
+	public static String substringBetween(final String source, final String prefix, final String suffix) {
+
+		final int pos1 = source.indexOf(prefix);
+		final int pos2 = source.lastIndexOf(suffix);
+
+		if (pos1 < pos2 && pos2 > 0) {
+
+			return source.substring(pos1 + 1, pos2);
+		}
+
+		return null;
+	}
 }

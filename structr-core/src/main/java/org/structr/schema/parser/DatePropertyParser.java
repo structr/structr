@@ -68,27 +68,29 @@ public class DatePropertyParser extends PropertyParser {
 	@Override
 	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
 
-		if (expression == null || expression.length() == 0) {
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_date_pattern", "Empty date pattern."));
-			return;
-		}
+		if (expression != null) {
 
-		pattern = expression;
-		
-		auxType = ", \"" + expression +"\"";
+			if (expression.isEmpty()) {
+				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_date_pattern", "Empty date pattern."));
+				return;
+			}
+
+			pattern = expression;
+			auxType = ", \"" + expression +"\"";
+		}
 	}
-	
+
 	@Override
 	public String getDefaultValueSource() {
 		return "DatePropertyParser.parse(\"" + pattern + "\", \"" + defaultValue + "\")";
 	}
-	
+
 	/**
 	 * Static method to catch parse exception
-	 * 
+	 *
 	 * @param pattern
 	 * @param value
-	 * @return 
+	 * @return
 	 */
 	public static Date parse(final String pattern, final String value) {
 		try {

@@ -18,6 +18,7 @@
  */
 package org.structr.schema.parser;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
@@ -67,11 +68,11 @@ public class StringPropertyParser extends PropertyParser {
 		if ("multi-line".equals(expression)) {
 
 			localValidator = ", \""  + expression + "\"";
-			
-		} else {
+
+		} else if (StringUtils.isNotBlank(expression)) {
 
 			localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
-			
+
 		}
 	}
 
