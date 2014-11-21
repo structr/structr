@@ -212,7 +212,7 @@ public abstract class PropertyParser {
 
 		if (pos1 < pos2 && pos2 > 0) {
 
-			return source.substring(pos1, pos2);
+			return source.substring(pos1 + 1, pos2);
 		}
 
 		return null;
