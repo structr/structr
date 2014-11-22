@@ -126,11 +126,86 @@ var _Contents = {
             mode: contentType,
             lineNumbers: true
         });
-        editor.focus();
         Structr.resize();
-
+        
         dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
         dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+        // Experimental speech recognition, works only in Chrome 25+
+        if (typeof(webkitSpeechRecognition) === 'function') {
+        
+            dialogBox.append('<button class="speechToText"><img src="img/icon_microphone.svg"></button>');
+            var speechBtn = $('.speechToText', dialogBox);
+
+            _Speech.init(speechBtn, function(interim, final) {
+                //console.log('Interim', interim);
+                //console.log('Final', final);
+
+                if (_Speech.isCommand('save', interim)) {
+                    //console.log('Save command detected');
+                    dialogSaveButton.click();
+                } else if (_Speech.isCommand('saveAndClose', interim)) {
+                    //console.log('Save and close command detected');
+                    _Speech.toggleStartStop(speechBtn, function() {
+                        $('#saveAndClose', dialogBtn).click();
+                    });
+                } else if (_Speech.isCommand('close', interim)) {
+                    //console.log('Close command detected');
+                    _Speech.toggleStartStop(speechBtn, function() {
+                        dialogCancelButton.click();
+                    });
+                } else if (_Speech.isCommand('stop', interim)) {
+                    _Speech.toggleStartStop(speechBtn, function() {
+                        //
+                    });
+                } else if (_Speech.isCommand('clearAll', interim)) {
+                    editor.setValue('');
+                    editor.focus();
+                    editor.execCommand('goDocEnd');
+                } else if (_Speech.isCommand('deleteLastParagraph', interim)) {
+                    var text = editor.getValue();
+                    editor.setValue(text.substring(0, text.lastIndexOf('\n')));
+                    editor.focus();
+                    editor.execCommand('goDocEnd');
+                } else if (_Speech.isCommand('deleteLastSentence', interim)) {
+                    var text = editor.getValue();
+                    editor.setValue(text.substring(0, text.lastIndexOf('.')+1));
+                    editor.focus();
+                    editor.execCommand('goDocEnd');
+                } else if (_Speech.isCommand('deleteLastWord', interim)) {
+                    var text = editor.getValue();
+                    editor.setValue(text.substring(0, text.lastIndexOf(' ')));
+                    editor.focus();
+                    editor.execCommand('goDocEnd');
+                } else if (_Speech.isCommand('deleteLine', interim)) {
+                    editor.execCommand('deleteLine');
+                } else if (_Speech.isCommand('deleteLineLeft', interim)) {
+                    editor.execCommand('deleteLineLeft');
+                } else if (_Speech.isCommand('deleteLineRight', interim)) {
+                    editor.execCommand('killLine');
+                    
+                } else if (_Speech.isCommand('lineUp', interim)) {
+                    editor.execCommand('goLineUp');
+                } else if (_Speech.isCommand('lineDown', interim)) {
+                    editor.execCommand('goLineDown');
+                } else if (_Speech.isCommand('wordLeft', interim)) {
+                    editor.execCommand('goWordLeft');
+                } else if (_Speech.isCommand('wordRight', interim)) {
+                    editor.execCommand('goWordRight');
+                } else if (_Speech.isCommand('left', interim)) {
+                    editor.execCommand('goCharLeft');
+                } else if (_Speech.isCommand('right', interim)) {
+                    editor.execCommand('goCharRight');
+                    
+                    
+                } else {
+                    editor.setValue(editor.getValue() + interim);
+                    editor.focus();
+                    editor.execCommand('goDocEnd');
+                }
+
+            });
+        }
 
         dialogSaveButton = $('#editorSave', dialogBtn);
         var saveAndClose = $('#saveAndClose', dialogBtn);
@@ -209,6 +284,9 @@ var _Contents = {
         });
 
         editor.id = entity.id;
+
+        editor.focus();
+        editor.execCommand('goDocEnd');
 
     }
 };

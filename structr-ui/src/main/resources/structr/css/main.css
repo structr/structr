@@ -1905,3 +1905,38 @@ table.push {
     vertical-align: middle;
     margin: 0 4px 4px 0;
 }
+
+/**
+ * Speech Recognition
+ */
+.speechToText {
+    opacity: 1.0;
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 28px;
+    height: 28px;
+}
+
+.speechToText img {
+    width: 20px;
+    height: 20px;
+    border: none;
+    margin: 0 0 0 -1px;
+    padding: 0;
+}
+
+.speechToText:hover {
+    opacity: .8;
+    margin: 0;
+    padding: 0;
+}
+
+.speechToText.active {
+    opacity: .4;
+    border: 1px solid #f00 ! important;
+}
+
+.speechToText.active img {
+    color: red;
+}
