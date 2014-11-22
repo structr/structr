@@ -72,7 +72,8 @@ if ('webkitSpeechRecognition' in window) {
             });
         },
         toggleStartStop: function (btn, callback) {
-            if (_Speech.recognizing) {
+            //console.log('toggle', _Speech.recognition.recognizing);
+            if (_Speech.recognition.recognizing) {
                 _Speech.recognition.stop();
                 _Speech.reset(btn);
                 //console.log('Speech recognition stopped.');
@@ -81,8 +82,8 @@ if ('webkitSpeechRecognition' in window) {
                 }
             } else {
                 _Speech.recognition.start();
-                _Speech.recognizing = true;
-                btn.addClass('active').addClass('disabled');
+                _Speech.recognition.recognizing = true;
+                btn.addClass('active');
                 //console.log('Speech recognition started.');
                 if (callback) {
                     callback();
