@@ -42,7 +42,7 @@ import org.structr.core.validator.TypeUniquenessValidator;
 
 /**
  * Controls access to REST resources.
- * 
+ *
  * Objects of this class act as a doorkeeper for REST resources
  * that match the signature string in the 'signature' field.
  * <p>
@@ -52,9 +52,9 @@ import org.structr.core.validator.TypeUniquenessValidator;
  * <li>to authenticated principals
  * <li>to invidual principals (when connected to a {link @Principal} node
  * </ul>
- * 
+ *
  * <p>'flags' is a sum of any of the following values:
- * 
+ *
  *  FORBIDDEN             = 0
  *  AUTH_USER_GET         = 1
  *  AUTH_USER_PUT         = 2
@@ -66,7 +66,7 @@ import org.structr.core.validator.TypeUniquenessValidator;
  *  NON_AUTH_USER_DELETE  = 128
  *  AUTH_USER_OPTIONS     = 256
  *  NON_AUTH_USER_OPTIONS = 512
- * 
+ *
  * @author Christian Morgner
  * @author Axel Morgner
  */
@@ -75,16 +75,15 @@ public class ResourceAccess extends AbstractNode {
 	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<>();
 	private static final Logger logger                          = Logger.getLogger(ResourceAccess.class.getName());
 
-	public static final Property<String>                    signature       = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).indexed();
-	public static final Property<Long>                      flags           = new LongProperty("flags").indexed();
-	public static final Property<Integer>                   position        = new IntProperty("position").indexed();
-	
-	public static final Property<List<PropertyAccess>>  propertyAccess      = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
+	public static final Property<String>               signature      = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).indexed();
+	public static final Property<Long>                 flags          = new LongProperty("flags").indexed();
+	public static final Property<Integer>              position       = new IntProperty("position").indexed();
+	public static final Property<List<PropertyAccess>> propertyAccess = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position
 	);
-	
+
 	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
 		signature, flags
 	);
@@ -93,21 +92,21 @@ public class ResourceAccess extends AbstractNode {
 	private String cachedResourceSignature = null;
 	private Long cachedFlags               = null;
 	private Integer cachedPosition         = null;
-	
+
 	@Override
 	public String toString() {
-		
+
 		StringBuilder buf = new StringBuilder();
-		
+
 		buf.append("('").append(getResourceSignature()).append("', ").append(flags.jsonName()).append(": ").append(getFlags()).append("', ").append(position.jsonName()).append(": ").append(getPosition()).append(")");
-		
+
 		return buf.toString();
 	}
-	
+
 	public boolean hasFlag(long flag) {
 		return (getFlags() & flag) == flag;
 	}
-	
+
 	public void setFlag(final long flag) throws FrameworkException {
 
 		// reset cached field
@@ -116,7 +115,7 @@ public class ResourceAccess extends AbstractNode {
 		// set modified property
 		setProperty(ResourceAccess.flags, getFlags() | flag);
 	}
-	
+
 	public void clearFlag(final long flag) throws FrameworkException {
 
 		// reset cached field
@@ -125,39 +124,39 @@ public class ResourceAccess extends AbstractNode {
 		// set modified property
 		setProperty(ResourceAccess.flags, getFlags() & ~flag);
 	}
-	
+
 	public long getFlags() {
-		
+
 		if (cachedFlags == null) {
 			cachedFlags = getProperty(ResourceAccess.flags);
 		}
-		
+
 		if (cachedFlags != null) {
 			return cachedFlags.longValue();
 		}
-		
+
 		return 0;
 	}
-	
+
 	public String getResourceSignature() {
-		
+
 		if (cachedResourceSignature == null) {
 			cachedResourceSignature = getProperty(ResourceAccess.signature);
 		}
-		
+
 		return cachedResourceSignature;
 	}
 
 	public int getPosition() {
-		
+
 		if (cachedPosition == null) {
 			cachedPosition = getProperty(ResourceAccess.position);
 		}
-		
+
 		if (cachedPosition != null) {
-			return cachedPosition.intValue();
+			return cachedPosition;
 		}
-		
+
 		return 0;
 	}
 
@@ -165,18 +164,18 @@ public class ResourceAccess extends AbstractNode {
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
-	
+
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
-	
+
 	@Override
 	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) {
 		grantCache.clear();
 		return true;
 	}
-	
+
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
@@ -184,33 +183,36 @@ public class ResourceAccess extends AbstractNode {
 
 		error |= ValidationHelper.checkStringNotBlank(this,  ResourceAccess.signature, errorBuffer);
 		error |= ValidationHelper.checkPropertyNotNull(this, ResourceAccess.flags, errorBuffer);
-//		error |= checkPropertyNotNull(Key.city, errorBuffer);
 
 		return !error;
 	}
-	
+
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 		grantCache.clear();
 	}
-	
+
 	@Override
 	public void afterModification(SecurityContext securityContext) {
 		grantCache.clear();
 	}
-	
+
 	public static ResourceAccess findGrant(String signature) throws FrameworkException {
 
 		ResourceAccess grant = grantCache.get(signature);
 		if (grant == null) {
 
 			grant = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-			if (grant == null) {
+			if (grant != null) {
+
+				grantCache.put(signature, grant);
+
+			} else {
 
 				logger.log(Level.FINE, "No resource access object found for {0}", signature);
 			}
 		}
-		
+
 		return grant;
 	}
 }

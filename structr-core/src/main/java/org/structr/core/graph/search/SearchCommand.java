@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -109,21 +108,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		specialCharsExact.add('\\');
 	}
 
-	private SearchAttributeGroup rootGroup     = new SearchAttributeGroup(BooleanClause.Occur.MUST);
-	private SearchAttributeGroup currentGroup  = rootGroup;
-	private PropertyKey sortKey                = null;
-	private boolean publicOnly                 = false;
-	private boolean includeDeletedAndHidden    = false;
-	private boolean sortDescending             = false;
-	private boolean exactSearch                = true;
-	private String offsetId                    = null;
-	private int pageSize                       = Integer.MAX_VALUE;
-	private int page                           = 1;
-
-
-
-	// the value that will be indexed for "empty" fields
-	//public static final String EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
+	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(BooleanClause.Occur.MUST);
+	private SearchAttributeGroup currentGroup    = rootGroup;
+	private PropertyKey sortKey                  = null;
+	private boolean publicOnly                   = false;
+	private boolean includeDeletedAndHidden      = false;
+	private boolean sortDescending               = false;
+	private boolean exactSearch                  = true;
+	private String offsetId                      = null;
+	private int pageSize                         = Integer.MAX_VALUE;
+	private int page                             = 1;
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
 	public abstract Index<S> getFulltextIndex();
@@ -151,8 +145,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// At this point, all search attributes are ready
 		List<SourceSearchAttribute> sources    = new ArrayList<>();
-		boolean hasEmptySearchFields           = false;
 		DistanceSearchAttribute distanceSearch = null;
+		boolean hasEmptySearchFields           = false;
+		Result intermediateResult              = null;
 		GeoCodingResult coords                 = null;
 		Double dist                            = null;
 
@@ -214,8 +209,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 		}
 
-		Result intermediateResult;
-
 		// only do "normal" query if no other sources are present
 		// use filters to filter sources otherwise
 		if (distanceSearch == null && !sources.isEmpty()) {
@@ -240,7 +233,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			QueryContext queryContext = new QueryContext(query);
-			IndexHits hits            = null;
 
 			if (sortKey != null) {
 
@@ -270,14 +262,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 						synchronized (spatialIndex) {
 
-							hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
+							try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
+
+								// instantiate spatial search results without paging,
+								// as the results must be filtered by type anyway
+								intermediateResult = new NodeFactory(securityContext).instantiate(hits);
+
+							}
 						}
 					}
 				}
-
-				// instantiate spatial search results without paging,
-				// as the results must be filtered by type anyway
-				intermediateResult = new NodeFactory(securityContext).instantiate(hits);
 
 			} else if (allExactMatch) {
 
@@ -285,23 +279,21 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				synchronized (index) {
 
-					try {
-						hits = index.query(queryContext);
+					try (final IndexHits hits = index.query(queryContext)) {
+
+						// all luecene query, do not filter results
+						filterResults = hasEmptySearchFields;
+						intermediateResult = factory.instantiate(hits);
 
 					} catch (NumberFormatException nfe) {
 
 						logger.log(Level.SEVERE, "Could not sort results", nfe);
 
 						// retry without sorting
-						queryContext.sort(null);
-						hits = index.query(queryContext);
-
+						//queryContext.sort(null);
+						//hits = index.query(queryContext);
 					}
 				}
-
-				// all luecene query, do not filter results
-				filterResults = hasEmptySearchFields;
-				intermediateResult = factory.instantiate(hits);
 
 			} else {
 
@@ -310,35 +302,30 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				synchronized (index) {
 
-					try {
-						hits = index.query(queryContext);
+					try (final IndexHits hits = index.query(queryContext)) {
+
+						// all luecene query, do not filter results
+						filterResults = hasEmptySearchFields;
+						intermediateResult = factory.instantiate(hits);
 
 					} catch (NumberFormatException nfe) {
 
 						logger.log(Level.SEVERE, "Could not sort results", nfe);
 
 						// retry without sorting
-						queryContext.sort(null);
-						hits = index.query(queryContext);
+						//queryContext.sort(null);
+						//hits = index.query(queryContext);
 
 					}
 				}
-
-				// all luecene query, do not filter results
-				filterResults = hasEmptySearchFields;
-				intermediateResult = factory.instantiate(hits);
-			}
-
-			if (hits != null) {
-				hits.close();
 			}
 		}
 
-		if (filterResults) {
+		if (intermediateResult != null && filterResults) {
 
 			// sorted result set
 			Set<GraphObject> intermediateResultSet = new LinkedHashSet<>(intermediateResult.getResults());
-			List<GraphObject> finalResult          = new LinkedList<>();
+			List<GraphObject> finalResult          = new ArrayList<>();
 			int resultCount                        = 0;
 
 			// We need to find out whether there was a source for any of the possible sets that we want to merge.
@@ -887,7 +874,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	// ----- nested classes -----
 	private class AndPredicate implements Predicate<GraphObject> {
 
-		final List<Predicate<GraphObject>> predicates = new LinkedList<>();
+		final List<Predicate<GraphObject>> predicates = new ArrayList<>();
 
 		public AndPredicate(final List<SearchAttribute> searchAttributes) {
 

@@ -68,17 +68,16 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 		}
 
 		if (!type.isAssignableFrom(object.getClass())) {
-			
+
 			// types are different
 			return true;
 		}
-		
+
 		if (key != null) {
 
-			boolean nodeExists               = false;
-			String id                        = null;
-
 			Result<AbstractNode> result = null;
+			boolean nodeExists          = false;
+			String id                   = null;
 
 			try {
 
@@ -107,7 +106,7 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 		return true;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return true;
