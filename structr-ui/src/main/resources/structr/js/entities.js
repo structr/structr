@@ -280,6 +280,8 @@ var _Entities = {
                         dialogCancelButton.click();
                     }, 500);
                 });
+                
+                Structr.resize();
 
             },
             error: function(xhr, statusText, error) {
