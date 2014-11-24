@@ -17,6 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var lineWrappingKey = 'structrEditorLineWrapping_' + port;
 var contents, editor, contentType;
 
 var _Contents = {
@@ -120,17 +121,20 @@ var _Contents = {
         contentType = contentType ? contentType : entity.contentType;
         var text1, text2;
         
+        var lineWrapping = localStorage.getItem(lineWrappingKey);
+        
         // Intitialize editor
         editor = CodeMirror(contentBox.get(0), {
             value: text,
             mode: contentType,
-            lineNumbers: true
+            lineNumbers: true,
+            lineWrapping: lineWrapping
         });
         Structr.resize();
         
         dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
         dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
-
+        
         // Experimental speech recognition, works only in Chrome 25+
         if (typeof(webkitSpeechRecognition) === 'function') {
         
@@ -138,8 +142,8 @@ var _Contents = {
             var speechBtn = $('.speechToText', dialogBox);
 
             _Speech.init(speechBtn, function(interim, final) {
-                //console.log('Interim', interim);
-                //console.log('Final', final);
+                //console.log('Interim:', interim);
+                //console.log('Final:', final);
 
                 if (_Speech.isCommand('save', interim)) {
                     //console.log('Save command detected');
@@ -199,9 +203,12 @@ var _Contents = {
                     
                     
                 } else {
-                    editor.setValue(editor.getValue() + interim);
-                    editor.focus();
-                    editor.execCommand('goDocEnd');
+                    //editor.setValue(editor.getValue() + interim);
+                    
+                    editor.replaceSelection(interim);
+                    
+                    //editor.focus();
+                    //editor.execCommand('goDocEnd');
                 }
 
             });
@@ -229,6 +236,9 @@ var _Contents = {
                 dialogSaveButton.prop("disabled", false).removeClass('disabled');
                 saveAndClose.prop("disabled", false).removeClass('disabled');
             }
+            
+            $('#chars').text(editor.getValue().length);
+            $('#words').text(editor.getValue().match(/\S+/g).length);
         });
 
         dialogSaveButton.on('click', function(e) {
@@ -271,7 +281,7 @@ var _Contents = {
 
         var values = ['text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
 
-        dialogMeta.append('<label for="contentTypeSelect">Content-Type:</label><select class="contentType_" id="contentTypeSelect"></select>');
+        dialogMeta.append('<label for="contentTypeSelect">Content-Type:</label> <select class="contentType_" id="contentTypeSelect"></select>');
         var select = $('#contentTypeSelect', dialogMeta);
         $.each(values, function(i, type) {
             select.append('<option ' + (type === entity.contentType ? 'selected' : '') + ' value="' + type + '">' + type + '</option>');
@@ -282,6 +292,22 @@ var _Contents = {
                 _Pages.reloadPreviews();
             });
         });
+
+        dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+        $('#lineWrapping').on('change', function() {
+            var inp = $(this);
+            if  (inp.is(':checked')) {
+                localStorage.setItem(lineWrappingKey, "1");
+                editor.setOption('lineWrapping', true);
+            } else {
+                localStorage.removeItem(lineWrappingKey);
+                editor.setOption('lineWrapping', false);
+            }
+            editor.refresh();
+        });
+
+        dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
+        dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + editor.getValue().match(/\S+/g).length + '</span></span>');
 
         editor.id = entity.id;
 

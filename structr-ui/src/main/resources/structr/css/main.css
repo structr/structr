@@ -1906,6 +1906,14 @@ table.push {
     margin: 0 4px 4px 0;
 }
 
+.editor-info {
+    margin-left: 1em;
+}
+
+.editor-info span {
+    font-weight: bold;
+}
+
 /**
  * Speech Recognition
  */
