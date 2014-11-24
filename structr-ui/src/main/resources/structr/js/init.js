@@ -34,6 +34,7 @@ var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialog
 var dialogId;
 var page = {};
 var pageSize = {};
+var dialogMaximizedKey = 'structrDialogMaximized_' + port;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
@@ -491,6 +492,7 @@ var Structr = {
             dialogMsg.empty();
             dialogMeta.empty();
             //dialogBtn.empty();
+            $('.speechToText', dialogBox).remove();
 
             if (text) {
                 dialogTitle.html(text);
@@ -569,6 +571,8 @@ var Structr = {
     },
     resize: function() {
 
+        isMax = localStorage.getItem(dialogMaximizedKey);
+
         if (isMax) {
             Structr.maximize();
             return;
@@ -624,6 +628,8 @@ var Structr = {
         $('#maximizeDialog').show().on('click', function() {
             Structr.maximize();
         });
+        
+        localStorage.removeItem(dialogMaximizedKey);
 
     },
     maximize: function() {
@@ -678,8 +684,11 @@ var Structr = {
         $('#maximizeDialog').hide();
         $('#minimizeDialog').show().on('click', function() {
             isMax = false;
+            localStorage.removeItem(dialogMaximizedKey);
             Structr.resize();
         });
+        
+        localStorage.setItem(dialogMaximizedKey, '1');
 
     },
     error: function(text, callback) {
