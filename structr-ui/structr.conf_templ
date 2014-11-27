@@ -37,6 +37,10 @@ application.ftp.port = 8021
 # application.https.port = 8083
 # application.keystore.path = [KEYSTORE_FILE]
 # application.keystore.password = [KEYSTORE_PASSWORD]
+
+# Session timeout (default 30 minutes = 1800 seconds)
+application.session.timeout = 1800
+
 #
 # Neo4j server settings
 ########################################################

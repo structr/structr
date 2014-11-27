@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
- */
+  */
 package org.structr.core.graph.search;
 
 import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
@@ -37,6 +37,11 @@ public class SearchRelationshipCommand<T extends RelationshipInterface> extends 
 	@Override
 	public Factory<Relationship, T> getFactory(SecurityContext securityContext, boolean includeDeletedAndHidden, boolean publicOnly, int pageSize, int page, String offsetId) {
 		return new RelationshipFactory(securityContext);
+	}
+
+	@Override
+	public Index<Relationship> getUuidIndex() {
+		return  (Index<Relationship>) arguments.get(NodeService.RelationshipIndex.rel_uuid.name());
 	}
 
 	@Override

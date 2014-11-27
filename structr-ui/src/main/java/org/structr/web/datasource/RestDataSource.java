@@ -168,7 +168,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 				type = AbstractNode.class;
 
 			}
-			sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
+			sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
 		}
 
 		// do action

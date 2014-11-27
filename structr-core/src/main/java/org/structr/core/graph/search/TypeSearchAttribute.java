@@ -37,7 +37,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 	@Override
 	public String toString() {
-		return "TypeSearchAttribute()";
+		return "TypeSearchAttribute(" + super.toString() + ")";
 	}
 
 	@Override

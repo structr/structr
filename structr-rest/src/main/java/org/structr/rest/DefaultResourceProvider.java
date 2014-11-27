@@ -47,7 +47,6 @@ public class DefaultResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("end"),			RelationshipNodeResource.class);	// end node
 
 		resourceMap.put(Pattern.compile("public"),		ViewFilterResource.class);		// public view (default)
-		resourceMap.put(Pattern.compile("all"),			ViewFilterResource.class);		// all view
 
 		resourceMap.put(Pattern.compile("log"),			LogResource.class);			// log resource
 

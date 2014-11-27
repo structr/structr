@@ -61,7 +61,6 @@ import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
-import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
@@ -765,8 +764,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
 			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize		 = HttpService.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			int page                 = HttpService.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			int pageSize		 = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 			String baseUrl           = request.getRequestURI();
 			PropertyKey sortKey      = null;
 
@@ -780,7 +779,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					// if no type can be determined
 					type = AbstractNode.class;
 				}
-				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
+
+				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
 			}
 
 			// isolate doGet

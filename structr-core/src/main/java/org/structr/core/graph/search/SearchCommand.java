@@ -114,12 +114,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private boolean publicOnly                   = false;
 	private boolean includeDeletedAndHidden      = false;
 	private boolean sortDescending               = false;
+	private boolean doNotSort                    = false;
 	private boolean exactSearch                  = true;
 	private String offsetId                      = null;
 	private int pageSize                         = Integer.MAX_VALUE;
 	private int page                             = 1;
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
+	public abstract Index<S> getUuidIndex();
 	public abstract Index<S> getFulltextIndex();
 	public abstract Index<S> getKeywordIndex();
 	public abstract LayerNodeIndex getSpatialIndex();
@@ -234,7 +236,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			QueryContext queryContext = new QueryContext(query);
 
-			if (sortKey != null) {
+			if (sortKey != null && !doNotSort) {
 
 				Integer sortType = sortKey.getSortType();
 				if (sortType != null) {
@@ -348,20 +350,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 			}
 
-			// CHM 2014-02-10: this is probably wrong but left here
-			// because I'm not sure, replaced by the code above
-
-//			if (intermediateResultSet.isEmpty()) {
-//
-//				// merge sources according to their occur flag
-//				intermediateResultSet.addAll(mergeSources(sources));
-//
-//			} else if (!sources.isEmpty()) {
-//
-//				// merge sources according to their occur flag
-//				intermediateResultSet.retainAll(mergeSources(sources));
-//			}
-
 			// Filter intermediate result
 			for (GraphObject obj : intermediateResultSet) {
 
@@ -469,8 +457,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> sortAscending(final PropertyKey key) {
 
+		this.doNotSort      = false;
 		this.sortDescending = false;
-		this.sortKey = key;
+		this.sortKey        = key;
 
 		return this;
 	}
@@ -478,8 +467,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> sortDescending(final PropertyKey key) {
 
+		this.doNotSort      = false;
 		this.sortDescending = true;
-		this.sortKey = key;
+		this.sortKey        = key;
 
 		return this;
 	}
@@ -487,7 +477,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> order(final boolean descending) {
 
+		this.doNotSort      = false;
 		this.sortDescending = descending;
+
 		return this;
 	}
 
@@ -551,17 +543,22 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public org.structr.core.app.Query<T> uuid(final String uuid) {
+
+		doNotSort = true;
+
 		return and(GraphObject.id, uuid);
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> andType(final Class type) {
+
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.MUST, exactSearch));
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> orType(final Class type) {
+
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.SHOULD, exactSearch));
 		return this;
 	}
@@ -626,11 +623,21 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value) {
+
+		if (GraphObject.id.equals(key)) {
+			this.doNotSort = false;
+		}
+
 		return and(key, value, true);
 	}
 
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact) {
+
+		if (GraphObject.id.equals(key)) {
+
+			this.doNotSort = false;
+		}
 
 		exact(exact);
 		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, BooleanClause.Occur.MUST, value, exact, this));
@@ -645,6 +652,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			final PropertyKey key = entry.getKey();
 			final Object value = entry.getValue();
+
+			if (GraphObject.id.equals(key)) {
+
+				this.doNotSort = false;
+			}
 
 			and(key, value);
 		}
@@ -698,7 +710,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> notBlank(final PropertyKey key) {
 
 		currentGroup.getSearchAttributes().add(new NotBlankSearchAttribute(key));
-
 		return this;
 	}
 
@@ -706,7 +717,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
 
 		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, BooleanClause.Occur.MUST));
-
 		return this;
 	}
 
@@ -714,7 +724,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
 
 		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, BooleanClause.Occur.SHOULD));
-
 		return this;
 	}
 

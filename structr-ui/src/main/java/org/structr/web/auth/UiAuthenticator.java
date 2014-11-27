@@ -482,7 +482,11 @@ public class UiAuthenticator implements Authenticator {
 		if (sessionIdFromRequest == null) {
 
 			// create session id
-			request.getSession(true);
+			final HttpSession session = request.getSession(true);
+			if (session != null) {
+
+				session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
+			}
 
 			return null;
 		}

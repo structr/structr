@@ -286,7 +286,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				dontCache |= rootElement.getProperty(Page.dontCache);
 
 
-				
+
 				if (EditMode.WIDGET.equals(edit) || dontCache) {
 
 					setNoCacheHeaders(response);
@@ -336,7 +336,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						response.setHeader("X-XSS-Protection", "1; mode=block");
 
 						// async or not?
-						boolean isAsync = HttpService.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), true);
+						boolean isAsync = Services.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), true);
 						if (isAsync) {
 
 							final AsyncContext async      = request.startAsync();

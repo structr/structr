@@ -41,6 +41,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -50,7 +51,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.resource.Resource;
-import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 
@@ -152,8 +152,8 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				String sortOrder = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
 				String sortKeyName = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 				boolean sortDescending = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-				int pageSize = HttpService.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-				int page = HttpService.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+				int pageSize = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+				int page = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 				PropertyKey sortKey = null;
 
 				// set sort key
@@ -161,7 +161,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 					Class<? extends GraphObject> type = resource.getEntityClass();
 
-					sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
+					sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
 
 				}
 

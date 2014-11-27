@@ -14,6 +14,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -24,14 +25,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.helpers.Predicate;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -40,11 +38,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.search.RangeSearchAttribute;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
@@ -60,7 +53,7 @@ import org.structr.rest.exception.IllegalMethodException;
  */
 public class LogResource extends Resource {
 
-	private static final Logger logger = Logger.getLogger(LogResource.class.getName());
+	private static final Pattern RangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 
 	private static final String SUBJECTS = "/s/";
 	private static final String OBJECTS  = "/o/";
@@ -129,18 +122,8 @@ public class LogResource extends Resource {
 			final String filesPath             = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
 			final String subjectId             = request.getParameter(subjectProperty.jsonName());
 			final String objectId              = request.getParameter(objectProperty.jsonName());
-			final String action                = request.getParameter(actionProperty.jsonName());
 			final GraphObjectMap overviewMap   = new GraphObjectMap();
-			final Map<String, Integer> actions = new LinkedHashMap<>();
-			final List<Path> files             = new LinkedList<>();
-			final String aggregate             = request.getParameter("aggregate");
-			final String histogram             = request.getParameter("histogram");
-
-			boolean overview    = false;
-			boolean inverse     = false;
-			long beginTimestamp = Long.MAX_VALUE;
-			long endTimestamp   = 0L;
-			int entryCount      = 0;
+			final LogState logState            = new LogState(request);
 
 			if (StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
@@ -149,7 +132,7 @@ public class LogResource extends Resource {
 				final Path filePath         = new File(filesPath + SUBJECTS + path + fileName).toPath();
 
 				if (Files.exists(filePath)) {
-					files.add(filePath);
+					read(filePath, logState);
 				}
 
 
@@ -161,7 +144,7 @@ public class LogResource extends Resource {
 				try (final DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath, subjectId + "????????????????????????????????")) {
 
 					for (final Path p : stream) {
-						files.add(p);
+						read(p, logState);
 					}
 
 				} catch (IOException ioex) {
@@ -170,7 +153,7 @@ public class LogResource extends Resource {
 
 			} else if (StringUtils.isEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
-				inverse = true;
+				logState.inverse(true);
 
 				final String path           = getDirectoryPath(objectId, 8);
 				final Path directoryPath    = new File(filesPath + OBJECTS + path).toPath();
@@ -178,154 +161,50 @@ public class LogResource extends Resource {
 				try (final DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath, objectId + "????????????????????????????????")) {
 
 					for (final Path p : stream) {
-						files.add(p);
+						read(p, logState);
 					}
 
 				} catch (IOException ioex) {
 					ioex.printStackTrace();
 				}
 
-			} else if (StringUtils.isNotEmpty(action)) {
+			} else if (logState.doActionQuery()) {
 
-				collectFiles(new File(filesPath + SUBJECTS).toPath(), files);
+				collectFiles(new File(filesPath + SUBJECTS).toPath(), logState);
 
 			} else {
 
-				collectFiles(new File(filesPath + SUBJECTS).toPath(), files);
-
 				// create overview of existing logs
-				overview = true;
+				logState.overview(true);
 
+				collectFiles(new File(filesPath + SUBJECTS).toPath(), logState);
 			}
 
-			final List<GraphObject> entries = new LinkedList<>();
-			final Query query               = getTimestampQuery();
-			final Range<Long> range         = getRangeFromQuery(query);
-			final Predicate datePredicate   = query.toPredicate();
+			if (logState.overview()) {
 
-			for (final Path path : files) {
-
-				try (final BufferedReader reader = Files.newBufferedReader(path, Charset.forName("utf-8"))) {
-
-					final String fileName = path.getFileName().toString();
-					String pathSubjectId  = inverse ? fileName.substring(32, 64) : fileName.substring(0, 32);
-					String pathObjectId   = inverse ? fileName.substring(0, 32)  : fileName.substring(32, 64);
-
-					String line = reader.readLine();
-					while (line != null) {
-
-						try {
-
-							final int pos0            = line.indexOf(",");
-							final int pos1            = line.indexOf(",", pos0+1);
-
-							final String part0        = line.substring(0, pos0);
-							final String part1        = line.substring(pos0+1, pos1);
-							final String part2        = line.substring(pos1+1);
-
-							final long timestamp      = Long.valueOf(part0);
-							final Date date           = new Date(timestamp);
-							final String entryAction  = part1;
-							final String entryMessage = part2;
-
-							// determine first timestamp
-							if (timestamp <= beginTimestamp) {
-								beginTimestamp = timestamp;
-							}
-
-							// determine last timestamp
-							if (timestamp >= endTimestamp) {
-								endTimestamp = timestamp;
-							}
-
-							if (overview) {
-
-								Integer actionCount = actions.get(entryAction);
-								if (actionCount == null) {
-
-									actions.put(entryAction, 1);
-
-								} else {
-
-									actions.put(entryAction, actionCount + 1);
-								}
-
-								entryCount++;
-
-							} else {
-
-								// action present or matching?
-								if (action == null || action.equals(entryAction)) {
-
-									final GraphObjectMap map = new GraphObjectMap();
-									map.put(subjectProperty, pathSubjectId);
-									map.put(objectProperty, pathObjectId);
-									map.put(actionProperty, entryAction);
-									map.put(timestampProperty, date);
-									map.put(messageProperty, entryMessage);
-
-									// date predicate present?
-									if (date == null || datePredicate.accept(map)) {
-										entries.add(map);
-									}
-								}
-							}
-
-						} catch (Throwable t) {
-							t.printStackTrace();
-						}
-
-						line = reader.readLine();
-					}
-
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
-				}
-			}
-
-			if (overview) {
-
-				overviewMap.put(actionsProperty, actions);
-				overviewMap.put(entryCountProperty, entryCount);
-				overviewMap.put(firstEntryProperty, new Date(beginTimestamp));
-				overviewMap.put(lastEntryProperty, new Date(endTimestamp));
+				overviewMap.put(actionsProperty, logState.actions());
+				overviewMap.put(entryCountProperty, logState.actionCount());
+				overviewMap.put(firstEntryProperty, new Date(logState.beginTimestamp()));
+				overviewMap.put(lastEntryProperty, new Date(logState.endTimestamp()));
 
 				return new Result(overviewMap, false);
 
-			} else if (StringUtils.isNotBlank(histogram)) {
-
-				if (StringUtils.isBlank(aggregate)) {
-					throw new FrameworkException(400, "To use the histogram function, please supply an aggregation pattern.");
-				}
-
-				// sort result
-				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
-
-				final long intervalStart = range != null ? range.start : beginTimestamp;
-				final long intervalEnd   = range != null ? range.end : endTimestamp;
+			} else if (logState.doHistogram()) {
 
 				// aggregate results
-				return histogram(entries, aggregate, intervalStart, intervalEnd, histogram);
+				return histogram(logState);
 
-			} else if (StringUtils.isNotBlank(aggregate)) {
-
-				final Map<String, Pattern> aggregationPatterns = getAggregationPatterns(request);
-
-				// sort result
-				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
-
-				final long intervalStart = range != null ? range.start : beginTimestamp;
-				final long intervalEnd   = range != null ? range.end : endTimestamp;
+			} else if (logState.doAggregate()) {
 
 				// aggregate results
-				return aggregate(entries, aggregate, intervalStart, intervalEnd, aggregationPatterns);
+				return aggregate(logState);
 
 			} else {
 
 				// sort result
-				Collections.sort(entries, new GraphObjectComparator(timestampProperty, false));
+				logState.sortEntries();
 
-				return new Result(entries, entries.size(), true, false);
+				return new Result(wrap(logState.entries()), logState.size(), true, false);
 			}
 		}
 
@@ -424,7 +303,7 @@ public class LogResource extends Resource {
 	}
 
 	// ----- private methods -----
-	private void collectFiles(final Path dir, final List<Path> files) {
+	private void collectFiles(final Path dir, final LogState state) {
 
 		try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*")) {
 
@@ -432,13 +311,87 @@ public class LogResource extends Resource {
 
 				if (Files.isDirectory(p)) {
 
-					collectFiles(p, files);
+					collectFiles(p, state);
 
 				} else {
 
-					files.add(p);
+					read(p, state);
 				}
 
+			}
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void read(final Path path, final LogState state) {
+
+		try (final BufferedReader reader = Files.newBufferedReader(path, Charset.forName("utf-8"))) {
+
+			// skip older files
+			if (!state.includeFile(path.toFile())) {
+				return;
+			}
+
+			final String fileName = path.getFileName().toString();
+			String pathSubjectId  = state.inverse() ? fileName.substring(32, 64) : fileName.substring(0, 32);
+			String pathObjectId   = state.inverse() ? fileName.substring(0, 32)  : fileName.substring(32, 64);
+
+			String line = reader.readLine();
+			while (line != null) {
+
+				try {
+
+					final int pos0            = line.indexOf(",");
+					final int pos1            = line.indexOf(",", pos0+1);
+
+					final String part0        = line.substring(0, pos0);
+					final String part1        = line.substring(pos0+1, pos1);
+					final String part2        = line.substring(pos1+1);
+
+					final long timestamp      = Long.valueOf(part0);
+					final String entryAction  = part1;
+					final String entryMessage = part2;
+
+					// determine first timestamp
+					if (timestamp <= state.beginTimestamp()) {
+						state.beginTimestamp(timestamp);
+					}
+
+					// determine last timestamp
+					if (timestamp >= state.endTimestamp()) {
+						state.endTimestamp(timestamp);
+					}
+
+					if (state.overview()) {
+
+						state.countAction(entryAction);
+
+					} else {
+
+						// action present or matching?
+						if (state.isRequestedActionOrNull(entryAction)) {
+
+							final Map<String, Object> map = new LinkedHashMap<>();
+							map.put(subjectProperty.jsonName(), pathSubjectId);
+							map.put(objectProperty.jsonName(), pathObjectId);
+							map.put(actionProperty.jsonName(), entryAction);
+							map.put(timestampProperty.jsonName(), timestamp);
+							map.put(messageProperty.jsonName(), entryMessage);
+
+							// date predicate present?
+							if (state.isInRangeOrNull(timestamp)) {
+								state.addEntry(map);
+							}
+						}
+					}
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+
+				line = reader.readLine();
 			}
 
 		} catch (IOException ioex) {
@@ -468,18 +421,26 @@ public class LogResource extends Resource {
 		return filePath;
 	}
 
-	private void link(final String basePath, final String fileName, final Path existing) throws IOException {
+	private void link(final String basePath, final String fileName, final Path existing) {
 
-		final String path           = getDirectoryPath(fileName, 8);
-		final Path directoryPath    = new File(basePath + path).toPath();
-		final Path filePath         = new File(basePath + path + fileName).toPath();
 
-		if (Files.notExists(filePath)) {
-			Files.createDirectories(directoryPath);
-		}
+		try {
+			final String path           = getDirectoryPath(fileName, 8);
+			final Path directoryPath    = new File(basePath + path).toPath();
+			final Path filePath         = new File(basePath + path + fileName).toPath();
 
-		if (Files.notExists(filePath)) {
-			Files.createLink(filePath, existing);
+			if (Files.notExists(filePath)) {
+				Files.createDirectories(directoryPath);
+			}
+
+			if (Files.notExists(filePath)) {
+				Files.createLink(filePath, existing);
+			}
+
+		} catch (IOException ignore) {
+
+			// can be safely ignored because the actual work (linking
+			// the files) is already done when an exception is thrown
 		}
 	}
 
@@ -509,89 +470,49 @@ public class LogResource extends Resource {
 		return buf.toString();
 	}
 
-	private Query getTimestampQuery() throws FrameworkException {
+	private Result aggregate(final LogState state) throws FrameworkException {
 
-		final Query dummyQuery = StructrApp.getInstance(securityContext).nodeQuery();
-		timestampProperty.extractSearchableAttribute(securityContext, securityContext.getRequest(), dummyQuery);
 
-		return dummyQuery;
-	}
+		// sort entries before aggregation
+		state.sortEntries();
 
-	private Range<Long> getRangeFromQuery(final Query query) throws FrameworkException {
-
-		final SearchAttributeGroup rootGroup = query.getRootAttributeGroup();
-		final RangeSearchAttribute range     = findRange(rootGroup);
-
-		if (range != null) {
-
-			final Object start = range.getRangeStart();
-			final Object end   = range.getRangeEnd();
-
-			if (start instanceof Date && end instanceof Date) {
-				return new Range<>(((Date)start).getTime(), ((Date)end).getTime());
-			}
-		}
-
-		return null;
-	}
-
-	private RangeSearchAttribute findRange(final SearchAttributeGroup group) {
-
-		for (final SearchAttribute attr : group.getSearchAttributes()) {
-
-			if (attr instanceof RangeSearchAttribute) {
-				return (RangeSearchAttribute)attr;
-			}
-
-			if (attr instanceof SearchAttributeGroup) {
-
-				final RangeSearchAttribute result = findRange((SearchAttributeGroup)attr);
-				if (result != null) {
-
-					return result;
-				}
-			}
-		}
-
-		return null;
-	}
-
-	private Result aggregate(final List<GraphObject> entries, final String dateFormat, final long startTimestamp, final long endTimestamp, final Map<String, Pattern> aggregationPatterns) throws FrameworkException {
-
-		final GraphObjectMap result               = new GraphObjectMap();
-		final long interval                       = findInterval(dateFormat);
-		final long start                          = alignDateOnFormat(dateFormat, startTimestamp);
-		final TreeMap<Long, GraphObject> countMap = toAggregatedCountMap(entries, aggregationPatterns);
-		final Set<IntProperty> countProperties    = getCountProperties(countMap);
+		final long startTimestamp                         = state.beginTimestamp();
+		final long endTimestamp                           = state.endTimestamp();
+		final GraphObjectMap result                       = new GraphObjectMap();
+		final long interval                               = findInterval(state.aggregate());
+		final long start                                  = alignDateOnFormat(state.aggregate(), startTimestamp);
+		final TreeMap<Long, Map<String, Object>> countMap = toAggregatedCountMap(state);
+		final Set<String> countProperties                 = getCountProperties(countMap);
 
 		for (long current = start; current <= endTimestamp; current += interval) {
 
-			final Map<Long, GraphObject> counts = countMap.subMap(current, true, current+interval, false);
-			final GraphObject sum               = new GraphObjectMap();
+			final Map<Long, Map<String, Object>> counts = countMap.subMap(current, true, current+interval, false);
+			final GraphObjectMap sum                    = new GraphObjectMap();
 
 			// initialize interval sums with 0 (so each
 			// interval contains all keys regardless of
 			// whether there are actual values or not)
-			for (final IntProperty key : countProperties) {
-				sum.setProperty(key, 0);
+			for (final String key : countProperties) {
+				sum.put(new IntProperty(key), 0);
 			}
 
 			// evaluate counts
-			for (final GraphObject count : counts.values()) {
+			for (final Map<String, Object> count : counts.values()) {
 
-				for (final IntProperty key : countProperties) {
+				for (final String key : countProperties) {
 
-					Integer sumValue   = sum.getProperty(key);
+					final IntProperty prop = new IntProperty(key);
+					Integer sumValue   = sum.get(prop);
 					if (sumValue == null) {
 						sumValue = 0;
 					}
 
-					Integer entryValue = count.getProperty(key);
+					Integer entryValue = (Integer)count.get(key);
 					if (entryValue == null) {
 						entryValue = 0;
 					}
 
-					sum.setProperty(key, sumValue + entryValue);
+					sum.put(prop, sumValue + entryValue);
 				}
 			}
 
@@ -601,42 +522,50 @@ public class LogResource extends Resource {
 		return new Result(result, false);
 	}
 
-	private Result histogram(final List<GraphObject> entries, final String dateFormat, final long startTimestamp, final long endTimestamp, final String capturePattern) throws FrameworkException {
+	private Result histogram(final LogState state) throws FrameworkException {
 
-		final GraphObjectMap result               = new GraphObjectMap();
-		final long interval                       = findInterval(dateFormat);
-		final long start                          = alignDateOnFormat(dateFormat, startTimestamp);
-		final TreeMap<Long, GraphObject> countMap = toHistogramCountMap(entries, capturePattern);
-		final Set<IntProperty> countProperties    = getCountProperties(countMap);
+		// sort entries before creating the histogram
+		state.sortEntries();
+
+
+		final String dateFormat                           = state.aggregate();
+		final long startTimestamp                         = state.beginTimestamp();
+		final long endTimestamp                           = state.endTimestamp();
+		final GraphObjectMap result                       = new GraphObjectMap();
+		final long interval                               = findInterval(dateFormat);
+		final long start                                  = alignDateOnFormat(dateFormat, startTimestamp);
+		final TreeMap<Long, Map<String, Object>> countMap = toHistogramCountMap(state);
+		final Set<String> countProperties                 = getCountProperties(countMap);
 
 		for (long current = start; current <= endTimestamp; current += interval) {
 
-			final Map<Long, GraphObject> counts = countMap.subMap(current, true, current+interval, false);
-			final GraphObject sum               = new GraphObjectMap();
+			final Map<Long, Map<String, Object>> counts = countMap.subMap(current, true, current+interval, false);
+			final GraphObjectMap sum                    = new GraphObjectMap();
 
 			// initialize interval sums with 0 (so each
 			// interval contains all keys regardless of
 			// whether there are actual values or not)
-			for (final IntProperty key : countProperties) {
-				sum.setProperty(key, 0);
+			for (final String key : countProperties) {
+				sum.put(new IntProperty(key), 0);
 			}
 
 			// evaluate counts
-			for (final GraphObject count : counts.values()) {
+			for (final Map<String, Object> count : counts.values()) {
 
-				for (final IntProperty key : countProperties) {
+				for (final String key : countProperties) {
 
-					Integer sumValue   = sum.getProperty(key);
+					final IntProperty prop = new IntProperty(key);
+					Integer sumValue   = sum.get(prop);
 					if (sumValue == null) {
 						sumValue = 0;
 					}
 
-					Integer entryValue = count.getProperty(key);
+					Integer entryValue = (Integer)count.get(key);
 					if (entryValue == null) {
 						entryValue = 0;
 					}
 
-					sum.setProperty(key, sumValue + entryValue);
+					sum.put(prop, sumValue + entryValue);
 				}
 			}
 
@@ -693,42 +622,43 @@ public class LogResource extends Resource {
 		return max;
 	}
 
-	private TreeMap<Long, GraphObject> toAggregatedCountMap(final List<GraphObject> entries, final Map<String, Pattern> aggregationPatterns) throws FrameworkException {
+	private TreeMap<Long, Map<String, Object>> toAggregatedCountMap(final LogState state) throws FrameworkException {
 
-		final TreeMap<Long, GraphObject> countMap = new TreeMap<>();
+		final TreeMap<Long, Map<String, Object>> countMap = new TreeMap<>();
 
-		for (final GraphObject entry : entries) {
+		for (final Map<String, Object> entry : state.entries()) {
 
-			final String message = entry.getProperty(messageProperty);
-			final long timestamp = entry.getProperty(timestampProperty).getTime();
-			GraphObject obj      = countMap.get(timestamp);
+			final String message    = (String)entry.get(messageProperty.jsonName());
+			final long timestamp    = (Long)entry.get(timestampProperty.jsonName());
+			Map<String, Object> obj = countMap.get(timestamp);
 
 			if (obj == null) {
-				obj = new GraphObjectMap();
+				obj = new LinkedHashMap<>();
 			}
 
-			Integer count = obj.getProperty(totalProperty);
+			Integer count = (Integer)obj.get(totalProperty.jsonName());
 			if (count == null) {
 				count = 1;
 			} else {
 				count = count + 1;
 			}
-			obj.setProperty(totalProperty, count);
+			obj.put(totalProperty.jsonName(), count);
 
 			// iterate over patterns
-			for (final Entry<String, Pattern> patternEntry : aggregationPatterns.entrySet()) {
+			for (final Entry<String, Pattern> patternEntry : state.aggregationPatterns().entrySet()) {
 
 				if (patternEntry.getValue().matcher(message).matches()) {
 
-					final IntProperty patternKeyProperty = new IntProperty(patternEntry.getKey());
-					Integer c = obj.getProperty(patternKeyProperty);
+					final String key = patternEntry.getKey();
+
+					Integer c = (Integer)obj.get(key);
 					if (c == null) {
 						c = 1;
 					} else {
 						c = c + 1;
 					}
 
-					obj.setProperty(patternKeyProperty, c);
+					obj.put(key, c);
 				}
 			}
 
@@ -738,29 +668,29 @@ public class LogResource extends Resource {
 		return countMap;
 	}
 
-	private TreeMap<Long, GraphObject> toHistogramCountMap(final List<GraphObject> entries, final String capturePattern) throws FrameworkException {
+	private TreeMap<Long, Map<String, Object>> toHistogramCountMap(final LogState state) throws FrameworkException {
 
-		final Pattern pattern                     = Pattern.compile(capturePattern);
-		final Matcher matcher                     = pattern.matcher("");
-		final TreeMap<Long, GraphObject> countMap = new TreeMap<>();
+		final Pattern pattern                             = Pattern.compile(state.histogram());
+		final Matcher matcher                             = pattern.matcher("");
+		final TreeMap<Long, Map<String, Object>> countMap = new TreeMap<>();
 
-		for (final GraphObject entry : entries) {
+		for (final Map<String, Object> entry : state.entries()) {
 
-			final String message = entry.getProperty(messageProperty);
-			final long timestamp = entry.getProperty(timestampProperty).getTime();
-			GraphObject obj      = countMap.get(timestamp);
+			final String message   = (String)entry.get(messageProperty.jsonName());
+			final long timestamp   = (Long)entry.get(timestampProperty.jsonName());
+			Map<String, Object> obj= countMap.get(timestamp);
 
 			if (obj == null) {
-				obj = new GraphObjectMap();
+				obj = new LinkedHashMap<>();
 			}
 
-			Integer count = obj.getProperty(totalProperty);
+			Integer count = (Integer)obj.get(totalProperty.jsonName());
 			if (count == null) {
 				count = 1;
 			} else {
 				count = count + 1;
 			}
-			obj.setProperty(totalProperty, count);
+			obj.put(totalProperty.jsonName(), count);
 
 			// iterate over patterns
 			matcher.reset(message);
@@ -768,15 +698,14 @@ public class LogResource extends Resource {
 
 				final String key = matcher.group(1);
 
-				final IntProperty patternKeyProperty = new IntProperty(key);
-				Integer c = obj.getProperty(patternKeyProperty);
+				Integer c = (Integer)obj.get(key);
 				if (c == null) {
 					c = 1;
 				} else {
 					c = c + 1;
 				}
 
-				obj.setProperty(patternKeyProperty, c);
+				obj.put(key, c);
 			}
 
 			countMap.put(timestamp, obj);
@@ -785,17 +714,17 @@ public class LogResource extends Resource {
 		return countMap;
 	}
 
-	private Set<IntProperty> getCountProperties(final Map<Long, GraphObject> entries) {
+	private Set<String> getCountProperties(final Map<Long, Map<String, Object>> entries) {
 
-		final Set<IntProperty> result = new LinkedHashSet<>();
+		final Set<String> result = new LinkedHashSet<>();
 
-		for (final GraphObject obj : entries.values()) {
+		for (final Map<String, Object> obj : entries.values()) {
 
-			for (final PropertyKey key : obj.getPropertyKeys(null)) {
+			for (final Entry<String, Object> entry : obj.entrySet()) {
 
-				if (key instanceof IntProperty) {
-
-					result.add((IntProperty)key);
+				// collect the key names of integer values
+				if (entry.getValue() instanceof Integer) {
+					result.add(entry.getKey());
 				}
 			}
 		}
@@ -803,31 +732,256 @@ public class LogResource extends Resource {
 		return result;
 	}
 
-	private Map<String, Pattern> getAggregationPatterns(final HttpServletRequest request) {
+	private List<GraphObjectMap> wrap(final List<Map<String, Object>> entries) {
 
-		final Map<String, Pattern> patterns = new LinkedHashMap<>();
+		final List<GraphObjectMap> result = new LinkedList<>();
 
-		for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+		for (final Map<String, Object> entry : entries) {
 
-			final String key     = entry.getKey();
-			final String[] value = entry.getValue();
+			final GraphObjectMap map = new GraphObjectMap();
+			for (final Entry<String, Object> e : entry.entrySet()) {
 
-			if (value.length > 0 && !ReservedRequestParameters.contains(key)) {
-				patterns.put(key, Pattern.compile(value[0]));
+				final String key = e.getKey();
+
+				if (timestampProperty.jsonName().equals(key)) {
+
+					map.put(timestampProperty, new Date((Long)e.getValue()));
+
+				} else {
+
+					map.put(new GenericProperty(key), e.getValue());
+				}
 			}
+
+			result.add(map);
 		}
 
-		return patterns;
+		return result;
 	}
 
-	private static class Range<T> {
+	private static class LogState {
 
-		private T start = null;
-		private T end   = null;
+		private final Map<String, Pattern> aggregationPatterns = new LinkedHashMap<>();
+		private final List<Map<String, Object>> entries        = new LinkedList<>();
+		private final Map<String, Integer> actions             = new LinkedHashMap<>();
+		private long beginTimestamp                            = Long.MAX_VALUE;
+		private long endTimestamp                              = 0L;
+		private String logAction                               = null;
+		private String aggregate                               = null;
+		private String histogram                               = null;
+		private boolean inverse                                = false;
+		private boolean overview                               = false;
+		private Range range                                    = null;
+		private int actionCount                                = 0;
 
-		public Range(final T start, final T end) {
+		public LogState(final HttpServletRequest request) {
+
+			aggregationPatterns.putAll(getAggregationPatterns(request));
+
+			this.logAction = request.getParameter(actionProperty.jsonName());
+			this.aggregate = request.getParameter("aggregate");
+			this.histogram = request.getParameter("histogram");
+			this.range     = getRange(request);
+
+		}
+
+		public List<Map<String, Object>> entries() {
+			return entries;
+		}
+
+		public void addEntry(final Map<String, Object> entry) {
+			entries.add(entry);
+		}
+
+		public Map<String, Integer> actions() {
+			return actions;
+		}
+
+		public Map<String, Pattern> aggregationPatterns() {
+			return aggregationPatterns;
+		}
+
+		public void countAction(final String action) {
+
+			Integer actionCount = actions.get(action);
+			if (actionCount == null) {
+
+				actions.put(action, 1);
+
+			} else {
+
+				actions.put(action, actionCount + 1);
+			}
+
+			this.actionCount++;
+		}
+
+		public int actionCount() {
+			return actionCount;
+		}
+
+		public boolean isRequestedActionOrNull(final String action) {
+			return logAction == null || logAction.equals(action);
+		}
+
+		public void sortEntries() {
+			Collections.sort(entries, new TimestampComparator());
+		}
+
+		public int size() {
+			return entries.size();
+		}
+
+		public void inverse(final boolean inverse) {
+			this.inverse = inverse;
+		}
+
+		public boolean inverse() {
+			return inverse;
+		}
+
+		public void overview(final boolean overview) {
+			this.overview = overview;
+		}
+
+		public boolean overview() {
+			return overview;
+		}
+
+		public long beginTimestamp() {
+			return range != null ? range.start : beginTimestamp;
+		}
+
+		public long endTimestamp() {
+			return range != null ? range.end : endTimestamp;
+		}
+
+		public void beginTimestamp(final long beginTimestamp) {
+			this.beginTimestamp = beginTimestamp;
+		}
+
+		public void endTimestamp(final long endTimestamp) {
+			this.endTimestamp = endTimestamp;
+		}
+
+		public boolean isInRangeOrNull(final long timestamp) {
+			return range == null || range.contains(timestamp);
+		}
+
+		public String histogram() {
+			return histogram;
+		}
+
+		public String aggregate() {
+			return aggregate;
+		}
+
+		public boolean doHistogram() throws FrameworkException {
+
+			if (StringUtils.isNotBlank(histogram)) {
+
+				if (StringUtils.isBlank(aggregate)) {
+					throw new FrameworkException(400, "To use the histogram function, please supply an aggregation pattern.");
+				}
+
+				return true;
+			}
+
+			return false;
+		}
+
+		public boolean doAggregate() {
+			return StringUtils.isNotBlank(aggregate);
+		}
+
+		public boolean doActionQuery() {
+			return StringUtils.isNotBlank(logAction);
+		}
+
+		public boolean includeFile(final File file) {
+			return range == null || range.contains(file.lastModified());
+		}
+
+		// ----- private methods -----
+		private Range getRange(final HttpServletRequest request) {
+
+			final String value = request.getParameter(timestampProperty.jsonName());
+			if (value != null) {
+
+				if (StringUtils.startsWith(value, "[") && StringUtils.endsWith(value, "]")) {
+
+					// check for existance of range query string
+					Matcher matcher = RangeQueryPattern.matcher(value);
+					if (matcher.matches()) {
+
+						if (matcher.groupCount() == 2) {
+
+							final SimpleDateFormat parser = new SimpleDateFormat(ISO8601DateProperty.PATTERN);
+							String rangeStart = matcher.group(1);
+							String rangeEnd = matcher.group(2);
+
+							try {
+
+								final Date startDate = parser.parse(rangeStart);
+								final Date endDate   = parser.parse(rangeEnd);
+
+								return new Range(startDate.getTime(), endDate.getTime());
+
+							} catch (ParseException pex) {
+
+								pex.printStackTrace();
+							}
+						}
+					}
+				}
+
+			}
+
+			return null;
+		}
+
+		private Map<String, Pattern> getAggregationPatterns(final HttpServletRequest request) {
+
+			final Map<String, Pattern> patterns = new LinkedHashMap<>();
+
+			for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+
+				final String key     = entry.getKey();
+				final String[] value = entry.getValue();
+
+				if (value.length > 0 && !ReservedRequestParameters.contains(key)) {
+					patterns.put(key, Pattern.compile(value[0]));
+				}
+			}
+
+			return patterns;
+		}
+	}
+
+	private static class Range {
+
+		private long start = 0L;
+		private long end   = 0L;
+
+		public Range(final long start, final long end) {
 			this.start = start;
 			this.end   = end;
+		}
+
+		public boolean contains(final long timestamp) {
+			return timestamp >= start && timestamp <= end;
+		}
+	}
+
+	private static class TimestampComparator implements Comparator<Map<String, Object>> {
+
+		@Override
+		public int compare(final Map<String, Object> o1, final Map<String, Object> o2) {
+
+			final Long timestamp1 = (Long)o1.get(timestampProperty.jsonName());
+			final Long timestamp2 = (Long)o2.get(timestampProperty.jsonName());
+
+			return timestamp1.compareTo(timestamp2);
 		}
 	}
 }

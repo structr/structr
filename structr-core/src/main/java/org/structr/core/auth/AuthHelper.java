@@ -260,6 +260,7 @@ public class AuthHelper {
 			HttpSession session = request.getSession(true);
 			if (session != null) {
 
+				session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
 				return session.getId();
 			}
 		}

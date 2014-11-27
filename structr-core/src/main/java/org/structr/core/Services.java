@@ -103,9 +103,11 @@ public class Services {
 	public static final String ACCESS_CONTROL_ALLOW_HEADERS     = "access.control.allow.headers";
 	public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS = "access.control.allow.credentials";
 	public static final String ACCESS_CONTROL_EXPOSE_HEADERS    = "access.control.expose.headers";
+	public static final String APPLICATION_SESSION_TIMEOUT      = "application.session.timeout";
 
 	// singleton instance
-	private static Services singletonInstance = null;
+	private static int globalSessionTimeout            = -1;
+	private static Services singletonInstance          = null;
 
 	// non-static members
 	private final Map<String, Object> attributes       = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -748,5 +750,41 @@ public class Services {
 		}
 	}
 
+	/**
+	 * Tries to parse the given String to an int value, returning
+	 * defaultValue on error.
+	 *
+	 * @param value the source String to parse
+	 * @param defaultValue the default value that will be returned when parsing fails
+	 * @return the parsed value or the given default value when parsing fails
+	 */
+	public static int parseInt(String value, int defaultValue) {
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException ignore) {}
+
+		return defaultValue;
+	}
+
+	public static boolean parseBoolean(Object source, boolean defaultValue) {
+
+		try { return Boolean.parseBoolean(source.toString()); } catch(Throwable ignore) {}
+
+		return defaultValue;
+	}
+
+	public static int getGlobalSessionTimeout() {
+
+		if (globalSessionTimeout == -1) {
+			globalSessionTimeout = parseInt(Services.getInstance().getConfigurationValue(APPLICATION_SESSION_TIMEOUT, "1800"), 1800);
+		}
+
+		return globalSessionTimeout;
+	}
 
 }
