@@ -29,10 +29,8 @@ import org.structr.core.converter.PropertyConverter;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * A generic dummy property that does nothing. Please do not use.
+ * A generic dummy property that does nothing.
  *
- * @deprecated This property has not functionality
- * 
  * @author Christian Morgner
  */
 public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {

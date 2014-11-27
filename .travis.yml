@@ -18,4 +18,4 @@ env:
   - TEST_MODULE=structr-ui
 
 script:
-  mvn test -pl $TEST_MODULE
+  mvn test -Dmaven.javadoc.skip=true -Dassembly.skipAssembly=true -DskipDeb=true -Denforcer.skip=true -pl $TEST_MODULE
