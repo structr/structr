@@ -35,6 +35,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -60,13 +61,13 @@ public class ActionContext {
 		this.errorBuffer = other.errorBuffer;
 		this.data = other.data;
 	}
-	
+
 	public ActionContext(final ActionContext other, final GraphObject parent, final Object data) {
 		this.tmpStore = other.tmpStore;
 		this.counters = other.counters;
 		this.parent = other.parent;
 		this.errorBuffer = other.errorBuffer;
-		
+
 		this.data = data;
 	}
 
@@ -107,6 +108,21 @@ public class ActionContext {
 			String part = parts[i];
 
 			if (_data != null && _data instanceof GraphObject) {
+
+
+				// special keyword "_source", works on relationship entities only
+				if ("_source".equals(part) && _data instanceof RelationshipInterface) {
+
+					_data = ((RelationshipInterface)_data).getSourceNode();
+					continue;
+				}
+
+				// special keyword "_target", works on relationship entities only
+				if ("_target".equals(part) && _data instanceof RelationshipInterface) {
+
+					_data = ((RelationshipInterface)_data).getTargetNode();
+					continue;
+				}
 
 				PropertyKey referenceKeyProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), part);
 				_data                            = ((GraphObject)_data).getProperty(referenceKeyProperty);

@@ -39,6 +39,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.rest.ResourceProvider;
@@ -95,7 +96,7 @@ public class RenderContext extends ActionContext {
 	public RenderContext(final RenderContext other) {
 
 		super(other);
-		
+
 		this.dataObjects.putAll(other.dataObjects);
 		this.editMode = other.editMode;
 		this.inBody = other.inBody;
@@ -397,13 +398,25 @@ public class RenderContext extends ActionContext {
 					if (rel != null) {
 
 						_data = rel.getTargetNode();
-
 						break;
 
 					}
 
 					continue;
+				}
 
+				// special keyword "_source", works on relationship entities only
+				if ("_source".equals(part) && _data instanceof RelationshipInterface) {
+
+					_data = ((RelationshipInterface)_data).getSourceNode();
+					continue;
+				}
+
+				// special keyword "_target", works on relationship entities only
+				if ("_target".equals(part) && _data instanceof RelationshipInterface) {
+
+					_data = ((RelationshipInterface)_data).getTargetNode();
+					continue;
 				}
 
 				if (value == null) {
@@ -417,7 +430,6 @@ public class RenderContext extends ActionContext {
 					return null;
 
 				}
-
 			}
 
 			// data objects from parent elements
