@@ -25,6 +25,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
@@ -53,6 +55,7 @@ import org.structr.rest.exception.IllegalMethodException;
  */
 public class LogResource extends Resource {
 
+	private static final Logger logger             = Logger.getLogger(LogResource.class.getName());
 	private static final Pattern RangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 
 	private static final String SUBJECTS = "/s/";
@@ -335,6 +338,12 @@ public class LogResource extends Resource {
 			}
 
 			final String fileName = path.getFileName().toString();
+			if (fileName.length() != 64) {
+
+				logger.log(Level.WARNING, "Invalid log file name {0}, ignoring.", path.toAbsolutePath().getFileName());
+				return;
+			}
+
 			String pathSubjectId  = state.inverse() ? fileName.substring(32, 64) : fileName.substring(0, 32);
 			String pathObjectId   = state.inverse() ? fileName.substring(0, 32)  : fileName.substring(32, 64);
 
