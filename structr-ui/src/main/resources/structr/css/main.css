@@ -1054,6 +1054,12 @@ button img {
     font-size: 9.5pt;
 }
 
+.dialogMeta {
+    height: 19px;
+    margin-top: -19px;
+    padding: 0;
+}
+
 .dialogTextWrapper {
     overflow-y: auto;
 }
