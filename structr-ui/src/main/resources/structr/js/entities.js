@@ -280,7 +280,7 @@ var _Entities = {
                         dialogCancelButton.click();
                     }, 500);
                 });
-                
+
                 Structr.resize();
 
             },
@@ -695,7 +695,7 @@ var _Entities = {
 
                 //('<div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
 
-                if (entity.type === 'Folder' || (lastMenuEntry === 'pages' && !(entity.type === 'Content'))) {
+                if (entity.isFolder || (lastMenuEntry === 'pages' && !(entity.isContent))) {
                     dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
                 }
 
