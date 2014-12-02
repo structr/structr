@@ -642,7 +642,7 @@ StructrUser.prototype.remove = function() {
 
 StructrUser.prototype.append = function() {
     var user = this;
-    console.log(user.groups);
+    //console.log(user.groups);
     if (user.groups && user.groups.length) {
         var group = StructrModel.obj(user.groups[0]);
         if (group) {

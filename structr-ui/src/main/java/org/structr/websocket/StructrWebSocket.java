@@ -277,6 +277,8 @@ public class StructrWebSocket implements WebSocketListener {
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			isAuthenticated = isAuthenticated();
+			
+			tx.success();
 
 		} catch (FrameworkException t) {
 			t.printStackTrace();
@@ -304,7 +306,7 @@ public class StructrWebSocket implements WebSocketListener {
 			//logger.log(Level.WARNING, "NOT sending message to unauthenticated client.");
 		}
 
-		try {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			String msg = gson.toJson(message, WebSocketMessage.class);
 
@@ -317,6 +319,8 @@ public class StructrWebSocket implements WebSocketListener {
                         }
 
 			session.getRemote().sendString(msg);
+			
+			tx.success();
 
 		} catch (Throwable t) {
 			logger.log(Level.WARNING, "Unable to send websocket message to remote client");
