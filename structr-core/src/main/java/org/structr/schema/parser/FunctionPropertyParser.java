@@ -48,6 +48,11 @@ public class FunctionPropertyParser extends PropertyParser {
 	}
 
 	@Override
+	public String getUnqualifiedValueType() {
+		return "Object";
+	}
+
+	@Override
 	public String getPropertyParameters() {
 		return auxType;
 	}

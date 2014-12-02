@@ -56,6 +56,11 @@ public class JoinPropertyParser extends PropertyParser {
 	}
 
 	@Override
+	public String getUnqualifiedValueType() {
+		return getValueType();
+	}
+
+	@Override
 	public String getPropertyParameters() {
 		return parameters;
 	}

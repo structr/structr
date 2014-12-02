@@ -30,7 +30,7 @@ import org.structr.schema.SchemaHelper.Type;
  * @author Christian Morgner
  */
 public class IntPropertyParser extends NumericalPropertyParser {
-	
+
 	public IntPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
 		super(errorBuffer, className, propertyName, params);
 	}
@@ -44,7 +44,12 @@ public class IntPropertyParser extends NumericalPropertyParser {
 	public String getValueType() {
 		return Integer.class.getName();
 	}
-	
+
+	@Override
+	public String getUnqualifiedValueType() {
+		return "Integer";
+	}
+
 	@Override
 	public Type getKey() {
 		return Type.Integer;
@@ -54,14 +59,14 @@ public class IntPropertyParser extends NumericalPropertyParser {
 	public Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which) {
 
 		try {
-			
+
 			return Integer.parseInt(source);
-			
+
 		} catch (Throwable t) {
-			
+
 			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Integer."));
 		}
-		
+
 		return null;
 	}
 }

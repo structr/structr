@@ -49,6 +49,11 @@ public class CountPropertyParser extends PropertyParser {
 	}
 
 	@Override
+	public String getUnqualifiedValueType() {
+		return "Integer";
+	}
+
+	@Override
 	public String getPropertyParameters() {
 		return auxType;
 	}

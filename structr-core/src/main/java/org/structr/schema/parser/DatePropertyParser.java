@@ -56,6 +56,11 @@ public class DatePropertyParser extends PropertyParser {
 	}
 
 	@Override
+	public String getUnqualifiedValueType() {
+		return "Date";
+	}
+
+	@Override
 	public String getPropertyParameters() {
 		return auxType;
 	}
