@@ -50,6 +50,11 @@ public class NotionPropertyParser extends PropertyParser {
 	}
 
 	@Override
+	public String getUnqualifiedValueType() {
+		return relatedType;
+	}
+
+	@Override
 	public String getPropertyParameters() {
 		return parameters;
 	}

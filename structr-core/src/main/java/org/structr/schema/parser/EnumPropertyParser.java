@@ -51,6 +51,11 @@ public class EnumPropertyParser extends PropertyParser {
 	}
 
 	@Override
+	public String getUnqualifiedValueType() {
+		return enumTypeName;
+	}
+
+	@Override
 	public String getPropertyParameters() {
 		return enumType;
 	}

@@ -45,6 +45,11 @@ public class BooleanPropertyParser extends PropertyParser {
 	}
 
 	@Override
+	public String getUnqualifiedValueType() {
+		return "Boolean";
+	}
+
+	@Override
 	public String getPropertyParameters() {
 		return "";
 	}
