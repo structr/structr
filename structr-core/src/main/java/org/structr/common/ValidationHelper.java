@@ -358,7 +358,7 @@ public class ValidationHelper {
 		final int length        = range.length();
 		final String leftBound  = range.substring(0, 1);
 		final String rightBound = range.substring(length-1, length);
-		final String[] parts    = range.substring(1, length-1).split("[,]+");
+		final String[] parts    = range.substring(1, length-1).split(",+");
 		final String type       = node.getType();
 
 		if (parts.length == 2) {
@@ -376,15 +376,15 @@ public class ValidationHelper {
 				boolean inRange         = true;
 
 				if ("[".equals(leftBound)) {
-					inRange &= value.intValue() >= left;
+					inRange &= (value >= left);
 				} else {
-					inRange &= value.intValue() > left;
+					inRange &= (value > left);
 				}
 
 				if ("]".equals(rightBound)) {
-					inRange &= value.intValue() <= right;
+					inRange &= (value <= right);
 				} else {
-					inRange &= value.intValue() < right;
+					inRange &= (value < right);
 				}
 
 				if (!inRange) {
@@ -394,7 +394,7 @@ public class ValidationHelper {
 
 				return !inRange;
 			}
-			
+
 		}
 		
 		// no error
@@ -411,7 +411,7 @@ public class ValidationHelper {
 		final int length        = range.length();
 		final String leftBound  = range.substring(0, 1);
 		final String rightBound = range.substring(length-1, length);
-		final String[] parts    = range.substring(1, length-1).split("[,]+");
+		final String[] parts    = range.substring(1, length-1).split(",+");
 		final String type       = node.getType();
 
 		if (parts.length == 2) {
@@ -420,7 +420,7 @@ public class ValidationHelper {
 			final String rightPart  = parts[1].trim();
 			final long left         = Long.parseLong(leftPart);
 			final long right        = Long.parseLong(rightPart);
-			final Long value     = node.getProperty(key);
+			final Long value        = node.getProperty(key);
 
 			// do not check for non-null values, ignore (silently succeed)
 			if (value != null) {
@@ -429,15 +429,15 @@ public class ValidationHelper {
 				boolean inRange         = true;
 
 				if ("[".equals(leftBound)) {
-					inRange &= value.intValue() >= left;
+					inRange &= (value >= left);
 				} else {
-					inRange &= value.intValue() > left;
+					inRange &= (value > left);
 				}
 
 				if ("]".equals(rightBound)) {
-					inRange &= value.intValue() <= right;
+					inRange &= (value <= right);
 				} else {
-					inRange &= value.intValue() < right;
+					inRange &= (value < right);
 				}
 
 				if (!inRange) {
@@ -464,7 +464,7 @@ public class ValidationHelper {
 		final int length        = range.length();
 		final String leftBound  = range.substring(0, 1);
 		final String rightBound = range.substring(length-1, length);
-		final String[] parts    = range.substring(1, length-1).split("[,]+");
+		final String[] parts    = range.substring(1, length-1).split(",+");
 		final String type       = node.getType();
 
 		if (parts.length == 2) {
@@ -482,15 +482,15 @@ public class ValidationHelper {
 				boolean inRange         = true;
 
 				if ("[".equals(leftBound)) {
-					inRange &= value.intValue() >= left;
+					inRange &= (value >= left);
 				} else {
-					inRange &= value.intValue() > left;
+					inRange &= (value > left);
 				}
 
 				if ("]".equals(rightBound)) {
-					inRange &= value.intValue() <= right;
+					inRange &= (value <= right);
 				} else {
-					inRange &= value.intValue() < right;
+					inRange &= (value < right);
 				}
 
 				if (!inRange) {

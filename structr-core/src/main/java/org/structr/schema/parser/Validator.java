@@ -29,12 +29,20 @@ public class Validator {
 	private String validator    = null;
 	private String className    = null;
 	private String propertyName = null;
+	private String expression   = null;
 
 	public Validator(final String validator, final String className, final String propertyName) {
 
 		this.validator    = validator;
 		this.className    = className;
 		this.propertyName = propertyName;
+	}
+
+	public Validator(final String validator, final String className, final String propertyName, final String expression) {
+
+		this(validator, className, propertyName);
+
+		this.expression = expression;
 	}
 
 	public String getSource(final String obj, final boolean includeClassName) {
@@ -48,6 +56,11 @@ public class Validator {
 		}
 
 		buf.append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+
+		if (expression != null) {
+			buf.append(", \"").append(expression).append("\"");
+		}
+
 		buf.append(", errorBuffer)");
 
 		return buf.toString();
