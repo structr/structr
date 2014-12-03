@@ -72,6 +72,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.MailHelper;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -87,6 +88,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
@@ -195,6 +197,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_INCOMING            = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING            = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF)}";
 	public static final String ERROR_MESSAGE_CACHE               = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
+	public static final String ERROR_MESSAGE_GRANT               = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
+	public static final String ERROR_MESSAGE_REVOKE              = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -2871,6 +2875,132 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_OUTGOING;
+			}
+		});
+		functions.put("grant", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 3)) {
+
+					if (sources[0] instanceof Principal) {
+
+						final Principal principal = (Principal)sources[0];
+
+						if (sources[1] instanceof AbstractNode) {
+
+							final AbstractNode node = (AbstractNode)sources[1];
+
+							if (sources[2] instanceof String) {
+
+								final String[] parts = ((String)sources[2]).split("[,]+");
+								for (final String part : parts) {
+
+									final String trimmedPart = part.trim();
+									if (trimmedPart.length() > 0) {
+
+										try {
+
+											final Permission permission = Permission.valueOf(trimmedPart);
+											principal.grant(permission, node);
+
+										} catch (IllegalArgumentException iex) {
+
+											return "Error: unknown permission " + trimmedPart;
+										}
+									}
+								}
+
+								return "";
+
+							} else {
+
+								return "Error: third argument is not a string.";
+							}
+
+						} else {
+
+							return "Error: second argument is not a node.";
+						}
+
+					} else {
+
+						return "Error: first argument is not of type Principal.";
+					}
+
+				} else {
+
+					return ERROR_MESSAGE_GRANT;
+				}
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_GRANT;
+			}
+		});
+		functions.put("revoke", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 3)) {
+
+					if (sources[0] instanceof Principal) {
+
+						final Principal principal = (Principal)sources[0];
+
+						if (sources[1] instanceof AbstractNode) {
+
+							final AbstractNode node = (AbstractNode)sources[1];
+
+							if (sources[2] instanceof String) {
+
+								final String[] parts = ((String)sources[2]).split("[,]+");
+								for (final String part : parts) {
+
+									final String trimmedPart = part.trim();
+									if (trimmedPart.length() > 0) {
+
+										try {
+
+											final Permission permission = Permission.valueOf(trimmedPart);
+											principal.revoke(permission, node);
+
+										} catch (IllegalArgumentException iex) {
+
+											return "Error: unknown permission " + trimmedPart;
+										}
+									}
+								}
+
+								return "";
+
+							} else {
+
+								return "Error: third argument is not a string.";
+							}
+
+						} else {
+
+							return "Error: second argument is not a node.";
+						}
+
+					} else {
+
+						return "Error: first argument is not of type Principal.";
+					}
+
+				} else {
+
+					return ERROR_MESSAGE_REVOKE;
+				}
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_REVOKE;
 			}
 		});
 	}

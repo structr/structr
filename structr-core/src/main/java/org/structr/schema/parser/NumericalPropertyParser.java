@@ -52,13 +52,13 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 				if ((expression.startsWith("[") || expression.startsWith("]")) && (expression.endsWith("[") || expression.endsWith("]"))) {
 
 					final String range      = expression.substring(1, expression.length()-1);
-					final String[] parts    = range.split("[, ]+");
+					final String[] parts    = range.split("[,]+");
 					boolean error           = false;
 
 					if (parts.length == 2) {
 
-						Number lowerBound = parseNumber(errorBuffer, parts[0], "lower");
-						Number upperBound = parseNumber(errorBuffer, parts[1], "upper");
+						Number lowerBound = parseNumber(errorBuffer, parts[0].trim(), "lower");
+						Number upperBound = parseNumber(errorBuffer, parts[1].trim(), "upper");
 
 						if (lowerBound == null) {
 							error = true;
