@@ -279,7 +279,7 @@ var _Types = {
                     var raw = view[key].className, cls;
 
                     cls = raw.substring(raw.lastIndexOf('.') + 1);
-                    cls = cls.substring(0, cls.length - 'Property'.length);
+                    cls = cls.replace('Property', '');
 
                     tb.append('<tr class="' + key + '">\n\
 <td class="key">' + key + '</td>\n\
