@@ -78,7 +78,7 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 						return;
 					}
 
-					globalValidators.add(new Validator("check" + getUnqualifiedValueType() + "inRangeError", className, propertyName));
+					globalValidators.add(new Validator("check" + getUnqualifiedValueType() + "InRangeError", className, propertyName));
 
 				} else {
 
