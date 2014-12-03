@@ -100,7 +100,7 @@ public class AuthHelper {
 
 		if (superuserName.equals(value) && superUserPwd.equals(password)) {
 
-			logger.log(Level.INFO, "############# Authenticated as superadmin! ############");
+			// logger.log(Level.INFO, "############# Authenticated as superadmin! ############");
 
 			principal = new SuperUser();
 
@@ -259,7 +259,8 @@ public class AuthHelper {
 
 			HttpSession session = request.getSession(true);
 			if (session != null) {
-				
+
+				session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
 				return session.getId();
 			}
 		}

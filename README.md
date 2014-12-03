@@ -51,8 +51,8 @@ To get an overview of the components, just browse the source code and review the
 
 Name             | Description                              | Documentation
 ---------------- | ---------------------------------------- | -----------------------------------------------------------------
-**structr-core** | The Structr Server (Neo4j, OGM, ...)     | [docs](http://docs.structr.org/dev-guide#Object-to-graph mapping)
-**structr-rest** | The REST server (add-on to structr-core) | [docs](http://docs.structr.org/rest-user-guide)
+**structr-core** | The Structr Server (Neo4j, OGM, ...)     | [docs](http://docs.structr.org/developer-guide#Object-to-graph mapping)
+**structr-rest** | The REST server (add-on to structr-core) | [docs](http://docs.structr.org/REST-user-guide)
 **structr-ui**   | The Structr UI (add-on to structr-rest)  | [docs](http://docs.structr.org/frontend-user-guide)
 
 Structr UI is a browser based frontend for Visual Schema Design, CRUD operations and basic CMS functionalitiy, e.g. for handling pages, files, images, users/groups.
@@ -80,7 +80,7 @@ https://structr.com
 ## Learn More
 
 - [structr.org](http://structr.org)
-- [Neo4j](http://neo4j.org)
+- [Neo4j](http://neo4j.com)
 - [@structr](https://twitter.com/structr)
 
 ## Authors

@@ -36,8 +36,8 @@ public class JoinPropertyParser extends PropertyParser {
 
 	private String parameters   = "";
 
-	public JoinPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
-		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
+	public JoinPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
+		super(errorBuffer, className, propertyName, params);
 	}
 
 	@Override
@@ -53,6 +53,11 @@ public class JoinPropertyParser extends PropertyParser {
 	@Override
 	public String getValueType() {
 		return String.class.getSimpleName();
+	}
+
+	@Override
+	public String getUnqualifiedValueType() {
+		return getValueType();
 	}
 
 	@Override

@@ -61,7 +61,6 @@ import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
-import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
@@ -113,7 +112,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	// non-final fields
 	private Value<String> propertyView       = null;
 	private ThreadLocalGson gson             = null;
-	private Writer logWriter                 = null;
 	private boolean indentJson               = true;
 
 	//~--- methods --------------------------------------------------------
@@ -141,23 +139,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		// initialize variables
 		this.propertyView           = new ThreadLocalPropertyView();
 		this.gson                   = new ThreadLocalGson(config.getOutputNestingDepth());
-	}
-
-	@Override
-	public void destroy() {
-
-		if (logWriter != null) {
-
-			try {
-
-				logWriter.flush();
-				logWriter.close();
-
-			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "Could not close access log file.", ioex);
-			}
-
-		}
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="DELETE">
@@ -264,322 +245,21 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	// </editor-fold>
 
-	// <editor-fold defaultstate="collapsed" desc="GET">
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		Result result                   = null;
-		Resource resource               = null;
+		final boolean returnContent = true;
 
-		try {
-
-			// first thing to do!
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=utf-8");
-
-			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
-
-			final App app = StructrApp.getInstance(securityContext);
-
-			// set default value for property view
-			propertyView.set(securityContext, config.getDefaultPropertyView());
-
-			// evaluate constraints and measure query time
-			double queryTimeStart    = System.nanoTime();
-
-			// isolate resource authentication
-			try (final Tx tx = app.tx()) {
-
-				resource = ResourceHelper.applyViewTransformation(request, securityContext,
-					ResourceHelper.optimizeNestedResourceChain(
-						ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
-							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
-				tx.success();
-			}
-
-			// add sorting & paging
-			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
-			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize		 = HttpService.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			int page                 = HttpService.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-			String baseUrl           = request.getRequestURI();
-			PropertyKey sortKey      = null;
-
-			// set sort key
-			if (sortKeyName != null) {
-
-				Class<? extends GraphObject> type = resource.getEntityClass();
-				if (type == null) {
-
-					// fallback to default implementation
-					// if no type can be determined
-					type = AbstractNode.class;
-				}
-				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
-			}
-
-			// isolate doGet
-			boolean retry = true;
-			while (retry) {
-
-				try (final Tx tx = app.tx()) {
-					result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
-					tx.success();
-					retry = false;
-
-				} catch (DeadlockDetectedException ddex) {
-					retry = true;
-				}
-			}
-
-			result.setIsCollection(resource.isCollectionResource());
-			result.setIsPrimitiveArray(resource.isPrimitiveArray());
-
-			PagingHelper.addPagingParameter(result, pageSize, page);
-
-			// timing..
-			double queryTimeEnd = System.nanoTime();
-
-			// store property view that will be used to render the results
-			result.setPropertyView(propertyView.get(securityContext));
-
-			// allow resource to modify result set
-			resource.postProcessResultSet(result);
-
-			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-			result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
-
-			String accept = request.getHeader("Accept");
-
-			if (accept != null && accept.contains("text/html")) {
-
-				final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
-
-				// isolate write output
-				try (final Tx tx = app.tx()) {
-
-					response.setContentType("text/html; charset=utf-8");
-
-					try (final Writer writer = response.getWriter()) {
-
-						htmlStreamer.stream(securityContext, writer, result, baseUrl);
-						writer.append("\n");    // useful newline
-					}
-
-					tx.success();
-				}
-
-			} else {
-
-				final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
-
-				// isolate write output
-				try (final Tx tx = app.tx()) {
-
-					response.setContentType("application/json; charset=utf-8");
-					try (final Writer writer = response.getWriter()) {
-
-						jsonStreamer.stream(securityContext, writer, result, baseUrl);
-						writer.append("\n");    // useful newline
-					}
-
-					tx.success();
-				}
-
-			}
-
-			response.setStatus(HttpServletResponse.SC_OK);
-
-		} catch (FrameworkException frameworkException) {
-
-			// set status & write JSON output
-			response.setStatus(frameworkException.getStatus());
-			gson.get().toJson(frameworkException, response.getWriter());
-			response.getWriter().println();
-
-		} catch (JsonSyntaxException jsex) {
-
-			logger.log(Level.WARNING, "JsonSyntaxException in GET", jsex);
-
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Json syntax exception in GET: " + jsex.getMessage()));
-
-		} catch (JsonParseException jpex) {
-
-			logger.log(Level.WARNING, "JsonParseException in GET", jpex);
-
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Parser exception in GET: " + jpex.getMessage()));
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Exception in GET", t);
-
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
-
-		} finally {
-
-			try {
-				//response.getWriter().flush();
-				response.getWriter().close();
-
-			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
-			}
-
-		}
+		doGetOrHead(request, response, returnContent);
 	}
 
-	// </editor-fold>
-
-	// <editor-fold defaultstate="collapsed" desc="HEAD">
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		Resource resource               = null;
+		final boolean returnContent = false;
 
-		try {
-
-			// first thing to do!
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=utf-8");
-
-			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
-
-			final App app = StructrApp.getInstance(securityContext);
-
-			// set default value for property view
-			propertyView.set(securityContext, config.getDefaultPropertyView());
-
-			// isolate resource authentication
-			try (final Tx tx = app.tx()) {
-
-				resource = ResourceHelper.applyViewTransformation(request, securityContext,
-					ResourceHelper.optimizeNestedResourceChain(
-						ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
-							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
-				tx.success();
-			}
-
-			// add sorting & paging
-			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
-			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize		 = HttpService.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			int page                 = HttpService.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-			PropertyKey sortKey      = null;
-
-			// set sort key
-			if (sortKeyName != null) {
-
-				Class<? extends GraphObject> type = resource.getEntityClass();
-				if (type == null) {
-
-					// fallback to default implementation
-					// if no type can be determined
-					type = AbstractNode.class;
-				}
-				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
-			}
-
-			// isolate doGet
-			boolean retry = true;
-			while (retry) {
-
-				try (final Tx tx = app.tx()) {
-					resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
-					tx.success();
-					retry = false;
-
-				} catch (DeadlockDetectedException ddex) {
-					retry = true;
-				}
-			}
-
-			response.setStatus(HttpServletResponse.SC_OK);
-
-		} catch (FrameworkException frameworkException) {
-
-			// set status & write JSON output
-			response.setStatus(frameworkException.getStatus());
-			gson.get().toJson(frameworkException, response.getWriter());
-			response.getWriter().println();
-
-		} catch (JsonSyntaxException jsex) {
-
-			logger.log(Level.WARNING, "JsonSyntaxException in HEAD", jsex);
-
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Json syntax exception in HEAD: " + jsex.getMessage()));
-
-		} catch (JsonParseException jpex) {
-
-			logger.log(Level.WARNING, "JsonParseException in HEAD", jpex);
-
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Parser exception in HEAD: " + jpex.getMessage()));
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Exception in HEAD", t);
-
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in HEAD: " + t.getMessage()));
-
-		} finally {
-
-			try {
-				//response.getWriter().flush();
-				response.getWriter().close();
-
-			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
-			}
-
-		}
+		doGetOrHead(request, response, returnContent);
 	}
-
-	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
@@ -803,7 +483,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						}
 
 						result.commitResponse(gson.get(), response);
-							
+
 					}
 
 					tx.success();
@@ -1036,6 +716,196 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		return new LinkedHashMap<>();
 	}
+
+	private void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
+
+		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		Result result                   = null;
+		Resource resource               = null;
+
+		try {
+
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = config.getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			// set default value for property view
+			propertyView.set(securityContext, config.getDefaultPropertyView());
+
+			// evaluate constraints and measure query time
+			double queryTimeStart    = System.nanoTime();
+
+			// isolate resource authentication
+			try (final Tx tx = app.tx()) {
+
+				resource = ResourceHelper.applyViewTransformation(request, securityContext,
+					ResourceHelper.optimizeNestedResourceChain(
+						ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				tx.success();
+			}
+
+			// add sorting & paging
+			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
+			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
+			int pageSize		 = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			String baseUrl           = request.getRequestURI();
+			PropertyKey sortKey      = null;
+
+			// set sort key
+			if (sortKeyName != null) {
+
+				Class<? extends GraphObject> type = resource.getEntityClass();
+				if (type == null) {
+
+					// fallback to default implementation
+					// if no type can be determined
+					type = AbstractNode.class;
+				}
+
+				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
+			}
+
+			// isolate doGet
+			boolean retry = true;
+			while (retry) {
+
+				try (final Tx tx = app.tx()) {
+					result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+					tx.success();
+					retry = false;
+
+				} catch (DeadlockDetectedException ddex) {
+					retry = true;
+				}
+			}
+
+			if (returnContent) {
+
+				result.setIsCollection(resource.isCollectionResource());
+				result.setIsPrimitiveArray(resource.isPrimitiveArray());
+
+				PagingHelper.addPagingParameter(result, pageSize, page);
+
+				// timing..
+				double queryTimeEnd = System.nanoTime();
+
+				// store property view that will be used to render the results
+				result.setPropertyView(propertyView.get(securityContext));
+
+				// allow resource to modify result set
+				resource.postProcessResultSet(result);
+
+				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+
+				String accept = request.getHeader("Accept");
+
+				if (accept != null && accept.contains("text/html")) {
+
+					final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
+
+					// isolate write output
+					try (final Tx tx = app.tx()) {
+
+						response.setContentType("text/html; charset=utf-8");
+
+						try (final Writer writer = response.getWriter()) {
+
+							htmlStreamer.stream(securityContext, writer, result, baseUrl);
+							writer.append("\n");    // useful newline
+						}
+
+						tx.success();
+					}
+
+				} else {
+
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
+
+					// isolate write output
+					try (final Tx tx = app.tx()) {
+
+						response.setContentType("application/json; charset=utf-8");
+						try (final Writer writer = response.getWriter()) {
+
+							jsonStreamer.stream(securityContext, writer, result, baseUrl);
+							writer.append("\n");    // useful newline
+						}
+
+						tx.success();
+					}
+
+				}
+			}
+
+			response.setStatus(HttpServletResponse.SC_OK);
+
+		} catch (FrameworkException frameworkException) {
+
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.get().toJson(frameworkException, response.getWriter());
+			response.getWriter().println();
+
+		} catch (JsonSyntaxException jsex) {
+
+			logger.log(Level.WARNING, "JsonSyntaxException in GET", jsex);
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Json syntax exception in GET: " + jsex.getMessage()));
+
+		} catch (JsonParseException jpex) {
+
+			logger.log(Level.WARNING, "JsonParseException in GET", jpex);
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Parser exception in GET: " + jpex.getMessage()));
+
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING, "Exception in GET", t);
+
+			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
+
+		} finally {
+
+			try {
+				//response.getWriter().flush();
+				response.getWriter().close();
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+			}
+
+		}
+	}
+
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="nested classes">

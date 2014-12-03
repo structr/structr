@@ -62,7 +62,6 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("private"), ViewFilterResource.class);                // private view
 		resourceMap.put(Pattern.compile("owner"), ViewFilterResource.class);                  // owner view
 		resourceMap.put(Pattern.compile("admin"), ViewFilterResource.class);                  // admin view
-		resourceMap.put(Pattern.compile("all"), ViewFilterResource.class);                    // all view
 		resourceMap.put(Pattern.compile("ids"), ViewFilterResource.class);                    // "ids only" view
 		resourceMap.put(Pattern.compile(PropertyView.Ui), ViewFilterResource.class);          // ui view
 		resourceMap.put(Pattern.compile(PropertyView.Html), ViewFilterResource.class);        // html attributes view

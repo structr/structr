@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.property.Property;
 import org.structr.rest.ResourceProvider;
@@ -126,11 +127,11 @@ public class StructrHttpServiceConfig {
 		}
 
 		if (StringUtils.isNotBlank(userAutoCreateValue)) {
-			userAutoCreate = HttpService.parseBoolean(userAutoCreateValue, false);
+			userAutoCreate = Services.parseBoolean(userAutoCreateValue, false);
 		}
 
 		if (StringUtils.isNotBlank(userAutoLoginValue)) {
-			userAutoLogin = HttpService.parseBoolean(userAutoLoginValue, false);
+			userAutoLogin = Services.parseBoolean(userAutoLoginValue, false);
 		}
 
 		if (StringUtils.isNotBlank(defaultPropertyKeyValue)) {
@@ -138,7 +139,7 @@ public class StructrHttpServiceConfig {
 		}
 
 		if (StringUtils.isNotBlank(outputDepthValue)) {
-			this.outputNestingDepth = HttpService.parseInt(outputDepthValue, 3);
+			this.outputNestingDepth = Services.parseInt(outputDepthValue, 3);
 		}
 	}
 

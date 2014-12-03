@@ -909,7 +909,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			if (key.startsWith("data-")) {
 
-				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key));
+				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key)).trim();
 
 				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
@@ -994,7 +994,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				.append(indent(depth))
 				.append("<script>if (!window.jQuery.ui.timepicker) { document.write('<script src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
-				.append("<script>if (!window.StructrApp) { document.write('<script src=\"/structr/js/structr-app.min.js\"><\\/script>'); }</script>")
+				.append("<script>if (!window.StructrApp) { document.write('<script src=\"/structr/js/structr-app.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
 				.append("<script>if (!window.moment) { document.write('<script src=\"/structr/js/lib/moment.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))

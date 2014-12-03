@@ -36,8 +36,6 @@ $(function() {
     $(document).trigger('structr-ready');
     s.hideNonEdit();
 
-    $.datepicker.setDefaults( $.datepicker.regional[lang()] );
-    
     $(window).on('keydown', function(e) {
         var k = e.which;
         //console.log('before down', k, altKey, ctrlKey, shiftKey, eKey)
@@ -98,6 +96,7 @@ function StructrApp(baseUrl) {
             var a = btn.attr('data-structr-action').split(':');
             var action = a[0], type = a[1], suffix = a[2];
             var reload = btn.attr('data-structr-reload') === 'true';
+            var appendId = btn.attr('data-structr-append-id') === 'true';
             var returnUrl = btn.attr('data-structr-return');
             var attrString = btn.attr('data-structr-attributes');
             var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
@@ -133,26 +132,26 @@ function StructrApp(baseUrl) {
                     val = possibleFields.val();
                     data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
                 });
-                s.create(type, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.create(type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
             } else if (action === 'edit') {
-                s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn);});
 
             } else if (action === 'cancel-edit') {
                 s.cancelEditAction(btn, id, attrs, returnUrl || reload);
 
             } else if (action === 'delete') {
                 var f = s.field($('[data-structr-attr="name"]', container));
-                s.del(id, btn.attr('data-structr-confirm') === 'true', returnUrl || reload, f ? f.val : undefined);
+                s.del(btn, id, type, btn.attr('data-structr-confirm') === 'true', returnUrl || reload, f ? f.val : undefined);
 
             } else if (action === 'login') {
-                s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn)});
 
             } else if (action === 'logout') {
-                s.logoutAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.logoutAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
 
             } else if (action === 'registration') {
-                s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
 
             } else {
                 var data = {};
@@ -160,7 +159,7 @@ function StructrApp(baseUrl) {
                     var val = $('[data-structr-name="' + key + '"]').val();
                     data[key] = val ? val.parseIfJSON() : val;
                 });
-                s.customAction(id, type, action, data, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.customAction(id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
             }
         });
     },
@@ -198,32 +197,40 @@ function StructrApp(baseUrl) {
             }
 
             if (f.type === 'Boolean') {
-                el.html(checkbox(f.id, f.type, f.key, f.val));
+                el.html(checkbox(f));
             } else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Double' || f.type === 'Date') {
-                if (!f.val || f.val.indexOf('\n') === -1) {
-                    el.html(inputField(f.id, f.type + (f.type === 'Date' ? ' ' + f.format : ''), f.key, f.val));
+                //console.log(f.format);
+                if (f.format && f.format === 'multi-line') {
+                    el.html(textarea(f));
                 } else {
-                    el.html(textarea(f.id, f.key, f.val));
+                    if (!f.val || f.val.indexOf('\n') === -1) {
+                        el.html(inputField(f));
+                    } else {
+                        el.html(textarea(f));
+                    }
                 }
             } else if (f.type === 'Enum') {
-                el.html('<select data-structr-type="' + f.type + ' ' + f.format + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>');
+                
+                el.html(enumSelect(f));
                 var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
                 sel.append('<option></option>');
                 $.each(f.format.split(','), function(i, o) {
                     sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
                 });
-                sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
+                sel.addClass(f.class);
+                sel.chosen({allow_single_deselect: true});
+                
             } else {
                 if (f.type.endsWith('[]')) {
-                    el.html(multiSelect(f.id, f.type, f.key, f.val, f.query));
+                    el.html(multiSelect(f));
                 } else {
-                    el.html(singleSelect(f.id, f.type, f.key, f.val, f.query));
+                    el.html(singleSelect(f));
                 }
             }
 
             //var el = container.find('[data-structr-attr="' + f.key + '"]');
             var inp = s.input(el);
-            inp.css({fontFamily: 'sans-serif'});
+            inp.addClass(f.class);
 
             //console.log('editAction: input element', inp);
             if (f.type !== 'Enum') {
@@ -235,12 +242,15 @@ function StructrApp(baseUrl) {
             }
 
             inp.on('keyup', function(e) {
-                s.checkInput(e, s.field(inp), $(this));
+                if (f.type === 'String') {
+                    //console.log('keyup', inp, s.field(inp))
+                    s.checkInput(e, s.field(inp), inp);
+                }
             });
 
             if (f.type === 'Date') {
                 var dateTimeFormat = f.format ? f.format.split('\'T\'') : 'yyyy-MM-ddTHH:mm:ssZ';
-                console.log(dateTimeFormat);
+                //console.log(dateTimeFormat);
                 var dateFormat = dateTimeFormat ? dateTimeFormat[0] : 'yyyy-MM-dd',
                     timeFormat = (dateTimeFormat && dateTimeFormat.length > 1) ? dateTimeFormat[1] : undefined;
                 
@@ -256,8 +266,9 @@ function StructrApp(baseUrl) {
                             separator: 'T',
                             onClose: function() {
                                 var newValue = input.val();
-                                var formattedValue = moment(newValue).formatWithJDF(dateTimeFormat);
-                                input.val(formattedValue);
+                                //console.log(newValue, moment(newValue), f.format);//, moment(newValue).formatWithJDF(dateTimeFormat));
+                                var formattedValue = moment(newValue).formatWithJDF(dateFormat + 'T' + timeFormat);
+                                //input.val(formattedValue);
                             }
                         });
                     } else {
@@ -347,7 +358,7 @@ function StructrApp(baseUrl) {
             }
         });
         //console.log('PUT', structrRestUrl + id, s.data[id]);
-        s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+        s.request('PUT', structrRestUrl + id, s.data[id], false, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
         });
     },
@@ -534,9 +545,11 @@ function StructrApp(baseUrl) {
     this.field = function(el) {
         if (!el || !el.length) return;
         var rawType = el.attr('data-structr-type');
+        var clazz = el.attr('data-structr-edit-class');
         var query = el.attr('data-structr-custom-options-query');
         var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
-        var format = (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : undefined;
+        var format =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
+        //console.log('field', el, rawType, type, format, query, type, id, key, rawVal);
         var val;
         if (type === 'Boolean') {
             if (el.is('input')) {
@@ -558,27 +571,28 @@ function StructrApp(baseUrl) {
                 //val = rawVal || el.text();
             }
         }
-        //console.log(el, type, id, key, val);
-        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query};
+        var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz}; 
+        //console.log(f);
+        return f;
     };
 
     this.getRelatedType = function(type, key, callback) {
-        s.request('GET', structrRestUrl + '_schema', null, false, null, null, function(data) {
+        s.request('GET', structrRestUrl + '_schema', null, false, false, null, null, function(data) {
             //console.log(data);
         });
     },
 
-    this.create = function(type, data, reload, successCallback, errorCallback) {
+    this.create = function(type, data, reload, appendId, successCallback, errorCallback) {
         //console.log('Create', type, data, reload, successCallback, errorCallback);
-        s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
+        s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
     };
 
-    this.customAction = function(id, type, action, data, reload, successCallback, errorCallback) {
+    this.customAction = function(id, type, action, data, reload, appendId, successCallback, errorCallback) {
         //console.log('Custom action', action, type, data, reload);
-        s.request('POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+        s.request('POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
     };
 
-    this.request = function(method, url, data, reload, successMsg, errorMsg, onSuccess, onError) {
+    this.request = function(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
         var dataString = JSON.stringify(data);
         //console.log(dataString);
         $.ajax({
@@ -600,6 +614,9 @@ function StructrApp(baseUrl) {
                 201: function(data) {
                     s.dialog('success', successMsg);
                     if (reload) {
+                        if (appendId) {
+                            reload += '/' + data.result[0];
+                        }
                         redirectOrReload(reload);
                     } else {
                         if (onSuccess) {
@@ -748,24 +765,28 @@ function StructrApp(baseUrl) {
 
     };
 
-    this.del = function(id, conf, reload, name) {
-        //console.log('Delete', id, conf, reload);
+    this.del = function(btn, id, type, conf, reload, name) {
+        //console.log('Delete', type, id, conf, reload);
         var sure = true;
         if (conf) {
             sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
         }
         if (!conf || sure) {
             $.ajax({
-                url: structrRestUrl + id, method: 'DELETE', contentType: 'application/json',
+                url: structrRestUrl + (type ? type + '/' : '') + id, method: 'DELETE', contentType: 'application/json',
                 statusCode: {
                     200: function() {
                         if (reload) {
                             redirectOrReload(reload);
                             //window.location.reload();
+                        } else {
+                            enableButton(btn);
                         }
                     }
                 }
             });
+        } else {
+            enableButton(btn);
         }
     };
 
@@ -792,6 +813,12 @@ function StructrApp(baseUrl) {
     this.checkInput = function(e, f, inp) {
         var k = e.which;
 
+        if (f.type === 'String' && f.format === 'multi-line') {
+            return;
+        } else {
+            //console.log('checkInput', f.type, f.format);
+        }
+        
         if (isTextarea(inp[0])) {
 
             if (inp.val().indexOf('\n') === -1) {
@@ -799,11 +826,12 @@ function StructrApp(baseUrl) {
                 var parent = inp.parent();
 
                 // No new line in textarea content => transform to input field
-                inp.replaceWith(inputField(f.id, f.type, f.key, inp.val()));
+                f.val = inp.val();
+                inp.replaceWith(inputField(f));
                 inp = s.input(parent);
 
                 inp.on('keyup', function(e) {
-                    s.checkInput(e, f, $(this));
+                    s.checkInput(e, f, inp);
                 });
 
                 setCaretToEnd(inp[0]);
@@ -815,18 +843,20 @@ function StructrApp(baseUrl) {
             // Return key in input field => replace by textarea
             var parent = inp.parent();
 
-            inp.replaceWith(textarea(f.id, f.key, inp.val() + '\n'));
-            inp = s.input(parent);
+            f.val = inp.val() + '\n';
 
+            inp.replaceWith(textarea(f));
+            inp = s.input(parent);
+            
             inp.on('keyup', function(e) {
                 s.checkInput(e, f, $(this));
             });
 
-            inp.css({fontFamily: 'sans-serif'});
-
             setCaretToEnd(inp[0]);
 
         }
+
+        inp.addClass(f.class);
 
         resizeInput(inp);
 
@@ -956,7 +986,7 @@ String.prototype.parseIfJSON = function() {
         return JSON.parse(cleaned);
     }
     return this;
-}
+};
 
 String.prototype.splitAndTitleize = function(sep) {
 
@@ -964,7 +994,7 @@ String.prototype.splitAndTitleize = function(sep) {
     var parts = this.split(sep);
     parts.forEach(function(part) {
         res.push(part.capitalize());
-    })
+    });
     return res.join(' ');
 };
 
@@ -1006,48 +1036,46 @@ function isTextarea(el) {
     return el.nodeName.toLowerCase() === 'textarea';
 }
 
-function textarea(id, key, val) {
-    return '<textarea data-structr-id="' + id + '" data-structr-attr="' + key + '">' + val + '</textarea>';
+function textarea(f) {
+    //console.log('rendering textarea', f);
+    return '<textarea data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '">' + f.val + '</textarea>';
 }
 
-function inputField(id, type, key, val) {
-    var size = (val ? val.length : (type && type === 'Date' ? 25 : key.length));
-    return '<input data-structr-id="' + id + '" data-structr-attr="' + key + '" data-structr-type="' + type + '" type="text" placeholder="' + (key ? key.capitalize() : '')
-            + '" value="' + escapeForHtmlAttributes(val === 'null' ? '' : val)
+function inputField(f) {
+    //console.log('rendering input field  ', f);
+    var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
+    return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.key ? f.key.capitalize() : '')
+            + '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
             + '" size="' + size + '">';
 }
 
-function field(id, type, key, val) {
-    return '<span type="text" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-attr="' + key + '">' + val + '</span>';
+function field(f) {
+    return '<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '">' + f.val + '</span>';
 }
 
-function checkbox(id, type, key, val) {
-    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-attr="' + key + '" data-structr-type="' + type + '" ' + (val ? 'checked="checked"' : '') + '">';
+function checkbox(f) {
+    return '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '">';
 }
 
-function enumSelect(id, type, key, val, values) {
-    var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '"></select>';
-    var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
-    $.each(values.split(','), function(i, o) {
-        sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
-    });
-    sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
+function enumSelect(f) {
+    //console.log(f, f.format, f.format.split(','))
+    var inp = '<select data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>';
     return inp;
 }
 
-function singleSelect(id, type, key, val, query) {
-    var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '"></select>';
+function singleSelect(f) {
+    var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>';
     $.ajax({
-        url: structrRestUrl + (query ? query : type + '/ui'), method: 'GET', contentType: 'application/json',
+        url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
         statusCode: {
             200: function(data) {
-                var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
+                var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
                 sel.append('<option value="null"></option>');
                 if (data.result && data.result.length) {
                     $.each(data.result, function(i, o) {
-                        sel.append('<option value="' + o.id + '" ' + (o.id === val ? 'selected' : '') + '>' + o.name + '</option>');
+                        sel.append('<option value="' + o.id + '" ' + (o.id === f.val ? 'selected' : '') + '>' + o.name + '</option>');
                     });
-                    sel.chosen({allow_single_deselect: true, inherit_select_classes: true});
+                    sel.chosen({allow_single_deselect: true});
                 }
             }
         }
@@ -1055,20 +1083,20 @@ function singleSelect(id, type, key, val, query) {
     return inp;
 }
 
-function multiSelect(id, type, key, val, query) {
-    var inp = '<select data-structr-type="' + type + '" data-structr-attr="' + key + '" data-structr-id="' + id + '" multiple="multiple"></select>';
-    type = type.substring(0, type.length-2);
-    var valIds = val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
+function multiSelect(f) {
+    var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
+    f.type = f.type.substring(0, f.type.length-2);
+    var valIds = f.val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
     $.ajax({
-        url: structrRestUrl + (query ? query : type + '/ui'), method: 'GET', contentType: 'application/json',
+        url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
         statusCode: {
             200: function(data) {
-                var sel = $('select[data-structr-id="' + id + '"][data-structr-attr="' + key + '"]');
+                var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
                 if (data.result && data.result.length) {
                     $.each(data.result, function(i, o) {
                         sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
                     });
-                    sel.chosen({inherit_select_classes: true});
+                    sel.chosen();
                 }
             }
         }

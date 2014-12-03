@@ -112,15 +112,16 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
 	public static final Property<Boolean> isPage = new BooleanProperty("isPage", true).readOnly();
+	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache", false);
         public static final Property<String> path = new StringProperty("path").indexed();
 	public static final Property<Site> site = new StartNode<>("Site", Pages.class, new UiNotion()).indexedWhenEmpty();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage, site
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage, site, dontCache
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache
 	);
 
 	private Html5DocumentType docTypeNode = null;
@@ -283,19 +284,19 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 	@Override
 	protected void handleNewChild(Node newChild) {
-		
+
 		for (final DOMNode child : getAllChildNodes()) {
-			
+
 			try {
-				
+
 				child.setProperty(ownerDocument, this);
-				
+
 			} catch (FrameworkException ex) {
 				ex.printStackTrace();
 			}
-			
+
 		}
-		
+
 	}
 
 	@Override
@@ -555,11 +556,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	}
 
-	@Override
-	public String toString() {
-
-		return getClass().getSimpleName() + " " + getName() + " [" + getUuid() + "] (" + getTextContent() + ")";
-	}
+//	@Override
+//	public String toString() {
+//
+//		return getClass().getSimpleName() + " " + getName() + " [" + getUuid() + "] (" + getTextContent() + ")";
+//	}
 
 	/**
 	 * Return the content of this page depending on edit mode
@@ -595,15 +596,15 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public Element getDocumentElement() {
-		
+
 		Node node = super.getFirstChild();
-		
+
 		if (node instanceof Element) {
-			
+
 			return (Element) node;
-			
+
 		} else {
-			
+
 			return null;
 		}
 	}
@@ -689,10 +690,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();
 
 		if (subNode == null) {
-			
+
 			subNode = (DOMNode) super.getFirstChild();
-			
-			
+
+
 		} else {
 
 			renderContext.getBuffer().append("<!DOCTYPE html>\n");
@@ -709,12 +710,12 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			subNode = (DOMNode) subNode.getNextSibling();
 
 		}
-			
+
 	}
 
 	@Override
 	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
-	}	
+	}
 
 	@Override
 	public boolean hasFeature(String string, String string1) {

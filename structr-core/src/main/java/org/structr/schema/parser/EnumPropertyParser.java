@@ -36,8 +36,8 @@ public class EnumPropertyParser extends PropertyParser {
 	private String enumTypeName = "";
 	private String enumType     = "";
 
-	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
-		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
+	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
+		super(errorBuffer, className, propertyName, params);
 	}
 
 	@Override
@@ -47,6 +47,11 @@ public class EnumPropertyParser extends PropertyParser {
 
 	@Override
 	public String getValueType() {
+		return enumTypeName;
+	}
+
+	@Override
+	public String getUnqualifiedValueType() {
 		return enumTypeName;
 	}
 

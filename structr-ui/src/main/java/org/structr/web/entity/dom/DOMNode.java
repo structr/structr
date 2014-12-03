@@ -578,11 +578,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	// ----- public methods -----
-	@Override
-	public String toString() {
-
-		return getClass().getSimpleName() + " [" + getUuid() + "] (" + getTextContent() + ", " + treeGetChildPosition(this) + ")";
-	}
+//	@Override
+//	public String toString() {
+//
+//		return getClass().getSimpleName() + " [" + getUuid() + "] (" + getTextContent() + ", " + treeGetChildPosition(this) + ")";
+//	}
 
 	public List<DOMChildren> getChildRelationships() {
 		return treeGetChildRelationships();

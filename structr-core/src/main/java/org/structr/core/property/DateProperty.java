@@ -51,6 +51,12 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		this.format = pattern;
 	}
 
+	public DateProperty(String name, String pattern, Date defaultValue) {
+		super(name, name, defaultValue);
+
+		this.format = pattern;
+	}
+
 	public DateProperty(String name, String dbName, String pattern) {
 		super(name, dbName);
 

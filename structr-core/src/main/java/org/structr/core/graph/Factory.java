@@ -115,17 +115,21 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 */
 	public Result instantiate(final IndexHits<S> input) throws FrameworkException {
 
+
 		if (input != null) {
 
-			if (factoryProfile.getOffsetId() != null) {
+			try (final IndexHits<S> closeable = input) {
 
-				return resultWithOffsetId(input);
+				if (factoryProfile.getOffsetId() != null) {
 
-			} else {
+					return resultWithOffsetId(closeable);
 
-				return resultWithoutOffsetId(input);
+				} else {
+
+					return resultWithoutOffsetId(closeable);
+				}
+
 			}
-
 		}
 
 		return Result.EMPTY_RESULT;
@@ -207,97 +211,100 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		int count                = 0;
 		int offset               = 0;
 
-		// We have an offsetId, so first we need to
-		// find the node with this uuid to get the offset
-		List<T> nodesUpToOffset = new LinkedList();
-		int i                   = 0;
-		boolean gotOffset        = false;
+		try (final IndexHits<S> closeable = input) {
 
-		for (S node : input) {
+			// We have an offsetId, so first we need to
+			// find the node with this uuid to get the offset
+			List<T> nodesUpToOffset = new LinkedList();
+			int i                   = 0;
+			boolean gotOffset        = false;
 
-			T n = instantiate(node);
+			for (S node : closeable) {
 
-			if (n == null) {
+				T n = instantiate(node);
 
-				continue;
-
-			}
-
-			nodesUpToOffset.add(n);
-
-			if (!gotOffset) {
-
-				if (!offsetId.equals(n.getUuid())) {
-
-					i++;
+				if (n == null) {
 
 					continue;
 
 				}
 
-				gotOffset = true;
-				offset    = page > 0
-					    ? i
-					    : i + (page * pageSize);
+				nodesUpToOffset.add(n);
 
-				break;
+				if (!gotOffset) {
 
-			}
+					if (!offsetId.equals(n.getUuid())) {
 
-		}
+						i++;
 
-		if (!nodesUpToOffset.isEmpty() && !gotOffset) {
+						continue;
 
-			throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
-		}
-
-		if (offset < 0) {
-
-			// Remove last item
-			nodesUpToOffset.remove(nodesUpToOffset.size()-1);
-
-			return new Result(nodesUpToOffset, size, true, false);
-		}
-
-		for (T node : nodesUpToOffset) {
-
-			if (node != null) {
-
-				if (++position > offset) {
-
-					// stop if we got enough nodes
-					if (++count > pageSize) {
-
-						return new Result(elements, size, true, false);
 					}
 
-					elements.add(node);
+					gotOffset = true;
+					offset    = page > 0
+						    ? i
+						    : i + (page * pageSize);
+
+					break;
+
 				}
 
 			}
 
-		}
+			if (!nodesUpToOffset.isEmpty() && !gotOffset) {
 
-		// If we get here, the result was not complete, so we need to iterate
-		// through the index result (input) to get more items.
-		for (S node : input) {
+				throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
+			}
 
-			T n = instantiate(node);
-			if (n != null) {
+			if (offset < 0) {
 
-				if (++position > offset) {
+				// Remove last item
+				nodesUpToOffset.remove(nodesUpToOffset.size()-1);
 
-					// stop if we got enough nodes
-					if (++count > pageSize) {
+				return new Result(nodesUpToOffset, size, true, false);
+			}
 
-						return new Result(elements, size, true, false);
+			for (T node : nodesUpToOffset) {
+
+				if (node != null) {
+
+					if (++position > offset) {
+
+						// stop if we got enough nodes
+						if (++count > pageSize) {
+
+							return new Result(elements, size, true, false);
+						}
+
+						elements.add(node);
 					}
 
-					elements.add(n);
 				}
 
 			}
 
+			// If we get here, the result was not complete, so we need to iterate
+			// through the index result (input) to get more items.
+			for (S node : closeable) {
+
+				T n = instantiate(node);
+				if (n != null) {
+
+					if (++position > offset) {
+
+						// stop if we got enough nodes
+						if (++count > pageSize) {
+
+							return new Result(elements, size, true, false);
+						}
+
+						elements.add(n);
+					}
+
+				}
+
+			}
 		}
 
 		return new Result(elements, size, true, false);
@@ -312,22 +319,25 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		if (page < 0) {
 
-			List<S> rawNodes = read(input);
-			int size         = rawNodes.size();
+			try (final IndexHits<S> closeable = input) {
 
-			fromIndex = Math.max(0, size + (page * pageSize));
+				List<S> rawNodes = read(closeable);
+				int size         = rawNodes.size();
 
-			final List<T> nodes = new LinkedList<>();
-			int toIndex         = Math.min(size, fromIndex + pageSize);
+				fromIndex = Math.max(0, size + (page * pageSize));
 
-			for (S n : rawNodes.subList(fromIndex, toIndex)) {
+				final List<T> nodes = new LinkedList<>();
+				int toIndex         = Math.min(size, fromIndex + pageSize);
 
-				nodes.add(instantiate(n));
+				for (S n : rawNodes.subList(fromIndex, toIndex)) {
+
+					nodes.add(instantiate(n));
+				}
+
+				// We've run completely through the iterator,
+				// so the overall count from here is accurate.
+				return new Result(nodes, size, true, false);
 			}
-
-			// We've run completely through the iterator,
-			// so the overall count from here is accurate.
-			return new Result(nodes, size, true, false);
 
 		} else {
 
@@ -356,45 +366,48 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		// In case of superuser or in public context, don't check the overall result count
 		boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
 
-		for (S node : input) {
+		try (final IndexHits<S> closeable = input) {
 
-			T n = instantiate(node);
+			for (S node : closeable) {
 
-			if (n != null) {
+				T n = instantiate(node);
 
-				overallCount++;
+				if (n != null) {
 
-				if (++position > offset) {
+					overallCount++;
 
-					// stop if we got enough nodes
-					// and we are above the limit
-					if (++count > pageSize) {
+					if (++position > offset) {
 
-						pageFull = true;
+						// stop if we got enough nodes
+						// and we are above the limit
+						if (++count > pageSize) {
 
-						if (dontCheckCount) {
-							overallCount = overallResultCount;
-							break;
+							pageFull = true;
+
+							if (dontCheckCount) {
+								overallCount = overallResultCount;
+								break;
+							}
+
 						}
 
+						if (!pageFull) {
+
+							nodes.add(n);
+
+						}
+
+						if (pageFull && (overallCount >= RESULT_COUNT_ACCURATE_LIMIT)) {
+
+							// The overall count may be inaccurate
+							return new Result(nodes, overallResultCount, true, false);
+
+						}
 					}
 
-					if (!pageFull) {
-
-						nodes.add(n);
-
-					}
-
-					if (pageFull && (overallCount >= RESULT_COUNT_ACCURATE_LIMIT)) {
-
-						// The overall count may be inaccurate
-						return new Result(nodes, overallResultCount, true, false);
-
-					}
 				}
 
 			}
-
 		}
 
 		// We've run completely through the iterator,

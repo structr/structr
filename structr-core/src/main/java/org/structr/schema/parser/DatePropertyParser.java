@@ -18,7 +18,11 @@
  */
 package org.structr.schema.parser;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
@@ -34,10 +38,11 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class DatePropertyParser extends PropertyParser {
 
-	private String auxType = ", \"" + ISO8601DateProperty.PATTERN + "\"";
+	private String pattern = ISO8601DateProperty.PATTERN;
+	private String auxType = ", \"" + pattern + "\"";
 
-	public DatePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
-		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
+	public DatePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
+		super(errorBuffer, className, propertyName, params);
 	}
 
 	@Override
@@ -48,6 +53,11 @@ public class DatePropertyParser extends PropertyParser {
 	@Override
 	public String getValueType() {
 		return Date.class.getName();
+	}
+
+	@Override
+	public String getUnqualifiedValueType() {
+		return "Date";
 	}
 
 	@Override
@@ -63,11 +73,36 @@ public class DatePropertyParser extends PropertyParser {
 	@Override
 	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
 
-		if (expression.length() == 0) {
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_date_pattern", "Empty date pattern."));
-			return;
-		}
+		if (expression != null) {
 
-		auxType = ", \"" + expression +"\"";
+			if (expression.isEmpty()) {
+				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_date_pattern", "Empty date pattern."));
+				return;
+			}
+
+			pattern = expression;
+			auxType = ", \"" + expression +"\"";
+		}
+	}
+
+	@Override
+	public String getDefaultValueSource() {
+		return "DatePropertyParser.parse(\"" + pattern + "\", \"" + defaultValue + "\")";
+	}
+
+	/**
+	 * Static method to catch parse exception
+	 *
+	 * @param pattern
+	 * @param value
+	 * @return
+	 */
+	public static Date parse(final String pattern, final String value) {
+		try {
+			return new SimpleDateFormat(pattern).parse(value);
+		} catch (ParseException ex) {
+			Logger.getLogger(DatePropertyParser.class.getName()).log(Level.SEVERE, "Unable to parse " + value + " with pattern " + pattern, ex);
+		}
+		return null;
 	}
 }

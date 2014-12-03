@@ -33,8 +33,8 @@ public class FunctionPropertyParser extends PropertyParser {
 
 	private String auxType = "";
 
-	public FunctionPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
-		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
+	public FunctionPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
+		super(errorBuffer, className, propertyName, params);
 	}
 
 	@Override
@@ -45,6 +45,11 @@ public class FunctionPropertyParser extends PropertyParser {
 	@Override
 	public String getValueType() {
 		return Object.class.getName();
+	}
+
+	@Override
+	public String getUnqualifiedValueType() {
+		return "Object";
 	}
 
 	@Override

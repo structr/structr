@@ -18,6 +18,7 @@
  */
 package org.structr.schema.parser;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
@@ -32,8 +33,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class StringPropertyParser extends PropertyParser {
 
-	public StringPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
-		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
+	public StringPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
+		super(errorBuffer, className, propertyName, params);
 	}
 
 	@Override
@@ -44,6 +45,11 @@ public class StringPropertyParser extends PropertyParser {
 	@Override
 	public String getValueType() {
 		return String.class.getName();
+	}
+
+	@Override
+	public String getUnqualifiedValueType() {
+		return "String";
 	}
 
 	@Override
@@ -64,7 +70,15 @@ public class StringPropertyParser extends PropertyParser {
 			return;
 		}
 
-		localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
+		if ("multi-line".equals(expression)) {
+
+			localValidator = ", \""  + expression + "\"";
+
+		} else if (StringUtils.isNotBlank(expression)) {
+
+			localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
+
+		}
 	}
 
 	@Override

@@ -31,8 +31,8 @@ import org.structr.schema.Schema;
  */
 public abstract class NumericalPropertyParser extends PropertyParser {
 
-	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
-		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
+	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
+		super(errorBuffer, className, propertyName, params);
 	}
 
 	public abstract Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which);
@@ -52,13 +52,13 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 				if ((expression.startsWith("[") || expression.startsWith("]")) && (expression.endsWith("[") || expression.endsWith("]"))) {
 
 					final String range      = expression.substring(1, expression.length()-1);
-					final String[] parts    = range.split("[, ]+");
+					final String[] parts    = range.split("[,]+");
 					boolean error           = false;
 
 					if (parts.length == 2) {
 
-						Number lowerBound = parseNumber(errorBuffer, parts[0], "lower");
-						Number upperBound = parseNumber(errorBuffer, parts[1], "upper");
+						Number lowerBound = parseNumber(errorBuffer, parts[0].trim(), "lower");
+						Number upperBound = parseNumber(errorBuffer, parts[1].trim(), "upper");
 
 						if (lowerBound == null) {
 							error = true;
@@ -78,7 +78,7 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 						return;
 					}
 
-					globalValidators.add(new Validator("check" + getValueType() + "inRangeError", className, propertyName));
+					globalValidators.add(new Validator("check" + getUnqualifiedValueType() + "InRangeError", className, propertyName));
 
 				} else {
 

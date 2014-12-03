@@ -23,8 +23,6 @@ import java.util.LinkedHashSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
@@ -45,22 +43,30 @@ public abstract class PropertyParser {
 	protected String localValidator           = "";
 	protected String className                = "";
 	protected String rawSource                = "";
+	protected String source                   = "";
+	protected String format                   = "";
 	protected String defaultValue             = "";
+	protected boolean notNull                 = false;
+	protected PropertyParameters params;
 
 	public abstract Type getKey();
 	public abstract String getPropertyType();
 	public abstract String getValueType();
+	public abstract String getUnqualifiedValueType();
 	public abstract String getPropertyParameters();
 	public abstract void parseFormatString(final Schema entity, final String expression) throws FrameworkException;
 
-	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
+	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
 
 		this.errorBuffer  = errorBuffer;
 		this.className    = className;
 		this.propertyName = propertyName;
-		this.dbName       = dbName;
-		this.rawSource    = rawSource;
-		this.defaultValue = defaultValue;
+		this.rawSource    = params.rawSource;
+		this.source       = params.source;
+		this.format       = params.format;
+		this.notNull      = Boolean.TRUE.equals(params.notNull);
+		this.dbName       = params.dbName;
+		this.defaultValue = params.defaultValue;
 
 		if (this.propertyName.startsWith("_")) {
 			this.propertyName = this.propertyName.substring(1);
@@ -69,13 +75,15 @@ public abstract class PropertyParser {
 
 	public String getPropertySource(final Schema entity, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final String keyName   = getKey().name();
-		String parserSource    = rawSource.substring(keyName.length());
+		final String keyName = getKey().name();
+		source               = source.substring(keyName.length());
+
+		setNotNull(notNull);
 
 		// second: uniqueness and/or non-null, check until the two methods to not change the length of the string any more
-		parserSource = extractUniqueness(parserSource);
+		extractUniqueness();
 
-		extractComplexValidation(entity, parserSource);
+		extractComplexValidation(entity);
 
 		return getPropertySource();
 	}
@@ -121,19 +129,18 @@ public abstract class PropertyParser {
 		return buf.toString();
 	}
 
-	private String extractUniqueness(final String source) {
+	private void extractUniqueness() {
 
 		if (source.startsWith("!")) {
 
 			globalValidators.add(new Validator("checkPropertyUniquenessError", className, propertyName));
 
-			return source.substring(1);
+			source = source.substring(1);
 		}
 
-		return source;
 	}
 
-	public void setNotNull(final boolean notNull) {
+	private void setNotNull(final boolean notNull) {
 
 		if (notNull) {
 
@@ -141,23 +148,74 @@ public abstract class PropertyParser {
 		}
 	}
 
-	private void extractComplexValidation(final Schema entity, final String source) throws FrameworkException {
+	private void extractComplexValidation(final Schema entity) throws FrameworkException {
 
-		if (StringUtils.isNotBlank(source)) {
+//		if (format != null) {
 
-			if (source.startsWith("(") && source.endsWith(")")) {
+			parseFormatString(entity, format);
 
-				parseFormatString(entity, source.substring(1, source.length() - 1));
-
-			} else {
-
-				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_validation_expression", "Valdation expression must be enclosed in (), e.g. (" + source + ")"));
-			}
-		}
+//		} else {
+//
+//			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_validation_expression", "Validation expression must be enclosed in (), e.g. (" + source + ")"));
+//		}
 	}
 
 	public String getDefaultValueSource() {
 		return defaultValue;
 	}
 
+	public static PropertyParameters detectDbNameNotNullAndDefaultValue(final String rawSource) {
+
+		final PropertyParameters params = new PropertyParameters(rawSource);
+
+		// detect optional db name
+		if (rawSource.contains("|")) {
+
+			params.dbName = rawSource.substring(0, rawSource.indexOf("|"));
+			params.source = rawSource.substring(rawSource.indexOf("|")+1);
+
+		}
+
+		// detect and remove not-null constraint
+		if (params.source.startsWith("+")) {
+			params.source = params.source.substring(1);
+			params.notNull = true;
+		}
+
+		// detect and remove format: <type>(...)
+		if (StringUtils.isNotBlank(params.source)) {
+
+			params.format = substringBetween(params.source, "(", ")");
+//			params.format = StringUtils.substringBetween(params.source, "(", ")");
+			params.source = params.source.replaceFirst("\\(.*\\)", "");
+
+		}
+
+		// detect and remove default value
+		if (params.source.contains(":")) {
+
+			// default value is everything after the first :
+			// this is possible because we stripped off the format (...) above
+			int firstIndex      = params.source.indexOf(":");
+			params.defaultValue = params.source.substring(firstIndex + 1);
+			params.source       = params.source.substring(0, firstIndex);
+
+		}
+
+		return params;
+
+	}
+
+	public static String substringBetween(final String source, final String prefix, final String suffix) {
+
+		final int pos1 = source.indexOf(prefix);
+		final int pos2 = source.lastIndexOf(suffix);
+
+		if (pos1 < pos2 && pos2 > 0) {
+
+			return source.substring(pos1 + 1, pos2);
+		}
+
+		return null;
+	}
 }

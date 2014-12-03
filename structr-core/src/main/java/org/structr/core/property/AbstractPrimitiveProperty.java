@@ -35,6 +35,7 @@ import org.structr.core.graph.TransactionCommand;
  * Abstract base class for primitive properties.
  * 
  * @author Christian Morgner
+ * @param <T>
  */
 public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 

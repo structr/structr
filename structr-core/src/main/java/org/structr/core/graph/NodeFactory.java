@@ -146,36 +146,40 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		int count                             = 0;
 		int offset                            = 0;
 
-		for (Node node : spatialRecordHits) {
+		try (final SpatialRecordHits closeable = spatialRecordHits) {
 
-			Node realNode = node;
-			if (realNode != null) {
+			for (Node node : closeable) {
 
-				// FIXME: type cast is not good here...
-				T n = instantiate(realNode);
+				Node realNode = node;
+				if (realNode != null) {
 
-				nodes.add(n);
+					// FIXME: type cast is not good here...
+					T n = instantiate(realNode);
 
-				// Check is done in createNodeWithType already, so we don't have to do it again
-				if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+					nodes.add(n);
 
-					List<T> nodesAt = (List<T>)getNodesAt(n);
+					// Check is done in createNodeWithType already, so we don't have to do it again
+					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
-					size += nodesAt.size();
+						List<T> nodesAt = (List<T>)getNodesAt(n);
 
-					for (T nodeAt : nodesAt) {
+						size += nodesAt.size();
 
-						if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
+						for (T nodeAt : nodesAt) {
 
-							if (++position > offset) {
+							if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
 
-								// stop if we got enough nodes
-								if (++count > pageSize) {
+								if (++position > offset) {
 
-									return new Result(nodes, size, true, false);
+									// stop if we got enough nodes
+									if (++count > pageSize) {
+
+										return new Result(nodes, size, true, false);
+									}
+
+									nodes.add((T)nodeAt);
 								}
 
-								nodes.add((T)nodeAt);
 							}
 
 						}
@@ -185,7 +189,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 				}
 
 			}
-
 		}
 
 		return new Result(nodes, size, true, false);
