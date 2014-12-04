@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
-var radius = 20, stub = 30, offset = 0, maxZ = 0;
+var radius = 20, stub = 30, offset = 0, maxZ = 0, reload = false;
 var connectorStyle = localStorage.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
 var remotePropertyKeys = [];
 
@@ -31,6 +31,10 @@ var _Schema = {
     schemaLoading: false,
     schemaLoaded: false,
     reload: function() {
+        if (reload) {
+            return;
+        }
+        reload = true;
         _Schema.storePositions();
         main.empty();
         _Schema.init();
@@ -190,9 +194,9 @@ var _Schema = {
                                 _Schema.reload();
                             });
                     _Schema.reload();
-
-
                 });
+                
+                reload = false;
             });
         });
 
@@ -970,13 +974,13 @@ var _Schema = {
                 + (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + '</td></tr>');
 
         $('.' + key + ' .property-name', el).on('blur', function() {
-
+            
             var newName = $(this).val();
 
             if (newName === '') {
                 newName = undefined;
             }
-
+            
             if (out) {
                 _Schema.setRelationshipProperty(rel, 'targetJsonName', newName, function() {
                     blinkGreen($('.' + key, el));
@@ -1104,6 +1108,8 @@ var _Schema = {
                 entity['_' + name] = val;
             }, function() {
                 blinkRed($('.local .' + key));
+            }, function() {
+                _Schema.bindEvents(entity, type, key);
             });
         }
     },
@@ -1129,6 +1135,7 @@ var _Schema = {
 
     },
     removePropertyFromViewDefinitions: function(entity, key) {
+        _Schema.unbindEvents(key);
         var keys = Object.keys(entity);
         $('.view.property-name').closest('tr').each(function(v, row) {
             var name = $('.view.property-name', row).val();
@@ -1144,6 +1151,9 @@ var _Schema = {
                 },
                 function() {
                     blinkRed(row);
+                },
+                function() {
+                    _Schema.bindEvents(entity, type, key);
                 });
             }
         });
@@ -1167,27 +1177,62 @@ var _Schema = {
         }
 
     },
-    putPropertyDefinition: function(entity, data, onSuccess, onError) {
-        var jsonData = JSON.parse(data);
+    putPropertyDefinition: function(entity, data, onSuccess, onError, onNoop) {
+        var obj = JSON.parse(data);
+
         $.ajax({
             url: rootUrl + entity.id,
-            type: 'PUT',
+            type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: JSON.stringify(jsonData),
             statusCode: {
-                200: function() {
-                    _Schema.reload();
-                    if (onSuccess) {
-                        onSuccess();
+                200: function(existingData) {
+                    var changed = false;
+                    Object.keys(obj).forEach(function(key) {
+                       
+                        //console.log('existing value', existingData.result[key], 'new value', obj[key], 'equal?', existingData.result[key] === obj[key]);
+                        
+                        if (existingData.result[key] !== obj[key]) {
+                            changed |= true;
+                        }
+                        
+                    });
+                    
+                    //console.log('any value changed?', changed);
+                    
+                    if (changed) {
+                        
+                        $.ajax({
+                            url: rootUrl + entity.id,
+                            type: 'PUT',
+                            dataType: 'json',
+                            contentType: 'application/json; charset=utf-8',
+                            data: JSON.stringify(obj),
+                            statusCode: {
+                                200: function() {
+                                    _Schema.reload();
+                                    if (onSuccess) {
+                                        onSuccess();
+                                    }
+                                },
+                                422: function(data) {
+                                    //Structr.errorFromResponse(data.responseJSON);
+                                    if (onError) {
+                                        onError();
+                                    }
+                                }
+                            }
+                        });
+                        
+                    } else {
+                        
+                        if (onNoop) {
+                            onNoop();
+                        }
+                        
                     }
+                    
                 },
-                422: function(data) {
-                    //Structr.errorFromResponse(data.responseJSON);
-                    if (onError) {
-                        onError();
-                    }
-                }
             }
         });
     },
@@ -1270,21 +1315,35 @@ var _Schema = {
         data[key] = cleanText(value);
         $.ajax({
             url: rootUrl + 'schema_relationships/' + entity.id,
-            type: 'PUT',
-            dataType: 'json',
+            type: 'GET',
             contentType: 'application/json; charset=utf-8',
-            data: JSON.stringify(data),
             statusCode: {
-                200: function(data, textStatus, jqXHR) {
-                    _Schema.reload();
-                    if (onSuccess) {
-                        onSuccess();
-                    }
-                },
-                422: function(data) {
-                    //Structr.errorFromResponse(data.responseJSON);
-                    if (onError) {
-                        onError();
+                200: function(existingData) {
+
+                    if (existingData.result[key] !== value) {
+
+                        $.ajax({
+                            url: rootUrl + 'schema_relationships/' + entity.id,
+                            type: 'PUT',
+                            dataType: 'json',
+                            contentType: 'application/json; charset=utf-8',
+                            data: JSON.stringify(data),
+                            statusCode: {
+                                200: function(data, textStatus, jqXHR) {
+                                    _Schema.reload();
+                                    if (onSuccess) {
+                                        onSuccess();
+                                    }
+                                },
+                                422: function(data) {
+                                    //Structr.errorFromResponse(data.responseJSON);
+                                    if (onError) {
+                                        onError();
+                                    }
+                                }
+                            }
+                        });
+
                     }
                 }
             }
@@ -1558,7 +1617,7 @@ var _Schema = {
         $.ajax({
             url: rootUrl + '_schema/' + type,
             type: 'GET',
-            contentType: 'application/json',
+            contentType: 'application/json; charset=utf-8',
             statusCode: {
                 200: function(data) {
                     var properties = data.result[0].views.all;
