@@ -194,11 +194,11 @@ StructrUiHandler.welcomeFiles = index.html
 # This section configures the HTTP headers sent by Structr to control cross
 # origin resource sharing, see http://www.w3.org/TR/cors.
 #
-access.control.max.age = 3600
-access.control.allow.methods = GET
-access.control.allow.headers = 
-access.control.allow.credentials = false
-access.control.expose.headers =
+##access.control.max.age = 3600
+#access.control.allow.methods = GET,OPTIONS
+#access.control.allow.headers = Content-Type,Accept,Content-Encoding,Location
+##access.control.allow.credentials = false
+#access.control.expose.headers = Location
 #############################################################################
 
 
