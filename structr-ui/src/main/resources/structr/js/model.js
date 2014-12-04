@@ -86,10 +86,6 @@ var StructrModel = {
 
             obj = new StructrFile(data);
 
-        } else if (type === 'DataNode') {
-
-            obj = new StructrDataNode(data);
-
         } else {
 
             obj = new StructrElement(data);
