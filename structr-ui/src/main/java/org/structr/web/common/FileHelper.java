@@ -251,16 +251,26 @@ public class FileHelper {
 	//~--- inner classes --------------------------------------------------
 	public static class Base64URIData {
 
-		private final String contentType;
-		private final String data;
+		private String contentType = null;
+		private String data = null;
 
 		//~--- constructors -------------------------------------------
 		public Base64URIData(final String rawData) {
 
-			String[] parts = StringUtils.split(rawData, ",");
+			if (rawData.contains(",")) {
 
-			data = parts[1];
-			contentType = StringUtils.substringBetween(parts[0], "data:", ";base64");
+				String[] parts = StringUtils.split(rawData, ",");
+				if (parts.length == 2) {
+
+					contentType = StringUtils.substringBetween(parts[0], "data:", ";base64");
+					data        = parts[1];
+
+				}
+
+			} else {
+
+				data = rawData;
+			}
 
 		}
 
@@ -359,7 +369,7 @@ public class FileHelper {
 	public static String getContentMimeType(final java.io.File file, final String name) throws IOException {
 
 		String mimeType;
-		
+
 		// try name first, if not null
 		if (name != null) {
 			mimeType = mimeTypeMap.getContentType(name);

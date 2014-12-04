@@ -44,7 +44,7 @@ function wsConnect() {
             ws.close();
             ws.length = 0;
         }
-        
+
         localStorage.removeItem(userKey);
 
         var isEnc = (window.location.protocol === 'https:');
@@ -375,7 +375,7 @@ function wsConnect() {
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 
                 $(result).each(function(i, entity) {
-                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'VideoFile' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'Widget')) {
+                    if (command === 'CREATE' && (entity.isPage || entity.isFolder || entity.isFile || entity.isImage || entity.isVideo || entityisUser || entity.isGroup || entity.isWidget)) {
                         StructrModel.create(entity);
                     } else {
 
@@ -383,7 +383,7 @@ function wsConnect() {
 
                             StructrModel.create(entity, null, false);
                             var el;
-                            if (entity.type === 'Content' || entity.type === 'Template') {
+                            if (entity.isContent || entity.type === 'Template') {
                                 el = _Contents.appendContentElement(entity, components, true);
                             } else {
                                 el = _Pages.appendElementElement(entity, components, true);
@@ -410,12 +410,12 @@ function wsConnect() {
                         }
                     }
 
-                    if (command === 'CREATE' && entity.type === 'Page') {
+                    if (command === 'CREATE' && entity.isPage) {
                         var tab = $('#show_' + entity.id, previews);
                         setTimeout(function() {
                             _Pages.activateTab(tab)
                         }, 2000);
-                    } else if (command === 'CREATE' && (entity.type === 'File' || entity.type === 'Image' || entity.type === 'VideoFile')) {
+                    } else if (command === 'CREATE' && (entity.isFile || entity.isImage || entity.isVideo)) {
                         _Files.uploadFile(entity);
                     }
 

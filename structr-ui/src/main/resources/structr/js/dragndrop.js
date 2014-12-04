@@ -146,7 +146,7 @@ var _Dragndrop = {
                 if (!refId) {
                     refId = getComponentId(nextNode);
                 }
-                
+
                 log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent), nextNode, refId);
 
                 var parentId = getId(sortParent);
@@ -205,19 +205,19 @@ var _Dragndrop = {
             return false;
         }
 
-        if (source && source.type === 'Widget') {
+        if (source && source.isWidget) {
 
             return _Dragndrop.widgetDropped(source, target, pageId);
 
         }
 
-        if (source && source.type === 'Image') {
+        if (source && source.isImage) {
 
             return _Dragndrop.imageDropped(source, target, pageId);
 
         }
 
-        if (source && source.type === 'File') {
+        if (source && source.isFile) {
 
             return _Dragndrop.fileDropped(source, target, pageId);
 
@@ -293,7 +293,7 @@ var _Dragndrop = {
                 nodeData.childContent = 'Initial text for ' + tag;
             }
         }
-        if (target.type === 'Content' || target.type === 'Comment') {
+        if (target.isContent || target.type === 'Comment') {
             if (tag === 'content' || tag === 'comment') {
                 log('content element dropped on content or comment, doing nothing');
                 return false;

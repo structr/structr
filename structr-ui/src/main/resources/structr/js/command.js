@@ -630,7 +630,7 @@ var Command = {
         if (!nodeData.name) {
             nodeData.name = 'New ' + nodeData.type + ' ' + Math.floor(Math.random() * (999999 - 1));
         }
-        if (nodeData.type === 'Content' && !nodeData.content) {
+        if (nodeData.isContent && !nodeData.content) {
             nodeData.content = nodeData.name;
         }
         obj.id = id;
@@ -651,7 +651,7 @@ var Command = {
         if (!nodeData.name) {
             nodeData.name = 'New ' + nodeData.type + ' ' + Math.floor(Math.random() * (999999 - 1));
         }
-        if (nodeData.type === 'Content' && !nodeData.content) {
+        if (nodeData.isContent && !nodeData.content) {
             nodeData.content = nodeData.name;
         }
         obj.data = nodeData;

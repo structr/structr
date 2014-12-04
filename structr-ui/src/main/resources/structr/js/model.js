@@ -362,7 +362,7 @@ var StructrModel = {
             }
 
             // Did name change from null?
-            if ((obj.type === 'Template' || obj.type === 'Content') && obj.name) {
+            if ((obj.type === 'Template' || obj.isContent) && obj.name) {
                 $(element).children('.content_').replaceWith('<b title="' + obj.name + '" class="tag_ name_">' + obj.name + '</b>');
             }
 

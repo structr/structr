@@ -1695,7 +1695,7 @@ var _Crud = {
                 cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
                 //console.log(node);
-                if (node.type === 'Image') {
+                if (node.isImage) {
 
                     if (node.isThumbnail) {
                         nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
@@ -1829,7 +1829,7 @@ var _Crud = {
 
                             var nodeEl = $('#resultsFor' + type + ' ._' + node.id, searchResults);
                             //console.log(node);
-                            if (node.type === 'Image') {
+                            if (node.isImage) {
                                 nodeEl.append('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
                             }
 
@@ -1866,7 +1866,7 @@ var _Crud = {
     },
     displayName: function(node) {
         var displayName;
-        if (node.type === 'Content' && node.content) {
+        if (node.isContent && node.content) {
             //displayName = $(node.content).text().substring(0, 100);
             displayName = escapeTags(node.content.substring(0, 100));
         } else {
@@ -2282,7 +2282,7 @@ var _Crud = {
                     }
                 });
 
-                if (node && node.type === 'Image') {
+                if (node && node.isImage) {
                     dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
                 }
             }
@@ -2353,7 +2353,7 @@ var _Crud = {
             });
         }
 
-        if (node && node.type === 'Image') {
+        if (node && node.isImage) {
             dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
         }
 

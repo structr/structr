@@ -238,9 +238,6 @@ var _Elements = {
                 var sourceId = getId(sourceEl);
                 if (!sourceId) return false;
                 var obj = StructrModel.obj(sourceId);
-//                if (obj.type === 'Content' || obj.type === 'Comment') {
-//                    return false;
-//                }
                 if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
                     log('component dropped on components area, aborting');
                     return false;
@@ -259,12 +256,12 @@ var _Elements = {
 
             var obj = StructrModel.create(entity, null, false);
             var el;
-            if (obj.type === 'Content' || obj.type === 'Template') {
+            if (obj.isContent || obj.type === 'Template') {
                 el = _Contents.appendContentElement(obj, components, true);
             } else {
                 el = _Pages.appendElementElement(obj, components, true);
             }
-            
+
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);
             }
@@ -363,7 +360,7 @@ var _Elements = {
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
 
         var icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
-        
+
         div.append('<img class="typeIcon" src="' + icon + '">'
             + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b><span class="id">' + entity.id + '</span>'
             + _Elements.classIdString(entity._html_id, entity._html_class)
