@@ -52,6 +52,7 @@ public abstract class PropertyParser {
 	public abstract Type getKey();
 	public abstract String getPropertyType();
 	public abstract String getValueType();
+	public abstract String getUnqualifiedValueType();
 	public abstract String getPropertyParameters();
 	public abstract void parseFormatString(final Schema entity, final String expression) throws FrameworkException;
 

@@ -48,6 +48,11 @@ public class StringPropertyParser extends PropertyParser {
 	}
 
 	@Override
+	public String getUnqualifiedValueType() {
+		return "String";
+	}
+
+	@Override
 	public String getPropertyParameters() {
 		return "";
 	}

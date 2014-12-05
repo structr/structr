@@ -35,6 +35,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -254,7 +255,13 @@ public class SecurityContext {
 
 	public HttpSession getSession() {
 
-		return request.getSession();
+		final HttpSession session = request.getSession();
+		if (session != null) {
+
+			session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
+		}
+
+		return session;
 
 	}
 
@@ -579,7 +586,7 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 
 	}
-	
+
 	public void clearCustomView() {
 		customView = new LinkedHashSet<>();
 	}
@@ -587,13 +594,13 @@ public class SecurityContext {
 	public void setCustomView(final String... properties) {
 
 		customView = new LinkedHashSet<>();
-		
+
 		for (final String prop : properties) {
 			customView.add(prop);
 		}
-		
+
 	}
-	
+
 	public Authenticator getAuthenticator() {
 		return authenticator;
 	}

@@ -86,10 +86,6 @@ var StructrModel = {
 
             obj = new StructrFile(data);
 
-        } else if (type === 'DataNode') {
-
-            obj = new StructrDataNode(data);
-
         } else {
 
             obj = new StructrElement(data);
@@ -362,7 +358,7 @@ var StructrModel = {
             }
 
             // Did name change from null?
-            if ((obj.type === 'Template' || obj.type === 'Content') && obj.name) {
+            if ((obj.type === 'Template' || obj.isContent) && obj.name) {
                 $(element).children('.content_').replaceWith('<b title="' + obj.name + '" class="tag_ name_">' + obj.name + '</b>');
             }
 
@@ -642,7 +638,7 @@ StructrUser.prototype.remove = function() {
 
 StructrUser.prototype.append = function() {
     var user = this;
-    console.log(user.groups);
+    //console.log(user.groups);
     if (user.groups && user.groups.length) {
         var group = StructrModel.obj(user.groups[0]);
         if (group) {

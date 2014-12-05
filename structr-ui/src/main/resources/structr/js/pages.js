@@ -256,7 +256,7 @@ var _Pages = {
         }
 
         // activate first page when local storage is empty
-        if (!localStorage.getItem('structrActiveTab')) {
+        if (!localStorage.getItem(activeTabKey)) {
             window.setTimeout(function(e) {  _Pages.activateTab($('#previewTabs .page').first()); }, 1000);
         }
 

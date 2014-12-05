@@ -34,6 +34,7 @@ var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialog
 var dialogId;
 var page = {};
 var pageSize = {};
+var dialogMaximizedKey = 'structrDialogMaximized_' + port;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
@@ -491,6 +492,7 @@ var Structr = {
             dialogMsg.empty();
             dialogMeta.empty();
             //dialogBtn.empty();
+            $('.speechToText', dialogBox).remove();
 
             if (text) {
                 dialogTitle.html(text);
@@ -567,22 +569,7 @@ var Structr = {
 
         }
     },
-    resize: function() {
-
-        if (isMax) {
-            Structr.maximize();
-            return;
-        }
-
-        var w = $(window).width();
-        var h = $(window).height();
-
-        var ml = 24;
-        var mt = 24;
-
-        // Calculate dimensions of dialog
-        var dw = Math.min(900, w - ml);
-        var dh = Math.min(600, h - mt);
+    setSize: function(w, h, dw, dh) {
 
         var l = parseInt((w - dw) / 2);
         var t = parseInt((h - dh) / 2);
@@ -594,8 +581,10 @@ var Structr = {
             left: l + 'px'
         });
 
+        var horizontalOffset = 98;
+
         var bw = (dw - 28) + 'px';
-        var bh = (dh - 118) + 'px';
+        var bh = (dh - horizontalOffset) + 'px';
 
         $('#dialogBox .dialogTextWrapper').css({
             width: bw,
@@ -605,11 +594,11 @@ var Structr = {
         var tabsHeight = $('.files-tabs ul').height();
 
         $('.CodeMirror').css({
-            height: (dh - 118 - 14 - tabsHeight) + 'px'
+            height: (dh - horizontalOffset - 24 - tabsHeight) + 'px'
         });
 
         $('.CodeMirror-gutters').css({
-            height: (dh - 118 - 14 - tabsHeight) + 'px'
+            height: (dh - horizontalOffset - 24 - tabsHeight) + 'px'
         });
 
         $('.CodeMirror').each(function(i, el) {
@@ -619,67 +608,41 @@ var Structr = {
         $('.fit-to-height').css({
             height: h - 74 + 'px'
         });
+        
+    },
+    resize: function() {
+
+        // Calculate dimensions of dialog
+        Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
 
         $('#minimizeDialog').hide();
         $('#maximizeDialog').show().on('click', function() {
             Structr.maximize();
         });
+        
+        //localStorage.removeItem(dialogMaximizedKey);
+        isMax = localStorage.getItem(dialogMaximizedKey);
+
+        if (isMax) {
+            Structr.maximize();
+        }
+
 
     },
     maximize: function() {
 
-        var w = $(window).width();
-        var h = $(window).height();
-
-        var ml = 24;
-        var mt = 24;
-
-        // Calculate maximized dimensions of dialog
-        var dw = w - ml;
-        var dh = h - mt;
-
-        var l = parseInt((w - dw) / 2);
-        var t = parseInt((h - dh) / 2);
-
-        $('.blockPage').css({
-            width: dw + 'px',
-            height: dh + 'px',
-            top: t + 'px',
-            left: l + 'px'
-        });
-
-        var bw = (dw - 28) + 'px';
-        var bh = (dh - 118) + 'px';
-
-        $('#dialogBox .dialogTextWrapper').css({
-            width: bw,
-            height: bh
-        });
-
-        var tabsHeight = $('.files-tabs ul').height();
-
-        $('.CodeMirror').css({
-            height: (dh - 118 - 14 - tabsHeight) + 'px'
-        });
-
-        $('.CodeMirror-gutters').css({
-            height: (dh - 118 - 14 - tabsHeight) + 'px'
-        });
-
-        $('.CodeMirror').each(function(i, el) {
-            el.CodeMirror.refresh();
-        });
-
-        $('.fit-to-height').css({
-            height: h - 74 + 'px'
-        });
+        // Calculate dimensions of dialog
+        Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
 
         isMax = true;
         $('#maximizeDialog').hide();
         $('#minimizeDialog').show().on('click', function() {
             isMax = false;
+            localStorage.removeItem(dialogMaximizedKey);
             Structr.resize();
         });
+        
+        localStorage.setItem(dialogMaximizedKey, '1');
 
     },
     error: function(text, callback) {

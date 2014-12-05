@@ -518,7 +518,7 @@ public class Importer {
 				if (downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
 					String downloadAddress = node.attr(downloadAddressAttr);
-					res = downloadFile(downloadAddress);
+					res = downloadFile(downloadAddress, originalUrl);
 
 				}
 
@@ -697,7 +697,7 @@ public class Importer {
 
 	}
 
-	private Linkable downloadFile(String downloadAddress) {
+	private Linkable downloadFile(String downloadAddress, final URL base) {
 
 		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 		String contentType;
@@ -716,7 +716,7 @@ public class Importer {
 		
 		try {
 
-			downloadUrl = new URL(originalUrl, downloadAddress);
+			downloadUrl = new URL(base, downloadAddress);
 
 			logger.log(Level.INFO, "Starting download from {0}", downloadUrl);
 
@@ -823,7 +823,7 @@ public class Importer {
 
 					if (contentType.equals("text/css")) {
 
-						processCssFileNode(fileNode);
+						processCssFileNode(fileNode, downloadUrl);
 					}
 				}
 
@@ -880,7 +880,7 @@ public class Importer {
 
 	}
 
-	private void processCssFileNode(File fileNode) throws IOException {
+	private void processCssFileNode(final File fileNode, final URL base) throws IOException {
 
 		StringWriter sw = new StringWriter();
 
@@ -888,11 +888,11 @@ public class Importer {
 
 		String css = sw.toString();
 
-		processCss(css);
+		processCss(css, base);
 
 	}
 
-	private void processCss(final String css) throws IOException {
+	private void processCss(final String css, final URL base) throws IOException {
 
 		Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
 		Matcher matcher = pattern.matcher(css);
@@ -902,7 +902,7 @@ public class Importer {
 			String url = matcher.group(2);
 
 			logger.log(Level.INFO, "Trying to download from URL found in CSS: {0}", url);
-			downloadFile(url);
+			downloadFile(url, base);
 
 		}
 

@@ -34,7 +34,7 @@ public class LongPropertyParser extends NumericalPropertyParser {
 	public LongPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
 		super(errorBuffer, className, propertyName, params);
 	}
-	
+
 	@Override
 	public String getPropertyType() {
 		return LongProperty.class.getSimpleName();
@@ -44,7 +44,12 @@ public class LongPropertyParser extends NumericalPropertyParser {
 	public String getValueType() {
 		return Long.class.getName();
 	}
-	
+
+	@Override
+	public String getUnqualifiedValueType() {
+		return "Long";
+	}
+
 	@Override
 	public Type getKey() {
 		return Type.Long;
@@ -52,15 +57,15 @@ public class LongPropertyParser extends NumericalPropertyParser {
 
 	@Override
 	public Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which) {
-							
+
 		try {
 			return Long.parseLong(source);
-			
+
 		} catch (Throwable t) {
-			
+
 			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Long."));
 		}
-		
+
 		return null;
 	}
 

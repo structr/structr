@@ -75,21 +75,20 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 public class HttpService implements RunnableService {
 
 	private static final Logger logger = Logger.getLogger(HttpService.class.getName());
-	public static final String SERVLETS = "HttpService.servlets";
-	public static final String RESOURCE_HANDLERS = "HttpService.resourceHandlers";
-	public static final String LIFECYCLE_LISTENERS = "HttpService.lifecycle.listeners";
-	public static final String MAIN_CLASS = "HttpService.mainClass";
-	public static final String ASYNC = "HttpService.async";
 
-	public static final String APPLICATION_TITLE = "application.title";
-	public static final String APPLICATION_HOST = "application.host";
-	public static final String APPLICATION_HTTP_PORT = "application.http.port";
-	public static final String APPLICATION_HTTPS_PORT = "application.https.port";
-	public static final String APPLICATION_HTTPS_ENABLED = "application.https.enabled";
-	public static final String APPLICATION_KEYSTORE_PATH = "application.keystore.path";
+	public static final String SERVLETS                      = "HttpService.servlets";
+	public static final String RESOURCE_HANDLERS             = "HttpService.resourceHandlers";
+	public static final String LIFECYCLE_LISTENERS           = "HttpService.lifecycle.listeners";
+	public static final String MAIN_CLASS                    = "HttpService.mainClass";
+	public static final String ASYNC                         = "HttpService.async";
+
+	public static final String APPLICATION_TITLE             = "application.title";
+	public static final String APPLICATION_HOST              = "application.host";
+	public static final String APPLICATION_HTTP_PORT         = "application.http.port";
+	public static final String APPLICATION_HTTPS_PORT        = "application.https.port";
+	public static final String APPLICATION_HTTPS_ENABLED     = "application.https.enabled";
+	public static final String APPLICATION_KEYSTORE_PATH     = "application.keystore.path";
 	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
-
-
 
 	// set of resource providers for this service
 	private Set<ResourceProvider> resourceProviders = new LinkedHashSet<>();
@@ -209,10 +208,10 @@ public class HttpService implements RunnableService {
 		applicationName   = finalConfig.getProperty(APPLICATION_TITLE);
 		host              = finalConfig.getProperty(APPLICATION_HOST);
 		basePath          = finalConfig.getProperty(Services.BASE_PATH);
-		httpPort          = parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8082);
-		maxIdleTime       = parseInt(System.getProperty("maxIdleTime"), 30000);
-		requestHeaderSize = parseInt(System.getProperty("requestHeaderSize"), 8192);
-		async             = parseBoolean(finalConfig.getProperty(ASYNC), false);
+		httpPort          = Services.parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8082);
+		maxIdleTime       = Services.parseInt(System.getProperty("maxIdleTime"), 30000);
+		requestHeaderSize = Services.parseInt(System.getProperty("requestHeaderSize"), 8192);
+		async             = Services.parseBoolean(finalConfig.getProperty(ASYNC), false);
 
 		if (async) {
 			logger.log(Level.INFO, "Running in asynchronous mode");
@@ -224,10 +223,10 @@ public class HttpService implements RunnableService {
 		String contextPath = System.getProperty("contextPath", "/");
 		String logPrefix = "structr";
 		boolean enableRewriteFilter = true; // configurationFile.getProperty(Services.
-		boolean enableHttps = parseBoolean(finalConfig.getProperty(APPLICATION_HTTPS_ENABLED), false);
+		boolean enableHttps = Services.parseBoolean(finalConfig.getProperty(APPLICATION_HTTPS_ENABLED), false);
 		boolean enableGzipCompression = true; //
 		boolean logRequests = false; //
-		int httpsPort = parseInt(finalConfig.getProperty(APPLICATION_HTTPS_PORT), 8083);
+		int httpsPort = Services.parseInt(finalConfig.getProperty(APPLICATION_HTTPS_PORT), 8083);
 
 		// get current base path
 		basePath = System.getProperty("home", basePath);
@@ -480,36 +479,6 @@ public class HttpService implements RunnableService {
 
 	public Set<ResourceProvider> getResourceProviders() {
 		return resourceProviders;
-	}
-
-	/**
-	 * Tries to parse the given String to an int value, returning
-	 * defaultValue on error.
-	 *
-	 * @param value the source String to parse
-	 * @param defaultValue the default value that will be returned when parsing fails
-	 * @return the parsed value or the given default value when parsing fails
-	 */
-	public static int parseInt(String value, int defaultValue) {
-
-		if (value == null) {
-
-			return defaultValue;
-
-		}
-
-		try {
-			return Integer.parseInt(value);
-		} catch (NumberFormatException ignore) {}
-
-		return defaultValue;
-	}
-
-	public static boolean parseBoolean(Object source, boolean defaultValue) {
-
-		try { return Boolean.parseBoolean(source.toString()); } catch(Throwable ignore) {}
-
-		return defaultValue;
 	}
 
 	// ----- private methods -----

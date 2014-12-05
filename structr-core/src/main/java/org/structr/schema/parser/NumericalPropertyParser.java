@@ -45,50 +45,41 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 	@Override
 	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
+		boolean error = false;
+		final String rangeFormatErrorMessage = "Range expression must describe a (possibly open-ended) interval, e.g. [10,99] or ]9,100[ for all two-digit integers";
+
 		if (StringUtils.isNotBlank(expression)) {
 
-			if (expression.contains(",")) {
+			if ((expression.startsWith("[") || expression.startsWith("]")) && (expression.endsWith("[") || expression.endsWith("]"))) {
 
-				if ((expression.startsWith("[") || expression.startsWith("]")) && (expression.endsWith("[") || expression.endsWith("]"))) {
+				final String range      = expression.substring(1, expression.length()-1);
+				final String[] parts    = range.split(",+");
 
-					final String range      = expression.substring(1, expression.length()-1);
-					final String[] parts    = range.split("[, ]+");
-					boolean error           = false;
+				if (parts.length == 2) {
 
-					if (parts.length == 2) {
+					Number lowerBound = parseNumber(errorBuffer, parts[0].trim(), "lower");
+					Number upperBound = parseNumber(errorBuffer, parts[1].trim(), "upper");
 
-						Number lowerBound = parseNumber(errorBuffer, parts[0], "lower");
-						Number upperBound = parseNumber(errorBuffer, parts[1], "upper");
-
-						if (lowerBound == null) {
-							error = true;
-						}
-
-						if (upperBound == null) {
-							error = true;
-						}
-
-					} else {
-
-						errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range must have exactly two bounds."));
+					if (lowerBound == null || upperBound == null) {
 						error = true;
 					}
 
-					if (error) {
-						return;
-					}
-
-					globalValidators.add(new Validator("check" + getValueType() + "inRangeError", className, propertyName));
-
 				} else {
+					error = true;
+				}
 
-					errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range expression must start and end with [ or ], e.g. [" + expression + "]."));
+				if (!error) {
+					globalValidators.add(new Validator("check" + getUnqualifiedValueType() + "InRangeError", className, propertyName, expression));
 				}
 
 			} else {
-
-				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range expression must contain two values separated by a comma."));
+				error = true;
 			}
+
+		}
+
+		if (error) {
+			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", rangeFormatErrorMessage));
 		}
 	}
 }

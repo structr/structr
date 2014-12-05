@@ -47,6 +47,11 @@ public class StringArrayPropertyParser extends PropertyParser {
 	}
 
 	@Override
+	public String getUnqualifiedValueType() {
+		return "String[]";
+	}
+
+	@Override
 	public String getPropertyParameters() {
 		return ", String.class";
 	}

@@ -205,16 +205,6 @@ public class StructrApp implements App {
 
 	@Override
 	public <T extends Command> T command(Class<T> commandType) {
-//
-//		Command command = commandCache.get(commandType);
-//		if (command == null) {
-//
-//			command = Services.getInstance().command(securityContext, commandType);
-//			commandCache.put(commandType, command);
-//		}
-//
-//		return (T)command;
-
 		return Services.getInstance().command(securityContext, commandType);
 	}
 

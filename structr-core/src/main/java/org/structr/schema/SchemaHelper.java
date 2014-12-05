@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with
+ * Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.schema;
 
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
@@ -81,27 +81,26 @@ public class SchemaHelper {
 		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join
 	}
 
-	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
+	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
 	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new LinkedHashMap<>();
 
 	static {
 
 		// IMPORTANT: parser map must be sorted by type name length
 		//            because we look up the parsers using "startsWith"!
-
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
-		parserMap.put(Type.Function,    FunctionPropertyParser.class);
-		parserMap.put(Type.Boolean,     BooleanPropertyParser.class);
-		parserMap.put(Type.Integer,     IntPropertyParser.class);
-		parserMap.put(Type.String,      StringPropertyParser.class);
-		parserMap.put(Type.Double,      DoublePropertyParser.class);
-		parserMap.put(Type.Notion,      NotionPropertyParser.class);
-		parserMap.put(Type.Cypher,      CypherPropertyParser.class);
-		parserMap.put(Type.Long,        LongPropertyParser.class);
-		parserMap.put(Type.Enum,        EnumPropertyParser.class);
-		parserMap.put(Type.Date,        DatePropertyParser.class);
-		parserMap.put(Type.Count,       CountPropertyParser.class);
-		parserMap.put(Type.Join,        JoinPropertyParser.class);
+		parserMap.put(Type.Function, FunctionPropertyParser.class);
+		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
+		parserMap.put(Type.Integer, IntPropertyParser.class);
+		parserMap.put(Type.String, StringPropertyParser.class);
+		parserMap.put(Type.Double, DoublePropertyParser.class);
+		parserMap.put(Type.Notion, NotionPropertyParser.class);
+		parserMap.put(Type.Cypher, CypherPropertyParser.class);
+		parserMap.put(Type.Long, LongPropertyParser.class);
+		parserMap.put(Type.Enum, EnumPropertyParser.class);
+		parserMap.put(Type.Date, DatePropertyParser.class);
+		parserMap.put(Type.Count, CountPropertyParser.class);
+		parserMap.put(Type.Join, JoinPropertyParser.class);
 	}
 
 	/**
@@ -140,16 +139,8 @@ public class SchemaHelper {
 
 				if (normalizedType == null) {
 
-					normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityName));
+					normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(PlingStemmer.stem(possibleEntityName)));
 
-					if (normalizedType.endsWith("ies")) {
-
-						normalizedType = normalizedType.substring(0, normalizedType.length() - 3).concat("y");
-
-					} else if (!normalizedType.endsWith("ss") && normalizedType.endsWith("s")) {
-
-						normalizedType = normalizedType.substring(0, normalizedType.length() - 1);
-					}
 				}
 
 				result.append(normalizedType).append("/");
@@ -167,16 +158,8 @@ public class SchemaHelper {
 
 			if (normalizedType == null) {
 
-				normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityString));
+				normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(PlingStemmer.stem(possibleEntityString)));
 
-				if (normalizedType.endsWith("ies")) {
-
-					normalizedType = normalizedType.substring(0, normalizedType.length() - 3).concat("y");
-
-				} else if (!normalizedType.endsWith("ss") && normalizedType.endsWith("s")) {
-
-					normalizedType = normalizedType.substring(0, normalizedType.length() - 1);
-				}
 			}
 
 			return normalizedType;
@@ -251,7 +234,7 @@ public class SchemaHelper {
 	public static List<DynamicResourceAccess> createDynamicGrants(final String signature) {
 
 		final List<DynamicResourceAccess> grants = new LinkedList<>();
-		final long initialFlagsValue             = 0;
+		final long initialFlagsValue = 0;
 
 		final App app = StructrApp.getInstance();
 		try {
@@ -338,7 +321,7 @@ public class SchemaHelper {
 	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
- 		final StringBuilder src                   = new StringBuilder();
+		final StringBuilder src = new StringBuilder();
 
 		// output property source code and collect views
 		for (String propertyName : SchemaHelper.getProperties(propertyContainer)) {
@@ -399,22 +382,21 @@ public class SchemaHelper {
 			if (propertyContainer.hasProperty(rawActionName)) {
 
 				// split value on ";"
-				final String value     = propertyContainer.getProperty(rawActionName).toString();
-				final String[] parts1  = value.split("[;]+");
+				final String value = propertyContainer.getProperty(rawActionName).toString();
+				final String[] parts1 = value.split("[;]+");
 				final int parts1Length = parts1.length;
 
-				for (int i=0; i<parts1Length; i++) {
+				for (int i = 0; i < parts1Length; i++) {
 
 					// split value on "&&"
-					final String[] parts2     = parts1[i].split("\\&\\&");
-					final int parts2Length    = parts2.length;
+					final String[] parts2 = parts1[i].split("\\&\\&");
+					final int parts2Length = parts2.length;
 
-					for (int j=0; j<parts2Length; j++) {
+					for (int j = 0; j < parts2Length; j++) {
 
 						// since the parts in this loop are separated by "&&", all parts AFTER
 						// the first one should only be run if the others before succeeded.
-
-						final ActionEntry entry      = new ActionEntry(rawActionName, parts2[j], j == 0);
+						final ActionEntry entry = new ActionEntry(rawActionName, parts2[j], j == 0);
 						List<ActionEntry> actionList = actions.get(entry.getType());
 
 						if (actionList == null) {
@@ -591,7 +573,7 @@ public class SchemaHelper {
 		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
 
 			final List<ActionEntry> actionList = entry.getValue();
-			final Actions.Type type            = entry.getKey();
+			final Actions.Type type = entry.getKey();
 
 			if (!actionList.isEmpty()) {
 
@@ -620,7 +602,7 @@ public class SchemaHelper {
 		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
 
 			final List<ActionEntry> actionList = entry.getValue();
-			final Actions.Type type            = entry.getKey();
+			final Actions.Type type = entry.getKey();
 
 			if (!actionList.isEmpty()) {
 
@@ -777,12 +759,12 @@ public class SchemaHelper {
 				final Map<String, String> replacements = new LinkedHashMap<>();
 
 				int start = value.indexOf("${");
-				int end   = value.indexOf("}", start);
+				int end = value.indexOf("}", start);
 
 				while (start >= 0 && end >= 0) {
 
-					String group          = value.substring(start,   end+1);
-					String source         = value.substring(start+2, end);
+					String group = value.substring(start, end + 1);
+					String source = value.substring(start + 2, end);
 					Object extractedValue = Functions.evaluate(securityContext, actionContext, entity, source);
 
 					if (extractedValue == null) {
@@ -806,13 +788,13 @@ public class SchemaHelper {
 					}
 
 					start = value.indexOf("${", end);
-					end   = value.indexOf("}", start);
+					end = value.indexOf("}", start);
 				}
 
 				// apply replacements
 				for (final Entry<String, String> entry : replacements.entrySet()) {
 
-					final String group       = entry.getKey();
+					final String group = entry.getKey();
 					final String replacement = entry.getValue();
 
 					value = value.replace(group, replacement);
@@ -843,7 +825,7 @@ public class SchemaHelper {
 	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String source) throws FrameworkException {
 
 		final PropertyParameters params = PropertyParser.detectDbNameNotNullAndDefaultValue(source);
-		
+
 		for (final Map.Entry<Type, Class<? extends PropertyParser>> entry : parserMap.entrySet()) {
 
 			if (params.source.startsWith(entry.getKey().name())) {
@@ -851,7 +833,7 @@ public class SchemaHelper {
 				try {
 
 					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, PropertyParameters.class).newInstance(errorBuffer, className, propertyName, params);
-					
+
 					return parser;
 
 				} catch (Throwable t) {
@@ -873,7 +855,8 @@ public class SchemaHelper {
 			// success
 			return true;
 
-		} catch (Throwable t) {}
+		} catch (Throwable t) {
+		}
 
 		return false;
 	}

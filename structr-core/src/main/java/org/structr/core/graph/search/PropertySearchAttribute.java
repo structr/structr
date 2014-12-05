@@ -51,7 +51,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 	@Override
 	public String toString() {
-		return "PropertySearchAttribute()";
+		return "PropertySearchAttribute(" + super.toString() + ")";
 	}
 
 	@Override

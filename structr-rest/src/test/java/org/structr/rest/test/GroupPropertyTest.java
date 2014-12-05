@@ -227,12 +227,12 @@ public class GroupPropertyTest extends StructrRestTest{
 
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
-				.body("result[0].id",equalTo(test07))
-				.body("result[1].id",equalTo(test06))
+				.body("result[0].id",equalTo(test06))
+				.body("result[1].id",equalTo(test07))
 				.body("result[0].facebook.uid",equalTo(33333))
 				.body("result[1].facebook.uid",equalTo(33333))
-				.body("result[0].twitter.uid",equalTo(33333))
-				.body("result[1].twitter.uid",equalTo(22222))
+				.body("result[0].twitter.uid",equalTo(22222))
+				.body("result[1].twitter.uid",equalTo(33333))
 
 			.when()
 				.get(concat("/test_group_prop_four/?facebook.uid=33333&sort=twitter.uid&order=desc"));

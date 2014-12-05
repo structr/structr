@@ -838,10 +838,6 @@ span.id {
     right: 44px;
 }
 
-#remoteWidgets .widget .edit_icon {
-    right: 4px;
-}
-
 .folder .edit_props_icon {
     right: 44px;
 }
@@ -1052,6 +1048,12 @@ button img {
 .dialogText, .dialogMeta {
     text-align: left;
     font-size: 9.5pt;
+}
+
+.dialogMeta {
+    height: 19px;
+    margin-top: -19px;
+    padding: 0;
 }
 
 .dialogTextWrapper {
@@ -1904,4 +1906,47 @@ table.push {
 .tooltip img {
     vertical-align: middle;
     margin: 0 4px 4px 0;
+}
+
+.editor-info {
+    margin-left: 1em;
+}
+
+.editor-info span {
+    font-weight: bold;
+}
+
+/**
+ * Speech Recognition
+ */
+.speechToText {
+    opacity: 1.0;
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 28px;
+    height: 28px;
+}
+
+.speechToText img {
+    width: 20px;
+    height: 20px;
+    border: none;
+    margin: 0 0 0 -1px;
+    padding: 0;
+}
+
+.speechToText:hover {
+    opacity: .8;
+    margin: 0;
+    padding: 0;
+}
+
+.speechToText.active {
+    opacity: .4;
+    border: 1px solid #f00 ! important;
+}
+
+.speechToText.active img {
+    color: red;
 }

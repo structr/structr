@@ -12,8 +12,8 @@ if [ -z $HEAPSIZE ]; then
 fi
 
 JAVA="/opt/jdk1.7.0_45/bin/java"
-STRUCTR="-cp lib/*:target/lib/*:target/structr-ui-1.1-SNAPSHOT.jar org.structr.Server"
-STRUCTR_ARGS="-server -d64 -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:+UseNUMA -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -Dinstance=$NAME"
+STRUCTR="-Duser.country=US -Duser.language=en -cp lib/*:target/lib/*:target/structr-ui-1.1-SNAPSHOT.jar org.structr.Server"
+STRUCTR_ARGS="-server -d64 -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:MaxPermSize=128m -XX:+UseNUMA -XX:+UseG1GC -Dinstance=$NAME"
 
 BASE_DIR=/opt/structrdb
 PIDFILE=$BASE_DIR/structrdb-$NAME.pid

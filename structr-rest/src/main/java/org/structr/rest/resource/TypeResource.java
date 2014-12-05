@@ -184,12 +184,9 @@ public class TypeResource extends SortableResource {
 
 		if (isNode) {
 
-			final App app         = StructrApp.getInstance(securityContext);
-			NodeInterface newNode = null;
-
-			newNode = createNode(propertySet);
-
 			final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+			final NodeInterface newNode   = createNode(propertySet);
+
 			if (newNode != null) {
 
 				result.addHeader("Location", buildLocationHeader(newNode));
@@ -197,7 +194,7 @@ public class TypeResource extends SortableResource {
 			}
 
 			result.serializeAsPrimitiveArray(true);
-			
+
 			// finally: return 201 Created
 			return result;
 
@@ -235,7 +232,7 @@ public class TypeResource extends SortableResource {
 				}
 
 				result.serializeAsPrimitiveArray(true);
-				
+
 				// finally: return 201 Created
 				return result;
 			}

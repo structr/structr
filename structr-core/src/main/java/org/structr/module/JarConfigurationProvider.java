@@ -76,35 +76,39 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	public static final String DYNAMIC_TYPES_PACKAGE = "org.structr.dynamic";
 
-	private final Map<String, Class<? extends RelationshipInterface>> relationshipEntityClassCache = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Map<String, Class<? extends NodeInterface>> nodeEntityClassCache = new ConcurrentHashMap(100, 0.9f, 8);
-	private final Map<String, Class<? extends Agent>> agentClassCache = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Set<String> nodeEntityPackages = new LinkedHashSet<>();
-	private final Set<String> relationshipPackages = new LinkedHashSet<>();
-	private final Map<String, Class> combinedTypeRelationClassCache = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Map<String, Set<Class>> interfaceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Set<String> agentPackages = new LinkedHashSet<>();
-	private final String fileSep = System.getProperty("file.separator");
-	private final String fileSepEscaped = fileSep.replaceAll("\\\\", "\\\\\\\\");	// ....
-	private final String pathSep = System.getProperty("path.separator");
-	private final String testClassesDir = fileSep.concat("test-classes");
-	private final String classesDir = fileSep.concat("classes");
+	private final Map<String, Class<? extends RelationshipInterface>> relationshipEntityClassCache = new ConcurrentHashMap<>(1000);
+	private final Map<String, Class<? extends NodeInterface>> nodeEntityClassCache                 = new ConcurrentHashMap(1000);
+	private final Map<String, Class<? extends Agent>> agentClassCache                              = new ConcurrentHashMap<>(100);
 
-	private final Map<String, Map<String, Set<PropertyKey>>> globalPropertyViewMap = new LinkedHashMap<>();
-	private final Map<String, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap = new LinkedHashMap<>();
-	private final Map<String, Map<String, PropertyKey>> globalClassDBNamePropertyMap = new LinkedHashMap<>();
-	private final Map<String, Map<String, PropertyKey>> globalClassJSNamePropertyMap = new LinkedHashMap<>();
-	private final Map<String, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap = new LinkedHashMap<>();
-	private final Map<String, Map<String, PropertyGroup>> globalPropertyGroupMap = new LinkedHashMap<>();
-	private final Map<String, Map<String, ViewTransformation>> viewTransformations = new LinkedHashMap<>();
-	private final Map<String, Set<Transformation<GraphObject>>> globalTransformationMap = new LinkedHashMap<>();
-	private final Map<String, Set<Method>> exportedMethodMap = new LinkedHashMap<>();
-	private final Map<Class, Set<Class>> interfaceMap = new LinkedHashMap<>();
-	private final Map<String, Class> reverseInterfaceMap = new LinkedHashMap<>();
-	private final Set<PropertyKey> globalKnownPropertyKeys = new LinkedHashSet<>();
-	private final Set<String> dynamicViews = new LinkedHashSet<>();
+	private final Set<String> agentPackages                                                        = new LinkedHashSet<>();
+ 	private final Set<String> nodeEntityPackages                                                   = new LinkedHashSet<>();
+ 	private final Set<String> relationshipPackages                                                 = new LinkedHashSet<>();
 
-	private FactoryDefinition factoryDefinition = new DefaultFactoryDefinition();
+	private final Map<String, Class> combinedTypeRelationClassCache                                = new ConcurrentHashMap<>(100);
+	private final Map<String, Set<Class>> interfaceCache                                           = new ConcurrentHashMap<>(2000);
+
+	private final String fileSep                                                                   = System.getProperty("file.separator");
+	private final String pathSep                                                                   = System.getProperty("path.separator");
+	private final String fileSepEscaped                                                            = fileSep.replaceAll("\\\\", "\\\\\\\\");
+	private final String testClassesDir                                                            = fileSep.concat("test-classes");
+	private final String classesDir                                                                = fileSep.concat("classes");
+
+	private final Map<String, Map<String, Set<PropertyKey>>> globalPropertyViewMap                 = new ConcurrentHashMap<>(2000);
+	private final Map<String, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap         = new ConcurrentHashMap<>(100);
+	private final Map<String, Map<String, PropertyKey>> globalClassDBNamePropertyMap               = new ConcurrentHashMap<>(2000);
+	private final Map<String, Map<String, PropertyKey>> globalClassJSNamePropertyMap               = new ConcurrentHashMap<>(2000);
+	private final Map<String, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap         = new ConcurrentHashMap<>(100);
+	private final Map<String, Map<String, PropertyGroup>> globalPropertyGroupMap                   = new ConcurrentHashMap<>(100);
+	private final Map<String, Map<String, ViewTransformation>> viewTransformations                 = new ConcurrentHashMap<>(100);
+	private final Map<String, Set<Transformation<GraphObject>>> globalTransformationMap            = new ConcurrentHashMap<>(100);
+	private final Map<String, Set<Method>> exportedMethodMap                                       = new ConcurrentHashMap<>(100);
+	private final Map<Class, Set<Class>> interfaceMap                                              = new ConcurrentHashMap<>(2000);
+	private final Map<String, Class> reverseInterfaceMap                                           = new ConcurrentHashMap<>(5000);
+
+	private final Set<PropertyKey> globalKnownPropertyKeys                                         = new LinkedHashSet<>();
+	private final Set<String> dynamicViews                                                         = new LinkedHashSet<>();
+
+	private FactoryDefinition factoryDefinition                                                    = new DefaultFactoryDefinition();
 
 	// ----- interface Configuration -----
 	@Override

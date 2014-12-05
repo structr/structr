@@ -281,6 +281,8 @@ var _Entities = {
                     }, 500);
                 });
 
+                Structr.resize();
+
             },
             error: function(xhr, statusText, error) {
                 console.log(xhr, statusText, error);
@@ -693,7 +695,7 @@ var _Entities = {
 
                 //('<div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
 
-                if (entity.type === 'Folder' || (lastMenuEntry === 'pages' && !(entity.type === 'Content'))) {
+                if (entity.isFolder || (lastMenuEntry === 'pages' && !(entity.isContent))) {
                     dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
                 }
 
@@ -1326,7 +1328,7 @@ var _Entities = {
 function addPrincipal(entity, principal, permissions) {
 
     $('#newPrincipal option[value="' + principal.id + '"]').remove();
-    $('#new').after('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
+    $('#new').after('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
     var row = $('#_' + principal.id);
 
