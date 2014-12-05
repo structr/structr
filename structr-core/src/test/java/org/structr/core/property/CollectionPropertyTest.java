@@ -18,8 +18,11 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.collections.ListUtils;
+import org.junit.Assert;
 
 
 import org.structr.common.StructrTest;
@@ -34,6 +37,53 @@ import org.structr.core.graph.Tx;
  * @author Christian Morgner
  */
 public class CollectionPropertyTest extends StructrTest {
+
+	public void testOneToMany() throws Exception {
+		
+		TestOne testOne                   = null;
+		List<TestSix> testSixs            = null;
+		List<TestSix> testSixs2           = null;
+		int index                         = 0;
+
+		List<Integer> index1              = new LinkedList();
+		List<Integer> index2              = new LinkedList();
+		
+		try (final Tx tx = app.tx()) {
+
+			testOne        = createTestNode(TestOne.class);
+			testSixs       = createTestNodes(TestSix.class, 20);
+
+			for (final TestSix testSix : testSixs) {
+				int i = index++;
+				testSix.setProperty(TestSix.index, i);
+				System.out.println(i + " ");
+				index1.add(i);
+			}
+
+			testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+
+			tx.success();
+			
+		}
+		
+		try (final Tx tx = app.tx()) {
+
+			testSixs2 = testOne.getProperty(TestOne.manyToManyTestSixs);
+			
+			for (final TestSix testSix : testSixs2) {
+				int i = testSix.getProperty(TestSix.index);
+				System.out.println(i + " ");
+				index2.add(i);
+			}
+
+			assertEquals(index1, index2);
+			
+			tx.success();
+			
+		}
+		
+		
+	}
 
 	public void testManyToMany() throws Exception {
 
