@@ -122,6 +122,11 @@ var StructrModel = {
      */
     append: function(obj, refId) {
 
+        if (obj.content) {
+            // only show the first 40 characters for content elements
+            obj.content = obj.content.substring(0, 40);
+        }
+
         var refNode = refId ? Structr.node(refId) : undefined;
 
         // Display in page (before refNode, if given)
