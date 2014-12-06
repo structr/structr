@@ -463,7 +463,7 @@ img.disabled {
     border: 1px solid #b5b5b5;
 }
 
-.props .key {
+.props td.key {
     width: 50%;
     font-weight: bold;
 }
@@ -1773,7 +1773,7 @@ button.add_property {
 }
 
 /* Special highlighting for data-hash attribute in internal editor */
-.data-hash {
+.editor .data-hash {
     color: #ccc ! important;
 }
 
