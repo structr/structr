@@ -80,7 +80,7 @@ var _Dashboard = {
         });
 
         $('#queriesTab').on('click', function() {
-            if (queriesSlideout.position().left === -lsw) {
+            if (Math.abs(queriesSlideout.position().left + lsw) <= 3) {
                 Structr.closeLeftSlideOuts([displaySlideout, filtersSlideout], activeTabLeftDashboardKey);
                 Structr.openLeftSlideOut(queriesSlideout, this, activeTabLeftDashboardKey);
             } else {
@@ -89,7 +89,7 @@ var _Dashboard = {
         });
 
         $('#displayTab').on('click', function() {
-            if (displaySlideout.position().left === -lsw) {
+            if (Math.abs(displaySlideout.position().left + lsw) <= 3) {
                 Structr.closeLeftSlideOuts([queriesSlideout, filtersSlideout], activeTabLeftDashboardKey);
                 Structr.openLeftSlideOut(displaySlideout, this, activeTabLeftDashboardKey, function() {
                     //console.log('Display options opened');
@@ -100,7 +100,7 @@ var _Dashboard = {
         });
 
         $('#filtersTab').on('click', function() {
-            if (filtersSlideout.position().left === -lsw) {
+            if (Math.abs(filtersSlideout.position().left + lsw) <= 3) {
                 Structr.closeLeftSlideOuts([queriesSlideout, displaySlideout], activeTabLeftDashboardKey);
                 Structr.openLeftSlideOut(filtersSlideout, this, activeTabLeftDashboardKey, function() {
                     //console.log('Filters opened');

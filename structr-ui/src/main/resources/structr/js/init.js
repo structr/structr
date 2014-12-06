@@ -1031,7 +1031,7 @@ var Structr = {
         slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
-            if (l !== $(window).width()) {
+            if (Math.abs(l - $(window).width()) >= 3) {
                 wasOpen = true;
                 s.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
@@ -1059,7 +1059,7 @@ var Structr = {
         slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
-            if (l === 0) {
+            if (Math.abs(l) <= 3) {
                 wasOpen = true;
                 s.animate({left: '-=' + lsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
