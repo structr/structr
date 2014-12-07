@@ -294,7 +294,7 @@ var _Entities = {
 
         var views, activeView = 'ui';
 
-        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'VideoFile', 'Image', 'File', 'Folder', 'Widget'])) {
+        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget'])) {
             views = ['ui', 'in', 'out'];
         } else {
             views = ['_html_', 'ui', 'in', 'out'];
@@ -317,7 +317,7 @@ var _Entities = {
         dialog.append('<div id="tabs"><ul></ul></div>');
         var mainTabs = $('#tabs', dialog);
 
-        if (!isIn(entity.type, ['Comment', 'Content', 'User', 'Group', 'VideoFile', 'Image', 'File', 'Folder', 'Widget'])) {
+        if (!isIn(entity.type, ['Comment', 'Content', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget'])) {
 
             _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function(c) {
                 _Entities.queryDialog(entity, c);

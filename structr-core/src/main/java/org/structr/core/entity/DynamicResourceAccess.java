@@ -31,11 +31,11 @@ import static org.structr.core.entity.ResourceAccess.signature;
 public class DynamicResourceAccess extends ResourceAccess {
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
-		signature, flags, position
+		signature, flags, position, isResourceAccess
 	);
 	
 	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
-		signature, flags
+		signature, flags, isResourceAccess
 	);
 
 }

@@ -50,10 +50,10 @@ var _Pages = {
     autoRefresh: [],
     init: function() {
 
-        Structr.initPager('Page', 1, 25);
-        Structr.initPager('File', 1, 25);
-        Structr.initPager('Folder', 1, 25);
-        Structr.initPager('Image', 1, 25);
+        Structr.initPager('Page', 1, 25, 'name', 'asc');
+        Structr.initPager('File', 1, 25, 'name', 'asc');
+        Structr.initPager('Folder', 1, 25, 'name', 'asc');
+        Structr.initPager('Image', 1, 25, 'name', 'asc');
 
     },
     resize: function(offsetLeft, offsetRight) {
