@@ -722,7 +722,7 @@ span.id {
     cursor: pointer;
 }
 
-.page, .widget, .user, .group, .folder, .file, .image, .resourceAccess,
+.page, .widget, .user, .group, .folder, .file, #images .image, .resourceAccess,
 .ver-scrollable > .node {
     margin: 4px 0;
     padding-right: 4px;
@@ -736,7 +736,7 @@ span.id {
     margin: 4px 0 4px 11px;
 }
 
-.image {
+#images .image {
     padding: 4px 8px;
 }
 
@@ -748,7 +748,7 @@ span.id {
     margin-bottom: 12px;
 }
 
-.image {
+#images .image {
     width: 102px;
     height: 130px;
     float: left;
@@ -774,20 +774,20 @@ span.id {
             height: 200px;*/
 }
 
-.image div.wrap {
+#images .image div.wrap {
     position: absolute;
     top: 50%;
     left: 50%;
 }
 
-.image img.thumbnail {
+#images .image img.thumbnail {
     margin-top: -42px;
     margin-left: -50%;
     max-width: 100px;
     max-height: 100px;
 }
 
-.imageDetail {
+#images .imageDetail {
     max-width: 776px;
     max-height: 776px;
     margin: 0;
