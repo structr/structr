@@ -943,6 +943,7 @@ var Structr = {
                 $('.pageSize', pager).val(pageSize[type]);
                 $('.pageCount', pager).val(pageCount[type]);
                 $('.node', el).remove();
+                $('#resourceAccesses table tbody tr').remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
                 Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
@@ -954,6 +955,7 @@ var Structr = {
                 page[type] = $(this).val();
                 $('.page', pager).val(page[type]);
                 $('.node', el).remove();
+                $('#resourceAccesses table tbody tr').remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
                 Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
