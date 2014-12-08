@@ -423,8 +423,7 @@ var _Schema = {
                                             var overlay = rels[res.id].getOverlay('label');
                                             var l = $(overlay.getLabel()).text().trim();
                                             if ((overlay.getLabel().substring(0, 6) !== '<input')) {
-                                                overlay.setLabel('<input class="relationship-label" type="text" size="15" id="id_'
-                                                        + res.id + '_relationshipType" value="' + l + '">');
+                                                overlay.setLabel('<input class="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + l + '">');
                                                 $('.relationship-label').focus().on('blur', function() {
                                                     var label = ($(this).val() || '').trim();
                                                     _Schema.setRelationshipProperty(res, 'relationshipType', label);
@@ -1353,6 +1352,9 @@ var _Schema = {
                             }
                         });
 
+                    } else {
+                        // force a schema-reload so that we dont break the relationships
+                        _Schema.reload();
                     }
                 }
             }
