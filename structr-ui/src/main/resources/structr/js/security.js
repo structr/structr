@@ -160,7 +160,8 @@ var _Security = {
         });
             
         tr.append('<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>');
-        $('.bitmask', tr).on('blur', function(inp) {
+        var bitmaskInput = $('.bitmask', tr);
+        bitmaskInput.on('blur', function() {
             var id = tr.attr('id').substring(3);
             var newFlags = $(this).val();
             Command.setProperty(id, 'flags', newFlags, false, function() {
@@ -169,6 +170,19 @@ var _Security = {
                 });
             });
         });
+        
+        bitmaskInput.keypress(function(e) {
+            if (e.keyCode === 13) {
+                var id = tr.attr('id').substring(3);
+                var newFlags = $(this).val();
+                Command.setProperty(id, 'flags', newFlags, false, function() {
+                    Command.get(id, function(obj) {
+                        _Security.appendResourceAccessElement(obj, tr);
+                    });
+                });
+            }
+        });
+
         
         tr.append('<td><input type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers) + '</td>');
         tr.append('<td><img title="Delete Resource Access ' + resourceAccess.id + '" alt="Delete Resource Access    ' + resourceAccess.id + '" class="delete-resource-access button" src="' + Structr.delete_icon + '"></td>');
