@@ -36,6 +36,7 @@ $(document).ready(function() {
     Structr.registerModule('pages', _Pages);
     Structr.classes.push('page');
 
+    win.off('resize');
     win.resize(function() {
         _Pages.resize();
     });

@@ -288,9 +288,9 @@ var Structr = {
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
     },
-    ping: function() {
+    ping: function(callback) {
         if (sessionId) {
-            sendObj({command: 'PING', sessionId: sessionId});
+            sendObj({command: 'PING', sessionId: sessionId}, callback);
         }
     },
     refreshUi: function() {
@@ -1193,6 +1193,25 @@ var Structr = {
         });
 
         return false;
+    },
+    ensureIsAdmin: function(el, callback) {
+        
+        Structr.ping(function() {
+
+            if (!isAdmin) {
+
+                Structr.error('You do not have sufficient permissions<br>to access this function.', function() {
+                    return;
+                });
+
+                el.append('<div class="errorText"><img src="icon/error.png"> You do not have sufficient permissions to access this function.</div>');
+            
+            } else {
+            
+                if (callback) callback();
+
+            }
+        });
     }
 };
 

@@ -43,11 +43,30 @@ var _Security = {
         log('onload');
 
         main.append('<div id="securityTabs"><ul id="securityTabsMenu"><li><a href="#usersAndGroups"><span>Users and Groups</span></a></li><li><a href="#resourceAccess"><span>Resource Access Grants</span></a></li></ul><div id="usersAndGroups"></div><div id="resourceAccess"></div></div>');
+
+        $('#usersAndGroups').append('<div><div class="fit-to-height" id="users"></div><div class="fit-to-height" id="groups"></div></div>');
+        $('#resourceAccess').append('<div><div class="" id="resourceAccesses"></div></div>');
+        
+        groups = $('#groups');
+        users = $('#users');
+        _Security.refreshGroups();
+        _Security.refreshUsers();
+        
+        resourceAccesses = $('#resourceAccesses');
+        
         $('#securityTabs').tabs({
             activate: function(event, ui) {
                 //_Types.clearList(_Types.type);
                 var activeTab = ui.newPanel[0].id;
                 localStorage.setItem(securityTabKey, activeTab);
+                
+                if (activeTab === 'usersAndGroups') {
+                    _Security.refreshGroups();
+                    _Security.refreshUsers();
+                } else if (activeTab === 'resourceAccess') {
+                    _Security.refreshResourceAccesses();
+                }
+                
             }
         });
 
@@ -55,17 +74,8 @@ var _Security = {
         var t = $('a[href="#' + activeTab + '"]');
         t.click();
         
-        $('#usersAndGroups').append('<div><div class="fit-to-height" id="users"></div><div class="fit-to-height" id="groups"></div></div>');
-        $('#resourceAccess').append('<div><div class="" id="resourceAccesses"></div></div>');
-        
-        groups = $('#groups');
-        users = $('#users');
-        resourceAccesses = $('#resourceAccesses');
-        _Security.refreshGroups();
-        _Security.refreshUsers();
-        _Security.refreshResourceAccesses();
-        
         _Security.resize();
+        $(window).off('resize');
         $(window).on('resize', function() {
             _Security.resize();
         });
@@ -73,19 +83,24 @@ var _Security = {
     
     refreshResourceAccesses : function() {
         resourceAccesses.empty();
-        Structr.addPager(resourceAccesses, true, 'ResourceAccess');
-        resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Non-authenticated (public) Users</th><th colspan="6" class="center">Authenticated Users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
-        + '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Visible</th><th>Del</th></tr></thead></table>');
-        resourceAccesses.append('Signature: <input class="" type="text" size="10" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="icon/key_add.png"> Add Grant</button>');
-        $('.add_grant_icon', main).on('click', function(e) {
-            e.stopPropagation();
-            var inp = $('#resource-signature');
-            var sig = inp.val();
-            if (sig) {
-                return Command.create({type:'ResourceAccess', signature: sig, flags: 0});
-            } else {
-                blinkRed(inp);
-            }
+        
+        Structr.ensureIsAdmin(resourceAccesses, function() {
+
+            Structr.addPager(resourceAccesses, true, 'ResourceAccess');
+            resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Non-authenticated (public) Users</th><th colspan="6" class="center">Authenticated Users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
+                    + '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr></thead></table>');
+            resourceAccesses.append('Signature: <input class="" type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="icon/key_add.png"> Add Grant</button>');
+            $('.add_grant_icon', main).on('click', function (e) {
+                e.stopPropagation();
+                var inp = $('#resource-signature');
+                var sig = inp.val();
+                if (sig) {
+                    return Command.create({type: 'ResourceAccess', signature: sig, flags: 0});
+                } else {
+                    blinkRed(inp);
+                }
+            });
+            
         });
     },
 
@@ -156,7 +171,7 @@ var _Security = {
         tr.append('<td><b title="' + resourceAccess.signature + '" class="name_">' + resourceAccess.signature + '</b></td>');
 
         Object.keys(mask).forEach(function(key) {
-            tr.append('<td><input type="checkbox" ' + (flags & mask[key] ? 'checked="checked"' : '') + ' data-flag="' + mask[key] + '" class="' + key + '"></td>');
+            tr.append('<td><input type="checkbox" ' + (flags & mask[key] ? 'checked="checked"' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag ' + key + '"></td>');
         });
             
         tr.append('<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>');
@@ -182,9 +197,19 @@ var _Security = {
                 });
             }
         });
-
         
-        tr.append('<td><input type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers) + '</td>');
+//        tr.append('<td><input class="resource-visibility" type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '') + '</td>');
+//        $('.resource-visibility', tr).on('change', function() {
+//            var id = tr.attr('id').substring(3);
+//            var inp = $(this);
+//            console.log(inp, id);
+//            Command.setProperty(id, 'visibleToAuthenticatedUsers', inp.is(':checked'), false, function() {
+//                Command.get(id, function(obj) {
+//                    _Security.appendResourceAccessElement(obj, tr);
+//                });
+//            });
+//        });
+        
         tr.append('<td><img title="Delete Resource Access ' + resourceAccess.id + '" alt="Delete Resource Access    ' + resourceAccess.id + '" class="delete-resource-access button" src="' + Structr.delete_icon + '"></td>');
         $('.delete-resource-access', tr).on('click', function(e) {
             e.stopPropagation();
@@ -198,7 +223,7 @@ var _Security = {
     
         var div = Structr.node(resourceAccess.id);
         
-        $('#id_' + resourceAccess.id + ' input[type=checkbox]').on('change', function() {
+        $('#id_' + resourceAccess.id + ' input[type=checkbox].resource-access-flag').on('change', function() {
             var inp = $(this);
             var tr = inp.closest('tr');
             var id = tr.attr('id').substring(3);
@@ -376,28 +401,13 @@ var _Security = {
         var l = parseInt((w - dw) / 2);
         var t = parseInt((h - dh) / 2);
 
-        $('.blockPage').css({
-            width: dw + 'px',
-            height: dh + 'px',
-            top: t + 'px',
-            left: l + 'px'
-        });
-
-        var bw = (dw - 28) + 'px';
-        var bh = (dh - 106) + 'px';
-
-        $('#dialogBox .dialogTextWrapper').css({
-            width: bw,
-            height: bh
-        });
-
         $('#securityTabs #resourceAccess table').css({
-            height: h - ($('#securityTabsMenu').height() + 175) + 'px',
+            height: h - ($('#securityTabsMenu').height() + 177) + 'px',
             width:  w - 59 + 'px'
         });
 
         $('#securityTabs #usersAndGroups').css({
-            height: h - ($('#securityTabsMenu').height() + 110) + 'px',
+            height: h - ($('#securityTabsMenu').height() + 112) + 'px',
             width:  w - 60 + 'px'
         });
 

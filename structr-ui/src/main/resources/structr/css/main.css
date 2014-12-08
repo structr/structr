@@ -1115,6 +1115,11 @@ button img {
     color: #c00;
 }
 
+.errorText img {
+    vertical-align: bottom;
+    margin-top: 4px;
+}
+
 #login input {
     width: 150px;
     border-radius: 3px;
