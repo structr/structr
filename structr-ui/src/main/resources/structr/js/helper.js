@@ -154,6 +154,9 @@ if (typeof String.prototype.extractVal !== 'function') {
  * any <br> tag into a line feed ('\n').
  */
 function cleanText(input) {
+    if (typeof input !== 'string') {
+        return input;
+    }
     //console.log(input);
     var output = input
             .replace(/<br><\/div>/ig, '\n')

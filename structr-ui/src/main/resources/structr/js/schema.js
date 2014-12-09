@@ -589,6 +589,7 @@ var _Schema = {
 
         el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + entity.relationshipType + '</b>'
                 //+ ' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractRelationship">AbstractRelationship</option></select>'
+                + '<h3>Cascading Delete</h3><select id="cascading-delete-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>'
                 + '<h3>Local Attributes</h3><table class="local schema-props"><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th><th>Default</th><th>Action</th></table>'
                 + '<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">'
                 + '<h3>Actions</h3><table class="actions schema-props"><th>JSON Name</th><th>Code</th><th>Action</th></table>'
@@ -636,6 +637,21 @@ var _Schema = {
                 var self = $(this);
                 self.closest('tr').remove();
             });
+        });
+        
+        $.get(rootUrl + entity.id, function(data) {
+            $('#cascading-delete-selector').val(data.result.cascadingDeleteFlag);
+        });
+        
+        $('#cascading-delete-selector').on('change', function() {
+           var inp = $(this);
+           _Schema.setRelationshipProperty(entity, 'cascadingDeleteFlag', parseInt(inp.val()),
+           function() {
+               blinkGreen(inp);
+           },
+           function() {
+               blinkRed(inp);
+           });
         });
 
     },
