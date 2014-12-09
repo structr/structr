@@ -19,9 +19,12 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.SyncCommand;
 
 /**
  * Marks the end of a <code>FileNodeDataContainer</code>. This class does not contain binary content itself, its a marker only.
@@ -69,5 +72,23 @@ public class FileNodeEndChunk extends DataContainer {
 
 	@Override
 	public void afterSend(CloudConnection conn) {
+	}
+
+	@Override
+	protected void deserializeFrom(Reader reader) throws IOException {
+
+		this.containerId = (String)SyncCommand.deserialize(reader);
+		this.fileSize    = (Integer)SyncCommand.deserialize(reader);
+
+		super.deserializeFrom(reader);
+	}
+
+	@Override
+	protected void serializeTo(Writer writer) throws IOException {
+
+		SyncCommand.serialize(writer, containerId);
+		SyncCommand.serialize(writer, fileSize);
+
+		super.serializeTo(writer);
 	}
 }

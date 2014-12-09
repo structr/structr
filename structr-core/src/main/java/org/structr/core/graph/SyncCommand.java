@@ -32,6 +32,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Serializable;
+import java.io.Writer;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
@@ -313,7 +314,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param writer
 	 * @param obj
 	 */
-	public static void serialize(PrintWriter writer, Object obj) {
+	public static void serialize(Writer writer, Object obj) throws IOException {
 
 		if (obj != null) {
 
@@ -326,11 +327,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 					Object[] array    = (Object[])obj;
 					int len           = array.length;
-					int log           = Integer.valueOf(len).toString().length();
+					int log           = Integer.toString(len).length();
 
-					writer.print(type);	// type: 00-nn:  data type
-					writer.print(log);	// log:  1-10: length of next int field
-					writer.print(len);	// len:  length of value
+					writer.append(type);                     // type: 00-nn:  data type
+					writer.append(Integer.toString(log));    // log:  1-10: length of next int field
+					writer.append(Integer.toString(len));	 // len:  length of value
 
 					// serialize array
 					for (Object o : (Object[])obj) {
@@ -339,33 +340,49 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				} else {
 
-					String str        = filter(obj.toString());
+					String str        = obj.toString();
 					int len           = str.length();
-					int log           = Integer.valueOf(len).toString().length();
+					int log           = Integer.toString(len).length();
 
-					writer.print(type);	// type: 00-nn:  data type
-					writer.print(log);	// log:  1-10: length of next int field
-					writer.print(len);	// len:  length of value
-					writer.print(str);	// str:  the value
+					writer.append(type);                    // type: 00-nn:  data type
+					writer.append(Integer.toString(log));   // log:  1-10: length of next int field
+					writer.append(Integer.toString(len));   // len:  length of value
+					writer.append(str);                     // str:  the value
 				}
 
 				// make it more readable for the human eye
-				writer.print(" ");
+				writer.append(" ");
 
 			} else {
 
 				logger.log(Level.WARNING, "Unable to serialize object of type {0}, type not supported", obj.getClass());
 			}
+
+		} else {
+
+			// serialize null value
+			writer.append("000 ");
 		}
+
+		writer.flush();
 	}
 
-	public static Object deserialize(Reader reader) throws IOException {
+	public static Object deserialize(final Reader reader) throws IOException {
 
 		Object serializedObject = null;
 		String type             = read(reader, 2);
 		String lenLenSrc        = read(reader, 1);
 		int lenLen              = Integer.parseInt(lenLenSrc);	// lenght of "length" field :)
 		Class clazz             = classMap.get(type);
+
+		// deserialize special null value
+		if ("00".equals(type) && "0".equals(lenLenSrc)) {
+
+			// skip trailing space
+			reader.skip(1);
+
+			return null;
+		}
 
 		if (clazz != null) {
 
@@ -443,9 +460,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		char[] buf = new char[len];
 
 		// only continue if the desired number of chars could be read
-		if (reader.read(buf, 0, len) == len) {
+		final int read = reader.read(buf, 0, len);
+		if (read == len) {
 
 			return new String(buf, 0, len);
+
+		} else {
+
+			logger.log(Level.WARNING, "Unable to read string fully, expected {0}, got {1}: {2}", new Object[] { len, read, new String(buf) } );
 		}
 
 		// end of stream
@@ -774,16 +796,5 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		DecimalFormat decimalFormat  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 		logger.log(Level.INFO, "Import done in {0} s", decimalFormat.format(time));
-	}
-
-	private static String filter(final String source) {
-
-		// remove double newline characters
-//		if (source.contains("\r")) {
-//
-//			return source.replace("\r", "");
-//		}
-
-		return source;
 	}
 }

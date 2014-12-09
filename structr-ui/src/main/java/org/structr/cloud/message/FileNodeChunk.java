@@ -19,9 +19,12 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.SyncCommand;
 
 /**
  * Represents a single chunk of a <code>FileNodeDataContainer</code> that can be transmitted to a remote structr instance.
@@ -87,5 +90,27 @@ public class FileNodeChunk extends DataContainer {
 
 	@Override
 	public void afterSend(CloudConnection connection) {
+	}
+
+	@Override
+	protected void deserializeFrom(Reader reader) throws IOException {
+
+		this.containerId   = (String)SyncCommand.deserialize(reader);
+		this.chunkSize     = (Integer)SyncCommand.deserialize(reader);
+		this.fileSize      = (Integer)SyncCommand.deserialize(reader);
+		this.binaryContent = (byte[])SyncCommand.deserialize(reader);
+
+		super.deserializeFrom(reader);
+	}
+
+	@Override
+	protected void serializeTo(Writer writer) throws IOException {
+
+		SyncCommand.serialize(writer, containerId);
+		SyncCommand.serialize(writer, chunkSize);
+		SyncCommand.serialize(writer, fileSize);
+		SyncCommand.serialize(writer, binaryContent);
+
+		super.serializeTo(writer);
 	}
 }

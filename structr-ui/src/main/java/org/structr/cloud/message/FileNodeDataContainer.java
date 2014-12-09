@@ -22,6 +22,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -32,6 +34,7 @@ import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.SyncCommand;
 import org.structr.dynamic.File;
 
 /**
@@ -176,6 +179,22 @@ public class FileNodeDataContainer extends NodeDataContainer {
 
 	public void setFileSize(long fileSize) {
 		this.fileSize = fileSize;
+	}
+
+	@Override
+	protected void deserializeFrom(Reader reader) throws IOException {
+
+		this.fileSize = (Long)SyncCommand.deserialize(reader);
+
+		super.deserializeFrom(reader);
+	}
+
+	@Override
+	protected void serializeTo(Writer writer) throws IOException {
+
+		SyncCommand.serialize(writer, fileSize);
+
+		super.serializeTo(writer);
 	}
 
 	// ----- public static methods -----

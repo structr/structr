@@ -19,11 +19,14 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.SyncCommand;
 
 /**
  * Serializable data container for a relationship to be transported over network.
@@ -144,7 +147,24 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 	}
 
 	@Override
-	public Object getPayload() {
-		return null;
+	protected void deserializeFrom(Reader reader) throws IOException {
+
+		this.sourceStartNodeId = (String)SyncCommand.deserialize(reader);
+		this.sourceEndNodeId   = (String)SyncCommand.deserialize(reader);
+		this.relationshipId    = (String)SyncCommand.deserialize(reader);
+		this.relType           = (String)SyncCommand.deserialize(reader);
+		
+		super.deserializeFrom(reader);
+	}
+
+	@Override
+	protected void serializeTo(Writer writer) throws IOException {
+
+		SyncCommand.serialize(writer, sourceStartNodeId);
+		SyncCommand.serialize(writer, sourceEndNodeId);
+		SyncCommand.serialize(writer, relationshipId);
+		SyncCommand.serialize(writer, relType);
+
+		super.serializeTo(writer);
 	}
 }

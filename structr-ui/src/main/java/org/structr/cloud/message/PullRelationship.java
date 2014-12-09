@@ -19,11 +19,14 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.List;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.SyncCommand;
 
 /**
  * Encapsulates a pull request for a node
@@ -71,7 +74,20 @@ public class PullRelationship extends RelationshipDataContainer {
 	}
 
 	@Override
-	public Object getPayload() {
-		return null;
+	protected void deserializeFrom(Reader reader) throws IOException {
+
+		this.key       = (String)SyncCommand.deserialize(reader);
+		this.nodeIndex = (Integer)SyncCommand.deserialize(reader);
+
+		super.deserializeFrom(reader);
+	}
+
+	@Override
+	protected void serializeTo(Writer writer) throws IOException {
+
+		SyncCommand.serialize(writer, key);
+		SyncCommand.serialize(writer, nodeIndex);
+
+		super.serializeTo(writer);
 	}
 }

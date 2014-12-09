@@ -20,9 +20,11 @@ package org.structr.cloud;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.util.LinkedHashMap;
@@ -33,8 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
@@ -129,8 +129,14 @@ public class CloudConnection<T> extends Thread {
 				// password hash afterwards.
 				setEncryptionKey("StructrInitialEncryptionKey", 128);
 
-				sender = new Sender(this, new ObjectOutputStream(new GZIPOutputStream(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter), true)));
-				receiver = new Receiver(this, new ObjectInputStream(new GZIPInputStream(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
+//				sender = new Sender(this, new OutputStreamWriter(new GZIPOutputStream(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter), true)));
+//				receiver = new Receiver(this, new InputStreamReader(new GZIPInputStream(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
+
+//				sender = new Sender(this, new OutputStreamWriter(new GZIPOutputStream(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter), true)));
+//				receiver = new Receiver(this, new InputStreamReader(new GZIPInputStream(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
+
+				sender = new Sender(this, new BufferedWriter(new OutputStreamWriter(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter))));
+				receiver = new Receiver(this, new BufferedReader(new InputStreamReader(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
 
 				receiver.start();
 				sender.start();

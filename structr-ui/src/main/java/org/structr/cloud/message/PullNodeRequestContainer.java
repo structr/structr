@@ -19,6 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.UUID;
 import org.structr.cloud.CloudConnection;
@@ -28,6 +30,7 @@ import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
+import org.structr.core.graph.SyncCommand;
 
 /**
  * Encapsulates a pull request for a node
@@ -128,11 +131,6 @@ public class PullNodeRequestContainer extends Message {
 	public void afterSend(CloudConnection conn) {
 	}
 
-	@Override
-	public Object getPayload() {
-		return null;
-	}
-
 	public int getNumNodes() {
 		return numNodes;
 	}
@@ -143,5 +141,25 @@ public class PullNodeRequestContainer extends Message {
 
 	public String getKey() {
 		return key;
+	}
+
+	@Override
+	protected void deserializeFrom(Reader reader) throws IOException {
+
+		this.recursive  = (Boolean)SyncCommand.deserialize(reader);
+		this.rootNodeId = (String)SyncCommand.deserialize(reader);
+		this.key        = (String)SyncCommand.deserialize(reader);
+		this.numNodes   = (Integer)SyncCommand.deserialize(reader);
+		this.numRels    = (Integer)SyncCommand.deserialize(reader);
+	}
+
+	@Override
+	protected void serializeTo(Writer writer) throws IOException {
+
+		SyncCommand.serialize(writer, recursive);
+		SyncCommand.serialize(writer, rootNodeId);
+		SyncCommand.serialize(writer, key);
+		SyncCommand.serialize(writer, numNodes);
+		SyncCommand.serialize(writer, numRels);
 	}
 }

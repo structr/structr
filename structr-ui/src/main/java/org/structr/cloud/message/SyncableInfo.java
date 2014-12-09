@@ -18,18 +18,21 @@
  */
 package org.structr.cloud.message;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Date;
 import org.structr.common.Syncable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.SyncCommand;
 import org.structr.dynamic.File;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SyncableInfo implements Serializable {
+public class SyncableInfo {
 
 	private boolean node      = false;
 	private String id         = null;
@@ -37,6 +40,8 @@ public class SyncableInfo implements Serializable {
 	private String type       = null;
 	private Long size         = null;
 	private Date lastModified = null;
+
+	public SyncableInfo() {}
 
 	public SyncableInfo(final Syncable syncable) {
 
@@ -92,5 +97,25 @@ public class SyncableInfo implements Serializable {
 
 	public Date getLastModified() {
 		return lastModified;
+	}
+
+	protected void deserializeFrom(final Reader reader) throws IOException {
+
+		this.node         = (Boolean)SyncCommand.deserialize(reader);
+		this.id           = (String)SyncCommand.deserialize(reader);
+		this.name         = (String)SyncCommand.deserialize(reader);
+		this.type         = (String)SyncCommand.deserialize(reader);
+		this.size         = (Long)SyncCommand.deserialize(reader);
+		this.lastModified = (Date)SyncCommand.deserialize(reader);
+	}
+
+	protected void serializeTo(final Writer writer) throws IOException {
+
+		SyncCommand.serialize(writer, node);
+		SyncCommand.serialize(writer, id);
+		SyncCommand.serialize(writer, name);
+		SyncCommand.serialize(writer, type);
+		SyncCommand.serialize(writer, size);
+		SyncCommand.serialize(writer, lastModified);
 	}
 }

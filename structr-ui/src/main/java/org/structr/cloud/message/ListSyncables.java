@@ -19,6 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +29,7 @@ import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.SyncCommand;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -80,7 +83,31 @@ public class ListSyncables extends Message<List<SyncableInfo>> {
 	}
 
 	@Override
-	public List<SyncableInfo> getPayload() {
-		return syncables;
+	protected void deserializeFrom(Reader reader) throws IOException {
+
+		this.type = (String)SyncCommand.deserialize(reader);
+
+		// read number of syncables from stream
+		final int num = (Integer)SyncCommand.deserialize(reader);
+
+		// read syncables
+		for (int i=0; i<num; i++) {
+
+			SyncableInfo info = new SyncableInfo();
+			info.deserializeFrom(reader);
+
+			syncables.add(info);
+		}
+	}
+
+	@Override
+	protected void serializeTo(Writer writer) throws IOException {
+
+		SyncCommand.serialize(writer, type);
+		SyncCommand.serialize(writer, syncables.size());
+
+		for (final SyncableInfo syncable : syncables) {
+			syncable.serializeTo(writer);
+		}
 	}
 }

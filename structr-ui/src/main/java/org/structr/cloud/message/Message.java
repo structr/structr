@@ -19,17 +19,49 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Serializable;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.SyncCommand;
 
 /**
  *
  * @author Christian Morgner
  */
-public abstract class Message<T> implements Serializable {
+public abstract class Message<T> {
+
+	private static final Logger logger              = Logger.getLogger(Message.class.getName());
+	private static final Map<String, Class> typeMap = new LinkedHashMap<>();
+
+	static {
+
+		// initialize type map
+		typeMap.put(Ack.class.getSimpleName(),                       Ack.class);
+		typeMap.put(AuthenticationRequest.class.getSimpleName(),     AuthenticationRequest.class);
+		typeMap.put(AuthenticationResponse.class.getSimpleName(),    AuthenticationResponse.class);
+		typeMap.put(Begin.class.getSimpleName(),                     Begin.class);
+		typeMap.put(End.class.getSimpleName(),                       End.class);
+		typeMap.put(FileNodeChunk.class.getSimpleName(),             FileNodeChunk.class);
+		typeMap.put(FileNodeEndChunk.class.getSimpleName(),          FileNodeEndChunk.class);
+		typeMap.put(Finish.class.getSimpleName(),                    Finish.class);
+		typeMap.put(ListSyncables.class.getSimpleName(),             ListSyncables.class);
+		typeMap.put(NodeDataContainer.class.getSimpleName(),         NodeDataContainer.class);
+		typeMap.put(PullChunk.class.getSimpleName(),                 PullChunk.class);
+		typeMap.put(PullFile.class.getSimpleName(),                  PullFile.class);
+		typeMap.put(PullNode.class.getSimpleName(),                  PullNode.class);
+		typeMap.put(PullNodeRequestContainer.class.getSimpleName(),  PullNodeRequestContainer.class);
+		typeMap.put(PullRelationship.class.getSimpleName(),          PullRelationship.class);
+		typeMap.put(PushNodeRequestContainer.class.getSimpleName(),  PushNodeRequestContainer.class);
+		typeMap.put(RelationshipDataContainer.class.getSimpleName(), RelationshipDataContainer.class);
+
+	}
 
 	private String id = NodeServiceCommand.getNextUuid();
 
@@ -37,7 +69,8 @@ public abstract class Message<T> implements Serializable {
 	public abstract void onResponse(final CloudConnection clientConnection, final ExportContext context) throws IOException, FrameworkException;
 	public abstract void afterSend(final CloudConnection connection);
 
-	public abstract T getPayload();
+	protected abstract void deserializeFrom(final Reader reader) throws IOException;
+	protected abstract void serializeTo(final Writer writer) throws IOException;
 
 	public String getId() {
 		return id;
@@ -59,5 +92,54 @@ public abstract class Message<T> implements Serializable {
 		ack.setId(this.getId());
 
 		return ack;
+	}
+
+	public void serialize(final Writer writer) throws IOException {
+
+		// write type
+		final String type = getClass().getSimpleName();
+		SyncCommand.serialize(writer, type);
+
+		// write ID
+		SyncCommand.serialize(writer, id);
+
+		// write attributes
+		serializeTo(writer);
+	}
+
+	// ----- public static methods -----
+	public static Message deserialize(final Reader reader) throws IOException {
+
+		// read type
+		final String type = (String)SyncCommand.deserialize(reader);
+		if (type != null) {
+
+			final Class clazz = typeMap.get(type);
+			if (clazz != null) {
+
+				try {
+
+					final Message msg = (Message)clazz.newInstance();
+
+					msg.setId((String)SyncCommand.deserialize(reader));
+					msg.deserializeFrom(reader);
+
+					return msg;
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+
+			} else {
+
+				logger.log(Level.WARNING, "Invalid CloudService message: unknown type {0}", type);
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Invalid CloudService message: no type found.");
+		}
+
+		return null;
 	}
 }

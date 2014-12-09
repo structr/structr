@@ -19,9 +19,12 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.SyncCommand;
 
 /**
  * Encapsulates a push request for a node
@@ -75,5 +78,21 @@ public class PushNodeRequestContainer extends DataContainer {
 
 	@Override
 	public void afterSend(CloudConnection conn) {
+	}
+
+	@Override
+	protected void deserializeFrom(Reader reader) throws IOException {
+
+		this.targetNodeId = (String)SyncCommand.deserialize(reader);
+
+		super.deserializeFrom(reader);
+	}
+
+	@Override
+	protected void serializeTo(Writer writer) throws IOException {
+
+		SyncCommand.serialize(writer, targetNodeId);
+
+		super.serializeTo(writer);
 	}
 }
