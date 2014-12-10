@@ -183,7 +183,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if ((uriParts == null) || (uriParts.length == 0)) {
 
 					// find a visible page
-					rootElement = findIndexPage(securityContext);
+					rootElement = findIndexPage(securityContext, edit);
 
 					logger.log(Level.FINE, "No path supplied, trying to find index page");
 
@@ -191,7 +191,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					if (rootElement == null) {
 
-						rootElement = findPage(securityContext, request, path);
+						rootElement = findPage(securityContext, request, path, edit);
 
 					} else {
 						dontCache = true;
@@ -241,7 +241,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						// clear possible entry points
 						request.removeAttribute(POSSIBLE_ENTRY_POINTS);
 
-						rootElement = findPage(securityContext, request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP));
+						rootElement = findPage(securityContext, request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
 						renderContext.setDetailsDataObject(dataNode);
 
@@ -518,7 +518,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if ((uriParts == null) || (uriParts.length == 0)) {
 
 					// find a visible page
-					rootElement = findIndexPage(securityContext);
+					rootElement = findIndexPage(securityContext, edit);
 
 					logger.log(Level.FINE, "No path supplied, trying to find index page");
 
@@ -526,7 +526,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					if (rootElement == null) {
 
-						rootElement = findPage(securityContext, request, path);
+						rootElement = findPage(securityContext, request, path, edit);
 
 					} else {
 						dontCache = true;
@@ -576,7 +576,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						// clear possible entry points
 						request.removeAttribute(POSSIBLE_ENTRY_POINTS);
 
-						rootElement = findPage(securityContext, request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP));
+						rootElement = findPage(securityContext, request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
 						renderContext.setDetailsDataObject(dataNode);
 
@@ -840,10 +840,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @param securityContext
 	 * @param request
 	 * @param path
+	 * @param edit
 	 * @return page
 	 * @throws FrameworkException
 	 */
-	private Page findPage(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
+	private Page findPage(final SecurityContext securityContext, final HttpServletRequest request, final String path, final EditMode edit) throws FrameworkException {
 
 		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
 
@@ -858,29 +859,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			if (node instanceof Page) { // && path.equals(node.getPath())) {
 
 				final Page page = (Page) node;
-				final Site site = page.getProperty(Page.site);
-
-				if (site != null) {
-
-					final String serverName = request.getServerName();
-					final int    serverPort = request.getServerPort();
-
-					if (StringUtils.isNotBlank(serverName) && !serverName.equals(site.getProperty(Site.hostname))) {
-						continue;
-					}
-
-					Integer sitePort = site.getProperty(Site.port);
-					if (sitePort == null) {
-						sitePort = 80;
-					}
-
-					if (serverPort != sitePort) {
-						continue;
-					}
-
+				
+				if (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) {
+					return page;
 				}
-
-				return (Page) node;
+				
 			}
 		}
 
@@ -889,31 +872,31 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	/**
 	 * Find the page with the lowest position value which is visible in the
-	 * current security context
+	 * current security context and for the given site.
 	 *
 	 * @param securityContext
+	 * @param edit
 	 * @return page
 	 * @throws FrameworkException
 	 */
-	private Page findIndexPage(final SecurityContext securityContext) throws FrameworkException {
+	private Page findIndexPage(final SecurityContext securityContext, final EditMode edit) throws FrameworkException {
 
-		final Result<Page> results = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getResult();
-		Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
+		final Result<Page> result = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getResult();
+		Collections.sort(result.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
 		// Find first visible page
-		Page page = null;
 
-		if (!results.isEmpty()) {
+		if (!result.isEmpty()) {
 
-			int i = 0;
+			for (Page page : result.getResults()) {
 
-			while (page == null || (i < results.size() && !securityContext.isVisible(page))) {
-
-				page = results.get(i++);
+				if (securityContext.isVisible(page) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+					return page;
+				}
 			}
 		}
-
-		return page;
+		
+		return null;
 	}
 
 	/**
@@ -1264,5 +1247,39 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return locale;
 
 	}
+	
+	/**
+	 * Check if the given page is visible for the requested site defined by a hostname and a port.
+	 * 
+	 * @param request
+	 * @param page
+	 * @return 
+	 */
+	private boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
+		final Site site = page.getProperty(Page.site);
+
+		if (site == null) {
+			return true;
+		}
+
+		final String serverName = request.getServerName();
+		final int serverPort = request.getServerPort();
+
+		if (StringUtils.isNotBlank(serverName) && !serverName.equals(site.getProperty(Site.hostname))) {
+			return false;
+		}
+
+		Integer sitePort = site.getProperty(Site.port);
+		if (sitePort == null) {
+			sitePort = 80;
+		}
+
+		if (serverPort != sitePort) {
+			return false;
+		}
+		
+		return true;
+
+	}
 }
