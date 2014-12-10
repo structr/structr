@@ -18,10 +18,22 @@
  */
 package org.structr.web.entity.html;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  * @author Axel Morgner
  */
 public class Optgroup extends DOMElement {
+
+	public static final Property<String> _disabled	= new HtmlProperty("disabled");
+	public static final Property<String> _label	= new HtmlProperty("label");
+
+	public static final View htmlView = new View(Optgroup.class, PropertyView.Html,
+
+		_disabled, _label
+	 );
 }
