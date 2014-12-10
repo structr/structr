@@ -20,8 +20,10 @@ package org.structr.web.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -34,6 +36,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
@@ -44,12 +47,15 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.VideoFile;
 
@@ -127,7 +133,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 				response.getOutputStream().write("ERROR (403): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
 				return;
 			}
-			
+
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
@@ -141,6 +147,15 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 				return;
 			}
 
+			final String pathInfo = request.getPathInfo();
+			String type = null;
+
+			if (StringUtils.isNotBlank(pathInfo)) {
+
+				type = SchemaHelper.normalizeEntityName(StringUtils.stripStart(pathInfo.trim(), "/"));
+
+			}
+
 			uploader.setFileSizeMax(MAX_FILE_SIZE);
 			uploader.setSizeMax(MAX_REQUEST_SIZE);
 
@@ -150,30 +165,59 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			List<FileItem> fileItemsList = uploader.parseRequest(request);
 			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
 
+			final Map<String, Object> params = new HashMap<>();
+
 			while (fileItemsIterator.hasNext()) {
 
-				final FileItem fileItem = fileItemsIterator.next();
+				final FileItem item = fileItemsIterator.next();
 
-				try {
+				if (item.isFormField()) {
 
-					final String contentType = fileItem.getContentType();
-					boolean isImage = (contentType != null && contentType.startsWith("image"));
-					boolean isVideo = (contentType != null && contentType.startsWith("video"));
+					params.put(item.getFieldName(), item.getString());
 
-					final Class type = isImage ? Image.class : isVideo ? VideoFile.class : org.structr.dynamic.File.class;
+				} else {
 
-					final String name = fileItem.getName().replaceAll("\\\\", "/");
+					try {
 
-					final org.structr.dynamic.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), contentType, type);
-					newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
-					newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
-					newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+						final String contentType = item.getContentType();
+						boolean isImage = (contentType != null && contentType.startsWith("image"));
+						boolean isVideo = (contentType != null && contentType.startsWith("video"));
 
-					// Just write out the uuids of the new files
-					out.write(newFile.getUuid());
+						// Override type from path info
+						if (params.containsKey(NodeInterface.type.jsonName())) {
+							type = (String) params.get(NodeInterface.type.jsonName());
+						}
+						
+						final Class cls = type != null
+							? SchemaHelper.getEntityClassForRawType(type)
+							: (isImage
+								? Image.class
+								: (isVideo
+									? VideoFile.class
+									: org.structr.dynamic.File.class));
 
-				} catch (IOException ex) {
-					logger.log(Level.WARNING, "Could not upload file", ex);
+						final String name = item.getName().replaceAll("\\\\", "/");
+
+						final org.structr.dynamic.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
+						newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
+						newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
+						newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+						
+						PropertyMap additionalProperties = PropertyMap.inputTypeToJavaType(securityContext, cls, params);
+						
+						for (PropertyKey key : additionalProperties.keySet()) {
+							
+							newFile.setProperty(key, additionalProperties.get(key));
+							
+						}
+
+						// Just write out the uuids of the new files
+						out.write(newFile.getUuid());
+
+					} catch (IOException ex) {
+						logger.log(Level.WARNING, "Could not upload file", ex);
+					}
+
 				}
 
 			}
@@ -200,10 +244,10 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 				response.getOutputStream().write("URL path doesn't end with UUID.\n".getBytes("UTF-8"));
 				return;
 			}
-			
+
 			Matcher matcher = threadLocalUUIDMatcher.get();
 			matcher.reset(uuid);
-			
+
 			if (!matcher.matches()) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes("UTF-8"));
@@ -249,17 +293,17 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 					if (node instanceof org.structr.web.entity.AbstractFile) {
 
 						final org.structr.dynamic.File file = (org.structr.dynamic.File) node;
-						
+
 						if (securityContext.isAllowed(file, Permission.write)) {
 
 							FileHelper.writeToFile(file, fileItem.getInputStream());
 							file.increaseVersion();
-							
+
 						} else {
 
 							response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 							response.getOutputStream().write("ERROR (403): Write access forbidden.\n".getBytes("UTF-8"));
-							
+
 						}
 					}
 

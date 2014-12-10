@@ -44,10 +44,12 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.ManyToMany;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -68,25 +70,26 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
 
-	public static final Property<String> name             = new StringProperty("name").indexed();
-	public static final Property<String> relationshipType   = new StringProperty("relationshipType");
-	public static final Property<String> sourceMultiplicity = new StringProperty("sourceMultiplicity");
-	public static final Property<String> targetMultiplicity = new StringProperty("targetMultiplicity");
-	public static final Property<String> sourceNotion       = new StringProperty("sourceNotion");
-	public static final Property<String> targetNotion       = new StringProperty("targetNotion");
-	public static final Property<String> sourceJsonName     = new StringProperty("sourceJsonName");
-	public static final Property<String> targetJsonName     = new StringProperty("targetJsonName");
-	public static final Property<String> extendsClass       = new StringProperty("extendsClass").indexed();
+	public static final Property<String>  name                = new StringProperty("name").indexed();
+	public static final Property<String>  relationshipType    = new StringProperty("relationshipType");
+	public static final Property<String>  sourceMultiplicity  = new StringProperty("sourceMultiplicity");
+	public static final Property<String>  targetMultiplicity  = new StringProperty("targetMultiplicity");
+	public static final Property<String>  sourceNotion        = new StringProperty("sourceNotion");
+	public static final Property<String>  targetNotion        = new StringProperty("targetNotion");
+	public static final Property<String>  sourceJsonName      = new StringProperty("sourceJsonName");
+	public static final Property<String>  targetJsonName      = new StringProperty("targetJsonName");
+	public static final Property<String>  extendsClass        = new StringProperty("extendsClass").indexed();
+	public static final Property<Integer> cascadingDeleteFlag = new IntProperty("cascadingDeleteFlag");
 
 
 	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag
 	);
 
 	public static final View uiView = new View(SchemaRelationship.class, PropertyView.Ui,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag
 	);
 
 	private Set<String> dynamicViews = new LinkedHashSet<>();
@@ -458,6 +461,42 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		SchemaHelper.formatValidators(src, validators);
 		SchemaHelper.formatSaveActions(src, actions);
 
+		Integer cascadingDelete = getProperty(cascadingDeleteFlag);
+
+		if (cascadingDelete != null) {
+		
+			src.append("\n\t@Override\n");
+			src.append("\tpublic int getCascadingDeleteFlag() {\n");
+			
+			switch (cascadingDelete) {
+				
+				case Relation.ALWAYS :
+					src.append("\t\treturn Relation.ALWAYS;\n");
+					break;
+					
+				case Relation.CONSTRAINT_BASED :
+					src.append("\t\treturn Relation.CONSTRAINT_BASED;\n");
+					break;
+
+				case Relation.SOURCE_TO_TARGET :
+					src.append("\t\treturn Relation.SOURCE_TO_TARGET;\n");
+					break;
+
+				case Relation.TARGET_TO_SOURCE :
+					src.append("\t\treturn Relation.TARGET_TO_SOURCE;\n");
+					break;
+					
+				case Relation.NONE :
+
+				default :
+					src.append("\t\treturn Relation.NONE;\n");
+					
+			}
+
+			src.append("\t}\n\n");
+			
+		}
+		
 		src.append("}\n");
 
 		return src.toString();
