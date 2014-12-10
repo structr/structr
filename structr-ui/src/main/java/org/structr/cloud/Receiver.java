@@ -18,7 +18,7 @@
  */
 package org.structr.cloud;
 
-import java.io.InputStream;
+import java.io.DataInputStream;
 import org.structr.cloud.message.Message;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -30,10 +30,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class Receiver extends Thread {
 
 	private final Queue<Message> inputQueue = new ArrayBlockingQueue<>(10000);
+	private DataInputStream inputStream     = null;
 	private CloudConnection connection      = null;
-	private InputStream inputStream         = null;
 
-	public Receiver(final CloudConnection connection, final InputStream inputStream) {
+	public Receiver(final CloudConnection connection, final DataInputStream inputStream) {
 
 		super("Receiver of " + connection.getName());
 		this.setDaemon(true);

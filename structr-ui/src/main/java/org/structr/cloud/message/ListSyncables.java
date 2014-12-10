@@ -18,9 +18,9 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -83,7 +83,7 @@ public class ListSyncables extends Message<List<SyncableInfo>> {
 	}
 
 	@Override
-	protected void deserializeFrom(InputStream inputStream) throws IOException {
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
 
 		this.type = (String)SyncCommand.deserialize(inputStream);
 
@@ -101,7 +101,7 @@ public class ListSyncables extends Message<List<SyncableInfo>> {
 	}
 
 	@Override
-	protected void serializeTo(OutputStream outputStream) throws IOException {
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
 
 		SyncCommand.serialize(outputStream, type);
 		SyncCommand.serialize(outputStream, syncables.size());

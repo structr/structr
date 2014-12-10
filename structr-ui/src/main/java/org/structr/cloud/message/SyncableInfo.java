@@ -18,9 +18,9 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Date;
 import org.structr.common.Syncable;
 import org.structr.core.graph.NodeInterface;
@@ -99,7 +99,7 @@ public class SyncableInfo {
 		return lastModified;
 	}
 
-	protected void deserializeFrom(final InputStream inputStream) throws IOException {
+	protected void deserializeFrom(final DataInputStream inputStream) throws IOException {
 
 		this.node         = (Boolean)SyncCommand.deserialize(inputStream);
 		this.id           = (String)SyncCommand.deserialize(inputStream);
@@ -109,7 +109,7 @@ public class SyncableInfo {
 		this.lastModified = (Date)SyncCommand.deserialize(inputStream);
 	}
 
-	protected void serializeTo(final OutputStream outputStream) throws IOException {
+	protected void serializeTo(final DataOutputStream outputStream) throws IOException {
 
 		SyncCommand.serialize(outputStream, node);
 		SyncCommand.serialize(outputStream, id);

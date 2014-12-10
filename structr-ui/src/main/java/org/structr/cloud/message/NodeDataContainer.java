@@ -18,9 +18,9 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
@@ -86,7 +86,7 @@ public class NodeDataContainer extends DataContainer {
 	}
 
 	@Override
-	protected void deserializeFrom(InputStream inputStream) throws IOException {
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
 
 		this.sourceNodeId = (String)SyncCommand.deserialize(inputStream);
 		this.type         = (String)SyncCommand.deserialize(inputStream);
@@ -95,7 +95,7 @@ public class NodeDataContainer extends DataContainer {
 	}
 
 	@Override
-	protected void serializeTo(OutputStream outputStream) throws IOException {
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
 
 		SyncCommand.serialize(outputStream, sourceNodeId);
 		SyncCommand.serialize(outputStream, type);

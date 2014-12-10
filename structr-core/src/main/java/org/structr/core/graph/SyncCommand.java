@@ -20,6 +20,8 @@ package org.structr.core.graph;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +32,6 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
@@ -67,36 +68,36 @@ import org.structr.core.app.StructrApp;
  */
 public class SyncCommand extends NodeServiceCommand implements MaintenanceCommand, Serializable {
 
-	private static final Logger logger                 = Logger.getLogger(SyncCommand.class.getName());
-	private static final String STRUCTR_ZIP_DB_NAME    = "db";
+	private static final Logger logger                = Logger.getLogger(SyncCommand.class.getName());
+	private static final String STRUCTR_ZIP_DB_NAME   = "db";
 
-	private static final Map<Class, String> typeMap    = new LinkedHashMap<>();
-	private static final Map<Class, Method> methodMap  = new LinkedHashMap<>();
-	private static final Map<String, Class> classMap   = new LinkedHashMap<>();
+	private static final Map<Class, Byte> typeMap     = new LinkedHashMap<>();
+	private static final Map<Class, Method> methodMap = new LinkedHashMap<>();
+	private static final Map<Byte, Class> classMap    = new LinkedHashMap<>();
 
 	static {
 
-		typeMap.put(Byte[].class,      "00");
-		typeMap.put(Byte.class,        "01");
-		typeMap.put(Short[].class,     "02");
-		typeMap.put(Short.class,       "03");
-		typeMap.put(Integer[].class,   "04");
-		typeMap.put(Integer.class,     "05");
-		typeMap.put(Long[].class,      "06");
-		typeMap.put(Long.class,        "07");
-		typeMap.put(Float[].class,     "08");
-		typeMap.put(Float.class,       "09");
-		typeMap.put(Double[].class,    "10");
-		typeMap.put(Double.class,      "11");
-		typeMap.put(Character[].class, "12");
-		typeMap.put(Character.class,   "13");
-		typeMap.put(String[].class,    "14");
-		typeMap.put(String.class,      "15");
-		typeMap.put(Boolean[].class,   "16");
-		typeMap.put(Boolean.class,     "17");
+		typeMap.put(Byte[].class,      (byte) 0);
+		typeMap.put(Byte.class,        (byte) 1);
+		typeMap.put(Short[].class,     (byte) 2);
+		typeMap.put(Short.class,       (byte) 3);
+		typeMap.put(Integer[].class,   (byte) 4);
+		typeMap.put(Integer.class,     (byte) 5);
+		typeMap.put(Long[].class,      (byte) 6);
+		typeMap.put(Long.class,        (byte) 7);
+		typeMap.put(Float[].class,     (byte) 8);
+		typeMap.put(Float.class,       (byte) 9);
+		typeMap.put(Double[].class,    (byte)10);
+		typeMap.put(Double.class,      (byte)11);
+		typeMap.put(Character[].class, (byte)12);
+		typeMap.put(Character.class,   (byte)13);
+		typeMap.put(String[].class,    (byte)14);
+		typeMap.put(String.class,      (byte)15);
+		typeMap.put(Boolean[].class,   (byte)16);
+		typeMap.put(Boolean.class,     (byte)17);
 
 		// build reverse mapping
-		for (Entry<Class, String> entry : typeMap.entrySet()) {
+		for (Entry<Class, Byte> entry : typeMap.entrySet()) {
 			classMap.put(entry.getValue(), entry.getKey());
 		}
 	}
@@ -310,67 +311,42 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param outputStream
 	 * @param obj
 	 */
-	public static void serializeData(OutputStream outputStream, byte[] data) throws IOException {
+	public static void serializeData(DataOutputStream outputStream, byte[] data) throws IOException {
 
-		final ByteBuffer buf = ByteBuffer.allocate(4);
-		buf.putInt(data.length);
-		buf.flip();
-
-		outputStream.write(buf.array());
+		outputStream.writeInt(data.length);
 		outputStream.write(data);
 
 		outputStream.flush();
 	}
 
-	public static void serialize(OutputStream outputStream, Object obj) throws IOException {
+	public static void serialize(DataOutputStream outputStream, Object obj) throws IOException {
 
 		if (obj != null) {
 
 			Class clazz = obj.getClass();
-			String type = typeMap.get(clazz);
+			Byte type   = typeMap.get(clazz);
 
 			if (type != null)  {
 
 				if (clazz.isArray()) {
 
 					Object[] array    = (Object[])obj;
-					int len           = array.length;
-					int log           = Integer.toString(len).length();
 
-					outputStream.write(type.getBytes("utf-8"));                     // type: 00-nn:  data type
-					outputStream.write(Integer.toString(log).getBytes("utf-8"));    // log:  1-10: length of next int field
-					outputStream.write(Integer.toString(len).getBytes("utf-8"));    // len:  length of value
+					outputStream.writeByte(type);
+					outputStream.writeInt(array.length);
 
 					// serialize array
 					for (Object o : (Object[])obj) {
 						serialize(outputStream, o);
 					}
 
-				} else if (obj instanceof String) {
-
-					byte[] str        = ((String)obj).getBytes("utf-8");
-					int len           = str.length;
-					int log           = Integer.toString(len).length();
-
-					outputStream.write(type.getBytes("utf-8"));                    // type: 00-nn:  data type
-					outputStream.write(Integer.toString(log).getBytes("utf-8"));   // log:  1-10: length of next int field
-					outputStream.write(Integer.toString(len).getBytes("utf-8"));   // len:  length of value
-					outputStream.write(str);                                       // str:  the value
-
 				} else {
 
-					String str        = obj.toString();
-					int len           = str.length();
-					int log           = Integer.toString(len).length();
+					outputStream.writeByte(type);
+					writeObject(outputStream, type, obj);
 
-					outputStream.write(type.getBytes("utf-8"));                    // type: 00-nn:  data type
-					outputStream.write(Integer.toString(log).getBytes("utf-8"));   // log:  1-10: length of next int field
-					outputStream.write(Integer.toString(len).getBytes("utf-8"));   // len:  length of value
-					outputStream.write(str.getBytes("utf-8"));                     // str:  the value
+					//outputStream.writeUTF(obj.toString());
 				}
-
-				// make it more readable for the human eye
-				outputStream.write(' ');
 
 			} else {
 
@@ -379,19 +355,19 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} else {
 
-			// serialize null value
-			outputStream.write("000 ".getBytes("utf-8"));
+			// null value
+			outputStream.writeByte((byte)127);
 		}
+
+		// make it more readable for the human eye
+		//outputStream.write(' ');
 
 		outputStream.flush();
 	}
 
-	public static byte[] deserializeData(final InputStream inputStream) throws IOException {
+	public static byte[] deserializeData(final DataInputStream inputStream) throws IOException {
 
-		final ByteBuffer buf = ByteBuffer.allocate(4);
-		inputStream.read(buf.array(), 0, 4);
-
-		final int len = buf.getInt();
+		final int len       = inputStream.readInt();
 		final byte[] buffer = new byte[len];
 
 		inputStream.read(buffer, 0, len);
@@ -399,32 +375,20 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		return buffer;
 	}
 
-	public static Object deserialize(final InputStream inputStream) throws IOException {
+	public static Object deserialize(final DataInputStream inputStream) throws IOException {
 
 		Object serializedObject = null;
-		String type             = read(inputStream, 2);
-		String lenLenSrc        = read(inputStream, 1);
-		int lenLen              = Integer.parseInt(lenLenSrc);	// lenght of "length" field :)
+		final byte type         = inputStream.readByte();
 		Class clazz             = classMap.get(type);
 
-		// deserialize special null value
-		if ("00".equals(type) && "0".equals(lenLenSrc)) {
-
-			// skip trailing space
-			inputStream.skip(1);
-
-			return null;
-		}
-
 		if (clazz != null) {
-
-			String lenSrc = read(inputStream, lenLen);
-			int len       = Integer.parseInt(lenSrc);	// now we've got the "real" length of the following value
 
 			if (clazz.isArray()) {
 
 				// len is the length of the underlying array
-				Object[] array = (Object[])Array.newInstance(clazz.getComponentType(), len);
+				final int len        = inputStream.readInt();
+				final Object[] array = (Object[])Array.newInstance(clazz.getComponentType(), len);
+
 				for (int i=0; i<len; i++) {
 
 					array[i] = deserialize(inputStream);
@@ -435,75 +399,58 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			} else {
 
-				// len is the length of the string representation of the real value
-				String value = read(inputStream, len);
-
-				if (clazz.equals(String.class)) {
-
-					// strings can be returned immediately
-					serializedObject = value;
-
-				} else if (clazz.equals(Character.class)) {
-
-					// characters can only a single element
-					serializedObject = value.charAt(0);
-
-				} else {
-
-					try {
-
-						Method valueOf = methodMap.get(clazz);
-						if (valueOf == null) {
-
-							valueOf = clazz.getMethod("valueOf", String.class);
-							methodMap.put(clazz, valueOf);
-						}
-
-						// invoke static valueOf method
-						if (valueOf != null) {
-
-							serializedObject = valueOf.invoke(null, value);
-
-						} else {
-
-							logger.log(Level.WARNING, "Unable to find static valueOf method for type {0}", clazz);
-						}
-
-					} catch (Throwable t) {
-
-						logger.log(Level.WARNING, "Unable to deserialize value {0} of type {1}, Class has no static valueOf method.", new Object[] { value, clazz } );
-					}
-				}
+				serializedObject = readObject(inputStream, type);
+//
+//				// len is the length of the string representation of the real value
+//				String value = inputStream.readUTF();
+//
+//				if (clazz.equals(String.class)) {
+//
+//					// strings can be returned immediately
+//					serializedObject = value;
+//
+//				} else if (clazz.equals(Character.class)) {
+//
+//					// characters can only a single element
+//					serializedObject = value.charAt(0);
+//
+//				} else {
+//
+//					try {
+//
+//						Method valueOf = methodMap.get(clazz);
+//						if (valueOf == null) {
+//
+//							valueOf = clazz.getMethod("valueOf", String.class);
+//							methodMap.put(clazz, valueOf);
+//						}
+//
+//						// invoke static valueOf method
+//						if (valueOf != null) {
+//
+//							serializedObject = valueOf.invoke(null, value);
+//
+//						} else {
+//
+//							logger.log(Level.WARNING, "Unable to find static valueOf method for type {0}", clazz);
+//						}
+//
+//					} catch (Throwable t) {
+//
+//						logger.log(Level.WARNING, "Unable to deserialize value {0} of type {1}, Class has no static valueOf method.", new Object[] { value, clazz } );
+//					}
+//				}
 			}
 
-		} else {
+		} else if (type != 127) {
 
 			logger.log(Level.WARNING, "Unsupported type \"{0}\" in input", type);
 		}
 
 		// skip white space after object (see serialize method)
-		inputStream.skip(1);
+		//inputStream.skip(1);
 
 		return serializedObject;
-	}
-
-	private static String read(final InputStream inputStream, int len) throws IOException {
-
-		byte[] buf = new byte[len];
-
-		// only continue if the desired number of chars could be read
-		final int read = inputStream.read(buf, 0, len);
-		if (read == len) {
-
-			return new String(buf, 0, len, "utf-8");
-
-		} else {
-
-			logger.log(Level.WARNING, "Unable to read string fully, expected {0}, got {1}: {2}", new Object[] { len, read, new String(buf) } );
-		}
-
-		// end of stream
-		throw new EOFException();
 	}
 
 	private static void exportDirectory(ZipOutputStream zos, File dir, String path, Set<String> filesToInclude) throws IOException {
@@ -565,6 +512,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
+		final DataOutputStream dos    = new DataOutputStream(outputStream);
 		final String uuidPropertyName = GraphObject.id.dbName();
 		int nodeCount                 = 0;
 		int relCount                  = 0;
@@ -582,18 +530,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				for (String key : node.getPropertyKeys()) {
 
-					serialize(outputStream, key);
-					serialize(outputStream, node.getProperty(key));
+					serialize(dos, key);
+					serialize(dos, node.getProperty(key));
 				}
 
 				// do not use platform-specific line ending here!
-				outputStream.write('\n');
+				dos.write('\n');
 
 				nodeCount++;
 			}
 		}
 
-		outputStream.flush();
+		dos.flush();
 
 		for (RelationshipInterface relObject : relationships) {
 
@@ -611,18 +559,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					String endId   = (String)endNode.getProperty(uuidPropertyName);
 
 					outputStream.write('R');
-					serialize(outputStream, startId);
-					serialize(outputStream, endId);
-					serialize(outputStream, rel.getType().name());
+					serialize(dos, startId);
+					serialize(dos, endId);
+					serialize(dos, rel.getType().name());
 
 					for (String key : rel.getPropertyKeys()) {
 
-						serialize(outputStream, key);
-						serialize(outputStream, rel.getProperty(key));
+						serialize(dos, key);
+						serialize(dos, rel.getProperty(key));
 					}
 
 					// do not use platform-specific line ending here!
-					outputStream.write('\n');
+					dos.write('\n');
 
 					relCount++;
 				}
@@ -631,7 +579,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		}
 
-		outputStream.flush();
+		dos.flush();
 
 		// finish db entry
 		zos.closeEntry();
@@ -681,10 +629,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation) throws FrameworkException, IOException {
 
 		final App app                        = StructrApp.getInstance();
+		final DataInputStream dis            = new DataInputStream(new BufferedInputStream(zis));
 		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 		final NodeFactory nodeFactory        = new NodeFactory(securityContext);
 		final String uuidPropertyName        = GraphObject.id.dbName();
-		final BufferedInputStream bis        = new BufferedInputStream(zis);
 		double t0                            = System.nanoTime();
 		Map<String, Node> uuidMap            = new LinkedHashMap<>();
 		PropertyContainer currentObject      = null;
@@ -707,17 +655,17 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					try {
 
 						// store current position
-						bis.mark(4);
+						dis.mark(4);
 
 						// read one byte
-						String objectType = read(bis, 1);
+						byte objectType = dis.readByte();
 
 						// skip newlines
-						if ("\n".equals(objectType)) {
+						if (objectType == '\n') {
 							continue;
 						}
 
-						if ("N".equals(objectType)) {
+						if (objectType == 'N') {
 
 							currentObject = graphDb.createNode();
 							nodeCount++;
@@ -725,11 +673,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 							// store for later use
 							nodes.add((Node)currentObject);
 
-						} else if ("R".equals(objectType)) {
+						} else if (objectType == 'R') {
 
-							String startId     = (String)deserialize(bis);
-							String endId       = (String)deserialize(bis);
-							String relTypeName = (String)deserialize(bis);
+							String startId     = (String)deserialize(dis);
+							String endId       = (String)deserialize(dis);
+							String relTypeName = (String)deserialize(dis);
 
 							Node endNode   = uuidMap.get(endId);
 							Node startNode = uuidMap.get(startId);
@@ -748,17 +696,17 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						} else {
 
 							// reset if not at the beginning of a line
-							bis.reset();
+							dis.reset();
 
 							if (currentKey == null) {
 
-								currentKey = (String)deserialize(bis);
+								currentKey = (String)deserialize(dis);
 
 							} else {
 
 								if (currentObject != null) {
 
-									Object obj = deserialize(bis);
+									Object obj = deserialize(dis);
 
 									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
 
@@ -827,5 +775,100 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		DecimalFormat decimalFormat  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 		logger.log(Level.INFO, "Import done in {0} s", decimalFormat.format(time));
+	}
+
+	private static Object readObject(final DataInputStream inputStream, final byte type) throws IOException {
+
+		switch (type) {
+
+			case  0:
+			case  1:
+				return inputStream.readByte();
+
+			case  2:
+			case  3:
+				return inputStream.readShort();
+
+			case  4:
+			case  5:
+				return inputStream.readInt();
+
+			case  6:
+			case  7:
+				return inputStream.readLong();
+
+			case  8:
+			case  9:
+				return inputStream.readFloat();
+
+			case 10:
+			case 11:
+				return inputStream.readDouble();
+
+			case 12:
+			case 13:
+				return inputStream.readChar();
+
+			case 14:
+			case 15:
+				return inputStream.readUTF();
+
+			case 16:
+			case 17:
+				return inputStream.readBoolean();
+		}
+
+		return null;
+	}
+
+	private static void writeObject(final DataOutputStream outputStream, final byte type, final Object value) throws IOException {
+
+		switch (type) {
+
+			case  0:
+			case  1:
+				outputStream.writeByte((byte)value);
+				break;
+
+			case  2:
+			case  3:
+				outputStream.writeShort((short)value);
+				break;
+
+			case  4:
+			case  5:
+				outputStream.writeInt((int)value);
+				break;
+
+			case  6:
+			case  7:
+				outputStream.writeLong((long)value);
+				break;
+
+			case  8:
+			case  9:
+				outputStream.writeFloat((float)value);
+				break;
+
+			case 10:
+			case 11:
+				outputStream.writeDouble((double)value);
+				break;
+
+			case 12:
+			case 13:
+				outputStream.writeChar((char)value);
+				break;
+
+			case 14:
+			case 15:
+				outputStream.writeUTF((String)value);
+				break;
+
+			case 16:
+			case 17:
+				outputStream.writeBoolean((boolean)value);
+				break;
+		}
 	}
 }

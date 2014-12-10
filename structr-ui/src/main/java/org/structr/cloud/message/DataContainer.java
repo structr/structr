@@ -18,9 +18,9 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -67,7 +67,7 @@ public abstract class DataContainer extends Message {
 	}
 
 	@Override
-	protected void deserializeFrom(InputStream inputStream) throws IOException {
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
 
 		this.sequenceNumber = (Integer)SyncCommand.deserialize(inputStream);
 		final int num       = (Integer)SyncCommand.deserialize(inputStream);
@@ -82,7 +82,7 @@ public abstract class DataContainer extends Message {
 	}
 
 	@Override
-	protected void serializeTo(OutputStream outputStream) throws IOException {
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
 
 		SyncCommand.serialize(outputStream, sequenceNumber);
 		SyncCommand.serialize(outputStream, properties.size());

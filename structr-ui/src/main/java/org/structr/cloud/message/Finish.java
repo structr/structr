@@ -18,9 +18,9 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
@@ -47,12 +47,12 @@ public class Finish extends Message {
 	}
 
 	@Override
-	protected void deserializeFrom(InputStream inputStream) throws IOException {
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
 		// no additional data
 	}
 
 	@Override
-	protected void serializeTo(OutputStream outputStream) throws IOException {
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
 		// no additional data
 	}
 }

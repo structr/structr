@@ -18,12 +18,12 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -182,7 +182,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 	}
 
 	@Override
-	protected void deserializeFrom(InputStream inputStream) throws IOException {
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
 
 		this.fileSize = (Long)SyncCommand.deserialize(inputStream);
 
@@ -190,7 +190,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 	}
 
 	@Override
-	protected void serializeTo(OutputStream outputStream) throws IOException {
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
 
 		SyncCommand.serialize(outputStream, fileSize);
 

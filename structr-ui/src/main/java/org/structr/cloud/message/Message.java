@@ -18,9 +18,9 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -71,8 +71,8 @@ public abstract class Message<T> {
 	public abstract void onResponse(final CloudConnection clientConnection, final ExportContext context) throws IOException, FrameworkException;
 	public abstract void afterSend(final CloudConnection connection);
 
-	protected abstract void deserializeFrom(final InputStream inputStream) throws IOException;
-	protected abstract void serializeTo(final OutputStream outputStream) throws IOException;
+	protected abstract void deserializeFrom(final DataInputStream inputStream) throws IOException;
+	protected abstract void serializeTo(final DataOutputStream outputStream) throws IOException;
 
 	public Message() {
 		this.id = NodeServiceCommand.getNextUuid();
@@ -95,7 +95,7 @@ public abstract class Message<T> {
 		return new Ack(this.id);
 	}
 
-	public void serialize(final OutputStream outputStream) throws IOException {
+	public void serialize(final DataOutputStream outputStream) throws IOException {
 
 		// write type
 		final String type = getClass().getSimpleName();
@@ -116,7 +116,7 @@ public abstract class Message<T> {
 	}
 
 	// ----- public static methods -----
-	public static Message deserialize(final InputStream inputStream) throws IOException {
+	public static Message deserialize(final DataInputStream inputStream) throws IOException {
 
 		// read type
 		final String type = (String)SyncCommand.deserialize(inputStream);
