@@ -20,6 +20,8 @@ package org.structr.core.graph;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import org.structr.common.StructrTest;
@@ -232,7 +234,7 @@ public class SyncCommandTest extends StructrTest {
 
 		final ByteArrayOutputStream os     = new ByteArrayOutputStream();
 
-		SyncCommand.serialize(os, obj);
+		SyncCommand.serialize(new DataOutputStream(os), obj);
 
 		return os.toString("utf-8");
 	}
@@ -240,7 +242,7 @@ public class SyncCommandTest extends StructrTest {
 	private Object deserialize(final String source) {
 
 		try {
-			return SyncCommand.deserialize(new ByteArrayInputStream(source.getBytes("utf-8")));
+			return SyncCommand.deserialize(new DataInputStream(new ByteArrayInputStream(source.getBytes("utf-8"))));
 
 		} catch (IOException ioex) {
 			throw new IllegalStateException("WTF?");
