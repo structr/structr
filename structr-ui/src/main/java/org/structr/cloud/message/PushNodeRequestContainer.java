@@ -19,8 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
@@ -63,7 +63,7 @@ public class PushNodeRequestContainer extends DataContainer {
 	@Override
 	public String toString() {
 
-		return "PushNodeRequestContainer(" + targetNodeId + ")";
+		return "PushNodeRequestContainer(" + id + ")";
 	}
 
 	@Override
@@ -81,18 +81,18 @@ public class PushNodeRequestContainer extends DataContainer {
 	}
 
 	@Override
-	protected void deserializeFrom(Reader reader) throws IOException {
+	protected void deserializeFrom(InputStream inputStream) throws IOException {
 
-		this.targetNodeId = (String)SyncCommand.deserialize(reader);
+		this.targetNodeId = (String)SyncCommand.deserialize(inputStream);
 
-		super.deserializeFrom(reader);
+		super.deserializeFrom(inputStream);
 	}
 
 	@Override
-	protected void serializeTo(Writer writer) throws IOException {
+	protected void serializeTo(OutputStream outputStream) throws IOException {
 
-		SyncCommand.serialize(writer, targetNodeId);
+		SyncCommand.serialize(outputStream, targetNodeId);
 
-		super.serializeTo(writer);
+		super.serializeTo(outputStream);
 	}
 }

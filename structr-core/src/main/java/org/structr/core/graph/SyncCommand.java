@@ -18,23 +18,19 @@
  */
 package org.structr.core.graph;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Reader;
 import java.io.Serializable;
-import java.io.Writer;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
@@ -228,7 +224,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			Set<String> filesToInclude = new LinkedHashSet<>();
 			ZipOutputStream zos        = new ZipOutputStream(outputStream);
-			PrintWriter writer         = new PrintWriter(new BufferedWriter(new OutputStreamWriter(zos)));
 
 			// collect files to include in export
 			if (filePaths != null) {
@@ -248,13 +243,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			}
 
 			// export database
-			exportDatabase(zos, writer, nodes, relationships);
+			exportDatabase(zos, new BufferedOutputStream(zos), nodes, relationships);
 
 			// finish ZIP file
 			zos.finish();
 
 			// close stream
-			writer.close();
+			zos.flush();
+			zos.close();
 
 		} catch (Throwable t) {
 
@@ -311,10 +307,22 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * length field follows. After that, the length field is serialized, followed by the
 	 * string value of the given object and a space character for human readability.
 	 *
-	 * @param writer
+	 * @param outputStream
 	 * @param obj
 	 */
-	public static void serialize(Writer writer, Object obj) throws IOException {
+	public static void serializeData(OutputStream outputStream, byte[] data) throws IOException {
+
+		final ByteBuffer buf = ByteBuffer.allocate(4);
+		buf.putInt(data.length);
+		buf.flip();
+
+		outputStream.write(buf.array());
+		outputStream.write(data);
+
+		outputStream.flush();
+	}
+
+	public static void serialize(OutputStream outputStream, Object obj) throws IOException {
 
 		if (obj != null) {
 
@@ -329,14 +337,25 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					int len           = array.length;
 					int log           = Integer.toString(len).length();
 
-					writer.append(type);                     // type: 00-nn:  data type
-					writer.append(Integer.toString(log));    // log:  1-10: length of next int field
-					writer.append(Integer.toString(len));	 // len:  length of value
+					outputStream.write(type.getBytes("utf-8"));                     // type: 00-nn:  data type
+					outputStream.write(Integer.toString(log).getBytes("utf-8"));    // log:  1-10: length of next int field
+					outputStream.write(Integer.toString(len).getBytes("utf-8"));    // len:  length of value
 
 					// serialize array
 					for (Object o : (Object[])obj) {
-						serialize(writer, o);
+						serialize(outputStream, o);
 					}
+
+				} else if (obj instanceof String) {
+
+					byte[] str        = ((String)obj).getBytes("utf-8");
+					int len           = str.length;
+					int log           = Integer.toString(len).length();
+
+					outputStream.write(type.getBytes("utf-8"));                    // type: 00-nn:  data type
+					outputStream.write(Integer.toString(log).getBytes("utf-8"));   // log:  1-10: length of next int field
+					outputStream.write(Integer.toString(len).getBytes("utf-8"));   // len:  length of value
+					outputStream.write(str);                                       // str:  the value
 
 				} else {
 
@@ -344,14 +363,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					int len           = str.length();
 					int log           = Integer.toString(len).length();
 
-					writer.append(type);                    // type: 00-nn:  data type
-					writer.append(Integer.toString(log));   // log:  1-10: length of next int field
-					writer.append(Integer.toString(len));   // len:  length of value
-					writer.append(str);                     // str:  the value
+					outputStream.write(type.getBytes("utf-8"));                    // type: 00-nn:  data type
+					outputStream.write(Integer.toString(log).getBytes("utf-8"));   // log:  1-10: length of next int field
+					outputStream.write(Integer.toString(len).getBytes("utf-8"));   // len:  length of value
+					outputStream.write(str.getBytes("utf-8"));                     // str:  the value
 				}
 
 				// make it more readable for the human eye
-				writer.append(" ");
+				outputStream.write(' ');
 
 			} else {
 
@@ -361,17 +380,30 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		} else {
 
 			// serialize null value
-			writer.append("000 ");
+			outputStream.write("000 ".getBytes("utf-8"));
 		}
 
-		writer.flush();
+		outputStream.flush();
 	}
 
-	public static Object deserialize(final Reader reader) throws IOException {
+	public static byte[] deserializeData(final InputStream inputStream) throws IOException {
+
+		final ByteBuffer buf = ByteBuffer.allocate(4);
+		inputStream.read(buf.array(), 0, 4);
+
+		final int len = buf.getInt();
+		final byte[] buffer = new byte[len];
+
+		inputStream.read(buffer, 0, len);
+
+		return buffer;
+	}
+
+	public static Object deserialize(final InputStream inputStream) throws IOException {
 
 		Object serializedObject = null;
-		String type             = read(reader, 2);
-		String lenLenSrc        = read(reader, 1);
+		String type             = read(inputStream, 2);
+		String lenLenSrc        = read(inputStream, 1);
 		int lenLen              = Integer.parseInt(lenLenSrc);	// lenght of "length" field :)
 		Class clazz             = classMap.get(type);
 
@@ -379,14 +411,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		if ("00".equals(type) && "0".equals(lenLenSrc)) {
 
 			// skip trailing space
-			reader.skip(1);
+			inputStream.skip(1);
 
 			return null;
 		}
 
 		if (clazz != null) {
 
-			String lenSrc = read(reader, lenLen);
+			String lenSrc = read(inputStream, lenLen);
 			int len       = Integer.parseInt(lenSrc);	// now we've got the "real" length of the following value
 
 			if (clazz.isArray()) {
@@ -395,7 +427,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				Object[] array = (Object[])Array.newInstance(clazz.getComponentType(), len);
 				for (int i=0; i<len; i++) {
 
-					array[i] = deserialize(reader);
+					array[i] = deserialize(inputStream);
 				}
 
 				// set array
@@ -404,7 +436,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			} else {
 
 				// len is the length of the string representation of the real value
-				String value = read(reader, len);
+				String value = read(inputStream, len);
 
 				if (clazz.equals(String.class)) {
 
@@ -446,24 +478,24 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} else {
 
-			logger.log(Level.WARNING, "Unsupported type {0} in input", type);
+			logger.log(Level.WARNING, "Unsupported type \"{0}\" in input", type);
 		}
 
 		// skip white space after object (see serialize method)
-		reader.skip(1);
+		inputStream.skip(1);
 
 		return serializedObject;
 	}
 
-	private static String read(Reader reader, int len) throws IOException {
+	private static String read(final InputStream inputStream, int len) throws IOException {
 
-		char[] buf = new char[len];
+		byte[] buf = new byte[len];
 
 		// only continue if the desired number of chars could be read
-		final int read = reader.read(buf, 0, len);
+		final int read = inputStream.read(buf, 0, len);
 		if (read == len) {
 
-			return new String(buf, 0, len);
+			return new String(buf, 0, len, "utf-8");
 
 		} else {
 
@@ -529,7 +561,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	}
 
-	private static void exportDatabase(final ZipOutputStream zos, final PrintWriter writer,  final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships) throws IOException, FrameworkException {
+	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream,  final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships) throws IOException, FrameworkException {
 
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
@@ -546,22 +578,22 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			// ignore non-structr nodes
 			if (node.hasProperty(GraphObject.id.dbName())) {
 
-				writer.print("N");
+				outputStream.write('N');
 
 				for (String key : node.getPropertyKeys()) {
 
-					serialize(writer, key);
-					serialize(writer, node.getProperty(key));
+					serialize(outputStream, key);
+					serialize(outputStream, node.getProperty(key));
 				}
 
 				// do not use platform-specific line ending here!
-				writer.print("\n");
+				outputStream.write('\n');
 
 				nodeCount++;
 			}
 		}
 
-		writer.flush();
+		outputStream.flush();
 
 		for (RelationshipInterface relObject : relationships) {
 
@@ -578,19 +610,19 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					String startId = (String)startNode.getProperty(uuidPropertyName);
 					String endId   = (String)endNode.getProperty(uuidPropertyName);
 
-					writer.print("R");
-					serialize(writer, startId);
-					serialize(writer, endId);
-					serialize(writer, rel.getType().name());
+					outputStream.write('R');
+					serialize(outputStream, startId);
+					serialize(outputStream, endId);
+					serialize(outputStream, rel.getType().name());
 
 					for (String key : rel.getPropertyKeys()) {
 
-						serialize(writer, key);
-						serialize(writer, rel.getProperty(key));
+						serialize(outputStream, key);
+						serialize(outputStream, rel.getProperty(key));
 					}
 
 					// do not use platform-specific line ending here!
-					writer.print("\n");
+					outputStream.write('\n');
 
 					relCount++;
 				}
@@ -599,7 +631,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		}
 
-		writer.flush();
+		outputStream.flush();
 
 		// finish db entry
 		zos.closeEntry();
@@ -652,6 +684,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 		final NodeFactory nodeFactory        = new NodeFactory(securityContext);
 		final String uuidPropertyName        = GraphObject.id.dbName();
+		final BufferedInputStream bis        = new BufferedInputStream(zis);
 		double t0                            = System.nanoTime();
 		Map<String, Node> uuidMap            = new LinkedHashMap<>();
 		PropertyContainer currentObject      = null;
@@ -659,8 +692,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		boolean finished                     = false;
 		long totalNodeCount                  = 0;
 		long totalRelCount                   = 0;
-
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
 
 		do {
 
@@ -676,10 +707,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					try {
 
 						// store current position
-						reader.mark(4);
+						bis.mark(4);
 
 						// read one byte
-						String objectType = read(reader, 1);
+						String objectType = read(bis, 1);
 
 						// skip newlines
 						if ("\n".equals(objectType)) {
@@ -696,9 +727,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 						} else if ("R".equals(objectType)) {
 
-							String startId     = (String)deserialize(reader);
-							String endId       = (String)deserialize(reader);
-							String relTypeName = (String)deserialize(reader);
+							String startId     = (String)deserialize(bis);
+							String endId       = (String)deserialize(bis);
+							String relTypeName = (String)deserialize(bis);
 
 							Node endNode   = uuidMap.get(endId);
 							Node startNode = uuidMap.get(startId);
@@ -717,17 +748,17 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						} else {
 
 							// reset if not at the beginning of a line
-							reader.reset();
+							bis.reset();
 
 							if (currentKey == null) {
 
-								currentKey = (String)deserialize(reader);
+								currentKey = (String)deserialize(bis);
 
 							} else {
 
 								if (currentObject != null) {
 
-									Object obj = deserialize(reader);
+									Object obj = deserialize(bis);
 
 									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
 

@@ -20,7 +20,7 @@ package org.structr.cloud;
 
 import org.structr.cloud.message.Message;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.OutputStream;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -33,20 +33,20 @@ public class Sender extends Thread {
 	private final Queue<Message> outputQueue = new ArrayBlockingQueue<>(10000);
 	private CloudConnection connection       = null;
 	private int messagesInFlight             = 0;
-	private Writer writer                    = null;
+	private OutputStream outputStream        = null;
 
-	public Sender(final CloudConnection connection, final Writer writer) {
+	public Sender(final CloudConnection connection, final OutputStream outputStream) {
 
 		super("Sender of " + connection.getName());
 		this.setDaemon(true);
 
-		this.writer     = writer;
-		this.connection = connection;
+		this.outputStream = outputStream;
+		this.connection   = connection;
 
 		// flush stream to avoid ObjectInputStream to be waiting indefinitely
 		try {
 
-			writer.flush();
+			outputStream.flush();
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
@@ -65,8 +65,8 @@ public class Sender extends Thread {
 					final Message message = outputQueue.poll();
 					if (message != null) {
 
-						message.serialize(writer);
-						writer.flush();
+						message.serialize(outputStream);
+						outputStream.flush();
 
 						messagesInFlight++;
 

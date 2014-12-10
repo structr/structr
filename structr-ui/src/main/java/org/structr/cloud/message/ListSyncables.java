@@ -19,8 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -83,31 +83,31 @@ public class ListSyncables extends Message<List<SyncableInfo>> {
 	}
 
 	@Override
-	protected void deserializeFrom(Reader reader) throws IOException {
+	protected void deserializeFrom(InputStream inputStream) throws IOException {
 
-		this.type = (String)SyncCommand.deserialize(reader);
+		this.type = (String)SyncCommand.deserialize(inputStream);
 
 		// read number of syncables from stream
-		final int num = (Integer)SyncCommand.deserialize(reader);
+		final int num = (Integer)SyncCommand.deserialize(inputStream);
 
 		// read syncables
 		for (int i=0; i<num; i++) {
 
 			SyncableInfo info = new SyncableInfo();
-			info.deserializeFrom(reader);
+			info.deserializeFrom(inputStream);
 
 			syncables.add(info);
 		}
 	}
 
 	@Override
-	protected void serializeTo(Writer writer) throws IOException {
+	protected void serializeTo(OutputStream outputStream) throws IOException {
 
-		SyncCommand.serialize(writer, type);
-		SyncCommand.serialize(writer, syncables.size());
+		SyncCommand.serialize(outputStream, type);
+		SyncCommand.serialize(outputStream, syncables.size());
 
 		for (final SyncableInfo syncable : syncables) {
-			syncable.serializeTo(writer);
+			syncable.serializeTo(outputStream);
 		}
 	}
 }

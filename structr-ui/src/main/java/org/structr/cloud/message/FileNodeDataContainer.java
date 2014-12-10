@@ -182,19 +182,19 @@ public class FileNodeDataContainer extends NodeDataContainer {
 	}
 
 	@Override
-	protected void deserializeFrom(Reader reader) throws IOException {
+	protected void deserializeFrom(InputStream inputStream) throws IOException {
 
-		this.fileSize = (Long)SyncCommand.deserialize(reader);
+		this.fileSize = (Long)SyncCommand.deserialize(inputStream);
 
-		super.deserializeFrom(reader);
+		super.deserializeFrom(inputStream);
 	}
 
 	@Override
-	protected void serializeTo(Writer writer) throws IOException {
+	protected void serializeTo(OutputStream outputStream) throws IOException {
 
-		SyncCommand.serialize(writer, fileSize);
+		SyncCommand.serialize(outputStream, fileSize);
 
-		super.serializeTo(writer);
+		super.serializeTo(outputStream);
 	}
 
 	// ----- public static methods -----

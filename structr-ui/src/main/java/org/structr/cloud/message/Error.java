@@ -19,8 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
@@ -64,14 +64,14 @@ public class Error extends Message {
 	}
 
 	@Override
-	protected void deserializeFrom(Reader reader) throws IOException {
-		this.message   = (String)SyncCommand.deserialize(reader);
-		this.errorCode = (Integer)SyncCommand.deserialize(reader);
+	protected void deserializeFrom(InputStream inputStream) throws IOException {
+		this.message   = (String)SyncCommand.deserialize(inputStream);
+		this.errorCode = (Integer)SyncCommand.deserialize(inputStream);
 	}
 
 	@Override
-	protected void serializeTo(Writer writer) throws IOException {
-		SyncCommand.serialize(writer, message);
-		SyncCommand.serialize(writer, errorCode);
+	protected void serializeTo(OutputStream outputStream) throws IOException {
+		SyncCommand.serialize(outputStream, message);
+		SyncCommand.serialize(outputStream, errorCode);
 	}
 }

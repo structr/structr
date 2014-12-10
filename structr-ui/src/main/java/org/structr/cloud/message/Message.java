@@ -19,8 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -48,7 +48,9 @@ public abstract class Message<T> {
 		typeMap.put(AuthenticationResponse.class.getSimpleName(),    AuthenticationResponse.class);
 		typeMap.put(Begin.class.getSimpleName(),                     Begin.class);
 		typeMap.put(End.class.getSimpleName(),                       End.class);
+		typeMap.put(Error.class.getSimpleName(),                     Error.class);
 		typeMap.put(FileNodeChunk.class.getSimpleName(),             FileNodeChunk.class);
+		typeMap.put(FileNodeDataContainer.class.getSimpleName(),     FileNodeDataContainer.class);
 		typeMap.put(FileNodeEndChunk.class.getSimpleName(),          FileNodeEndChunk.class);
 		typeMap.put(Finish.class.getSimpleName(),                    Finish.class);
 		typeMap.put(ListSyncables.class.getSimpleName(),             ListSyncables.class);
@@ -63,14 +65,22 @@ public abstract class Message<T> {
 
 	}
 
-	private String id = NodeServiceCommand.getNextUuid();
+	protected String id = null;
 
 	public abstract void onRequest(final CloudConnection serverConnection, final ExportContext context) throws IOException, FrameworkException;
 	public abstract void onResponse(final CloudConnection clientConnection, final ExportContext context) throws IOException, FrameworkException;
 	public abstract void afterSend(final CloudConnection connection);
 
-	protected abstract void deserializeFrom(final Reader reader) throws IOException;
-	protected abstract void serializeTo(final Writer writer) throws IOException;
+	protected abstract void deserializeFrom(final InputStream inputStream) throws IOException;
+	protected abstract void serializeTo(final OutputStream outputStream) throws IOException;
+
+	public Message() {
+		this.id = NodeServiceCommand.getNextUuid();
+	}
+
+	public Message(final String id) {
+		this.id = id;
+	}
 
 	public String getId() {
 		return id;
@@ -81,37 +91,35 @@ public abstract class Message<T> {
 		return getClass().getSimpleName() + "(" + getId() + ")";
 	}
 
-	protected void setId(final String id) {
-		this.id = id;
-	}
-
 	protected Ack ack() {
-
-		// create ack for this packet
-		final Ack ack = new Ack();
-		ack.setId(this.getId());
-
-		return ack;
+		return new Ack(this.id);
 	}
 
-	public void serialize(final Writer writer) throws IOException {
+	public void serialize(final OutputStream outputStream) throws IOException {
 
 		// write type
 		final String type = getClass().getSimpleName();
-		SyncCommand.serialize(writer, type);
+		SyncCommand.serialize(outputStream, type);
 
 		// write ID
-		SyncCommand.serialize(writer, id);
+		SyncCommand.serialize(outputStream, id);
 
 		// write attributes
-		serializeTo(writer);
+		serializeTo(outputStream);
+
+		outputStream.flush();
+	}
+
+	// ----- private methods -----
+	private void setId(final String id) {
+		this.id = id;
 	}
 
 	// ----- public static methods -----
-	public static Message deserialize(final Reader reader) throws IOException {
+	public static Message deserialize(final InputStream inputStream) throws IOException {
 
 		// read type
-		final String type = (String)SyncCommand.deserialize(reader);
+		final String type = (String)SyncCommand.deserialize(inputStream);
 		if (type != null) {
 
 			final Class clazz = typeMap.get(type);
@@ -121,8 +129,8 @@ public abstract class Message<T> {
 
 					final Message msg = (Message)clazz.newInstance();
 
-					msg.setId((String)SyncCommand.deserialize(reader));
-					msg.deserializeFrom(reader);
+					msg.setId((String)SyncCommand.deserialize(inputStream));
+					msg.deserializeFrom(inputStream);
 
 					return msg;
 

@@ -50,7 +50,7 @@ public class CloudService extends Thread implements RunnableService {
 	public static final int LIVE_PACKET_COUNT = 200;
 	public static final long DEFAULT_TIMEOUT  = 2000;
 
-	public static final boolean DEBUG         = true;
+	public static final boolean DEBUG         = false;
 	public static final String STREAM_CIPHER  = "RC4";
 
 	private final static int DefaultTcpPort   = 54555;

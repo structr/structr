@@ -19,8 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -67,30 +67,30 @@ public abstract class DataContainer extends Message {
 	}
 
 	@Override
-	protected void deserializeFrom(Reader reader) throws IOException {
+	protected void deserializeFrom(InputStream inputStream) throws IOException {
 
-		this.sequenceNumber = (Integer)SyncCommand.deserialize(reader);
-		final int num       = (Integer)SyncCommand.deserialize(reader);
+		this.sequenceNumber = (Integer)SyncCommand.deserialize(inputStream);
+		final int num       = (Integer)SyncCommand.deserialize(inputStream);
 
 		for (int i=0; i<num; i++) {
 
-			final String key   = (String)SyncCommand.deserialize(reader);
-			final Object value = SyncCommand.deserialize(reader);
+			final String key   = (String)SyncCommand.deserialize(inputStream);
+			final Object value = SyncCommand.deserialize(inputStream);
 
 			properties.put(key, value);
 		}
 	}
 
 	@Override
-	protected void serializeTo(Writer writer) throws IOException {
+	protected void serializeTo(OutputStream outputStream) throws IOException {
 
-		SyncCommand.serialize(writer, sequenceNumber);
-		SyncCommand.serialize(writer, properties.size());
+		SyncCommand.serialize(outputStream, sequenceNumber);
+		SyncCommand.serialize(outputStream, properties.size());
 
 		for (final Entry<String, Object> entry : properties.entrySet()) {
 
-			SyncCommand.serialize(writer, entry.getKey());
-			SyncCommand.serialize(writer, entry.getValue());
+			SyncCommand.serialize(outputStream, entry.getKey());
+			SyncCommand.serialize(outputStream, entry.getValue());
 		}
 	}
 }

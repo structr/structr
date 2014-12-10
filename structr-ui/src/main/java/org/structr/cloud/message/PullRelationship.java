@@ -19,8 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
@@ -74,20 +74,20 @@ public class PullRelationship extends RelationshipDataContainer {
 	}
 
 	@Override
-	protected void deserializeFrom(Reader reader) throws IOException {
+	protected void deserializeFrom(InputStream inputStream) throws IOException {
 
-		this.key       = (String)SyncCommand.deserialize(reader);
-		this.nodeIndex = (Integer)SyncCommand.deserialize(reader);
+		this.key       = (String)SyncCommand.deserialize(inputStream);
+		this.nodeIndex = (Integer)SyncCommand.deserialize(inputStream);
 
-		super.deserializeFrom(reader);
+		super.deserializeFrom(inputStream);
 	}
 
 	@Override
-	protected void serializeTo(Writer writer) throws IOException {
+	protected void serializeTo(OutputStream outputStream) throws IOException {
 
-		SyncCommand.serialize(writer, key);
-		SyncCommand.serialize(writer, nodeIndex);
+		SyncCommand.serialize(outputStream, key);
+		SyncCommand.serialize(outputStream, nodeIndex);
 
-		super.serializeTo(writer);
+		super.serializeTo(outputStream);
 	}
 }

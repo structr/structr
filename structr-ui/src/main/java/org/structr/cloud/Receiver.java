@@ -18,7 +18,7 @@
  */
 package org.structr.cloud;
 
-import java.io.Reader;
+import java.io.InputStream;
 import org.structr.cloud.message.Message;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -31,14 +31,14 @@ public class Receiver extends Thread {
 
 	private final Queue<Message> inputQueue = new ArrayBlockingQueue<>(10000);
 	private CloudConnection connection      = null;
-	private Reader reader                   = null;
+	private InputStream inputStream         = null;
 
-	public Receiver(final CloudConnection connection, final Reader reader) {
+	public Receiver(final CloudConnection connection, final InputStream inputStream) {
 
 		super("Receiver of " + connection.getName());
 		this.setDaemon(true);
 
-		this.reader = reader;
+		this.inputStream = inputStream;
 		this.connection  = connection;
 	}
 
@@ -49,7 +49,7 @@ public class Receiver extends Thread {
 
 			try {
 
-				final Message message = Message.deserialize(reader);
+				final Message message = Message.deserialize(inputStream);
 				if (message != null) {
 
 					inputQueue.add(message);

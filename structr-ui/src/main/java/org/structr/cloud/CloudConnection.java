@@ -20,11 +20,7 @@ package org.structr.cloud;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.util.LinkedHashMap;
@@ -35,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
@@ -85,21 +83,21 @@ public class CloudConnection<T> extends Thread {
 
 	// private fields
 	private final ConfigurationProvider config = Services.getInstance().getConfigurationProvider();
-	private final Set<String> localMessageIds = new LinkedHashSet<>();
-	private App app = StructrApp.getInstance();
-	private long transmissionAbortTime = 0L;
-	private ExportContext context = null;
-	private boolean authenticated = false;
-	private String errorMessage = null;
-	private int errorCode = 0;
-	private String password = null;
-	private Cipher encrypter = null;
-	private Cipher decrypter = null;
-	private Receiver receiver = null;
-	private Sender sender = null;
-	private Socket socket = null;
-	private T payload = null;
-	private Tx tx = null;
+	private final Set<String> localMessageIds  = new LinkedHashSet<>();
+	private App app                            = StructrApp.getInstance();
+	private long transmissionAbortTime         = 0L;
+	private ExportContext context              = null;
+	private boolean authenticated              = false;
+	private String errorMessage                = null;
+	private int errorCode                      = 0;
+	private String password                    = null;
+	private Cipher encrypter                   = null;
+	private Cipher decrypter                   = null;
+	private Receiver receiver                  = null;
+	private Sender sender                      = null;
+	private Socket socket                      = null;
+ 	private T payload                          = null;
+ 	private Tx tx                              = null;
 
 	public CloudConnection(final Socket socket, final ExportContext context) {
 
@@ -129,14 +127,8 @@ public class CloudConnection<T> extends Thread {
 				// password hash afterwards.
 				setEncryptionKey("StructrInitialEncryptionKey", 128);
 
-//				sender = new Sender(this, new OutputStreamWriter(new GZIPOutputStream(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter), true)));
-//				receiver = new Receiver(this, new InputStreamReader(new GZIPInputStream(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
-
-//				sender = new Sender(this, new OutputStreamWriter(new GZIPOutputStream(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter), true)));
-//				receiver = new Receiver(this, new InputStreamReader(new GZIPInputStream(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
-
-				sender = new Sender(this, new BufferedWriter(new OutputStreamWriter(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter))));
-				receiver = new Receiver(this, new BufferedReader(new InputStreamReader(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
+				sender = new Sender(this, new BufferedOutputStream(new GZIPOutputStream(new CipherOutputStream(socket.getOutputStream(), encrypter), 8192, true)));
+				receiver = new Receiver(this, new BufferedInputStream(new GZIPInputStream(new CipherInputStream(socket.getInputStream(), decrypter), 8192)));
 
 				receiver.start();
 				sender.start();

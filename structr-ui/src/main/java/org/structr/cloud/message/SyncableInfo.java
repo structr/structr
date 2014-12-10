@@ -19,8 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 import org.structr.common.Syncable;
 import org.structr.core.graph.NodeInterface;
@@ -99,23 +99,23 @@ public class SyncableInfo {
 		return lastModified;
 	}
 
-	protected void deserializeFrom(final Reader reader) throws IOException {
+	protected void deserializeFrom(final InputStream inputStream) throws IOException {
 
-		this.node         = (Boolean)SyncCommand.deserialize(reader);
-		this.id           = (String)SyncCommand.deserialize(reader);
-		this.name         = (String)SyncCommand.deserialize(reader);
-		this.type         = (String)SyncCommand.deserialize(reader);
-		this.size         = (Long)SyncCommand.deserialize(reader);
-		this.lastModified = (Date)SyncCommand.deserialize(reader);
+		this.node         = (Boolean)SyncCommand.deserialize(inputStream);
+		this.id           = (String)SyncCommand.deserialize(inputStream);
+		this.name         = (String)SyncCommand.deserialize(inputStream);
+		this.type         = (String)SyncCommand.deserialize(inputStream);
+		this.size         = (Long)SyncCommand.deserialize(inputStream);
+		this.lastModified = (Date)SyncCommand.deserialize(inputStream);
 	}
 
-	protected void serializeTo(final Writer writer) throws IOException {
+	protected void serializeTo(final OutputStream outputStream) throws IOException {
 
-		SyncCommand.serialize(writer, node);
-		SyncCommand.serialize(writer, id);
-		SyncCommand.serialize(writer, name);
-		SyncCommand.serialize(writer, type);
-		SyncCommand.serialize(writer, size);
-		SyncCommand.serialize(writer, lastModified);
+		SyncCommand.serialize(outputStream, node);
+		SyncCommand.serialize(outputStream, id);
+		SyncCommand.serialize(outputStream, name);
+		SyncCommand.serialize(outputStream, type);
+		SyncCommand.serialize(outputStream, size);
+		SyncCommand.serialize(outputStream, lastModified);
 	}
 }

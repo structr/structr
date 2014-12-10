@@ -19,8 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import javax.crypto.Cipher;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
@@ -103,18 +103,18 @@ public class AuthenticationRequest extends Message {
 	}
 
 	@Override
-	protected void deserializeFrom(Reader reader) throws IOException {
+	protected void deserializeFrom(InputStream inputStream) throws IOException {
 
-		this.userName  = (String)SyncCommand.deserialize(reader);
-		this.salt      = (String)SyncCommand.deserialize(reader);
-		this.keyLength = (Integer)SyncCommand.deserialize(reader);
+		this.userName  = (String)SyncCommand.deserialize(inputStream);
+		this.salt      = (String)SyncCommand.deserialize(inputStream);
+		this.keyLength = (Integer)SyncCommand.deserialize(inputStream);
 	}
 
 	@Override
-	protected void serializeTo(Writer writer) throws IOException {
+	protected void serializeTo(OutputStream outputStream) throws IOException {
 
-		SyncCommand.serialize(writer, userName);
-		SyncCommand.serialize(writer, salt);
-		SyncCommand.serialize(writer, keyLength);
+		SyncCommand.serialize(outputStream, userName);
+		SyncCommand.serialize(outputStream, salt);
+		SyncCommand.serialize(outputStream, keyLength);
 	}
 }

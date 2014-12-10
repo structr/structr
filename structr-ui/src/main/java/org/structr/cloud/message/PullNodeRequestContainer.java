@@ -19,8 +19,8 @@
 package org.structr.cloud.message;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.UUID;
 import org.structr.cloud.CloudConnection;
@@ -144,22 +144,22 @@ public class PullNodeRequestContainer extends Message {
 	}
 
 	@Override
-	protected void deserializeFrom(Reader reader) throws IOException {
+	protected void deserializeFrom(InputStream inputStream) throws IOException {
 
-		this.recursive  = (Boolean)SyncCommand.deserialize(reader);
-		this.rootNodeId = (String)SyncCommand.deserialize(reader);
-		this.key        = (String)SyncCommand.deserialize(reader);
-		this.numNodes   = (Integer)SyncCommand.deserialize(reader);
-		this.numRels    = (Integer)SyncCommand.deserialize(reader);
+		this.recursive  = (Boolean)SyncCommand.deserialize(inputStream);
+		this.rootNodeId = (String)SyncCommand.deserialize(inputStream);
+		this.key        = (String)SyncCommand.deserialize(inputStream);
+		this.numNodes   = (Integer)SyncCommand.deserialize(inputStream);
+		this.numRels    = (Integer)SyncCommand.deserialize(inputStream);
 	}
 
 	@Override
-	protected void serializeTo(Writer writer) throws IOException {
+	protected void serializeTo(OutputStream outputStream) throws IOException {
 
-		SyncCommand.serialize(writer, recursive);
-		SyncCommand.serialize(writer, rootNodeId);
-		SyncCommand.serialize(writer, key);
-		SyncCommand.serialize(writer, numNodes);
-		SyncCommand.serialize(writer, numRels);
+		SyncCommand.serialize(outputStream, recursive);
+		SyncCommand.serialize(outputStream, rootNodeId);
+		SyncCommand.serialize(outputStream, key);
+		SyncCommand.serialize(outputStream, numNodes);
+		SyncCommand.serialize(outputStream, numRels);
 	}
 }
