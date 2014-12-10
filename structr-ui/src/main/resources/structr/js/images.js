@@ -46,7 +46,7 @@ var _Images = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-        Structr.initPager('Image', 1, 100);
+        Structr.initPager('Image', 1, 100, 'name', 'asc');
         Structr.makePagesMenuDroppable();
     },
     resize : function() {

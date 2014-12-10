@@ -463,7 +463,7 @@ img.disabled {
     border: 1px solid #b5b5b5;
 }
 
-.props .key {
+.props td.key {
     width: 50%;
     font-weight: bold;
 }
@@ -722,7 +722,7 @@ span.id {
     cursor: pointer;
 }
 
-.page, .widget, .user, .group, .folder, .file, .image,
+.page, .widget, .user, .group, .folder, .file, #images .image, .resourceAccess,
 .ver-scrollable > .node {
     margin: 4px 0;
     padding-right: 4px;
@@ -736,7 +736,7 @@ span.id {
     margin: 4px 0 4px 11px;
 }
 
-.image {
+#images .image {
     padding: 4px 8px;
 }
 
@@ -748,7 +748,7 @@ span.id {
     margin-bottom: 12px;
 }
 
-.image {
+#images .image {
     width: 102px;
     height: 130px;
     float: left;
@@ -774,20 +774,20 @@ span.id {
             height: 200px;*/
 }
 
-.image div.wrap {
+#images .image div.wrap {
     position: absolute;
     top: 50%;
     left: 50%;
 }
 
-.image img.thumbnail {
+#images .image img.thumbnail {
     margin-top: -42px;
     margin-left: -50%;
     max-width: 100px;
     max-height: 100px;
 }
 
-.imageDetail {
+#images .imageDetail {
     max-width: 776px;
     max-height: 776px;
     margin: 0;
@@ -1113,6 +1113,11 @@ button img {
 
 #login #errorText {
     color: #c00;
+}
+
+.errorText img {
+    vertical-align: bottom;
+    margin-top: 4px;
 }
 
 #login input {
@@ -1773,7 +1778,7 @@ button.add_property {
 }
 
 /* Special highlighting for data-hash attribute in internal editor */
-.data-hash {
+.editor .data-hash {
     color: #ccc ! important;
 }
 
@@ -1949,4 +1954,124 @@ table.push {
 
 .speechToText.active img {
     color: red;
+}
+
+/**
+ * Resource Access editor
+ */
+
+#resourceAccess, #usersAndGroups {
+    border: 1px solid #999 ! important;
+    background: #fff ! important;
+    font-family: Arial, Helvetica, Sans-serif ! important;
+    font-size: 9pt;
+    position: relative;
+}
+
+#usersAndGroups {
+    overflow: auto;
+}
+
+#resourceAccessesTable {
+    display: block;
+    overflow: auto;
+    border-collapse: collapse;
+    background: #fff;
+    margin: 6px 0;
+    width: 100%;
+}
+
+#resourceAccessesTable td {
+    padding: 2px 8px 2px 0;
+}
+
+#resourceAccessesTable .node {
+    border: none;
+}
+
+#resourceAccessesTable .node:hover {
+    background-color: #f5f5f5 ! important;
+}
+
+#resourceAccessesTable td, #resourceAccessesTable th {
+    padding: 4px;
+    border: 1px solid #b5b5b5;
+    text-align: left;
+    vertical-align: top;
+    height: 1em;
+}
+
+#resourceAccessesTable tr:nth-child(odd) {
+    background: #f7f7f7 ! important;
+}
+
+#resourceAccessesTable tr:nth-child(even) {
+    background: #fff ! important;
+}
+
+#resourceAccessesTable th {
+    background: #f0f0f0;
+    color: #333;
+    vertical-align: top;
+    min-width: 60px;
+}
+
+#securityTabs {
+    margin: 12px;
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: Arial, Helvetica, Sans-serif;
+}
+
+#securityTabs li.ui-corner-top {
+    font-weight: bold;
+    border-top: 1px solid #999;
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
+    background-color: #e9e9e9;
+    background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f7f7f7)) no-repeat;
+    background: -moz-linear-gradient(90deg, #e3e3e3, #f7f7f7) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#e3e3e3', GradientType=0);
+    /*cursor: pointer ! important;*/
+}
+
+#securityTabs .ui-state-default a,
+#securityTabs .ui-state-default a:visited {
+    color: #505050 ! important;
+}
+
+#securityTabs li.ui-state-active {
+    color: #333 ! important;
+    background-color: #81ce25;
+    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
+    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
+}
+
+#securityTabs li.ui-state-active a,
+#securityTabs li.ui-state-active a:visited {
+    color: #333 ! important;
+}
+
+#securityTabsMenu {
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+th.center {
+    text-align: center ! important;
+}
+
+input.bitmask {
+    text-align: right;
+}
+
+#resource-signature {
+    border: 1px solid #a5a5a5;
+    border-radius: 3px;
+    height: 19px;
+    padding: 2px 4px;
+    margin: 0 4px;
 }

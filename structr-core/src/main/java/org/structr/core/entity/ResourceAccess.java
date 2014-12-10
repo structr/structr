@@ -32,6 +32,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Access;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -75,17 +76,18 @@ public class ResourceAccess extends AbstractNode {
 	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<>();
 	private static final Logger logger                          = Logger.getLogger(ResourceAccess.class.getName());
 
-	public static final Property<String>               signature      = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).indexed();
-	public static final Property<Long>                 flags          = new LongProperty("flags").indexed();
-	public static final Property<Integer>              position       = new IntProperty("position").indexed();
-	public static final Property<List<PropertyAccess>> propertyAccess = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
+	public static final Property<String>               signature          = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).indexed();
+	public static final Property<Long>                 flags              = new LongProperty("flags").indexed();
+	public static final Property<Integer>              position           = new IntProperty("position").indexed();
+	public static final Property<List<PropertyAccess>> propertyAccess     = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
+	public static final Property<Boolean>              isResourceAccess   = new BooleanProperty("isResourceAccess", true).readOnly();
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
-		signature, flags, position
+		signature, flags, position, isResourceAccess
 	);
 
 	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
-		signature, flags
+		signature, flags, isResourceAccess
 	);
 
 	// non-static members

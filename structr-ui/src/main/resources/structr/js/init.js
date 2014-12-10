@@ -32,8 +32,7 @@ var editorCursor;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
-var page = {};
-var pageSize = {};
+var page = {}, pageSize = {}, sortKey = {}, sortOrder = {}; 
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
@@ -162,11 +161,11 @@ $(function() {
         Structr.modules['images'].onload();
     });
 
-    $('#usersAndGroups_').on('click', function(e) {
+    $('#security_').on('click', function(e) {
         e.stopPropagation();
         Structr.clearMain();
-        Structr.activateMenuEntry('usersAndGroups');
-        Structr.modules['usersAndGroups'].onload();
+        Structr.activateMenuEntry('security');
+        Structr.modules['security'].onload();
     });
 
     $('#usernameField').keypress(function(e) {
@@ -289,9 +288,9 @@ var Structr = {
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
     },
-    ping: function() {
+    ping: function(callback) {
         if (sessionId) {
-            sendObj({command: 'PING', sessionId: sessionId});
+            sendObj({command: 'PING', sessionId: sessionId}, callback);
         }
     },
     refreshUi: function() {
@@ -842,14 +841,16 @@ var Structr = {
 
         return entity;
     },
-    initPager: function(type, p, ps) {
+    initPager: function(type, p, ps, sort, order) {
         var pagerData = localStorage.getItem(pagerDataKey + type);
         if (!pagerData) {
             page[type] = parseInt(p);
             pageSize[type] = parseInt(ps);
-            Structr.storePagerData(type, p, ps);
+            sortKey[type] = sort;
+            sortOrder[type] = order;
+            Structr.storePagerData(type, p, ps, sort, order);
         } else {
-            Structr.restorePagerData(type);
+            Structr.restorePagerData(type, p, ps, sort, order);
         }
     },
     updatePager: function(type, el) {
@@ -881,12 +882,12 @@ var Structr = {
                 pageNo.removeAttr('disabled', 'disabled').removeClass('disabled');
             }
 
-            Structr.storePagerData(type, page[type], pageSize[type]);
+            Structr.storePagerData(type, page[type], pageSize[type], sortKey[type], sortOrder[type]);
         }
     },
-    storePagerData: function(type, page, pageSize) {
-        if (type, page, pageSize) {
-            localStorage.setItem(pagerDataKey + type, page + ',' + pageSize);
+    storePagerData: function(type, page, pageSize, sort, order) {
+        if (page && pageSize && sort && order) {
+            localStorage.setItem(pagerDataKey + type, page + ',' + pageSize + ',' + sort + ',' + order);
         }
     },
     restorePagerData: function(type) {
@@ -895,7 +896,12 @@ var Structr = {
             var pagerData = pagerData.split(',');
             page[type] = parseInt(pagerData[0]);
             pageSize[type] = parseInt(pagerData[1]);
+            if (pagerData.length > 2) {
+                sortKey[type] = pagerData[2];
+                sortOrder[type] = pagerData[3];
+            }
         }
+        log(page[type], pageSize[type], sortKey[type], sortOrder[type]);
     },
     /**
      * Append a pager for the given type to the given DOM element.
@@ -907,7 +913,7 @@ var Structr = {
      * instead of the default action.
      */
     addPager: function(el, rootOnly, type, callback) {
-
+        log('addPager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
         if (!callback) {
             callback = function(entity) {
                 StructrModel.create(entity);
@@ -937,9 +943,10 @@ var Structr = {
                 $('.pageSize', pager).val(pageSize[type]);
                 $('.pageCount', pager).val(pageCount[type]);
                 $('.node', el).remove();
+                $('#resourceAccesses table tbody tr').remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
             }
         });
 
@@ -948,9 +955,10 @@ var Structr = {
                 page[type] = $(this).val();
                 $('.page', pager).val(page[type]);
                 $('.node', el).remove();
+                $('#resourceAccesses table tbody tr').remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
             }
         });
 
@@ -960,10 +968,11 @@ var Structr = {
             page[type]--;
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
+            $('#resourceAccesses table tbody tr').remove();
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
         });
 
         pageRight.on('click', function() {
@@ -971,12 +980,13 @@ var Structr = {
             page[type]++;
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
+            $('#resourceAccesses table tbody tr').remove();
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
         });
-        return Command.list(type, rootOnly, pageSize[type], page[type], sort, order, null, callback);
+        return Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
     },
     makePagesMenuDroppable: function() {
 
@@ -1031,7 +1041,7 @@ var Structr = {
         slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
-            if (l !== $(window).width()) {
+            if (Math.abs(l - $(window).width()) >= 3) {
                 wasOpen = true;
                 s.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
@@ -1059,7 +1069,7 @@ var Structr = {
         slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
-            if (l === 0) {
+            if (Math.abs(l) <= 3) {
                 wasOpen = true;
                 s.animate({left: '-=' + lsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
@@ -1183,6 +1193,25 @@ var Structr = {
         });
 
         return false;
+    },
+    ensureIsAdmin: function(el, callback) {
+        
+        Structr.ping(function() {
+
+            if (!isAdmin) {
+
+                Structr.error('You do not have sufficient permissions<br>to access this function.', function() {
+                    return;
+                });
+
+                el.append('<div class="errorText"><img src="icon/error.png"> You do not have sufficient permissions to access this function.</div>');
+            
+            } else {
+            
+                if (callback) callback();
+
+            }
+        });
     }
 };
 

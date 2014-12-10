@@ -36,6 +36,7 @@ $(document).ready(function() {
     Structr.registerModule('pages', _Pages);
     Structr.classes.push('page');
 
+    win.off('resize');
     win.resize(function() {
         _Pages.resize();
     });
@@ -50,10 +51,10 @@ var _Pages = {
     autoRefresh: [],
     init: function() {
 
-        Structr.initPager('Page', 1, 25);
-        Structr.initPager('File', 1, 25);
-        Structr.initPager('Folder', 1, 25);
-        Structr.initPager('Image', 1, 25);
+        Structr.initPager('Page', 1, 25, 'name', 'asc');
+        Structr.initPager('File', 1, 25, 'name', 'asc');
+        Structr.initPager('Folder', 1, 25, 'name', 'asc');
+        Structr.initPager('Image', 1, 25, 'name', 'asc');
 
     },
     resize: function(offsetLeft, offsetRight) {
@@ -142,7 +143,7 @@ var _Pages = {
         rsw = widgetsSlideout.width() + 12;
 
         $('#pagesTab').on('click', function() {
-            if (pagesSlideout.position().left === -lsw) {
+            if (Math.abs(pagesSlideout.position().left + lsw) <= 3) {
                 Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
             } else {
@@ -151,7 +152,7 @@ var _Pages = {
         }).droppable({
             tolerance: 'touch',
             over: function(e, ui) {
-                if (pagesSlideout.position().left === -lsw) {
+                if (Math.abs(pagesSlideout.position().left + lsw) <= 3) {
                     Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
                     Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
                 } else {
@@ -161,7 +162,7 @@ var _Pages = {
         });
 
         $('#activeElementsTab').on('click', function() {
-            if (activeElementsSlideout.position().left === -lsw) {
+            if (Math.abs(activeElementsSlideout.position().left + lsw) <= 3) {
                 Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function() {
                 });
@@ -171,7 +172,7 @@ var _Pages = {
         });
 
         $('#dataBindingTab').on('click', function() {
-            if (dataBindingSlideout.position().left === -lsw) {
+            if (Math.abs(dataBindingSlideout.position().left + lsw) <= 3) {
                 Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function() {
                     _Pages.reloadDataBindingWizard();
@@ -182,7 +183,7 @@ var _Pages = {
         });
 
         $('#widgetsTab').on('click', function() {
-            if (widgetsSlideout.position().left === $(window).width()) {
+            if (Math.abs(widgetsSlideout.position().left - $(window).width()) <= 3) {
                 Structr.closeSlideOuts([paletteSlideout, componentsSlideout, elementsSlideout], activeTabRightKey);
                 Structr.openSlideOut(widgetsSlideout, this, activeTabRightKey, function() {
                     _Elements.reloadWidgets();
@@ -193,7 +194,7 @@ var _Pages = {
         });
 
         $('#paletteTab').on('click', function() {
-            if (paletteSlideout.position().left === $(window).width()) {
+            if (Math.abs(paletteSlideout.position().left - $(window).width()) <= 3) {
                 Structr.closeSlideOuts([widgetsSlideout, componentsSlideout, elementsSlideout], activeTabRightKey);
                 Structr.openSlideOut(paletteSlideout, this, activeTabRightKey, function() {
                     _Elements.reloadPalette();
@@ -204,7 +205,7 @@ var _Pages = {
         });
 
         $('#componentsTab').on('click', function() {
-            if (componentsSlideout.position().left === $(window).width()) {
+            if (Math.abs(componentsSlideout.position().left - $(window).width()) <= 3) {
                 Structr.closeSlideOuts([widgetsSlideout, paletteSlideout, elementsSlideout], activeTabRightKey);
                 Structr.openSlideOut(componentsSlideout, this, activeTabRightKey, function() {
                     _Elements.reloadComponents();
@@ -215,7 +216,7 @@ var _Pages = {
         }).droppable({
             tolerance: 'touch',
             over: function(e, ui) {
-                if (componentsSlideout.position().left === $(window).width()) {
+                if (Math.abs(componentsSlideout.position().left - $(window).width()) <= 3) {
                     Structr.closeSlideOuts([widgetsSlideout, paletteSlideout, elementsSlideout], activeTabRightKey);
                     Structr.openSlideOut(componentsSlideout, this, activeTabRightKey, function() {
                         _Elements.reloadComponents();
@@ -225,7 +226,7 @@ var _Pages = {
         });
 
         $('#elementsTab').on('click', function() {
-            if (elementsSlideout.position().left === $(window).width()) {
+            if (Math.abs(elementsSlideout.position().left - $(window).width()) <= 3) {
                 $(this).addClass('active');
                 Structr.closeSlideOuts([widgetsSlideout, paletteSlideout, componentsSlideout], activeTabRightKey);
                 Structr.openSlideOut(elementsSlideout, this, activeTabRightKey, function() {

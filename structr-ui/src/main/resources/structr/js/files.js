@@ -51,8 +51,8 @@ var _Files = {
 
         log('_Files.init');
 
-        Structr.initPager('File', 1, 25);
-        Structr.initPager('Folder', 1, 25);
+        Structr.initPager('File', 1, 25, 'name', 'asc');
+        Structr.initPager('Folder', 1, 25, 'name', 'asc');
 
         Structr.makePagesMenuDroppable();
 

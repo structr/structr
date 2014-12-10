@@ -57,30 +57,39 @@ var _Types = {
     pageSize: [],
     init: function() {
 
-        _Types.schemaLoading = false;
-        _Types.schemaLoaded = false;
-        _Types.schema = [];
-        _Types.keys = [];
-
-        _Types.loadSchema(function() {
-            _Types.initTabs();
+        $(window).off('resize');
+        $(window).on('resize', function() {
+            _Types.resize();
         });
+        _Types.resize();
 
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
 
-        $(document).keyup(function(e) {
-            if (e.keyCode === 27) {
-                dialogCancelButton.click();
-            }
-        });
+        Structr.ensureIsAdmin($('#resourceTabs'), function() {
 
-        $(window).on('resize', function() {
-            _Crud.resize();
+            _Types.schemaLoading = false;
+            _Types.schemaLoaded = false;
+            _Types.schema = [];
+            _Types.keys = [];
+
+            _Types.loadSchema(function() {
+                _Types.initTabs();
+            });
+
+
+            $(document).keyup(function(e) {
+                if (e.keyCode === 27) {
+                    dialogCancelButton.click();
+                }
+            });
+
         });
 
     },
     onload: function() {
+        
         _Types.init();
+        
         $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Types');
     },
     initTabs: function() {
@@ -102,7 +111,7 @@ var _Types = {
         var t = $('a[href="#' + _Types.type + '"]');
         t.click();
 
-        _Crud.resize();
+        _Types.resize();
 
 
     },
@@ -249,11 +258,6 @@ var _Types = {
         var typeNode = $('#' + type);
         typeNode.append('<div>Type: ' + res.type + '</div>');
         typeNode.append('<div>URL: <a target="_blank" href="' + rootUrl + res.url.substring(1) + '">' + res.url + '</a></div>');
-        typeNode.children('.add_property').on('click', function(e) {
-            console.log('clicked on add property, type', type);
-            _Types.propertyDialog(type);
-            return false;
-        });
         typeNode.append('<table class="props"><thead><tr>\n\
 <th>Key</th>\n\
 <th>JSON name</th>\n\
@@ -298,7 +302,7 @@ var _Types = {
             }
         }
 
-        _Crud.resize();
+        _Types.resize();
 
     },
     addGrants: function(type) {
@@ -324,4 +328,45 @@ var _Types = {
             _Types.type = val;
         }
     },
+    resize: function() {
+        var w = $(window).width();
+        var h = $(window).height();
+
+        var ml = 0;
+        var mt = 24;
+
+        // Calculate dimensions of dialog
+        var dw = Math.min(900, w - ml);
+        var dh = Math.min(600, h - mt);
+        //            var dw = (w-24) + 'px';
+        //            var dh = (h-24) + 'px';
+
+        var l = parseInt((w - dw) / 2);
+        var t = parseInt((h - dh) / 2);
+
+//        $('.blockPage').css({
+//            width: dw + 'px',
+//            height: dh + 'px',
+//            top: t + 'px',
+//            left: l + 'px'
+//        });
+
+        var bw = (dw - 28) + 'px';
+        var bh = (dh - 106) + 'px';
+
+        $('#dialogBox .dialogTextWrapper').css({
+            width: bw,
+            height: bh
+        });
+
+        $('#resourceTabs .resourceBox table').css({
+            height: h - ($('#resourceTabsMenu').height() + 154) + 'px',
+            width:  w - 59 + 'px'
+        });
+
+        $('.searchResults').css({
+            height: h - 103 + 'px'
+        });
+
+    }
 };

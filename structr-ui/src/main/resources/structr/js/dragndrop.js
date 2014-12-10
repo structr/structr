@@ -226,6 +226,8 @@ var _Dragndrop = {
         if (!source && tag) {
 
             if (tag.indexOf('.') !== -1) {
+                
+                log(tag, source, target, related);
 
                 Command.get(target.id, function(target) {
                     var firstContentId = target.children[0].id;
@@ -234,16 +236,16 @@ var _Dragndrop = {
                         log('tag, key, subkey', tag, key, related.subKey)
                         if (related.isCollection) {
                             Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
-                            Command.setProperty(target.id, 'dataKey', key);
+                            Command.setProperty(firstContentId, 'dataKey', key);
                             $('#dataKey_').val(key);
                         } else {
                             Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}');
-                            Command.setProperty(target.id, 'dataKey', null);
+                            Command.setProperty(firstContentId, 'dataKey', null);
                             $('#dataKey_').val('');
                         }
                     } else {
                         Command.setProperty(firstContentId, 'content', '${' + tag + '}');
-                        Command.setProperty(target.id, 'dataKey', null);
+                        Command.setProperty(firstContentId, 'dataKey', null);
                         $('#dataKey_').val('');
                     }
                 });

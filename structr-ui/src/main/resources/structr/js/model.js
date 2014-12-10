@@ -66,6 +66,10 @@ var StructrModel = {
 
             obj = new StructrContent(data);
 
+        } else if (data.isResourceAccess) {
+
+            obj = new StructrResourceAccess(data);
+
         } else if (data.isGroup) {
 
             obj = new StructrGroup(data);
@@ -121,6 +125,11 @@ var StructrModel = {
      * Append and check expand status
      */
     append: function(obj, refId) {
+
+        if (obj.content) {
+            // only show the first 40 characters for content elements
+            obj.content = obj.content.substring(0, 40);
+        }
 
         var refNode = refId ? Structr.node(refId) : undefined;
 
@@ -633,7 +642,7 @@ StructrUser.prototype.remove = function() {
         userEl.remove();
     }
 
-    _UsersAndGroups.appendUserElement(this);
+    _Security.appendUserElement(this);
 }
 
 StructrUser.prototype.append = function() {
@@ -645,7 +654,7 @@ StructrUser.prototype.append = function() {
             group.members.push(user.id);
         }
     }
-    StructrModel.expand(_UsersAndGroups.appendUserElement(this, group), this);
+    StructrModel.expand(_Security.appendUserElement(this, group), this);
 }
 
 /**************************************
@@ -668,7 +677,30 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 }
 
 StructrGroup.prototype.append = function(refNode) {
-    StructrModel.expand(_UsersAndGroups.appendGroupElement(this, refNode), this);
+    StructrModel.expand(_Security.appendGroupElement(this, refNode), this);
+}
+
+/**************************************
+ * Structr ResourceAccess
+ **************************************/
+
+function StructrResourceAccess(data) {
+    var self = this;
+    $.each(Object.keys(data), function(i, key) {
+        self[key] = data[key];
+    });
+}
+
+StructrResourceAccess.prototype.save = function() {
+    StructrModel.save(this.id);
+}
+
+StructrResourceAccess.prototype.setProperty = function(key, value, recursive, callback) {
+    Command.setProperty(this.id, key, value, recursive, callback);
+}
+
+StructrResourceAccess.prototype.append = function(refNode) {
+    StructrModel.expand(_Security.appendResourceAccessElement(this, refNode), this);
 }
 
 /**************************************

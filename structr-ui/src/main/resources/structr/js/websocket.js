@@ -146,6 +146,9 @@ function wsConnect() {
                     Structr.refreshUi();
                 }
 
+                StructrModel.callCallback(data.callback, data.data[data.data['key']]);
+                StructrModel.clearCallback(data.callback);
+
             } else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
                 localStorage.removeItem(userKey);
@@ -153,6 +156,7 @@ function wsConnect() {
                 Structr.login();
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
+            
                 log('Error code: ' + code, message);
 
                 if (code === 403) {
@@ -375,7 +379,7 @@ function wsConnect() {
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 
                 $(result).each(function(i, entity) {
-                    if (command === 'CREATE' && (entity.isPage || entity.isFolder || entity.isFile || entity.isImage || entity.isVideo || entity.isUser || entity.isGroup || entity.isWidget)) {
+                    if (command === 'CREATE' && (entity.isPage || entity.isFolder || entity.isFile || entity.isImage || entity.isVideo || entity.isUser || entity.isGroup || entity.isWidget || entity.isResourceAccess)) {
                         StructrModel.create(entity);
                     } else {
 
@@ -464,7 +468,6 @@ function sendObj(obj, callback) {
     if (callback) {
         obj.callback = uuid.v4();
         StructrModel.callbacks[obj.callback] = callback;
-        log('stored callback', obj.callback, callback);
     }
 
     text = $.toJSON(obj);
