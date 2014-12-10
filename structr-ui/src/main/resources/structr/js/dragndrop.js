@@ -295,7 +295,7 @@ var _Dragndrop = {
                 nodeData.childContent = 'Initial text for ' + tag;
             }
         }
-        if (target.isContent || target.type === 'Comment') {
+        if (target.type !== 'Template' && (target.isContent || target.type === 'Comment')) {
             if (tag === 'content' || tag === 'comment') {
                 log('content element dropped on content or comment, doing nothing');
                 return false;
