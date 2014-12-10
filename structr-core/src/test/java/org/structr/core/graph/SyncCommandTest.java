@@ -21,9 +21,6 @@ package org.structr.core.graph;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.Arrays;
 import org.structr.common.StructrTest;
 import org.structr.core.entity.TestOne;
@@ -165,7 +162,7 @@ public class SyncCommandTest extends StructrTest {
 		}
 	}
 
-	public void testSerializer() {
+	public void testSerializer() throws IOException {
 
 		// 00, 01: byte[], byte
 		assertEquals(BYTE_STRING, serialize(BYTE_TEST));
@@ -231,20 +228,19 @@ public class SyncCommandTest extends StructrTest {
 	}
 
 
-	private String serialize(final Object obj) {
+	private String serialize(final Object obj) throws IOException {
 
-		final StringWriter buffer = new StringWriter();
-		final PrintWriter writer  = new PrintWriter(buffer);
+		final ByteArrayOutputStream os     = new ByteArrayOutputStream();
 
-		SyncCommand.serialize(writer, obj);
+		SyncCommand.serialize(os, obj);
 
-		return buffer.toString();
+		return os.toString("utf-8");
 	}
 
 	private Object deserialize(final String source) {
 
 		try {
-			return SyncCommand.deserialize(new StringReader(source));
+			return SyncCommand.deserialize(new ByteArrayInputStream(source.getBytes("utf-8")));
 
 		} catch (IOException ioex) {
 			throw new IllegalStateException("WTF?");
