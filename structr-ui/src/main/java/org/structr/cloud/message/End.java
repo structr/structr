@@ -18,6 +18,8 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
@@ -50,7 +52,12 @@ public class End extends Message {
 	}
 
 	@Override
-	public Object getPayload() {
-		return null;
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
+		// no additional data
+	}
+
+	@Override
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
+		// no additional data
 	}
 }

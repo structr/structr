@@ -79,9 +79,4 @@ public class PullNode extends NodeDataContainer {
 	@Override
 	public void afterSend(CloudConnection conn) {
 	}
-
-	@Override
-	public Object getPayload() {
-		return null;
-	}
 }
