@@ -35,6 +35,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,8 +50,9 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 
 	//~--- fields ---------------------------------------------------------
 
-	protected boolean createIfNotExisting = false;
-	protected PropertyKey propertyKey     = null;
+	protected RelationProperty<S> relationProperty = null;
+	protected boolean createIfNotExisting          = false;
+	protected PropertyKey propertyKey              = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -60,7 +62,10 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 		this.propertyKey         = propertyKey;
 	}
 
-	//~--- methods --------------------------------------------------------
+	@Override
+	public void setRelationProperty(RelationProperty<S> relationProperty) {
+		this.relationProperty = relationProperty;
+	}
 
 	@Override
 	public T deserialize(final SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
@@ -68,10 +73,10 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 		// TODO: check why this doesn't work for setProperty with plain uuid..
 
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		Result<T> result = Result.EMPTY_RESULT;
-		
-		
+
+
 		// create and fill input map with source object
 		Map<String, Object> sourceMap = new LinkedHashMap<>();
 		sourceMap.put(propertyKey.jsonName(), source);
@@ -79,7 +84,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 		// try to convert input type to java type in order to create object correctly
 		PropertyMap convertedSourceMap = PropertyMap.inputTypeToJavaType(securityContext, type, sourceMap);
 		Object convertedSource = convertedSourceMap.get(propertyKey);
-		
+
 		if (convertedSource != null) {
 
 			// FIXME: use uuid only here?
@@ -87,24 +92,24 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 
 				Object value = ((JsonInput)convertedSource).getAttributes().get(propertyKey.jsonName());
 				if (value != null) {
-					
+
 					result = app.nodeQuery(type).and(propertyKey, value.toString()).getResult();
 				}
 
 			} else if (convertedSource instanceof GraphObject) {
-				
+
 				GraphObject obj = (GraphObject)convertedSource;
 				if (propertyKey != null) {
-					
+
 					result = app.nodeQuery(type).and(propertyKey, obj.getProperty(propertyKey)).getResult();
-					
+
 				} else {
-					
+
 					// fetch property key for "id", may be different for AbstractNode and AbstractRelationship!
 					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), GraphObject.id.dbName());
 					result = new Result(app.get(obj.getProperty(idProperty)), false);
 				}
-				
+
 			} else {
 
 				result = app.nodeQuery(type).and(propertyKey, convertedSource).getResult();
@@ -128,9 +133,9 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 						newNode.setProperty(propertyKey, convertedSource);
 						return newNode;
 					}
-					
+
 				} else {
-						
+
 					logger.log(Level.WARNING,
 						   "Unable to create node of type {0} for property {1}",
 						   new Object[] { type.getSimpleName(),
@@ -140,7 +145,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 				break;
 
 			case 1 :
-				
+
 				T obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
@@ -158,7 +163,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 
 			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
 		}
-		
+
 		return null;
 	}
 

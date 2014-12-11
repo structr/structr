@@ -70,6 +70,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean indexedPassively                     = false;
 	protected boolean searchable                           = false;
 	protected boolean indexedWhenEmpty                     = false;
+	protected boolean unique                               = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -125,6 +126,19 @@ public abstract class Property<T> implements PropertyKey<T> {
 	 */
 	public Property<T> writeOnce() {
 		this.writeOnce = true;
+		return this;
+	}
+
+	/**
+	 * Use this method to mark a property as being unique. Please note that
+	 * using this method will not actually cause a uniqueness check, just
+	 * notify the system that this property should be treated as having a
+	 * unique value.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> unique() {
+		this.unique = true;
 		return this;
 	}
 
@@ -356,6 +370,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isIndexedWhenEmpty() {
 		return indexedWhenEmpty;
+	}
+
+	@Override
+	public boolean isUnique() {
+		return unique;
 	}
 
 	@Override

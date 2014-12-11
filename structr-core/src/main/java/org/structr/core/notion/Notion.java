@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,7 +51,7 @@ import org.structr.core.graph.NodeInterface;
 public abstract class Notion<S extends NodeInterface, T> {
 
 	private static final Logger logger = Logger.getLogger(Notion.class.getName());
-	
+
 	protected DeserializationStrategy<T, S> deserializationStrategy = null;
 	protected SerializationStrategy<S, T> serializationStrategy     = null;
 	protected SecurityContext securityContext                       = null;
@@ -60,7 +61,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 	//~--- constructors ---------------------------------------------------
 
 	public Notion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
-		
+
 		this.serializationStrategy   = serializationStrategy;
 		this.deserializationStrategy = deserializationStrategy;
 	}
@@ -75,6 +76,11 @@ public abstract class Notion<S extends NodeInterface, T> {
 	 * @return the primary key property
 	 */
 	public abstract PropertyKey<T> getPrimaryPropertyKey();
+
+	public void setRelationProperty(final RelationProperty<T> propertyKey) {
+		this.serializationStrategy.setRelationProperty(propertyKey);
+		this.deserializationStrategy.setRelationProperty(propertyKey);
+	}
 
 	public Adapter<S, T> getAdapterForGetter(final SecurityContext securityContext) {
 
@@ -126,7 +132,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 			@Override
 			public List<S> adapt(List<T> s) throws FrameworkException {
-				
+
 				if (s == null) {
 					return Collections.EMPTY_LIST;
 				}
@@ -144,7 +150,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 	}
 
 	public PropertyConverter<T, S> getEntityConverter(SecurityContext securityContext) {
-		
+
 		return new PropertyConverter<T, S>(securityContext, null) {
 
 			@Override
@@ -157,11 +163,11 @@ public abstract class Notion<S extends NodeInterface, T> {
 				return getAdapterForSetter(securityContext).adapt(source);
 			}
 		};
-		
+
 	}
 
 	public PropertyConverter<List<T>, List<S>> getCollectionConverter(SecurityContext securityContext) {
-		
+
 		return new PropertyConverter<List<T>, List<S>>(securityContext, null) {
 
 			@Override
@@ -174,9 +180,9 @@ public abstract class Notion<S extends NodeInterface, T> {
 				return getCollectionAdapterForSetter(securityContext).adapt(source);
 			}
 		};
-		
+
 	}
-	
+
 	//~--- set methods ----------------------------------------------------
 
 	public void setType(Class<S> type) {
@@ -186,20 +192,20 @@ public abstract class Notion<S extends NodeInterface, T> {
 	public void setIdProperty(String idProperty) {
 		this.idProperty = idProperty;
 	}
-	
+
 	public static <S, T> List<T> convertList(List<S> source, Adapter<S, T> adapter) {
-		
+
 		List<T> result = new LinkedList<>();
 		for(S s : source) {
-	
+
 			try {
 				result.add(adapter.adapt(s));
-				
+
 			} catch(FrameworkException fex) {
 				logger.log(Level.WARNING, "Error in iterable adapter", fex);
 			}
 	}
-		
+
 		return result;
 	}
 }

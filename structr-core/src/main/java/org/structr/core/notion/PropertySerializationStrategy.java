@@ -22,6 +22,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.property.RelationProperty;
 
 /**
  * Serializes a {@link GraphObject} using a property value.
@@ -30,10 +31,14 @@ import org.structr.core.GraphObject;
  */
 public class PropertySerializationStrategy implements SerializationStrategy {
 
-	private PropertyKey propertyKey = null;
+	private PropertyKey propertyKey    = null;
 
 	public PropertySerializationStrategy(PropertyKey propertyKey) {
 		this.propertyKey = propertyKey;
+	}
+
+	@Override
+	public void setRelationProperty(RelationProperty relationProperty) {
 	}
 
 	@Override

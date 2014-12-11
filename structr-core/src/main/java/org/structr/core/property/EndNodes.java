@@ -32,7 +32,6 @@ import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -93,6 +92,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		this.destType = relation.getTargetType();
 
 		this.notion.setType(destType);
+		this.notion.setRelationProperty(this);
 
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
@@ -260,8 +260,6 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 		if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
 
-			final App app = StructrApp.getInstance(securityContext);
-
 			if (exactMatch) {
 
 				for (NodeInterface node : searchValue) {
@@ -325,17 +323,20 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		try {
 
 			final Object source = relation.getSource().get(securityContext, obj, predicate);
-			if (source instanceof Iterable) {
+			if (source != null) {
+				
+				if (source instanceof Iterable) {
 
-				Iterable<T> nodes = (Iterable<T>)source;
-				for (final T n : nodes) {
+					Iterable<T> nodes = (Iterable<T>)source;
+					for (final T n : nodes) {
 
-					relatedNodes.add(n);
+						relatedNodes.add(n);
+					}
+
+				} else {
+
+					relatedNodes.add((T)source);
 				}
-
-			} else {
-
-				relatedNodes.add((T)source);
 			}
 
 		} catch (Throwable t) {

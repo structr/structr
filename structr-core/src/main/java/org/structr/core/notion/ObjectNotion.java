@@ -21,6 +21,7 @@ package org.structr.core.notion;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.property.RelationProperty;
 
 /**
  * Combines an {@link ObjectSerializationStrategy} and an
@@ -32,6 +33,7 @@ import org.structr.core.GraphObject;
 public class ObjectNotion extends Notion {
 
 	public ObjectNotion() {
+
 		this(
 			new ObjectSerializationStrategy(),
 			new IdDeserializationStrategy()
@@ -50,8 +52,12 @@ public class ObjectNotion extends Notion {
 		public Object serialize(SecurityContext securityContext, Class type, GraphObject source) {
 			return source;
 		}
+
+		@Override
+		public void setRelationProperty(RelationProperty relationProperty) {
+			// not interested yet..
+		}
 	}
-	
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {

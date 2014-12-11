@@ -42,6 +42,6 @@ public interface PropertyValidator<T> {
 	 * @return valid
 	 */
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer);
-	
-	public boolean requiresSynchronization();	
+
+	public boolean requiresSynchronization();
 }

@@ -49,7 +49,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -79,7 +79,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public static final Property<String>  sourceJsonName      = new StringProperty("sourceJsonName");
 	public static final Property<String>  targetJsonName      = new StringProperty("targetJsonName");
 	public static final Property<String>  extendsClass        = new StringProperty("extendsClass").indexed();
-	public static final Property<Integer> cascadingDeleteFlag = new IntProperty("cascadingDeleteFlag");
+	public static final Property<Long>    cascadingDeleteFlag = new LongProperty("cascadingDeleteFlag");
 
 
 	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
@@ -461,19 +461,19 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		SchemaHelper.formatValidators(src, validators);
 		SchemaHelper.formatSaveActions(src, actions);
 
-		Integer cascadingDelete = getProperty(cascadingDeleteFlag);
+		Long cascadingDelete = getProperty(cascadingDeleteFlag);
 
 		if (cascadingDelete != null) {
-		
+
 			src.append("\n\t@Override\n");
 			src.append("\tpublic int getCascadingDeleteFlag() {\n");
-			
-			switch (cascadingDelete) {
-				
+
+			switch (cascadingDelete.intValue()) {
+
 				case Relation.ALWAYS :
 					src.append("\t\treturn Relation.ALWAYS;\n");
 					break;
-					
+
 				case Relation.CONSTRAINT_BASED :
 					src.append("\t\treturn Relation.CONSTRAINT_BASED;\n");
 					break;
@@ -485,18 +485,18 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				case Relation.TARGET_TO_SOURCE :
 					src.append("\t\treturn Relation.TARGET_TO_SOURCE;\n");
 					break;
-					
+
 				case Relation.NONE :
 
 				default :
 					src.append("\t\treturn Relation.NONE;\n");
-					
+
 			}
 
 			src.append("\t}\n\n");
-			
+
 		}
-		
+
 		src.append("}\n");
 
 		return src.toString();

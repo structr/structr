@@ -16,22 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.notion;
+package org.structr.common.error;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.property.RelationProperty;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import org.structr.core.property.PropertyKey;
 
 /**
- * Defines a strategy for serializing a {@link GraphObject} into an output
- * object.
+ * Indicates that a property value may not be null.
  *
  * @author Christian Morgner
  */
-public interface SerializationStrategy<S extends GraphObject, T> {
+public class AmbiguousRelationToken extends SemanticErrorToken {
 
-	public T serialize(SecurityContext securityContext, Class<S> type, S source) throws FrameworkException;
+	public AmbiguousRelationToken(PropertyKey propertyKey) {
+		super(propertyKey);
+	}
 
-	public void setRelationProperty(final RelationProperty<T> parentProperty);
+	@Override
+	public JsonElement getContent() {
+		return new JsonPrimitive(getErrorToken());
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "ambiguous_relation";
+	}
 }

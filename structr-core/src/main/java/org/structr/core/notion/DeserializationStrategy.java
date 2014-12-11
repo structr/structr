@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.RelationProperty;
 
 /**
  * Defines a strategy for deserializing a {@link GraphObject} from an input
@@ -31,5 +32,8 @@ import org.structr.core.graph.NodeInterface;
  * @param <T>
  */
 public interface DeserializationStrategy<S, T extends NodeInterface> {
+
 	public T deserialize(final SecurityContext securityContext, Class<T> type, S source) throws FrameworkException;
+
+	public void setRelationProperty(final RelationProperty<S> parentProperty);
 }

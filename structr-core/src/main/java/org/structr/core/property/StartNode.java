@@ -28,7 +28,6 @@ import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -97,6 +96,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 		// configure notion
 		this.notion.setType(destType);
+		this.notion.setRelationProperty(this);
 
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
@@ -233,8 +233,6 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 		if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
 
-			final App app = StructrApp.getInstance(securityContext);
-
 			if (exactMatch) {
 
 				switch (occur) {
@@ -291,17 +289,20 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 		try {
 
 			final Object target = relation.getTarget().get(securityContext, obj, predicate);
-			if (target instanceof Iterable) {
+			if (target != null) {
+				
+				if (target instanceof Iterable) {
 
-				Iterable<T> nodes = (Iterable<T>)target;
-				for (final T n : nodes) {
+					Iterable<T> nodes = (Iterable<T>)target;
+					for (final T n : nodes) {
 
-					relatedNodes.add(n);
+						relatedNodes.add(n);
+					}
+
+				} else {
+
+					relatedNodes.add((T)target);
 				}
-
-			} else {
-
-				relatedNodes.add((T)target);
 			}
 
 		} catch (Throwable t) {
