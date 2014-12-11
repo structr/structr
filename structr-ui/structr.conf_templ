@@ -52,7 +52,7 @@ application.session.timeout = 1800
 # bypassing Structr's security measures.               #
 #                                                      #
 ########################################################
-neo4j.server.host = localhost
+neo4j.server.host = 0.0.0.0
 neo4j.server.port = 7474
 #
 #
