@@ -67,8 +67,7 @@ tmp.path = /tmp
 configuration.provider = org.structr.module.JarConfigurationProvider
 #
 # Configure services to automatically run at start-up
-#configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService Neo4jService
-configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService
+configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService Neo4jService
 #
 # Support migration from 0.8.x and earlier versions
 #NodeService.migration = true
