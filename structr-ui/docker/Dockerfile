@@ -25,7 +25,7 @@ RUN wget "http://oss.sonatype.org/service/local/artifact/maven/content?r=snapsho
 # Install Structr Debian package
 RUN	dpkg -i structr-ui-1.1-*.deb
 
-# Expose ports 8082 (http) and 8021 (ftp) from the container to the host (run container with -P to expose all ports to the host)
+# Expose ports 7474 (Neo4j http), 8082 (Structr http) and 8021 (Structr ftp) from the container to the host (run container with -P to expose all ports to the host)
 EXPOSE 7474 8021 8082
 
 # Set start command
