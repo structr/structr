@@ -163,10 +163,10 @@ var _Security = {
         if (replaceElement) {
             replaceElement.replaceWith(trHtml);
         } else {
-            $('table', resourceAccesses).append(trHtml);
+            $('#resourceAccessesTable').append(trHtml);
         }
 
-        var tr = $('tr#id_' + resourceAccess.id);
+        var tr = $('#resourceAccessesTable tr#id_' + resourceAccess.id);
 
         tr.append('<td><b title="' + resourceAccess.signature + '" class="name_">' + resourceAccess.signature + '</b></td>');
 
@@ -223,7 +223,7 @@ var _Security = {
     
         var div = Structr.node(resourceAccess.id);
         
-        $('#id_' + resourceAccess.id + ' input[type=checkbox].resource-access-flag').on('change', function() {
+        $('#resourceAccessesTable #id_' + resourceAccess.id + ' input[type=checkbox].resource-access-flag').on('change', function() {
             var inp = $(this);
             var tr = inp.closest('tr');
             var id = tr.attr('id').substring(3);
@@ -401,7 +401,7 @@ var _Security = {
         var l = parseInt((w - dw) / 2);
         var t = parseInt((h - dh) / 2);
 
-        $('#securityTabs #resourceAccess table').css({
+        $('#securityTabs #resourceAccess #resourceAccessesTable').css({
             height: h - ($('#securityTabsMenu').height() + 177) + 'px',
             width:  w - 59 + 'px'
         });
