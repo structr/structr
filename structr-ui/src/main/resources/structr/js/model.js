@@ -624,7 +624,7 @@ StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 StructrUser.prototype.remove = function() {
     var user = this;
 
-    var group = StructrModel.obj(user.groups[0]);
+    var group = user.groups[0];
     var groupEl = Structr.node(group.id);
 
     user.groups = removeFromArray(user.groups, group);
@@ -632,7 +632,9 @@ StructrUser.prototype.remove = function() {
     group.members = removeFromArray(group.members, user);
     if (!group.members.length) {
         _Entities.removeExpandIcon(groupEl);
-        enable(groupEl.children('.delete_icon')[0]);
+        if (groupEl && groupEl.length) {
+            enable(groupEl.children('.delete_icon')[0]);
+        }
     }
 
     var userEl = Structr.node(user.id);
@@ -650,7 +652,7 @@ StructrUser.prototype.append = function() {
     //console.log(user.groups);
     if (user.groups && user.groups.length) {
         var group = StructrModel.obj(user.groups[0]);
-        if (group) {
+        if (group && group.members) {
             group.members.push(user.id);
         }
     }
