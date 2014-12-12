@@ -1777,9 +1777,10 @@ button.add_property {
     margin-top: 48px ! important;
 }
 
-/* Special highlighting for data-hash attribute in internal editor */
-.editor .data-hash {
+/* Special highlighting for data-structr-hash attribute in internal editor */
+.editor .data-structr-hash {
     color: #ccc ! important;
+    /*display: none;*/
 }
 
 #queries > div, #filters > div {

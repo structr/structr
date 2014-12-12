@@ -521,6 +521,9 @@ public class Importer {
 					res = downloadFile(downloadAddress, originalUrl);
 
 				}
+				
+				// Remove data-structr-hash attribute
+				node.removeAttr(DOMNode.dataHashProperty.dbName());
 
 			}
 
