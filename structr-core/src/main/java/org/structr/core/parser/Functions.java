@@ -2695,6 +2695,56 @@ public class Functions {
 
 					switch (sources.length) {
 
+						case 13: // sixth (key,value) tuple
+
+							final PropertyKey key6 = config.getPropertyKeyForJSONName(type, sources[11].toString());
+							if (key6 != null) {
+
+								final PropertyConverter inputConverter = key6.inputConverter(securityContext);
+								Object value                           = sources[12].toString();
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								propertyMap.put(key6, value);
+
+							}
+
+						case 11: // fifth (key,value) tuple
+
+							final PropertyKey key5 = config.getPropertyKeyForJSONName(type, sources[9].toString());
+							if (key5 != null) {
+
+								final PropertyConverter inputConverter = key5.inputConverter(securityContext);
+								Object value                           = sources[10].toString();
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								propertyMap.put(key5, value);
+
+							}
+
+						case 9: // fourth (key,value) tuple
+
+							final PropertyKey key4 = config.getPropertyKeyForJSONName(type, sources[7].toString());
+							if (key4 != null) {
+
+								final PropertyConverter inputConverter = key4.inputConverter(securityContext);
+								Object value                           = sources[8].toString();
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								propertyMap.put(key4, value);
+							}
+
 						case 7: // third (key,value) tuple
 
 							final PropertyKey key3 = config.getPropertyKeyForJSONName(type, sources[5].toString());
@@ -2743,6 +2793,9 @@ public class Functions {
 								propertyMap.put(key1, value);
 							}
 							break;
+
+						default:
+							return "Invalid number of parameters: " + sources.length + ", create() accepts 1-6 key-value pairs.";
 					}
 
 					if (type != null) {

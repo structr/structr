@@ -154,6 +154,10 @@ public class CloudConnection<T> extends Thread {
 				final Message request = receiver.receive();
 				if (request != null) {
 
+					if (CloudService.DEBUG) {
+						System.out.println("        RECEIVED " + request);
+					}
+
 					// inform sender that a message has arrived
 					sender.messageReceived();
 
@@ -167,10 +171,6 @@ public class CloudConnection<T> extends Thread {
 					} else {
 
 						request.onRequest(this, context);
-					}
-
-					if (CloudService.DEBUG) {
-						System.out.println("        => " + request);
 					}
 				}
 
@@ -193,11 +193,11 @@ public class CloudConnection<T> extends Thread {
 
 	public void send(final Message message) throws IOException, FrameworkException {
 
-		sender.send(message);
-
 		if (CloudService.DEBUG) {
-			System.out.println(message);
+			System.out.println("        SEND " + message);
 		}
+
+		sender.send(message);
 
 		localMessageIds.add(message.getId());
 	}
@@ -572,24 +572,17 @@ public class CloudConnection<T> extends Thread {
 
 		}
 
-		for (final Class<Syncable> type : types) {
-
-			Class cls;
-			try {
-				cls = Class.forName(type.getName());
-			} catch (ClassNotFoundException ex) {
-				continue;
-			}
+		for (final Class type : types) {
 
 			if (NodeInterface.class.isAssignableFrom(type)) {
 
-				for (final NodeInterface syncable : (Iterable<NodeInterface>) app.nodeQuery(cls).getAsList()) {
+				for (final NodeInterface syncable : (Iterable<NodeInterface>) app.nodeQuery(type).getAsList()) {
 					syncables.add(new SyncableInfo((Syncable) syncable));
 				}
 
 			} else if (RelationshipInterface.class.isAssignableFrom(type)) {
 
-				for (final RelationshipInterface syncable : (Iterable<RelationshipInterface>) app.relationshipQuery(cls).getAsList()) {
+				for (final RelationshipInterface syncable : (Iterable<RelationshipInterface>) app.relationshipQuery(type).getAsList()) {
 					syncables.add(new SyncableInfo((Syncable) syncable));
 				}
 
@@ -597,7 +590,6 @@ public class CloudConnection<T> extends Thread {
 
 		}
 
-//
 		return syncables;
 	}
 

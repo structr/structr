@@ -95,6 +95,8 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 					webSocket.send(webSocketData, true);
 				}
 
+				tx.success();
+
 			} catch (FrameworkException fex) {
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
