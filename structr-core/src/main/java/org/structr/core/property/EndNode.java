@@ -285,7 +285,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 			final Object source = relation.getSource().get(securityContext, obj, predicate);
 			if (source != null) {
-				
+
 				if (source instanceof Iterable) {
 
 					Iterable<T> nodes = (Iterable<T>)source;
@@ -311,5 +311,31 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	@Override
 	public Relation getRelation() {
 		return relation;
+	}
+
+	@Override
+	public boolean doAutocreate() {
+
+		if (relation != null) {
+
+			switch (relation.getAutocreationFlag()) {
+
+				case Relation.ALWAYS:
+				case Relation.SOURCE_TO_TARGET:
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public String getAutocreateFlagName() {
+
+		if (relation != null) {
+			return Relation.CASCADING_DESCRIPTIONS[relation.getAutocreationFlag()];
+		}
+
+		return Relation.CASCADING_DESCRIPTIONS[0];
 	}
 }

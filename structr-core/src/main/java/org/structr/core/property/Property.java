@@ -273,7 +273,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	@Override
 	public String toString() {
-		return "(".concat(jsonName()).concat("|").concat(dbName()).concat(")");
+		return jsonName();
 	}
 
 	@Override

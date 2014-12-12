@@ -30,64 +30,77 @@ import org.structr.core.property.Property;
 /**
  * Defines constants for structr's relationship entities.
  *
+ * @param <A>
+ * @param <B>
+ * @param <S>
+ * @param <T>
+ *
  * @author Christian Morgner
  */
 public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipInterface, RelationshipType {
 
 	/**
-	 * No cascading delete.
+	 * No cascading delete / autocreate.
 	 */
 	public static final int NONE              = 0;
-	
+
 	/**
 	 * Target node will be deleted if source node
 	 * gets deleted.
 	 */
 	public static final int SOURCE_TO_TARGET  = 1;
-	
+
 	/**
 	 * Source node will be deleted if target node
 	 * gets deleted.
 	 */
 	public static final int TARGET_TO_SOURCE  = 2;
-	
+
 	/**
 	 * Both nodes will be deleted whenever one of
 	 * the two nodes gets deleted.
-	 * 
+	 *
 	 */
 	public static final int ALWAYS            = 3;
-	
+
 	/**
 	 * Source and/or target nodes will be deleted
 	 * if they become invalid.
 	 */
 	public static final int CONSTRAINT_BASED  = 4;
 
-	
+	public static final String[] CASCADING_DESCRIPTIONS = {
+		"NONE",
+		"SOURCE_TO_TARGET",
+		"TARGET_TO_SOURCE",
+		"ALWAYS",
+		"CONSTRAINT_BASED"
+	};
+
 	public enum Cardinality { OneToOne, ManyToOne, OneToMany, ManyToMany }
 
 	public enum Multiplicity { One, Many }
-	
+
 	public Class<A> getSourceType();
 	public Class<B> getTargetType();
-	
+
 	public Class getOtherType(final Class type);
 
 	public Direction getDirectionForType(final Class<? extends NodeInterface> type);
-	
+
 	public Multiplicity getSourceMultiplicity();
 	public Multiplicity getTargetMultiplicity();
-	
+
 	public S getSource();
 	public T getTarget();
-	
+
 	public abstract Property<String> getSourceIdProperty();
 	public abstract Property<String> getTargetIdProperty();
 	public abstract Notion getEndNodeNotion();
 	public abstract Notion getStartNodeNotion();
 
 	public int getCascadingDeleteFlag();
-	
+	public int getAutocreationFlag();
+
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
 }

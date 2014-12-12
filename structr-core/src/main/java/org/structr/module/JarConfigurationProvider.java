@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1227,7 +1228,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Set<Class<?>> getAllTypes(Class<?> type) {
 
-		Set<Class<?>> types = new LinkedHashSet<>();
+		List<Class<?>> types = new LinkedList<>();
 		Class localType = type;
 
 		do {
@@ -1239,10 +1240,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} while (localType != null && !localType.equals(Object.class));
 
-		return types;
+		Collections.reverse(types);
+
+		return new LinkedHashSet<>(types);
 	}
 
-	private void collectAllInterfaces(Class<?> type, Set<Class<?>> interfaces) {
+	private void collectAllInterfaces(Class<?> type, List<Class<?>> interfaces) {
 
 		if (interfaces.contains(type)) {
 			return;

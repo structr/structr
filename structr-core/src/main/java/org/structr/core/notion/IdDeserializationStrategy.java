@@ -22,14 +22,10 @@ import java.util.List;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.IdNotFoundToken;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.AmbiguousRelationToken;
 import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
@@ -47,12 +43,8 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 	private static final Logger logger = Logger.getLogger(IdDeserializationStrategy.class.getName());
 
 	protected RelationProperty<S> relationProperty = null;
-	protected PropertyKey<String> propertyKey      = null;
 
-	public IdDeserializationStrategy() {}
-
-	public IdDeserializationStrategy(PropertyKey<String> propertyKey) {
-		this.propertyKey = propertyKey;
+	public IdDeserializationStrategy() {
 	}
 
 	@Override
@@ -108,8 +100,19 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 							default:
 								// more than one => not unique??
-								throw new FrameworkException(type.getSimpleName(), new AmbiguousRelationToken(propertyKey));
+								throw new FrameworkException(422, concat(
+									"Unable to resolve related node of type ",
+									type.getSimpleName(),
+									", ambiguous result: found ",
+									num,
+									" nodes for the given property set."
+								));
 						}
+
+					} else {
+
+						// throw exception here?
+
 					}
 				}
 
@@ -119,66 +122,34 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 					if (relationProperty != null) {
 
 						final Relation relation = relationProperty.getRelation();
-						if (relation != null) {
 
-							switch (relation.getCascadingDeleteFlag()) {
+						if (relationProperty.doAutocreate()) {
 
-								case Relation.ALWAYS:
-								case Relation.CONSTRAINT_BASED:
-								case Relation.SOURCE_TO_TARGET:
-									return app.create(type, map);
+							return app.create(type, map);
 
-								case Relation.TARGET_TO_SOURCE:
-									logger.log(Level.INFO, "NOT creating related node for property {0} since cascading delete flag is TARGET_TO_SOURCE.", propertyKey);
-									throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
+						} else {
 
-								case Relation.NONE:
-									logger.log(Level.INFO, "NOT creating related node for property {0} since cascading delete flag is NONE.", propertyKey);
-									throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
-							}
+							throw new FrameworkException(422, concat(
+								"Cannot create ", relation.getOtherType(type).getSimpleName(),
+								": no matching ", type.getSimpleName(),
+								" found for the given property set",
+								" and autoCreate has a value of ",
+								relationProperty.getAutocreateFlagName()
+							));
+
 						}
 					}
 
-					logger.log(Level.INFO, "NOT creating related node for property {0} since no relation property was found.", propertyKey);
-					throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
+					// FIXME: when can the relationProperty be null at all?
+					throw new FrameworkException(500, concat(
+						"Unable to resolve related node of type ",
+						type.getSimpleName(),
+						", no relation defined."
+					));
 
 				} else {
 
 					return relatedNode;
-				}
-
-			} else if (source instanceof GraphObject) {
-
-				// FIXME: does this happen at all??
-				Thread.dumpStack();
-
-				GraphObject obj = (GraphObject)source;
-				if (propertyKey != null) {
-
-					final Result<T> results = (Result<T>) app.nodeQuery(NodeInterface.class).and(propertyKey, obj.getProperty(propertyKey)).getResult();
-					int size                = results.size();
-
-					switch (size) {
-
-						case 0 :
-							throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
-
-						case 1 :
-							return results.get(0);
-
-						default :
-							logger.log(Level.WARNING, "Got more than one result for UUID {0}. Either this is not an UUID or we have a collision.", source.toString());
-
-					}
-
-
-				} else {
-
-					// fetch property key for "id", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), GraphObject.id.dbName());
-
-					return (T) app.get(obj.getProperty(idProperty));
-
 				}
 
 			} else {
@@ -189,5 +160,16 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 		}
 
 		return null;
+	}
+
+	private String concat(final Object... values) {
+
+		final StringBuilder buf = new StringBuilder(values.length * 20);
+
+		for (Object value : values) {
+			buf.append(value);
+		}
+
+		return buf.toString();
 	}
 }

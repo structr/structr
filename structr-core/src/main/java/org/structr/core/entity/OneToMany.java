@@ -62,6 +62,11 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
 		final App app                          = StructrApp.getInstance();

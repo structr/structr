@@ -290,7 +290,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 			final Object target = relation.getTarget().get(securityContext, obj, predicate);
 			if (target != null) {
-				
+
 				if (target instanceof Iterable) {
 
 					Iterable<T> nodes = (Iterable<T>)target;
@@ -316,5 +316,31 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	@Override
 	public Relation getRelation() {
 		return relation;
+	}
+
+	@Override
+	public boolean doAutocreate() {
+
+		if (relation != null) {
+
+			switch (relation.getAutocreationFlag()) {
+
+				case Relation.ALWAYS:
+				case Relation.TARGET_TO_SOURCE:
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public String getAutocreateFlagName() {
+
+		if (relation != null) {
+			return Relation.CASCADING_DESCRIPTIONS[relation.getAutocreationFlag()];
+		}
+
+		return Relation.CASCADING_DESCRIPTIONS[0];
 	}
 }
