@@ -141,6 +141,10 @@ var _Security = {
 
     appendResourceAccessElement : function(resourceAccess, replaceElement) {
 
+        if (!resourceAccesses || !resourceAccesses.is(':visible')) {
+            return;
+        }
+
         var mask = {
             //FORBIDDEN                   : 0,
             AUTH_USER_GET               : 1,
@@ -246,6 +250,11 @@ var _Security = {
     },
 
     appendGroupElement : function(group) {
+        
+        if (!groups || !groups.is(':visible')) {
+            return;
+        }
+        
         var hasChildren = group.members && group.members.length;
         log('appendGroupElement', group, hasChildren);
         groups.append('<div id="id_' + group.id + '" class="node group">'
@@ -290,14 +299,23 @@ var _Security = {
     appendUserElement : function(user, group) {
         log('appendUserElement', user);
 
+        if (!users || !users.is(':visible')) {
+            return;
+        }
+
         var delIcon;
         var div = Structr.node(user.id);
         
         if (user.groups && user.groups.length) {
             
-            var group = StructrModel.obj(user.groups[0]);
+            var group = user.groups[0];
             
             var groupId = group.id;
+            
+            if (!isExpanded(groupId)) {
+                return;
+            }
+            
             var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" '
             + 'alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">'
 
@@ -414,6 +432,5 @@ var _Security = {
         $('.searchResults').css({
             height: h - 103 + 'px'
         });
-
     },
 };

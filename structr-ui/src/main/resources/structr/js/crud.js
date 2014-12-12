@@ -43,21 +43,21 @@ if (browser) {
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
 
-        //        console.log(_Crud.type);
+        //console.log(_Crud.type);
 
         if (!_Crud.type) {
             _Crud.restoreType();
-            //            console.log(_Crud.type);
+            //console.log(_Crud.type);
         }
 
         if (!_Crud.type) {
             _Crud.type = urlParam('type');
-            //            console.log(_Crud.type);
+            //console.log(_Crud.type);
         }
 
         if (!_Crud.type) {
             _Crud.type = defaultType;
-            //            console.log(_Crud.type);
+            //console.log(_Crud.type);
         }
 
         _Crud.resize();
@@ -74,7 +74,7 @@ var _Crud = {
     //allTypes : [],
 
     types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content' ],
-    views: ['public', 'all', 'ui'],
+    views: ['public', 'ui'],
     schema: [],
     keys: [],
     type: null,
@@ -85,8 +85,6 @@ var _Crud = {
     page: [],
     pageSize: [],
     init: function() {
-
-        
 
         main.append('<div class="searchBox"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
@@ -296,7 +294,7 @@ var _Crud = {
                     // no schema entry found?
                     if (!data || !data.result || data.result_count === 0) {
 
-                        console.log("ERROR: loading Schema " + type);
+                        //console.log("ERROR: loading Schema " + type);
                         //Structr.error("ERROR: loading Schema " + type, true);
 
                         var typeIndex = _Crud.types.indexOf(type);
@@ -354,7 +352,7 @@ var _Crud = {
     },
     getPropertyType: function(type, key) {
         if (_Crud.schema[type]) {
-            return _Crud.schema[type].views.all[key].type;
+            return _Crud.schema[type].views.ui[key].type;
         }
     },
     determinePagerData: function(type) {
@@ -743,7 +741,7 @@ var _Crud = {
         //console.log('clearList', type);
         var table = _Crud.getTable(type);
         var headerRow = '<thead><tr>' + $($('tr:first-child', table)[0]).html() + '</tr></thead>';
-        //    console.log(headerRow);
+        //console.log(headerRow);
         table.empty();
         table.append(headerRow);
     },
@@ -816,7 +814,7 @@ var _Crud = {
         });
 
         if (_Crud.keys[type]) {
-            //        console.log(type);
+            //console.log(type);
             $.each(_Crud.keys[type], function(k, key) {
                 exportArea.append('"' + key + '"');
                 if (k < _Crud.keys[type].length - 1) {
@@ -1407,7 +1405,7 @@ var _Crud = {
         return [cellInMainTable, cellInDetailsTable];
     },
     resetCell: function(id, key, oldValue) {
-        //    console.log('resetCell', id, key, oldValue);
+        //console.log('resetCell', id, key, oldValue);
         var cells = _Crud.cells(id, key);
 
         $.each(cells, function(i, cell) {
@@ -1428,7 +1426,7 @@ var _Crud = {
         });
     },
     refreshRow: function(id, item, type) {
-        //    console.log('refreshCell', id, key, newValue);
+        //console.log('refreshCell', id, key, newValue);
         var row = _Crud.row(id);
         row.empty();
         _Crud.populateRow(id, item, type);
@@ -1458,13 +1456,13 @@ var _Crud = {
         });
     },
     row: function(id) {
-        return $('#_' + id);
+        return $('tr._' + id);
     },
     appendRow: function(type, item) {
         //console.log('appendRow', type, item);
         var id = item['id'];
         var table = _Crud.getTable(type);
-        table.append('<tr id="_' + id + '"></tr>');
+        table.append('<tr class="_' + id + '"></tr>');
         _Crud.populateRow(id, item, type);
     },
     populateRow: function(id, item, type) {
@@ -1931,85 +1929,40 @@ var _Crud = {
 
         });
     },
-    removeRelatedObject: function(type, id, key, relatedObj) {
+    removeRelatedObject: function(type, id, key, relatedObj, callback) {
         var view = _Crud.view[_Crud.type];
         var urlType = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
         var url = rootUrl + urlType + '/' + id + '/' + view;
         if (_Crud.isCollection(key, type)) {
-            var objects = [];
             $.ajax({
                 url: url,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
-                //async: false,
                 success: function(data) {
-                    if (!data)
-                        return;
-                    //console.log(key, data.result, data.result[key]);
-                    $.each(data.result[key], function(i, obj) {
-                        //console.log(obj, ' equals ', relatedObj);
-                        if (!_Crud.equal(obj, relatedObj)) {
-                            //console.log('not equal');
-                            objects.push({'id': obj.id});
-                        }
-                    });
-
-                    //console.log('new id array: ', objects);
-                    var json = '{"' + key + '":null}';
-                    //console.log('PUT ', json, ' to url ', url);
-
-                    $.ajax({
-                        url: url,
-                        type: 'PUT',
-                        dataType: 'json',
-                        data: json,
-                        contentType: 'application/json; charset=utf-8',
-                        //async: false,
-                        statusCode: {
-                            200: function(data) {
-
-                                var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-                                //console.log('removeRelatedObject, setting new id array', url, objects, json);
-
-                                $.ajax({
-                                    url: url,
-                                    type: 'PUT',
-                                    dataType: 'json',
-                                    data: json,
-                                    contentType: 'application/json; charset=utf-8',
-                                    //async: false,
-                                    statusCode: {
-                                        200: function(data) {
-                                            var nodeEl = $('#_' + id + ' .__' + key + ' .' + _Crud.id(relatedObj) + '_');
-                                            nodeEl.remove();
-                                        },
-                                        error: function(a, b, c) {
-                                            console.log(a, b, c);
-                                        }
-
-                                    }
-                                });
-
-                            }
+                    
+                    var objects = _Crud.extractIds(data.result[key]);
+                    var relatedId = (typeof relatedObj === 'object' ? relatedObj.id : relatedObj);
+                    objects.splice(objects.indexOf(relatedId), 1);
+                    var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
+                    _Crud.crudUpdateObj(id, json, function() {
+                        _Crud.crudRefresh(id, key);
+                        if (callback) {
+                            callback();
                         }
                     });
                 }
             });
         } else {
-            //console.log(url);
-
             $.ajax({
                 url: url,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
-                //async: false,
                 success: function(data) {
                     _Crud.crudRemoveProperty(id, key);
                 }
             });
-
         }
     },
     addRelatedObject: function(type, id, key, relatedObj, callback) {
@@ -2017,32 +1970,23 @@ var _Crud = {
         var urlType = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
         var url = rootUrl + urlType + '/' + id + '/' + view;
         if (_Crud.isCollection(key, type)) {
-            var objects = [];
             $.ajax({
                 url: url,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
-                //async: false,
                 success: function(data) {
-                    //console.log(data.result[key]);
-                    $.each(data.result[key], function(i, node) {
-                        objects.push({'id': node.id});
-                    });
-
+                    var objects = _Crud.extractIds(data.result[key]);
                     if (!isIn(relatedObj.id, objects)) {
                         objects.push({'id': relatedObj.id});
                     }
                     var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-                    //console.log(url, json);
                     _Crud.crudUpdateObj(id, json, function() {
                         _Crud.crudRefresh(id, key);
-                        //dialogCancelButton.click();
                         if (callback) {
                             callback();
                         }
                     });
-
                 }
             });
         } else {
@@ -2052,9 +1996,21 @@ var _Crud = {
             });
         }
     },
+    extractIds: function(result) {
+        var objects = [];
+        $.each(result, function(i, obj) {
+            // value can be an ID string or an object
+            if (typeof obj === 'object') {
+                objects.push({'id': obj.id});
+            } else {
+                objects.push(obj);
+            }
+        });
+        return objects;
+    },
     appendRowAsCSV: function(type, item, textArea) {
         if (_Crud.keys[type]) {
-            //        console.log(type);
+            //console.log(type);
             $.each(_Crud.keys[type], function(k, key) {
                 textArea.append('"' + nvl(item[key], '') + '"');
                 if (k < _Crud.keys[type].length - 1) {
@@ -2495,12 +2451,12 @@ var _Crud = {
                 if (!data)
                     return;
                 node = data.result;
-                console.log(node);
-                console.log(data.result);
+                //console.log(node);
+                //console.log(data.result);
             }
         });
 
-        console.log(node);
+        //console.log(node);
 
         return node;
     }
