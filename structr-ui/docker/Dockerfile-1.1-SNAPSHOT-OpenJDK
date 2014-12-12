@@ -11,13 +11,6 @@ MAINTAINER Axel Morgner <axel@morgner.de>
 
 # Install wget and Java 7 (OpenJDK)
 RUN	apt-get update && apt-get -y install wget openjdk-7-jdk
-#RUN echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
-#RUN echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
-#RUN apt-get update
-#RUN apt-get -y install software-properties-common
-#RUN add-apt-repository ppa:webupd8team/java
-#RUN apt-get update
-#RUN apt-get -y install wget oracle-java7-installer
 
 # Download Structr
 RUN wget "http://oss.sonatype.org/service/local/artifact/maven/content?r=snapshots&g=org.structr&a=structr-ui&v=1.1-SNAPSHOT&e=deb" --content-disposition

@@ -37,7 +37,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
 
 /**
  * Controls deserialization of property sets.
