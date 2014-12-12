@@ -24,7 +24,6 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.relationship.Groups;
-import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
@@ -39,6 +38,7 @@ import org.structr.web.entity.relation.UserHomeDir;
 import org.structr.web.entity.relation.UserImage;
 import org.structr.web.entity.relation.UserWorkDir;
 import org.structr.web.property.ImageDataProperty;
+import org.structr.web.property.UiNotion;
 
 
 //~--- classes ----------------------------------------------------------------
@@ -57,7 +57,7 @@ public class User extends AbstractUser {
 	public static final ImageDataProperty     imageData        = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
 	public static final Property<Folder>      homeDirectory    = new EndNode<>("homeDirectory", UserHomeDir.class);
 	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
-	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new PropertyNotion(id));
+	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new UiNotion());
 	public static final Property<Boolean>     isUser           = new BooleanProperty("isUser", true).readOnly();
 	public static final Property<String>      eMail            = new StringProperty("eMail").indexed();
 	public static final Property<String>      twitterName      = new StringProperty("twitterName").indexed();
