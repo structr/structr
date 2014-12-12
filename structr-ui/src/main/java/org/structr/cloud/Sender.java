@@ -18,9 +18,9 @@
  */
 package org.structr.cloud;
 
+import java.io.DataOutputStream;
 import org.structr.cloud.message.Message;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -31,11 +31,11 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class Sender extends Thread {
 
 	private final Queue<Message> outputQueue = new ArrayBlockingQueue<>(10000);
-	private ObjectOutputStream outputStream  = null;
+	private DataOutputStream outputStream    = null;
 	private CloudConnection connection       = null;
 	private int messagesInFlight             = 0;
 
-	public Sender(final CloudConnection connection, final ObjectOutputStream outputStream) {
+	public Sender(final CloudConnection connection, final DataOutputStream outputStream) {
 
 		super("Sender of " + connection.getName());
 		this.setDaemon(true);
@@ -65,7 +65,7 @@ public class Sender extends Thread {
 					final Message message = outputQueue.poll();
 					if (message != null) {
 
-						outputStream.writeObject(message);
+						message.serialize(outputStream);
 						outputStream.flush();
 
 						messagesInFlight++;
@@ -74,6 +74,8 @@ public class Sender extends Thread {
 					}
 
 				} catch (Throwable t) {
+
+					t.printStackTrace();
 
 					connection.close();
 				}

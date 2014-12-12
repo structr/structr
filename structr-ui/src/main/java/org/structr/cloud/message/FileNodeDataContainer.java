@@ -18,6 +18,8 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +34,7 @@ import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.SyncCommand;
 import org.structr.dynamic.File;
 
 /**
@@ -176,6 +179,22 @@ public class FileNodeDataContainer extends NodeDataContainer {
 
 	public void setFileSize(long fileSize) {
 		this.fileSize = fileSize;
+	}
+
+	@Override
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
+
+		this.fileSize = (Long)SyncCommand.deserialize(inputStream);
+
+		super.deserializeFrom(inputStream);
+	}
+
+	@Override
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
+
+		SyncCommand.serialize(outputStream, fileSize);
+
+		super.serializeTo(outputStream);
 	}
 
 	// ----- public static methods -----

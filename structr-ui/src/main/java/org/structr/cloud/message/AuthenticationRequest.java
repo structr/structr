@@ -18,6 +18,8 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import javax.crypto.Cipher;
 import org.structr.cloud.CloudConnection;
@@ -25,6 +27,7 @@ import org.structr.cloud.CloudService;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.SyncCommand;
 
 /**
  *
@@ -100,7 +103,18 @@ public class AuthenticationRequest extends Message {
 	}
 
 	@Override
-	public Object getPayload() {
-		return null;
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
+
+		this.userName  = (String)SyncCommand.deserialize(inputStream);
+		this.salt      = (String)SyncCommand.deserialize(inputStream);
+		this.keyLength = (Integer)SyncCommand.deserialize(inputStream);
+	}
+
+	@Override
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
+
+		SyncCommand.serialize(outputStream, userName);
+		SyncCommand.serialize(outputStream, salt);
+		SyncCommand.serialize(outputStream, keyLength);
 	}
 }
