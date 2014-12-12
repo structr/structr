@@ -338,7 +338,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				break;
 
 			case RAW:
-				out.append(" data-hash=\"").append(getIdHash()).append("\"");
+				out.append(" data-structr-hash=\"").append(getIdHash()).append("\"");
 				break;
 		}
 

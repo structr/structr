@@ -220,11 +220,12 @@ var _Entities = {
 
                 dialogSaveButton = $('#saveFile', dialogBtn);
                 saveAndClose = $('#saveAndClose', dialogBtn);
-
-                $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                
                 editor.on('scroll', function() {
-                    $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                    $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
+                    $($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
                 });
+                
                 editor.on('change', function(cm, change) {
 
                     //text1 = $(contentNode).children('.content_').text();
@@ -238,7 +239,8 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
-                    $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                    $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
+                    $($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
                 });
 
                 dialogSaveButton.on('click', function(e) {
@@ -253,21 +255,44 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
-                    Command.savePage(text2, entity.id, function() {
-                        $.ajax({
-                            url: url,
-                            contentType: contentType,
-                            success: function(data) {
-                                editor.setValue(unescapeTags(data));
-                            }
+                    if (entity.isPage) {
+
+                        Command.savePage(text2, entity.id, function() {
+                            $.ajax({
+                                url: url,
+                                contentType: contentType,
+                                success: function(data) {
+                                    editor.setValue(unescapeTags(data));
+                                }
+                            });
+
+                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+                            saveAndClose.prop("disabled", true).addClass('disabled');
+                            dialogMsg.html('<div class="infoBox success">Page source saved and rebuilt DOM tree.</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+
                         });
+                        
+                    } else {
+                        //console.log(text2, entity.id, getId(Structr.parent(entity.id)), entity.pageId);
+                        Command.replaceWidget(text2, entity.id, getId(Structr.parent(entity.id)), entity.pageId, function() {
+                            $.ajax({
+                                url: url,
+                                contentType: contentType,
+                                success: function(data) {
+                                    editor.setValue(unescapeTags(data));
+                                }
+                            });
 
-                        dialogSaveButton.prop("disabled", true).addClass('disabled');
-                        saveAndClose.prop("disabled", true).addClass('disabled');
-                        dialogMsg.html('<div class="infoBox success">Page source saved and rebuilt DOM tree.</div>');
-                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-
-                    });
+                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+                            saveAndClose.prop("disabled", true).addClass('disabled');
+                            dialogMsg.html('<div class="infoBox success">DOM tree was rebuilt from source.</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                            
+                        });
+                        
+                        
+                    }
 
                 });
 
@@ -282,6 +307,9 @@ var _Entities = {
                 });
 
                 Structr.resize();
+
+                $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
+                $($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
 
             },
             error: function(xhr, statusText, error) {
