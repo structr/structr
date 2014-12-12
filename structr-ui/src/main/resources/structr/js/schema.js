@@ -793,9 +793,9 @@ var _Schema = {
             $('.local .' + key + ' .remove-icon').tooltip({
                 tooltipClass: 'tooltip',
                 items: '.remove-icon',
-                show: { effect: 'fadeIn', duration: 50 },
-                hide: { effect: 'fadeOut', duration: 1000 },
-                content: '<img src="/structr/icon/error.png"> <b>' + normalizedKey + '</b> is still in use.',
+                show: { effect: 'fadeIn', duration: 0 },
+                hide: { effect: 'fadeOut', delay: 1000, duration: 150 },
+                content: '<img src="/structr/icon/error.png"> The attribute <b>' + normalizedKey + '</b> cannot be removed because it is still referenced somewhere in the schema. Check also the methods, views, notion and function properties.',
                 position: { my: "right top", at: "right bottom", collision: "flipfit" },
 //                open: function() {
 //
@@ -804,7 +804,7 @@ var _Schema = {
                     $('.local .' + key + ' .remove-icon').tooltip('disable');
                     window.setTimeout(function() {
                         $('.local .' + key + ' .remove-icon').tooltip('destroy');
-                    }, 510);
+                    }, 1160);
                 }
             }).tooltip('open');
             return;
