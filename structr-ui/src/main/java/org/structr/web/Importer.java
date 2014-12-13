@@ -523,7 +523,7 @@ public class Importer {
 				}
 				
 				// Remove data-structr-hash attribute
-				node.removeAttr(DOMNode.dataHashProperty.dbName());
+				//node.removeAttr(DOMNode.dataHashProperty.jsonName());
 
 			}
 
