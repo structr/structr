@@ -222,8 +222,7 @@ var _Entities = {
                 saveAndClose = $('#saveAndClose', dialogBtn);
                 
                 editor.on('scroll', function() {
-                    $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
-                    $($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
+                    _Entities.hideDataHashAttribute(editor);
                 });
                 
                 editor.on('change', function(cm, change) {
@@ -239,8 +238,7 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
-                    $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
-                    $($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
+                    _Entities.hideDataHashAttribute(editor);
                 });
 
                 dialogSaveButton.on('click', function(e) {
@@ -255,44 +253,21 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
-                    if (entity.isPage) {
-
-                        Command.savePage(text2, entity.id, function() {
-                            $.ajax({
-                                url: url,
-                                contentType: contentType,
-                                success: function(data) {
-                                    editor.setValue(unescapeTags(data));
-                                }
-                            });
-
-                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-                            saveAndClose.prop("disabled", true).addClass('disabled');
-                            dialogMsg.html('<div class="infoBox success">Page source saved and rebuilt DOM tree.</div>');
-                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-
+                    Command.saveNode(text2, entity.id, function() {
+                        $.ajax({
+                            url: url,
+                            contentType: contentType,
+                            success: function(data) {
+                                editor.setValue(unescapeTags(data));
+                            }
                         });
-                        
-                    } else {
-                        //console.log(text2, entity.id, getId(Structr.parent(entity.id)), entity.pageId);
-                        Command.replaceWidget(text2, entity.id, getId(Structr.parent(entity.id)), entity.pageId, function() {
-                            $.ajax({
-                                url: url,
-                                contentType: contentType,
-                                success: function(data) {
-                                    editor.setValue(unescapeTags(data));
-                                }
-                            });
 
-                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-                            saveAndClose.prop("disabled", true).addClass('disabled');
-                            dialogMsg.html('<div class="infoBox success">DOM tree was rebuilt from source.</div>');
-                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-                            
-                        });
-                        
-                        
-                    }
+                        dialogSaveButton.prop("disabled", true).addClass('disabled');
+                        saveAndClose.prop("disabled", true).addClass('disabled');
+                        dialogMsg.html('<div class="infoBox success">Node source saved and DOM tree rebuilt.</div>');
+                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+
+                    });
 
                 });
 
@@ -308,8 +283,7 @@ var _Entities = {
 
                 Structr.resize();
 
-                $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
-                $($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
+                _Entities.hideDataHashAttribute(editor);
 
             },
             error: function(xhr, statusText, error) {
@@ -317,6 +291,16 @@ var _Entities = {
             }
         });
 
+    },
+    hideDataHashAttribute: function(editor) {
+//        var doc = editor.getDoc();
+//        var hashElements = $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")');
+//        console.log(hashElements);
+//        var sc = editor.getSearchCursor('data-structr-hash=');
+//        console.log(sc);
+        
+        //$('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
+        //$($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
     },
     showProperties: function(entity) {
 

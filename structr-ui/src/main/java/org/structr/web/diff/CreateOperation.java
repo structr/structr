@@ -64,9 +64,9 @@ public class CreateOperation extends InvertibleModificationOperation {
 
 	// ----- interface InvertibleModificationOperation -----
 	@Override
-	public void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException {
+	public void apply(final App app, final DOMNode sourceNode, final DOMNode newNode) throws FrameworkException {
 
-		final InsertPosition insertPosition = findInsertPosition(sourcePage, parentHash, siblingHashes, newNode);
+		final InsertPosition insertPosition = findInsertPosition(sourceNode, parentHash, siblingHashes, newNode);
 		if (insertPosition != null) {
 
 			final DOMNode parent  = insertPosition.getParent();
@@ -74,8 +74,13 @@ public class CreateOperation extends InvertibleModificationOperation {
 
 			if (parent != null && !parent.isSynced()) {
 
-				sourcePage.adoptNode(newNode);
-				parent.insertBefore(newNode, sibling);
+				if (sourceNode instanceof Page && !(newNode instanceof Page)) {
+					
+					((Page) sourceNode).adoptNode(newNode);
+
+					parent.insertBefore(newNode, sibling);
+					
+				}
 
 				// make existing node known to other operations
 				hashMappedExistingNodes.put(newNode.getIdHashOrProperty(), newNode);

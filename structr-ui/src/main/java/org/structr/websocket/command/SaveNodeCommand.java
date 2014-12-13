@@ -26,8 +26,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.schema.SchemaHelper;
 import org.structr.web.Importer;
 import org.structr.web.diff.InvertibleModificationOperation;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -36,41 +38,52 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  *
  * @author Axel Morgner
+ * @author Christian Morgner
  */
-public class SavePageCommand extends AbstractCommand {
+public class SaveNodeCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(SavePageCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(SaveNodeCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(SavePageCommand.class);
+		StructrWebSocket.addCommand(SaveNodeCommand.class);
 	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final String pageId = webSocketData.getId();
+		final String nodeId = webSocketData.getId();
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String modifiedHtml = (String) nodeData.get("source");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 
-		Page modifiedPage = null;
+		DOMNode modifiedNode = null;
 
-		Page sourcePage = getPage(pageId);
-		if (sourcePage != null) {
+		DOMNode sourceNode = (DOMNode) getNode(nodeId);
+		
+		if (sourceNode != null) {
 
 			try {
 
-				// parse page from modified source
-				modifiedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "__SavePageCommand_Temporary_Page__");
+				// parse node from modified source
+				modifiedNode = Importer.parseNodeFromSource(securityContext, modifiedHtml, "__SaveNodeCommand_Temporary_Page__");
 
-				final List<InvertibleModificationOperation> changeSet = Importer.diffPages(sourcePage, modifiedPage);
+				
+				DOMNode targetNode = modifiedNode;
+				
+				if (!(sourceNode instanceof Page)) {
+					
+					targetNode = (DOMNode) modifiedNode.getFirstChild().getNextSibling().getFirstChild().getNextSibling().getFirstChild();
+					
+				}
+
+				final List<InvertibleModificationOperation> changeSet = Importer.diffNodes(sourceNode, targetNode);
 
 				for (final InvertibleModificationOperation op : changeSet) {
 
 					// execute operation
-					op.apply(app, sourcePage, modifiedPage);
+					op.apply(app, sourceNode, targetNode);
 
 				}
 
@@ -86,7 +99,7 @@ public class SavePageCommand extends AbstractCommand {
 
 			try {
 
-				app.delete(modifiedPage);
+				app.delete(modifiedNode);
 
 			} catch (FrameworkException ex) {
 
@@ -104,7 +117,7 @@ public class SavePageCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 
-		return "SAVE_PAGE";
+		return "SAVE_NODE";
 
 	}
 

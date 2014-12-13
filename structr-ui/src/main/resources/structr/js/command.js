@@ -411,20 +411,20 @@ var Command = {
         return sendObj(obj, callback);
     },
     /**
-     * Send a SAVE_PAGE command to the server.
+     * Send a SAVE_NODE command to the server.
      *
-     * The server will modify the existing page based on the differences
-     * to the original page.
+     * The server will modify the existing node based on the differences
+     * to the original node.
      *
      */
-    savePage: function(source, id, callback) {
+    saveNode: function(source, id, callback) {
         var obj = {};
-        obj.command = 'SAVE_PAGE';
+        obj.command = 'SAVE_NODE';
         obj.id = id;
         var data = {};
         data.source = source;
         obj.data = data;
-        log('savePage()', obj);
+        log('saveNode()', obj);
         return sendObj(obj, callback);
     },
     /**

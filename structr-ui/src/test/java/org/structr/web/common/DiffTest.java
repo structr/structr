@@ -816,7 +816,7 @@ public class DiffTest extends StructrUiTest {
 		try {
 
 			// create page from source
-			final Page sourcePage = Importer.parsePageFromSource(securityContext, source, "test");
+			final Page sourcePage = (Page) Importer.parseNodeFromSource(securityContext, source, "test");
 
 			// render page into HTML string
 			try (final Tx tx = app.tx()) {
@@ -828,12 +828,12 @@ public class DiffTest extends StructrUiTest {
 			final String modifiedHtml = modifier.apply(sourceHtml);
 
 			// parse page from modified source
-			final Page modifiedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "Test");
+			final Page modifiedPage = (Page) Importer.parseNodeFromSource(securityContext, modifiedHtml, "Test");
 
 			// create and apply diff operations
 			try (final Tx tx = app.tx()) {
 
-				final List<InvertibleModificationOperation> changeSet = Importer.diffPages(sourcePage, modifiedPage);
+				final List<InvertibleModificationOperation> changeSet = Importer.diffNodes(sourcePage, modifiedPage);
 				for (final InvertibleModificationOperation op : changeSet) {
 
 					System.out.println(op);

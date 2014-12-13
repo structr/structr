@@ -323,12 +323,12 @@ public class Importer {
 	}
 
 	// ----- public static methods -----
-	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
+	public static DOMNode parseNodeFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
 		
-		return parsePageFromSource(securityContext, source, name, false);
+		return parseNodeFromSource(securityContext, source, name, false);
 	}
 
-	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
+	public static DOMNode parseNodeFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
 		final Importer importer = new Importer(securityContext, source, null, "source", 0, true, true);
 		final App localAppCtx   = StructrApp.getInstance(securityContext);
@@ -350,7 +350,7 @@ public class Importer {
 		return page;
 	}
 
-	public static List<InvertibleModificationOperation> diffPages(final Page sourcePage, final Page modifiedPage) {
+	public static List<InvertibleModificationOperation> diffNodes(final DOMNode sourceNode, final DOMNode modifiedNode) {
 
 		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
 		final Map<String, DOMNode> indexMappedExistingNodes   = new LinkedHashMap<>();
@@ -360,8 +360,8 @@ public class Importer {
 		final Map<String, DOMNode> hashMappedNewNodes         = new LinkedHashMap<>();
 		final Map<DOMNode, Integer> depthMappedNewNodes       = new LinkedHashMap<>();
 
-		InvertibleModificationOperation.collectNodes(sourcePage, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
-		InvertibleModificationOperation.collectNodes(modifiedPage, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
+		InvertibleModificationOperation.collectNodes(sourceNode, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
+		InvertibleModificationOperation.collectNodes(modifiedNode, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
 
 		// iterate over existing nodes and try to find deleted ones
 		for (final Iterator<Map.Entry<String, DOMNode>> it = hashMappedExistingNodes.entrySet().iterator(); it.hasNext();) {

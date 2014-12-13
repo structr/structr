@@ -25,7 +25,6 @@ import org.structr.core.app.App;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 
@@ -65,12 +64,18 @@ public class MoveOperation extends InvertibleModificationOperation {
 
 	// ----- interface InvertibleModificationOperation -----
 	@Override
-	public void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException {
+	public void apply(final App app, final DOMNode sourceNode, final DOMNode newNode) throws FrameworkException {
 
-		final InsertPosition insertPosition = findInsertPosition(sourcePage, parentHash, siblingHashes, newNode);
+		final InsertPosition insertPosition = findInsertPosition(sourceNode, parentHash, siblingHashes, newNode);
 		if (insertPosition != null) {
 
 			final DOMNode parent       = insertPosition.getParent();
+			
+			// Move operation without parent makes no sense
+			if (parent == null) {
+				return;
+			}
+			
 			final DOMNode sibling      = insertPosition.getSibling();
 			final Node originalSibling = originalNode.getNextSibling();
 			final Node originalParent = originalNode.getParentNode();
