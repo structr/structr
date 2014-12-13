@@ -89,7 +89,9 @@ public class AuthenticationResponse extends Message {
 		try {
 
 			serverConnection.setEncryptionKey(getEncryptionKey(serverConnection.getPassword()), Math.min(keyLength, Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER)));
-			serverConnection.setAuthenticated();
+
+			// send a CRYPT message which enables the encryption when received
+			serverConnection.send(new Crypt());
 
 		} catch (Throwable t) {
 			t.printStackTrace();

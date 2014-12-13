@@ -43,17 +43,24 @@ import org.structr.core.Services;
  */
 public class CloudService extends Thread implements RunnableService {
 
-	private static final Logger logger = Logger.getLogger(CloudService.class.getName());
+	private static final Logger logger        = Logger.getLogger(CloudService.class.getName());
+	private static final int DefaultTcpPort   = 54555;
+
+	/**
+	 * The CloudService protocol version. Change this when adding new
+	 * fields etc., the protocol only works with the exact same
+	 * counterpart.
+	 */
+	public static final int PROTOCOL_VERSION  = 3;
 
 	public static final int CHUNK_SIZE        = 65536;
 	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
 	public static final int LIVE_PACKET_COUNT = 200;
+	public static final long AUTH_TIMEOUT     = 500;
 	public static final long DEFAULT_TIMEOUT  = 2000;
-
 	public static final boolean DEBUG         = false;
 	public static final String STREAM_CIPHER  = "RC4";
 
-	private final static int DefaultTcpPort   = 54555;
 
 	private ServerSocket serverSocket = null;
 	private boolean running           = false;
@@ -149,7 +156,7 @@ public class CloudService extends Thread implements RunnableService {
 		final String password       = transmission.getPassword();
 		final String remoteHost     = transmission.getRemoteHost();
 		final int remoteTcpPort     = transmission.getRemotePort();
-		final ExportContext context = new ExportContext(listener, 2);
+		final ExportContext context = new ExportContext(listener, 3);
 		CloudConnection<T> client   = null;
 		int maxKeyLen               = 128;
 		T remoteResult              = null;

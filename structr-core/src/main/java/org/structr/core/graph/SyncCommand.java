@@ -400,46 +400,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			} else {
 
 				serializedObject = readObject(inputStream, type);
-//
-//				// len is the length of the string representation of the real value
-//				String value = inputStream.readUTF();
-//
-//				if (clazz.equals(String.class)) {
-//
-//					// strings can be returned immediately
-//					serializedObject = value;
-//
-//				} else if (clazz.equals(Character.class)) {
-//
-//					// characters can only a single element
-//					serializedObject = value.charAt(0);
-//
-//				} else {
-//
-//					try {
-//
-//						Method valueOf = methodMap.get(clazz);
-//						if (valueOf == null) {
-//
-//							valueOf = clazz.getMethod("valueOf", String.class);
-//							methodMap.put(clazz, valueOf);
-//						}
-//
-//						// invoke static valueOf method
-//						if (valueOf != null) {
-//
-//							serializedObject = valueOf.invoke(null, value);
-//
-//						} else {
-//
-//							logger.log(Level.WARNING, "Unable to find static valueOf method for type {0}", clazz);
-//						}
-//
-//					} catch (Throwable t) {
-//
-//						logger.log(Level.WARNING, "Unable to deserialize value {0} of type {1}, Class has no static valueOf method.", new Object[] { value, clazz } );
-//					}
-//				}
 			}
 
 		} else if (type != 127) {

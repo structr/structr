@@ -47,6 +47,7 @@ public abstract class Message<T> {
 		typeMap.put(AuthenticationRequest.class.getSimpleName(),     AuthenticationRequest.class);
 		typeMap.put(AuthenticationResponse.class.getSimpleName(),    AuthenticationResponse.class);
 		typeMap.put(Begin.class.getSimpleName(),                     Begin.class);
+		typeMap.put(Crypt.class.getSimpleName(),                     Crypt.class);
 		typeMap.put(End.class.getSimpleName(),                       End.class);
 		typeMap.put(Error.class.getSimpleName(),                     Error.class);
 		typeMap.put(FileNodeChunk.class.getSimpleName(),             FileNodeChunk.class);
