@@ -96,7 +96,7 @@ public class CreateOperation extends InvertibleModificationOperation {
 	@Override
 	public Integer getPosition() {
 
-		// create perations should go after Delete but before Move
+		// create operations should go after Delete but before Move
 		return 200 + depth;
 	}
 }
