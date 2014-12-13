@@ -38,8 +38,8 @@ public class SyncableInfo {
 	private String id         = null;
 	private String name       = null;
 	private String type       = null;
-	private Long size         = null;
-	private Date lastModified = null;
+	private long size         = 0L;
+	private long lastModified = 0L;
 
 	public SyncableInfo() {}
 
@@ -53,7 +53,7 @@ public class SyncableInfo {
 				this.id           = node.getUuid();
 				this.name         = node.getName();
 				this.type         = node.getType();
-				this.lastModified = node.getLastModifiedDate();
+				this.lastModified = node.getLastModifiedDate().getTime();
 				this.node         = true;
 
 				if (node instanceof File) {
@@ -96,7 +96,7 @@ public class SyncableInfo {
 	}
 
 	public Date getLastModified() {
-		return lastModified;
+		return new Date(lastModified);
 	}
 
 	protected void deserializeFrom(final DataInputStream inputStream) throws IOException {
@@ -106,7 +106,7 @@ public class SyncableInfo {
 		this.name         = (String)SyncCommand.deserialize(inputStream);
 		this.type         = (String)SyncCommand.deserialize(inputStream);
 		this.size         = (Long)SyncCommand.deserialize(inputStream);
-		this.lastModified = (Date)SyncCommand.deserialize(inputStream);
+		this.lastModified = (Long)SyncCommand.deserialize(inputStream);
 	}
 
 	protected void serializeTo(final DataOutputStream outputStream) throws IOException {

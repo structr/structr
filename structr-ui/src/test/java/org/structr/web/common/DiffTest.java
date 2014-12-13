@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.web.Importer;
 import org.structr.web.diff.InvertibleModificationOperation;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Div;
 import org.w3c.dom.NodeList;
@@ -33,7 +34,7 @@ import org.w3c.dom.NodeList;
  * @author Christian Morgner
  */
 public class DiffTest extends StructrUiTest {
-
+	
 	public void testReplaceContent() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", new org.neo4j.helpers.Function<String, String>() {
@@ -449,20 +450,20 @@ public class DiffTest extends StructrUiTest {
 
 			@Override
 			public String apply(String from) {
-
+				
 				final StringBuilder buf = new StringBuilder(from);
 
-				int cutStart = buf.indexOf("<h2") - 33;
-				int cutEnd = buf.indexOf("</h2>") + 21;
+				// cut out <div> block
+				int cutStart = buf.indexOf("<h2") - (DOMNode.dataHashProperty.jsonName().length() + 25);
+				int cutEnd = buf.indexOf("</h2>") + 20;
 
-				// cut out <h1> block
 				clipboard.append(buf.substring(cutStart, cutEnd));
 				buf.replace(cutStart, cutEnd, "");
 
 				int insert = buf.indexOf("</h2>") + 20;
 
 				buf.insert(insert, clipboard.toString());
-
+				
 				return buf.toString();
 			}
 		});

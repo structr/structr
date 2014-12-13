@@ -38,6 +38,7 @@ import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,9 +50,10 @@ import org.structr.core.graph.NodeInterface;
 public class SchemaDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
-	
+
 	protected Set<PropertyKey> identifyingPropertyKeys = null;
 	protected Set<PropertyKey> foreignPropertyKeys     = null;
+	protected RelationProperty<S> relationProperty     = null;
 	protected boolean createIfNotExisting              = false;
 	protected Class targetType                         = null;
 
@@ -64,53 +66,56 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 		this.targetType              = targetType;
 	}
 
-	//~--- methods --------------------------------------------------------
+	@Override
+	public void setRelationProperty(final RelationProperty<S> relationProperty) {
+		this.relationProperty = relationProperty;
+	}
 
 	@Override
 	public T deserialize(SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
 
 		if (source instanceof JsonInput) {
-			
+
 			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, ((JsonInput)source).getAttributes());
 			return deserialize(securityContext, type, attributes);
 		}
-		
+
 		if (source instanceof Map) {
-			
+
 			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)source);
 			return deserialize(securityContext, type, attributes);
 		}
-		
+
 		return null;
 	}
 
 	private T deserialize(final SecurityContext securityContext, final Class<T> type, final PropertyMap attributes) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		if (attributes != null) {
-			
+
 			Result<T> result = Result.EMPTY_RESULT;
-			
+
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.id)) {
 
 				result = new Result(app.get(attributes.get(GraphObject.id)), false);
-				
+
 			} else {
 
-				
+
 				boolean attributesComplete = true;
-				
+
 				// Check if all property keys of the PropertySetNotion are present
 				for (PropertyKey key : identifyingPropertyKeys) {
 					attributesComplete &= attributes.containsKey(key);
 				}
-				
+
 				if (attributesComplete) {
-					
+
 					result = app.nodeQuery(type).and(attributes).getResult();
-					
+
 				}
 			}
 
@@ -135,7 +140,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 								it.remove();
 							}
 						}
-						
+
 						// create node and return it
 						T newNode = app.create(type, attributes);
 						if (newNode != null) {
@@ -149,9 +154,9 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 							}
 
 							notionPropertyMap.put(newNode.getUuid(), foreignProperties);
-							
+
 							return newNode;
-						}						
+						}
 					}
 
 					break;
@@ -169,12 +174,12 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
 		}
-		
+
 		return null;
 	}
-	
+
 	private T getTypedResult(Result<T> result, Class<T> type) throws FrameworkException {
-		
+
 		GraphObject obj = result.get(0);
 
 		if (!type.isAssignableFrom(obj.getClass())) {
@@ -183,6 +188,6 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 		return result.get(0);
 	}
-	
-	
+
+
 }

@@ -64,7 +64,7 @@ public abstract class StreamingWriter {
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
-	private final Set<Class> visitedTypes                = new ConcurrentHashSet<>();
+	private final Set<String> visitedObjects             = new ConcurrentHashSet<>();
 	private final DecimalFormat decimalFormat            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private boolean reduceRedundancy                     = false;
 	private int outputNestingDepth                       = 3;
@@ -392,8 +392,17 @@ public abstract class StreamingWriter {
 		@Override
 		public void serialize(RestWriter writer, GraphObject source, String localPropertyView, int depth) throws IOException {
 
+			String id = null;
+
 			// mark object as visited
-			visitedTypes.add(source.getClass());
+			if (source != null) {
+
+				id = source.getUuid();
+				if (id != null) {
+
+					visitedObjects.add(id);
+				}
+			}
 
 			writer.beginObject(source);
 
@@ -413,12 +422,22 @@ public abstract class StreamingWriter {
 
 						final Predicate predicate  = writer.getSecurityContext().getRange(key.jsonName());
 						final Object value         = source.getProperty(key, predicate);
-						final Class relatedType    = key.relatedType();
 						final PropertyKey localKey = key;
 
 						if (value != null) {
 
-							if (reduceRedundancy && relatedType != null && visitedTypes.contains(key.relatedType())) {
+							boolean skip = false;
+
+							if (reduceRedundancy && value instanceof GraphObject) {
+
+								String valueId = ((GraphObject)value).getUuid();
+								if (valueId != null) {
+
+									skip = visitedObjects.contains(valueId);
+								}
+							}
+
+							if (skip) {
 
 								continue;
 
@@ -439,8 +458,11 @@ public abstract class StreamingWriter {
 
 			writer.endObject(source);
 
+
 			// unmark (visiting only counts for children)
-			visitedTypes.remove(source.getClass());
+			if (id != null) {
+				visitedObjects.remove(id);
+			}
 		}
 	}
 

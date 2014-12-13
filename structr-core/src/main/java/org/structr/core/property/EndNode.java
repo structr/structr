@@ -28,7 +28,6 @@ import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -92,6 +91,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 		this.destType  = relation.getTargetType();
 
 		this.notion.setType(destType);
+		this.notion.setRelationProperty(this);
 
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
@@ -228,8 +228,6 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 		if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
 
-			final App app = StructrApp.getInstance(securityContext);
-
 			if (exactMatch) {
 
 				switch (occur) {
@@ -286,17 +284,20 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 		try {
 
 			final Object source = relation.getSource().get(securityContext, obj, predicate);
-			if (source instanceof Iterable) {
+			if (source != null) {
 
-				Iterable<T> nodes = (Iterable<T>)source;
-				for (final T n : nodes) {
+				if (source instanceof Iterable) {
 
-					relatedNodes.add(n);
+					Iterable<T> nodes = (Iterable<T>)source;
+					for (final T n : nodes) {
+
+						relatedNodes.add(n);
+					}
+
+				} else {
+
+					relatedNodes.add((T)source);
 				}
-
-			} else {
-
-				relatedNodes.add((T)source);
 			}
 
 		} catch (Throwable t) {
@@ -310,5 +311,31 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	@Override
 	public Relation getRelation() {
 		return relation;
+	}
+
+	@Override
+	public boolean doAutocreate() {
+
+		if (relation != null) {
+
+			switch (relation.getAutocreationFlag()) {
+
+				case Relation.ALWAYS:
+				case Relation.SOURCE_TO_TARGET:
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public String getAutocreateFlagName() {
+
+		if (relation != null) {
+			return Relation.CASCADING_DESCRIPTIONS[relation.getAutocreationFlag()];
+		}
+
+		return Relation.CASCADING_DESCRIPTIONS[0];
 	}
 }

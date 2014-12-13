@@ -22,7 +22,7 @@ var connectorStyle = localStorage.getItem(localStorageSuffix + 'connectorStyle')
 var remotePropertyKeys = [];
 
 $(document).ready(function() {
-       
+
     Structr.registerModule('schema', _Schema);
     Structr.classes.push('schema');
 });
@@ -75,9 +75,9 @@ var _Schema = {
         var schemaContainer = $('.schema-input-container');
 
         Structr.ensureIsAdmin(schemaContainer, function() {
-            
+
             schemaContainer.append('<input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button>');
-            
+
             schemaContainer.append('<input class="schema-input" id="ggist-url" type="text" size="30" placeholder="Enter a GraphGist raw URL"><button id="gg-import" class="btn">Start Import</button>');
             $('#gg-import').on('click', function(e) {
                 var btn = $(this);
@@ -590,6 +590,7 @@ var _Schema = {
         el.append('<div id="___' + entity.id + '" class="schema-details"><b>' + entity.relationshipType + '</b>'
                 //+ ' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractRelationship">AbstractRelationship</option></select>'
                 + '<h3>Cascading Delete</h3><select id="cascading-delete-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>'
+                + '<h3>Automatic Creation of Related Nodes</h3><select id="autocreate-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>'
                 + '<h3>Local Attributes</h3><table class="local schema-props"><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th><th>Default</th><th>Action</th></table>'
                 + '<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">'
                 + '<h3>Actions</h3><table class="actions schema-props"><th>JSON Name</th><th>Code</th><th>Action</th></table>'
@@ -638,14 +639,29 @@ var _Schema = {
                 self.closest('tr').remove();
             });
         });
-        
+
         $.get(rootUrl + entity.id, function(data) {
             $('#cascading-delete-selector').val(data.result.cascadingDeleteFlag);
         });
-        
+
         $('#cascading-delete-selector').on('change', function() {
            var inp = $(this);
            _Schema.setRelationshipProperty(entity, 'cascadingDeleteFlag', parseInt(inp.val()),
+           function() {
+               blinkGreen(inp);
+           },
+           function() {
+               blinkRed(inp);
+           });
+        });
+
+        $.get(rootUrl + entity.id, function(data) {
+            $('#autocreate-selector').val(data.result.autocreationFlag);
+        });
+
+        $('#autocreate-selector').on('change', function() {
+           var inp = $(this);
+           _Schema.setRelationshipProperty(entity, 'autocreationFlag', parseInt(inp.val()),
            function() {
                blinkGreen(inp);
            },
@@ -743,7 +759,7 @@ var _Schema = {
 
                 var row = $('.new', el);
                 blinkGreen(row);
-                
+
                 _Schema.unbindEvents(key);
 
                 row.removeClass('new').addClass('local').addClass(key);
@@ -777,9 +793,9 @@ var _Schema = {
             $('.local .' + key + ' .remove-icon').tooltip({
                 tooltipClass: 'tooltip',
                 items: '.remove-icon',
-                show: { effect: 'fadeIn', duration: 50 },
-                hide: { effect: 'fadeOut', duration: 1000 },
-                content: '<img src="/structr/icon/error.png"> <b>' + normalizedKey + '</b> is still in use.',
+                show: { effect: 'fadeIn', duration: 0 },
+                hide: { effect: 'fadeOut', delay: 1000, duration: 150 },
+                content: '<img src="/structr/icon/error.png"> The attribute <b>' + normalizedKey + '</b> cannot be removed because it is still referenced somewhere in the schema. Check also the methods, views, notion and function properties.',
                 position: { my: "right top", at: "right bottom", collision: "flipfit" },
 //                open: function() {
 //
@@ -788,7 +804,7 @@ var _Schema = {
                     $('.local .' + key + ' .remove-icon').tooltip('disable');
                     window.setTimeout(function() {
                         $('.local .' + key + ' .remove-icon').tooltip('destroy');
-                    }, 510);
+                    }, 1160);
                 }
             }).tooltip('open');
             return;
@@ -944,7 +960,7 @@ var _Schema = {
     bindEvents: function(entity, type, key) {
 
         var el = $('.local.schema-props');
-        
+
         $('.' + key + ' .property-type option[value="' + type + '"]', el).attr('selected', true).prop('disabled', null);
 
         $('.' + key + ' .property-type', el).on('change', function() {
@@ -987,7 +1003,7 @@ var _Schema = {
         $('.' + key + ' .property-default', el).off('change').prop('disabled', 'disabled');
 
         $('.' + key + ' .remove-property', el).off('click').prop('disabled', 'disabled');
-        
+
     },
     appendRelatedProperty: function(el, rel, key, out) {
         remotePropertyKeys.push('_' + key);
@@ -998,13 +1014,13 @@ var _Schema = {
                 + (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + '</td></tr>');
 
         $('.' + key + ' .property-name', el).on('blur', function() {
-            
+
             var newName = $(this).val();
 
             if (newName === '') {
                 newName = undefined;
             }
-            
+
             if (out) {
                 _Schema.setRelationshipProperty(rel, 'targetJsonName', newName, function() {
                     blinkGreen($('.' + key, el));
@@ -1213,19 +1229,19 @@ var _Schema = {
                 200: function(existingData) {
                     var changed = false;
                     Object.keys(obj).forEach(function(key) {
-                       
+
                         //console.log('existing value', existingData.result[key], 'new value', obj[key], 'equal?', existingData.result[key] === obj[key]);
-                        
+
                         if (existingData.result[key] !== obj[key]) {
                             changed |= true;
                         }
-                        
+
                     });
-                    
+
                     //console.log('any value changed?', changed);
-                    
+
                     if (changed) {
-                        
+
                         $.ajax({
                             url: rootUrl + entity.id,
                             type: 'PUT',
@@ -1247,15 +1263,15 @@ var _Schema = {
                                 }
                             }
                         });
-                        
+
                     } else {
-                        
+
                         if (onNoop) {
                             onNoop();
                         }
-                        
+
                     }
-                    
+
                 },
             }
         });

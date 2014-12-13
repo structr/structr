@@ -42,19 +42,11 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 	private static final Logger logger = Logger.getLogger(TypeUniquenessValidator.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	private Class type = null;
 
-	//~--- constructors ---------------------------------------------------
-
 	public TypeUniquenessValidator(Class type) {
-
 		this.type = type;
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer) {
@@ -66,6 +58,15 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 			return false;
 
 		}
+
+		/*
+		 * Explanation: the property key fields of an entity are static and final, so for example
+		 * the name property exists exactly once, but each type can register a validator for
+		 * uniqueness on it. The property has a list of validators that are checked separately,
+		 * one for each type, so it can happen that the name property has several different
+		 * validators. The below check is there to ensure that only the correct type is used
+		 * for validation.
+		 */
 
 		if (!type.isAssignableFrom(object.getClass())) {
 

@@ -306,9 +306,14 @@ public class Importer {
 		createChildNodes(parsedDocument.body(), parent, page);
 	}
 
-	public void createChildNodesWithHtml(final DOMNode parent, final Page page) throws FrameworkException {
+	public void createChildNodes(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
-		createChildNodes(parsedDocument, parent, page);
+		createChildNodes(parsedDocument.body(), parent, page, removeHashAttribute);
+	}
+
+	public void createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
+
+		createChildNodes(parsedDocument, parent, page, removeHashAttribute);
 	}
 
 	public void importDataComments() throws FrameworkException {
@@ -319,6 +324,11 @@ public class Importer {
 
 	// ----- public static methods -----
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
+		
+		return parsePageFromSource(securityContext, source, name, false);
+	}
+
+	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
 		final Importer importer = new Importer(securityContext, source, null, "source", 0, true, true);
 		final App localAppCtx   = StructrApp.getInstance(securityContext);
@@ -330,7 +340,7 @@ public class Importer {
 
 			if (importer.parse()) {
 
-				importer.createChildNodesWithHtml(page, page);
+				importer.createChildNodesWithHtml(page, page, removeHashAttribute);
 			}
 
 			tx.success();
@@ -475,7 +485,11 @@ public class Importer {
 	}
 
 	// ----- private methods -----
-	private void createChildNodes(final Node startNode, final DOMNode parent, Page page) throws FrameworkException {
+	private void createChildNodes(final Node startNode, final DOMNode parent, final Page page) throws FrameworkException {
+		createChildNodes(startNode, parent, page, false);
+	}
+
+	private void createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
 		Linkable res = null;
 		final List<Node> children = startNode.childNodes();
@@ -520,6 +534,13 @@ public class Importer {
 					String downloadAddress = node.attr(downloadAddressAttr);
 					res = downloadFile(downloadAddress, originalUrl);
 
+				}
+				
+				if (removeHashAttribute) {
+					
+					// Remove data-structr-hash attribute
+					node.removeAttr(DOMNode.dataHashProperty.jsonName());
+					
 				}
 
 			}
@@ -682,7 +703,7 @@ public class Importer {
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes
-				createChildNodes(node, newNode, page);
+				createChildNodes(node, newNode, page, removeHashAttribute);
 
 			}
 		}

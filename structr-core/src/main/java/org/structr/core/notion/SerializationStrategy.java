@@ -21,6 +21,7 @@ package org.structr.core.notion;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.property.RelationProperty;
 
 /**
  * Defines a strategy for serializing a {@link GraphObject} into an output
@@ -29,5 +30,8 @@ import org.structr.core.GraphObject;
  * @author Christian Morgner
  */
 public interface SerializationStrategy<S extends GraphObject, T> {
+
 	public T serialize(SecurityContext securityContext, Class<S> type, S source) throws FrameworkException;
+
+	public void setRelationProperty(final RelationProperty<T> parentProperty);
 }

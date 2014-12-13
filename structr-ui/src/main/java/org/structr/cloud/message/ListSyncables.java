@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -38,8 +39,11 @@ import org.structr.schema.SchemaHelper;
  */
 public class ListSyncables extends Message<List<SyncableInfo>> {
 
-	private List<SyncableInfo> syncables = null;
+	private List<SyncableInfo> syncables = new LinkedList<>();
 	private String type = null;
+
+	public ListSyncables() {
+	}
 
 	public ListSyncables(final String type) {
 		this.type = type;

@@ -1777,9 +1777,10 @@ button.add_property {
     margin-top: 48px ! important;
 }
 
-/* Special highlighting for data-hash attribute in internal editor */
-.editor .data-hash {
+/* Special highlighting for data-structr-hash attribute in internal editor */
+.editor .data-structr-hash {
     color: #ccc ! important;
+    /*display: none;*/
 }
 
 #queries > div, #filters > div {
@@ -1901,11 +1902,15 @@ table.push {
     border: 1px solid transparent;
     padding: 12px;
     margin: 0 0 0 11px;
-    background-color: #eee;
-    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
-    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+    background-color: #feefb3;
+    background: -webkit-gradient(linear, left bottom, left top, from(#fdedb1), to(#feefb3)) no-repeat;
+    background: -moz-linear-gradient(90deg, #fdedb1, #feefb3) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#feefb3', EndColorStr='#fdedb1', GradientType=0);
     z-index: 9999;
+    color: #9f6000;
+    border: 1px solid #9f6000;
+    font-size: 10pt;
+    
 }
 
 .tooltip img {
