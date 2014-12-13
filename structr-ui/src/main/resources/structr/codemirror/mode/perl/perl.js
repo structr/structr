@@ -788,10 +788,10 @@ CodeMirror.defineMode("perl",function(){
                                 style:null,
                                 tail:null};},
                 token:function(stream,state){
-                        return (state.tokenize||tokenPerl)(stream,state);},
-                electricChars:"{}"};});
+                        return (state.tokenize||tokenPerl)(stream,state);}
+                };});
 
-CodeMirror.registerHelper("wordChars", "perl", /[\\w$]/);
+CodeMirror.registerHelper("wordChars", "perl", /[\w$]/);
 
 CodeMirror.defineMIME("text/x-perl", "perl");
 
