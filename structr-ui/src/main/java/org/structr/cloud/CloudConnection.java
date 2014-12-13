@@ -224,7 +224,7 @@ public class CloudConnection<T> extends Thread {
 
 	public void waitForAuthentication() throws FrameworkException {
 
-		final long abortTime = System.currentTimeMillis() + CloudService.DEFAULT_TIMEOUT;
+		final long abortTime = System.currentTimeMillis() + CloudService.AUTH_TIMEOUT;
 
 		while (!authenticated) {
 
@@ -234,7 +234,7 @@ public class CloudConnection<T> extends Thread {
 
 			if (System.currentTimeMillis() > abortTime) {
 
-				throw new FrameworkException(504, "Authentication failed.");
+				throw new FrameworkException(401, "Authentication failed.");
 			}
 
 			try {

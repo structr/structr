@@ -268,7 +268,12 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+
 		this.setProperty(Content.content, properties.get(Content.content));
+
+		// update visibility as well
+		this.setProperty(Content.visibleToPublicUsers, properties.get(Content.visibleToPublicUsers));
+		this.setProperty(Content.visibleToAuthenticatedUsers, properties.get(Content.visibleToAuthenticatedUsers));
 	}
 
 	@Override

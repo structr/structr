@@ -37,9 +37,10 @@ import org.structr.core.graph.SyncCommand;
 
 public class AuthenticationRequest extends Message {
 
-	private String userName = null;
-	private String salt     = null;
-	private int keyLength   = 128;
+	private String userName     = null;
+	private String salt         = null;
+	private int keyLength       = 128;
+	private int protocolVersion = 0;
 
 	public AuthenticationRequest() {}
 
@@ -74,6 +75,12 @@ public class AuthenticationRequest extends Message {
 	@Override
 	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
+		if (protocolVersion != CloudService.PROTOCOL_VERSION) {
+
+			serverConnection.send(new Error(400, "Unsupported protocol version " + protocolVersion + ", server needs " + CloudService.PROTOCOL_VERSION));
+			return;
+		}
+
 		final Principal user = serverConnection.getUser(userName);
 		if (user != null) {
 
@@ -90,7 +97,7 @@ public class AuthenticationRequest extends Message {
 
 		} else {
 
-			serverConnection.send(new Error(401, "Wrong username or password."));
+			serverConnection.send(new Error(401, "Authentication failed."));
 		}
 	}
 
@@ -105,9 +112,10 @@ public class AuthenticationRequest extends Message {
 	@Override
 	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
 
-		this.userName  = (String)SyncCommand.deserialize(inputStream);
-		this.salt      = (String)SyncCommand.deserialize(inputStream);
-		this.keyLength = (Integer)SyncCommand.deserialize(inputStream);
+		this.userName        = (String)SyncCommand.deserialize(inputStream);
+		this.salt            = (String)SyncCommand.deserialize(inputStream);
+		this.keyLength       = (Integer)SyncCommand.deserialize(inputStream);
+		this.protocolVersion = (Integer)SyncCommand.deserialize(inputStream);
 	}
 
 	@Override
@@ -116,5 +124,6 @@ public class AuthenticationRequest extends Message {
 		SyncCommand.serialize(outputStream, userName);
 		SyncCommand.serialize(outputStream, salt);
 		SyncCommand.serialize(outputStream, keyLength);
+		SyncCommand.serialize(outputStream, CloudService.PROTOCOL_VERSION);
 	}
 }

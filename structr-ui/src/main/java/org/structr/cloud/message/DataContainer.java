@@ -35,6 +35,7 @@ import org.structr.core.graph.SyncCommand;
 public abstract class DataContainer extends Message {
 
 	protected Map<String, Object> properties = new LinkedHashMap<>();
+	protected int synchronizationMode        = 0;
 	protected int sequenceNumber             = 0;
 
 	public DataContainer() {}
@@ -69,8 +70,9 @@ public abstract class DataContainer extends Message {
 	@Override
 	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
 
-		this.sequenceNumber = (Integer)SyncCommand.deserialize(inputStream);
-		final int num       = (Integer)SyncCommand.deserialize(inputStream);
+		this.sequenceNumber      = (Integer)SyncCommand.deserialize(inputStream);
+		this.synchronizationMode = (Integer)SyncCommand.deserialize(inputStream);
+		final int num            = (Integer)SyncCommand.deserialize(inputStream);
 
 		for (int i=0; i<num; i++) {
 
@@ -85,6 +87,7 @@ public abstract class DataContainer extends Message {
 	protected void serializeTo(DataOutputStream outputStream) throws IOException {
 
 		SyncCommand.serialize(outputStream, sequenceNumber);
+		SyncCommand.serialize(outputStream, synchronizationMode);
 		SyncCommand.serialize(outputStream, properties.size());
 
 		for (final Entry<String, Object> entry : properties.entrySet()) {

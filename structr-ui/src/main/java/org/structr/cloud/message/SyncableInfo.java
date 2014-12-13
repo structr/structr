@@ -34,12 +34,14 @@ import org.structr.dynamic.File;
  */
 public class SyncableInfo {
 
-	private boolean node      = false;
-	private String id         = null;
-	private String name       = null;
-	private String type       = null;
-	private long size         = 0L;
-	private long lastModified = 0L;
+	private boolean node                        = false;
+	private String id                           = null;
+	private String name                         = null;
+	private String type                         = null;
+	private boolean visibleToPublicUsers        = false;
+	private boolean visibleToAuthenticatedUsers = false;
+	private long size                           = 0L;
+	private long lastModified                   = 0L;
 
 	public SyncableInfo() {}
 
@@ -99,14 +101,24 @@ public class SyncableInfo {
 		return new Date(lastModified);
 	}
 
+	public boolean isVisibleToPublicUsers() {
+		return visibleToPublicUsers;
+	}
+
+	public boolean isVisibleToAuthenticatedUsers() {
+		return visibleToAuthenticatedUsers;
+	}
+
 	protected void deserializeFrom(final DataInputStream inputStream) throws IOException {
 
-		this.node         = (Boolean)SyncCommand.deserialize(inputStream);
-		this.id           = (String)SyncCommand.deserialize(inputStream);
-		this.name         = (String)SyncCommand.deserialize(inputStream);
-		this.type         = (String)SyncCommand.deserialize(inputStream);
-		this.size         = (Long)SyncCommand.deserialize(inputStream);
-		this.lastModified = (Long)SyncCommand.deserialize(inputStream);
+		this.node                        = (Boolean)SyncCommand.deserialize(inputStream);
+		this.id                          = (String)SyncCommand.deserialize(inputStream);
+		this.name                        = (String)SyncCommand.deserialize(inputStream);
+		this.type                        = (String)SyncCommand.deserialize(inputStream);
+		this.visibleToPublicUsers        = (Boolean)SyncCommand.deserialize(inputStream);
+		this.visibleToAuthenticatedUsers = (Boolean)SyncCommand.deserialize(inputStream);
+		this.size                        = (Long)SyncCommand.deserialize(inputStream);
+		this.lastModified                = (Long)SyncCommand.deserialize(inputStream);
 	}
 
 	protected void serializeTo(final DataOutputStream outputStream) throws IOException {
@@ -115,6 +127,8 @@ public class SyncableInfo {
 		SyncCommand.serialize(outputStream, id);
 		SyncCommand.serialize(outputStream, name);
 		SyncCommand.serialize(outputStream, type);
+		SyncCommand.serialize(outputStream, visibleToPublicUsers);
+		SyncCommand.serialize(outputStream, visibleToAuthenticatedUsers);
 		SyncCommand.serialize(outputStream, size);
 		SyncCommand.serialize(outputStream, lastModified);
 	}
