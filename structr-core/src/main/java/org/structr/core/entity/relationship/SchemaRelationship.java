@@ -121,6 +121,16 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	}
 
 	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 
 		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Iterables.toList(super.getPropertyKeys(propertyView)));
