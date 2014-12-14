@@ -171,7 +171,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final Property<String> pageId = new EntityIdProperty("pageId", ownerDocument);
 
 	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id");
-	public static final Property<String> dataHashProperty = new StringProperty("data-hash");
+	public static final Property<String> dataHashProperty = new StringProperty("data-structr-hash");
 
 	static {
 
@@ -526,9 +526,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public String getIdHash() {
 
-		final String uuid = getUuid();
+		return getUuid();
 
-		return Integer.toHexString(uuid.hashCode());
 	}
 
 	public String getIdHashOrProperty() {

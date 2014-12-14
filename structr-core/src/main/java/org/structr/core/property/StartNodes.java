@@ -32,7 +32,6 @@ import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -93,6 +92,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 		this.destType = relation.getSourceType();
 
 		this.notion.setType(destType);
+		this.notion.setRelationProperty(this);
 
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
@@ -260,8 +260,6 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 		if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
 
-			final App app = StructrApp.getInstance(securityContext);
-
 			if (exactMatch) {
 
 				for (NodeInterface node : searchValue) {
@@ -325,17 +323,20 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 		try {
 
 			final Object target = relation.getTarget().get(securityContext, obj, predicate);
-			if (target instanceof Iterable) {
+			if (target != null) {
 
-				Iterable<T> nodes = (Iterable<T>)target;
-				for (final T n : nodes) {
+				if (target instanceof Iterable) {
 
-					relatedNodes.add(n);
+					Iterable<T> nodes = (Iterable<T>)target;
+					for (final T n : nodes) {
+
+						relatedNodes.add(n);
+					}
+
+				} else {
+
+					relatedNodes.add((T)target);
 				}
-
-			} else {
-
-				relatedNodes.add((T)target);
 			}
 
 		} catch (Throwable t) {
@@ -349,5 +350,31 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	@Override
 	public Relation getRelation() {
 		return relation;
+	}
+
+	@Override
+	public boolean doAutocreate() {
+
+		if (relation != null) {
+
+			switch (relation.getAutocreationFlag()) {
+
+				case Relation.ALWAYS:
+				case Relation.TARGET_TO_SOURCE:
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public String getAutocreateFlagName() {
+
+		if (relation != null) {
+			return Relation.CASCADING_DESCRIPTIONS[relation.getAutocreationFlag()];
+		}
+
+		return Relation.CASCADING_DESCRIPTIONS[0];
 	}
 }

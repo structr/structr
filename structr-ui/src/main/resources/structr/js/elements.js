@@ -413,7 +413,7 @@ var _Elements = {
         });
 
         _Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
-        //_Entities.appendEditSourceIcon(div, entity);
+        _Entities.appendEditSourceIcon(div, entity);
         _Entities.appendEditPropertiesIcon(div, entity);
         //_Entities.appendDataIcon(div, entity);
 

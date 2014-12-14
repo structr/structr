@@ -37,6 +37,7 @@ import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,68 +49,83 @@ import org.structr.core.graph.NodeInterface;
 public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
-	
-	protected PropertyKey[] propertyKeys  = null;
-	protected boolean createIfNotExisting = false;
+
+	protected RelationProperty relationProperty = null;
+	protected PropertyKey[] propertyKeys        = null;
+	protected boolean createIfNotExisting       = false;
 
 	//~--- constructors ---------------------------------------------------
 
 	public TypeAndPropertySetDeserializationStrategy(PropertyKey... propertyKeys) {
 		this(false, propertyKeys);
 	}
-	
+
 	public TypeAndPropertySetDeserializationStrategy(boolean createIfNotExisting, PropertyKey... propertyKeys) {
 		this.createIfNotExisting = createIfNotExisting;
 		this.propertyKeys = propertyKeys;
 	}
 
-	//~--- methods --------------------------------------------------------
+	@Override
+	public void setRelationProperty(RelationProperty<S> relationProperty) {
+		this.relationProperty = relationProperty;
+	}
 
 	@Override
 	public T deserialize(SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
 
 		if (source instanceof JsonInput) {
-			
+
 			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, ((JsonInput)source).getAttributes());
 			return deserialize(securityContext, type, attributes);
 		}
-		
+
 		if (source instanceof Map) {
-			
+
 			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)source);
 			return deserialize(securityContext, type, attributes);
 		}
-		
+
 		return null;
 	}
 
 	private T deserialize(SecurityContext securityContext, Class<T> type, PropertyMap attributes) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		if (attributes != null) {
-			
+
 			Result<T> result = Result.EMPTY_RESULT;
-			
+
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.id)) {
 
 				result = new Result(app.get(attributes.get(GraphObject.id)), false);
-				
+
 			} else {
 
-				
+
 				boolean attributesComplete = true;
-				
+
 				// Check if all property keys of the PropertySetNotion are present
 				for (PropertyKey key : propertyKeys) {
 					attributesComplete &= attributes.containsKey(key);
 				}
-				
+
 				if (attributesComplete) {
-					
-					result = app.nodeQuery(type).and(attributes).getResult();
-					
+
+					final PropertyMap searchAttributes = new PropertyMap();
+					for (final PropertyKey key : attributes.keySet()) {
+
+						// only use attribute for searching if it is NOT
+						// a related node property
+						if (key.relatedType() == null) {
+
+							searchAttributes.put(key, attributes.get(key));
+						}
+					}
+
+					result = app.nodeQuery(type).and(searchAttributes).getResult();
+
 				}
 			}
 
@@ -126,7 +142,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 						if (newNode != null) {
 
 							return newNode;
-						}						
+						}
 					}
 
 					break;
@@ -144,12 +160,12 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
 		}
-		
+
 		return null;
 	}
-	
+
 	private T getTypedResult(Result<T> result, Class<T> type) throws FrameworkException {
-		
+
 		GraphObject obj = result.get(0);
 
 		if(!type.isAssignableFrom(obj.getClass())) {
@@ -158,6 +174,6 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 		return result.get(0);
 	}
-	
-	
+
+
 }

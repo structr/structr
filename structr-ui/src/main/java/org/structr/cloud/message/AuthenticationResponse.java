@@ -18,6 +18,8 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import javax.crypto.Cipher;
@@ -26,6 +28,7 @@ import org.structr.cloud.CloudService;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
+import org.structr.core.graph.SyncCommand;
 
 /**
  *
@@ -86,7 +89,9 @@ public class AuthenticationResponse extends Message {
 		try {
 
 			serverConnection.setEncryptionKey(getEncryptionKey(serverConnection.getPassword()), Math.min(keyLength, Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER)));
-			serverConnection.setAuthenticated();
+
+			// send a CRYPT message which enables the encryption when received
+			serverConnection.send(new Crypt());
 
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -113,7 +118,18 @@ public class AuthenticationResponse extends Message {
 	}
 
 	@Override
-	public Object getPayload() {
-		return null;
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
+
+		this.userName  = (String)SyncCommand.deserialize(inputStream);
+		this.salt      = (String)SyncCommand.deserialize(inputStream);
+		this.keyLength = (Integer)SyncCommand.deserialize(inputStream);
+	}
+
+	@Override
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
+
+		SyncCommand.serialize(outputStream, userName);
+		SyncCommand.serialize(outputStream, salt);
+		SyncCommand.serialize(outputStream, keyLength);
 	}
 }

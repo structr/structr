@@ -41,24 +41,24 @@ public interface PropertyKey<T> {
 
 	/**
 	 * Return the JSON name of this property.
-	 * 
+	 *
 	 * @return jsonName
 	 */
 	public String jsonName();
-	
+
 	/**
 	 * Returns the database name of this property.
-	 * 
+	 *
 	 * @return dbName
 	 */
 	public String dbName();
-	
+
 	/**
 	 * Sets the name of this property in the JSON context. This
 	 * is the key under which the property will be found in the
 	 * JSON input/output.
-	 * 
-	 * @param jsonName 
+	 *
+	 * @param jsonName
 	 */
 	public void jsonName(String jsonName);
 
@@ -66,39 +66,39 @@ public interface PropertyKey<T> {
 	 * Sets the name of this property in the database context. This
 	 * is the key under which the property will be stored in the
 	 * database.
-	 * 
+	 *
 	 * @param dbName
 	 */
 	public void dbName(String dbName);
-	
+
 	/**
 	 * Use this method to mark a property for indexing. This
 	 * method registers the property in both the keyword and
 	 * the fulltext index. To select the appropriate index
 	 * for yourself, use the other indexed() methods.
-	 * 
+	 *
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> indexed();
-	
+
 	/**
-	 * Use this method to mark a property for indexing 
+	 * Use this method to mark a property for indexing
 	 * in the given index.
-	 * 
+	 *
 	 * @param nodeIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> indexed(NodeService.NodeIndex nodeIndex);
-	
+
 	/**
-	 * Use this method to mark a property for indexing 
+	 * Use this method to mark a property for indexing
 	 * in the given index.
-	 * 
+	 *
 	 * @param relIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> indexed(NodeService.RelationshipIndex relIndex);
-	
+
 	/**
 	 * Use this method to indicate that a property key can change its value
 	 * without setProperty() being called directly on it. This method causes
@@ -106,61 +106,61 @@ public interface PropertyKey<T> {
 	 * of immediately on setProperty(). This method registers the property
 	 * in both the keyword and the fulltext index. To select the appropriate
 	 * index for yourself, use the other indexed() methods.
-	 * 
+	 *
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> passivelyIndexed();
-	
+
 	/**
 	 * Use this method to indicate that a property key can change its value
 	 * without setProperty() being called directly on it. This method causes
 	 * the given property to be indexed at the end of a transaction instead
 	 * of immediately on setProperty().
-	 * 
+	 *
 	 * @param nodeIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex);
-	
+
 	/**
 	 * Use this method to indicate that a property key can change its value
 	 * without setProperty() being called directly on it. This method causes
 	 * the given property to be indexed at the end of a transaction instead
 	 * of immediately on setProperty().
-	 * 
+	 *
 	 * @param relIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex);
-	
+
 	public Property<T> indexedWhenEmpty();
-	
-	
+
+
 	/**
 	 * Returns the desired type name that will be used in the error message if a
 	 * wrong type was provided.
 	 * @return typeName
 	 */
 	public String typeName();
-	
+
 	/**
 	 * Returns the type of the related property this property key references, or
 	 * null if this is not a relationship property.
-	 * 
+	 *
 	 * @return relatedType
 	 */
 	public Class relatedType();
-	
+
 	/**
 	 * Returns the default value for this property.
-	 * 
+	 *
 	 * @return defaultValue
 	 */
 	public T defaultValue();
-	
+
 	/**
 	 * Returns the format value for this property.
-	 * 
+	 *
 	 * @return format
 	 */
 	public String format();
@@ -173,7 +173,7 @@ public interface PropertyKey<T> {
 	public List<PropertyValidator<T>> getValidators();
 	public boolean requiresSynchronization();
 	public String getSynchronizationKey();
-	
+
 	public void setDeclaringClass(Class declaringClass);
 	public Class getDeclaringClass();
 
@@ -182,7 +182,7 @@ public interface PropertyKey<T> {
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
 
 	public void registrationCallback(Class<GraphObject> entityType);
-	
+
 	/**
 	 * Indicates whether this property is an unvalidated property or not.
 	 * If a transaction contains only modifications AND those modifications
@@ -190,16 +190,16 @@ public interface PropertyKey<T> {
 	 * afterModification callbacks. This can be used to avoid endless
 	 * loops after a transaction. Just mark the property key that causes
 	 * the loop as unvalidated.
-	 * 
+	 *
 	 * @return whether this property is unvalidated
 	 */
 	public boolean isUnvalidated();
-	
+
 	/**
 	 * Indicates whether this property is read-only. Read-only properties
 	 * will throw a FrameworkException with error code 422 when the value
 	 * is modified.
-	 * 
+	 *
 	 * @return isReadOnly
 	 */
 	public boolean isReadOnly();
@@ -208,7 +208,7 @@ public interface PropertyKey<T> {
 	 * Indicates whether this property is write-once. Write-once properties
 	 * will throw a FrameworkException with error code 422 when the value
 	 * is modified after it has been initially set.
-	 * 
+	 *
 	 * @return isWriteOnce
 	 */
 	public boolean isWriteOnce();
@@ -216,7 +216,7 @@ public interface PropertyKey<T> {
 	/**
 	 * Indicates whether this property is indexed, i.e. searchable using
 	 * REST queries.
-	 * 
+	 *
 	 * @return isIndexed
 	 */
 	public boolean isIndexed();
@@ -227,11 +227,11 @@ public interface PropertyKey<T> {
 	 * the end of the transaction, so you can use this method to achieve
 	 * indexing (and searchability) of properties that are never directly
 	 * set using setProperty.
-	 * 
+	 *
 	 * @return isPassivelyIndexed
 	 */
 	public boolean isPassivelyIndexed();
-	
+
 	/**
 	 * Indicates whether this property is searchable.
 	 * @return isSearchable
@@ -242,7 +242,7 @@ public interface PropertyKey<T> {
 	 * Indicates whether this property is searchable with an empty value.
 	 * This behaviour is achieved by storing a special value for empty
 	 * fields which can then later be found again.
-	 * 
+	 *
 	 * @return isIndexedWhenEmpty
 	 */
 	public boolean isIndexedWhenEmpty();
@@ -250,10 +250,18 @@ public interface PropertyKey<T> {
 	/**
 	 * Indicates whether this property represents a collection or a single
 	 * value in the JSON output.
-	 * 
+	 *
 	 * @return isCollection
 	 */
 	public boolean isCollection();
+
+	/**
+	 * Indicates whether the value associated with this property is
+	 * validated for uniqueness.
+	 *
+	 * @return whether this property value is validated for uniqueness
+	 */
+	public boolean isUnique();
 
 	/**
 	 * Returns the lucene sort type of this property.
@@ -262,11 +270,11 @@ public interface PropertyKey<T> {
 	public Integer getSortType();
 
 	public void index(GraphObject entity, Object value);
-	
+
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch, final Query query);
 	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, Query query) throws FrameworkException;
 	public T convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException;
-	
+
 	/**
 	 * Returns the desired position of this property key type
 	 * in the processing order.

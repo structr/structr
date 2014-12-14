@@ -79,11 +79,13 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 					for (final SyncableInfo info : syncables) {
 
 						final GraphObjectMap map = new GraphObjectMap();
-						map.put(GraphObject.id,               info.getId());
-						map.put(NodeInterface.name,           info.getName());
-						map.put(File.size,                    info.getSize());
-						map.put(GraphObject.type,             info.getType());
-						map.put(GraphObject.lastModifiedDate, info.getLastModified());
+						map.put(GraphObject.id,                          info.getId());
+						map.put(NodeInterface.name,                      info.getName());
+						map.put(File.size,                               info.getSize());
+						map.put(GraphObject.type,                        info.getType());
+						map.put(GraphObject.visibleToPublicUsers,        info.isVisibleToPublicUsers());
+						map.put(GraphObject.visibleToAuthenticatedUsers, info.isVisibleToAuthenticatedUsers());
+						map.put(GraphObject.lastModifiedDate,            info.getLastModified());
 
 						// check for existance
 						map.put(isSynchronized, isSynchronized(info));
@@ -94,6 +96,8 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 					webSocketData.setResult(result);
 					webSocket.send(webSocketData, true);
 				}
+
+				tx.success();
 
 			} catch (FrameworkException fex) {
 

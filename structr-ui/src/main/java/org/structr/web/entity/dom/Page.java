@@ -836,7 +836,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			final Page diffPage = Importer.parsePageFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
 
 			// build change set
-			changeSet.addAll(Importer.diffPages(this, diffPage));
+			changeSet.addAll(Importer.diffNodes(this, diffPage));
 
 			for (final InvertibleModificationOperation op : changeSet) {
 
@@ -1118,7 +1118,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					// parse page from modified source
 					Page modifiedPage = Importer.parsePageFromSource(securityContext, source, "__FTP_Temporary_Page__");
 
-					final List<InvertibleModificationOperation> changeSet = Importer.diffPages(origPage, modifiedPage);
+					final List<InvertibleModificationOperation> changeSet = Importer.diffNodes(origPage, modifiedPage);
 
 					for (final InvertibleModificationOperation op : changeSet) {
 

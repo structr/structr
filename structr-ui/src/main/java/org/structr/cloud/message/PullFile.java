@@ -18,6 +18,8 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
 import org.structr.cloud.CloudConnection;
@@ -25,6 +27,7 @@ import org.structr.cloud.CloudService;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.SyncCommand;
 import org.structr.dynamic.File;
 
 /**
@@ -80,7 +83,20 @@ public class PullFile extends FileNodeDataContainer {
 	}
 
 	@Override
-	public Object getPayload() {
-		return null;
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
+
+		this.key       = (String)SyncCommand.deserialize(inputStream);
+		this.nodeIndex = (Integer)SyncCommand.deserialize(inputStream);
+
+		super.deserializeFrom(inputStream);
+	}
+
+	@Override
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
+
+		SyncCommand.serialize(outputStream, key);
+		SyncCommand.serialize(outputStream, nodeIndex);
+
+		super.serializeTo(outputStream);
 	}
 }

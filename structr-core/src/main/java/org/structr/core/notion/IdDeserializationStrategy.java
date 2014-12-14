@@ -18,25 +18,20 @@
  */
 package org.structr.core.notion;
 
+import java.util.List;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.IdNotFoundToken;
-import org.structr.core.entity.AbstractNode;
 
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.graph.NodeInterface;
-
-//~--- classes ----------------------------------------------------------------
+import org.structr.core.property.RelationProperty;
 
 /**
  * Deserializes a {@link GraphObject} using the UUID property.
@@ -47,22 +42,15 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 	private static final Logger logger = Logger.getLogger(IdDeserializationStrategy.class.getName());
 
-	//~--- fields ---------------------------------------------------------
+	protected RelationProperty<S> relationProperty = null;
 
-	protected boolean createIfNotExisting     = false;
-	protected PropertyKey<String> propertyKey = null;
-
-	//~--- constructors ---------------------------------------------------
-
-	public IdDeserializationStrategy() {}
-
-	public IdDeserializationStrategy(PropertyKey<String> propertyKey, boolean createIfNotExisting) {
-
-		this.propertyKey         = propertyKey;
-		this.createIfNotExisting = createIfNotExisting;
+	public IdDeserializationStrategy() {
 	}
 
-	//~--- methods --------------------------------------------------------
+	@Override
+	public void setRelationProperty(final RelationProperty<S> parentProperty) {
+		this.relationProperty = parentProperty;
+	}
 
 	@Override
 	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source) throws FrameworkException {
@@ -71,69 +59,117 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 		if (source != null) {
 
-			Result<T> results = Result.EMPTY_RESULT;
-			
 			if (source instanceof JsonInput) {
 
-				JsonInput properties = (JsonInput) source;
-				PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, type, properties.getAttributes());
-				
+				final JsonInput properties = (JsonInput) source;
+				final PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, type, properties.getAttributes());
+				T relatedNode              = null;
+
 				// If property map contains the uuid, search only for uuid
 				if (map.containsKey(GraphObject.id)) {
-				
-					return (T) app.get(map.get(GraphObject.id));
 
-					
+					relatedNode = (T) app.get(map.get(GraphObject.id));
+
 				} else {
-					
-					throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
-					
+
+					final PropertyMap uniqueKeyValues = new PropertyMap();
+					for (final PropertyKey key : map.keySet()) {
+
+						if (key.isUnique()) {
+
+							uniqueKeyValues.put(key, map.get(key));
+						}
+					}
+
+					// try to find an entity for the given attributes, but only if they are unique
+					//  (this is quite similar to the Cypher MERGE command),
+					if (!uniqueKeyValues.isEmpty()) {
+
+						final List<T> possibleResults = app.nodeQuery(type).and(uniqueKeyValues).getAsList();
+						final int num                 = possibleResults.size();
+
+						switch (num) {
+
+							case 0:
+								// not found => will be created
+								break;
+
+							case 1:
+								relatedNode = possibleResults.get(0);
+								break;
+
+							default:
+								// more than one => not unique??
+								throw new FrameworkException(422, concat(
+									"Unable to resolve related node of type ",
+									type.getSimpleName(),
+									", ambiguous result: found ",
+									num,
+									" nodes for the given property set."
+								));
+						}
+
+					} else {
+
+						// throw exception here?
+
+					}
 				}
 
-			} else if (source instanceof GraphObject) {
-				
-				GraphObject obj = (GraphObject)source;
-				if (propertyKey != null) {
-					
-					results = (Result<T>) app.nodeQuery(NodeInterface.class).and(propertyKey, obj.getProperty(propertyKey)).getResult();
-					
-					
+				if (relatedNode == null) {
+
+					// no related node found, should we create one?
+					if (relationProperty != null) {
+
+						final Relation relation = relationProperty.getRelation();
+
+						if (relationProperty.doAutocreate()) {
+
+							return app.create(type, map);
+
+						} else {
+
+							throw new FrameworkException(422, concat(
+								"Cannot create ", relation.getOtherType(type).getSimpleName(),
+								": no matching ", type.getSimpleName(),
+								" found for the given property set",
+								" and autoCreate has a value of ",
+								relationProperty.getAutocreateFlagName()
+							));
+
+						}
+					}
+
+					// FIXME: when can the relationProperty be null at all?
+					throw new FrameworkException(500, concat(
+						"Unable to resolve related node of type ",
+						type.getSimpleName(),
+						", no relation defined."
+					));
+
 				} else {
-					
-					// fetch property key for "id", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), GraphObject.id.dbName());
-					
-					return (T) app.get(obj.getProperty(idProperty));
-					
+
+					return relatedNode;
 				}
-				
-				
+
 			} else {
 
+				// interpret source as a raw ID string and fetch entity
 				return (T) app.get(source.toString());
-
 			}
-
-			int size       = results.size();
-
-			switch (size) {
-
-				case 0 :
-					throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
-
-				case 1 :
-					return results.get(0);
-
-				default :
-					logger.log(Level.WARNING, "Got more than one result for UUID {0}. Either this is not an UUID or we have a collision.", source.toString());
-
-			}
-
-		} else if (createIfNotExisting) {
-
-			return app.create(type);
 		}
 
 		return null;
+	}
+
+	private String concat(final Object... values) {
+
+		final StringBuilder buf = new StringBuilder(values.length * 20);
+
+		for (Object value : values) {
+			buf.append(value);
+		}
+
+		return buf.toString();
 	}
 }

@@ -20,9 +20,9 @@ package org.structr.cloud;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.util.LinkedHashMap;
@@ -85,21 +85,21 @@ public class CloudConnection<T> extends Thread {
 
 	// private fields
 	private final ConfigurationProvider config = Services.getInstance().getConfigurationProvider();
-	private final Set<String> localMessageIds = new LinkedHashSet<>();
-	private App app = StructrApp.getInstance();
-	private long transmissionAbortTime = 0L;
-	private ExportContext context = null;
-	private boolean authenticated = false;
-	private String errorMessage = null;
-	private int errorCode = 0;
-	private String password = null;
-	private Cipher encrypter = null;
-	private Cipher decrypter = null;
-	private Receiver receiver = null;
-	private Sender sender = null;
-	private Socket socket = null;
-	private T payload = null;
-	private Tx tx = null;
+	private final Set<String> localMessageIds  = new LinkedHashSet<>();
+	private App app                            = StructrApp.getInstance();
+	private long transmissionAbortTime         = 0L;
+	private ExportContext context              = null;
+	private boolean authenticated              = false;
+	private String errorMessage                = null;
+	private int errorCode                      = 0;
+	private String password                    = null;
+	private Cipher encrypter                   = null;
+	private Cipher decrypter                   = null;
+	private Receiver receiver                  = null;
+	private Sender sender                      = null;
+	private Socket socket                      = null;
+ 	private T payload                          = null;
+ 	private Tx tx                              = null;
 
 	public CloudConnection(final Socket socket, final ExportContext context) {
 
@@ -129,8 +129,8 @@ public class CloudConnection<T> extends Thread {
 				// password hash afterwards.
 				setEncryptionKey("StructrInitialEncryptionKey", 128);
 
-				sender = new Sender(this, new ObjectOutputStream(new GZIPOutputStream(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter), true)));
-				receiver = new Receiver(this, new ObjectInputStream(new GZIPInputStream(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
+				sender = new Sender(this, new DataOutputStream(new BufferedOutputStream(new GZIPOutputStream(new CipherOutputStream(socket.getOutputStream(), encrypter), 8192, true))));
+				receiver = new Receiver(this, new DataInputStream(new BufferedInputStream(new GZIPInputStream(new CipherInputStream(socket.getInputStream(), decrypter), 8192))));
 
 				receiver.start();
 				sender.start();
@@ -154,6 +154,10 @@ public class CloudConnection<T> extends Thread {
 				final Message request = receiver.receive();
 				if (request != null) {
 
+					if (CloudService.DEBUG) {
+						System.out.println("        RECEIVED " + request);
+					}
+
 					// inform sender that a message has arrived
 					sender.messageReceived();
 
@@ -167,10 +171,6 @@ public class CloudConnection<T> extends Thread {
 					} else {
 
 						request.onRequest(this, context);
-					}
-
-					if (CloudService.DEBUG) {
-						System.out.println("        => " + request);
 					}
 				}
 
@@ -193,11 +193,11 @@ public class CloudConnection<T> extends Thread {
 
 	public void send(final Message message) throws IOException, FrameworkException {
 
-		sender.send(message);
-
 		if (CloudService.DEBUG) {
-			System.out.println(message);
+			System.out.println("        SEND " + message);
 		}
+
+		sender.send(message);
 
 		localMessageIds.add(message.getId());
 	}
@@ -224,7 +224,7 @@ public class CloudConnection<T> extends Thread {
 
 	public void waitForAuthentication() throws FrameworkException {
 
-		final long abortTime = System.currentTimeMillis() + CloudService.DEFAULT_TIMEOUT;
+		final long abortTime = System.currentTimeMillis() + CloudService.AUTH_TIMEOUT;
 
 		while (!authenticated) {
 
@@ -234,7 +234,7 @@ public class CloudConnection<T> extends Thread {
 
 			if (System.currentTimeMillis() > abortTime) {
 
-				throw new FrameworkException(504, "Authentication failed.");
+				throw new FrameworkException(401, "Authentication failed.");
 			}
 
 			try {
@@ -572,24 +572,17 @@ public class CloudConnection<T> extends Thread {
 
 		}
 
-		for (final Class<Syncable> type : types) {
-
-			Class cls;
-			try {
-				cls = Class.forName(type.getName());
-			} catch (ClassNotFoundException ex) {
-				continue;
-			}
+		for (final Class type : types) {
 
 			if (NodeInterface.class.isAssignableFrom(type)) {
 
-				for (final NodeInterface syncable : (Iterable<NodeInterface>) app.nodeQuery(cls).getAsList()) {
+				for (final NodeInterface syncable : (Iterable<NodeInterface>) app.nodeQuery(type).getAsList()) {
 					syncables.add(new SyncableInfo((Syncable) syncable));
 				}
 
 			} else if (RelationshipInterface.class.isAssignableFrom(type)) {
 
-				for (final RelationshipInterface syncable : (Iterable<RelationshipInterface>) app.relationshipQuery(cls).getAsList()) {
+				for (final RelationshipInterface syncable : (Iterable<RelationshipInterface>) app.relationshipQuery(type).getAsList()) {
 					syncables.add(new SyncableInfo((Syncable) syncable));
 				}
 
@@ -597,7 +590,6 @@ public class CloudConnection<T> extends Thread {
 
 		}
 
-//
 		return syncables;
 	}
 

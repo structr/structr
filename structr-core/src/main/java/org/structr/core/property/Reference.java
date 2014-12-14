@@ -35,7 +35,7 @@ import org.structr.core.graph.search.SearchAttribute;
  * Contains information about a related node property. This class can be used together
  * with {@link ReferenceGroup} to return a group of properties from both start and end
  * node of a relationship.
- * 
+ *
  * @author Christian Morgner
  */
 public class Reference<T> implements PropertyKey<T> {
@@ -47,13 +47,13 @@ public class Reference<T> implements PropertyKey<T> {
 	private PropertyKey<T> referenceKey = null;
 	private PropertyKey<T> propertyKey  = null;
 	private Key referenceType           = null;
-	
+
 	public Reference(PropertyKey propertyKey, Key referenceType, PropertyKey<T> referenceKey) {
 		this.referenceType = referenceType;
 		this.referenceKey = referenceKey;
 		this.propertyKey = propertyKey;
 	}
-	
+
 	public PropertyKey<T> getReferenceKey() {
 		return referenceKey;
 	}
@@ -63,7 +63,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	public GraphObject getReferencedEntity(AbstractRelationship relationship) {
-		
+
 		if (relationship != null) {
 
 			switch (referenceType) {
@@ -78,10 +78,10 @@ public class Reference<T> implements PropertyKey<T> {
 					return relationship.getTargetNode();
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	// interface PropertyKey
 	@Override
 	public String dbName() {
@@ -92,7 +92,7 @@ public class Reference<T> implements PropertyKey<T> {
 	public String jsonName() {
 		return propertyKey.jsonName();
 	}
-	
+
 	@Override
 	public void dbName(String dbName) {
 		propertyKey.dbName(dbName);
@@ -102,7 +102,7 @@ public class Reference<T> implements PropertyKey<T> {
 	public void jsonName(String jsonName) {
 		propertyKey.jsonName(jsonName);
 	}
-	
+
 	@Override
 	public String typeName() {
 		return propertyKey.typeName();
@@ -186,7 +186,7 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public void setDeclaringClass(Class declaringClass) {
 	}
-	
+
 	@Override
 	public Class<? extends GraphObject> getDeclaringClass() {
 		return propertyKey.getDeclaringClass();
@@ -225,12 +225,12 @@ public class Reference<T> implements PropertyKey<T> {
 	public List<PropertyValidator<T>> getValidators() {
 		return propertyKey.getValidators();
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return false;
 	}
-	
+
 	@Override
 	public String getSynchronizationKey() {
 		return null;
@@ -289,5 +289,10 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public int getProcessingOrderPosition() {
 		return 0;
+	}
+
+	@Override
+	public boolean isUnique() {
+		return false;
 	}
 }

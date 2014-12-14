@@ -191,7 +191,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 				final App app                          = StructrApp.getInstance(securityContext);
 				final PropertyKey key                  = notion.getPrimaryPropertyKey();
-				final PropertyConverter inputConverter = key.inputConverter(securityContext);
+				final PropertyConverter inputConverter = key != null ? key.inputConverter(securityContext) : null;
 
 				// transform search values using input convert of notion property
 				final Object transformedValue          = inputConverter != null ? inputConverter.convert(searchValue) : searchValue;

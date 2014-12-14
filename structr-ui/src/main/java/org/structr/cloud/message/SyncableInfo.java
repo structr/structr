@@ -18,25 +18,32 @@
  */
 package org.structr.cloud.message;
 
-import java.io.Serializable;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import org.structr.common.Syncable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.SyncCommand;
 import org.structr.dynamic.File;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SyncableInfo implements Serializable {
+public class SyncableInfo {
 
-	private boolean node      = false;
-	private String id         = null;
-	private String name       = null;
-	private String type       = null;
-	private Long size         = null;
-	private Date lastModified = null;
+	private boolean node                        = false;
+	private String id                           = null;
+	private String name                         = null;
+	private String type                         = null;
+	private boolean visibleToPublicUsers        = false;
+	private boolean visibleToAuthenticatedUsers = false;
+	private long size                           = 0L;
+	private long lastModified                   = 0L;
+
+	public SyncableInfo() {}
 
 	public SyncableInfo(final Syncable syncable) {
 
@@ -48,7 +55,7 @@ public class SyncableInfo implements Serializable {
 				this.id           = node.getUuid();
 				this.name         = node.getName();
 				this.type         = node.getType();
-				this.lastModified = node.getLastModifiedDate();
+				this.lastModified = node.getLastModifiedDate().getTime();
 				this.node         = true;
 
 				if (node instanceof File) {
@@ -91,6 +98,38 @@ public class SyncableInfo implements Serializable {
 	}
 
 	public Date getLastModified() {
-		return lastModified;
+		return new Date(lastModified);
+	}
+
+	public boolean isVisibleToPublicUsers() {
+		return visibleToPublicUsers;
+	}
+
+	public boolean isVisibleToAuthenticatedUsers() {
+		return visibleToAuthenticatedUsers;
+	}
+
+	protected void deserializeFrom(final DataInputStream inputStream) throws IOException {
+
+		this.node                        = (Boolean)SyncCommand.deserialize(inputStream);
+		this.id                          = (String)SyncCommand.deserialize(inputStream);
+		this.name                        = (String)SyncCommand.deserialize(inputStream);
+		this.type                        = (String)SyncCommand.deserialize(inputStream);
+		this.visibleToPublicUsers        = (Boolean)SyncCommand.deserialize(inputStream);
+		this.visibleToAuthenticatedUsers = (Boolean)SyncCommand.deserialize(inputStream);
+		this.size                        = (Long)SyncCommand.deserialize(inputStream);
+		this.lastModified                = (Long)SyncCommand.deserialize(inputStream);
+	}
+
+	protected void serializeTo(final DataOutputStream outputStream) throws IOException {
+
+		SyncCommand.serialize(outputStream, node);
+		SyncCommand.serialize(outputStream, id);
+		SyncCommand.serialize(outputStream, name);
+		SyncCommand.serialize(outputStream, type);
+		SyncCommand.serialize(outputStream, visibleToPublicUsers);
+		SyncCommand.serialize(outputStream, visibleToAuthenticatedUsers);
+		SyncCommand.serialize(outputStream, size);
+		SyncCommand.serialize(outputStream, lastModified);
 	}
 }

@@ -47,6 +47,7 @@ public abstract class PropertyParser {
 	protected String format                   = "";
 	protected String defaultValue             = "";
 	protected boolean notNull                 = false;
+	protected boolean unique                  = false;
 	protected PropertyParameters params;
 
 	public abstract Type getKey();
@@ -124,7 +125,15 @@ public abstract class PropertyParser {
 			buf.append(", ").append(getDefaultValueSource());
 		}
 		buf.append(localValidator);
-		buf.append(").indexed();\n");
+		buf.append(")");
+
+		buf.append(".indexed()");
+
+		if (unique) {
+			buf.append(".unique()");
+		}
+
+		buf.append(";\n");
 
 		return buf.toString();
 	}
@@ -136,6 +145,7 @@ public abstract class PropertyParser {
 			globalValidators.add(new Validator("checkPropertyUniquenessError", className, propertyName));
 
 			source = source.substring(1);
+			unique = true;
 		}
 
 	}
@@ -150,14 +160,7 @@ public abstract class PropertyParser {
 
 	private void extractComplexValidation(final Schema entity) throws FrameworkException {
 
-//		if (format != null) {
-
-			parseFormatString(entity, format);
-
-//		} else {
-//
-//			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_validation_expression", "Validation expression must be enclosed in (), e.g. (" + source + ")"));
-//		}
+		parseFormatString(entity, format);
 	}
 
 	public String getDefaultValueSource() {
@@ -186,7 +189,6 @@ public abstract class PropertyParser {
 		if (StringUtils.isNotBlank(params.source)) {
 
 			params.format = substringBetween(params.source, "(", ")");
-//			params.format = StringUtils.substringBetween(params.source, "(", ")");
 			params.source = params.source.replaceFirst("\\(.*\\)", "");
 
 		}

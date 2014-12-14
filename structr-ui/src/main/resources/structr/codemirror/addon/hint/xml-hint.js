@@ -18,10 +18,17 @@
     var quote = (options && options.quoteChar) || '"';
     if (!tags) return;
     var cur = cm.getCursor(), token = cm.getTokenAt(cur);
+    if (/^<\/?$/.test(token.string) && token.end == cur.ch) {
+      var nextToken = cm.getTokenAt(Pos(cur.line, cur.ch + 1));
+      if (nextToken.start == cur.ch && /\btag\b/.test(nextToken.type))
+        token = nextToken;
+    }
     var inner = CodeMirror.innerMode(cm.getMode(), token.state);
     if (inner.mode.name != "xml") return;
     var result = [], replaceToken = false, prefix;
-    var tag = /\btag\b/.test(token.type), tagName = tag && /^\w/.test(token.string), tagStart;
+    var tag = /\btag\b/.test(token.type) && !/>$/.test(token.string);
+    var tagName = tag && /^\w/.test(token.string), tagStart;
+
     if (tagName) {
       var before = cm.getLine(cur.line).slice(Math.max(0, token.start - 2), token.start);
       var tagType = /<\/$/.test(before) ? "close" : /<$/.test(before) ? "open" : null;
@@ -31,6 +38,7 @@
     } else if (tag && token.string == "</") {
       tagType = "close";
     }
+
     if (!tag && !inner.state.tagName || tagType) {
       if (tagName)
         prefix = token.string;
@@ -68,9 +76,16 @@
         if (typeof atValues == 'function') atValues = atValues.call(this, cm); // Functions can be used to supply values for autocomplete widget
         if (token.type == "string") {
           prefix = token.string;
+          var n = 0;
           if (/['"]/.test(token.string.charAt(0))) {
             quote = token.string.charAt(0);
             prefix = token.string.slice(1);
+            n++;
+          }
+          var len = token.string.length;
+          if (/['"]/.test(token.string.charAt(len - 1))) {
+            quote = token.string.charAt(len - 1);
+            prefix = token.string.substr(n, len - 2);
           }
           replaceToken = true;
         }

@@ -18,8 +18,11 @@
  */
 package org.structr.cloud.message;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +30,7 @@ import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.SyncCommand;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -35,8 +39,11 @@ import org.structr.schema.SchemaHelper;
  */
 public class ListSyncables extends Message<List<SyncableInfo>> {
 
-	private List<SyncableInfo> syncables = null;
+	private List<SyncableInfo> syncables = new LinkedList<>();
 	private String type = null;
+
+	public ListSyncables() {
+	}
 
 	public ListSyncables(final String type) {
 		this.type = type;
@@ -80,7 +87,31 @@ public class ListSyncables extends Message<List<SyncableInfo>> {
 	}
 
 	@Override
-	public List<SyncableInfo> getPayload() {
-		return syncables;
+	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
+
+		this.type = (String)SyncCommand.deserialize(inputStream);
+
+		// read number of syncables from stream
+		final int num = (Integer)SyncCommand.deserialize(inputStream);
+
+		// read syncables
+		for (int i=0; i<num; i++) {
+
+			SyncableInfo info = new SyncableInfo();
+			info.deserializeFrom(inputStream);
+
+			syncables.add(info);
+		}
+	}
+
+	@Override
+	protected void serializeTo(DataOutputStream outputStream) throws IOException {
+
+		SyncCommand.serialize(outputStream, type);
+		SyncCommand.serialize(outputStream, syncables.size());
+
+		for (final SyncableInfo syncable : syncables) {
+			syncable.serializeTo(outputStream);
+		}
 	}
 }

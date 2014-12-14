@@ -69,6 +69,11 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 		return new InsertPosition(newParent, newSibling);
 	}
 
+	public static void collectNodes(final DOMNode node, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final Map<DOMNode, Integer> depthMap) {
+
+		collectNodes(node, indexMappedNodes, hashMappedNodes, depthMap, 0, new LinkedHashMap<Integer, Integer>());
+	}
+
 	public static void collectNodes(final Page page, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final Map<DOMNode, Integer> depthMap) {
 
 		collectNodes(page, indexMappedNodes, hashMappedNodes, depthMap, 0, new LinkedHashMap<Integer, Integer>());

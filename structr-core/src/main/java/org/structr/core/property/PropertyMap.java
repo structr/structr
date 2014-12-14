@@ -58,6 +58,11 @@ public class PropertyMap {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return properties.toString();
+	}
+
 	public int size() {
 		return properties.size();
 	}

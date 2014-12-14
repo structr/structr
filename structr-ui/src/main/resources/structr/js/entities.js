@@ -207,10 +207,14 @@ var _Entities = {
                 text = data;
                 dialog.append('<div class="editor"></div>');
                 var contentBox = $('.editor', dialog);
+                var lineWrapping = localStorage.getItem(lineWrappingKey);
+
+                // Intitialize editor
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
                     mode: contentType,
-                    lineNumbers: true
+                    lineNumbers: true,
+                    lineWrapping: lineWrapping
                 });
 
                 editor.id = entity.id;
@@ -220,16 +224,15 @@ var _Entities = {
 
                 dialogSaveButton = $('#saveFile', dialogBtn);
                 saveAndClose = $('#saveAndClose', dialogBtn);
-
-                $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                
                 editor.on('scroll', function() {
-                    $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                    _Entities.hideDataHashAttribute(editor);
                 });
+                
                 editor.on('change', function(cm, change) {
 
                     //text1 = $(contentNode).children('.content_').text();
                     text2 = editor.getValue();
-
                     if (text === text2) {
                         dialogSaveButton.prop("disabled", true).addClass('disabled');
                         saveAndClose.prop("disabled", true).addClass('disabled');
@@ -238,7 +241,7 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
-                    $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                    _Entities.hideDataHashAttribute(editor);
                 });
 
                 dialogSaveButton.on('click', function(e) {
@@ -253,18 +256,19 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
-                    Command.savePage(text2, entity.id, function() {
+                    Command.saveNode(text2, entity.id, function() {
                         $.ajax({
                             url: url,
                             contentType: contentType,
                             success: function(data) {
-                                editor.setValue(unescapeTags(data));
+                                text = unescapeTags(data);
+                                editor.setValue(text);
                             }
                         });
 
                         dialogSaveButton.prop("disabled", true).addClass('disabled');
                         saveAndClose.prop("disabled", true).addClass('disabled');
-                        dialogMsg.html('<div class="infoBox success">Page source saved and rebuilt DOM tree.</div>');
+                        dialogMsg.html('<div class="infoBox success">Node source saved and DOM tree rebuilt.</div>');
                         $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
 
                     });
@@ -281,7 +285,22 @@ var _Entities = {
                     }, 500);
                 });
 
+                dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+                $('#lineWrapping').on('change', function() {
+                    var inp = $(this);
+                    if  (inp.is(':checked')) {
+                        localStorage.setItem(lineWrappingKey, "1");
+                        editor.setOption('lineWrapping', true);
+                    } else {
+                        localStorage.removeItem(lineWrappingKey);
+                        editor.setOption('lineWrapping', false);
+                    }
+                    editor.refresh();
+                });
+
                 Structr.resize();
+
+                _Entities.hideDataHashAttribute(editor);
 
             },
             error: function(xhr, statusText, error) {
@@ -289,6 +308,20 @@ var _Entities = {
             }
         });
 
+    },
+    hideDataHashAttribute: function(editor) {
+//        var doc = editor.getDoc();
+//        var hashElements = $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")');
+//        console.log(hashElements);
+        var sc = editor.getSearchCursor(/\sdata-structr-hash=".{32}"/);
+        while (sc.findNext()) {
+            //console.log(sc.from(), sc.to());
+            //editor.markText(sc.from(), sc.to(), {collapsed: true});
+            editor.markText(sc.from(), sc.to(), { className: 'data-structr-hash', collapsed: true, inclusiveLeft: true });
+        }
+        
+        //$('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
+        //$($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
     },
     showProperties: function(entity) {
 
