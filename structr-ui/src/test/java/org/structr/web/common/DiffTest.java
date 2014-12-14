@@ -454,7 +454,7 @@ public class DiffTest extends StructrUiTest {
 				final StringBuilder buf = new StringBuilder(from);
 
 				// cut out <div> block
-				int cutStart = buf.indexOf("<h2") - (DOMNode.dataHashProperty.jsonName().length() + 25);
+				int cutStart = buf.indexOf("<h2") - (DOMNode.dataHashProperty.jsonName().length() + 49);
 				int cutEnd = buf.indexOf("</h2>") + 20;
 
 				clipboard.append(buf.substring(cutStart, cutEnd));
