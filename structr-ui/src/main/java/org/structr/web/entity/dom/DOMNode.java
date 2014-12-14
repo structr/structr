@@ -526,9 +526,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public String getIdHash() {
 
-		final String uuid = getUuid();
+		return getUuid();
 
-		return Integer.toHexString(uuid.hashCode());
 	}
 
 	public String getIdHashOrProperty() {
