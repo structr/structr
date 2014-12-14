@@ -229,7 +229,6 @@ var _Entities = {
 
                     //text1 = $(contentNode).children('.content_').text();
                     text2 = editor.getValue();
-
                     if (text === text2) {
                         dialogSaveButton.prop("disabled", true).addClass('disabled');
                         saveAndClose.prop("disabled", true).addClass('disabled');
@@ -258,7 +257,8 @@ var _Entities = {
                             url: url,
                             contentType: contentType,
                             success: function(data) {
-                                editor.setValue(unescapeTags(data));
+                                text = unescapeTags(data);
+                                editor.setValue(text);
                             }
                         });
 
@@ -296,8 +296,12 @@ var _Entities = {
 //        var doc = editor.getDoc();
 //        var hashElements = $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")');
 //        console.log(hashElements);
-//        var sc = editor.getSearchCursor('data-structr-hash=');
-//        console.log(sc);
+        var sc = editor.getSearchCursor(/\sdata-structr-hash=".{8}"/);
+        while (sc.findNext()) {
+            //console.log(sc.from(), sc.to());
+            //editor.markText(sc.from(), sc.to(), {collapsed: true});
+            editor.markText(sc.from(), sc.to(), { className: 'data-structr-hash', collapsed: true });
+        }
         
         //$('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
         //$($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
