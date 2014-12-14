@@ -323,12 +323,12 @@ public class Importer {
 	}
 
 	// ----- public static methods -----
-	public static DOMNode parseNodeFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
+	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
 		
-		return parseNodeFromSource(securityContext, source, name, false);
+		return parsePageFromSource(securityContext, source, name, false);
 	}
 
-	public static DOMNode parseNodeFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
+	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
 		final Importer importer = new Importer(securityContext, source, null, "source", 0, true, true);
 		final App localAppCtx   = StructrApp.getInstance(securityContext);

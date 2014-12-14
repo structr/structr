@@ -816,7 +816,7 @@ public class DiffTest extends StructrUiTest {
 		try {
 
 			// create page from source
-			final Page sourcePage = (Page) Importer.parseNodeFromSource(securityContext, source, "test");
+			final Page sourcePage = Importer.parsePageFromSource(securityContext, source, "test");
 
 			// render page into HTML string
 			try (final Tx tx = app.tx()) {
@@ -828,7 +828,7 @@ public class DiffTest extends StructrUiTest {
 			final String modifiedHtml = modifier.apply(sourceHtml);
 
 			// parse page from modified source
-			final Page modifiedPage = (Page) Importer.parseNodeFromSource(securityContext, modifiedHtml, "Test");
+			final Page modifiedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "Test");
 
 			// create and apply diff operations
 			try (final Tx tx = app.tx()) {

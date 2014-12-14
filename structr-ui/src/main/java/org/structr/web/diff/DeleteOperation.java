@@ -24,6 +24,7 @@ import org.structr.core.app.App;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.w3c.dom.Node;
 
 /**
@@ -56,7 +57,7 @@ public class DeleteOperation extends InvertibleModificationOperation {
 
 	// ----- interface InvertibleModificationOperation -----
 	@Override
-	public void apply(final App app, final DOMNode sourceNode, final DOMNode newNode) throws FrameworkException {
+	public void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException {
 
 		// do not delete synced nodes (nodes that are shared between multiple pages)
 		if (!existingNode.isSynced()) {

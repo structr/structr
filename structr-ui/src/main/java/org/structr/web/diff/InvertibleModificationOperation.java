@@ -24,6 +24,7 @@ import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 
 /**
@@ -34,7 +35,7 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 
 	protected Map<String, DOMNode> hashMappedExistingNodes = new LinkedHashMap<>();
 
-	public abstract void apply(final App app, final DOMNode sourceNode, final DOMNode newNode) throws FrameworkException;
+	public abstract void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException;
 	public abstract InvertibleModificationOperation revert();
 	public abstract Integer getPosition();
 
@@ -42,7 +43,7 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 		this.hashMappedExistingNodes = hashMappedExistingNodes;
 	}
 
-	protected InsertPosition findInsertPosition(final DOMNode sourceNode, final String parentHash, final List<String> siblingHashes, final DOMNode newNode) {
+	protected InsertPosition findInsertPosition(final Page sourcePage, final String parentHash, final List<String> siblingHashes, final DOMNode newNode) {
 
 		DOMNode newParent  = hashMappedExistingNodes.get(parentHash);
 		DOMNode newSibling = null;
@@ -71,6 +72,11 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 	public static void collectNodes(final DOMNode node, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final Map<DOMNode, Integer> depthMap) {
 
 		collectNodes(node, indexMappedNodes, hashMappedNodes, depthMap, 0, new LinkedHashMap<Integer, Integer>());
+	}
+
+	public static void collectNodes(final Page page, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final Map<DOMNode, Integer> depthMap) {
+
+		collectNodes(page, indexMappedNodes, hashMappedNodes, depthMap, 0, new LinkedHashMap<Integer, Integer>());
 	}
 
 	private static void collectNodes(final DOMNode node, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final Map<DOMNode, Integer> depthMap, final int depth, final Map<Integer, Integer> childIndexMap) {

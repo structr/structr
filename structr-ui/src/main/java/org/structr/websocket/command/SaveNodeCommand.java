@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.schema.SchemaHelper;
 import org.structr.web.Importer;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.DOMNode;
@@ -58,7 +57,7 @@ public class SaveNodeCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 
-		DOMNode modifiedNode = null;
+		Page modifiedNode = null;
 
 		DOMNode sourceNode = (DOMNode) getNode(nodeId);
 		
@@ -66,8 +65,8 @@ public class SaveNodeCommand extends AbstractCommand {
 
 			try {
 
-				// parse node from modified source
-				modifiedNode = Importer.parseNodeFromSource(securityContext, modifiedHtml, "__SaveNodeCommand_Temporary_Page__");
+				// parse page from modified source
+				modifiedNode = Importer.parsePageFromSource(securityContext, modifiedHtml, "__SaveNodeCommand_Temporary_Page__");
 
 				
 				DOMNode targetNode = modifiedNode;
@@ -83,7 +82,7 @@ public class SaveNodeCommand extends AbstractCommand {
 				for (final InvertibleModificationOperation op : changeSet) {
 
 					// execute operation
-					op.apply(app, sourceNode, targetNode);
+					op.apply(app, sourceNode.getClosestPage(), modifiedNode);
 
 				}
 

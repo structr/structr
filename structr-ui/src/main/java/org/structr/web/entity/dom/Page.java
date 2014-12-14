@@ -833,7 +833,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			final String source = IOUtils.toString(new FileInputStream(file));
 			final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-			final Page diffPage = (Page) Importer.parseNodeFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
+			final Page diffPage = Importer.parsePageFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
 
 			// build change set
 			changeSet.addAll(Importer.diffNodes(this, diffPage));
@@ -1116,7 +1116,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 				try (Tx tx = app.tx()) {
 
 					// parse page from modified source
-					Page modifiedPage = (Page) Importer.parseNodeFromSource(securityContext, source, "__FTP_Temporary_Page__");
+					Page modifiedPage = Importer.parsePageFromSource(securityContext, source, "__FTP_Temporary_Page__");
 
 					final List<InvertibleModificationOperation> changeSet = Importer.diffNodes(origPage, modifiedPage);
 
