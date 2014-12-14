@@ -207,10 +207,14 @@ var _Entities = {
                 text = data;
                 dialog.append('<div class="editor"></div>');
                 var contentBox = $('.editor', dialog);
+                var lineWrapping = localStorage.getItem(lineWrappingKey);
+
+                // Intitialize editor
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
                     mode: contentType,
-                    lineNumbers: true
+                    lineNumbers: true,
+                    lineWrapping: lineWrapping
                 });
 
                 editor.id = entity.id;
@@ -281,6 +285,19 @@ var _Entities = {
                     }, 500);
                 });
 
+                dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+                $('#lineWrapping').on('change', function() {
+                    var inp = $(this);
+                    if  (inp.is(':checked')) {
+                        localStorage.setItem(lineWrappingKey, "1");
+                        editor.setOption('lineWrapping', true);
+                    } else {
+                        localStorage.removeItem(lineWrappingKey);
+                        editor.setOption('lineWrapping', false);
+                    }
+                    editor.refresh();
+                });
+
                 Structr.resize();
 
                 _Entities.hideDataHashAttribute(editor);
@@ -296,11 +313,11 @@ var _Entities = {
 //        var doc = editor.getDoc();
 //        var hashElements = $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")');
 //        console.log(hashElements);
-        var sc = editor.getSearchCursor(/\sdata-structr-hash=".{8}"/);
+        var sc = editor.getSearchCursor(/\sdata-structr-hash=".{32}"/);
         while (sc.findNext()) {
             //console.log(sc.from(), sc.to());
             //editor.markText(sc.from(), sc.to(), {collapsed: true});
-            editor.markText(sc.from(), sc.to(), { className: 'data-structr-hash', collapsed: true });
+            editor.markText(sc.from(), sc.to(), { className: 'data-structr-hash', collapsed: true, inclusiveLeft: true });
         }
         
         //$('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
