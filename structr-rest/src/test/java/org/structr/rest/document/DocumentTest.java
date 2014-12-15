@@ -11,7 +11,7 @@ import org.structr.rest.common.StructrRestTest;
  *
  * @author Christian Morgner
  */
-public class SchemaTest extends StructrRestTest {
+public class DocumentTest extends StructrRestTest {
 
 	public void testSchemaAutocreateNone() {
 
@@ -43,7 +43,6 @@ public class SchemaTest extends StructrRestTest {
 			.statusCode(422)
 			.when()
 			.post("/tasks");
-
 
 	}
 
@@ -145,8 +144,6 @@ public class SchemaTest extends StructrRestTest {
 			.statusCode(201)
 			.when()
 			.post("/tasks");
-
-
 	}
 
 	public void testSimpleDocumentWithSchema() {
@@ -301,7 +298,7 @@ public class SchemaTest extends StructrRestTest {
 			.body("{ \"__test\": \"_name, _workers\" }")
 			.expect().statusCode(200).when().put("/schema_nodes/" + companyNodeId);
 
-		String jsonBody = 
+		String jsonBody =
                 "{"
                 + "\n" + "   \"name\": \"Project1\","
                 + "\n" + "   \"tasks\": ["
@@ -488,9 +485,9 @@ public class SchemaTest extends StructrRestTest {
                 + "\n" + "       }"
                 + "\n" + "   ]"
                 + "\n" + "}";
-		
+
 		System.out.println(jsonBody);
-		
+
 		// post document
 		RestAssured
 			.given()

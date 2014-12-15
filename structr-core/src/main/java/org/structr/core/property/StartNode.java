@@ -103,7 +103,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 	@Override
 	public String typeName() {
-		return "Object";
+		return "object";
 	}
 
 	@Override

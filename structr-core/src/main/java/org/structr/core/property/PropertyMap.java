@@ -29,7 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -182,9 +181,7 @@ public class PropertyMap {
 
 						} catch(ClassCastException cce) {
 
-							cce.printStackTrace();
-
-							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
+							throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 						}
 
 					} else {
@@ -223,9 +220,7 @@ public class PropertyMap {
 
 						} catch(ClassCastException cce) {
 
-							cce.printStackTrace();
-
-							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
+							throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 						}
 
 					} else {
@@ -263,9 +258,7 @@ public class PropertyMap {
 
 						} catch(ClassCastException cce) {
 
-							cce.printStackTrace();
-
-							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
+							throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 						}
 
 					} else {
@@ -329,9 +322,7 @@ public class PropertyMap {
 
 						} catch(ClassCastException cce) {
 
-							cce.printStackTrace();
-
-							throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
+					throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 						}
 
 					} else {
@@ -362,9 +353,7 @@ public class PropertyMap {
 
 				} catch(ClassCastException cce) {
 
-					cce.printStackTrace();
-
-					throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
+					throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 				}
 
 			} else {

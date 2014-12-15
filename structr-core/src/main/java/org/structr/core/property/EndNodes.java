@@ -99,7 +99,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 	@Override
 	public String typeName() {
-		return "Object";
+		return "collection";
 	}
 
 	@Override

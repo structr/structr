@@ -99,7 +99,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 	@Override
 	public String typeName() {
-		return "Object";
+		return "collection";
 	}
 
 	@Override

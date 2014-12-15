@@ -18,6 +18,7 @@
  */
 package org.structr.core.notion;
 
+import java.util.Collection;
 import java.util.Collections;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
@@ -101,6 +102,11 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 			@Override
 			public S adapt(T s) throws FrameworkException {
+
+				if (s instanceof Collection) {
+					throw new ClassCastException("Invalid source type.");
+				}
+
 				return deserializationStrategy.deserialize(securityContext, type, s);
 			}
 		};

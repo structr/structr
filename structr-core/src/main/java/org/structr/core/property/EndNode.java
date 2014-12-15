@@ -98,7 +98,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 	@Override
 	public String typeName() {
-		return "Object";
+		return "object";
 	}
 
 	@Override
