@@ -41,29 +41,29 @@ import org.structr.core.graph.NodeInterface;
 public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint implements Source<Iterable<Relationship>, Iterable<S>> {
 
 	private Relation<S, ?, ManyStartpoint<S>, ?> relation = null;
-	
+
 	public ManyStartpoint(final Relation<S, ?, ManyStartpoint<S>, ?> relation) {
 		this.relation = relation;
 	}
-	
+
 	@Override
 	public Iterable<S> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
-		
+
 		final NodeFactory<S> nodeFactory  = new NodeFactory<>(securityContext);
 		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
-		
+
 		if (rels != null) {
-			
+
 			return Iterables.map(nodeFactory, Iterables.map(new Function<Relationship, Node>() {
 
 				@Override
 				public Node apply(Relationship from) {
 					return from.getStartNode();
 				}
-				
+
 			}, rels));
 		}
-		
+
 		return null;
 	}
 
@@ -85,7 +85,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 		// intersection needs no change
 		toBeCreated.removeAll(intersection);
 		toBeDeleted.removeAll(intersection);
-		
+
 		// remove existing relationships
 		for (S sourceNode : toBeDeleted) {
 
@@ -93,7 +93,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 				final String relTypeName    = rel.getRelType().name();
 				final String desiredRelType = relation.name();
-				
+
 				if (relTypeName.equals(desiredRelType) && rel.getSourceNode().equals(sourceNode)) {
 
 					app.delete(rel);
@@ -101,13 +101,13 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 			}
 		}
-		
+
 		// create new relationships
 		for (S sourceNode : toBeCreated) {
 
 			relation.ensureCardinality(securityContext, sourceNode, targetNode);
-			
-			app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), sourceNode.getUuid()));
+
+			app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), sourceNode.getUuid() + ".in"));
 		}
 	}
 

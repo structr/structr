@@ -64,29 +64,31 @@ public abstract class AbstractEndpoint {
 
 	 * @param securityContext the security context
 	 * @param type the entity type
-	 * @param entityKey the key for which the PropertyMap was stored
+	 * @param storageKey the key for which the PropertyMap was stored
 	 *
 	 * @return a PropertyMap or null
 	 */
-	protected PropertyMap getNotionProperties(final SecurityContext securityContext, final Class type, final String entityKey) {
-
+	protected PropertyMap getNotionProperties(final SecurityContext securityContext, final Class type, final String storageKey) {
 
 		final Map<String, PropertyMap> notionPropertyMap = (Map<String, PropertyMap>)securityContext.getAttribute("notionProperties");
 		if (notionPropertyMap != null) {
 
 			final Set<PropertyKey> keySet      = Services.getInstance().getConfigurationProvider().getPropertySet(type, PropertyView.Public);
-			final PropertyMap notionProperties = notionPropertyMap.get(entityKey);
+			final PropertyMap notionProperties = notionPropertyMap.get(storageKey);
 
-			for (final Iterator<PropertyKey> it = notionProperties.keySet().iterator(); it.hasNext();) {
+			if (notionProperties != null) {
 
-				final PropertyKey key = it.next();
-				if (!keySet.contains(key)) {
+				for (final Iterator<PropertyKey> it = notionProperties.keySet().iterator(); it.hasNext();) {
 
-					it.remove();
+					final PropertyKey key = it.next();
+					if (!keySet.contains(key)) {
+
+						it.remove();
+					}
 				}
-			}
 
-			return notionProperties;
+				return notionProperties;
+			}
 		}
 
 		return null;

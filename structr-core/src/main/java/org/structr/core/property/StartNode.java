@@ -343,4 +343,9 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 		return Relation.CASCADING_DESCRIPTIONS[0];
 	}
+
+	@Override
+	public String getDirectionKey() {
+		return "in";
+	}
 }

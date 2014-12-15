@@ -20,6 +20,7 @@ package org.structr.schema;
 
 import org.structr.core.notion.*;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
@@ -97,7 +98,6 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 			Result<T> result = Result.EMPTY_RESULT;
 
-
 			// remove attributes that do not belong to the target node
 			final PropertyMap foreignProperties = new PropertyMap();
 
@@ -163,7 +163,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 								securityContext.setAttribute("notionProperties", notionPropertyMap);
 							}
 
-							notionPropertyMap.put(newNode.getUuid(), foreignProperties);
+							notionPropertyMap.put(newNode.getUuid() + "." + relationProperty.getDirectionKey(), foreignProperties);
 
 							return newNode;
 						}
@@ -172,7 +172,14 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 					break;
 
 				case 1:
-					return getTypedResult(result, type);
+					final T typedResult = getTypedResult(result, type);
+
+					// set properties on existing node (relationships)
+					for (final Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+						typedResult.setProperty(entry.getKey(), entry.getValue());
+					}
+
+					return typedResult;
 
 				default:
 

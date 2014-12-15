@@ -20,6 +20,7 @@ package org.structr.rest.common;
 
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -231,7 +232,12 @@ public class StructrRestTest extends TestCase {
 			buf.append(part);
 		}
 
-		return getUuidFromLocation(RestAssured.given().contentType("application/json; charset=UTF-8")
+		return getUuidFromLocation(
+			RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(buf.toString())
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
 	}

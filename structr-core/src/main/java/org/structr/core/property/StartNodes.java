@@ -377,4 +377,9 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 		return Relation.CASCADING_DESCRIPTIONS[0];
 	}
+
+	@Override
+	public String getDirectionKey() {
+		return "in";
+	}
 }

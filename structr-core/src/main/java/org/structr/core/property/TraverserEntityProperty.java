@@ -36,18 +36,18 @@ import org.structr.core.traversal.TraverserInterface;
 
 /**
  * A property that uses a {@link TraverserInterface} to return a single entity.
- * 
+ *
  * @author Christian Morgner
  */
 public class TraverserEntityProperty<T extends AbstractNode> extends AbstractReadOnlyProperty<T> {
 
 	private TraverserInterface<T> traverserInterface = null;
-	
+
 	public TraverserEntityProperty(String name, TraverserInterface traverser) {
 		super(name);
-		
+
 		this.traverserInterface = traverser;
-		
+
 		// make us known to the entity context
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
@@ -59,7 +59,7 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		TraversalDescription description = traverserInterface.getTraversalDescription(securityContext);
 		AbstractNode currentNode = (AbstractNode)obj;
 
@@ -77,7 +77,7 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 		if (results.isEmpty()) {
 			return null;
 		}
-		
+
 		return results.get(0);
 	}
 
@@ -92,16 +92,16 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 		List<T> nodeList           = new LinkedList<T>();
 
 		for(Node n : nodes) {
-			
+
 			try {
 				T abstractNode = nodeFactory.instantiate(n);
 				if(abstractNode != null) {
-					
+
 					nodeList.add(abstractNode);
 				}
-				
+
 			} catch (FrameworkException fex) {
-				
+
 			}
 		}
 
@@ -112,12 +112,12 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 
 		return nodeList;
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return traverserInterface.getResultType();
 	}
-	
+
 	@Override
 	public boolean isCollection() {
 		return false;
@@ -130,13 +130,13 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		
+
 		Notion notion = traverserInterface.getNotion();
 		if (notion != null) {
-		
+
 			return notion.getEntityConverter(securityContext);
 		}
-		
+
 		return null;
 	}
 }
