@@ -2,7 +2,8 @@ You can set a more verbose logging by configuring the loglevel. Structr uses Log
 
 Create a file named ``logging.properties`` in Structr's main directory with the following content:
 
-.handlers = java.util.logging.ConsoleHandler, java.util.logging.FileHandler
+
+	.handlers = java.util.logging.ConsoleHandler, java.util.logging.FileHandler
 
 	# Default log level
 	.level = INFO
