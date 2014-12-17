@@ -42,12 +42,12 @@ import org.structr.core.traversal.TraverserInterface;
 public class TraverserCollectionProperty<T extends AbstractNode> extends AbstractReadOnlyCollectionProperty<T> {
 
 	private TraverserInterface traverserInterface = null;
-	
+
 	public TraverserCollectionProperty(String name, TraverserInterface traverser) {
 		super(name);
-		
+
 		this.traverserInterface = traverser;
-		
+
 		// make us known to the entity context
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
@@ -59,7 +59,7 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		TraversalDescription description = traverserInterface.getTraversalDescription(securityContext);
 		AbstractNode currentNode = (AbstractNode)obj;
 
@@ -88,16 +88,16 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 		List<T> nodeList           = new LinkedList<>();
 
 		for(Node n : nodes) {
-			
+
 			try {
 				T abstractNode = nodeFactory.instantiate(n);
 				if(abstractNode != null) {
-					
+
 					nodeList.add(abstractNode);
 				}
-				
+
 			} catch (FrameworkException fex) {
-				
+
 			}
 		}
 
@@ -126,13 +126,13 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 
 	@Override
 	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
-		
+
 		Notion notion = traverserInterface.getNotion();
 		if (notion != null) {
-		
+
 			return notion.getCollectionConverter(securityContext);
 		}
-		
+
 		return null;
 	}
 }

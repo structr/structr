@@ -103,7 +103,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 	@Override
 	public String typeName() {
-		return "Object";
+		return "object";
 	}
 
 	@Override
@@ -342,5 +342,10 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 		}
 
 		return Relation.CASCADING_DESCRIPTIONS[0];
+	}
+
+	@Override
+	public String getDirectionKey() {
+		return "in";
 	}
 }

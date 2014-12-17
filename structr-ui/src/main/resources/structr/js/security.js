@@ -87,7 +87,7 @@ var _Security = {
         Structr.ensureIsAdmin(resourceAccesses, function() {
 
             Structr.addPager(resourceAccesses, true, 'ResourceAccess');
-            resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Non-authenticated (public) Users</th><th colspan="6" class="center">Authenticated Users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
+            resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
                     + '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr></thead></table>');
             resourceAccesses.append('Signature: <input class="" type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="icon/key_add.png"> Add Grant</button>');
             $('.add_grant_icon', main).on('click', function (e) {
@@ -151,13 +151,14 @@ var _Security = {
             AUTH_USER_PUT               : 2,
             AUTH_USER_POST              : 4,
             AUTH_USER_DELETE            : 8,
+            AUTH_USER_OPTIONS           : 256,
+            AUTH_USER_HEAD              : 1024,
+
             NON_AUTH_USER_GET           : 16,
             NON_AUTH_USER_PUT           : 32,
             NON_AUTH_USER_POST          : 64,
             NON_AUTH_USER_DELETE        : 128,
-            AUTH_USER_OPTIONS           : 256,
             NON_AUTH_USER_OPTIONS       : 512,
-            AUTH_USER_HEAD              : 1024,
             NON_AUTH_USER_HEAD          : 2048
         };
 

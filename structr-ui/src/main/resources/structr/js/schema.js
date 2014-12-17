@@ -203,12 +203,7 @@ var _Schema = {
 
                     reload = false;
                 });
-            });
 
-            $(document).keyup(function(e) {
-                if (e.keyCode === 27) {
-                    dialogCancelButton.click();
-                }
             });
 
             $(window).off('resize');

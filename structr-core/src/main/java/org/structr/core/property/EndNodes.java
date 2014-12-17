@@ -99,7 +99,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 	@Override
 	public String typeName() {
-		return "Object";
+		return "collection";
 	}
 
 	@Override
@@ -376,5 +376,10 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		}
 
 		return Relation.CASCADING_DESCRIPTIONS[0];
+	}
+
+	@Override
+	public String getDirectionKey() {
+		return "out";
 	}
 }

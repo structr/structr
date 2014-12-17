@@ -69,7 +69,7 @@ public class EntityPropertyTest extends StructrTest {
 			 * We test the following here:
 			 * A -> B
 			 * C -> D
-			 * 
+			 *
 			 * then connect A -> D, so C and B should not
 			 * be related any more
 			 */
@@ -120,14 +120,14 @@ public class EntityPropertyTest extends StructrTest {
 				TestThree vrfy4 = c.getProperty(TestSix.oneToOneTestThree);
 				assertNull(vrfy4);
 			}
-			
+
 		} catch (FrameworkException fex) {
-			
+
 		}
 	}
 
 	public void testOneToMany() throws Exception {
-		
+
 		try {
 
 			final TestSix testSix1     = createTestNode(TestSix.class);
@@ -159,7 +159,7 @@ public class EntityPropertyTest extends StructrTest {
 			 * We test the following here:
 			 * A -> B
 			 * C -> D
-			 * 
+			 *
 			 * then connect A -> D, so C and B should not
 			 * be related any more
 			 */
@@ -185,7 +185,7 @@ public class EntityPropertyTest extends StructrTest {
 				assertTrue(verifyB != null && verifyB.get(0).equals(testThree1));
 				assertTrue(verifyD != null && verifyD.get(0).equals(testThree2));
 			}
-			
+
 			try (final Tx tx = app.tx()) {
 
 				testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
@@ -209,9 +209,9 @@ public class EntityPropertyTest extends StructrTest {
 				List<TestThree> vrfy4 = testSix2.getProperty(TestSix.oneToManyTestThrees);
 				assertEquals(0, vrfy4.size());
 			}
-			
+
 		} catch (FrameworkException fex) {
-			
+
 		}
 	}
 
@@ -220,7 +220,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testTypeName() {
 
-		String expResult = "Object";
+		String expResult = "object";
 		String result = TestSix.oneToOneTestThree.typeName();
 		assertEquals(expResult, result);
 	}
@@ -241,7 +241,7 @@ public class EntityPropertyTest extends StructrTest {
 	public void testInputConverter() {
 
 		PropertyConverter result = TestSix.oneToOneTestThree.inputConverter(securityContext);
-		
+
 		assertTrue(result != null);
 	}
 

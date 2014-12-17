@@ -498,6 +498,7 @@ var Structr = {
             }
 
             if (callbackCancel) {
+                dialogCancelButton.off('click');
                 dialogCancelButton.on('click', function(e) {
                     e.stopPropagation();
                     callbackCancel();

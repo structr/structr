@@ -23,7 +23,6 @@
 
 package org.structr.core.property;
 
-import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -38,15 +37,15 @@ import org.structr.core.notion.Notion;
 public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadOnlyProperty<T> {
 
 	private Notion notion            = null;
-	
+
 	public RelationshipStartNode(String name) {
 		this(name, null);
 	}
-	
+
 	public RelationshipStartNode(String name, final Notion notion) {
-		
+
 		super(name);
-		
+
 		this.notion    = notion;
 	}
 
@@ -72,11 +71,11 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		
+
 		if (notion != null) {
 			return notion.getEntityConverter(securityContext);
 		}
-		
+
 		return null;
 	}
 

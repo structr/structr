@@ -45,6 +45,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
+import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaNotion;
@@ -64,6 +65,11 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	public static final Property<String>            defaultSortKey   = new StringProperty("defaultSortKey");
 	public static final Property<String>            defaultSortOrder = new StringProperty("defaultSortOrder");
 	public static final Property<Boolean>           isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly();
+
+	static {
+
+		name.addValidator(new TypeUniquenessValidator<String>(SchemaNode.class));
+	}
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
 		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType

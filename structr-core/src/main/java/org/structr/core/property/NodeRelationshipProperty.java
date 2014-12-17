@@ -24,7 +24,6 @@
 package org.structr.core.property;
 
 import java.util.List;
-import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -39,15 +38,15 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 
 	private Notion notion = null;
 	private Class<T> type = null;
-	
+
 	public NodeRelationshipProperty(String name, final Class<T> type) {
 		this(name, type, null);
 	}
-	
+
 	public NodeRelationshipProperty(String name, final Class<T> type, final Notion notion) {
-		
+
 		super(name);
-		
+
 		this.type   = type;
 		this.notion = notion;
 	}
@@ -74,11 +73,11 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 
 	@Override
 	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
-		
+
 		if (notion != null) {
 			return notion.getCollectionConverter(securityContext);
 		}
-		
+
 		return null;
 	}
 
@@ -89,11 +88,11 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		// FIXME
 
 		return null;
-		
+
 //		NodeInterface node = (NodeInterface)obj;
 //		return Iterables.toList(node.getRelationships(type));
 	}

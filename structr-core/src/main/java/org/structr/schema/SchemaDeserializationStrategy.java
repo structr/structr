@@ -20,6 +20,7 @@ package org.structr.schema;
 
 import org.structr.core.notion.*;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
@@ -97,6 +98,20 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 			Result<T> result = Result.EMPTY_RESULT;
 
+			// remove attributes that do not belong to the target node
+			final PropertyMap foreignProperties = new PropertyMap();
+
+			for (final Iterator<PropertyKey> it = attributes.keySet().iterator(); it.hasNext();) {
+
+				final PropertyKey key = it.next();
+				if (foreignPropertyKeys.contains(key)) {
+
+					// move entry to foreign map and remove from attributes
+					foreignProperties.put(key, attributes.get(key));
+					it.remove();
+				}
+			}
+
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.id)) {
 
@@ -114,7 +129,16 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 				if (attributesComplete) {
 
-					result = app.nodeQuery(type).and(attributes).getResult();
+					// collect only those key-value pairs that are needed to
+					// identify the correct schema node (do not use related
+					// attributes to search for nodes)
+					final PropertyMap identifyingKeyValues = new PropertyMap();
+					for (final PropertyKey key : identifyingPropertyKeys) {
+
+						identifyingKeyValues.put(key, attributes.get(key));
+					}
+
+					result = app.nodeQuery(type).and(identifyingKeyValues).getResult();
 
 				}
 			}
@@ -126,20 +150,6 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 				case 0:
 
 					if (createIfNotExisting) {
-
-						// remove attributes that do not belong to the target node
-						final PropertyMap foreignProperties = new PropertyMap();
-
-						for (final Iterator<PropertyKey> it = attributes.keySet().iterator(); it.hasNext();) {
-
-							final PropertyKey key = it.next();
-							if (foreignPropertyKeys.contains(key)) {
-
-								// move entry to foreign map and remove from attributes
-								foreignProperties.put(key, attributes.get(key));
-								it.remove();
-							}
-						}
 
 						// create node and return it
 						T newNode = app.create(type, attributes);
@@ -153,7 +163,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 								securityContext.setAttribute("notionProperties", notionPropertyMap);
 							}
 
-							notionPropertyMap.put(newNode.getUuid(), foreignProperties);
+							notionPropertyMap.put(newNode.getUuid() + "." + relationProperty.getDirectionKey(), foreignProperties);
 
 							return newNode;
 						}
@@ -162,7 +172,14 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 					break;
 
 				case 1:
-					return getTypedResult(result, type);
+					final T typedResult = getTypedResult(result, type);
+
+					// set properties on existing node (relationships)
+					for (final Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+						typedResult.setProperty(entry.getKey(), entry.getValue());
+					}
+
+					return typedResult;
 
 				default:
 

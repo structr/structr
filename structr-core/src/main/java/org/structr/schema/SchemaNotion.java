@@ -34,26 +34,23 @@ import org.structr.core.property.PropertyKey;
 public class SchemaNotion extends Notion {
 
 	public SchemaNotion(final Class targetType) {
-		
+
 		super(
-			
+
 			// output serialization
 			new PropertySetSerializationStrategy(
 				GraphObject.id,
 				SchemaNode.name
 			),
-			
+
 			// input deserialization
 			new SchemaDeserializationStrategy(
 				true,
 				targetType,
-			
+
 				// identifying properties
-				toSet(
-					GraphObject.id,
-					SchemaNode.name
-				),
-			
+				toSet(SchemaNode.name),
+
 				// "foreign" properties that should be routed to the relationship
 				toSet(
 					SchemaRelationship.relationshipType,
@@ -62,7 +59,7 @@ public class SchemaNotion extends Notion {
 					SchemaRelationship.sourceNotion,
 					SchemaRelationship.targetNotion,
 					SchemaRelationship.sourceJsonName,
-					SchemaRelationship.targetJsonName 
+					SchemaRelationship.targetJsonName
 				)
 			)
 		);
@@ -72,15 +69,15 @@ public class SchemaNotion extends Notion {
 	public PropertyKey getPrimaryPropertyKey() {
 		return GraphObject.id;
 	}
-	
+
 	private static <T> Set<T> toSet(final T... values) {
-		
+
 		final Set<T> set = new LinkedHashSet<>();
 		for (final T t : values) {
-			
+
 			set.add(t);
 		}
-		
+
 		return set;
 	}
 }
