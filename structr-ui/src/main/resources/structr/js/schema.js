@@ -778,9 +778,23 @@ var _Schema = {
         var stillUsed = false;
         var normalizedKey = normalizeAttr(key);
         Object.keys(entity).forEach(function(k) {
-            if (entity[k] && (typeof entity[k] === 'string') && entity[k].contains(normalizedKey)) {
-                stillUsed = true;
-                return;
+            if (entity[k] && (typeof entity[k] === 'string')) {
+
+                // check views for usage of this property
+                if (k.startsWith('__')) {
+                    var viewVars = entity[k].split(',');
+
+                    viewVars.forEach(function(viewVar){
+
+                        if (normalizeAttr(viewVar.trim()) === normalizedKey) {
+                            stillUsed = true;
+                        };
+                    });
+
+                    if (stillUsed) {
+                        return;
+                    }
+                }
             }
         });
 
