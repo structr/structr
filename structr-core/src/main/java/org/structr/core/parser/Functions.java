@@ -754,10 +754,20 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					final String source = sources[0].toString();
-					final String part   = sources[1].toString();
+					if (sources[0] instanceof String && sources[1] instanceof String) {
 
-					return source.contains(part);
+						final String source = sources[0].toString();
+						final String part   = sources[1].toString();
+
+						return source.contains(part);
+
+					} else if (sources[0] instanceof Collection && sources[1] instanceof GraphObject) {
+
+						final Collection collection = (Collection)sources[0];
+						final GraphObject obj       = (GraphObject)sources[1];
+
+						return collection.contains(obj);
+					}
 				}
 
 				return "";
