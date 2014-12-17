@@ -127,13 +127,6 @@ var _Crud = {
 
                 }
 
-
-            });
-
-            $(document).keyup(function(e) {
-                if (e.keyCode === 27) {
-                    dialogCancelButton.click();
-                }
             });
 
         });

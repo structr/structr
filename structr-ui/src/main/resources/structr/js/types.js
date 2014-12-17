@@ -76,13 +76,6 @@ var _Types = {
                 _Types.initTabs();
             });
 
-
-            $(document).keyup(function(e) {
-                if (e.keyCode === 27) {
-                    dialogCancelButton.click();
-                }
-            });
-
         });
 
     },
