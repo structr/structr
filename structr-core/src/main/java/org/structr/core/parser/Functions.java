@@ -199,6 +199,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_CACHE               = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
 	public static final String ERROR_MESSAGE_GRANT               = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
 	public static final String ERROR_MESSAGE_REVOKE              = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
+	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP    = "Usage: ${has_relationship(from, to [, relType] [, key, value])}. Example: ${has_relationship(me, user, 'FOLLOWS')}";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -770,7 +771,7 @@ public class Functions {
 					}
 				}
 
-				return "";
+				return false;
 			}
 
 			@Override
@@ -2938,6 +2939,48 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_OUTGOING;
+			}
+		});
+		functions.put("has_relationship", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final RelationshipFactory factory  = new RelationshipFactory(entity.getSecurityContext());
+					final Object source                = sources[0];
+					final Object target                = sources[1];
+
+					if (source instanceof NodeInterface && target instanceof NodeInterface) {
+
+						final NodeInterface node = (NodeInterface)source;
+						if (sources.length > 1) {
+
+							final Object relType = sources[1];
+							if (relType != null && relType instanceof String) {
+
+								final String relTypeName = (String)relType;
+								return factory.instantiate(node.getNode().getRelationships(Direction.OUTGOING, DynamicRelationshipType.withName(relTypeName)));
+							}
+
+						} else {
+
+							return factory.instantiate(node.getNode().getRelationships(Direction.OUTGOING));
+						}
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_HAS_RELATIONSHIP;
 			}
 		});
 		functions.put("grant", new Function<Object, Object>() {
