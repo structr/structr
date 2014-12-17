@@ -2031,7 +2031,8 @@ var _Crud = {
 
             if (text)
                 dialogTitle.html(text);
-            if (callbackCancel)
+            if (callbackCancel) {
+                dialogCancelButton.off('click');
                 dialogCancelButton.on('click', function(e) {
                     e.stopPropagation();
                     callbackCancel();
@@ -2045,6 +2046,7 @@ var _Crud = {
                     $('#saveProperties').remove();
                     searchField.focus();
                 });
+            }
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
             $.blockUI.defaults.css.cursor = 'default';
