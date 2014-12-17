@@ -82,8 +82,10 @@ public abstract class Message<T> {
 		this.id = idGenerator.incrementAndGet();
 	}
 
-	public Message(final long id) {
-		this.id = id;
+	public Message(final long id, final int sendCount) {
+		
+		this.id        = id;
+		this.sendCount = sendCount;
 	}
 
 	public long getId() {
@@ -96,7 +98,7 @@ public abstract class Message<T> {
 	}
 
 	protected Ack ack() {
-		return new Ack(this.id);
+		return new Ack(this.id, this.sendCount);
 	}
 
 	public void serialize(final DataOutputStream outputStream) throws IOException {

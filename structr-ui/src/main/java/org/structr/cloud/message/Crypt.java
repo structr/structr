@@ -34,7 +34,7 @@ public class Crypt extends Message {
 	public Crypt() {}
 
 	public Crypt(final long id) {
-		super(id);
+		super(id, 0);
 	}
 
 	@Override
