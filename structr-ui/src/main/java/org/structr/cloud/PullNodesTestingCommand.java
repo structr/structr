@@ -53,6 +53,8 @@ public class PullNodesTestingCommand extends CloudServiceCommand implements Main
 			try (final Tx tx = app.tx()) {
 
 				CloudService.doRemote(new PullTransmission(id, true, "admin", "admin", "localhost", 54556), new LoggingListener());
+
+				tx.success();
 			}
 		}
 	}
@@ -82,7 +84,7 @@ public class PullNodesTestingCommand extends CloudServiceCommand implements Main
 		@Override
 		public void transmissionProgress(int current, int total) {
 
-			if ((current % 10) == 0) {
+			if ((current % 10) == 0 || current == total) {
 				logger.log(Level.INFO, "Transmission progress {0}/{1}", new Object[] { current, total } );
 			}
 		}

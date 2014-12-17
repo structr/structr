@@ -33,7 +33,7 @@ public class Ack extends Message {
 
 	public Ack() {}
 
-	public Ack(final String id) {
+	public Ack(final long id) {
 		super(id);
 	}
 
