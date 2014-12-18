@@ -20,15 +20,16 @@ package org.structr.cloud.message;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.SyncCommand;
 
 /**
@@ -38,6 +39,7 @@ import org.structr.core.graph.SyncCommand;
 public abstract class Message<T> {
 
 	private static final Logger logger              = Logger.getLogger(Message.class.getName());
+	private static final AtomicLong idGenerator     = new AtomicLong();
 	private static final Map<String, Class> typeMap = new LinkedHashMap<>();
 
 	static {
@@ -66,7 +68,8 @@ public abstract class Message<T> {
 
 	}
 
-	protected String id = null;
+	protected long id       = 0;
+	protected int sendCount = 0;
 
 	public abstract void onRequest(final CloudConnection serverConnection, final ExportContext context) throws IOException, FrameworkException;
 	public abstract void onResponse(final CloudConnection clientConnection, final ExportContext context) throws IOException, FrameworkException;
@@ -76,14 +79,16 @@ public abstract class Message<T> {
 	protected abstract void serializeTo(final DataOutputStream outputStream) throws IOException;
 
 	public Message() {
-		this.id = NodeServiceCommand.getNextUuid();
+		this.id = idGenerator.incrementAndGet();
 	}
 
-	public Message(final String id) {
-		this.id = id;
+	public Message(final long id, final int sendCount) {
+		
+		this.id        = id;
+		this.sendCount = sendCount;
 	}
 
-	public String getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -93,7 +98,7 @@ public abstract class Message<T> {
 	}
 
 	protected Ack ack() {
-		return new Ack(this.id);
+		return new Ack(this.id, this.sendCount);
 	}
 
 	public void serialize(final DataOutputStream outputStream) throws IOException {
@@ -104,6 +109,7 @@ public abstract class Message<T> {
 
 		// write ID
 		SyncCommand.serialize(outputStream, id);
+		SyncCommand.serialize(outputStream, ++sendCount);
 
 		// write attributes
 		serializeTo(outputStream);
@@ -111,9 +117,17 @@ public abstract class Message<T> {
 		outputStream.flush();
 	}
 
+	public boolean wasSentFromHere() {
+		return sendCount > 1;
+	}
+
 	// ----- private methods -----
-	private void setId(final String id) {
+	private void setId(final long id) {
 		this.id = id;
+	}
+
+	private void setSendCount(final int sendCount) {
+		this.sendCount = sendCount;
 	}
 
 	// ----- public static methods -----
@@ -130,7 +144,9 @@ public abstract class Message<T> {
 
 					final Message msg = (Message)clazz.newInstance();
 
-					msg.setId((String)SyncCommand.deserialize(inputStream));
+					msg.setId((Long)SyncCommand.deserialize(inputStream));
+					msg.setSendCount((Integer)SyncCommand.deserialize(inputStream));
+
 					msg.deserializeFrom(inputStream);
 
 					return msg;
@@ -142,6 +158,8 @@ public abstract class Message<T> {
 			} else {
 
 				logger.log(Level.WARNING, "Invalid CloudService message: unknown type {0}", type);
+
+				throw new EOFException("Invalid type, aborting.");
 			}
 
 		} else {

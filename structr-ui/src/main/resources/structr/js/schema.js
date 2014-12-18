@@ -925,24 +925,28 @@ var _Schema = {
             type = type.replace('+', '').replace('!', '');
 
             var defaultValue = '';
-            if (type.indexOf(':') > -1) {
-                defaultValue = (type.substring(type.indexOf(':') + 1));
-                type = type.substring(0, type.indexOf(':'));
+            var format = '';
+
+            var defaultBegin = type.indexOf(':');
+            var formatBegin = type.indexOf('(');
+
+            if (formatBegin > -1 && defaultBegin > -1 && defaultBegin > formatBegin) {
+                // we have a format string => we need to find the location of the matching closing bracket for the bracket at pos formatBegin
+
+                var defaultBegin = type.indexOf('):');
+                if (defaultBegin > -1) {
+                    defaultBegin++;
+                }
             }
 
-            var format;
+            if (defaultBegin > -1) {
+                defaultValue = (type.substring(defaultBegin + 1));
+                type = type.substring(0, defaultBegin);
+            }
 
-            if (type.startsWith('Function')) {
-                var l = type.length;
-                format = type.substring(0, l - 1).substring(9);
-                type = type.substring(0, 8);
-            } else {
-
-                if (type.indexOf('(') > -1) {
-                    var parts = type.split('(');
-                    type = parts[0];
-                    format = parts[1].replace(')', '');
-                }
+            if (formatBegin > -1) {
+                format = type.substring(formatBegin + 1, type.length - 1);
+                type = type.substring(0, formatBegin);
             }
 
             if (compact) {

@@ -2983,8 +2983,15 @@ public class Functions {
 						if (relClass == null) {
 							return false;
 						}
+
+						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+
+							if (rel.getProperty(AbstractRelationship.relType).equals(relType) && rel.getTargetNode().equals(targetNode)) {
+								return true;
+							}
+						}
 						
-						return sourceNode.hasRelationship(relClass);
+						return false;
 
 					}
 

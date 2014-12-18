@@ -33,8 +33,8 @@ public class Ack extends Message {
 
 	public Ack() {}
 
-	public Ack(final String id) {
-		super(id);
+	public Ack(final long id, final int sendCount) {
+		super(id, sendCount);
 	}
 
 	@Override

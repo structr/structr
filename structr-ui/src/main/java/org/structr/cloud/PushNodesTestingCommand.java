@@ -60,6 +60,8 @@ public class PushNodesTestingCommand extends CloudServiceCommand implements Main
 
 					CloudService.doRemote(new PushTransmission((Syncable)entity, true, "admin", "admin", host, 54555), new LoggingListener());
 				}
+
+				tx.success();
 			}
 		}
 	}

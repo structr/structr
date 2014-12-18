@@ -359,9 +359,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			outputStream.writeByte((byte)127);
 		}
 
-		// make it more readable for the human eye
-		//outputStream.write(' ');
-
 		outputStream.flush();
 	}
 
@@ -407,8 +404,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			logger.log(Level.WARNING, "Unsupported type \"{0}\" in input", type);
 		}
 
-		// skip white space after object (see serialize method)
-		//inputStream.skip(1);
+
+
 
 		return serializedObject;
 	}
