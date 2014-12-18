@@ -925,29 +925,28 @@ var _Schema = {
             type = type.replace('+', '').replace('!', '');
 
             var defaultValue = '';
-            var format;
+            var format = '';
 
-            if (type.startsWith('Function')) {
-                format = type.substring(9, type.length - 1);
-                type = 'Function';
+            var defaultBegin = type.indexOf(':');
+            var formatBegin = type.indexOf('(');
 
-            } else if (type.startsWith('Cypher')) {
-                format = type.substring(7, type.length - 1);
-                type = 'Cypher';
+            if (formatBegin > -1 && defaultBegin > -1 && defaultBegin > formatBegin) {
+                // we have a format string => we need to find the location of the matching closing bracket for the bracket at pos formatBegin
 
-            } else {
-
-                if (type.indexOf('(') > -1) {
-                    var parts = type.split('(');
-                    type = parts[0];
-                    format = parts[1].replace(')', '');
+                var defaultBegin = type.indexOf('):');
+                if (defaultBegin > -1) {
+                    defaultBegin++;
                 }
+            }
 
-                var defaultValueSeparatorLocation = type.indexOf(':');
-                if (defaultValueSeparatorLocation > -1) {
-                    defaultValue = (type.substring(defaultValueSeparatorLocation + 1));
-                    type = type.substring(0, defaultValueSeparatorLocation);
-                }
+            if (defaultBegin > -1) {
+                defaultValue = (type.substring(defaultBegin + 1));
+                type = type.substring(0, defaultBegin);
+            }
+
+            if (formatBegin > -1) {
+                format = type.substring(formatBegin + 1, type.length - 1);
+                type = type.substring(0, formatBegin);
             }
 
             if (compact) {
