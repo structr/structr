@@ -925,23 +925,28 @@ var _Schema = {
             type = type.replace('+', '').replace('!', '');
 
             var defaultValue = '';
-            if (type.indexOf(':') > -1) {
-                defaultValue = (type.substring(type.indexOf(':') + 1));
-                type = type.substring(0, type.indexOf(':'));
-            }
-
             var format;
 
             if (type.startsWith('Function')) {
-                var l = type.length;
-                format = type.substring(0, l - 1).substring(9);
-                type = type.substring(0, 8);
+                format = type.substring(9, type.length - 1);
+                type = 'Function';
+
+            } else if (type.startsWith('Cypher')) {
+                format = type.substring(7, type.length - 1);
+                type = 'Cypher';
+
             } else {
 
                 if (type.indexOf('(') > -1) {
                     var parts = type.split('(');
                     type = parts[0];
                     format = parts[1].replace(')', '');
+                }
+
+                var defaultValueSeparatorLocation = type.indexOf(':');
+                if (defaultValueSeparatorLocation > -1) {
+                    defaultValue = (type.substring(defaultValueSeparatorLocation + 1));
+                    type = type.substring(0, defaultValueSeparatorLocation);
                 }
             }
 
