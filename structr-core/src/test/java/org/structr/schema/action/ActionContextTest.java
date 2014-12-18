@@ -114,6 +114,9 @@ public class ActionContextTest extends StructrTest {
 			testOne.setProperty(TestOne.cleanTestString, "a<b>c.d'e?f(g)h{i}j[k]l+m/n–o\\p\\q|r's!t,u-v_w`x-y-zöäüßABCDEFGH");
 			testOne.setProperty(TestOne.stringWithQuotes, "A'B\"C");
 
+			testTwo.setProperty(TestTwo.name, "testTwo_name");
+			testThree.setProperty(TestThree.name, "testThree_name");
+			
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -239,6 +242,10 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid contains() result", "false", testOne.replaceVariables(securityContext, ctx, "${contains(this.name, 'entity')}"));
 			assertEquals("Invalid contains() result", "true", testOne.replaceVariables(securityContext, ctx, "${contains('a-nice-little-name-for-my-test-object', 'for')}"));
 			assertEquals("Invalid contains() result", "false", testOne.replaceVariables(securityContext, ctx, "${contains('a-nice-little-name-for-my-test-object', 'entity')}"));
+
+			// contains with collection / entity
+			assertEquals("Invalid contains() result", "true", testOne.replaceVariables(securityContext, ctx, "${contains(this.manyToManyTestSixs, first(find('TestSix')))}"));
+			assertEquals("Invalid contains() result", "false", testOne.replaceVariables(securityContext, ctx, "${contains(this.manyToManyTestSixs, first(find('TestFive')))}"));
 
 			// substring
 			assertEquals("Invalid substring() result", "for", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 19, 3)}"));
@@ -836,6 +843,29 @@ public class ActionContextTest extends StructrTest {
 
 			assertEquals("Invalid multiline and template() result", ">2\n<3", result);
 
+			// incoming
+			assertEquals("Invalid number of incoming relationships", "20",  testOne.replaceVariables(securityContext, ctx, "${size(incoming(this))}"));
+			assertEquals("Invalid number of incoming relationships", "20",  testOne.replaceVariables(securityContext, ctx, "${size(incoming(this, 'MANY_TO_MANY'))}"));
+			assertEquals("Invalid number of incoming relationships", "1",   testTwo.replaceVariables(securityContext, ctx, "${size(incoming(this))}"));
+			assertEquals("Invalid number of incoming relationships", "1",   testThree.replaceVariables(securityContext, ctx, "${size(incoming(this))}"));
+			assertEquals("Invalid relationship type", "IS_AT",              testTwo.replaceVariables(securityContext, ctx, "${get(incoming(this), 'relType')}"));
+			assertEquals("Invalid relationship type", "OWNS",               testThree.replaceVariables(securityContext, ctx, "${get(incoming(this), 'relType')}"));
+
+			// outgoing
+			assertEquals("Invalid number of outgoing relationships", "3",  testOne.replaceVariables(securityContext, ctx, "${size(outgoing(this))}"));
+			assertEquals("Invalid number of outgoing relationships", "2",  testOne.replaceVariables(securityContext, ctx, "${size(outgoing(this, 'IS_AT'))}"));
+			assertEquals("Invalid number of outgoing relationships", "1",  testOne.replaceVariables(securityContext, ctx, "${size(outgoing(this, 'OWNS' ))}"));
+			assertEquals("Invalid relationship type", "IS_AT",             testOne.replaceVariables(securityContext, ctx, "${get(first(outgoing(this, 'IS_AT')), 'relType')}"));
+			assertEquals("Invalid relationship type", "OWNS",              testOne.replaceVariables(securityContext, ctx, "${get(outgoing(this, 'OWNS'), 'relType')}"));
+
+			// has_relationships	y
+			assertEquals("Invalid result of has_relationship", "true",  testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
+			assertEquals("Invalid result of has_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'vg6hj36tfvgth4r')}"));
+			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')))}"));
+			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
+			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT')}"));
+			assertEquals("Invalid result of has_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'uzlasdfh')}"));
+			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
 
 			tx.success();
 
@@ -843,7 +873,7 @@ public class ActionContextTest extends StructrTest {
 
 			fex.printStackTrace();
 
-			fail("Unexpected exception");
+			fail(fex.getMessage());
 		}
 	}
 }

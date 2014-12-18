@@ -83,6 +83,7 @@ public class FileBase extends AbstractFile implements Linkable {
 		final String filePath = getDirectoryPath(uuid) + "/" + uuid;
 
 		try {
+			unlockReadOnlyPropertiesOnce();
 			setProperty(relativeFilePath, filePath);
 		} catch (Throwable t) {
 
@@ -142,11 +143,15 @@ public class FileBase extends AbstractFile implements Linkable {
 				return;
 			}
 
+			unlockReadOnlyPropertiesOnce();
 			setProperty(checksum, FileHelper.getChecksum(FileBase.this));
+			
+			unlockReadOnlyPropertiesOnce();
 			setProperty(version, 0);
 
 			long fileSize = FileHelper.getSize(FileBase.this);
 			if (fileSize > 0) {
+				unlockReadOnlyPropertiesOnce();
 				setProperty(size, fileSize);
 			}
 
@@ -210,6 +215,8 @@ public class FileBase extends AbstractFile implements Linkable {
 	public void increaseVersion() throws FrameworkException {
 
 		final Integer _version = getProperty(FileBase.version);
+		
+		unlockReadOnlyPropertiesOnce();
 		if (_version == null) {
 
 			setProperty(FileBase.version, 1);
@@ -287,7 +294,10 @@ public class FileBase extends AbstractFile implements Linkable {
 
 							final String _contentType = FileHelper.getContentMimeType(FileBase.this);
 
+							unlockReadOnlyPropertiesOnce();
 							setProperty(checksum, FileHelper.getChecksum(FileBase.this));
+							
+							unlockReadOnlyPropertiesOnce();
 							setProperty(size, FileHelper.getSize(FileBase.this));
 							setProperty(contentType, _contentType);
 
