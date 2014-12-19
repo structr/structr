@@ -18,12 +18,15 @@
  */
 package org.structr.core.graph;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.Function;
+import org.neo4j.helpers.collection.PagingIterator;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -319,32 +322,29 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		if (page < 0) {
 
-			try (final IndexHits<S> closeable = input) {
+			List<S> rawNodes = read(input);
+			int size         = rawNodes.size();
 
-				List<S> rawNodes = read(closeable);
-				int size         = rawNodes.size();
+			fromIndex = Math.max(0, size + (page * pageSize));
 
-				fromIndex = Math.max(0, size + (page * pageSize));
+			final List<T> nodes = new LinkedList<>();
+			int toIndex         = Math.min(size, fromIndex + pageSize);
 
-				final List<T> nodes = new LinkedList<>();
-				int toIndex         = Math.min(size, fromIndex + pageSize);
+			for (S n : rawNodes.subList(fromIndex, toIndex)) {
 
-				for (S n : rawNodes.subList(fromIndex, toIndex)) {
-
-					nodes.add(instantiate(n));
-				}
-
-				// We've run completely through the iterator,
-				// so the overall count from here is accurate.
-				return new Result(nodes, size, true, false);
+				nodes.add(instantiate(n));
 			}
+
+			// We've run completely through the iterator,
+			// so the overall count from here is accurate.
+			return new Result(nodes, size, true, false);
 
 		} else {
 
 			// FIXME: IndexHits#size() may be inaccurate!
 			int size = input.size();
 
-			fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
+			fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1);//* pageSize;
 			//fromIndex = (page - 1) * pageSize;
 
 			// The overall count may be inaccurate
@@ -360,54 +360,23 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		int count	    = 0;
 		int overallCount    = 0;
 		boolean pageFull    = false;
-
+		
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
-
+		
 		// In case of superuser or in public context, don't check the overall result count
 		boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
+		
+		PagingIterator<S> neoResult = new PagingIterator<S>(input.iterator(), pageSize) ; 
+		neoResult.page(offset);
+		overallCount = input.size();
+		
+		Iterator<S> resultPage = neoResult.nextPage(); 
+		
+		while ( resultPage.hasNext()) {
+			T n = (T) instantiate(resultPage.next());
+			
+			nodes.add(n);
 
-		try (final IndexHits<S> closeable = input) {
-
-			for (S node : closeable) {
-
-				T n = instantiate(node);
-
-				if (n != null) {
-
-					overallCount++;
-
-					if (++position > offset) {
-
-						// stop if we got enough nodes
-						// and we are above the limit
-						if (++count > pageSize) {
-
-							pageFull = true;
-
-							if (dontCheckCount) {
-								overallCount = overallResultCount;
-								break;
-							}
-
-						}
-
-						if (!pageFull) {
-
-							nodes.add(n);
-
-						}
-
-						if (pageFull && (overallCount >= RESULT_COUNT_ACCURATE_LIMIT)) {
-
-							// The overall count may be inaccurate
-							return new Result(nodes, overallResultCount, true, false);
-
-						}
-					}
-
-				}
-
-			}
 		}
 
 		// We've run completely through the iterator,
