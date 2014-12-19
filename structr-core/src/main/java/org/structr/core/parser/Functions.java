@@ -143,7 +143,6 @@ public class Functions {
 	public static final String ERROR_MESSAGE_INT_SUM = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
 	public static final String ERROR_MESSAGE_DOUBLE_SUM = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
 	public static final String ERROR_MESSAGE_IS_COLLECTION = "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
-	public static final String ERROR_MESSAGE_IN_COLLECTION = "Usage: ${in_collection(haystack, needle)}. Example: ${in_collection(users, me)}";
 	public static final String ERROR_MESSAGE_IS_ENTITY = "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
 	public static final String ERROR_MESSAGE_EXTRACT = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_FILTER = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
@@ -1119,29 +1118,6 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_IS_COLLECTION;
-			}
-
-		});
-		functions.put("in_collection", new Function<Object, Object>() {
-
-			@Override
-			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-					for (final Object obj : (Collection) sources[0]) {
-
-						if (sources[1].equals(obj)) {
-							return true;
-						}
-					}
-				}
-
-				return false;
-			}
-
-			@Override
-			public String usage() {
-				return ERROR_MESSAGE_IN_COLLECTION;
 			}
 
 		});
