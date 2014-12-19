@@ -143,6 +143,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_INT_SUM = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
 	public static final String ERROR_MESSAGE_DOUBLE_SUM = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
 	public static final String ERROR_MESSAGE_IS_COLLECTION = "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
+	public static final String ERROR_MESSAGE_IN_COLLECTION = "Usage: ${in_collection(haystack, needle)}. Example: ${in_collection(users, me)}";
 	public static final String ERROR_MESSAGE_IS_ENTITY = "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
 	public static final String ERROR_MESSAGE_EXTRACT = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_FILTER = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
@@ -202,6 +203,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(from, to [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(from, to [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -1117,6 +1119,29 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_IS_COLLECTION;
+			}
+
+		});
+		functions.put("in_collection", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+					for (final Object obj : (Collection) sources[0]) {
+
+						if (sources[1].equals(obj)) {
+							return true;
+						}
+					}
+				}
+
+				return false;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_IN_COLLECTION;
 			}
 
 		});
@@ -2998,6 +3023,64 @@ public class Functions {
 				}
 				
 				return false;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_HAS_RELATIONSHIP;
+			}
+		});
+		functions.put("get_relationships", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List list = new ArrayList();
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					if (sources.length == 2) {
+
+						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+
+							if (rel.getTargetNode().equals(targetNode)) {
+								list.add(rel);
+							}
+						}
+
+					} else if (sources.length == 3) {
+
+						final String relType = (String) sources[2];
+						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
+
+						if (relClass != null) {
+							for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+
+								if (rel.getProperty(AbstractRelationship.relType).equals(relType) && rel.getTargetNode().equals(targetNode)) {
+									list.add(rel);
+								}
+							}
+						}
+					}
+				}
+
+				return list;
 			}
 
 			@Override
