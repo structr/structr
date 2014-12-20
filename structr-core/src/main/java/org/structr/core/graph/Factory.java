@@ -343,40 +343,89 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			// FIXME: IndexHits#size() may be inaccurate!
 			int size = input.size();
+			
+			SecurityContext securityContext = factoryProfile.getSecurityContext();
 
-			fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1);//* pageSize;
+			// In case of superuser or in public context, don't check the overall result count
+			boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
+			
+			if(dontCheckCount){
+				fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1);//* pageSize;
+			} else {
+				fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
+			}
 			//fromIndex = (page - 1) * pageSize;
 
 			// The overall count may be inaccurate
-			return page(input, size, fromIndex, pageSize);
+			return page(input, size, fromIndex, pageSize, dontCheckCount);
 		}
 
 	}
 
-	protected Result page(final IndexHits<S> input, final int overallResultCount, final int offset, final int pageSize) throws FrameworkException {
+	protected Result page(final IndexHits<S> input, final int overallResultCount, final int offset, final int pageSize, boolean dontCheckCount) throws FrameworkException {
 
 		final List<T> nodes = new LinkedList<>();
 		int position	    = 0;
 		int count	    = 0;
 		int overallCount    = 0;
 		boolean pageFull    = false;
-		
-		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		
-		// In case of superuser or in public context, don't check the overall result count
-		boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
-		
-		PagingIterator<S> neoResult = new PagingIterator<S>(input.iterator(), pageSize) ; 
-		neoResult.page(offset);
-		overallCount = input.size();
-		
-		Iterator<S> resultPage = neoResult.nextPage(); 
-		
-		while ( resultPage.hasNext()) {
-			T n = (T) instantiate(resultPage.next());
+		if(dontCheckCount){		
+			overallCount = input.size();
+			PagingIterator<S> neoResult = new PagingIterator<S>(input.iterator(), pageSize) ; 
+			neoResult.page(offset);
 			
-			nodes.add(n);
-
+			Iterator<S> resultPage = neoResult.nextPage(); 
+			
+			while ( resultPage.hasNext()) {
+				T n = (T) instantiate(resultPage.next());
+				if(n != null){
+					nodes.add(n);
+				}
+			}
+		} else {		
+			try (final IndexHits<S> closeable = input) {
+	
+				for (S node : closeable) {
+	
+					T n = instantiate(node);
+	
+					if (n != null) {
+	
+						overallCount++;
+	
+						if (++position > offset) {
+	
+							// stop if we got enough nodes
+							// and we are above the limit
+							if (++count > pageSize) {
+	
+								pageFull = true;
+	
+								if (dontCheckCount) {
+									overallCount = overallResultCount;
+									break;
+								}
+	
+							}
+	
+							if (!pageFull) {
+	
+								nodes.add(n);
+	
+							}
+	
+							if (pageFull && (overallCount >= RESULT_COUNT_ACCURATE_LIMIT)) {
+	
+								// The overall count may be inaccurate
+								return new Result(nodes, overallResultCount, true, false);
+	
+							}
+						}
+	
+					}
+	
+				}
+			}
 		}
 
 		// We've run completely through the iterator,
