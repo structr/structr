@@ -66,6 +66,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.mail.EmailException;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -2977,10 +2978,10 @@ public class Functions {
 						}
 
 					} else if (sources.length == 3) {
-						
+
 						final String relType = (String) sources[2];
 						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
-						
+
 						if (relClass == null) {
 							return false;
 						}
@@ -2991,13 +2992,13 @@ public class Functions {
 								return true;
 							}
 						}
-						
+
 						return false;
 
 					}
 
 				}
-				
+
 				return false;
 			}
 
@@ -3452,5 +3453,25 @@ public class Functions {
 			}
 		}
 
+	}
+
+	public static Object numberOrString(final String value) {
+
+		if (value != null) {
+
+			if ("true".equals(value.toLowerCase())) {
+				return true;
+			}
+
+			if ("false".equals(value.toLowerCase())) {
+				return false;
+			}
+
+			if (NumberUtils.isNumber(value)) {
+				return NumberUtils.createNumber(value);
+			}
+		}
+
+		return value;
 	}
 }

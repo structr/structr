@@ -116,7 +116,7 @@ public class ActionContextTest extends StructrTest {
 
 			testTwo.setProperty(TestTwo.name, "testTwo_name");
 			testThree.setProperty(TestThree.name, "testThree_name");
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -858,7 +858,7 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid relationship type", "IS_AT",             testOne.replaceVariables(securityContext, ctx, "${get(first(outgoing(this, 'IS_AT')), 'relType')}"));
 			assertEquals("Invalid relationship type", "OWNS",              testOne.replaceVariables(securityContext, ctx, "${get(outgoing(this, 'OWNS'), 'relType')}"));
 
-			// has_relationships	y
+			// has_relationships
 			assertEquals("Invalid result of has_relationship", "true",  testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
 			assertEquals("Invalid result of has_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'vg6hj36tfvgth4r')}"));
 			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')))}"));
@@ -866,6 +866,9 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT')}"));
 			assertEquals("Invalid result of has_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'uzlasdfh')}"));
 			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
+
+
+
 
 			tx.success();
 

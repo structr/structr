@@ -18,9 +18,7 @@
  */
 package org.structr.web.common;
 
-import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
@@ -31,17 +29,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Ownership;
 import org.structr.core.Result;
-import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.RelationProperty;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -336,114 +328,171 @@ public class RenderContext extends ActionContext {
 		return anyChildNodeCreatesNewLine;
 	}
 
-	// ----- interface ActionContext -----
 	@Override
-	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
+	public boolean returnRawValue(final SecurityContext securityContext) {
+		EditMode editMode = getEditMode(securityContext.getUser(false));
+		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
+	}
 
-		final String DEFAULT_VALUE_SEP = "!";
-		final String[] parts = refKey.split("[\\.]+");
-		String referenceKey = parts[parts.length - 1];
-		String defaultValue = null;
+	public boolean hasTimeout(final long timeout) {
+		return System.currentTimeMillis() > (renderStartTime + timeout);
+	}
 
-		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
+	// ----- protected methods -----
 
-			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
-			referenceKey = ref[0];
-			if (ref.length > 1) {
+	@Override
+	protected Object evaluate(final SecurityContext securityContext, final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
 
-				defaultValue = ref[1];
+		if (hasDataForKey(key)) {
+			return getDataNode(key);
+		}
+
+		if ("this".equals(key)) {
+
+			logger.log(Level.WARNING, "Deprecated use of this keyword in RenderContext, unhappily returning the deprecated result..");
+			return getDataObject();
+		}
+
+
+		// evaluate non-ui specific context
+		Object value = super.evaluate(securityContext, entity, key, data, defaultValue);
+		if (value == null) {
+
+			if (data != null) {
+
+				switch (key) {
+
+					// link has two different meanings
+					case "link":
+
+						if (data instanceof AbstractNode) {
+
+							ResourceLink rel = ((AbstractNode)data).getOutgoingRelationship(ResourceLink.class);
+							if (rel != null) {
+
+								return rel.getTargetNode();
+							}
+
+						}
+				}
 
 			} else {
 
-				defaultValue = "";
-			}
-		}
+				// "data-less" keywords to start the evaluation chain
+				switch (key) {
 
-		Page _page = this.getPage();
-		GraphObject _data = null;
+					case "current":
+						return getDetailsDataObject();
 
-		// walk through template parts
-		for (int i = 0; (i < parts.length); i++) {
+					case "template":
 
-			String part = parts[i];
-
-			if (_data != null) {
-
-				Object value = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), part));
-
-				if (value instanceof GraphObject) {
-					_data = (GraphObject) value;
-
-					continue;
-
-				}
-
-				// special keyword "size"
-				if (i > 0 && "size".equals(part)) {
-
-					Object val = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), parts[i - 1]));
-
-					if (val instanceof List) {
-
-						return ((List) val).size();
-
-					}
-
-				}
-
-				// special keyword "link", works on deeper levels, too
-				if ("link".equals(part) && _data instanceof AbstractNode) {
-
-					ResourceLink rel = ((AbstractNode) _data).getOutgoingRelationship(ResourceLink.class);
-					if (rel != null) {
-
-						_data = rel.getTargetNode();
+						if (entity instanceof DOMNode) {
+							return ((DOMNode) entity).getClosestTemplate(getPage());
+						}
 						break;
 
-					}
+					case "page":
+						return getPage();
 
-					continue;
-				}
+					case "parent":
 
-				// special keyword "_source", works on relationship entities only
-				if ("_source".equals(part) && _data instanceof RelationshipInterface) {
+						if (entity instanceof DOMNode) {
+							return ((DOMNode) entity).getParentNode();
+						}
+						break;
 
-					_data = ((RelationshipInterface)_data).getSourceNode();
-					continue;
-				}
+					case "children":
 
-				// special keyword "_target", works on relationship entities only
-				if ("_target".equals(part) && _data instanceof RelationshipInterface) {
+						if (entity instanceof DOMNode) {
 
-					_data = ((RelationshipInterface)_data).getTargetNode();
-					continue;
-				}
+							final Template template = ((DOMNode) entity).getClosestTemplate(getPage());
+							if (template != null) {
 
-				if (value == null) {
+								return template.getChildNodes();
+							}
+						}
+						break;
 
-					// check for default value
-					if (defaultValue != null && StringUtils.contains(refKey, "!")) {
-						return numberOrString(defaultValue);
-					}
+					// link has two different meanings
+					case "link":
 
-					// Need to return null here to avoid _data sticking to the (wrong) parent object
-					return null;
+						if (entity instanceof NodeInterface) {
+
+							final ResourceLink rel = ((NodeInterface)entity).getOutgoingRelationship(ResourceLink.class);
+							if (rel != null) {
+
+								return rel.getTargetNode();
+							}
+						}
+						break;
+
+					case "host":
+						return securityContext.getRequest().getServerName();
+
+					case "port":
+						return securityContext.getRequest().getServerPort();
+
+					case "path_info":
+						return securityContext.getRequest().getPathInfo();
+
+					case "result_count":
+					case "result_size":
+
+						Result sizeResult = this.getResult();
+						if (sizeResult != null) {
+
+							return sizeResult.getRawResultCount();
+						}
+						break;
+
+					case "page_size":
+
+						Result pageSizeResult = this.getResult();
+						if (pageSizeResult != null) {
+
+							return pageSizeResult.getPageSize();
+
+						}
+						break;
+
+					case "page_count":
+
+						Result pageCountResult = this.getResult();
+						if (pageCountResult != null) {
+
+							Integer pageCount = result.getPageCount();
+							if (pageCount != null) {
+
+								return pageCount;
+
+							} else {
+
+								return 1;
+							}
+						}
+						break;
+
+
+					case "page_no":
+
+						Result pageNoResult = this.getResult();
+						if (pageNoResult != null) {
+
+							return pageNoResult.getPage();
+						}
+						break;
 
 				}
 			}
 
-			// data objects from parent elements
-			if (this.hasDataForKey(part)) {
+		}
 
-				_data = this.getDataNode(part);
+		return value;
+	}
 
-				if (parts.length == 1) {
-					return _data;
-				}
+}
 
-				continue;
-
-			}
+/*
 
 			// special keyword "request"
 			if ("request".equals(part)) {
@@ -463,256 +512,48 @@ public class RenderContext extends ActionContext {
 
 			}
 
-			// special keyword "now":
-			if ("now".equals(part)) {
 
-				return new Date();
+
+	// ----- interface ActionContext -----
+	@Override
+	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
+
+		final String DEFAULT_VALUE_SEP = "!";
+		final String[] parts           = refKey.split("[\\.]+");
+		String referenceKey            = parts[parts.length - 1];
+		String defaultValue            = null;
+		GraphObject _data              = null;
+
+		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
+
+			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
+			referenceKey = ref[0];
+			if (ref.length > 1) {
+
+				defaultValue = ref[1];
+
+			} else {
+
+				defaultValue = "";
 			}
+		}
 
-			// special keyword "me"
-			if ("me".equals(part)) {
+		Page _page = this.getPage();
 
-				Principal me = (Principal) securityContext.getUser(false);
+		// walk through template parts
+		for (int i = 0; (i < parts.length); i++) {
 
-				if (me != null) {
+			String part = parts[i];
 
-					_data = me;
+			if (_data != null) {
 
-					if (parts.length == 1) {
-						return _data;
-					}
+				Object value = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), part));
 
-					continue;
-				}
-
-			}
-
-			// special boolean keywords
-			if ("true".equals(part)) {
-				return true;
-			}
-
-			if ("false".equals(part)) {
-				return false;
-			}
-
-			// the following keywords work only on root level
-			// so that they can be used as property keys for data objects
-			if (_data == null) {
-
-				// details data object id
-				if ("id".equals(part)) {
-
-					GraphObject detailsObject = this.getDetailsDataObject();
-
-					if (detailsObject != null) {
-						return detailsObject.getUuid();
-					}
-
-				}
-
-				// details data object
-				if ("current".equals(part)) {
-
-					GraphObject detailsObject = this.getDetailsDataObject();
-
-					if (detailsObject != null) {
-
-						_data = detailsObject;
-
-						if (parts.length == 1) {
-							return _data;
-						}
-
-						continue;
-					}
-
-				}
-
-				// special keyword "this"
-				if ("this".equals(part)) {
-
-					_data = this.getDataObject();
-
-					if (parts.length == 1) {
-						return _data;
-					}
+				if (value instanceof GraphObject) {
+					_data = (GraphObject) value;
 
 					continue;
 
-				}
-
-				// special keyword "element"
-				if ("element".equals(part)) {
-
-					_data = entity;
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "template", references the closest Template node in the current page
-				if ("template".equals(part)) {
-
-					_data = ((DOMNode) entity).getClosestTemplate(_page);
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-				}
-
-				// special keyword "ownerDocument", works only on root level
-				if ("page".equals(part)) {
-
-					_data = _page;
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "link"
-				if (entity instanceof NodeInterface && "link".equals(part)) {
-
-					ResourceLink rel = ((NodeInterface) entity).getOutgoingRelationship(ResourceLink.class);
-
-					if (rel != null) {
-						_data = rel.getTargetNode();
-
-						if (parts.length == 1) {
-							return _data;
-						}
-
-						continue;
-					}
-
-				}
-
-				// special keyword "parent"
-				if ("parent".equals(part)) {
-
-					_data = (DOMNode) ((DOMNode) entity).getParentNode();
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "children", references the children of the closest Template node in the current page
-				if ("children".equals(part)) {
-
-					if (parts.length == 1) {
-
-						final Template template = ((DOMNode) entity).getClosestTemplate(_page);
-
-						if (template != null) {
-							return template.getChildNodes();
-						}
-					}
-
-					continue;
-
-				}
-
-				// special keyword "owner"
-				if (entity instanceof NodeInterface && "owner".equals(part)) {
-
-					Ownership rel = ((NodeInterface) entity).getIncomingRelationship(PrincipalOwnsNode.class);
-					if (rel != null) {
-
-						_data = rel.getSourceNode();
-
-						if (parts.length == 1) {
-							return _data;
-						}
-					}
-
-					continue;
-
-				}
-
-				// special keyword "result_size"
-				if ("result_count".equals(part) || "result_size".equals(part)) {
-
-					Result result = this.getResult();
-
-					if (result != null) {
-
-						return result.getRawResultCount();
-
-					}
-
-				}
-
-				// special keyword "page_size"
-				if ("page_size".equals(part)) {
-
-					Result result = this.getResult();
-
-					if (result != null) {
-
-						return result.getPageSize();
-
-					}
-
-				}
-
-				// special keyword "page_count"
-				if ("page_count".equals(part)) {
-
-					Result result = this.getResult();
-
-					Integer pageCount = result.getPageCount();
-
-					if (pageCount != null) {
-						return pageCount;
-					} else {
-						return 1;
-					}
-
-				}
-
-				// special keyword "page_no"
-				if ("page_no".equals(part)) {
-
-					Result result = this.getResult();
-
-					if (result != null) {
-
-						return result.getPage();
-
-					}
-
-				}
-
-				// special keyword "host":
-				if ("host".equals(part)) {
-
-					return securityContext.getRequest().getServerName();
-				}
-
-				// special keyword "port":
-				if ("port".equals(part)) {
-
-					return securityContext.getRequest().getServerPort();
-				}
-
-				// special keyword "path_info":
-				if ("path_info".equals(part)) {
-
-					return securityContext.getRequest().getPathInfo();
 				}
 			}
 
@@ -750,81 +591,4 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	@Override
-	public boolean returnRawValue(final SecurityContext securityContext) {
-		EditMode editMode = getEditMode(securityContext.getUser(false));
-		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
-	}
-
-	public boolean hasTimeout(final long timeout) {
-		return System.currentTimeMillis() > (renderStartTime + timeout);
-	}
-
-//	private Template getClosestTemplate(DOMNode node, final Page page) {
-//
-//		while (node != null) {
-//
-//			if (node instanceof Template) {
-//
-//				final Template template = (Template) node;
-//
-//				Document doc = template.getOwnerDocument();
-//
-//				if (doc == null) {
-//
-//					doc = getClosestPage(node);
-//				}
-//
-//				if (doc != null && doc.equals(page)) {
-//
-//					try {
-//						template.setProperty(DOMNode.ownerDocument, (Page) doc);
-//
-//						return template;
-//
-//					} catch (FrameworkException ex) {
-//						ex.printStackTrace();
-//					}
-//
-//				}
-//
-//				final List<DOMNode> syncedNodes = template.getProperty(DOMNode.syncedNodes);
-//
-//				for (final DOMNode syncedNode : syncedNodes) {
-//
-//					doc = syncedNode.getOwnerDocument();
-//
-//					if (doc != null && doc.equals(page)) {
-//
-//						return (Template) syncedNode;
-//
-//					}
-//
-//				}
-//
-//			}
-//
-//			node = (DOMNode) node.getParentNode();
-//
-//		}
-//
-//		return null;
-//
-//	}
-//
-//	private Page getClosestPage(DOMNode node) {
-//
-//		while (node != null) {
-//
-//			if (node instanceof Page) {
-//
-//				return (Page) node;
-//			}
-//
-//			node = (DOMNode) node.getParentNode();
-//
-//		}
-//
-//		return null;
-//	}
-}
+*/

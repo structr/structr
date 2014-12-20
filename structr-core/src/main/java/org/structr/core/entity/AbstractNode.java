@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -58,6 +57,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
@@ -1072,106 +1072,24 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
 	}
 
-	protected String[] split(final String source) {
+	@Override
+	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
 
-		ArrayList<String> tokens = new ArrayList<>(20);
-		boolean inDoubleQuotes = false;
-		boolean inSingleQuotes = false;
-		boolean ignoreNext = false;
-		int len = source.length();
-		int level = 0;
-		StringBuilder currentToken = new StringBuilder(len);
+		switch (key) {
 
-		for (int i = 0; i < len; i++) {
+			case "owner":
+				return getOwnerNode();
 
-			char c = source.charAt(i);
+			default:
 
-			// do not strip away separators in nested functions!
-			if ((level != 0) || (c != ',')) {
+				// evaluate object value or return default
+				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
+				if (value == null) {
 
-				currentToken.append(c);
-			}
-
-			if (ignoreNext) {
-
-				ignoreNext = false;
-				continue;
-
-			}
-
-			switch (c) {
-
-				case '\\':
-
-					ignoreNext = true;
-
-					break;
-
-				case '(':
-					level++;
-
-					break;
-
-				case ')':
-					level--;
-
-					break;
-
-				case '"':
-					if (inDoubleQuotes) {
-
-						inDoubleQuotes = false;
-
-						level--;
-
-					} else {
-
-						inDoubleQuotes = true;
-
-						level++;
-
-					}
-
-					break;
-
-				case '\'':
-					if (inSingleQuotes) {
-
-						inSingleQuotes = false;
-
-						level--;
-
-					} else {
-
-						inSingleQuotes = true;
-
-						level++;
-
-					}
-
-					break;
-
-				case ',':
-					if (level == 0) {
-
-						tokens.add(currentToken.toString().trim());
-						currentToken.setLength(0);
-
-					}
-
-					break;
-
-			}
-
+					return Functions.numberOrString(defaultValue);
+				}
+				return value;
 		}
-
-		if (currentToken.length() > 0) {
-
-			tokens.add(currentToken.toString().trim());
-		}
-
-		return tokens.toArray(new String[0]);
-
 	}
 }
 
