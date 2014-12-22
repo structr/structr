@@ -204,7 +204,11 @@ public class Functions {
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(from, to [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP = "Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP = "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(from, to [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS = "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -3060,7 +3064,7 @@ public class Functions {
 
 					if (sources.length == 2) {
 
-						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
 							if (rel.getTargetNode().equals(targetNode)) {
 								return true;
@@ -3072,19 +3076,19 @@ public class Functions {
 						final String relType = (String) sources[2];
 						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
 
-						if (relClass == null) {
-							return false;
-						}
+						if (relClass != null) {
+							
+							for (final Object r : sourceNode.getRelationships(relClass)) {
 
-						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
-
-							if (rel.getProperty(AbstractRelationship.relType).equals(relType) && rel.getTargetNode().equals(targetNode)) {
-								return true;
+								final AbstractRelationship rel = (AbstractRelationship) r;
+								
+								if (rel.getTargetNode().equals(targetNode)) {
+									return true;
+								}
 							}
+
 						}
-
-						return false;
-
+						
 					}
 
 				}
@@ -3097,12 +3101,10 @@ public class Functions {
 				return ERROR_MESSAGE_HAS_RELATIONSHIP;
 			}
 		});
-		functions.put("get_relationships", new Function<Object, Object>() {
+		functions.put("has_outgoing_relationship", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				final List list = new ArrayList();
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -3127,6 +3129,130 @@ public class Functions {
 						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
 							if (rel.getTargetNode().equals(targetNode)) {
+								return true;
+							}
+						}
+
+					} else if (sources.length == 3) {
+
+						final String relType = (String) sources[2];
+						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
+
+						if (relClass != null) {
+							
+							for (final Object r : sourceNode.getOutgoingRelationships(relClass)) {
+
+								final AbstractRelationship rel = (AbstractRelationship) r;
+								
+								if (rel.getTargetNode().equals(targetNode)) {
+									return true;
+								}
+							}
+						}
+						
+					}
+
+				}
+
+				return false;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP;
+			}
+		});
+		functions.put("has_incoming_relationship", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					if (sources.length == 2) {
+
+						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+
+							if (rel.getTargetNode().equals(targetNode)) {
+								return true;
+							}
+						}
+
+					} else if (sources.length == 3) {
+
+						final String relType = (String) sources[2];
+						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(targetNode.getType(), relType, sourceNode.getType());
+
+						if (relClass != null) {
+							
+							for (final Object r : sourceNode.getIncomingRelationships(relClass)) {
+
+								final AbstractRelationship rel = (AbstractRelationship) r;
+								
+								if (rel.getTargetNode().equals(sourceNode)) {
+									return true;
+								}
+							}
+						}
+						
+					}
+
+				}
+
+				return false;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP;
+			}
+		});
+		functions.put("get_relationships", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List<AbstractRelationship> list = new ArrayList<>();
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					if (sources.length == 2) {
+
+						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
+
+							if (rel.getTargetNode().equals(targetNode)) {
 								list.add(rel);
 							}
 						}
@@ -3137,13 +3263,17 @@ public class Functions {
 						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
 
 						if (relClass != null) {
-							for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+							
+							for (final Object r : sourceNode.getRelationships(relClass)) {
 
-								if (rel.getProperty(AbstractRelationship.relType).equals(relType) && rel.getTargetNode().equals(targetNode)) {
+								final AbstractRelationship rel = (AbstractRelationship) r;
+								
+								if (rel.getTargetNode().equals(targetNode)) {
 									list.add(rel);
 								}
 							}
 						}
+						
 					}
 				}
 
@@ -3152,7 +3282,131 @@ public class Functions {
 
 			@Override
 			public String usage() {
-				return ERROR_MESSAGE_HAS_RELATIONSHIP;
+				return ERROR_MESSAGE_GET_RELATIONSHIPS;
+			}
+		});
+		functions.put("get_outgoing_relationships", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List<AbstractRelationship> list = new ArrayList<>();
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					if (sources.length == 2) {
+
+						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
+
+							if (rel.getTargetNode().equals(targetNode)) {
+								list.add(rel);
+							}
+						}
+
+					} else if (sources.length == 3) {
+
+						final String relType = (String) sources[2];
+						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
+
+						if (relClass != null) {
+							
+							for (final Object r : sourceNode.getOutgoingRelationships(relClass)) {
+
+								final AbstractRelationship rel = (AbstractRelationship) r;
+								
+								if (rel.getTargetNode().equals(targetNode)) {
+									list.add(rel);
+								}
+							}
+						}
+						
+					}
+				}
+
+				return list;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS;
+			}
+		});
+		functions.put("get_incoming_relationships", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List<AbstractRelationship> list = new ArrayList<>();
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					if (sources.length == 2) {
+
+						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+
+							if (rel.getTargetNode().equals(sourceNode)) {
+								list.add(rel);
+							}
+						}
+
+					} else if (sources.length == 3) {
+
+						final String relType = (String) sources[2];
+						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(targetNode.getType(), relType, sourceNode.getType());
+
+						if (relClass != null) {
+							
+							for (final Object r : sourceNode.getIncomingRelationships(relClass)) {
+
+								final AbstractRelationship rel = (AbstractRelationship) r;
+								
+								if (rel.getTargetNode().equals(targetNode)) {
+									list.add(rel);
+								}
+							}
+						}
+						
+					}
+				}
+
+				return list;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS;
 			}
 		});
 		functions.put("grant", new Function<Object, Object>() {
