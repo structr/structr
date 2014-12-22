@@ -89,4 +89,9 @@ public class FilterExpression extends Expression {
 
 		return target;
 	}
+
+	@Override
+	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
+	}
 }

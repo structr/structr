@@ -33,6 +33,21 @@ public class FunctionExpression extends Expression {
 
 	private Function<Object, Object> function = null;
 
+	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("function(");
+
+		for (final Expression expr : expressions) {
+			buf.append(expr.toString());
+		}
+		buf.append(")");
+
+		return buf.toString();
+	}
+
 	public FunctionExpression(final String name, final Function<Object, Object> function) {
 
 		super(name);
@@ -55,5 +70,10 @@ public class FunctionExpression extends Expression {
 		}
 
 		return function.apply(ctx, entity, results.toArray());
+	}
+
+	@Override
+	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
 	}
 }

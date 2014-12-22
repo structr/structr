@@ -39,6 +39,21 @@ public class IfExpression extends Expression {
 	}
 
 	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("if(");
+
+		for (final Expression expr : expressions) {
+			buf.append(expr.toString());
+		}
+		buf.append(")");
+
+		return buf.toString();
+	}
+
+	@Override
 	public void add(final Expression expression) throws FrameworkException {
 
 		// first expression is the if condition
@@ -97,5 +112,10 @@ public class IfExpression extends Expression {
 
 	private boolean isTrue(final Object source) {
 		return source != null && (Boolean.TRUE.equals(source) || "true".equals(source));
+	}
+
+	@Override
+	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
 	}
 }

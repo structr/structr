@@ -19,7 +19,6 @@
 package org.structr.web.common;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import static junit.framework.TestCase.assertEquals;
@@ -37,9 +36,11 @@ import org.structr.core.graph.Tx;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.TestOne;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -148,28 +149,203 @@ public class RenderContextTest extends StructrUiTest {
 
 	}
 
-	public void testVariableReplacement() {
+	public void testFunctionEvaluationInDynamicTypes() {
 
-		final Date now = new Date();
-		Page page      = null;
-		DOMNode html   = null;
-		DOMNode head   = null;
-		DOMNode body   = null;
-		DOMNode title  = null;
-		DOMNode h1     = null;
-		DOMNode div1   = null;
-		DOMNode p1     = null;
-		DOMNode div2   = null;
-		DOMNode p2     = null;
-		DOMNode div3   = null;
-		DOMNode p3     = null;
-		DOMNode a      = null;
-		DOMNode div4   = null;
-		DOMNode p4     = null;
+		NodeInterface item  = null;
 
 		try (final Tx tx = app.tx()) {
 
-			page = Page.createNewPage(securityContext, "testpage");
+			app.create(SchemaNode.class,
+				new NodeAttribute(SchemaNode.name, "Item"),
+				new NodeAttribute(new StringProperty("_testMethodCalled"), "Boolean"),
+				new NodeAttribute(new StringProperty("___testMethod"), "set(this, 'testMethodCalled', true)")
+			);
+
+			// compile the stuff
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class itemClass              = config.getNodeEntityClass("Item");
+
+		// create parent/child relationship
+		try (final Tx tx = app.tx()) {
+
+			item = app.create(itemClass, new NodeAttribute(SchemaNode.name, "Item"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+
+		// check property access in template expressions
+		try (final Tx tx = app.tx()) {
+
+			final RenderContext renderContext = new RenderContext();
+			renderContext.putDataObject("item", item);
+
+			assertEquals("Invalid combined array dot syntax result: ", "Item", item.replaceVariables(securityContext, renderContext, "${find('Item')[0].name}"));
+
+			item.replaceVariables(securityContext, renderContext, "${item.testMethod()}");
+			assertEquals("Invalid method evaluation result: ", "true", item.replaceVariables(securityContext, renderContext, "${item.testMethodCalled}"));
+
+			tx.success();
+
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+	}
+
+	public void testNotionTransformedPropertyAccess() {
+
+		NodeInterface project = null;
+		NodeInterface task1    = null;
+		NodeInterface task2    = null;
+		NodeInterface task3    = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode projectNode = app.create(SchemaNode.class,
+				new NodeAttribute(SchemaNode.name, "Project"),
+				new NodeAttribute(new StringProperty("_taskList"), "Notion(tasks, id, name)"),
+				new NodeAttribute(new StringProperty("_taskNames"), "Notion(tasks, name)")
+			);
+
+			final SchemaNode taskNode = app.create(SchemaNode.class,
+				new NodeAttribute(SchemaNode.name, "Task")
+			);
+
+			// create schema relationship
+			final PropertyMap taskProperties = new PropertyMap();
+			taskProperties.put(SchemaRelationship.relationshipType, "TASK");
+			taskProperties.put(SchemaRelationship.sourceMultiplicity, "1");
+			taskProperties.put(SchemaRelationship.targetMultiplicity, "*");
+			taskProperties.put(SchemaRelationship.sourceJsonName, "project");
+			taskProperties.put(SchemaRelationship.targetJsonName, "tasks");
+
+			app.create(projectNode, taskNode, SchemaRelationship.class, taskProperties);
+
+			// create schema relationship
+			final PropertyMap currentTaskProperties = new PropertyMap();
+			currentTaskProperties.put(SchemaRelationship.relationshipType, "CURRENT");
+			currentTaskProperties.put(SchemaRelationship.sourceMultiplicity, "1");
+			currentTaskProperties.put(SchemaRelationship.targetMultiplicity, "1");
+			currentTaskProperties.put(SchemaRelationship.sourceJsonName, "project");
+			currentTaskProperties.put(SchemaRelationship.targetJsonName, "currentTask");
+
+			app.create(projectNode, taskNode, SchemaRelationship.class, currentTaskProperties);
+
+			// compile the stuff
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class projectClass           = config.getNodeEntityClass("Project");
+		final Class taskClass              = config.getNodeEntityClass("Task");
+		final PropertyKey currentTaskKey   = config.getPropertyKeyForJSONName(projectClass, "currentTask");
+		final PropertyKey tasksKey         = config.getPropertyKeyForJSONName(projectClass, "tasks");
+
+		// create parent/child relationship
+		try (final Tx tx = app.tx()) {
+
+			project = app.create(projectClass, new NodeAttribute(SchemaNode.name, "Project1"));
+			task1    = app.create(taskClass, new NodeAttribute(SchemaNode.name, "Task1"));
+			task2    = app.create(taskClass, new NodeAttribute(SchemaNode.name, "Task2"));
+			task3    = app.create(taskClass, new NodeAttribute(SchemaNode.name, "Task3"));
+
+			// add task to project
+			final List tasks = new LinkedList<>();
+			tasks.add(task1);
+			tasks.add(task2);
+			tasks.add(task3);
+			project.setProperty(tasksKey, tasks);
+
+			// set current task as well
+			project.setProperty(currentTaskKey, task3);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+
+		// check property access in template expressions
+		try (final Tx tx = app.tx()) {
+
+			final RenderContext renderContext = new RenderContext();
+			renderContext.putDataObject("project", project);
+			renderContext.putDataObject("task", task1);
+
+			assertEquals("Invalid dot syntax result: ", "Project1", project.replaceVariables(securityContext, renderContext, "${project.name}"));
+
+			assertEquals("Invalid dot syntax result: ", "Task1", project.replaceVariables(securityContext, renderContext, "${project.tasks[0].name}"));
+			assertEquals("Invalid dot syntax result: ", "Task2", project.replaceVariables(securityContext, renderContext, "${project.tasks[1].name}"));
+			assertEquals("Invalid dot syntax result: ", "Task3", project.replaceVariables(securityContext, renderContext, "${project.tasks[2].name}"));
+
+			assertEquals("Invalid dot syntax result: ", "[Task1, Task2, Task3]", project.replaceVariables(securityContext, renderContext, "${project.taskNames}"));
+			assertEquals("Invalid dot syntax result: ", "Task1", project.replaceVariables(securityContext, renderContext, "${project.taskNames[0]}"));
+			assertEquals("Invalid dot syntax result: ", "Task2", project.replaceVariables(securityContext, renderContext, "${project.taskNames[1]}"));
+			assertEquals("Invalid dot syntax result: ", "Task3", project.replaceVariables(securityContext, renderContext, "${project.taskNames[2]}"));
+
+			assertEquals("Invalid dot syntax result: ", "Task3", project.replaceVariables(securityContext, renderContext, "${project.currentTask.name}"));
+
+			tx.success();
+
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+	}
+
+	public void testVariableReplacement() {
+
+		NodeInterface detailsDataObject = null;
+		Page page                       = null;
+		DOMNode html                    = null;
+		DOMNode head                    = null;
+		DOMNode body                    = null;
+		DOMNode title                   = null;
+		DOMNode h1                      = null;
+		DOMNode div1                    = null;
+		DOMNode p1                      = null;
+		DOMNode div2                    = null;
+		DOMNode p2                      = null;
+		DOMNode div3                    = null;
+		DOMNode p3                      = null;
+		DOMNode a                       = null;
+		DOMNode div4                    = null;
+		DOMNode p4                      = null;
+
+		try (final Tx tx = app.tx()) {
+
+			detailsDataObject = app.create(TestOne.class, "TestOne");
+			page              = Page.createNewPage(securityContext, "testpage");
 
 			assertTrue(page != null);
 			assertTrue(page instanceof Page);
@@ -247,6 +423,7 @@ public class RenderContextTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final RenderContext ctx = new RenderContext();
+			ctx.setDetailsDataObject(detailsDataObject);
 			ctx.setPage(page);
 
 			// test for "empty" return value
@@ -265,6 +442,15 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("true", p1.replaceVariables(securityContext, ctx, "${if(true, true, false)}"));
 			assertEquals("false", p1.replaceVariables(securityContext, ctx, "${if(false, true, false)}"));
 
+			// test keywords
+			assertEquals("${id} should evaluate to the ID if the current details object", detailsDataObject.getUuid(), p1.replaceVariables(securityContext, ctx, "${id}"));
+
+			ctx.setDetailsDataObject(null);
+			assertEquals("${id} should evaluate to the ID if the current details object", "abc12345", p1.replaceVariables(securityContext, ctx, "${id!abc12345}"));
+			ctx.setDetailsDataObject(detailsDataObject);
+
+
+			assertEquals("${id} should be equal to ${current.id}", "true", p1.replaceVariables(securityContext, ctx, "${equal(id, current.id)}"));
 			assertEquals("${element} should evaluate to the current DOM node", p1.toString(), p1.replaceVariables(securityContext, ctx, "${element}"));
 
 			assertNull(p1.replaceVariables(securityContext, ctx, "${if(true, null, \"no\")}"));
@@ -305,6 +491,8 @@ public class RenderContextTest extends StructrUiTest {
 			// users
 			assertEquals("tester1", p1.replaceVariables(tester1Context, ctx, "${me.name}"));
 			assertEquals("tester2", p1.replaceVariables(tester2Context, ctx, "${me.name}"));
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 

@@ -217,4 +217,18 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	public String replaceVariables(SecurityContext securityContext, ActionContext actionContext, Object rawValue) throws FrameworkException {
 		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
 	}
+
+	@Override
+	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+
+		for (final PropertyKey propertyKey : properties.keySet()) {
+
+			if (key.equals(propertyKey.jsonName())) {
+
+				return properties.get(propertyKey);
+			}
+		}
+
+		return null;
+	}
 }
