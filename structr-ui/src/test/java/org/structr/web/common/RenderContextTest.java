@@ -40,6 +40,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.TestOne;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -324,25 +325,27 @@ public class RenderContextTest extends StructrUiTest {
 
 	public void testVariableReplacement() {
 
-		Page page      = null;
-		DOMNode html   = null;
-		DOMNode head   = null;
-		DOMNode body   = null;
-		DOMNode title  = null;
-		DOMNode h1     = null;
-		DOMNode div1   = null;
-		DOMNode p1     = null;
-		DOMNode div2   = null;
-		DOMNode p2     = null;
-		DOMNode div3   = null;
-		DOMNode p3     = null;
-		DOMNode a      = null;
-		DOMNode div4   = null;
-		DOMNode p4     = null;
+		NodeInterface detailsDataObject = null;
+		Page page                       = null;
+		DOMNode html                    = null;
+		DOMNode head                    = null;
+		DOMNode body                    = null;
+		DOMNode title                   = null;
+		DOMNode h1                      = null;
+		DOMNode div1                    = null;
+		DOMNode p1                      = null;
+		DOMNode div2                    = null;
+		DOMNode p2                      = null;
+		DOMNode div3                    = null;
+		DOMNode p3                      = null;
+		DOMNode a                       = null;
+		DOMNode div4                    = null;
+		DOMNode p4                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			page = Page.createNewPage(securityContext, "testpage");
+			detailsDataObject = app.create(TestOne.class, "TestOne");
+			page              = Page.createNewPage(securityContext, "testpage");
 
 			assertTrue(page != null);
 			assertTrue(page instanceof Page);
@@ -420,6 +423,7 @@ public class RenderContextTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final RenderContext ctx = new RenderContext();
+			ctx.setDetailsDataObject(detailsDataObject);
 			ctx.setPage(page);
 
 			// test for "empty" return value
@@ -438,6 +442,15 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("true", p1.replaceVariables(securityContext, ctx, "${if(true, true, false)}"));
 			assertEquals("false", p1.replaceVariables(securityContext, ctx, "${if(false, true, false)}"));
 
+			// test keywords
+			assertEquals("${id} should evaluate to the ID if the current details object", detailsDataObject.getUuid(), p1.replaceVariables(securityContext, ctx, "${id}"));
+
+			ctx.setDetailsDataObject(null);
+			assertEquals("${id} should evaluate to the ID if the current details object", "abc12345", p1.replaceVariables(securityContext, ctx, "${id!abc12345}"));
+			ctx.setDetailsDataObject(detailsDataObject);
+
+
+			assertEquals("${id} should be equal to ${current.id}", "true", p1.replaceVariables(securityContext, ctx, "${equal(id, current.id)}"));
 			assertEquals("${element} should evaluate to the current DOM node", p1.toString(), p1.replaceVariables(securityContext, ctx, "${element}"));
 
 			assertNull(p1.replaceVariables(securityContext, ctx, "${if(true, null, \"no\")}"));
