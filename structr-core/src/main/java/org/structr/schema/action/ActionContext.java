@@ -183,6 +183,9 @@ public class ActionContext {
 							if (data instanceof Collection) {
 								return ((Collection)data).size();
 							}
+							if (data.getClass().isArray()) {
+								return ((Object[])data).length;
+							}
 							break;
 					}
 

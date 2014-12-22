@@ -80,6 +80,9 @@ public class ActionContextTest extends StructrTest {
 			testFour       = createTestNode(TestFour.class);
 			testSixs       = createTestNodes(TestSix.class, 20);
 
+			// set string array on test four
+			testFour.setProperty(TestFour.stringArrayProperty, new String[] { "one", "two", "three", "four" } );
+
 			for (final TestSix testSix : testSixs) {
 
 				testSix.setProperty(TestSix.name, "TestSix" + StringUtils.leftPad(Integer.toString(index), 2, "0"));
@@ -883,6 +886,26 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid dot notation result", testSixs.get(0).getProperty(AbstractNode.name), testOne.replaceVariables(securityContext, ctx, "${sort(find('TestSix'), 'name')[0].name}"));
 			assertEquals("Invalid dot notation result", testSixs.get(15).getProperty(AbstractNode.name), testOne.replaceVariables(securityContext, ctx, "${sort(find('TestSix'), 'name')[15].name}"));
 			assertEquals("Invalid dot notation result", "20", testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs.size}"));
+
+			// test array property access
+			assertEquals("Invalid string array access result", "one", testFour.replaceVariables(securityContext, ctx, "${this.stringArrayProperty[0]}"));
+			assertEquals("Invalid string array access result", "two", testFour.replaceVariables(securityContext, ctx, "${this.stringArrayProperty[1]}"));
+			assertEquals("Invalid string array access result", "three", testFour.replaceVariables(securityContext, ctx, "${this.stringArrayProperty[2]}"));
+			assertEquals("Invalid string array access result", "four", testFour.replaceVariables(securityContext, ctx, "${this.stringArrayProperty[3]}"));
+
+			// test string array property support in collection access methods
+			assertEquals("Invalid string array access result with join()", "one,two,three,four", testFour.replaceVariables(securityContext, ctx, "${join(this.stringArrayProperty, ',')}"));
+			assertEquals("Invalid string array access result with concat()", "onetwothreefour", testFour.replaceVariables(securityContext, ctx, "${concat(this.stringArrayProperty)}"));
+			assertEquals("Invalid string array access result with first()", "one", testFour.replaceVariables(securityContext, ctx, "${first(this.stringArrayProperty)}"));
+			assertEquals("Invalid string array access result with last()", "four", testFour.replaceVariables(securityContext, ctx, "${last(this.stringArrayProperty)}"));
+			assertEquals("Invalid string array access result with size()", "4", testFour.replaceVariables(securityContext, ctx, "${size(this.stringArrayProperty)}"));
+			assertEquals("Invalid string array access result with .size", "4", testFour.replaceVariables(securityContext, ctx, "${this.stringArrayProperty.size}"));
+			assertEquals("Invalid string array access result with nth", "one", testFour.replaceVariables(securityContext, ctx, "${nth(this.stringArrayProperty, 0)}"));
+			assertEquals("Invalid string array access result with nth", "two", testFour.replaceVariables(securityContext, ctx, "${nth(this.stringArrayProperty, 1)}"));
+			assertEquals("Invalid string array access result with nth", "three", testFour.replaceVariables(securityContext, ctx, "${nth(this.stringArrayProperty, 2)}"));
+			assertEquals("Invalid string array access result with nth", "four", testFour.replaceVariables(securityContext, ctx, "${nth(this.stringArrayProperty, 3)}"));
+			assertEquals("Invalid string array access result with contains()", "true", testFour.replaceVariables(securityContext, ctx, "${contains(this.stringArrayProperty, 'two')}"));
+			assertEquals("Invalid string array access result with contains()", "false", testFour.replaceVariables(securityContext, ctx, "${contains(this.stringArrayProperty, 'five')}"));
 
 			tx.success();
 

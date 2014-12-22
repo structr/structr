@@ -63,6 +63,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -507,9 +508,17 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Collection) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					return StringUtils.join((Collection) sources[0], sources[1].toString());
+					if (sources[0] instanceof Collection) {
+
+						return StringUtils.join((Collection) sources[0], sources[1].toString());
+					}
+
+					if (sources[0].getClass().isArray()) {
+
+						return StringUtils.join((Object[]) sources[0], sources[1].toString());
+					}
 				}
 
 				return "";
@@ -529,13 +538,21 @@ public class Functions {
 				final List list = new ArrayList();
 				for (final Object source : sources) {
 
-					if (source instanceof Collection) {
+					// collection can contain nulls..
+					if (source != null) {
 
-						list.addAll((Collection) source);
+						if (source instanceof Collection) {
 
-					} else {
+							list.addAll((Collection) source);
 
-						list.add(source);
+						} else if (source.getClass().isArray()) {
+
+							list.addAll(Arrays.asList((Object[])source));
+
+						} else {
+
+							list.add(source);
+						}
 					}
 				}
 
@@ -796,6 +813,10 @@ public class Functions {
 						final GraphObject obj = (GraphObject) sources[1];
 
 						return collection.contains(obj);
+
+					} else if (sources[0].getClass().isArray()) {
+
+						return ArrayUtils.contains((Object[])sources[0], sources[1]);
 					}
 				}
 
@@ -1995,25 +2016,32 @@ public class Functions {
 				final List list = new ArrayList();
 				for (final Object source : sources) {
 
-					if (source instanceof Collection) {
+					if (source != null) {
 
-						// filter null objects
-						for (Object obj : (Collection) source) {
-							if (obj != null && !NULL_STRING.equals(obj)) {
+						if (source instanceof Collection) {
 
-								list.add(obj);
+							// filter null objects
+							for (Object obj : (Collection) source) {
+								if (obj != null && !NULL_STRING.equals(obj)) {
+
+									list.add(obj);
+								}
 							}
+
+						} else if(source.getClass().isArray()) {
+
+							list.addAll(Arrays.asList((Object[])source));
+
+						} else if (source != null && !NULL_STRING.equals(source)) {
+
+							list.add(source);
 						}
 
-					} else if (source != null && !NULL_STRING.equals(source)) {
-
-						list.add(source);
+						return list.size();
 					}
-
-					return list.size();
 				}
 
-				return null;
+				return 0;
 			}
 
 			@Override
@@ -2026,8 +2054,20 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
-					return ((List) sources[0]).get(0);
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+						return ((List) sources[0]).get(0);
+					}
+
+					if (sources[0].getClass().isArray()) {
+
+						final Object[] arr = (Object[])sources[0];
+						if (arr.length > 0) {
+
+							return arr[0];
+						}
+					}
 				}
 
 				return null;
@@ -2043,10 +2083,23 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-					final List list = (List) sources[0];
-					return list.get(list.size() - 1);
+					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+
+						final List list = (List) sources[0];
+						return list.get(list.size() - 1);
+					}
+
+					if (sources[0].getClass().isArray()) {
+
+						final Object[] arr = (Object[])sources[0];
+						if (arr.length > 0) {
+
+							return arr[arr.length - 1];
+						}
+					}
+
 				}
 
 				return null;
@@ -2062,19 +2115,32 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					final List list = (List) sources[0];
 					final int pos = Double.valueOf(sources[1].toString()).intValue();
-					final int size = list.size();
 
-					if (pos >= size) {
+					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
 
-						return null;
+						final List list = (List) sources[0];
+						final int size = list.size();
 
+						if (pos >= size) {
+
+							return null;
+
+						}
+
+						return list.get(Math.min(Math.max(0, pos), size - 1));
 					}
 
-					return list.get(Math.min(Math.max(0, pos), size - 1));
+					if (sources[0].getClass().isArray()) {
+
+						final Object[] arr = (Object[])sources[0];
+						if (pos <= arr.length) {
+
+							return arr[pos];
+						}
+					}
 				}
 
 				return null;
