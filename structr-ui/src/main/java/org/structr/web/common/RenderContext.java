@@ -21,7 +21,6 @@ package org.structr.web.common;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -346,13 +345,6 @@ public class RenderContext extends ActionContext {
 		if (hasDataForKey(key)) {
 			return getDataNode(key);
 		}
-
-		if ("this".equals(key)) {
-
-			logger.log(Level.WARNING, "Deprecated use of this keyword in RenderContext, unhappily returning the deprecated result..");
-			return getDataObject();
-		}
-
 
 		// evaluate non-ui specific context
 		Object value = super.evaluate(securityContext, entity, key, data, defaultValue);
