@@ -666,7 +666,7 @@ var _Pages = {
                          */
                         + '.navbar-fixed-top { -webkit-transform: none ! important; }'
                         + '</style>');
-            }console.log('load')
+            }
             _Pages.findDroppablesInIframe($(this).contents(), entity.id).each(function(i, element) {
                 var el = $(element);
 
