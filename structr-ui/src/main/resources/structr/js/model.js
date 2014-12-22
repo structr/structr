@@ -23,6 +23,14 @@ var StructrModel = {
     obj: function(id) {
         return StructrModel.objects[id];
     },
+    
+    ensureObject: function (entity) {
+        if (!entity || entity.id === undefined) {
+            return false;
+        }
+        return StructrModel.obj(entity.id);
+    },
+
     createSearchResult: function(data) {
 
         var obj = new StructrSearchResult(data);

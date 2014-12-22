@@ -876,6 +876,22 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid result of has_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'uzlasdfh')}"));
 			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
 
+			// get_incoming_relationships
+			assertEquals("Invalid number of incoming relationships", "1",  testOne.replaceVariables(securityContext, ctx, "${size(get_incoming_relationships(this, find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
+			assertEquals("Invalid number of incoming relationships", "1",  testOne.replaceVariables(securityContext, ctx, "${size(get_incoming_relationships(this, find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'), 'MANY_TO_MANY'))}"));
+			assertEquals("Invalid number of incoming relationships", "1",   testTwo.replaceVariables(securityContext, ctx, "${size(get_incoming_relationships(this, find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
+			assertEquals("Invalid number of incoming relationships", "1",   testThree.replaceVariables(securityContext, ctx, "${size(get_incoming_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))))}"));
+			assertEquals("Invalid relationship type", "IS_AT",              testTwo.replaceVariables(securityContext, ctx, "${get(first(get_incoming_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))), 'relType')}"));
+			assertEquals("Invalid relationship type", "OWNS",               testThree.replaceVariables(securityContext, ctx, "${get(first(get_incoming_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))), 'relType')}"));
+
+			// get_outgoing_relationships
+			assertEquals("Invalid number of outgoing relationships", "1",  testOne.replaceVariables(securityContext, ctx, "${size(get_outgoing_relationships(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'), this))}"));
+			assertEquals("Invalid number of outgoing relationships", "1",  testOne.replaceVariables(securityContext, ctx, "${size(get_outgoing_relationships(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'), this, 'MANY_TO_MANY'))}"));
+			assertEquals("Invalid number of outgoing relationships", "1",   testTwo.replaceVariables(securityContext, ctx, "${size(get_outgoing_relationships(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'), this))}"));
+			assertEquals("Invalid number of outgoing relationships", "1",   testThree.replaceVariables(securityContext, ctx, "${size(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this))}"));
+			assertEquals("Invalid relationship type", "IS_AT",              testTwo.replaceVariables(securityContext, ctx, "${get(first(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)), 'relType')}"));
+			assertEquals("Invalid relationship type", "OWNS",               testThree.replaceVariables(securityContext, ctx, "${get(first(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)), 'relType')}"));
+			
 			// array index access
 			assertEquals("Invalid array index accessor result", testSixs.get(0).getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs[0]}"));
 			assertEquals("Invalid array index accessor result", testSixs.get(2).getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs[2]}"));

@@ -512,7 +512,7 @@ var _Pages = {
             var self = $(this);
             var pageId = self.prop('id').substring('preview_'.length);
             var iframe = $('#preview_' + pageId);
-            iframe.prop('src', '');
+            iframe.contents().empty();
             log('iframe', pageId, 'deactivated');
         });
     },
@@ -578,6 +578,8 @@ var _Pages = {
     },
     appendPageElement: function(entity) {
 
+        entity = StructrModel.ensureObject(entity);
+
         var hasChildren = entity.children && entity.children.length;
 
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
@@ -641,7 +643,7 @@ var _Pages = {
         $('#preview_' + entity.id).load(function() {
             var doc = $(this).contents();
             var head = $(doc).find('head');
-            if (head)
+            if (head) {
                 head.append('<style media="screen" type="text/css">'
                         + '* { z-index: 0}\n'
                         + '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
@@ -664,7 +666,7 @@ var _Pages = {
                          */
                         + '.navbar-fixed-top { -webkit-transform: none ! important; }'
                         + '</style>');
-
+            }
             _Pages.findDroppablesInIframe($(this).contents(), entity.id).each(function(i, element) {
                 var el = $(element);
 
@@ -830,79 +832,6 @@ var _Pages = {
 
         _Dragndrop.makeDroppable(div);
 
-//        div.droppable({
-//            accept: '#add_html, .html_element, .template',
-//            greedy: true,
-//            hoverClass: 'nodeHover',
-//            tolerance: 'pointer',
-//            drop: function(event, ui) {
-//
-//                var self = $(this);
-//                log('dropped onto', self);
-//                // Only html elements are allowed, and only if none exists
-//
-//                if (getId(self) === getId(sortParent))
-//                    return false;
-//
-//                _Entities.ensureExpanded(self);
-//                sorting = false;
-//                sortParent = undefined;
-//
-//                var nodeData = {};
-//
-//                var page = self.closest('.page')[0];
-//
-//                var contentId = getId(ui.draggable);
-//                var elementId = getId(self);
-//                log('elementId', elementId);
-//
-//                var source = StructrModel.obj(contentId);
-//                var target = StructrModel.obj(elementId);
-//
-//                if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
-//                    event.preventDefault();
-//                    event.stopPropagation();
-//                    Command.copyDOMNode(source.id, target.id);
-//                    //_Entities.showSyncDialog(source, target);
-//                    _Elements.reloadComponents();
-//                    return;
-//                } else {
-//                    log('not copying node');
-//                }
-//
-//                if (contentId === elementId) {
-//                    log('drop on self not allowed');
-//                    return;
-//                }
-//
-//                var tag;
-//                var cls = Structr.getClass($(ui.draggable));
-//
-//                if (!contentId) {
-//                    tag = $(ui.draggable).text();
-//
-//                    if (tag !== 'html') {
-//                        return false;
-//                    }
-//
-//                    var pageId = (page ? getId(page) : target.pageId);
-//
-//                    Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
-//                    return;
-//
-//                } else {
-//                    tag = cls;
-//                    log('appendChild', contentId, elementId);
-//                    sorting = false;
-//                    Command.appendChild(contentId, elementId);
-//                    //$(ui.draggable).remove();
-//
-//                    return;
-//                }
-//                log('drop event in appendPageElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
-//            }
-//        });
-
         return div;
 
     },
@@ -919,6 +848,7 @@ var _Pages = {
     },
     appendElementElement: function(entity, refNode, refNodeIsParent) {
         log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');')
+        entity = StructrModel.ensureObject(entity);
         var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
         if (!div) {
