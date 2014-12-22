@@ -31,6 +31,21 @@ import org.structr.schema.action.ActionContext;
 public class GroupExpression extends Expression {
 
 	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("(");
+
+		for (final Expression expr : expressions) {
+			buf.append(expr.toString());
+		}
+		buf.append(")");
+
+		return buf.toString();
+	}
+
+	@Override
 	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 		final StringBuilder buf = new StringBuilder();
@@ -44,5 +59,10 @@ public class GroupExpression extends Expression {
 		}
 
 		return buf.toString();
+	}
+
+	@Override
+	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
 	}
 }

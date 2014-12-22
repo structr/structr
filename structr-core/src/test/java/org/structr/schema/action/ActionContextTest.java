@@ -26,8 +26,10 @@ import java.util.List;
 import java.util.Locale;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
@@ -79,7 +81,11 @@ public class ActionContextTest extends StructrTest {
 			testSixs       = createTestNodes(TestSix.class, 20);
 
 			for (final TestSix testSix : testSixs) {
-				testSix.setProperty(TestSix.index, index++);
+
+				testSix.setProperty(TestSix.name, "TestSix" + StringUtils.leftPad(Integer.toString(index), 2, "0"));
+				testSix.setProperty(TestSix.index, index);
+
+				index++;
 			}
 
 			// create mail template
@@ -867,8 +873,16 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid result of has_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'uzlasdfh')}"));
 			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
 
+			// array index access
+			assertEquals("Invalid array index accessor result", testSixs.get(0).getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs[0]}"));
+			assertEquals("Invalid array index accessor result", testSixs.get(2).getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs[2]}"));
+			assertEquals("Invalid array index accessor result", testSixs.get(4).getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs[4]}"));
 
-
+			// test new dot notation
+			assertEquals("Invalid dot notation result", testSixs.get(0).getProperty(AbstractNode.name), testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs[0].name}"));
+			assertEquals("Invalid dot notation result", testSixs.get(0).getProperty(AbstractNode.name), testOne.replaceVariables(securityContext, ctx, "${sort(find('TestSix'), 'name')[0].name}"));
+			assertEquals("Invalid dot notation result", testSixs.get(15).getProperty(AbstractNode.name), testOne.replaceVariables(securityContext, ctx, "${sort(find('TestSix'), 'name')[15].name}"));
+			assertEquals("Invalid dot notation result", "20", testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs.size}"));
 
 			tx.success();
 

@@ -91,7 +91,7 @@ public class CacheExpression extends Expression {
 
 		final Object timeoutValue = timeoutExpression.evaluate(securityContext, ctx, entity);
 		if (timeoutValue == null || !(timeoutValue instanceof Number)) {
-			
+
 			return "Error: cache(): timeout must be non-empty and a number.";
 		}
 
@@ -150,5 +150,10 @@ public class CacheExpression extends Expression {
 			this.timeout = System.currentTimeMillis() + ((timeoutSeconds + random.nextInt(10)) * 1000);
 			this.value   = value;
 		}
+	}
+
+	@Override
+	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
 	}
 }

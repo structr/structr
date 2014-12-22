@@ -37,6 +37,16 @@ public class ConstantExpression extends Expression {
 		this.value = value;
 	}
 
+	@Override
+	public String toString() {
+
+		if (value != null) {
+			return value.toString();
+		}
+
+		return "null";
+	}
+
 	public Object getValue() {
 		return value;
 	}
@@ -44,5 +54,10 @@ public class ConstantExpression extends Expression {
 	@Override
 	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 		return value;
+	}
+
+	@Override
+	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
 	}
 }

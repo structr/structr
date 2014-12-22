@@ -214,6 +214,7 @@ public class Functions {
 		final String expressionWithoutNewlines = expression.replace('\n', ' ');
 		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
 		tokenizer.eolIsSignificant(true);
+		tokenizer.ordinaryChar('.');
 		tokenizer.wordChars('_', '_');
 		tokenizer.wordChars('.', '.');
 		tokenizer.wordChars('!', '!');
@@ -263,6 +264,7 @@ public class Functions {
 						next = new GroupExpression();
 						current.add(next);
 					}
+
 					current = next;
 					lastToken += "(";
 					level++;
@@ -277,6 +279,28 @@ public class Functions {
 						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
 					}
 					lastToken += ")";
+					level--;
+					break;
+
+				case '[':
+					// bind directly to the previous expression
+					next = new ArrayExpression();
+					current.add(next);
+					current = next;
+					lastToken += "[";
+					level++;
+					break;
+
+				case ']':
+
+					if (current == null) {
+						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket before " + lastToken);
+					}
+					current = current.getParent();
+					if (current == null) {
+						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
+					}
+					lastToken += "]";
 					level--;
 					break;
 

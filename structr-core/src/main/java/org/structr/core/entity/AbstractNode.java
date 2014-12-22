@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -46,6 +48,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Ownership;
@@ -1086,8 +1089,35 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
 				if (value == null) {
 
+					for (Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
+
+						if (key.equals(method.getName())) {
+
+							if (method.getAnnotation(Export.class) != null) {
+
+								try {
+									method.invoke(this);
+
+								} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
+
+									if (t instanceof FrameworkException) {
+
+										throw (FrameworkException) t;
+
+									} else if (t.getCause() instanceof FrameworkException) {
+
+										throw (FrameworkException) t.getCause();
+									}
+								}
+							}
+						}
+					}
+
+
 					return Functions.numberOrString(defaultValue);
+
 				}
+
 				return value;
 		}
 	}

@@ -60,5 +60,19 @@ public abstract class Expression {
 		return parent;
 	}
 
+	public Expression getPrevious() {
+
+		if (!expressions.isEmpty()) {
+			return expressions.get(expressions.size() - 1);
+		}
+
+		return null;
+	}
+
+	public boolean hasPrevious() {
+		return !expressions.isEmpty();
+	}
+
 	public abstract Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException;
+	public abstract Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException;
 }
