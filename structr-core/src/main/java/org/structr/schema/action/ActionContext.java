@@ -208,13 +208,6 @@ public class ActionContext {
 					case "element":
 					case "this":
 						return entity;
-
-					case "id":
-						// Note that this is on the root level, when there
-						// is not data entity to get the ID from. The below
-						// code is NOT evaluated when there already is data
-						// in the _data context object.
-						return entity.getUuid();
 				}
 
 			}

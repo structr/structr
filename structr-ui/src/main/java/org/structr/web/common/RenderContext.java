@@ -32,6 +32,7 @@ import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
@@ -372,6 +373,19 @@ public class RenderContext extends ActionContext {
 
 				// "data-less" keywords to start the evaluation chain
 				switch (key) {
+
+					case "id":
+
+						GraphObject detailsObject = this.getDetailsDataObject();
+						if (detailsObject != null) {
+
+							return detailsObject.getUuid();
+
+						} else if (defaultValue != null) {
+
+							return Functions.numberOrString(defaultValue);
+						}
+						break;
 
 					case "current":
 						return getDetailsDataObject();
