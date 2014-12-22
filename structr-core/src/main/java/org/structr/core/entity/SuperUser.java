@@ -442,4 +442,9 @@ public class SuperUser implements Principal, AccessControllable {
 	public String replaceVariables(SecurityContext securityContext, ActionContext actionContext, Object rawValue) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
+
+	@Override
+	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
 }

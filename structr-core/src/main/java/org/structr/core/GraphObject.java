@@ -288,4 +288,6 @@ public interface GraphObject {
 
 	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException;
 	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException;
+	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException;
+
 }

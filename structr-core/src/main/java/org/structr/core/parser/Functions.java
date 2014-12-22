@@ -63,9 +63,11 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.mail.EmailException;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -143,7 +145,6 @@ public class Functions {
 	public static final String ERROR_MESSAGE_INT_SUM = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
 	public static final String ERROR_MESSAGE_DOUBLE_SUM = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
 	public static final String ERROR_MESSAGE_IS_COLLECTION = "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
-	public static final String ERROR_MESSAGE_IN_COLLECTION = "Usage: ${in_collection(haystack, needle)}. Example: ${in_collection(users, me)}";
 	public static final String ERROR_MESSAGE_IS_ENTITY = "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
 	public static final String ERROR_MESSAGE_EXTRACT = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_FILTER = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
@@ -214,6 +215,7 @@ public class Functions {
 		final String expressionWithoutNewlines = expression.replace('\n', ' ');
 		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
 		tokenizer.eolIsSignificant(true);
+		tokenizer.ordinaryChar('.');
 		tokenizer.wordChars('_', '_');
 		tokenizer.wordChars('.', '.');
 		tokenizer.wordChars('!', '!');
@@ -263,6 +265,7 @@ public class Functions {
 						next = new GroupExpression();
 						current.add(next);
 					}
+
 					current = next;
 					lastToken += "(";
 					level++;
@@ -277,6 +280,28 @@ public class Functions {
 						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
 					}
 					lastToken += ")";
+					level--;
+					break;
+
+				case '[':
+					// bind directly to the previous expression
+					next = new ArrayExpression();
+					current.add(next);
+					current = next;
+					lastToken += "[";
+					level++;
+					break;
+
+				case ']':
+
+					if (current == null) {
+						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket before " + lastToken);
+					}
+					current = current.getParent();
+					if (current == null) {
+						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
+					}
+					lastToken += "]";
 					level--;
 					break;
 
@@ -483,9 +508,17 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Collection) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					return StringUtils.join((Collection) sources[0], sources[1].toString());
+					if (sources[0] instanceof Collection) {
+
+						return StringUtils.join((Collection) sources[0], sources[1].toString());
+					}
+
+					if (sources[0].getClass().isArray()) {
+
+						return StringUtils.join((Object[]) sources[0], sources[1].toString());
+					}
 				}
 
 				return "";
@@ -505,13 +538,21 @@ public class Functions {
 				final List list = new ArrayList();
 				for (final Object source : sources) {
 
-					if (source instanceof Collection) {
+					// collection can contain nulls..
+					if (source != null) {
 
-						list.addAll((Collection) source);
+						if (source instanceof Collection) {
 
-					} else {
+							list.addAll((Collection) source);
 
-						list.add(source);
+						} else if (source.getClass().isArray()) {
+
+							list.addAll(Arrays.asList((Object[])source));
+
+						} else {
+
+							list.add(source);
+						}
 					}
 				}
 
@@ -772,6 +813,10 @@ public class Functions {
 						final GraphObject obj = (GraphObject) sources[1];
 
 						return collection.contains(obj);
+
+					} else if (sources[0].getClass().isArray()) {
+
+						return ArrayUtils.contains((Object[])sources[0], sources[1]);
 					}
 				}
 
@@ -1119,29 +1164,6 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_IS_COLLECTION;
-			}
-
-		});
-		functions.put("in_collection", new Function<Object, Object>() {
-
-			@Override
-			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-					for (final Object obj : (Collection) sources[0]) {
-
-						if (sources[1].equals(obj)) {
-							return true;
-						}
-					}
-				}
-
-				return false;
-			}
-
-			@Override
-			public String usage() {
-				return ERROR_MESSAGE_IN_COLLECTION;
 			}
 
 		});
@@ -1994,25 +2016,32 @@ public class Functions {
 				final List list = new ArrayList();
 				for (final Object source : sources) {
 
-					if (source instanceof Collection) {
+					if (source != null) {
 
-						// filter null objects
-						for (Object obj : (Collection) source) {
-							if (obj != null && !NULL_STRING.equals(obj)) {
+						if (source instanceof Collection) {
 
-								list.add(obj);
+							// filter null objects
+							for (Object obj : (Collection) source) {
+								if (obj != null && !NULL_STRING.equals(obj)) {
+
+									list.add(obj);
+								}
 							}
+
+						} else if(source.getClass().isArray()) {
+
+							list.addAll(Arrays.asList((Object[])source));
+
+						} else if (source != null && !NULL_STRING.equals(source)) {
+
+							list.add(source);
 						}
 
-					} else if (source != null && !NULL_STRING.equals(source)) {
-
-						list.add(source);
+						return list.size();
 					}
-
-					return list.size();
 				}
 
-				return null;
+				return 0;
 			}
 
 			@Override
@@ -2025,8 +2054,20 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
-					return ((List) sources[0]).get(0);
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+						return ((List) sources[0]).get(0);
+					}
+
+					if (sources[0].getClass().isArray()) {
+
+						final Object[] arr = (Object[])sources[0];
+						if (arr.length > 0) {
+
+							return arr[0];
+						}
+					}
 				}
 
 				return null;
@@ -2042,10 +2083,23 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-					final List list = (List) sources[0];
-					return list.get(list.size() - 1);
+					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+
+						final List list = (List) sources[0];
+						return list.get(list.size() - 1);
+					}
+
+					if (sources[0].getClass().isArray()) {
+
+						final Object[] arr = (Object[])sources[0];
+						if (arr.length > 0) {
+
+							return arr[arr.length - 1];
+						}
+					}
+
 				}
 
 				return null;
@@ -2061,19 +2115,32 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					final List list = (List) sources[0];
 					final int pos = Double.valueOf(sources[1].toString()).intValue();
-					final int size = list.size();
 
-					if (pos >= size) {
+					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
 
-						return null;
+						final List list = (List) sources[0];
+						final int size = list.size();
 
+						if (pos >= size) {
+
+							return null;
+
+						}
+
+						return list.get(Math.min(Math.max(0, pos), size - 1));
 					}
 
-					return list.get(Math.min(Math.max(0, pos), size - 1));
+					if (sources[0].getClass().isArray()) {
+
+						final Object[] arr = (Object[])sources[0];
+						if (pos <= arr.length) {
+
+							return arr[pos];
+						}
+					}
 				}
 
 				return null;
@@ -3001,10 +3068,10 @@ public class Functions {
 						}
 
 					} else if (sources.length == 3) {
-						
+
 						final String relType = (String) sources[2];
 						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
-						
+
 						if (relClass == null) {
 							return false;
 						}
@@ -3015,13 +3082,13 @@ public class Functions {
 								return true;
 							}
 						}
-						
+
 						return false;
 
 					}
 
 				}
-				
+
 				return false;
 			}
 
@@ -3476,5 +3543,25 @@ public class Functions {
 			}
 		}
 
+	}
+
+	public static Object numberOrString(final String value) {
+
+		if (value != null) {
+
+			if ("true".equals(value.toLowerCase())) {
+				return true;
+			}
+
+			if ("false".equals(value.toLowerCase())) {
+				return false;
+			}
+
+			if (NumberUtils.isNumber(value)) {
+				return NumberUtils.createNumber(value);
+			}
+		}
+
+		return value;
 	}
 }

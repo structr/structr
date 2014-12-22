@@ -30,7 +30,22 @@ import org.structr.schema.action.ActionContext;
 public class NullExpression extends Expression {
 
 	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("null");
+
+		return buf.toString();
+	}
+
+	@Override
 	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 		return null;
+	}
+
+	@Override
+	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
 	}
 }

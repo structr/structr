@@ -52,6 +52,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.parser.Functions;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -699,6 +700,29 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
 		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
+	}
+
+	@Override
+	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+
+		switch (key) {
+
+			case "_source":
+				return getSourceNode();
+
+			case "_target":
+				return getTargetNode();
+
+			default:
+
+				// evaluate object value or return default
+				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
+				if (value == null) {
+
+					return Functions.numberOrString(defaultValue);
+				}
+				return value;
+		}
 	}
 
 	// ----- protected methods -----
