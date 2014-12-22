@@ -220,6 +220,15 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		for (final PropertyKey propertyKey : properties.keySet()) {
+
+			if (key.equals(propertyKey.jsonName())) {
+
+				return properties.get(propertyKey);
+			}
+		}
+
+		return null;
 	}
 }
