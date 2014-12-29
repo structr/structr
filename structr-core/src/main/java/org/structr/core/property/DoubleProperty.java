@@ -61,6 +61,10 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 		this(name, name, null, validators);
 	}
 
+	public DoubleProperty(final String name, final Double defaultValue, final PropertyValidator<Double>... validators) {
+		this(name, name, defaultValue, validators);
+	}
+
 	public DoubleProperty(final String jsonName, final String dbName, final Double defaultValue, final PropertyValidator<Double>... validators) {
 
 		super(jsonName, dbName, defaultValue);
@@ -200,4 +204,5 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	public void index(GraphObject entity, Object value) {
 		super.index(entity, value != null ? ValueContext.numeric((Number) fixDatabaseProperty(value)) : value);
 	}
+
 }
