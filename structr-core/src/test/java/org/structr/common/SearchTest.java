@@ -277,4 +277,54 @@ public class SearchTest extends StructrTest {
 		}
 
 	}
+
+	public void test05SeachByDefaultValue() {
+
+		try  {
+
+			Class type                      = TestOne.class;
+			int number                      = 4;
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final int offset                = 10;
+
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
+
+			try (final Tx tx = app.tx()) {
+
+				int i = offset;
+				String name;
+
+				for (NodeInterface node : nodes) {
+
+					//System.out.println("Node ID: " + node.getNodeId());
+
+					name = "TestOne-" + i;
+
+					i++;
+
+					node.setProperty(AbstractNode.name, name);
+
+				}
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				Result result = app.nodeQuery(type).and(TestOne.stringWithDefault, "default value", false).getResult();
+
+				assertEquals(4, result.size());
+
+				tx.success();
+
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
 }

@@ -127,7 +127,11 @@ public abstract class PropertyParser {
 		buf.append(localValidator);
 		buf.append(")");
 
-		buf.append(".indexed()");
+		if (defaultValue != null) {
+			buf.append(".indexedWhenEmpty()");
+		} else {
+			buf.append(".indexed()");
+		}
 
 		if (unique) {
 			buf.append(".unique()");

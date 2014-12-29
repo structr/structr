@@ -61,6 +61,7 @@ public class TestOne extends AbstractNode {
 	public static final Property<Integer>       setTestInteger3    = new IntProperty("setTestInteger3");
 	public static final Property<String>        alwaysNull         = new StringProperty("alwaysNull");
 	public static final Property<String>        doResult           = new StringProperty("doResult");
+	public static final Property<String>        stringWithDefault  = new StringProperty("stringWithDefault", "stringWithDefault", "default value").indexedWhenEmpty();
 
 	public static final Property<TestTwo>       testTwo            = new EndNode<>("testTwo",   OneTwoOneToOne.class);
 	public static final Property<TestThree>     testThree          = new EndNode<>("testThree", OneThreeOneToOne.class);
@@ -68,6 +69,6 @@ public class TestOne extends AbstractNode {
 	public static final Property<List<TestSix>> manyToManyTestSixs = new StartNodes<>("manyToManyTestSixs", SixOneManyToMany.class);
 
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
-		name, anInt, aDouble, aLong, aDate, createdDate, aString, anotherString, aBoolean, anEnum
+		name, anInt, aDouble, aLong, aDate, createdDate, aString, anotherString, aBoolean, anEnum, stringWithDefault
 	);
 }

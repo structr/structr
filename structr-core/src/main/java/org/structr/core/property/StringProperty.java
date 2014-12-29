@@ -34,20 +34,21 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 		this(jsonName, jsonName, new PropertyValidator[0]);
 	}
 
-	public StringProperty(String jsonName, String pattern) {
+	public StringProperty(String jsonName, String defaultValue) {
 		super(jsonName);
-
-		this.format = pattern;
+		this.defaultValue = defaultValue;
 	}
 
-	public StringProperty(String name, String dbName, String pattern) {
-		super(name, dbName);
-
-		this.format = pattern;
+	public StringProperty(String name, String dbName, String defaultValue) {
+		super(name, dbName, defaultValue);
 	}
 	
-	public StringProperty(String name, PropertyValidator<String>... validators) {
+	public StringProperty(String name, String dbName, String defaultValue, String pattern) {
+		this(name, dbName, defaultValue);
+		this.format = pattern;
+	}
 
+	public StringProperty(String name, PropertyValidator<String>... validators) {
 		this(name, name, validators);
 	}
 	

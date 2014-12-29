@@ -44,10 +44,8 @@ public class ISO8601DateProperty extends DateProperty {
 	
 	public static final String PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
 
-	public ISO8601DateProperty(String name) {
-
+	public ISO8601DateProperty(final String name) {
 		super(name, PATTERN);
-
 	}
 
 	//~--- methods --------------------------------------------------------
