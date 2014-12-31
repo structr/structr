@@ -1,8 +1,6 @@
-# Registration (Sign-up) E-Mails
-
 Structr has an integrated user self-registration process, allowing new users to sign-up with their e-mail address. It has three steps:
 
-## Initial registration request
+#### Initial registration request
 
 Your Structr frontend application has to send a POST request to ``/structr/rest/registration`` with a JSON body containing the single parameter ``eMail`` with the e-mail address of the new user. A typical way is to use a JavaScript AJAX call with jQuery's $.ajax() method:
 
@@ -21,27 +19,84 @@ Your Structr frontend application has to send a POST request to ``/structr/rest/
 	});
 
 
-## Confirmation e-mail
+#### Confirmation e-mail
 
 When receiving the request, Structr creates a new User object and sends out an e-mail to the given address, containing a confirmation link.
 
 The following defaults for the confirmation e-mail are builtin to Structr, but can all be overridden using the Mail Template system.
 
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Key (set as 'name' attribute)</th>
+<th>Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sender's e-mail address (from)</td>
+<td>SENDER_ADDRESS</td>
+<td>structr-mail-daemon@localhost</td>
+</tr>
+<tr>
+<td>Sender's name (from)</td>
+<td>SENDER_NAME</td>
+<td>Structr Mail Daemon</td>
+</tr>
+<tr>
+<td>Plain text e-mail body</td>
+<td>TEXT_BODY</td>
+<td>Go to ${link} to finalize registration.</td>
+</tr>
+<tr>
+<td>HTML e-mail body</td>
+<td>HTML_BODY</td>
+<td>&lt;div&gt;Click &lt;a href='${link}'&gt;here&lt;/a&gt; to finalize registration.&lt;/div&gt;</td>
+</tr>
+<tr>
+<td>E-mail subject</td>
+<td>SUBJECT</td>
+<td>Welcome to Structr, please finalize registration</td>
+</tr>
+<tr>
+<td>Confirmation link base URL</td>
+<td>BASE_URL</td>
+<td>http://" + appHost + ":" + httpPort</td>
+</tr>
+<tr>
+<td>Confirmation link target page</td>
+<td>CONFIRM_REGISTRATION_PAGE</td>
+<td>/confirm_registration</td>
+</tr>
+<tr>
+<td>Key for confirmation parameter</td>
+<td>CONFIRM_KEY_KEY</td>
+<td>key</td>
+</tr>
+<tr>
+<td>Key for success page</td>
+<td>TARGET_PAGE_KEY</td>
+<td>target</td>
+</tr>
+<tr>
+<td>Key for error page</td>
+<td>ERROR_PAGE_KEY</td>
+<td>onerror</td>
+</tr>
+<tr>
+<td>Success page</td>
+<td>TARGET_PAGE</td>
+<td>register_thanks</td>
+</tr>
+<tr>
+<td>Error page</td>
+<td>ERROR_PAGE</td>
+<td>register_error</td>
+</tr>
+</tbody>
+</table>
 
-| Description                    | Key (set as 'name' attribute) | Default Value                                                                                 |
-|--------------------------------|-------------------------------|-----------------------------------------------------------------------------------------------|
-| Sender's e-mail address (from) | SENDER_ADDRESS                | structr-mail-daemon@localhost                                                                 |
-| Sender's name (from)           | SENDER_NAME                   | Structr Mail Daemon                                                                           |
-| Plain text e-mail body         | TEXT_BODY                     | Go to ${link} to finalize registration.                                                       |
-| HTML e-mail body               | HTML_BODY                     | &lt;div&gt;Click &lt;a href='$\{link\}'&gt;here&lt;/a&gt; to finalize registration.&lt;/div&gt; |
-| E-mail subject                 | SUBJECT                       | Welcome to Structr, please finalize registration                                              |
-| Confirmation link base URL     | BASE_URL                      | http://" + appHost + ":" + httpPort                                                           |
-| Confirmation link target page  | CONFIRM_REGISTRATION_PAGE     | /confirm_registration                                                                         |
-| Key for confirmation parameter | CONFIRM_KEY_KEY               | key                                                                                           |
-| Key for success page           | TARGET_PAGE_KEY               | target                                                                                        |
-| Key for error page             | ERROR_PAGE_KEY                | onerror                                                                                       |
-| Success page                   | TARGET_PAGE                   | register_thanks                                                                               |
-| Error page                     | ERROR_PAGE                    | register_error                                                                                |
 
 The values for 'appHost' and 'httpPort' are taken from structr.conf.
 
@@ -68,7 +123,7 @@ you need to create MailTemplate objects with the following 'name' and 'text' att
 
 To change the subject, from address and name, create MailTemplate objects with the appropriate name and text accordingly.
 
-## User confirmation
+#### User confirmation
 
 The receipient of the confirmation e-mail then has to click on the link or enter the URL into the browser's address field. If the confirmation key is correct, the user will be automatically confirmed and logged in. You can redirect users to their profile page where they can set a password.
 
