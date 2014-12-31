@@ -130,6 +130,8 @@ function StructrApp(baseUrl) {
                         possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
                     }
                     val = possibleFields.val();
+                    // treat empty string as null
+                    val = (val === '') ? undefined : val;
                     data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
                 });
                 s.create(type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
@@ -287,9 +289,11 @@ function StructrApp(baseUrl) {
             }
 
         });
+        var clazz = btn.attr('data-structr-edit-class');
         $('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
         var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
         saveButton.prop('class', btn.prop('class')).after(' ');
+        saveButton.addClass(clazz);
         enableButton(saveButton);
         saveButton.on('click', function() {
             s.saveAction(btn, id, attrs, reload);
@@ -594,7 +598,7 @@ function StructrApp(baseUrl) {
 
     this.request = function(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
         var dataString = JSON.stringify(data);
-        //console.log(dataString);
+        console.log(dataString);
         $.ajax({
             type: method,
             url: url,
@@ -626,42 +630,37 @@ function StructrApp(baseUrl) {
                 },
                 400: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError();
                     }
                 },
                 401: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError();
                     }
                 },
                 403: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError();
                     }
                 },
                 404: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError(data);
                     }
                 },
                 422: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
+                    s.showFormErrors(data.responseJSON);
                     if (onError) {
                         onError();
                     }
                 },
                 500: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError();
                     }
@@ -673,6 +672,23 @@ function StructrApp(baseUrl) {
     this.dialog = function(type, msg) {
         var el = $('[data-structr-dialog="' + type + '"]');
         el.addClass(type).html(msg).show().delay(2000).fadeOut(200);
+    };
+    
+    this.showFormErrors = function(msg) {
+        if (window.jQuery.validator) {
+            var form;
+            Object.keys(msg.errors).forEach(function(type) {
+               Object.keys(msg.errors[type]).forEach(function(attr) {
+                   var inp = $('[data-structr-name="' + type + '.' + attr + '"]');
+                   inp.attr('name', type + '.' + attr);
+                   inp.attr('required', 'required');
+                   inp.attr('data-validate', 'required');
+                   form = inp.closest('form');
+               });
+            });
+            form.validate();
+            form.valid();
+        }
     };
 
     this.add = function(id, sourceId, sourceType, relatedProperty) {
@@ -985,7 +1001,7 @@ String.prototype.parseIfJSON = function() {
         var cleaned = this.replace(/'/g, "\"");
         return JSON.parse(cleaned);
     }
-    return this;
+    return this.toString();
 };
 
 String.prototype.splitAndTitleize = function(sep) {
