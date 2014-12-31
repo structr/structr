@@ -40,7 +40,9 @@ var pagerDataKey = 'structrPagerData_' + port + '_';
 var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
-var pushConfigKey = 'structrpushConfigKey_' + port;
+var pushConfigKey = 'structrPushConfigKey_' + port;
+var scrollInfoKey = 'structrScrollInfoKey_' + port;
+
 
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
@@ -1296,6 +1298,10 @@ function getExpanded() {
 }
 
 function formatKey(text) {
+    // don't format custom 'data-*' attributes
+    if (text.startsWith('data-')) {
+        return text;
+    }
     var result = '';
     for (var i = 0; i < text.length; i++) {
         var c = text.charAt(i);
