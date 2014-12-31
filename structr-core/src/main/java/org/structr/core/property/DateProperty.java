@@ -45,27 +45,23 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	public static final String DATE_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 
-	public DateProperty(String name, String pattern) {
+	public DateProperty(final String name, final String pattern) {
 		super(name);
-
 		this.format = pattern;
 	}
 
-	public DateProperty(String name, String pattern, Date defaultValue) {
+	public DateProperty(final String name, final String pattern, final Date defaultValue) {
 		super(name, name, defaultValue);
-
 		this.format = pattern;
 	}
 
-	public DateProperty(String name, String dbName, String pattern) {
+	public DateProperty(final String name, final String dbName, final String pattern) {
 		super(name, dbName);
-
 		this.format = pattern;
 	}
 
-	public DateProperty(String name, String dbName, Date defaultValue, String pattern) {
+	public DateProperty(final String name, final String dbName, final Date defaultValue, final String pattern) {
 		super(name, dbName, defaultValue);
-
 		this.format = pattern;
 	}
 

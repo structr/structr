@@ -43,10 +43,9 @@ import org.structr.core.graph.search.SearchAttribute;
 public class LongProperty extends AbstractPrimitiveProperty<Long> {
 
 	private static final Logger logger = Logger.getLogger(DoubleProperty.class.getName());
-
 	public static final String LONG_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 
-	public LongProperty(String name) {
+	public LongProperty(final String name) {
 		this(name, name, null);
 	}
 
@@ -54,15 +53,19 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		this(jsonName, dbName, null);
 	}
 
-	public LongProperty(String name, final PropertyValidator<Long>... validators) {
+	public LongProperty(final String name, final Long defaultValue) {
+		this(name, name, defaultValue);
+	}
+
+	public LongProperty(final String name, final PropertyValidator<Long>... validators) {
 		this(name, name, null, validators);
 	}
 
-	public LongProperty(String name, Long defaultValue, PropertyValidator<Long>... validators) {
+	public LongProperty(final String name, final Long defaultValue, final PropertyValidator<Long>... validators) {
 		this(name, name, defaultValue, validators);
 	}
 
-	public LongProperty(String jsonName, String dbName, Long defaultValue, PropertyValidator<Long>... validators) {
+	public LongProperty(final String jsonName, final String dbName, final Long defaultValue, final PropertyValidator<Long>... validators) {
 		super(jsonName, dbName, defaultValue);
 
 		for (PropertyValidator<Long> validator : validators) {

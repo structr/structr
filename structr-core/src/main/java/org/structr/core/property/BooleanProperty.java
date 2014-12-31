@@ -39,7 +39,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	private static final Logger logger = Logger.getLogger(BooleanProperty.class.getName());
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
 
-	public BooleanProperty(String name) {
+	public BooleanProperty(final String name) {
 		this(name, name, null);
 	}
 
@@ -47,19 +47,19 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		this(jsonName, dbName, null);
 	}
 
-	public BooleanProperty(String name, Boolean defaultValue) {
+	public BooleanProperty(final String name, final Boolean defaultValue) {
 		this(name, name, defaultValue);
 	}
 
-	public BooleanProperty(String name, PropertyValidator<Boolean>... validators) {
-		this(name);
-
-		for (PropertyValidator<Boolean> validator : validators) {
-			addValidator(validator);
-		}
+	public BooleanProperty(final String name, final PropertyValidator<Boolean>... validators) {
+		this(name, name, null, validators);
 	}
 
-	public BooleanProperty(String jsonName, String dbName, Boolean defaultValue, PropertyValidator<Boolean>... validators) {
+	public BooleanProperty(final String name, final Boolean defaultValue, final PropertyValidator<Boolean>... validators) {
+		this(name, name, defaultValue, validators);
+	}
+
+	public BooleanProperty(final String jsonName, final String dbName, final Boolean defaultValue, final PropertyValidator<Boolean>... validators) {
 		super(jsonName, dbName, defaultValue);
 
 		for (PropertyValidator<Boolean> validator : validators) {

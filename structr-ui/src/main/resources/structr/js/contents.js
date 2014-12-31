@@ -241,6 +241,16 @@ var _Contents = {
             $('#words').text(editor.getValue().match(/\S+/g).length);
         });
 
+        var scrollInfo = JSON.parse(localStorage.getItem(scrollInfoKey + '_' + entity.id));
+        if (scrollInfo) {
+            editor.scrollTo(scrollInfo.left, scrollInfo.top);
+        }
+
+        editor.on('scroll', function() {
+            var scrollInfo = editor.getScrollInfo();
+            localStorage.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
+        });
+
         dialogSaveButton.on('click', function(e) {
             e.stopPropagation();
 
@@ -312,7 +322,7 @@ var _Contents = {
         editor.id = entity.id;
 
         editor.focus();
-        editor.execCommand('goDocEnd');
+        //editor.execCommand('goDocEnd');
 
     }
 };

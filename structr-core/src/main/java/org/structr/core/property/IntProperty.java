@@ -43,10 +43,9 @@ import org.structr.core.graph.search.SearchAttribute;
 public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
 	private static final Logger logger = Logger.getLogger(IntProperty.class.getName());
-
 	public static final String INT_EMPTY_FIELD_VALUE = NumericUtils.intToPrefixCoded(Integer.MIN_VALUE);
 
-	public IntProperty(String name) {
+	public IntProperty(final String name) {
 		this(name, name, null);
 	}
 
@@ -54,15 +53,19 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 		this(jsonName, dbName, null);
 	}
 
-	public IntProperty(String name, PropertyValidator<Integer>... validators) {
+	public IntProperty(final String name, final Integer defaultValue) {
+		this(name, name, defaultValue);
+	}
+
+	public IntProperty(final String name, final PropertyValidator<Integer>... validators) {
 		this(name, name, null, validators);
 	}
 
-	public IntProperty(String name, Integer defaultValue, PropertyValidator<Integer>... validators) {
+	public IntProperty(final String name, final Integer defaultValue, final PropertyValidator<Integer>... validators) {
 		this(name, name, defaultValue, validators);
 	}
 
-	public IntProperty(String jsonName, String dbName, Integer defaultValue, PropertyValidator<Integer>... validators) {
+	public IntProperty(final String jsonName, final String dbName, final Integer defaultValue, final PropertyValidator<Integer>... validators) {
 		super(jsonName, dbName, defaultValue);
 
 		for (PropertyValidator<Integer> validator : validators) {

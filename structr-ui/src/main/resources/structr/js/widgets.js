@@ -217,12 +217,28 @@ var _Widgets = {
                     + '<b title="' + widget.name + '" class="name_">' + fitStringToWidth(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
                     + '</div>');
             div = Structr.node(widget.id);
+            
+            var typeIcon = $('.typeIcon', div);
+            typeIcon.on('click', function() {
+               Structr.dialog('Source code of ' + widget.name, function() {}, function() {});
+                var text = widget.source || '';
+                var div = dialogText.append('<div class="editor"></div>');
+                log(div);
+                var contentBox = $('.editor', dialogText);
+                editor = CodeMirror(contentBox.get(0), {
+                    value: unescapeTags(text),
+                    mode: 'text/html',
+                    lineNumbers: true
+                });
+                editor.focus();
+                Structr.resize();
+            });
 
         }
 
         if (!div)
             return;
-
+ 
         if (!remote) {
             _Entities.appendAccessControlIcon(div, widget);
 
