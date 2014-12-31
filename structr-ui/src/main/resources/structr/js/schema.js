@@ -771,6 +771,7 @@ var _Schema = {
                 entity[key] = val;
             }, function() {
                 blinkRed($('.new', el));
+                _Schema.bindEvents(entity, type, key);
             });
         }
     },
@@ -909,96 +910,110 @@ var _Schema = {
 
         if (key.substring(0, 1) === '_') {
 
-            var name = key.substring(1);
-            var dbName = '';
-            var type;
-            if (res[key].indexOf('|') > -1) {
-                dbName = res[key].substring(0, res[key].indexOf('|'));
-                type = res[key].substring(res[key].indexOf('|') + 1);
-            } else {
-                type = res[key];
-            }
-
-            var notNull = (res[key].indexOf('+') > -1);
-            var unique = (res[key].indexOf('!') > -1);
-
-            type = type.replace('+', '').replace('!', '');
-
-            var defaultValue = '';
-            var format = '';
-
-            var defaultBegin = type.indexOf(':');
-            var formatBegin = type.indexOf('(');
-
-            if (formatBegin > -1 && defaultBegin > -1 && defaultBegin > formatBegin) {
-                // we have a format string => we need to find the location of the matching closing bracket for the bracket at pos formatBegin
-
-                var defaultBegin = type.indexOf('):');
-                if (defaultBegin > -1) {
-                    defaultBegin++;
-                }
-            }
-
-            if (defaultBegin > -1) {
-                defaultValue = (type.substring(defaultBegin + 1));
-                type = type.substring(0, defaultBegin);
-            }
-
-            if (formatBegin > -1) {
-                format = type.substring(formatBegin + 1, type.length - 1);
-                type = type.substring(0, formatBegin);
-            }
+            var property = _Schema.property(res, key);
 
             if (compact) {
 
-                el.append('<tr class="' + key + '"><td>' + name + '</td>'
-                        + '<td>' + type + '</td>'
-                        + '<td>' + (format ? escapeForHtmlAttributes(format) : '') + '</td></div>');
+                el.append('<tr class="' + key + '"><td>' + property.name + '</td>'
+                        + '<td>' + property.type + '</td>'
+                        + '<td>' + (property.format ? escapeForHtmlAttributes(property.format) : '') + '</td></div>');
 
             } else {
 
-                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(name) + '"></td><td>'
-                        + '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(dbName) + '"></td><td>'
+                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(property.name) + '"></td><td>'
+                        + '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(property.dbName) + '"></td><td>'
                         + typeOptions + '</td><td><input size="15" type="text" class="property-format" value="'
-                        + (format ? escapeForHtmlAttributes(format) : '') + '"></td><td><input class="not-null" type="checkbox"'
-                        + (notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
-                        + (unique ? ' checked="checked"' : '') + '</td><td>'
-                        + '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(defaultValue) + '">' + '</td><td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"></td></div>');
+                        + (property.format ? escapeForHtmlAttributes(property.format) : '') + '"></td><td><input class="not-null" type="checkbox"'
+                        + (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
+                        + (property.unique ? ' checked="checked"' : '') + '</td><td>'
+                        + '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"></td></div>');
 
-                _Schema.bindEvents(res, type, key);
+                _Schema.bindEvents(res, property.type, key);
             }
         }
 
     },
+    property: function(res, key) {
+        
+        var name = key.substring(1);
+        var dbName = '';
+        var type;
+        if (res[key].indexOf('|') > -1) {
+            dbName = res[key].substring(0, res[key].indexOf('|'));
+            type = res[key].substring(res[key].indexOf('|') + 1);
+        } else {
+            type = res[key];
+        }
+
+        var notNull = (res[key].indexOf('+') > -1);
+        var unique = (res[key].indexOf('!') > -1);
+
+        type = type.replace('+', '').replace('!', '');
+
+        var defaultValue = '';
+        var format = '';
+
+        var defaultBegin = type.indexOf(':');
+        var formatBegin = type.indexOf('(');
+
+        if (formatBegin > -1 && defaultBegin > -1 && defaultBegin > formatBegin) {
+            // we have a format string => we need to find the location of the matching closing bracket for the bracket at pos formatBegin
+
+            var defaultBegin = type.indexOf('):');
+            if (defaultBegin > -1) {
+                defaultBegin++;
+            }
+        }
+
+        if (defaultBegin > -1) {
+            defaultValue = (type.substring(defaultBegin + 1));
+            type = type.substring(0, defaultBegin);
+        }
+
+        if (formatBegin > -1) {
+            format = type.substring(formatBegin + 1, type.length - 1);
+            type = type.substring(0, formatBegin);
+        }
+        
+        return { type: type, name: name, dbName: dbName, notNull: notNull, unique: unique, defaultValue: defaultValue, format: format };
+        
+    },
     bindEvents: function(entity, type, key) {
 
+        if (key.substring(0, 1) !== '_') {
+            return;
+        }
+        
+        var property = _Schema.property(entity, key);
+        
         var el = $('.local.schema-props');
 
         $('.' + key + ' .property-type option[value="' + type + '"]', el).attr('selected', true).prop('disabled', null);
 
         $('.' + key + ' .property-type', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.type);
 
         $('.' + key + ' .property-format', el).on('blur', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.format);
 
         $('.' + key + ' .not-null', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.notNull);
 
         $('.' + key + ' .unique', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.unique);
 
         $('.' + key + ' .property-default', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.defaultValue);
 
         $('.' + key + ' .remove-property', el).on('click', function() {
             _Schema.removeLocalProperty(entity, key);
         }).prop('disabled', null);
+        
 
     },
     unbindEvents: function(key) {
@@ -1157,10 +1172,11 @@ var _Schema = {
             d['_' + name] = val;
             _Schema.putPropertyDefinition(entity, JSON.stringify(d), function() {
                 blinkGreen($('.local .' + key));
-                _Schema.bindEvents(entity, type, key);
                 entity['_' + name] = val;
+                _Schema.bindEvents(entity, type, key);
             }, function() {
                 blinkRed($('.local .' + key));
+                 _Schema.bindEvents(entity, type, key);
             }, function() {
                 _Schema.bindEvents(entity, type, key);
             });
