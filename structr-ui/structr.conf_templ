@@ -12,27 +12,27 @@
 #############################################################################
 # General application-wide settings
 #############################################################################
-#
+
 # The title shown at start-up
 application.title = Structr UI
-#
+
 # Listener address. Set this to the real ip address or localhost to restrict access,
 # or to 0.0.0.0 to make this instance accessible over all ip addresses and hostnames
 application.host = 0.0.0.0
-#
+
 # Listener port for HTTP access REST and web service
 application.http.port = 8082
-#
+
 # URL base path of REST server
 application.rest.path = /structr/rest
-#
+
 # Listener port of built-in FTP server
 application.ftp.port = 8021
-#
+
 # HTTPS settings
 # run this command to create a selfsigned certificate:
 # 'keytool -genkey -keyalg RSA -alias selfsigned -keystore [KEYSTORE_FILE] -storepass [KEYSTORE_PASSWORD] -validity 360 -keysize 2048'
-#
+
 # application.https.enabled = true
 # application.https.port = 8083
 # application.keystore.path = [KEYSTORE_FILE]
@@ -41,7 +41,6 @@ application.ftp.port = 8021
 # Session timeout (default 30 minutes = 1800 seconds)
 application.session.timeout = 1800
 
-#
 # Neo4j server settings
 ########################################################
 #                                                      #
@@ -54,63 +53,62 @@ application.session.timeout = 1800
 ########################################################
 neo4j.server.host = 0.0.0.0
 neo4j.server.port = 7474
-#
-#
+
 # Paths
 base.path = .
 database.path = ./db
 files.path = ./files
 log.database.path = ./logDb.dat
 tmp.path = /tmp
-#
+
 # Configuration class providing custom schema classes
 configuration.provider = org.structr.module.JarConfigurationProvider
-#
+
 # Configure services to automatically run at start-up
 configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService Neo4jService
-#
+
 # Support migration from 0.8.x and earlier versions
 #NodeService.migration = true
-#
+
 # Superuser username and password
 # You have to set a superuser username and password in order to use
 # administration and maintenance tools
 # IMPORTANT: this is *not* used as the main login credentials
+
 superuser.username = superadmin
 superuser.password = 
-#
+
 # Indent JSON
 json.indentation = true
-#
+
 # Use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null
 # Please note: As long as Javascript doesn't support NaN etc., most of the UI will be broken
 #json.lenient = true
-#
+
 # Neo4j shell
 neo4j.shell.enabled = true
 neo4j.shell.port = 1337
-#
+
 # E-Mail settings: Set host and port of an MTA Structr will use to send e-mails
 smtp.host = localhost
 smtp.port = 25
-#
+smtp.tls.enabled = true
+smtp.tls.required = false
+
 # Ports for low-level binary protocols
 tcp.port = 54555
-#udp.port = 57555
-#
-#############################################################################
 
 
 #############################################################################
 # Servlets
 #############################################################################
-#
+
 # Available servlets
 HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet
-#
+
 # Uncomment this if you encounter problems with async HTTP requests
 #HttpService.async = false
-#
+
 # JSON/REST servlet
 JsonRestServlet.authenticator = org.structr.web.auth.UiAuthenticator
 JsonRestServlet.class = org.structr.rest.servlet.JsonRestServlet
@@ -120,7 +118,7 @@ JsonRestServlet.path = /structr/rest/*
 JsonRestServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 JsonRestServlet.user.autocreate = true
 JsonRestServlet.user.class = org.structr.web.entity.User
-#
+
 # HTML servlet
 HtmlServlet.authenticator = org.structr.web.auth.UiAuthenticator
 HtmlServlet.class = org.structr.web.servlet.HtmlServlet
@@ -130,7 +128,7 @@ HtmlServlet.path = /structr/html/*
 HtmlServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 HtmlServlet.user.autocreate = true
 HtmlServlet.user.class = org.structr.web.entity.User
-#
+
 # Websocket servlet
 WebSocketServlet.authenticator = org.structr.web.auth.UiAuthenticator
 WebSocketServlet.class = org.structr.websocket.servlet.WebSocketServlet
@@ -139,7 +137,7 @@ WebSocketServlet.path = /structr/ws/*
 WebSocketServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 WebSocketServlet.user.autocreate = false
 WebSocketServlet.user.class = org.structr.web.entity.User
-#
+
 # CSV servlet
 CsvServlet.authenticator = org.structr.web.auth.UiAuthenticator
 CsvServlet.class = org.structr.rest.servlet.CsvServlet
@@ -149,7 +147,7 @@ CsvServlet.path = /structr/csv/*
 CsvServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 CsvServlet.user.autocreate = false
 CsvServlet.user.class = org.structr.web.entity.User
-#
+
 # Upload servlet
 UploadServlet.authenticator = org.structr.web.auth.UiAuthenticator
 UploadServlet.class = org.structr.web.servlet.UploadServlet
@@ -160,8 +158,6 @@ UploadServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 UploadServlet.user.autocreate = false
 UploadServlet.user.class = org.structr.web.entity.User
 UploadServlet.allowAnonymousUploads = false
-#
-#############################################################################
 
 
 #############################################################################
@@ -178,13 +174,12 @@ UploadServlet.allowAnonymousUploads = false
 #
 # Available resource handlers
 #
+
 HttpService.resourceHandlers = StructrUiHandler
 StructrUiHandler.contextPath = /structr
 StructrUiHandler.directoriesListed = false
 StructrUiHandler.resourceBase = src/main/resources/structr
 StructrUiHandler.welcomeFiles = index.html
-#
-#############################################################################
 
 
 #############################################################################
@@ -193,12 +188,12 @@ StructrUiHandler.welcomeFiles = index.html
 # This section configures the HTTP headers sent by Structr to control cross
 # origin resource sharing, see http://www.w3.org/TR/cors.
 #
-##access.control.max.age = 3600
+
+#access.control.max.age = 3600
 #access.control.allow.methods = GET,OPTIONS
 #access.control.allow.headers = Content-Type,Accept,Content-Encoding,Location
-##access.control.allow.credentials = false
+#access.control.allow.credentials = false
 #access.control.expose.headers = Location
-#############################################################################
 
 
 #############################################################################
@@ -208,11 +203,9 @@ StructrUiHandler.welcomeFiles = index.html
 # Set to true to enable full request logging including request body
 log.requests = false
 log.name = structr-yyyy_mm_dd.request.log
-#
+
 # Log code generated for custom schema
 #NodeExtender.log = true
-#
-#############################################################################
 
 
 #############################################################################
@@ -230,8 +223,9 @@ log.name = structr-yyyy_mm_dd.request.log
 #
 #
 # OAuth servers
+
 oauth.servers = github twitter linkedin google facebook
-#
+
 # See https://developer.github.com/v3/oauth/
 oauth.github.authorization_location = https://github.com/login/oauth/authorize
 oauth.github.token_location = https://github.com/login/oauth/access_token
@@ -241,7 +235,7 @@ oauth.github.redirect_uri = /oauth/github/auth
 oauth.github.user_details_resource_uri = https://api.github.com/user/emails
 oauth.github.error_uri = /login
 oauth.github.return_uri = /
-#
+
 # See https://dev.twitter.com/docs/auth/oauth
 oauth.twitter.authorization_location = https://api.twitter.com/oauth/authorize
 oauth.twitter.token_location = https://api.twitter.com/oauth/access_token
@@ -250,7 +244,7 @@ oauth.twitter.client_secret =
 oauth.twitter.redirect_uri = /oauth/twitter/auth
 oauth.twitter.error_uri = /login
 oauth.twitter.return_uri = /
-#
+
 # See https://developer.linkedin.com/documents/authentication
 oauth.linkedin.authorization_location = https://www.linkedin.com/uas/oauth2/authorization
 oauth.linkedin.token_location = https://www.linkedin.com/uas/oauth2/accessToken
@@ -260,7 +254,7 @@ oauth.linkedin.redirect_uri = /oauth/linkedin/auth
 oauth.linkedin.user_details_resource_uri = https://api.linkedin.com/v1/people/~/email-address?secure-urls=true
 oauth.linkedin.error_uri = /login
 oauth.linkedin.return_uri = /
-#
+
 # See https://developer.linkedin.com/documents/authentication
 oauth.google.authorization_location = https://accounts.google.com/o/oauth2/auth
 oauth.google.token_location = https://accounts.google.com/o/oauth2/token
@@ -270,7 +264,7 @@ oauth.google.redirect_uri = /oauth/google/auth
 oauth.google.user_details_resource_uri = https://www.googleapis.com/oauth2/v3/userinfo
 oauth.google.error_uri = /login
 oauth.google.return_uri = /
-#
+
 # See: https://developers.facebook.com/docs/reference/dialogs/oauth/
 oauth.facebook.authorization_location = https://www.facebook.com/dialog/oauth
 oauth.facebook.token_location = https://graph.facebook.com/oauth/access_token
@@ -280,5 +274,3 @@ oauth.facebook.redirect_uri = /oauth/facebook/auth
 oauth.facebook.user_details_resource_uri = https://graph.facebook.com/me
 oauth.facebook.error_uri = /login
 oauth.facebook.return_uri = /
-#
-##############################################################################
