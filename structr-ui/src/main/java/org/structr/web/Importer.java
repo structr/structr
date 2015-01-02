@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -220,16 +221,16 @@ public class Importer {
 				HttpResponse resp = client.execute(get);
 
 				Header location = resp.getFirstHeader("Location");
-				
+
 				logger.log(Level.INFO, "Location: {0}", new Object[]{ location });
-				
+
 				if (location != null) {
 
 					final String newLocation = new URL(originalUrl, location.getValue()).toString();
 					address = newLocation;
-					
+
 					logger.log(Level.INFO, "New location: {0}", new Object[]{ newLocation });
-					
+
 					client = new DefaultHttpClient();
 
 					int attempts = 1;
@@ -324,7 +325,7 @@ public class Importer {
 
 	// ----- public static methods -----
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
-		
+
 		return parsePageFromSource(securityContext, source, name, false);
 	}
 
@@ -351,6 +352,18 @@ public class Importer {
 	}
 
 	public static List<InvertibleModificationOperation> diffNodes(final DOMNode sourceNode, final DOMNode modifiedNode) {
+
+		if (sourceNode == null) {
+
+			logger.log(Level.WARNING, "Source node was null, returning empty change set.");
+			return Collections.EMPTY_LIST;
+		}
+
+		if (modifiedNode == null) {
+
+			logger.log(Level.WARNING, "Modified node was null, returning empty change set.");
+			return Collections.EMPTY_LIST;
+		}
 
 		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
 		final Map<String, DOMNode> indexMappedExistingNodes   = new LinkedHashMap<>();
@@ -535,12 +548,12 @@ public class Importer {
 					res = downloadFile(downloadAddress, originalUrl);
 
 				}
-				
+
 				if (removeHashAttribute) {
-					
+
 					// Remove data-structr-hash attribute
 					node.removeAttr(DOMNode.dataHashProperty.jsonName());
-					
+
 				}
 
 			}
@@ -734,7 +747,7 @@ public class Importer {
 		long size;
 		long checksum;
 		URL downloadUrl;
-		
+
 		try {
 
 			downloadUrl = new URL(base, downloadAddress);
@@ -756,9 +769,9 @@ public class Importer {
 
 			try {
 				// Try alternative baseUrl with trailing "/"
-				
+
 				logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[] { originalUrl, address.concat("/"), downloadAddress });
-				
+
 				downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
 				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
 
