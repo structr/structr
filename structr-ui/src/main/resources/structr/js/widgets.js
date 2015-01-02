@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var widgets, remoteWidgets, widgetsUrl = 'http://widgets.structr.org/structr/rest/widgets';
+var widgets, remoteWidgets, widgetsUrl = 'https://widgets.structr.org/structr/rest/widgets';
 var win = $(window);
 
 $(document).ready(function() {
