@@ -85,6 +85,8 @@ public class Services {
 	public static final String SMTP_PORT                        = "smtp.port";
 	public static final String SMTP_USER                        = "smtp.user";
 	public static final String SMTP_PASSWORD                    = "smtp.password";
+	public static final String SMTP_USE_TLS                     = "smtp.tls.enabled";
+	public static final String SMTP_REQUIRE_TLS                 = "smtp.tls.required";
 	public static final String SUPERUSER_USERNAME               = "superuser.username";
 	public static final String SUPERUSER_PASSWORD               = "superuser.password";
 	public static final String TCP_PORT                         = "tcp.port";
