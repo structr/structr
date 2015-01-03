@@ -91,12 +91,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
 
-	public static final String REST_RESPONSE = "restResponse";
-	public static final String REDIRECT = "redirect";
-	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
-	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
-
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
+	public static final String POSSIBLE_ENTRY_POINTS_KEY = "possibleEntryPoints";
+	public static final String DOWNLOAD_AS_FILENAME_KEY = "filename";
 	public static final String CONFIRM_KEY_KEY = "key";
 	public static final String TARGET_PAGE_KEY = "target";
 	public static final String ERROR_PAGE_KEY = "onerror";
@@ -127,7 +124,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		final App app;
 
 		try {
-			String path = request.getPathInfo();
+			final String path = request.getPathInfo();
 
 			// check for registration (has its own tx because of write access
 			if (checkRegistration(auth, request, response, path)) {
@@ -179,7 +176,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				DOMNode rootElement = null;
 				AbstractNode dataNode = null;
 
-				String[] uriParts = PathHelper.getParts(path);
+				final String[] uriParts = PathHelper.getParts(path);
 				if ((uriParts == null) || (uriParts.length == 0)) {
 
 					// find a visible page
@@ -201,7 +198,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if (rootElement == null) { // No page found
 
 					// Look for a file
-					File file = findFile(securityContext, request, path);
+					final File file = findFile(securityContext, request, path);
 					if (file != null) {
 
 						streamFile(securityContext, file, request, response, edit);
@@ -210,7 +207,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					}
 
 					// store remaining path parts in request
-					Matcher matcher = threadLocalUUIDMatcher.get();
+					final Matcher matcher = threadLocalUUIDMatcher.get();
 					boolean requestUriContainsUuids = false;
 
 					for (int i = 0; i < uriParts.length; i++) {
@@ -239,7 +236,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						// Last path part matches a data node
 						// Remove last path part and try again searching for a page
 						// clear possible entry points
-						request.removeAttribute(POSSIBLE_ENTRY_POINTS);
+						request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
 						rootElement = findPage(securityContext, request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
@@ -574,7 +571,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						// Last path part matches a data node
 						// Remove last path part and try again searching for a page
 						// clear possible entry points
-						request.removeAttribute(POSSIBLE_ENTRY_POINTS);
+						request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
 						rootElement = findPage(securityContext, request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
@@ -771,7 +768,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			final Result results = StructrApp.getInstance(securityContext).nodeQuery().and(AbstractNode.name, name).getResult();
 
 			logger.log(Level.FINE, "{0} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
 
 			return (results.size() > 0 ? (AbstractNode) results.get(0) : null);
 		}
@@ -973,7 +970,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, final HttpServletRequest request, final String uuid) throws FrameworkException {
 
-		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -992,7 +989,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			Result results = query.getResult();
 
 			logger.log(Level.FINE, "{0} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
 
 			return (List<Linkable>) results.getResults();
 		}
@@ -1002,7 +999,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	private List<Linkable> findPossibleEntryPointsByPath(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
-		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -1021,7 +1018,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			Result results = query.getResult();
 
 			logger.log(Level.FINE, "{0} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
 
 			return (List<Linkable>) results.getResults();
 		}
@@ -1031,7 +1028,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	private List<Linkable> findPossibleEntryPointsByName(final SecurityContext securityContext, final HttpServletRequest request, final String name) throws FrameworkException {
 
-		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -1050,7 +1047,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			Result results = query.getResult();
 
 			logger.log(Level.FINE, "{0} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
 
 			return (List<Linkable>) results.getResults();
 		}
@@ -1060,7 +1057,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
-		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -1170,7 +1167,18 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		}
 
-		ServletOutputStream out = response.getOutputStream();
+		final ServletOutputStream out = response.getOutputStream();
+		final String downloadAsFilename = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
+		
+		if (downloadAsFilename != null) {
+			// Set Content-Disposition header to suggest a default filename and force a "save-as" dialog
+			// See:
+			// http://en.wikipedia.org/wiki/MIME#Content-Disposition,
+			// http://tools.ietf.org/html/rfc2183
+			// http://tools.ietf.org/html/rfc1806
+			// http://tools.ietf.org/html/rfc2616#section-15.5 and http://tools.ietf.org/html/rfc2616#section-19.5.1
+			response.addHeader("Content-Disposition", "attachment; filename=\"" + downloadAsFilename + "\"");
+		}
 
 		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, false)) {
 
@@ -1180,8 +1188,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		} else {
 
 			// 2b: stream file to response
-			InputStream in = file.getInputStream();
-			String contentType = file.getContentType();
+			final InputStream in = file.getInputStream();
+			final String contentType = file.getContentType();
 
 			if (contentType != null) {
 
