@@ -26,15 +26,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.Linkable;
-import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EntityIdProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.html.relation.ResourceLink;
 import org.w3c.dom.Node;
 
 //~--- classes ----------------------------------------------------------------
@@ -45,19 +39,12 @@ import org.w3c.dom.Node;
 public class Script extends LinkSource {
 
 	private static final Logger logger = Logger.getLogger(Script.class.getName());
-	
+
 	public static final Property<String> _src     = new HtmlProperty("src");
 	public static final Property<String> _async   = new HtmlProperty("async");
 	public static final Property<String> _defer   = new HtmlProperty("defer");
 	public static final Property<String> _type    = new HtmlProperty("type");
 	public static final Property<String> _charset = new HtmlProperty("charset");
-		
-//	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<Head>    heads    = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
-//	public static final EndNodes<Div>     divs     = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
- 
-	public static final Property<Linkable> linkable   = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
-	public static final Property<String>   linkableId = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(Script.class, PropertyView.Ui,
 		linkableId, linkable
@@ -75,19 +62,19 @@ public class Script extends LinkSource {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
-	
+
 	@Override
 	protected void handleNewChild(final Node newChild) {
-		
+
 		if (newChild instanceof Content) {
 
 			try {
 				((Content)newChild).setProperty(Content.contentType, getProperty(_type));
-				
+
 			} catch (FrameworkException fex) {
-				
+
 				logger.log(Level.WARNING, "Unable to set property on new child: {0}", fex.getMessage());
-				
+
 			}
 		}
 	}

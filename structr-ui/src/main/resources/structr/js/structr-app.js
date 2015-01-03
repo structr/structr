@@ -598,7 +598,7 @@ function StructrApp(baseUrl) {
 
     this.request = function(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
         var dataString = JSON.stringify(data);
-        console.log(dataString);
+        //console.log(dataString);
         $.ajax({
             type: method,
             url: url,

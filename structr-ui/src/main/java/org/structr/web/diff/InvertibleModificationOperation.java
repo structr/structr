@@ -81,6 +81,11 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 
 	private static void collectNodes(final DOMNode node, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final Map<DOMNode, Integer> depthMap, final int depth, final Map<Integer, Integer> childIndexMap) {
 
+		// early exit
+		if (node == null) {
+			return;
+		}
+
 		Integer pos  = childIndexMap.get(depth);
 		if (pos == null) {
 
