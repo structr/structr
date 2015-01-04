@@ -83,13 +83,13 @@ public class ArrayExpression extends Expression {
 		final Integer index = (Integer)evaluate(securityContext, ctx, entity);
 		if (index != null) {
 
-			if (value instanceof Collection || value.getClass().isArray()) {
+			if (value != null && (value instanceof Collection || value.getClass().isArray())) {
 
 				return CollectionUtils.get(value, index);
 
 			} else {
 
-				throw new FrameworkException(422, "Invalid expression: expected collection, found " + value.getClass().getSimpleName() + ".");
+				throw new FrameworkException(422, "Invalid expression: expected collection, found " + (value != null ? value.getClass().getSimpleName() : "null") + ".");
 			}
 
 		} else {
