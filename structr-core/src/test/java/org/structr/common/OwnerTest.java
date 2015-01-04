@@ -46,7 +46,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
-import org.structr.core.Ownership;
+import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;

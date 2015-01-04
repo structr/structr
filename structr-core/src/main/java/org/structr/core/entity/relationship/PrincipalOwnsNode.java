@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity.relationship;
 
-import org.structr.core.Ownership;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;

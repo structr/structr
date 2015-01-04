@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core;
+package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;

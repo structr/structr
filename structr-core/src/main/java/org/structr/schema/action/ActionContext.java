@@ -78,11 +78,15 @@ public class ActionContext {
 		return false;
 	}
 
-	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
+//	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
+//		return getReferencedProperty(securityContext, entity, refKey, null);
+//	}
+
+	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey, final Object initialData) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
 		final String[] parts           = refKey.split("[\\.]+");
-		Object _data                   = null;
+		Object _data                   = initialData;
 
 		// walk through template parts
 		for (int i = 0; i < parts.length; i++) {

@@ -80,6 +80,10 @@ public class ArrayExpression extends Expression {
 	@Override
 	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException {
 
+		if (value == null) {
+			return null;
+		}
+		
 		final Integer index = (Integer)evaluate(securityContext, ctx, entity);
 		if (index != null) {
 
