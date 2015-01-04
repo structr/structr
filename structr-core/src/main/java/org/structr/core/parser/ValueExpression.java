@@ -54,7 +54,7 @@ public class ValueExpression extends Expression {
 	@Override
 	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
-		Object value = ctx.getReferencedProperty(securityContext, entity, keyword);
+		Object value = ctx.getReferencedProperty(securityContext, entity, keyword, null);
 
 		for (final Expression expression : expressions) {
 
@@ -70,7 +70,8 @@ public class ValueExpression extends Expression {
 
 		// evaluate dot syntax
 		if (keyword.startsWith(".") && value instanceof GraphObject) {
-			return ((GraphObject)value).evaluate(securityContext, keyword.substring(1), null);
+
+			return ctx.getReferencedProperty(securityContext, entity, keyword.substring(1), value);
 		}
 
 		return value;
