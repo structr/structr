@@ -51,7 +51,7 @@ import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
-import org.structr.core.Ownership;
+import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;

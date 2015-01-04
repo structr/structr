@@ -44,6 +44,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.ManyToMany;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
@@ -57,6 +58,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
+import static org.structr.schema.SchemaHelper.getEntityClassForRawType;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.parser.Validator;
@@ -416,7 +418,13 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		SchemaHelper.formatImportStatements(src, baseType);
 
-		src.append("public class ").append(_className).append(" extends ").append(getBaseType()).append(" {\n\n");
+		src.append("public class ").append(_className).append(" extends ").append(getBaseType());
+		
+		if ("OWNS".equals(getProperty(relationshipType))) {
+			src.append(" implements org.structr.core.entity.relationship.Ownership");
+		}
+		
+		src.append(" {\n\n");
 
 		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, actions, errorBuffer));
 
