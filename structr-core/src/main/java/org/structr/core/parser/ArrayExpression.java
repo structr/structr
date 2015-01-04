@@ -80,16 +80,20 @@ public class ArrayExpression extends Expression {
 	@Override
 	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException {
 
+		if (value == null) {
+			return null;
+		}
+		
 		final Integer index = (Integer)evaluate(securityContext, ctx, entity);
 		if (index != null) {
 
-			if (value != null && (value instanceof Collection || value.getClass().isArray())) {
+			if (value instanceof Collection || value.getClass().isArray()) {
 
 				return CollectionUtils.get(value, index);
 
 			} else {
 
-				throw new FrameworkException(422, "Invalid expression: expected collection, found " + (value != null ? value.getClass().getSimpleName() : "null") + ".");
+				throw new FrameworkException(422, "Invalid expression: expected collection, found " + value.getClass().getSimpleName() + ".");
 			}
 
 		} else {
