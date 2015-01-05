@@ -289,6 +289,10 @@ public class Services {
 						if (service != null) {
 
 							service.initialized();
+
+						} else {
+
+							logger.log(Level.WARNING, "Service {0} was not started!", serviceClassName);
 						}
 
 					} catch (Throwable t) {
@@ -378,16 +382,16 @@ public class Services {
 	public void registerServiceClass(Class serviceClass) {
 
 		registeredServiceClasses.add(serviceClass);
-
-		// let service instance visit default configuration
-		try {
-
-			Service service = (Service)serviceClass.newInstance();
-			//service.modifyConfiguration(getBaseConfiguration());
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+//
+//		// let service instance visit default configuration
+//		try {
+//
+//			serviceClass.newInstance();
+//			//service.modifyConfiguration(getBaseConfiguration());
+//
+//		} catch (Throwable t) {
+//			t.printStackTrace();
+//		}
 	}
 
 	public String getConfigurationValue(String key) {
@@ -467,13 +471,15 @@ public class Services {
 		attributes.remove(name);
 	}
 
-	private Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
+	private Service createService(Class serviceClass) {
 
 		logger.log(Level.FINE, "Creating service ", serviceClass.getName());
 
-		Service service = (Service) serviceClass.newInstance();
+		Service service = null;
+
 		try {
 
+			service = (Service) serviceClass.newInstance();
 			service.initialize(getCurrentConfig());
 
 			if (service instanceof RunnableService) {
@@ -497,8 +503,6 @@ public class Services {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
-
 			if (service.isVital()) {
 
 				logger.log(Level.SEVERE, "Vital service {0} failed to start with {1}, aborting.", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
@@ -506,6 +510,10 @@ public class Services {
 				// hard(est) exit
 				System.err.println("Vital service " + service.getClass().getSimpleName() + " failed to start with " + t.getMessage() + ", aborting.");
 				System.exit(1);
+
+			} else {
+
+				logger.log(Level.SEVERE, "Service {0} failed to start with {1}.", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
 			}
 		}
 
