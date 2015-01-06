@@ -368,11 +368,13 @@ var Structr = {
         obj.data = data;
         if (sendObj(obj)) {
             user = username;
+            Structr.restoreLocalStorage();
             return true;
         }
         return false;
     },
     doLogout: function(text) {
+        Structr.saveLocalStorage();
         log('doLogout ' + user);
         var obj = {};
         obj.command = 'LOGOUT';
@@ -444,6 +446,12 @@ var Structr = {
             }
         });
 
+    },
+    saveLocalStorage: function() {
+        Command.saveLocalStorage();
+    },
+    restoreLocalStorage: function() {
+        Command.getLocalStorage();
     },
     restoreDialog: function(dialogData) {
         log('restoreDialog', dialogData);
