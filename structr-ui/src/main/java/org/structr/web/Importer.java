@@ -331,7 +331,7 @@ public class Importer {
 
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
-		final Importer importer = new Importer(securityContext, source, null, "source", 0, true, true);
+		final Importer importer = new Importer(securityContext, source, null, "source", 0, false, false);
 		final App localAppCtx   = StructrApp.getInstance(securityContext);
 		Page page               = null;
 

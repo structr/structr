@@ -809,11 +809,11 @@ var _Entities = {
         if (!el || !entity) {
             return false;
         }
-        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea class="query-text" id="' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
-        el.append('<div><button id="apply_' + key + '">Save</button></div>');
-        var btn = $('#apply_' + key, el);
+        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea class="query-text ' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
+        el.append('<div><button class="apply_' + key + '">Save</button></div>');
+        var btn = $('.apply_' + key, el);
         btn.on('click', function () {
-            entity.setProperty(key, $('#' + key + '_', el).val(), false, function () {
+            entity.setProperty(key, $('.' + key + '_', el).val(), false, function () {
                 log(key + ' successfully updated!', entity[key]);
                 blinkGreen(btn);
                 _Pages.reloadPreviews();
@@ -824,10 +824,10 @@ var _Entities = {
         if (!el || !entity) {
             return false;
         }
-        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" id="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button id="save_' + key + '">Save</button></div>');
-        var btn = $('#save_' + key, el);
+        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div>');
+        var btn = $('.save_' + key, el);
         btn.on('click', function () {
-            entity.setProperty('dataKey', $('#' + key + '_').val(), false, function () {
+            entity.setProperty(key, $('.' + key + '_', el).val(), false, function () {
                 log(key + ' successfully updated!', entity[key]);
                 blinkGreen(btn);
                 _Pages.reloadPreviews();
@@ -861,10 +861,10 @@ var _Entities = {
             key = key.substring(0, key.indexOf('.'));
         }
 
-        el.append('<h3>' + title + '</h3><p id="' + key + 'Box"></p>');
-        var element = $('#' + key + 'Box');
-        element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select"></select></span>');
-        var selectElement = $('#' + key + 'Select');
+        el.append('<h3>' + title + '</h3><p class="' + key + 'Box"></p>');
+        var element = $('.' + key + 'Box', el);
+        element.append('<span class="' + entity.id + '_"><select class="' + key + '_ ' + key + 'Select"></select></span>');
+        var selectElement = $('.' + key + 'Select');
         selectElement.append('<option></option>')
         selectElement.css({'width': '400px'}).chosen();
 
@@ -889,7 +889,7 @@ var _Entities = {
             }
 
             entity.setProperty(key, value, false, function () {
-                blinkGreen($('#' + key + 'Select_chosen .chosen-single'));
+                blinkGreen($('.' + key + 'Select_chosen .chosen-single'));
             });
         });
     },
