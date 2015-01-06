@@ -310,7 +310,7 @@ var _Crud = {
                             _Crud.determinePagerData(type);
 
                             _Crud.schema[type] = res;
-                            //console.log('Type definition for ' + type + ' loaded');
+                            //console.log('Type definition for ' + type + ' loaded', _Crud.schema[type]);
                             //console.log('schema loaded?', _Crud.isSchemaLoaded());
 
                             if (_Crud.isSchemaLoaded()) {
@@ -1493,12 +1493,13 @@ var _Crud = {
         var relatedType = _Crud.relatedType(key, type);
         var readOnly = _Crud.readOnly(key, type);
         var simpleType;
+        var isSourceOrTarget = _Crud.schema[type].isRel && (key === 'sourceId' || key === 'targetId');
 
         if (readOnly) {
             cell.addClass('readonly');
         }
 
-        if (!relatedType) {
+        if (!isSourceOrTarget && !relatedType) {
 
             var propertyType = _Crud.getPropertyType(type, key);
 
@@ -1623,7 +1624,7 @@ var _Crud = {
 
         }
 
-        if (!readOnly && propertyType !== 'Boolean' && !relatedType) {
+        if (!isSourceOrTarget && !readOnly && propertyType !== 'Boolean' && !relatedType) {
             cell.append('<img class="crud-clear-value" alt="Clear value" title="Clear value" src="icon/cross_small_grey.png">');
             $('.crud-clear-value', cell).on('mouseup', function(e) {
                 e.preventDefault();
@@ -1685,8 +1686,13 @@ var _Crud = {
 
                 var displayName = _Crud.displayName(node);
 
-                cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+                cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
                 var nodeEl = $('#_' + node.id, cell);
+                var isSourceOrTarget = _Crud.schema[parentType].isRel && (key === 'sourceId' || key === 'targetId');
+                if (!isSourceOrTarget) {
+                    nodeEl.append('<img class="remove" src="icon/cross_small_grey.png"></div>');
+                }
+                
                 //console.log(node);
                 if (node.isImage) {
 
@@ -1721,6 +1727,7 @@ var _Crud = {
                         });
                     }
                 }
+
                 $('.remove', nodeEl).on('click', function(e) {
                     e.preventDefault();
                     _Crud.removeRelatedObject(parentType, parentId, key, obj);
