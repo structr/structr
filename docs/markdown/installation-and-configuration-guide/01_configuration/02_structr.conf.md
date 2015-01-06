@@ -1,4 +1,4 @@
-You find the following example file in Structr's GitHub repo: <a href="https://raw.github.com/structr/structr/master/structr-ui/structr.conf_templ">https://raw.github.com/structr/structr/master/structr-ui/structr.conf_templ</a>
+You find the following example file in Structr's GitHub repo: [https://raw.github.com/structr/structr/master/structr-ui/structr.conf_templ](https://raw.github.com/structr/structr/master/structr-ui/structr.conf_templ)
 
 	#############################################################################
 	# Structr global configuration file
@@ -158,7 +158,7 @@ You find the following example file in Structr's GitHub repo: <a href="https://r
 	#     contextPath  = /pages
 	#     resourceBase = foo/bar
 	#
-	#     foo/bar/test.html => http://<hostname>:<port>/pages/test.html
+	#     foo/bar/test.html => http://[hostname]:[port]/pages/test.html
 	#
 	# Available resource handlers
 	#
