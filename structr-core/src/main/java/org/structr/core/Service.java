@@ -43,8 +43,12 @@ public interface Service {
 	 * service-specific resources etc.
 	 *
 	 * @param config
+	 *
+	 * @throws ClassNotFoundException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
 	 */
-	public void initialize(final StructrConf config);
+	public void initialize(final StructrConf config) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called

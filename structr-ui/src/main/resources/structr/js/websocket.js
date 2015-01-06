@@ -155,6 +155,13 @@ function wsConnect() {
                 Structr.clearMain();
                 Structr.login();
 
+            } else if (command === 'GET_LOCAL_STORAGE') { /*********************** GET_LOCAL_STORAGE ************************/
+
+                var localStorageData = JSON.parse(data.data.localStorageString);
+                Object.keys(localStorageData).forEach(function(key) {
+                    localStorage.setItem(key, localStorageData[key]);
+                });
+
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
             
                 log('Error code: ' + code, message);
@@ -170,7 +177,7 @@ function wsConnect() {
                 } else {
 
                     var msgClass;
-                    var codeStr = code.toString();
+                    var codeStr = code ? code.toString() : '';
 
                     if (codeStr.startsWith('2')) {
                         msgClass = 'success';

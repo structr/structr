@@ -55,6 +55,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.JsonInputGSONAdapter;
+import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
@@ -134,7 +135,15 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 
 		// inject resources
-		resourceMap.putAll(config.getResourceProvider().getResources());
+		final ResourceProvider provider = config.getResourceProvider();
+		if (provider != null) {
+
+			resourceMap.putAll(provider.getResources());
+
+		} else {
+
+			logger.log(Level.SEVERE, "Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class.");
+		}
 
 		// initialize variables
 		this.propertyView           = new ThreadLocalPropertyView();

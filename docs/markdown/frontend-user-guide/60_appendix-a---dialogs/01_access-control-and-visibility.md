@@ -1,4 +1,4 @@
-<img src="/visibility.png_thumb_300x193" class="zoomable" alt="Access Control & Visibility Dialog" />
+<img src="/visibility.png_thumb_300x193" class="zoomable" alt="Access Control &amp; Visibility Dialog" />
 
 The Access Control & Visibility dialog allows you to control ownership, visibility and permissions of an element.
 
@@ -17,4 +17,3 @@ There are three different security levels:
 3. Individual Access Rights: Here, you can set more granular access rights for single users or groups.
 
 All users contained in a group inherit the same access rights of the group (and ownership, too).
-

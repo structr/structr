@@ -68,7 +68,7 @@ public class StructrHttpServiceConfig {
 		return outputNestingDepth;
 	}
 
-	public void initializeFromProperties(final Properties properties, final String servletName, final Set<ResourceProvider> resourceProviders) {
+	public void initializeFromProperties(final Properties properties, final String servletName, final Set<ResourceProvider> resourceProviders) throws InstantiationException, IllegalAccessException {
 
 		final String resourceProviderKeyName = servletName.concat(".resourceprovider");
 		final String authenticatorKeyName    = servletName.concat(".authenticator");
@@ -90,17 +90,22 @@ public class StructrHttpServiceConfig {
 
 			logger.log(Level.SEVERE, "Missing resource provider key {0}.resourceprovider in configuration file.", servletName);
 
+			throw new IllegalStateException("No resource provider set for servlet " + servletName);
+
 		} else {
 
-			try {
-				resourceProvider = (ResourceProvider)loadClass(resourceProviderValue).newInstance();
+			final Class<ResourceProvider> providerClass = loadClass(resourceProviderValue);
+			if (providerClass != null) {
+
+				resourceProvider = providerClass.newInstance();
 				resourceProviders.add(resourceProvider);
 
-			} catch (Throwable t) {
+			} else {
 
-				logger.log(Level.SEVERE, "Unable to instantiate resource provider {0}: {1}", new Object[] { resourceProviderValue, t.getMessage() } );
+				logger.log(Level.SEVERE, "Unable to initialize resource provider for servlet {0}, no resource provider found. Please check structr.conf for a valid resource provider class.", servletName);
+
+				throw new IllegalStateException("No resource provider available for servlet " + servletName);
 			}
-
 		}
 
 		if (StringUtils.isBlank(authenticatorValue)) {
@@ -149,8 +154,8 @@ public class StructrHttpServiceConfig {
 
 		try {
 			authenticator = (Authenticator) authenticatorClass.newInstance();
-			authenticator.setUserAutoCreate(userAutoCreate, userClass);
-			authenticator.setUserAutoLogin(userAutoLogin, userClass);
+		authenticator.setUserAutoCreate(userAutoCreate, userClass);
+		authenticator.setUserAutoLogin(userAutoLogin, userClass);
 
 		} catch (Throwable t) {
 

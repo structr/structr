@@ -5,4 +5,6 @@
 <tr><td>find(type, key, value [, key2, value2 [, key3, value3]])</td><td>Finds and returns a collection of entities of the given type, matching the given (key, value) pairs (3 at most)</td><td><code>${find('User', 'name', 'tester')}</code></td></tr>
 <tr><td>create(type, key, value [, key2, value2 [, key3, value3]])</td><td>Creates an entity of the given type with the given (key, value) pairs</td><td><code>${create('User', 'name', 'tester)}</code></td></tr>
 <tr><td>delete(entity)</td><td>Deletes the given entity</td><td><code>${delete(this)}</code></td></tr>
+<tr><td>grant(principal, entity, permissions)</td><td>Grants access permissions for the given principal (user or group) to the given entity</td><td><code>${grant(me, this, 'read, write, delete, accessControl')}</code></td></tr>
+<tr><td>revoke(principal, entity, permissions)</td><td>Revokes access permissions for the given principal (user or group) to the given entity</td><td><code>${revoke(me, this, 'delete')}</code></td></tr>
 </table>

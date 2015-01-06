@@ -151,7 +151,7 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrConf additionalConfig) {
+	public void initialize(final StructrConf additionalConfig) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final StructrConf finalConfig = new StructrConf();
 
@@ -482,7 +482,7 @@ public class HttpService implements RunnableService {
 	}
 
 	// ----- private methods -----
-	private List<ContextHandler> collectResourceHandlers(final StructrConf properties) {
+	private List<ContextHandler> collectResourceHandlers(final StructrConf properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final List<ContextHandler> resourceHandlers = new LinkedList<>();
 
@@ -492,58 +492,51 @@ public class HttpService implements RunnableService {
 
 			for (String resourceHandlerName : resourceHandlerList.split("[ \\t]+")) {
 
-				try {
+				final String contextPath = properties.getProperty(resourceHandlerName.concat(".contextPath"));
+				if (contextPath != null) {
 
-					final String contextPath = properties.getProperty(resourceHandlerName.concat(".contextPath"));
-					if (contextPath != null) {
+					final String resourceBase = properties.getProperty(resourceHandlerName.concat(".resourceBase"));
+					if (resourceBase != null) {
 
-						final String resourceBase = properties.getProperty(resourceHandlerName.concat(".resourceBase"));
-						if (resourceBase != null) {
+						final String directoriesListed = properties.getProperty(resourceHandlerName.concat(".directoriesListed"));
+						if (directoriesListed != null) {
 
-							final String directoriesListed = properties.getProperty(resourceHandlerName.concat(".directoriesListed"));
-							if (directoriesListed != null) {
+							final String welcomeFiles = properties.getProperty(resourceHandlerName.concat(".welcomeFiles"));
+							if (welcomeFiles != null) {
 
-								final String welcomeFiles = properties.getProperty(resourceHandlerName.concat(".welcomeFiles"));
-								if (welcomeFiles != null) {
+								ResourceHandler resourceHandler = new ResourceHandler();
+								resourceHandler.setDirectoriesListed(Boolean.parseBoolean(directoriesListed));
+								resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
+								resourceHandler.setResourceBase(resourceBase);
+								resourceHandler.setCacheControl("max-age=0");
+								resourceHandler.setEtags(true);
 
-									ResourceHandler resourceHandler = new ResourceHandler();
-									resourceHandler.setDirectoriesListed(Boolean.parseBoolean(directoriesListed));
-									resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
-									resourceHandler.setResourceBase(resourceBase);
-									resourceHandler.setCacheControl("max-age=0");
-									resourceHandler.setEtags(true);
+								ContextHandler staticResourceHandler = new ContextHandler();
+								staticResourceHandler.setContextPath(contextPath);
+								staticResourceHandler.setHandler(resourceHandler);
 
-									ContextHandler staticResourceHandler = new ContextHandler();
-									staticResourceHandler.setContextPath(contextPath);
-									staticResourceHandler.setHandler(resourceHandler);
-
-									resourceHandlers.add(staticResourceHandler);
-
-								} else {
-
-									logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.welcomeFiles", resourceHandlerName);
-
-								}
+								resourceHandlers.add(staticResourceHandler);
 
 							} else {
 
-								logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.resourceBase", resourceHandlerName);
+								logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.welcomeFiles", resourceHandlerName);
 
 							}
 
 						} else {
 
 							logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.resourceBase", resourceHandlerName);
+
 						}
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.contextPath", resourceHandlerName);
+						logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.resourceBase", resourceHandlerName);
 					}
 
-				} catch (Throwable t) {
+				} else {
 
-					logger.log(Level.WARNING, "Unable to initialize resource handler {0}: {1}", new Object[]{resourceHandlerName, t.getMessage()});
+					logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.contextPath", resourceHandlerName);
 				}
 			}
 
@@ -552,22 +545,10 @@ public class HttpService implements RunnableService {
 			logger.log(Level.WARNING, "No resource handlers configured for HttpService.");
 		}
 
-		// TODO: read context handlers from configuration file
-//		public Structr addResourceHandler(String contextPath, String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
-//
-//		ResourceHandler resourceHandler = new ResourceHandler();
-//		resourceHandler.setDirectoriesListed(directoriesListed);
-//		resourceHandler.setWelcomeFiles(welcomeFiles);
-//		resourceHandler.setResourceBase(resourceBase);
-//		ContextHandler staticResourceHandler = new ContextHandler();
-//		staticResourceHandler.setContextPath(contextPath);
-//		staticResourceHandler.setHandler(resourceHandler);
-//
-//		this.resourceHandler.add(staticResourceHandler);
 		return resourceHandlers;
 	}
 
-	private Map<String, ServletHolder> collectServlets(final StructrConf properties) {
+	private Map<String, ServletHolder> collectServlets(final StructrConf properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
 		final String servletNameList = properties.getProperty(SERVLETS, "");
@@ -576,39 +557,32 @@ public class HttpService implements RunnableService {
 
 			for (String servletName : servletNameList.split("[ \\t]+")) {
 
-				try {
+				final String servletClassName = properties.getProperty(servletName.concat(".class"));
+				if (servletClassName != null) {
 
-					final String servletClassName = properties.getProperty(servletName.concat(".class"));
-					if (servletClassName != null) {
+					final String servletPath = properties.getProperty(servletName.concat(".path"));
+					if (servletPath != null) {
 
-						final String servletPath = properties.getProperty(servletName.concat(".path"));
-						if (servletPath != null) {
+						final HttpServiceServlet servlet = (HttpServiceServlet) Class.forName(servletClassName).newInstance();
+						servlet.getConfig().initializeFromProperties(properties, servletName, resourceProviders);
 
-							final HttpServiceServlet servlet = (HttpServiceServlet) Class.forName(servletClassName).newInstance();
-							servlet.getConfig().initializeFromProperties(properties, servletName, resourceProviders);
+						if (servletPath.endsWith("*")) {
 
-							if (servletPath.endsWith("*")) {
-
-								servlets.put(servletPath, new ServletHolder(servlet));
-
-							} else {
-
-								servlets.put(servletPath + "/*", new ServletHolder(servlet));
-							}
+							servlets.put(servletPath, new ServletHolder(servlet));
 
 						} else {
 
-							logger.log(Level.WARNING, "Unable to register servlet {0}, missing {0}.path", servletName);
+							servlets.put(servletPath + "/*", new ServletHolder(servlet));
 						}
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to register servlet {0}, missing {0}.class", servletName);
+						logger.log(Level.WARNING, "Unable to register servlet {0}, missing {0}.path", servletName);
 					}
 
-				} catch (Throwable t) {
+				} else {
 
-					logger.log(Level.WARNING, "Unable to initialize servlet {0}: {1}", new Object[]{servletName, t.getMessage()});
+					logger.log(Level.WARNING, "Unable to register servlet {0}, missing {0}.class", servletName);
 				}
 			}
 
@@ -654,7 +628,6 @@ public class HttpService implements RunnableService {
 			for (String listenerClass : listenerClasses) {
 
 				try {
-
 					final HttpServiceLifecycleListener listener = (HttpServiceLifecycleListener) Class.forName(listenerClass).newInstance();
 					switch (event) {
 
@@ -667,8 +640,9 @@ public class HttpService implements RunnableService {
 							break;
 					}
 
-				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Unable to call HttpServiceLifecycleListener {0}: {1}", new Object[]{listenerClass, t.getMessage()});
+				} catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+
+					logger.log(Level.SEVERE, "Unable to send lifecycle event to listener " + listenerClass, ex);
 				}
 			}
 		}
