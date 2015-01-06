@@ -177,7 +177,7 @@ function wsConnect() {
                 } else {
 
                     var msgClass;
-                    var codeStr = code.toString();
+                    var codeStr = code ? code.toString() : '';
 
                     if (codeStr.startsWith('2')) {
                         msgClass = 'success';
