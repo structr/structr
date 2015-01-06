@@ -6,11 +6,11 @@ The path part after the "#" is related to the main menu section in Structr, see 
     
 This page shows a login dialog with username and password.
 
-<img src="/Structr Login(1).png_thumb_300x169?2" class="zoomable">
+<img src="/Structr Login(1).png_thumb_300x169?2" class="zoomable"/>
 
 The initial credentials are admin/admin. If you entered invalid credentials, i.e. a wrong combination of username and password, you get the following error message:
 
-<img src="/Structr Login(3).png_thumb_300x169?2" class="zoomable">
+<img src="/Structr Login(3).png_thumb_300x169?2" class="zoomable"/>
 
 <p class="warning">Please make sure to change your password directly after login.</p>            
 
