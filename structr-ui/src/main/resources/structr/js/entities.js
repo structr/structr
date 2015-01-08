@@ -1378,7 +1378,7 @@ function addPrincipal(entity, principal, permissions) {
     $('#newPrincipal option[value="' + principal.id + '"]').remove();
     $('#new').after('<tr class="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
-    var row = $('._' + principal.id);
+    var row = $('._' + principal.id, dialogText);
 
     ['read', 'write', 'delete', 'accessControl'].forEach(function (perm) {
 
@@ -1401,7 +1401,7 @@ function addPrincipal(entity, principal, permissions) {
                 sw.prop('disabled', null);
             }, 200);
             if (!$('input:checked', row).length) {
-                $('#newPrincipal').append('<option value="' + row.attr('id').substring(1) + '">' + $('.name', row).text() + '</option>');
+                $('#newPrincipal').append('<option value="' + row.attr('class').substring(1) + '">' + $('.name', row).text() + '</option>');
                 row.remove();
             }
             var rec = $('#recursive', dialogText).is(':checked');

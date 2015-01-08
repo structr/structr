@@ -124,7 +124,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	/**
-	 * Called when a relationship of this combinedType is instatiated. Please note that
+	 * Called when a relationship of this combinedType is instantiated. Please note that
 	 * a relationship can (and will) be instantiated several times during a
 	 * normal rendering turn.
 	 */
@@ -723,6 +723,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				}
 				return value;
 		}
+	}
+	
+	@Override
+	public Object invokeMethod(String methodName, Map<String, Object> parameters) throws FrameworkException {
+		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");
 	}
 
 	// ----- protected methods -----

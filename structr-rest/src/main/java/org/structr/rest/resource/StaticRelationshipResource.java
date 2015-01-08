@@ -254,40 +254,8 @@ public class StaticRelationshipResource extends SortableResource {
 
 			if (entity != null && entityType != null && methodName != null) {
 
-				for (final Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
-
-					if (methodName.equals(method.getName())) {
-
-						if (method.getAnnotation(Export.class) != null) {
-
-							try {
-								
-								// First, try if single parameter is a map, then directly invoke method
-								if (method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(Map.class)) {
-									return (RestMethodResult) method.invoke(entity, propertySet);
-								}
-								
-								final Object[] parameters = extractParameters(propertySet, method.getParameterTypes());
-								return (RestMethodResult) method.invoke(entity, parameters);
-
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
-
-								if (t instanceof FrameworkException) {
-
-									throw (FrameworkException) t;
-
-								} else if (t.getCause() instanceof FrameworkException) {
-
-									throw (FrameworkException) t.getCause();
-
-								} else {
-
-									logger.log(Level.WARNING, "Unable to call RPC method {0}: {1}", new Object[]{methodName, t.getMessage()});
-								}
-							}
-						}
-					}
-				}
+				return (RestMethodResult) entity.invokeMethod(methodName, propertySet);
+				
 			}
 
 		}
@@ -362,92 +330,4 @@ public class StaticRelationshipResource extends SortableResource {
 		return null;
 	}
 
-	private Object[] extractParameters(Map<String, Object> properties, Class[] parameterTypes) {
-
-		final List<Object> values = new ArrayList<>(properties.values());
-		final List<Object> parameters = new ArrayList<>();
-		int index = 0;
-
-		// only try to convert when both lists have equal size
-		if (values.size() == parameterTypes.length) {
-
-			for (final Class parameterType : parameterTypes) {
-
-				final Object value = convert(values.get(index++), parameterType);
-				if (value != null) {
-
-					parameters.add(value);
-				}
-			}
-		}
-
-		return parameters.toArray(new Object[0]);
-	}
-
-	/*
-	 * Tries to convert the given value into an object
-	 * of the given type, using an intermediate type
-	 * of String for the conversion.
-	 */
-	private Object convert(Object value, Class type) {
-
-		Object convertedObject = null;
-
-		if (type.equals(String.class)) {
-
-			// strings can be returned immediately
-			return value.toString();
-
-		} else if (value instanceof Number) {
-
-			Number number = (Number) value;
-
-			if (type.equals(Integer.class) || type.equals(Integer.TYPE)) {
-				return number.intValue();
-
-			} else if (type.equals(Long.class) || type.equals(Long.TYPE)) {
-				return number.longValue();
-
-			} else if (type.equals(Double.class) || type.equals(Double.TYPE)) {
-				return number.doubleValue();
-
-			} else if (type.equals(Float.class) || type.equals(Float.TYPE)) {
-				return number.floatValue();
-
-			} else if (type.equals(Short.class) || type.equals(Integer.TYPE)) {
-				return number.shortValue();
-
-			} else if (type.equals(Byte.class) || type.equals(Byte.TYPE)) {
-				return number.byteValue();
-
-			}
-
-		} else if (value instanceof List) {
-
-			return value;
-
-		} else if (value instanceof Map) {
-			return value;
-		}
-
-		// fallback
-		try {
-
-			Method valueOf = type.getMethod("valueOf", String.class);
-			if (valueOf != null) {
-
-				convertedObject = valueOf.invoke(null, value.toString());
-
-			} else {
-
-				logger.log(Level.WARNING, "Unable to find static valueOf method for type {0}", type);
-			}
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Unable to deserialize value {0} of type {1}, Class has no static valueOf method.", new Object[]{value, type});
-		}
-
-		return convertedObject;
-	}
 }
