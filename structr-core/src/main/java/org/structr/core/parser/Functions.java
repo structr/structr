@@ -203,12 +203,13 @@ public class Functions {
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
-	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(node1, node2 [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')} (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(entity1, entity2 [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')} (ignores direction of the relationship)";
 	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP = "Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP = "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(node1, node2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(entity1, entity2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
 	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS = "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP = "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -3377,6 +3378,51 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS;
+			}
+		});
+		functions.put("create_relationship", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+					final String relType = (String) sources[2];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
+
+					if (relClass != null) {
+
+						StructrApp.getInstance().create(sourceNode, targetNode, relClass);
+
+					} else {
+
+						return "Error: Unknown relationship type";
+					}
+
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_CREATE_RELATIONSHIP;
 			}
 		});
 		functions.put("grant", new Function<Object, Object>() {
