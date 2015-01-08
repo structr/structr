@@ -3408,7 +3408,7 @@ public class Functions {
 
 					if (relClass != null) {
 
-						StructrApp.getInstance().create(sourceNode, targetNode, relClass);
+						StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relClass);
 
 					} else {
 
