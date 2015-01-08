@@ -868,18 +868,84 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid relationship type", "OWNS",              testOne.replaceVariables(securityContext, ctx, "${get(outgoing(this, 'OWNS'), 'relType')}"));
 
 			// has_relationships
-			assertEquals("Invalid result of has_relationship", "true",  testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
-			assertEquals("Invalid result of has_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'vg6hj36tfvgth4r')}"));
+			assertEquals("Invalid result of has_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, this)}"));
+
 			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')))}"));
-			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
 			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT')}"));
-			assertEquals("Invalid result of has_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'uzlasdfh')}"));
+			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_relationship", "true",  testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
+			assertEquals("Invalid result of has_relationship", "true",  testTwo.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
+
+			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
 			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
 
+			assertEquals("Invalid result of has_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
 
-			// get_relationships
-			// CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh
-			assertEquals("Invalid number of relationships", "0",  testOne.replaceVariables(securityContext, ctx, "${size(get_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this))}"));
+			// has_incoming_relationship
+			assertEquals("Invalid result of has_incoming_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, this)}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this)}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')))}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT')}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "true",  testTwo.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
+			assertEquals("Invalid result of has_incoming_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestThree', 'name', 'testThree_name')), this)}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'OWNS')}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_incoming_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			// has_outgoing_relationship (since has_outgoing_relationship is just the inverse method to has_outgoing_relationship we can basically reuse the tests and just invert the result - except for the always-false or always-true tests)
+			assertEquals("Invalid result of has_outgoing_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, this)}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this)}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')))}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT')}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  testTwo.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this)}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'OWNS')}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", testOne.replaceVariables(securityContext, ctx, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			// get_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
+			assertEquals("Invalid number of relationships", "0",  testOne.replaceVariables(securityContext, ctx, "${size(get_relationships(this, this))}"));
 
 			// non-existent relType between nodes which have a relationship
 			assertEquals("Invalid number of relationships", "0",  testOne.replaceVariables(securityContext, ctx, "${size(get_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this, 'THIS_DOES_NOT_EXIST'))}"));
@@ -891,8 +957,8 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid number of relationships", "1",  testTwo.replaceVariables(securityContext, ctx, "${size(get_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), 'IS_AT'))}"));
 
 
-			// get_incoming_relationships
-			assertEquals("Invalid number of incoming relationships", "0",  testOne.replaceVariables(securityContext, ctx, "${size(get_incoming_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))))}"));
+			// get_incoming_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
+			assertEquals("Invalid number of incoming relationships", "0",  testOne.replaceVariables(securityContext, ctx, "${size(get_incoming_relationships(this, this))}"));
 
 			assertEquals("Invalid number of incoming relationships", "0",  testOne.replaceVariables(securityContext, ctx, "${size(get_incoming_relationships(this, first(find('TestTwo', 'name', 'testTwo_name'))))}"));
 			assertEquals("Invalid number of incoming relationships", "1",  testOne.replaceVariables(securityContext, ctx, "${size(get_incoming_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this))}"));
@@ -906,7 +972,7 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid relationship type", "OWNS",            testThree.replaceVariables(securityContext, ctx, "${get(first(get_incoming_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))), 'relType')}"));
 
 
-			// get_outgoing_relationships
+			// get_outgoing_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
 			assertEquals("Invalid number of outgoing relationships", "0",  testOne.replaceVariables(securityContext, ctx, "${size(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this))}"));
 
 			assertEquals("Invalid number of outgoing relationships", "0",  testTwo.replaceVariables(securityContext, ctx, "${size(get_outgoing_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))))}"));

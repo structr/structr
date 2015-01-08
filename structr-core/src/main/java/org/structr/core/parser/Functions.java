@@ -203,10 +203,10 @@ public class Functions {
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
-	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(from, to [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(node1, node2 [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')} (ignores direction of the relationship)";
 	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP = "Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP = "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(from, to [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(node1, node2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
 	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS = "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
 
@@ -3066,27 +3066,22 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-							if (rel.getTargetNode().equals(targetNode)) {
+							if ( (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
 								return true;
 							}
 						}
 
 					} else if (sources.length == 3) {
 
+
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 						final String relType = (String) sources[2];
-						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
 
-						if (relClass != null) {
-							
-							for (final Object r : sourceNode.getRelationships(relClass)) {
+						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-								final AbstractRelationship rel = (AbstractRelationship) r;
-								
-								if (rel.getTargetNode().equals(targetNode)) {
-									return true;
-								}
+							if ( rel.getRelType().name().equals(relType) && ((rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode))) ) {
+								return true;
 							}
-
 						}
 						
 					}
@@ -3128,25 +3123,20 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-							if (rel.getTargetNode().equals(targetNode)) {
+							if (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
 								return true;
 							}
 						}
 
 					} else if (sources.length == 3) {
 
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 						final String relType = (String) sources[2];
-						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
 
-						if (relClass != null) {
-							
-							for (final Object r : sourceNode.getOutgoingRelationships(relClass)) {
+						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-								final AbstractRelationship rel = (AbstractRelationship) r;
-								
-								if (rel.getTargetNode().equals(targetNode)) {
-									return true;
-								}
+							if (rel.getRelType().name().equals(relType) && rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+								return true;
 							}
 						}
 						
@@ -3189,25 +3179,20 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
-							if (rel.getTargetNode().equals(targetNode)) {
+							if (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) {
 								return true;
 							}
 						}
 
 					} else if (sources.length == 3) {
 
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 						final String relType = (String) sources[2];
-						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(targetNode.getType(), relType, sourceNode.getType());
 
-						if (relClass != null) {
-							
-							for (final Object r : sourceNode.getIncomingRelationships(relClass)) {
+						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
-								final AbstractRelationship rel = (AbstractRelationship) r;
-								
-								if (rel.getTargetNode().equals(sourceNode)) {
-									return true;
-								}
+							if (rel.getRelType().name().equals(relType) && (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
+								return true;
 							}
 						}
 						
