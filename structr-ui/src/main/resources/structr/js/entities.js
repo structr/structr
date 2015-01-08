@@ -1378,7 +1378,7 @@ function addPrincipal(entity, principal, permissions) {
     $('#newPrincipal option[value="' + principal.id + '"]').remove();
     $('#new').after('<tr class="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
-    var row = $('._' + principal.id);
+    var row = $('._' + principal.id, dialogText);
 
     ['read', 'write', 'delete', 'accessControl'].forEach(function (perm) {
 
