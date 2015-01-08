@@ -655,10 +655,10 @@ public class SchemaHelper {
 			src.append("\n\t@Export\n");
 			src.append("\tpublic RestMethodResult ");
 			src.append(action.getName());
-			src.append("() throws FrameworkException {\n\n");
+			src.append("(final Map<String, Object> parameters) throws FrameworkException {\n\n");
 
 			src.append("\t\t");
-			src.append(action.getSource("this"));
+			src.append(action.getSource("this", true));
 			src.append(";\n\n");
 
 			src.append("\t\treturn new RestMethodResult(200);\n");

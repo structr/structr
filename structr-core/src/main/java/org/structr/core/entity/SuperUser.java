@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.AccessControllable;
@@ -445,6 +446,11 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public Object invokeMethod(String methodName, Map<String, Object> parameters) throws FrameworkException {
 		return null;
 	}
 }
