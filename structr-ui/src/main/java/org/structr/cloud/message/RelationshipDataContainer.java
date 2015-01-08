@@ -45,6 +45,10 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 	public RelationshipDataContainer() {}
 
 	public RelationshipDataContainer(final RelationshipInterface relationship, final int sequenceNumber) throws FrameworkException {
+		this(relationship, sequenceNumber, relationship.getRelationship().getPropertyKeys());
+	}
+
+	public RelationshipDataContainer(final RelationshipInterface relationship, final int sequenceNumber, final Iterable<String> propertyKeys) throws FrameworkException {
 
 		super(sequenceNumber);
 
@@ -54,7 +58,7 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 		sourceEndNodeId   = relationship.getTargetNode().getUuid();
 		relationshipId    = relationship.getUuid();
 
-		collectProperties(relationship.getRelationship());
+		collectProperties(relationship.getRelationship(), propertyKeys);
 	}
 
 	/**

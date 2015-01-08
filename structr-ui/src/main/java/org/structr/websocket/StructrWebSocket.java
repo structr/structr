@@ -66,7 +66,7 @@ public class StructrWebSocket implements WebSocketListener {
 	private PropertyKey idProperty = null;
 	private HttpServletRequest request = null;
 	private SecurityContext securityContext = null;
-	private SynchronizationController syncController = null;
+	private WebsocketController syncController = null;
 	private Map<String, FileUploadHandler> uploads = null;
 	private Authenticator authenticator = null;
 	private String pagePath = null;
@@ -75,7 +75,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public StructrWebSocket() {}
 
-	public StructrWebSocket(final SynchronizationController syncController, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
+	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
 
 		this.uploads = new LinkedHashMap<>();
 		this.syncController = syncController;

@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.cloud.transmission.PushTransmission;
-import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -56,9 +55,9 @@ public class PushNodesTestingCommand extends CloudServiceCommand implements Main
 			try (final Tx tx = app.tx()) {
 
 				final NodeInterface entity = app.nodeQuery().andName(name).getFirst();
-				if (entity != null && entity instanceof Syncable) {
+				if (entity != null) {
 
-					CloudService.doRemote(new PushTransmission((Syncable)entity, true, "admin", "admin", host, 54555), new LoggingListener());
+					CloudService.doRemote(new PushTransmission(entity, true, "admin", "admin", host, 54555), new LoggingListener());
 				}
 
 				tx.success();

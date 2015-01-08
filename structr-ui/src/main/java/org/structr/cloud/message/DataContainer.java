@@ -58,15 +58,6 @@ public abstract class DataContainer extends Message {
 	}
 
 	// ----- protected methods -----
-	protected void collectProperties(final PropertyContainer propertyContainer) {
-
-		for (String key : propertyContainer.getPropertyKeys()) {
-
-			Object value = propertyContainer.getProperty(key);
-			properties.put(key, value);
-		}
-	}
-
 	@Override
 	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
 
@@ -96,4 +87,17 @@ public abstract class DataContainer extends Message {
 			SyncCommand.serialize(outputStream, entry.getValue());
 		}
 	}
+
+	protected void collectProperties(final PropertyContainer propertyContainer, final Iterable<String> propertyKeys) {
+
+		for (String key : propertyKeys) {
+
+			Object value = propertyContainer.getProperty(key);
+			if (value != null) {
+
+				properties.put(key, value);
+			}
+		}
+	}
+
 }

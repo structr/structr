@@ -16,88 +16,91 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cloud.transmission;
+package org.structr.cloud.sync;
 
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
-import org.structr.cloud.ExportSet;
+import org.structr.cloud.message.Delete;
 import org.structr.cloud.message.FileNodeChunk;
 import org.structr.cloud.message.FileNodeDataContainer;
 import org.structr.cloud.message.FileNodeEndChunk;
 import org.structr.cloud.message.NodeDataContainer;
-import org.structr.cloud.message.PushNodeRequestContainer;
 import org.structr.cloud.message.RelationshipDataContainer;
+import org.structr.cloud.transmission.AbstractTransmission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.ModificationEvent;
+import org.structr.core.property.PropertyKey;
 import org.structr.dynamic.File;
 
 /**
  *
  * @author Christian Morgner
  */
-public class PushTransmission extends AbstractTransmission<Boolean> {
+public class SyncTransmission extends AbstractTransmission<Boolean> {
 
-	private ExportSet exportSet = null;
-	private int sequenceNumber  = 0;
+	private List<ModificationEvent> transaction = null;
 
-	public PushTransmission(final GraphObject source, final boolean recursive, final String userName, final String password, final String remoteHost, final int port) {
-
-		super(userName, password, remoteHost, port);
-
-		// create export set before first progress callback is called
-		// so the client gets the correct total from the beginning
-		exportSet = ExportSet.getInstance(source, recursive);
-	}
-
-	public PushTransmission(final String userName, final String password, final String remoteHost, final int port) {
+	public SyncTransmission(final List<ModificationEvent> transaction, final String userName, final String password, final String remoteHost, final int port) {
 
 		super(userName, password, remoteHost, port);
 
-		exportSet = ExportSet.getInstance();
-	}
-
-	public ExportSet getExportSet() {
-		return exportSet;
+		this.transaction = transaction;
 	}
 
 	@Override
 	public int getTotalSize() {
-		return exportSet.getTotalSize() + 1;
+		return transaction.size();
 	}
 
 	@Override
 	public Boolean doRemote(final CloudConnection client) throws IOException, FrameworkException {
 
-		// send type of request
-		client.send(new PushNodeRequestContainer());
+		int count = 0;
 
-		// reset sequence number
-		sequenceNumber = 0;
+		for (final ModificationEvent event : transaction) {
 
-		// send child nodes when recursive sending is requested
-		final Set<NodeInterface> nodes = exportSet.getNodes();
-		for (final NodeInterface n : nodes) {
+			final GraphObject graphObject  = event.getGraphObject();
 
-			if (n instanceof File) {
-				sendFile(client, (File)n, CloudService.CHUNK_SIZE);
+			if (event.isDeleted()) {
+
+				final String id = event.getRemovedProperties().get(GraphObject.id);
+				if (id != null) {
+
+					client.send(new Delete(id));
+				}
 
 			} else {
 
-				client.send(new NodeDataContainer(n, sequenceNumber++));
-			}
-		}
+				final Set<String> propertyKeys = new LinkedHashSet<>();
 
-		// send relationships
-		Set<RelationshipInterface> rels = exportSet.getRelationships();
-		for (RelationshipInterface r : rels) {
+				// collect all possibly modified property keys
+				mapPropertyKeysToStrings(propertyKeys, event.getNewProperties().keySet());
+				mapPropertyKeysToStrings(propertyKeys, event.getModifiedProperties().keySet());
+				mapPropertyKeysToStrings(propertyKeys, event.getRemovedProperties().keySet());
 
-			if (nodes.contains(r.getSourceNode()) && nodes.contains(r.getTargetNode())) {
-				client.send(new RelationshipDataContainer(r, sequenceNumber++));
+				if (graphObject.isNode()) {
+
+					if (graphObject instanceof File) {
+
+						sendFile(client, (File)graphObject, CloudService.CHUNK_SIZE);
+
+					} else {
+
+						client.send(new NodeDataContainer(graphObject.getSyncNode(), count, propertyKeys));
+					}
+
+				} else {
+
+					client.send(new RelationshipDataContainer(graphObject.getSyncRelationship(), count, propertyKeys));
+				}
 			}
+
+			count++;
 		}
 
 		// wait for end of transmission
@@ -130,5 +133,13 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 
 		// mark end of file with special chunk
 		client.send(new FileNodeEndChunk(container.getSourceNodeId(), container.getFileSize()));
+	}
+
+	// ----- private methods -----
+	private void mapPropertyKeysToStrings(final Set<String> propertyKeys, final Set<PropertyKey> source) {
+
+		for (final PropertyKey key : source) {
+			propertyKeys.add(key.dbName());
+		}
 	}
 }

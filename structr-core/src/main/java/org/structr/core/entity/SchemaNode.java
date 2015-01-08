@@ -30,19 +30,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
-import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.relationship.SchemaRelationship;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -57,7 +54,7 @@ import org.structr.schema.parser.Validator;
  *
  * @author Christian Morgner
  */
-public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
+public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 	public static final Property<List<SchemaNode>>  relatedTo        = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
 	public static final Property<List<SchemaNode>>  relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
@@ -337,11 +334,11 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
 	}
 
-	// ----- interface Syncable -----
+	// ----- interface GraphObject -----
 	@Override
-	public List<Syncable> getSyncData() {
+	public List<GraphObject> getSyncData() {
 
-		final List<Syncable> data = new LinkedList<>();
+		final List<GraphObject> data = super.getSyncData();
 
 		// outgoing relationships
 		for (final SchemaRelationship rel : getOutgoingRelationships(SchemaRelationship.class)) {
@@ -354,35 +351,5 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		}
 
 		return data;
-	}
-
-	@Override
-	public boolean isNode() {
-		return true;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return false;
-	}
-
-	@Override
-	public NodeInterface getSyncNode() {
-		return this;
-	}
-
-	@Override
-	public RelationshipInterface getSyncRelationship() {
-		return null;
-	}
-
-	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-
-		// update all properties that exist in the source map
-		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
-
-			setProperty(entry.getKey(), entry.getValue());
-		}
 	}
 }

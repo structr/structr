@@ -52,14 +52,14 @@ import org.structr.websocket.message.WebSocketMessage;
  *
  * @author Christian Morgner
  */
-public class SynchronizationController implements StructrTransactionListener {
+public class WebsocketController implements StructrTransactionListener {
 
-	private static final Logger logger = Logger.getLogger(SynchronizationController.class.getName());
+	private static final Logger logger = Logger.getLogger(WebsocketController.class.getName());
 
 	private final Set<StructrWebSocket> clients = new ConcurrentHashSet<>();
 	private Gson gson = null;
 
-	public SynchronizationController(final Gson gson) {
+	public WebsocketController(final Gson gson) {
 
 		this.gson = gson;
 

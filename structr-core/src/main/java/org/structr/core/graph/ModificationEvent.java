@@ -29,24 +29,23 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-
-
 public interface ModificationEvent {
 
 	public boolean isNode();
-	
+
 	public int getStatus();
-	
+
 	public boolean isDeleted();
 	public boolean isModified();
 	public boolean isCreated();
-	
+
 	public GraphObject getGraphObject();
 	public RelationshipType getRelationshipType();
 	public String getUuid();
 
+	public PropertyMap getNewProperties();
 	public PropertyMap getModifiedProperties();
 	public PropertyMap getRemovedProperties();
-	
+
 	public Map<String, Object> getData(final SecurityContext securityContext) throws FrameworkException;
 }
