@@ -47,6 +47,11 @@ public class ActionContext {
 		this(null, null);
 	}
 
+	public ActionContext(final Map<String, Object> parameters) {
+		this();
+		this.tmpStore.putAll(parameters);
+	}
+
 	public ActionContext(final ActionContext other) {
 
 		this.tmpStore    = other.tmpStore;

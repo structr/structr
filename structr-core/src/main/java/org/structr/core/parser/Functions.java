@@ -3252,28 +3252,23 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-							if (rel.getTargetNode().equals(targetNode)) {
+							if ( (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
 								list.add(rel);
 							}
 						}
 
 					} else if (sources.length == 3) {
 
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 						final String relType = (String) sources[2];
-						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
 
-						if (relClass != null) {
-							
-							for (final Object r : sourceNode.getRelationships(relClass)) {
+						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-								final AbstractRelationship rel = (AbstractRelationship) r;
-								
-								if (rel.getTargetNode().equals(targetNode)) {
-									list.add(rel);
-								}
+							if ( rel.getRelType().name().equals(relType) && ((rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode))) ) {
+								list.add(rel);
 							}
 						}
-						
+
 					}
 				}
 
@@ -3312,30 +3307,25 @@ public class Functions {
 
 					if (sources.length == 2) {
 
-						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
+						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-							if (rel.getTargetNode().equals(targetNode)) {
+							if (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
 								list.add(rel);
 							}
 						}
 
 					} else if (sources.length == 3) {
 
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 						final String relType = (String) sources[2];
-						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
 
-						if (relClass != null) {
-							
-							for (final Object r : sourceNode.getOutgoingRelationships(relClass)) {
+						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-								final AbstractRelationship rel = (AbstractRelationship) r;
-								
-								if (rel.getTargetNode().equals(targetNode)) {
-									list.add(rel);
-								}
+							if (rel.getRelType().name().equals(relType) && rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+								list.add(rel);
 							}
 						}
-						
+
 					}
 				}
 
@@ -3376,28 +3366,23 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
-							if (rel.getTargetNode().equals(sourceNode)) {
+							if (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) {
 								list.add(rel);
 							}
 						}
 
 					} else if (sources.length == 3) {
 
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 						final String relType = (String) sources[2];
-						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(targetNode.getType(), relType, sourceNode.getType());
 
-						if (relClass != null) {
-							
-							for (final Object r : sourceNode.getIncomingRelationships(relClass)) {
+						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
-								final AbstractRelationship rel = (AbstractRelationship) r;
-								
-								if (rel.getTargetNode().equals(targetNode)) {
-									list.add(rel);
-								}
+							if (rel.getRelType().name().equals(relType) && (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
+								list.add(rel);
 							}
 						}
-						
+
 					}
 				}
 

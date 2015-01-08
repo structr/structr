@@ -73,13 +73,21 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	}
 
 	public String getSource(final String objVariable) {
+		return getSource(objVariable, false);
+	}
+
+	public String getSource(final String objVariable, final boolean includeParameters) {
 
 		final StringBuilder buf = new StringBuilder();
 
 		buf.append(Actions.class.getSimpleName());
 		buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
 		buf.append(replaceQuotes(call));
-		buf.append("}\")");
+		buf.append("}\"");
+		if (includeParameters) {
+			buf.append(", parameters");
+		}
+		buf.append(")");
 
 		return buf.toString();
 	}

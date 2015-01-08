@@ -720,12 +720,21 @@ var _Entities = {
                 keyIcon.addClass('donthide');
             }
 
-            keyIcon.on('click', function (e) {
-                e.stopPropagation();
-                Structr.dialog('Access Control and Visibility', function () {
-                }, function () {
-                });
+            _Entities.bindAccessControl(keyIcon, entity.id);
+        }
+    },
+    bindAccessControl: function(btn, id) {
 
+        btn.on('click', function (e) {
+            e.stopPropagation();
+            Structr.dialog('Access Control and Visibility', function() {
+            }, function() {
+                Command.get(id, function(entity) {
+                    _Crud.refreshRow(id, entity, entity.type);
+                });
+            });
+
+            Command.get(id, function(entity) {
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
                 dialogText.append('<h3>Visibility</h3>');
@@ -800,10 +809,10 @@ var _Entities = {
                     Command.get(pId, function (p) {
                         addPrincipal(entity, p, {'read': true});
                     });
-                });
-
+                });                
             });
-        }
+
+        });        
     },
     appendTextarea: function (el, entity, key, label, desc) {
         if (!el || !entity) {
@@ -813,8 +822,8 @@ var _Entities = {
         el.append('<div><button class="apply_' + key + '">Save</button></div>');
         var btn = $('.apply_' + key, el);
         btn.on('click', function () {
-            entity.setProperty(key, $('.' + key + '_', el).val(), false, function () {
-                log(key + ' successfully updated!', entity[key]);
+            Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
+                log(key + ' successfully updated!', obj[key]);
                 blinkGreen(btn);
                 _Pages.reloadPreviews();
             });
@@ -827,8 +836,8 @@ var _Entities = {
         el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div>');
         var btn = $('.save_' + key, el);
         btn.on('click', function () {
-            entity.setProperty(key, $('.' + key + '_', el).val(), false, function () {
-                log(key + ' successfully updated!', entity[key]);
+            Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
+                log(key + ' successfully updated!', obj[key]);
                 blinkGreen(btn);
                 _Pages.reloadPreviews();
             });
@@ -843,11 +852,11 @@ var _Entities = {
         _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
         sw.on('click', function (e) {
             e.stopPropagation();
-            entity.setProperty(key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function (obj) {
+            Command.setProperty(entity.id, key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function(obj) {
                 if (obj.id !== entity.id) {
                     return false;
                 }
-                _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
+                _Entities.changeBooleanAttribute(sw, obj[key], label[0], label[1]);
                 blinkGreen(sw);
                 return true;
             });
@@ -888,7 +897,7 @@ var _Entities = {
                 entity[key][subKey] = value;
             }
 
-            entity.setProperty(key, value, false, function () {
+            Command.setProperty(entity.id, key, value, false, function () {
                 blinkGreen($('.' + key + 'Select_chosen .chosen-single'));
             });
         });
@@ -1367,9 +1376,9 @@ var _Entities = {
 function addPrincipal(entity, principal, permissions) {
 
     $('#newPrincipal option[value="' + principal.id + '"]').remove();
-    $('#new').after('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
+    $('#new').after('<tr class="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
-    var row = $('#_' + principal.id);
+    var row = $('._' + principal.id);
 
     ['read', 'write', 'delete', 'accessControl'].forEach(function (perm) {
 

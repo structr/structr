@@ -239,7 +239,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 			if (newNode != null) {
 
-				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+				final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 				result.addHeader("Location", buildLocationHeader(newNode));
 
 				return result;
@@ -248,20 +248,26 @@ public class StaticRelationshipResource extends SortableResource {
 		} else {
 
 			// look for methods that have an @Export annotation
-			GraphObject entity = typedIdResource.getIdResource().getEntity();
-			Class entityType = typedIdResource.getEntityClass();
-			String methodName = typeResource.getRawType();
+			final GraphObject entity = typedIdResource.getIdResource().getEntity();
+			final Class entityType = typedIdResource.getEntityClass();
+			final String methodName = typeResource.getRawType();
 
 			if (entity != null && entityType != null && methodName != null) {
 
-				for (Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
+				for (final Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
 
 					if (methodName.equals(method.getName())) {
 
 						if (method.getAnnotation(Export.class) != null) {
 
 							try {
-								Object[] parameters = extractParameters(propertySet, method.getParameterTypes());
+								
+								// First, try if single parameter is a map, then directly invoke method
+								if (method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(Map.class)) {
+									return (RestMethodResult) method.invoke(entity, propertySet);
+								}
+								
+								final Object[] parameters = extractParameters(propertySet, method.getParameterTypes());
 								return (RestMethodResult) method.invoke(entity, parameters);
 
 							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
@@ -358,16 +364,16 @@ public class StaticRelationshipResource extends SortableResource {
 
 	private Object[] extractParameters(Map<String, Object> properties, Class[] parameterTypes) {
 
-		List<Object> values = new ArrayList<>(properties.values());
-		List<Object> parameters = new ArrayList<>();
+		final List<Object> values = new ArrayList<>(properties.values());
+		final List<Object> parameters = new ArrayList<>();
 		int index = 0;
 
 		// only try to convert when both lists have equal size
 		if (values.size() == parameterTypes.length) {
 
-			for (Class parameterType : parameterTypes) {
+			for (final Class parameterType : parameterTypes) {
 
-				Object value = convert(values.get(index++), parameterType);
+				final Object value = convert(values.get(index++), parameterType);
 				if (value != null) {
 
 					parameters.add(value);

@@ -542,6 +542,7 @@ public class SchemaHelper {
 		src.append("import ").append(Export.class.getName()).append(";\n");
 		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import ").append(List.class.getName()).append(";\n");
+		src.append("import ").append(Map.class.getName()).append(";\n");
 
 		if (hasUiClasses()) {
 			src.append("import org.structr.rest.RestMethodResult;\n");
@@ -729,7 +730,7 @@ public class SchemaHelper {
 
 		src.append("\tpublic static boolean ");
 		src.append(type.getMethod());
-		src.append("(final AbstractNode obj, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
+		src.append("(final AbstractNode obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
 		src.append("\t\tboolean error = !obj.isValid(errorBuffer);\n\n");
 
 		if (!actionList.isEmpty()) {

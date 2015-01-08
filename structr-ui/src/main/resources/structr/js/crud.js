@@ -1470,7 +1470,7 @@ var _Crud = {
                     _Crud.populateCell(id, key, type, item[key], cell);
                 });
             });
-            row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button></td>');
+            row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button><button class="security"><img src="icon/key.png"> Access Control</button></td>');
             _Crud.resize();
 
             $('.actions .edit', row).on('mouseup', function(event) {
@@ -1485,6 +1485,7 @@ var _Crud = {
                     _Crud.crudDelete(id);
                 }
             });
+            _Entities.bindAccessControl($('.actions .security', row), id);
         }
     },
     populateCell: function(id, key, type, value, cell) {

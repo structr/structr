@@ -102,38 +102,12 @@ function StructrApp(baseUrl) {
             var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
                 return s.trim();
             });
+            
             var id = btn.attr('data-structr-id');
             var container = $('[data-structr-id="' + id + '"]');
+            var data = s.collectData(btn, id, attrs);
             
             if (action === 'create') {
-                var data = {};
-                var form = btn.closest('form');
-                $.each(attrs, function(i, key) {
-                    var possibleFields;
-                    
-                    if (typeof suffix === 'string' && suffix.length) {
-                        // if a suffix is given, use only input elements with that suffix
-                        possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
-                    } else if (form && form.length) {
-                        // if we are in a form, try to find input elements in form only
-                        possibleFields = form.find('[data-structr-name="' + key + '"]');
-                    } else {
-                        possibleFields = $('[data-structr-name="' + key + '"]');
-                    }
-                    var val;
-                    if (possibleFields.length !== 1) {
-                        // none, or more than one field: try with type prefix
-                        possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
-                    }
-                    if (possibleFields.length !== 1) {
-                        // if still not found, try both, type prefix and suffix
-                        possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
-                    }
-                    val = possibleFields.val();
-                    // treat empty string as null
-                    val = (val === '') ? undefined : val;
-                    data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
-                });
                 s.create(type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
             } else if (action === 'edit') {
@@ -154,18 +128,59 @@ function StructrApp(baseUrl) {
 
             } else if (action === 'registration') {
                 s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
-
+            
             } else {
-                var data = {};
-                $.each(attrs, function(i, key) {
-                    var val = $('[data-structr-name="' + key + '"]').val();
-                    data[key] = val ? val.parseIfJSON() : val;
-                });
                 s.customAction(id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
+            
             }
         });
     },
+    this.collectData = function(btn, id, attrs) {
+        var a = btn.attr('data-structr-action').split(':');
+        var action = a[0], type = a[1], suffix = a[2];
+        var data = {};
+        var form = btn.closest('form');
+        var container = $('[data-structr-id="' + id + '"]');
+        $.each(attrs, function(i, key) {
+            var possibleFields;
 
+            if (typeof suffix === 'string' && suffix.length) {
+                // if a suffix is given, use only input elements with that suffix
+                possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
+            } else if (form && form.length) {
+                // if we are in a form, try to find input elements in form only
+                possibleFields = form.find('[data-structr-name="' + key + '"]');
+            } else {
+                if (container.length) {
+                    possibleFields = $('[data-structr-name="' + key + '"]', container);
+                } else {
+                    possibleFields = $('[data-structr-name="' + key + '"]');
+                }
+            }
+            var val;
+            if (possibleFields.length !== 1) {
+                // none, or more than one field: try with type prefix
+                if (container.length) {
+                    possibleFields = $('[data-structr-name="' + type + '.' + key + '"]', container);
+                } else {
+                    possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
+                }
+            }
+            if (possibleFields.length !== 1) {
+                // if still not found, try both, type prefix and suffix
+                if (container.length) {
+                    possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]', container);
+                } else {
+                    possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
+                }
+            }
+            val = possibleFields.val();
+            // treat empty string as null
+            val = (val === '') ? undefined : val;
+            data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
+        });
+        return data;
+    },
     this.editAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-id="' + id + '"]');
 
