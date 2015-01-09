@@ -26,7 +26,6 @@ import java.util.UUID;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.cloud.ExportSet;
-import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -77,10 +76,10 @@ public class PullNodeRequestContainer extends Message {
 			final App app = serverConnection.getApplicationContext();
 
 			// try node first, then relationship
-			Syncable syncable = (Syncable)app.nodeQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
+			GraphObject syncable = app.nodeQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
 			if (syncable == null) {
 
-				syncable = (Syncable)app.relationshipQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
+				syncable = app.relationshipQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
 			}
 
 			if (syncable != null) {

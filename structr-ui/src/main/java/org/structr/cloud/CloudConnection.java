@@ -49,7 +49,6 @@ import org.structr.cloud.message.RelationshipDataContainer;
 import org.structr.cloud.message.SyncableInfo;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
-import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -330,29 +329,24 @@ public class CloudConnection<T> extends Thread {
 			return null;
 		}
 
-		final PropertyMap properties             = PropertyMap.databaseTypeToJavaType(securityContext, nodeType, receivedNodeData.getProperties());
-		final String uuid                        = receivedNodeData.getSourceNodeId();
-		NodeInterface newOrExistingNode          = null;
+		final String uuid              = receivedNodeData.getSourceNodeId();
+		GraphObject newOrExistingNode  = app.get(nodeType, uuid);
 
-		final GraphObject existingCandidate = app.get(nodeType, uuid);
-		if (existingCandidate != null) {
-
-
-			newOrExistingNode = (NodeInterface) existingCandidate;
+		if (newOrExistingNode != null) {
 
 			// merge properties
-			((Syncable) newOrExistingNode).updateFromPropertyMap(properties);
+			newOrExistingNode.updateFromPropertyMap(receivedNodeData.getProperties());
 
 		} else {
 
 			// create
+			final PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, nodeType, receivedNodeData.getProperties());
 			newOrExistingNode = app.create(nodeType, properties);
 		}
 
 		idMap.put(receivedNodeData.getSourceNodeId(), newOrExistingNode.getUuid());
 
-
-		return newOrExistingNode;
+		return (NodeInterface)newOrExistingNode;
 	}
 
 	public RelationshipInterface storeRelationship(final DataContainer receivedData) throws FrameworkException {
@@ -390,17 +384,17 @@ public class CloudConnection<T> extends Thread {
 			if (targetStartNode != null && targetEndNode != null) {
 
 				final RelationshipInterface existingCandidate = app.relationshipQuery().and(GraphObject.id, uuid).includeDeletedAndHidden().getFirst();
-				final PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, relType, receivedRelationshipData.getProperties());
 
 				if (existingCandidate != null) {
 
 					// merge properties?
-					((Syncable) existingCandidate).updateFromPropertyMap(properties);
+					existingCandidate.updateFromPropertyMap(receivedRelationshipData.getProperties());
 
 					return existingCandidate;
 
 				} else {
 
+					final PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, relType, receivedRelationshipData.getProperties());
 					return app.create(targetStartNode, targetEndNode, relType, properties);
 				}
 			}
@@ -410,6 +404,26 @@ public class CloudConnection<T> extends Thread {
 		logger.log(Level.WARNING, "Could not store relationship {0} -> {1}", new Object[]{sourceStartNodeId, sourceEndNodeId});
 
 		return null;
+	}
+
+	public void delete(final String uuid) throws FrameworkException {
+
+		final GraphObject obj = app.get(uuid);
+		if (obj != null) {
+
+			if (obj instanceof NodeInterface) {
+
+				app.delete((NodeInterface)obj);
+
+			} else {
+
+				app.delete((RelationshipInterface)obj);
+			}
+		}
+	}
+
+	public void deleteRelationship(final String uuid) throws FrameworkException {
+		app.delete((RelationshipInterface)app.get(uuid));
 	}
 
 	public void beginTransaction() {
@@ -541,7 +555,7 @@ public class CloudConnection<T> extends Thread {
 		}
 	}
 
-	public List<SyncableInfo> listSyncables(final Set<Class<Syncable>> types) throws FrameworkException {
+	public List<SyncableInfo> listSyncables(final Set<Class<? extends GraphObject>> types) throws FrameworkException {
 
 		final List<SyncableInfo> syncables = new LinkedList<>();
 
@@ -574,13 +588,13 @@ public class CloudConnection<T> extends Thread {
 			if (NodeInterface.class.isAssignableFrom(type)) {
 
 				for (final NodeInterface syncable : (Iterable<NodeInterface>) app.nodeQuery(type).getAsList()) {
-					syncables.add(new SyncableInfo((Syncable) syncable));
+					syncables.add(new SyncableInfo(syncable));
 				}
 
 			} else if (RelationshipInterface.class.isAssignableFrom(type)) {
 
 				for (final RelationshipInterface syncable : (Iterable<RelationshipInterface>) app.relationshipQuery(type).getAsList()) {
-					syncables.add(new SyncableInfo((Syncable) syncable));
+					syncables.add(new SyncableInfo(syncable));
 				}
 
 			}

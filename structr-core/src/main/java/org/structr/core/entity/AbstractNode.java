@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,6 +62,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -1083,7 +1085,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				// evaluate object value or return default
 				Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
-				
+
 				if (value != null) {
 					return value;
 				}
@@ -1099,7 +1101,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public Object invokeMethod(final String methodName, final Map<String, Object> propertySet) throws FrameworkException {
-		
+
 		for (final Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
 
 			if (methodName.equals(method.getName())) {
@@ -1134,11 +1136,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 			}
 		}
-		
+
 		return null;
 
 	}
-	
+
 	private Object[] extractParameters(Map<String, Object> properties, Class[] parameterTypes) {
 
 		final List<Object> values = new ArrayList<>(properties.values());
@@ -1226,5 +1228,51 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 		return convertedObject;
-	}	
+	}
+
+	// ----- Cloud synchronization and replication -----
+	@Override
+	public List<GraphObject> getSyncData() {
+		return new ArrayList<>(); // provide a basis for super.getSyncData() calls
+	}
+
+	@Override
+	public boolean isNode() {
+		return true;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return this;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		throw new ClassCastException(this.getClass() + " cannot be cast to org.structr.core.graph.RelationshipInterface");
+	}
+
+	@Override
+	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
+
+		// update all properties that exist in the source map
+		for (final Entry<String, Object> entry : properties.entrySet()) {
+
+			final String key = entry.getKey();
+			final Object val = entry.getValue();
+
+			if (val != null) {
+
+				getNode().setProperty(key, val);
+
+			} else {
+
+				getNode().removeProperty(key);
+			}
+		}
+	}
 }

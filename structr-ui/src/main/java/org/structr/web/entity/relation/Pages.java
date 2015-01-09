@@ -18,14 +18,7 @@
  */
 package org.structr.web.entity.relation;
 
-import java.util.Collections;
-import java.util.List;
-import org.structr.common.Syncable;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.OneToMany;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.dom.Page;
 
@@ -33,7 +26,7 @@ import org.structr.web.entity.dom.Page;
  *
  * @author Axel Morgner
  */
-public class Pages extends OneToMany<Site, Page> implements Syncable {
+public class Pages extends OneToMany<Site, Page> {
 
 	@Override
 	public Class<Site> getSourceType() {
@@ -48,35 +41,5 @@ public class Pages extends OneToMany<Site, Page> implements Syncable {
 	@Override
 	public String name() {
 		return "CONTAINS";
-	}
-
-	// ----- interface Syncable -----
-	@Override
-	public List<Syncable> getSyncData() {
-		return Collections.emptyList();
-	}
-
-	@Override
-	public boolean isNode() {
-		return false;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return true;
-	}
-
-	@Override
-	public NodeInterface getSyncNode() {
-		return null;
-	}
-
-	@Override
-	public RelationshipInterface getSyncRelationship() {
-		return this;
-	}
-
-	@Override
-	public void updateFromPropertyMap(PropertyMap properties) throws FrameworkException {
 	}
 }

@@ -61,7 +61,7 @@ public class PushSchemaCommand extends AbstractCommand {
 			try (final Tx tx = app.tx()) {
 
 				// create push transmission to be filled later
-				final PushTransmission tms = new PushTransmission(username, password, host, port.intValue());
+				final PushTransmission tms = new PushTransmission();
 
 				for (final SchemaNode node : app.nodeQuery(SchemaNode.class).getAsList()) {
 
@@ -75,7 +75,7 @@ public class PushSchemaCommand extends AbstractCommand {
 				}
 
 				// push schema
-				CloudService.doRemote(tms, new WebsocketProgressListener(getWebSocket(), key));
+				CloudService.doRemote(tms, username, password, host, port.intValue(), new WebsocketProgressListener(getWebSocket(), key));
 
 				tx.success();
 

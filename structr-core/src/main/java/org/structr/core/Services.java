@@ -505,15 +505,14 @@ public class Services {
 
 			if (service.isVital()) {
 
-				logger.log(Level.SEVERE, "Vital service {0} failed to start with {1}, aborting.", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
+				logger.log(Level.SEVERE, "Vital service {0} failed to start: {1}. Aborting", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
 
 				// hard(est) exit
-				System.err.println("Vital service " + service.getClass().getSimpleName() + " failed to start with " + t.getMessage() + ", aborting.");
 				System.exit(1);
 
 			} else {
 
-				logger.log(Level.SEVERE, "Service {0} failed to start with {1}.", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
+				logger.log(Level.SEVERE, "Service {0} failed to start: {1}.", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
 			}
 		}
 

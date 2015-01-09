@@ -35,7 +35,6 @@ import org.structr.core.graph.SyncCommand;
 public abstract class DataContainer extends Message {
 
 	protected Map<String, Object> properties = new LinkedHashMap<>();
-	protected int synchronizationMode        = 0;
 	protected int sequenceNumber             = 0;
 
 	public DataContainer() {}
@@ -58,20 +57,10 @@ public abstract class DataContainer extends Message {
 	}
 
 	// ----- protected methods -----
-	protected void collectProperties(final PropertyContainer propertyContainer) {
-
-		for (String key : propertyContainer.getPropertyKeys()) {
-
-			Object value = propertyContainer.getProperty(key);
-			properties.put(key, value);
-		}
-	}
-
 	@Override
 	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
 
 		this.sequenceNumber      = (Integer)SyncCommand.deserialize(inputStream);
-		this.synchronizationMode = (Integer)SyncCommand.deserialize(inputStream);
 		final int num            = (Integer)SyncCommand.deserialize(inputStream);
 
 		for (int i=0; i<num; i++) {
@@ -87,7 +76,6 @@ public abstract class DataContainer extends Message {
 	protected void serializeTo(DataOutputStream outputStream) throws IOException {
 
 		SyncCommand.serialize(outputStream, sequenceNumber);
-		SyncCommand.serialize(outputStream, synchronizationMode);
 		SyncCommand.serialize(outputStream, properties.size());
 
 		for (final Entry<String, Object> entry : properties.entrySet()) {
@@ -96,4 +84,17 @@ public abstract class DataContainer extends Message {
 			SyncCommand.serialize(outputStream, entry.getValue());
 		}
 	}
+
+	protected void collectProperties(final PropertyContainer propertyContainer, final Iterable<String> propertyKeys) {
+
+		for (String key : propertyKeys) {
+
+			Object value = propertyContainer.getProperty(key);
+			if (value != null) {
+
+				properties.put(key, value);
+			}
+		}
+	}
+
 }

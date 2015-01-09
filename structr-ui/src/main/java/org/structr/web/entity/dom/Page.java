@@ -35,11 +35,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
+import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -48,7 +48,6 @@ import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
@@ -147,18 +146,18 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		// do nothing
 	}
 
-	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-
-		if (properties.containsKey(NodeInterface.name)) {
-
-			final String newName = properties.get(NodeInterface.name);
-			if (newName != null) {
-
-				setProperty(NodeInterface.name, newName);
-			}
-		}
-	}
+//	@Override
+//	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+//
+//		if (properties.containsKey(NodeInterface.name)) {
+//
+//			final String newName = properties.get(NodeInterface.name);
+//			if (newName != null) {
+//
+//				setProperty(NodeInterface.name, newName);
+//			}
+//		}
+//	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
@@ -1162,9 +1161,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData() {
+	public List<GraphObject> getSyncData() {
 
-		final List<Syncable> data = super.getSyncData();
+		final List<GraphObject> data = super.getSyncData();
 
 		data.addAll(getProperty(Linkable.linkingElements));
 

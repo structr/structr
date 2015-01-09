@@ -27,11 +27,6 @@ import org.structr.common.error.FrameworkException;
  */
 public interface CloudTransmission<T> {
 
-	public String getUserName();
-	public String getPassword();
-	public String getRemoteHost();
-	public int getRemotePort();
-
 	public int getTotalSize();
 
 	public T doRemote(final CloudConnection<T> client) throws IOException, FrameworkException;

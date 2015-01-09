@@ -20,11 +20,11 @@ package org.structr.web.entity.dom;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +34,6 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -46,7 +45,6 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
@@ -248,41 +246,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		if (newNode instanceof DOMElement) {
 
-			final PropertyMap properties = new PropertyMap();
+			final Map<String, Object> properties = new HashMap<>();
 			for (final Property key : htmlView.properties()) {
 
-				properties.put(key, newNode.getProperty(key));
+				properties.put(key.jsonName(), newNode.getProperty(key));
 			}
 
 			// copy tag
-			properties.put(DOMElement.tag, newNode.getProperty(DOMElement.tag));
+			properties.put(DOMElement.tag.jsonName(), newNode.getProperty(DOMElement.tag));
 
 			updateFromPropertyMap(properties);
-		}
-	}
-
-	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-
-		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
-
-			final PropertyKey key = entry.getKey();
-			final Object value1 = this.getProperty(key);
-			final Object value2 = entry.getValue();
-
-			if (value1 == null && value2 == null) {
-				continue;
-			}
-
-			// copy attributes
-			this.setProperty(key, properties.get(key));
-		}
-
-		final String tag = properties.get(DOMElement.tag);
-		if (tag != null) {
-
-			// overwrite tag with value from source node
-			this.setProperty(DOMElement.tag, tag);
 		}
 	}
 
@@ -1048,9 +1021,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData() {
+	public List<GraphObject> getSyncData() {
 
-		final List<Syncable> data = super.getSyncData();
+		final List<GraphObject> data = super.getSyncData();
 
 		data.add(getProperty(DOMElement.sharedComponent));
 		data.add(getIncomingRelationship(Sync.class));

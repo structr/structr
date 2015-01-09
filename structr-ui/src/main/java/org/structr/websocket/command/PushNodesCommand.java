@@ -22,7 +22,6 @@ import java.util.Map;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.WebsocketProgressListener;
 import org.structr.cloud.transmission.PushTransmission;
-import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -65,20 +64,13 @@ public class PushNodesCommand extends AbstractCommand {
 				final GraphObject root = app.get(sourceId);
 				if (root != null) {
 
-					if (root instanceof Syncable) {
+					boolean recursive = false;
+					if (recursiveSource != null) {
 
-						boolean recursive = false;
-						if (recursiveSource != null) {
-
-							recursive = "true".equals(recursiveSource.toString());
-						}
-
-						CloudService.doRemote(new PushTransmission((Syncable)root, recursive, username, password, host, port.intValue()), new WebsocketProgressListener(getWebSocket(), key));
-
-					} else {
-
-						getWebSocket().send(MessageBuilder.status().code(400).message("Entity with ID " + sourceId + " cannot be synced.").build(), true);
+						recursive = "true".equals(recursiveSource.toString());
 					}
+
+					CloudService.doRemote(new PushTransmission(root, recursive), username, password, host, port.intValue(), new WebsocketProgressListener(getWebSocket(), key));
 
 				} else {
 

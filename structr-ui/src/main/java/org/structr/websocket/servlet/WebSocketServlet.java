@@ -28,7 +28,7 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.StructrWebSocketCreator;
-import org.structr.websocket.SynchronizationController;
+import org.structr.websocket.WebsocketController;
 import org.structr.websocket.WebSocketDataGSONAdapter;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -69,7 +69,7 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 		
 		final Gson gson = gsonBuilder.create();
 		
-		final SynchronizationController syncController = new SynchronizationController(gson);
+		final WebsocketController syncController = new WebsocketController(gson);
 		
 		// register (Structr) transaction listener
 		TransactionCommand.registerTransactionListener(syncController);

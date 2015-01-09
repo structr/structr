@@ -24,57 +24,25 @@ import java.io.IOException;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.SyncCommand;
 
 /**
- * Serializable data container for a node to be transported over network.
- *
- * To be initialized with {@link AbstractNode} in constructor.
- *
- * @author axel
+ * @author Christian Morgner
  */
-public class NodeDataContainer extends DataContainer {
+public class Delete extends Message {
 
-	protected String sourceNodeId = null;
-	protected String type         = null;
+	private String graphObjectId = null;
 
-	public NodeDataContainer() {
-		super(0);
-	}
+	public Delete() { }
 
-	public NodeDataContainer(final NodeInterface node, final int sequenceNumber) throws FrameworkException {
-		this(node, sequenceNumber, node.getNode().getPropertyKeys());
-	}
-
-	public NodeDataContainer(final NodeInterface node, final int sequenceNumber, final Iterable<String> propertyKeys) throws FrameworkException {
-
-		super(sequenceNumber);
-
-		type         = node.getClass().getSimpleName();
-		sourceNodeId = node.getUuid();
-
-		collectProperties(node.getNode(), propertyKeys);
-	}
-
-	/**
-	 * Return id of node in source instance
-	 *
-	 * @return source node id
-	 */
-	public String getSourceNodeId() {
-		return sourceNodeId;
-	}
-
-	public String getType() {
-		return type;
+	public Delete(final String uuid) {
+		this.graphObjectId = uuid;
 	}
 
 	@Override
 	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		serverConnection.storeNode(this);
+		serverConnection.delete(graphObjectId);
 		serverConnection.send(ack());
 
 		context.progress();
@@ -86,24 +54,16 @@ public class NodeDataContainer extends DataContainer {
 	}
 
 	@Override
-	public void afterSend(CloudConnection conn) {
+	public void afterSend(CloudConnection connection) {
 	}
 
 	@Override
 	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
-
-		this.sourceNodeId = (String)SyncCommand.deserialize(inputStream);
-		this.type         = (String)SyncCommand.deserialize(inputStream);
-
-		super.deserializeFrom(inputStream);
+		this.graphObjectId = (String)SyncCommand.deserialize(inputStream);
 	}
 
 	@Override
 	protected void serializeTo(DataOutputStream outputStream) throws IOException {
-
-		SyncCommand.serialize(outputStream, sourceNodeId);
-		SyncCommand.serialize(outputStream, type);
-
-		super.serializeTo(outputStream);
+		SyncCommand.serialize(outputStream, graphObjectId);
 	}
 }

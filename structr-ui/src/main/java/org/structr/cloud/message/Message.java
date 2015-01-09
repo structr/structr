@@ -50,6 +50,7 @@ public abstract class Message<T> {
 		typeMap.put(AuthenticationResponse.class.getSimpleName(),    AuthenticationResponse.class);
 		typeMap.put(Begin.class.getSimpleName(),                     Begin.class);
 		typeMap.put(Crypt.class.getSimpleName(),                     Crypt.class);
+		typeMap.put(Delete.class.getSimpleName(),                    Delete.class);
 		typeMap.put(End.class.getSimpleName(),                       End.class);
 		typeMap.put(Error.class.getSimpleName(),                     Error.class);
 		typeMap.put(FileNodeChunk.class.getSimpleName(),             FileNodeChunk.class);
@@ -58,6 +59,7 @@ public abstract class Message<T> {
 		typeMap.put(Finish.class.getSimpleName(),                    Finish.class);
 		typeMap.put(ListSyncables.class.getSimpleName(),             ListSyncables.class);
 		typeMap.put(NodeDataContainer.class.getSimpleName(),         NodeDataContainer.class);
+		typeMap.put(Ping.class.getSimpleName(),                      Ping.class);
 		typeMap.put(PullChunk.class.getSimpleName(),                 PullChunk.class);
 		typeMap.put(PullFile.class.getSimpleName(),                  PullFile.class);
 		typeMap.put(PullNode.class.getSimpleName(),                  PullNode.class);
@@ -65,7 +67,6 @@ public abstract class Message<T> {
 		typeMap.put(PullRelationship.class.getSimpleName(),          PullRelationship.class);
 		typeMap.put(PushNodeRequestContainer.class.getSimpleName(),  PushNodeRequestContainer.class);
 		typeMap.put(RelationshipDataContainer.class.getSimpleName(), RelationshipDataContainer.class);
-
 	}
 
 	protected long id       = 0;
@@ -83,7 +84,7 @@ public abstract class Message<T> {
 	}
 
 	public Message(final long id, final int sendCount) {
-		
+
 		this.id        = id;
 		this.sendCount = sendCount;
 	}

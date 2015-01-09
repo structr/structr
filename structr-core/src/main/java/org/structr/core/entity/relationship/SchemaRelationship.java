@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,19 +34,17 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
@@ -65,7 +62,7 @@ import org.structr.schema.parser.Validator;
  *
  * @author Christian Morgner
  */
-public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> implements Schema, Syncable {
+public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> implements Schema {
 
 	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
@@ -417,11 +414,11 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		SchemaHelper.formatImportStatements(src, baseType);
 
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType());
-		
+
 		if ("OWNS".equals(getProperty(relationshipType))) {
 			src.append(" implements org.structr.core.entity.relationship.Ownership");
 		}
-		
+
 		src.append(" {\n\n");
 
 		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, actions, errorBuffer));
@@ -670,44 +667,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData() {
+	public List<GraphObject> getSyncData() {
 
-		final List<Syncable> syncables = new LinkedList<>();
+		final List<GraphObject> syncables = super.getSyncData();
 
 		syncables.add(getSourceNode());
 		syncables.add(getTargetNode());
 
 		return syncables;
-	}
-
-	@Override
-	public boolean isNode() {
-		return false;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return true;
-	}
-
-	@Override
-	public NodeInterface getSyncNode() {
-		return null;
-	}
-
-	@Override
-	public RelationshipInterface getSyncRelationship() {
-		return this;
-	}
-
-	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-
-		// update all properties that exist in the source map
-		for (final Map.Entry<PropertyKey, Object> entry : properties.entrySet()) {
-
-			setProperty(entry.getKey(), entry.getValue());
-		}
 	}
 
 	// ----- private methods -----
