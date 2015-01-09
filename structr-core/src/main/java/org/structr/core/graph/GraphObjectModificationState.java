@@ -21,7 +21,6 @@ package org.structr.core.graph;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -39,8 +38,6 @@ import org.structr.core.property.PropertyMap;
  */
 public class GraphObjectModificationState implements ModificationEvent {
 
-	private static final Logger logger = Logger.getLogger(GraphObjectModificationState.class.getName());
-	
 	public static final int STATE_DELETED =                    1;
 	public static final int STATE_MODIFIED =                   2;
 	public static final int STATE_CREATED =                    4;
@@ -50,25 +47,26 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_LOCATION_MODIFIED =         64;
 	public static final int STATE_PROPAGATING_MODIFICATION = 128;
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
-	
+
 	private final PropertyMap modifiedProperties = new PropertyMap();
 	private final PropertyMap removedProperties  = new PropertyMap();
-	private RelationshipType relType       = null;
-	private boolean isNode                 = false;
-	private boolean modified               = false;
-	private GraphObject object             = null;
-	private String uuid                    = null;
-	private int status                     = 0;
+	private final PropertyMap newProperties      = new PropertyMap();
+	private RelationshipType relType             = null;
+	private boolean isNode                       = false;
+	private boolean modified                     = false;
+	private GraphObject object                   = null;
+	private String uuid                          = null;
+	private int status                           = 0;
 
 	public GraphObjectModificationState(GraphObject object) {
 
 		this.object = object;
 		this.isNode = (object instanceof NodeInterface);
-		
+
 		if (!isNode) {
 			this.relType = ((RelationshipInterface)object).getRelType();
 		}
-		
+
 		// store uuid for later use
 		this.uuid = object.getUuid();
 	}
@@ -79,98 +77,106 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	public void propagatedModification() {
-		
+
 		int statusBefore = status;
-		
+
 		status |= STATE_PROPAGATED_MODIFICATION;
-		
+
 		if (status != statusBefore) {
 			modified = true;
 		}
 	}
 
 	public void modifyLocation() {
-		
+
 		int statusBefore = status;
-		
+
 		status |= STATE_LOCATION_MODIFIED | STATE_PROPAGATING_MODIFICATION;
-		
+
 		if (status != statusBefore) {
 			modified = true;
 		}
 	}
-	
+
 	public void modifySecurity() {
-		
+
 		int statusBefore = status;
-		
+
 		status |= STATE_SECURITY_MODIFIED | STATE_PROPAGATING_MODIFICATION;
-		
+
 		if (status != statusBefore) {
 			modified = true;
 		}
 	}
-	
+
 	public void modifyOwner() {
-		
+
 		int statusBefore = status;
-		
+
 		status |= STATE_OWNER_MODIFIED | STATE_PROPAGATING_MODIFICATION;
-		
+
 		if (status != statusBefore) {
 			modified = true;
 		}
 	}
-	
+
 	public void create() {
-		
+
 		int statusBefore = status;
-		
+
 		status |= STATE_CREATED | STATE_PROPAGATING_MODIFICATION;
-		
+
 		if (status != statusBefore) {
 			modified = true;
 		}
 	}
 
 	public void modify(PropertyKey key, Object previousValue, Object newValue) {
-		
+
 		int statusBefore = status;
-		
+
 		status |= STATE_MODIFIED | STATE_PROPAGATING_MODIFICATION;
 
 		// store previous value
 		if (key != null) {
 			removedProperties.put(key, previousValue);
 		}
-		
+
 		if (status != statusBefore) {
+
 			if (key != null) {
 				modifiedProperties.put(key, newValue);
 			}
+
 			modified = true;
+
+		} else {
+
+			if (key != null) {
+				newProperties.put(key, newValue);
+			}
 		}
 	}
 
 	public void delete(boolean passive) {
-		
+
 		int statusBefore = status;
-		
+
 		if (passive) {
 			status |= STATE_DELETED_PASSIVELY;
 		}
 
 		status |= STATE_DELETED;
-		
+
 		if (status != statusBefore) {
-			
+
 			//removedProperties.put(GraphObject.id, object.getUuid());
 
 			// copy all properties on deletion
 			for (final PropertyKey key : object.getPropertyKeys(PropertyView.Public)) {
 				removedProperties.put(key, object.getProperty(key));
 			}
-			
+
 			modified = true;
 		}
 	}
@@ -181,20 +187,20 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	/**
 	 * Call beforeModification/Creation/Deletion methods.
-	 * 
+	 *
 	 * @param modificationQueue
 	 * @param securityContext
 	 * @param errorBuffer
 	 * @return valid
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public boolean doInnerCallback(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		boolean valid = true;
-	
+
 		// check for modification propagation along the relationships
 		if ((status & STATE_PROPAGATING_MODIFICATION) == STATE_PROPAGATING_MODIFICATION && object instanceof AbstractNode) {
-			
+
 			Set<AbstractNode> nodes = ((AbstractNode)object).getNodesForModificationPropagation();
 			if (nodes != null) {
 
@@ -205,7 +211,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			}
 
 		}
-		
+
 		// examine only the last 4 bits here
 		switch (status & 0x000f) {
 
@@ -255,24 +261,24 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 		// mark as finished
 		modified = false;
-		
+
 		return valid;
 	}
 
 	/**
 	 * Call beforeModification/Creation/Deletion methods.
-	 * 
+	 *
 	 * @param modificationQueue
 	 * @param securityContext
 	 * @param errorBuffer
 	 * @param doValidation
 	 * @return valid
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public boolean doValidationAndIndexing(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
 
 		boolean valid = true;
-	
+
 		// examine only the last 4 bits here
 		switch (status & 0x000f) {
 
@@ -310,8 +316,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	/**
 	 * Call afterModification/Creation/Deletion methods.
-	 * 
-	 * @param securityContext 
+	 *
+	 * @param securityContext
 	 */
 	public void doOuterCallback(SecurityContext securityContext) {
 
@@ -333,7 +339,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				object.ownerModified(securityContext);
 			}
 		}
-		
+
 		// examine only the last 4 bits here
 		switch (status & 0x000f) {
 
@@ -381,13 +387,13 @@ public class GraphObjectModificationState implements ModificationEvent {
 				break;
 		}
 	}
-	
+
 	public boolean wasModified() {
 		return modified;
 	}
-	
+
 	// ----- interface ModificationEvent -----
-	
+
 	@Override
 	public int getStatus() {
 		return status;
@@ -419,6 +425,11 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	@Override
+	public PropertyMap getNewProperties() {
+		return newProperties;
+	}
+
+	@Override
 	public PropertyMap getModifiedProperties() {
 		return modifiedProperties;
 	}
@@ -427,7 +438,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public PropertyMap getRemovedProperties() {
 		return removedProperties;
 	}
-	
+
 	@Override
 	public Map<String, Object> getData(final SecurityContext securityContext) throws FrameworkException {
 		return PropertyMap.javaTypeToInputType(securityContext, object.getClass(), modifiedProperties);
@@ -442,24 +453,24 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public RelationshipType getRelationshipType() {
 		return relType;
 	}
-	
+
 	// ----- private methods -----
 	/**
 	 * Call validators. This must be synchronized globally
-	 * 
+	 *
 	 * @param securityContext
 	 * @param errorBuffer
 	 * @return valid
 	 */
 	private boolean validate(SecurityContext securityContext, ErrorBuffer errorBuffer) {
-	
+
 		boolean valid = true;
-				
+
 		for (PropertyKey key : removedProperties.keySet()) {
 
 			List<PropertyValidator> validators = key.getValidators();
 			for (PropertyValidator validator : validators) {
-				
+
 				Object value = object.getProperty(key);
 
 				valid &= validator.isValid(securityContext, object, key, value, errorBuffer);

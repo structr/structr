@@ -42,7 +42,6 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -259,22 +258,22 @@ public class Content extends DOMNode implements Text {
 
 		if (newNode instanceof Content) {
 
-			final PropertyMap properties = new PropertyMap();
-			properties.put(Content.content, newNode.getProperty(Content.content));
+			final Map<String, Object> properties = new HashMap<>();
+			properties.put("content", newNode.getProperty(Content.content));
 
 			updateFromPropertyMap(properties);
 		}
 	}
 
-	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-
-		this.setProperty(Content.content, properties.get(Content.content));
-
-		// update visibility as well
-		this.setProperty(Content.visibleToPublicUsers, properties.get(Content.visibleToPublicUsers));
-		this.setProperty(Content.visibleToAuthenticatedUsers, properties.get(Content.visibleToAuthenticatedUsers));
-	}
+//	@Override
+//	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
+//
+//		this.setProperty(Content.content, properties.get(Content.content));
+//
+//		// update visibility as well
+//		this.setProperty(Content.visibleToPublicUsers, properties.get(Content.visibleToPublicUsers));
+//		this.setProperty(Content.visibleToAuthenticatedUsers, properties.get(Content.visibleToAuthenticatedUsers));
+//	}
 
 	@Override
 	public String getIdHash() {

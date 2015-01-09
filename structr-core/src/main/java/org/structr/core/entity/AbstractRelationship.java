@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 //~--- classes ----------------------------------------------------------------
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -754,5 +755,40 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		}
 
 		return Direction.BOTH;
+	}
+
+	// ----- Cloud synchronization and replication -----
+	@Override
+	public List<GraphObject> getSyncData() {
+		return new ArrayList<>(); // provide a basis for super.getSyncData() calls
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return true;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		throw new ClassCastException(this.getClass() + " cannot be cast to org.structr.core.graph.NodeInterface");
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return this;
+	}
+
+	@Override
+	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
+
+		// update all properties that exist in the source map
+		for (final Entry<String, Object> entry : properties.entrySet()) {
+			getRelationship().setProperty(entry.getKey(), entry.getValue());
+		}
 	}
 }

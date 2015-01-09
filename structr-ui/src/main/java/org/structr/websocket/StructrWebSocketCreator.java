@@ -34,12 +34,12 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 
 	private static final String STRUCTR_PROTOCOL = "structr";
 
-	private SynchronizationController syncController = null;
+	private WebsocketController syncController = null;
 	private Gson gson = null;
 	private PropertyKey idProperty = null;
 	private Authenticator authenticator = null;
 
-	public StructrWebSocketCreator(final SynchronizationController syncController, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
+	public StructrWebSocketCreator(final WebsocketController syncController, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
 
 		this.syncController = syncController;
 		this.gson = gson;

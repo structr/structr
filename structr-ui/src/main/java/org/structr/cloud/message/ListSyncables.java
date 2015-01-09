@@ -28,8 +28,8 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportContext;
-import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.SyncCommand;
 import org.structr.schema.SchemaHelper;
 
@@ -54,18 +54,16 @@ public class ListSyncables extends Message<List<SyncableInfo>> {
 
 		final String[] rawTypes = StringUtils.split(type, ",");
 
-		final Set<Class<Syncable>> types = new HashSet();
+		final Set<Class<? extends GraphObject>> types = new HashSet();
 
 		if (type != null) {
 
 			for (final String rawType : rawTypes) {
 
 				Class entityClass = SchemaHelper.getEntityClassForRawType(rawType);
-
-				if (entityClass != null && Syncable.class.isAssignableFrom(entityClass)) {
+				if (entityClass != null) {
 
 					types.add(entityClass);
-
 				}
 
 			}

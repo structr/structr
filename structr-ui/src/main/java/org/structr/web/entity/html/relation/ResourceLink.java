@@ -18,17 +18,10 @@
  */
 package org.structr.web.entity.html.relation;
 
-import java.util.Collections;
-import java.util.List;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.common.Syncable;
 import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.ManyToOne;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
@@ -39,7 +32,7 @@ import org.structr.web.entity.Linkable;
  *
  * @author Christian Morgner
  */
-public class ResourceLink extends ManyToOne<LinkSource, Linkable> implements Syncable {
+public class ResourceLink extends ManyToOne<LinkSource, Linkable> {
 
 	public static final Property<String> sourceId = new StringProperty("sourceId");
 	public static final Property<String> targetId = new StringProperty("targetId");
@@ -48,12 +41,6 @@ public class ResourceLink extends ManyToOne<LinkSource, Linkable> implements Syn
 	public static final View uiView = new View(ResourceLink.class, PropertyView.Ui,
 		sourceId, targetId, type
 	);
-
-	static {
-
-		// StructrApp.getConfiguration().registerNamedRelation("resource_link", ResourceLink.class, Link.class, Linkable.class, RelType.LINK);
-		// StructrApp.getConfiguration().registerNamedRelation("hyperlink", ResourceLink.class, A.class, Linkable.class, RelType.LINK);
-	}
 
 	@Override
 	public Class<LinkSource> getSourceType() {
@@ -78,35 +65,5 @@ public class ResourceLink extends ManyToOne<LinkSource, Linkable> implements Syn
 	@Override
 	public Property<String> getTargetIdProperty() {
 		return targetId;
-	}
-
-	// ----- interface Syncable -----
-	@Override
-	public List<Syncable> getSyncData() {
-		return Collections.emptyList();
-	}
-
-	@Override
-	public boolean isNode() {
-		return false;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return true;
-	}
-
-	@Override
-	public NodeInterface getSyncNode() {
-		return null;
-	}
-
-	@Override
-	public RelationshipInterface getSyncRelationship() {
-		return this;
-	}
-
-	@Override
-	public void updateFromPropertyMap(PropertyMap properties) throws FrameworkException {
 	}
 }

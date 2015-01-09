@@ -20,7 +20,6 @@ package org.structr.web.entity.dom;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
 import org.w3c.dom.DOMException;
@@ -81,11 +80,6 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 	}
 
 	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-		// do nothing
-	}
-
-	@Override
 	public boolean isSynced() {
 		return false;
 	}
@@ -108,10 +102,10 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 		}
 
 	}
-	
+
 	@Override
 	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
-	}	
+	}
 
 	@Override
 	public Node doAdopt(Page newPage) throws DOMException {
