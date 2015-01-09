@@ -59,6 +59,7 @@ public abstract class Message<T> {
 		typeMap.put(Finish.class.getSimpleName(),                    Finish.class);
 		typeMap.put(ListSyncables.class.getSimpleName(),             ListSyncables.class);
 		typeMap.put(NodeDataContainer.class.getSimpleName(),         NodeDataContainer.class);
+		typeMap.put(Ping.class.getSimpleName(),                      Ping.class);
 		typeMap.put(PullChunk.class.getSimpleName(),                 PullChunk.class);
 		typeMap.put(PullFile.class.getSimpleName(),                  PullFile.class);
 		typeMap.put(PullNode.class.getSimpleName(),                  PullNode.class);

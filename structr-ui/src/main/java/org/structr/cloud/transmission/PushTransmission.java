@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Set;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.CloudTransmission;
 import org.structr.cloud.ExportSet;
 import org.structr.cloud.message.FileNodeChunk;
 import org.structr.cloud.message.FileNodeDataContainer;
@@ -39,23 +40,19 @@ import org.structr.dynamic.File;
  *
  * @author Christian Morgner
  */
-public class PushTransmission extends AbstractTransmission<Boolean> {
+public class PushTransmission implements CloudTransmission {
 
 	private ExportSet exportSet = null;
 	private int sequenceNumber  = 0;
 
-	public PushTransmission(final GraphObject source, final boolean recursive, final String userName, final String password, final String remoteHost, final int port) {
-
-		super(userName, password, remoteHost, port);
+	public PushTransmission(final GraphObject source, final boolean recursive) {
 
 		// create export set before first progress callback is called
 		// so the client gets the correct total from the beginning
 		exportSet = ExportSet.getInstance(source, recursive);
 	}
 
-	public PushTransmission(final String userName, final String password, final String remoteHost, final int port) {
-
-		super(userName, password, remoteHost, port);
+	public PushTransmission() {
 
 		exportSet = ExportSet.getInstance();
 	}

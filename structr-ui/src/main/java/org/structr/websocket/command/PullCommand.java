@@ -66,7 +66,7 @@ public class PullCommand extends AbstractCommand {
 					recursive = "true".equals(recursiveSource.toString());
 				}
 
-				CloudService.doRemote(new PullTransmission(sourceId, recursive, username, password, host, port.intValue()), new WebsocketProgressListener(getWebSocket(), key));
+				CloudService.doRemote(new PullTransmission(sourceId, recursive), username, password, host, port.intValue(), new WebsocketProgressListener(getWebSocket(), key));
 
 				// send finished event
 				getWebSocket().send(MessageBuilder.finished().build(), true);

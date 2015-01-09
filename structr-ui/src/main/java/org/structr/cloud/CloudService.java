@@ -51,7 +51,7 @@ public class CloudService extends Thread implements RunnableService {
 	 * fields etc., the protocol only works with the exact same
 	 * counterpart.
 	 */
-	public static final int PROTOCOL_VERSION  = 3;
+	public static final int PROTOCOL_VERSION  = 4;
 
 	public static final int CHUNK_SIZE        = 65536;
 	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
@@ -150,12 +150,8 @@ public class CloudService extends Thread implements RunnableService {
 	}
 
 	// ----- public static methods -----
-	public static <T> T doRemote(final CloudTransmission<T> transmission, final CloudListener listener) throws FrameworkException {
+	public static <T> T doRemote(final CloudTransmission<T> transmission, final String userName, final String password, final String remoteHost, final int port, final CloudListener listener) throws FrameworkException {
 
-		final String userName       = transmission.getUserName();
-		final String password       = transmission.getPassword();
-		final String remoteHost     = transmission.getRemoteHost();
-		final int remoteTcpPort     = transmission.getRemotePort();
 		final ExportContext context = new ExportContext(listener, 3);
 		CloudConnection<T> client   = null;
 		int maxKeyLen               = 128;
@@ -170,7 +166,7 @@ public class CloudService extends Thread implements RunnableService {
 
 		try {
 
-			client = new CloudConnection(new Socket(remoteHost, remoteTcpPort), context);
+			client = new CloudConnection(new Socket(remoteHost, port), context);
 			client.start();
 
 			// notify context of increased message stack size
@@ -207,6 +203,8 @@ public class CloudService extends Thread implements RunnableService {
 			context.transmissionFinished();
 
 		} catch (IOException  ioex) {
+
+			ioex.printStackTrace();
 
 			throw new FrameworkException(504, "Unable to connect to remote server: " + ioex.getMessage());
 

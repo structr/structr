@@ -62,7 +62,7 @@ public class ListSyncables extends Message<List<SyncableInfo>> {
 
 				Class entityClass = SchemaHelper.getEntityClassForRawType(rawType);
 				if (entityClass != null) {
-					
+
 					types.add(entityClass);
 				}
 

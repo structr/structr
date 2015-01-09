@@ -70,7 +70,7 @@ public class PushNodesCommand extends AbstractCommand {
 						recursive = "true".equals(recursiveSource.toString());
 					}
 
-					CloudService.doRemote(new PushTransmission(root, recursive, username, password, host, port.intValue()), new WebsocketProgressListener(getWebSocket(), key));
+					CloudService.doRemote(new PushTransmission(root, recursive), username, password, host, port.intValue(), new WebsocketProgressListener(getWebSocket(), key));
 
 				} else {
 

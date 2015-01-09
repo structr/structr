@@ -57,7 +57,7 @@ public class PushNodesTestingCommand extends CloudServiceCommand implements Main
 				final NodeInterface entity = app.nodeQuery().andName(name).getFirst();
 				if (entity != null) {
 
-					CloudService.doRemote(new PushTransmission(entity, true, "admin", "admin", host, 54555), new LoggingListener());
+					CloudService.doRemote(new PushTransmission(entity, true), "admin", "admin", host, 54555, new LoggingListener());
 				}
 
 				tx.success();

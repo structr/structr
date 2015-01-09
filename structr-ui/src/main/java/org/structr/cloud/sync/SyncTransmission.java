@@ -22,15 +22,18 @@ import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.neo4j.graphdb.NotFoundException;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.CloudTransmission;
 import org.structr.cloud.message.Delete;
 import org.structr.cloud.message.FileNodeChunk;
 import org.structr.cloud.message.FileNodeDataContainer;
 import org.structr.cloud.message.FileNodeEndChunk;
 import org.structr.cloud.message.NodeDataContainer;
 import org.structr.cloud.message.RelationshipDataContainer;
-import org.structr.cloud.transmission.AbstractTransmission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationEvent;
@@ -41,13 +44,12 @@ import org.structr.dynamic.File;
  *
  * @author Christian Morgner
  */
-public class SyncTransmission extends AbstractTransmission<Boolean> {
+public class SyncTransmission implements CloudTransmission {
 
+	private static final Logger logger = Logger.getLogger(SyncTransmission.class.getName());
 	private List<ModificationEvent> transaction = null;
 
-	public SyncTransmission(final List<ModificationEvent> transaction, final String userName, final String password, final String remoteHost, final int port) {
-
-		super(userName, password, remoteHost, port);
+	public SyncTransmission(final List<ModificationEvent> transaction) {
 
 		this.transaction = transaction;
 	}
@@ -76,27 +78,35 @@ public class SyncTransmission extends AbstractTransmission<Boolean> {
 
 			} else {
 
-				final Set<String> propertyKeys = new LinkedHashSet<>();
+				try {
 
-				// collect all possibly modified property keys
-				mapPropertyKeysToStrings(propertyKeys, event.getNewProperties().keySet());
-				mapPropertyKeysToStrings(propertyKeys, event.getModifiedProperties().keySet());
-				mapPropertyKeysToStrings(propertyKeys, event.getRemovedProperties().keySet());
+					final Set<String> propertyKeys = new LinkedHashSet<>();
 
-				if (graphObject.isNode()) {
+					// collect all possibly modified property keys
+					mapPropertyKeysToStrings(propertyKeys, event.getNewProperties().keySet());
+					mapPropertyKeysToStrings(propertyKeys, event.getModifiedProperties().keySet());
+					mapPropertyKeysToStrings(propertyKeys, event.getRemovedProperties().keySet());
 
-					if (graphObject instanceof File) {
+					if (graphObject.isNode()) {
 
-						sendFile(client, (File)graphObject, CloudService.CHUNK_SIZE);
+						if (graphObject instanceof File) {
+
+							sendFile(client, (File)graphObject, CloudService.CHUNK_SIZE);
+
+						} else {
+
+							client.send(new NodeDataContainer(graphObject.getSyncNode(), count, propertyKeys));
+						}
 
 					} else {
 
-						client.send(new NodeDataContainer(graphObject.getSyncNode(), count, propertyKeys));
+						client.send(new RelationshipDataContainer(graphObject.getSyncRelationship(), count, propertyKeys));
 					}
 
-				} else {
+				} catch (NotFoundException nfex) {
 
-					client.send(new RelationshipDataContainer(graphObject.getSyncRelationship(), count, propertyKeys));
+					logger.log(Level.INFO, "Trying to synchronize deleted entity, ignoring");
+					client.increaseTotal(-1);
 				}
 			}
 
