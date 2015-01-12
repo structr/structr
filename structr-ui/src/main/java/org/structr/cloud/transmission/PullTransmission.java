@@ -40,11 +40,6 @@ public class PullTransmission implements CloudTransmission<Boolean> {
 	}
 
 	@Override
-	public int getTotalSize() {
-		return 1;
-	}
-
-	@Override
 	public Boolean doRemote(final CloudConnection client) throws IOException, FrameworkException {
 
 		// send type of request

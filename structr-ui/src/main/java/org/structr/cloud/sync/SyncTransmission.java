@@ -36,6 +36,8 @@ import org.structr.cloud.message.NodeDataContainer;
 import org.structr.cloud.message.RelationshipDataContainer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.property.PropertyKey;
 import org.structr.dynamic.File;
@@ -48,15 +50,15 @@ public class SyncTransmission implements CloudTransmission {
 
 	private static final Logger logger = Logger.getLogger(SyncTransmission.class.getName());
 	private List<ModificationEvent> transaction = null;
+	private String currentInstanceId            = null;
 
 	public SyncTransmission(final List<ModificationEvent> transaction) {
 
 		this.transaction = transaction;
 	}
 
-	@Override
-	public int getTotalSize() {
-		return transaction.size();
+	public void setCurrentInstanceId(final String instanceId) {
+		this.currentInstanceId = instanceId;
 	}
 
 	@Override
@@ -106,12 +108,21 @@ public class SyncTransmission implements CloudTransmission {
 				} catch (NotFoundException nfex) {
 
 					logger.log(Level.INFO, "Trying to synchronize deleted entity, ignoring");
-					client.increaseTotal(-1);
 				}
 			}
 
 			count++;
 		}
+
+		final long lastSync = System.currentTimeMillis();
+		final App app       = StructrApp.getInstance();
+
+		// store last sync timestamp for the given instance ID
+		app.setGlobalSetting(currentInstanceId, lastSync);
+
+		// synchronize last sync timestamp with slave instance
+		// (we're sending out own instance ID (master) for the slave to store)
+		client.send(new ReplicationStatus(StructrApp.getInstance().getInstanceId(), lastSync));
 
 		// wait for end of transmission
 		client.waitForTransmission();

@@ -63,7 +63,7 @@ import org.structr.schema.ConfigurationProvider;
  */
 public class Services {
 
-	private static final Logger logger                       = Logger.getLogger(StructrApp.class.getName());
+	private static final Logger logger                          = Logger.getLogger(StructrApp.class.getName());
 	private static StructrConf baseConf                         = null;
 
 	// Configuration constants

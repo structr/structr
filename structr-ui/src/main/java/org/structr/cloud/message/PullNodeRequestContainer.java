@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.ExportContext;
 import org.structr.cloud.ExportSet;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -70,7 +69,7 @@ public class PullNodeRequestContainer extends Message {
 	}
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 
 		try {
 			final App app = serverConnection.getApplicationContext();
@@ -96,8 +95,6 @@ public class PullNodeRequestContainer extends Message {
 
 				// send this back
 				serverConnection.send(this);
-
-				context.progress();
 			}
 
 		} catch (FrameworkException fex) {
@@ -106,9 +103,7 @@ public class PullNodeRequestContainer extends Message {
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
-
-		clientConnection.increaseTotal(numNodes + numRels);
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 
 		for (int i=0; i<numNodes; i++) {
 			clientConnection.send(new PullNode(key, i));
@@ -119,11 +114,6 @@ public class PullNodeRequestContainer extends Message {
 		}
 
 		clientConnection.send(new Finish());
-
-		// important, signal progress AFTER increasing the total size of this
-		// transaction, otherwise the thread just finishes because the goal
-		// (current == total) is met.
-		context.progress();
 	}
 
 	@Override

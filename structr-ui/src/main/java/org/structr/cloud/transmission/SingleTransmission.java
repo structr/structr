@@ -21,6 +21,7 @@ package org.structr.cloud.transmission;
 import java.io.IOException;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudTransmission;
+import org.structr.cloud.message.End;
 import org.structr.cloud.message.Message;
 import org.structr.common.error.FrameworkException;
 
@@ -38,14 +39,11 @@ public class SingleTransmission<T> implements CloudTransmission<T> {
 	}
 
 	@Override
-	public int getTotalSize() {
-		return 1;
-	}
-
-	@Override
 	public T doRemote(final CloudConnection<T> client) throws IOException, FrameworkException {
 
 		client.send(packet);
+
+		client.send(new End());
 
 		client.waitForTransmission();
 

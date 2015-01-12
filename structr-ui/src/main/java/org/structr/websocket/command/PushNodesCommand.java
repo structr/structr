@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import java.util.Map;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.HostInfo;
 import org.structr.cloud.WebsocketProgressListener;
 import org.structr.cloud.transmission.PushTransmission;
 import org.structr.common.error.FrameworkException;
@@ -70,7 +71,11 @@ public class PushNodesCommand extends AbstractCommand {
 						recursive = "true".equals(recursiveSource.toString());
 					}
 
-					CloudService.doRemote(new PushTransmission(root, recursive), username, password, host, port.intValue(), new WebsocketProgressListener(getWebSocket(), key));
+					CloudService.doRemote(
+						new PushTransmission(root, recursive),
+						new HostInfo(username, password, host, port.intValue()),
+						new WebsocketProgressListener(getWebSocket(), key)
+					);
 
 				} else {
 

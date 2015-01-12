@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.SyncCommand;
 
@@ -67,13 +66,11 @@ public class PushNodeRequestContainer extends DataContainer {
 	}
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
-		serverConnection.send(ack());
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
-		context.progress();
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 	}
 
 	@Override
