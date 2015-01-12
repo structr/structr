@@ -130,7 +130,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 				// check and initialize sync hosts and policy
 				initializeSyncHosts(minimum);
 
-			} catch (Throwable fex) {
+			} catch (FrameworkException fex) {
 				fex.printStackTrace();
 			}
 		}
@@ -326,7 +326,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		requiredSyncCount       = Integer.valueOf(minimum);
 
 		if (numSyncHosts < requiredSyncCount) {
-			throw new IllegalStateException("synchronization policy requires at least " + requiredSyncCount + " hosts, but only " + numSyncHosts + " are set.");
+			throw new IllegalStateException("synchronization policy requires at least " + requiredSyncCount + " hosts, but only " + numSyncHosts + " are reachable.");
 		}
 
 		logger.log(Level.INFO, "Synchronization to {0} host{1} required.", new Object[] { requiredSyncCount, requiredSyncCount == 1 ? "" : "s" } );
