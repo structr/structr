@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.HostInfo;
 import org.structr.cloud.WebsocketProgressListener;
 import org.structr.cloud.message.ListSyncables;
 import org.structr.cloud.message.SyncableInfo;
@@ -71,8 +72,13 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 			final App app    = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				final List<SyncableInfo> syncables = CloudService.doRemote(new SingleTransmission<>(new ListSyncables(type)), username, password, host, port.intValue(), new WebsocketProgressListener(getWebSocket(), key));
 				final StructrWebSocket webSocket   = getWebSocket();
+				final List<SyncableInfo> syncables = CloudService.doRemote(
+					new SingleTransmission<>(new ListSyncables(type)),
+					new HostInfo(username, password, host, port.intValue()),
+					new WebsocketProgressListener(getWebSocket(), key)
+				);
+
 				if (syncables != null) {
 
 					final List<GraphObject> result = new LinkedList<>();

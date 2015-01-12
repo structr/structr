@@ -1,30 +1,24 @@
-package org.structr.cloud.message;
+package org.structr.cloud.sync;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.ExportContext;
+import org.structr.cloud.message.Message;
 import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Ping extends Message<Ping> {
+public class EndOfSync extends Message {
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
-
-		serverConnection.send(this);
-		context.progress();
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
-
-		clientConnection.setPayload(this);
-		context.progress();
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 	}
 
 	@Override

@@ -412,8 +412,26 @@
                     </execution>
                 </executions>
             </plugin>
+           <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <shortRevisionLength>5</shortRevisionLength>
+<!--                    <doCheck>true</doCheck>
+                    <doUpdate>true</doUpdate>-->
+                </configuration>
+            </plugin>
         </plugins>
-        <finalName>${project.artifactId}-${project.version}</finalName>
+        <finalName>${project.artifactId}-${project.version}-${buildNumber}</finalName>
         <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
         <pluginManagement>
             <plugins>
@@ -502,7 +520,8 @@
 
     <scm>
         <url>https://github.com/structr/structr</url>
-        <connection>scm:git:git@github.com:structr/structr.git</connection>
+        <connection>scm:git:https://github.com:structr/structr.git</connection>
+        <developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
     </scm>
 
     <distributionManagement>

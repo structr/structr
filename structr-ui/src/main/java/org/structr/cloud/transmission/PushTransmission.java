@@ -24,6 +24,7 @@ import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.CloudTransmission;
 import org.structr.cloud.ExportSet;
+import org.structr.cloud.message.End;
 import org.structr.cloud.message.FileNodeChunk;
 import org.structr.cloud.message.FileNodeDataContainer;
 import org.structr.cloud.message.FileNodeEndChunk;
@@ -62,11 +63,6 @@ public class PushTransmission implements CloudTransmission {
 	}
 
 	@Override
-	public int getTotalSize() {
-		return exportSet.getTotalSize() + 1;
-	}
-
-	@Override
 	public Boolean doRemote(final CloudConnection client) throws IOException, FrameworkException {
 
 		// send type of request
@@ -96,6 +92,8 @@ public class PushTransmission implements CloudTransmission {
 				client.send(new RelationshipDataContainer(r, sequenceNumber++));
 			}
 		}
+
+		client.send(new End());
 
 		// wait for end of transmission
 		client.waitForTransmission();

@@ -22,8 +22,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.SyncCommand;
 
 /**
  *
@@ -31,15 +31,25 @@ import org.structr.common.error.FrameworkException;
  */
 public class Finish extends Message {
 
+	private long waitId = -1L;
+
 	public Finish() {}
 
+	public Finish(final long waitId) {
+		this.waitId = waitId;
+	}
+
+	public long getWaitId() {
+		return waitId;
+	}
+
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 		serverConnection.send(new End());
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 	}
 
 	@Override
@@ -48,11 +58,11 @@ public class Finish extends Message {
 
 	@Override
 	protected void deserializeFrom(DataInputStream inputStream) throws IOException {
-		// no additional data
+		this.waitId = (Long)SyncCommand.deserialize(inputStream);
 	}
 
 	@Override
 	protected void serializeTo(DataOutputStream outputStream) throws IOException {
-		// no additional data
+		SyncCommand.serialize(outputStream, waitId);
 	}
 }

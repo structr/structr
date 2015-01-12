@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import org.structr.cloud.message.AuthenticationRequest;
 import org.structr.cloud.message.Begin;
-import org.structr.cloud.message.End;
 import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -57,7 +56,7 @@ public class CloudService extends Thread implements RunnableService {
 	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
 	public static final int LIVE_PACKET_COUNT = 200;
 	public static final long AUTH_TIMEOUT     = 500;
-	public static final long DEFAULT_TIMEOUT  = 2000;
+	public static final long DEFAULT_TIMEOUT  = 5000;
 	public static final boolean DEBUG         = false;
 	public static final String STREAM_CIPHER  = "RC4";
 
@@ -127,7 +126,7 @@ public class CloudService extends Thread implements RunnableService {
 			try {
 
 				// start a new thread for the connection
-				new CloudConnection(serverSocket.accept(), new ExportContext(null, 0)).start();
+				new CloudConnection(serverSocket.accept(), null).start();
 
 			} catch (IOException ioex) {}
 		}
@@ -150,9 +149,8 @@ public class CloudService extends Thread implements RunnableService {
 	}
 
 	// ----- public static methods -----
-	public static <T> T doRemote(final CloudTransmission<T> transmission, final String userName, final String password, final String remoteHost, final int port, final CloudListener listener) throws FrameworkException {
+	public static <T> T doRemote(final CloudTransmission<T> transmission, final CloudHost host, final CloudListener listener) throws FrameworkException {
 
-		final ExportContext context = new ExportContext(listener, 3);
 		CloudConnection<T> client   = null;
 		int maxKeyLen               = 128;
 		T remoteResult              = null;
@@ -166,41 +164,36 @@ public class CloudService extends Thread implements RunnableService {
 
 		try {
 
-			client = new CloudConnection(new Socket(remoteHost, port), context);
+			client = new CloudConnection(new Socket(host.getHostName(), host.getPort()), listener);
 			client.start();
 
-			// notify context of increased message stack size
-			context.increaseTotal(transmission.getTotalSize());
-
 			// notify listener
-			context.transmissionStarted();
+			if (listener != null) {
+				listener.transmissionStarted();
+			}
 
 			// mark start of transaction
 			client.send(new Begin());
-			context.progress();
 
 			// store password in client
-			client.setPassword(password);
+			client.setPassword(host.getPassword());
 
 			// send authentication container
-			client.send(new AuthenticationRequest(userName, maxKeyLen));
-			context.progress();
+			client.send(new AuthenticationRequest(host.getUserName(), maxKeyLen));
 
 			client.waitForAuthentication();
 
 			// do transmission in an authenticated and encrypted context
 			remoteResult = transmission.doRemote(client);
 
-			// mark end of transaction
-			final End endPacket = new End();
-			client.send(endPacket);
-
 			// wait for server to close connection here..
 			client.waitForClose(2000);
 			client.close();
 
 			// notify listener
-			context.transmissionFinished();
+			if (listener != null) {
+				listener.transmissionFinished();
+			}
 
 		} catch (IOException  ioex) {
 
