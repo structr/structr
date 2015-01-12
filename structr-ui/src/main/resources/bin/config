@@ -3,7 +3,7 @@
 # configuration options for structr-ui
 #
 
-RUN_OPTS="-cp lib/*:${artifactId}-${version}.jar"
+RUN_OPTS="-cp lib/*:${artifactId}-${version}-${buildNumber}.jar"
 JAVA_OPTS="-Xms1g -Xmx1g -XX:+UseNUMA"
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="${artifactId}-${version}"
