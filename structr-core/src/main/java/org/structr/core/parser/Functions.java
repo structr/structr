@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -149,6 +150,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_EXTRACT = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_FILTER = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
 	public static final String ERROR_MESSAGE_MERGE = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
+	public static final String ERROR_MESSAGE_COMPLEMENT = "Usage: ${complement(list1, list2, list3, ...)}. (The resulting list contains no duplicates) Example: ${merge(allUsers, me)} => List of all users except myself";
 	public static final String ERROR_MESSAGE_UNWIND = "Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}";
 	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
 	public static final String ERROR_MESSAGE_LT = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
@@ -1279,6 +1281,45 @@ public class Functions {
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_MERGE;
+			}
+
+		});
+		functions.put("complement", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final Set sourceSet = new HashSet();
+
+				if (sources[0] instanceof Collection) {
+
+					sourceSet.addAll((Collection)sources[0]);
+
+					for (int cnt = 1; cnt < sources.length; cnt++) {
+
+						final Object source = sources[cnt];
+
+						if (source instanceof Collection) {
+
+							sourceSet.removeAll((Collection)source);
+
+						} else if (source != null) {
+
+							sourceSet.remove(source);
+						}
+					}
+
+				} else {
+
+					return "Argument 1 for complement must be a Collection";
+				}
+
+				return sourceSet;
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_COMPLEMENT;
 			}
 
 		});

@@ -198,6 +198,16 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid lower() result", "string",       testOne.replaceVariables(securityContext, ctx, "${lower(this.aString)}"));
 			assertEquals("Invalid upper() result", "STRING",       testOne.replaceVariables(securityContext, ctx, "${upper(this.aString)}"));
 
+			// merge
+			assertEquals("Invalid merge() result", "[one, two, three]", testOne.replaceVariables(securityContext, ctx, "${merge('one', 'two', 'three')}"));
+			assertEquals("Invalid merge() result", "[one, two, three, two, one, two, three]", testOne.replaceVariables(securityContext, ctx, "${merge(merge('one', 'two', 'three'), 'two', merge('one', 'two', 'three'))}"));
+			assertEquals("Invalid merge() result", "[1, 2, 3, 4, 5, 6, 7, 8]", testOne.replaceVariables(securityContext, ctx, "${merge(merge('1', '2', '3'), merge('4', '5', merge('6', '7', '8')))}"));
+			assertEquals("Invalid merge() result", "[1, 2, 3, 4, 5, 6, 1, 2, 3, 8]", testOne.replaceVariables(securityContext, ctx, "${ ( store('list', merge('1', '2', '3')), merge(retrieve('list'), merge('4', '5', merge('6', retrieve('list'), '8'))) )}"));
+
+			// complement
+			assertEquals("Invalid complement() result", "[]", testOne.replaceVariables(securityContext, ctx, "${complement(merge('one', 'two', 'three'), 'one', merge('two', 'three', 'four'))}"));
+			assertEquals("Invalid complement() result", "[two]", testOne.replaceVariables(securityContext, ctx, "${complement(merge('one', 'two', 'three'), merge('one', 'four', 'three'))}"));
+
 			// join
 			assertEquals("Invalid join() result", "one,two,three", testOne.replaceVariables(securityContext, ctx, "${join(merge(\"one\", \"two\", \"three\"), \",\")}"));
 
