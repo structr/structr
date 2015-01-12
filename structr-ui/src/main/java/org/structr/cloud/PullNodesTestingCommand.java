@@ -52,7 +52,7 @@ public class PullNodesTestingCommand extends CloudServiceCommand implements Main
 			final App app     = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				CloudService.doRemote(new PullTransmission(id, true), "admin", "admin", "localhost", 54556, new LoggingListener());
+				CloudService.doRemote(new PullTransmission(id, true), new HostInfo("admin", "admin", "localhost", 54556), new LoggingListener());
 
 				tx.success();
 			}

@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.List;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
-import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.SyncCommand;
@@ -50,7 +49,7 @@ public class PullFile extends FileNodeDataContainer {
 	}
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 
 		final Object value = serverConnection.getValue(key + "Nodes");
 		if (value instanceof List) {
@@ -64,11 +63,10 @@ public class PullFile extends FileNodeDataContainer {
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 
 		final int chunkCount = Long.valueOf(getFileSize() / CloudService.CHUNK_SIZE).intValue() + 1;
 
-		clientConnection.increaseTotal(chunkCount + 1);
 		clientConnection.beginFile(this);
 
 		for (int i=0; i<chunkCount; i++) {

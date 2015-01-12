@@ -1,6 +1,8 @@
 package org.structr.cloud.sync;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -8,9 +10,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.structr.cloud.CloudHost;
 import org.structr.cloud.CloudListener;
 import org.structr.cloud.CloudService;
-import org.structr.cloud.message.Ping;
 import org.structr.cloud.transmission.SingleTransmission;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
@@ -37,7 +39,6 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	private boolean active                     = false;
 	private int requiredSyncCount              = 0;
 	private int retryInterval                  = 60;
-	private long timeout                       = 0;
 
 	public SyncService() {
 
@@ -119,13 +120,19 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 					throw new IllegalStateException("no sync port found for remote host " + host + ", please set sync.ports in structr.conf.");
 				}
 
-				logger.log(Level.INFO, "Adding synchronization host {0}:{1}, user {2}", new Object[] { host, port, user } );
+				final SyncHostInfo syncHostInfo = new SyncHostInfo(host, user, pwd, port);
+				syncHosts.add(syncHostInfo);
 
-				syncHosts.add(new SyncHostInfo(host, user, pwd, port));
+				logger.log(Level.INFO, "Adding synchronization host {0}, user {2}", new Object[] { syncHostInfo, port, user } );
 			}
 
-			// check and initialize sync hosts and policy
-			initializeSyncHosts(minimum);
+			try {
+				// check and initialize sync hosts and policy
+				initializeSyncHosts(minimum);
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
 		}
 	}
 
@@ -160,6 +167,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 			try {
 
+				// wait to be notified when new data is available
 				synchronized (syncQueue) {
 
 					while (syncQueue.isEmpty()) {
@@ -167,6 +175,8 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 					}
 				}
 
+				// load the head of the queue without removing it
+				// (will be removed later if sync was successful)
 				final List<ModificationEvent> transaction = syncQueue.peek();
 				if (transaction != null) {
 
@@ -181,10 +191,12 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 							try {
 
-								CloudService.doRemote(transmission, info.getUser(), info.getPwd(), info.getHost(), info.getPort(), successListener);
+								transmission.setCurrentInstanceId(info.getInstanceId());
+
+								CloudService.doRemote(transmission, info, successListener);
 
 							} catch (FrameworkException fex) {
-								logger.log(Level.WARNING, "Unable to synchronize with host {0}: {1}", new Object[] { info.getHost(), fex.getMessage() } );
+								logger.log(Level.WARNING, "Unable to synchronize with host {0}: {1}", new Object[] { info, fex.getMessage() } );
 							}
 						}
 
@@ -256,33 +268,120 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	}
 
 	// ----- private methods -----
-	private void initializeSyncHosts(final String minimum) {
+	private void initializeSyncHosts(final String minimum) throws FrameworkException {
 
-		final int numSyncHosts = syncHosts.size();
-		requiredSyncCount      = Integer.valueOf(minimum);
+		final String instanceId = StructrApp.getInstance().getInstanceId();
+
+		// check connection and version of sync host
+		for (Iterator<SyncHostInfo> it = syncHosts.iterator(); it.hasNext();) {
+
+			final SyncHostInfo host = it.next();
+
+			try {
+
+				final SingleTransmission<ReplicationStatus> transmission = new SingleTransmission<>(new ReplicationStatus(instanceId));
+				final ReplicationStatus status = CloudService.doRemote(transmission, host, new LoggingListener());
+				if (status != null) {
+
+					final String slaveId = status.getSlaveId();
+					if (slaveId != null ) {
+
+						final long syncTimestamp  = status.getLastSync();
+						String lastSyncString     = "not synced yet";
+
+						if (syncTimestamp != 0L) {
+
+							final SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+							lastSyncString = "last sync was " + df.format(syncTimestamp);
+						}
+
+						logger.log(Level.INFO, "Determined instance ID of {0} to be {1}, {2}.", new Object[] { host, slaveId, lastSyncString } );
+
+						// store replication status in host info
+						host.setReplicationStatus(status);
+
+					} else {
+
+						logger.log(Level.WARNING, "Host {0} has no slave ID, not usable for sync.", host.getHostName());
+						it.remove();
+					}
+
+				} else {
+
+					logger.log(Level.WARNING, "Synchronization server {0} not reachable, removing from list.", host);
+					it.remove();
+				}
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+				logger.log(Level.WARNING, "Synchronization server {0} not reachable, removing from list.", host);
+				it.remove();
+			}
+		}
+
+		// check number of synchronization hosts
+		final int numSyncHosts  = syncHosts.size();
+		requiredSyncCount       = Integer.valueOf(minimum);
 
 		if (numSyncHosts < requiredSyncCount) {
-			throw new IllegalStateException("synchronization policy requires at least " + requiredSyncCount + " hosts, but only " + numSyncHosts + " are set.");
+			throw new IllegalStateException("synchronization policy requires at least " + requiredSyncCount + " hosts, but only " + numSyncHosts + " are reachable.");
 		}
 
 		logger.log(Level.INFO, "Synchronization to {0} host{1} required.", new Object[] { requiredSyncCount, requiredSyncCount == 1 ? "" : "s" } );
 
-		// check connection and version of sync host
+
+		// prepare synchronization hosts
 		for (final SyncHostInfo host : syncHosts) {
 
-			try {
+			// try to copy database contents to synchronization slave
+			checkAndInitializeSyncHost(host);
+		}
+	}
 
-				final Ping ping = CloudService.doRemote(new SingleTransmission<>(new Ping()), host.getUser(), host.getPwd(), host.getHost(), host.getPort(), null);
-				if (ping == null) {
+	private void checkAndInitializeSyncHost(final SyncHostInfo host) throws FrameworkException {
 
-					// flow will not reach this point when the protocol versions mismatch
-					throw new IllegalStateException("synchronization server " + host.getHost() + " not available.");
-				}
+		final String slaveInstanceId  = host.getInstanceId();
+		final SimpleDateFormat df     = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		final long localSyncTimestamp = StructrApp.getInstance().getGlobalSetting(slaveInstanceId, 0L);
 
-			} catch (FrameworkException ex) {
+		if (localSyncTimestamp == 0L) {
 
-				throw new IllegalStateException("synchronization server " + host.getHost() + " not available.");
+			// no synchronization with this slave yet, clear and initialize slave database
+			synchronizeSlave(host);
+
+		} else {
+
+			// there has been a synchronization in the past
+			if (host.getLastSyncTimestamp() != localSyncTimestamp) {
+
+				logger.log(Level.INFO, "Replication host {0} is out of sync, last remote update was {1} whereas last local update was {2}",
+					new Object[] { host,  df.format(host.getLastSyncTimestamp()), df.format(localSyncTimestamp) }
+				);
+
+				// clear and re-initialize slave database..
+				synchronizeSlave(host);
+
+			} else {
+
+				logger.log(Level.INFO, "Replication host {0} is in sync, last update was {1}", new Object[] { host, df.format(localSyncTimestamp) } );
 			}
+		}
+	}
+
+	private void synchronizeSlave(final SyncHostInfo info) {
+
+		logger.log(Level.INFO, "Establishing initial replication.");
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			CloudService.doRemote(new UpdateTransmission(), info, new LoggingListener());
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 
@@ -318,13 +417,14 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		}
 	}
 
-	private static class SyncHostInfo {
+	private static class SyncHostInfo implements CloudHost {
 
-		private long timeout = 0;
-		private String host = null;
-		private String user = null;
-		private String pwd  = null;
-		private int port    = -1;
+		private ReplicationStatus status = null;
+		private String instanceId        = null;
+		private String host              = null;
+		private String user              = null;
+		private String pwd               = null;
+		private int port                 = -1;
 
 		public SyncHostInfo(final String host, final String user, final String pwd, final String portSource) {
 
@@ -334,24 +434,67 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			this.port = Integer.valueOf(portSource);
 		}
 
-		public String getHost() {
+		@Override
+		public String toString() {
+			return host + ":" + port;
+		}
+
+		@Override
+		public String getHostName() {
 			return host;
 		}
 
-		public String getUser() {
+		@Override
+		public String getUserName() {
 			return user;
 		}
 
-		public String getPwd() {
+		@Override
+		public String getPassword() {
 			return pwd;
 		}
 
+		@Override
 		public int getPort() {
 			return port;
 		}
 
-		public long getTimeout() {
-			return timeout;
+		public void setReplicationStatus(final ReplicationStatus status) {
+
+			this.instanceId = status.getSlaveId();
+			this.status     = status;
+		}
+
+		public long getLastSyncTimestamp() {
+			return status.getLastSync();
+		}
+
+		public String getInstanceId() {
+			return instanceId;
+		}
+	}
+
+	private class LoggingListener implements CloudListener {
+
+		@Override
+		public void transmissionStarted() {
+			logger.log(Level.INFO, "Transmission started");
+		}
+
+		@Override
+		public void transmissionFinished() {
+			logger.log(Level.INFO, "Transmission finished");
+		}
+
+		@Override
+		public void transmissionAborted() {
+			logger.log(Level.INFO, "Transmission aborted");
+		}
+
+		@Override
+		public void transmissionProgress(int current, int total) {
+
+			logger.log(Level.INFO, "Transmission progress {0}/{1}", new Object[] { current, total } );
 		}
 	}
 }

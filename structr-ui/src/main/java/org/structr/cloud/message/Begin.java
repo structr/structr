@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -34,15 +33,14 @@ public class Begin extends Message {
 	public Begin() {}
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 
 		serverConnection.beginTransaction();
 		serverConnection.send(this);
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
-
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 		clientConnection.beginTransaction();
 	}
 

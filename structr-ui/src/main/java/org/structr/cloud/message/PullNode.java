@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.List;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
-import org.structr.cloud.ExportContext;
 import org.structr.cloud.transmission.PushTransmission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
@@ -51,7 +50,7 @@ public class PullNode extends NodeDataContainer {
 	}
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 
 		final Object value = serverConnection.getValue(key + "Nodes");
 		if (value instanceof List) {
@@ -67,16 +66,11 @@ public class PullNode extends NodeDataContainer {
 
 				serverConnection.send(new NodeDataContainer(node, nodeIndex));
 			}
-
-			context.progress();
 		}
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
-
-		context.progress();
-		clientConnection.send(ack());
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 	}
 
 	@Override

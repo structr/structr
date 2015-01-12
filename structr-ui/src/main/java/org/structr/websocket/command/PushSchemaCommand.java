@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import java.util.Map;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.HostInfo;
 import org.structr.cloud.WebsocketProgressListener;
 import org.structr.cloud.transmission.PushTransmission;
 import org.structr.common.error.FrameworkException;
@@ -75,7 +76,11 @@ public class PushSchemaCommand extends AbstractCommand {
 				}
 
 				// push schema
-				CloudService.doRemote(tms, username, password, host, port.intValue(), new WebsocketProgressListener(getWebSocket(), key));
+				CloudService.doRemote(
+					tms,
+					new HostInfo(username, password, host, port.intValue()),
+					new WebsocketProgressListener(getWebSocket(), key)
+				);
 
 				tx.success();
 

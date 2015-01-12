@@ -85,7 +85,6 @@ public class CloudConnection<T> extends Thread {
 	private final ConfigurationProvider config = Services.getInstance().getConfigurationProvider();
 	private App app                            = StructrApp.getInstance();
 	private long transmissionAbortTime         = 0L;
-	private ExportContext context              = null;
 	private boolean authenticated              = false;
 	private String errorMessage                = null;
 	private int errorCode                      = 0;
@@ -97,13 +96,13 @@ public class CloudConnection<T> extends Thread {
 	private Socket socket                      = null;
  	private T payload                          = null;
  	private Tx tx                              = null;
+	private int count                          = 0;
 
-	public CloudConnection(final Socket socket, final ExportContext context) {
+	public CloudConnection(final Socket socket, final CloudListener listener) {
 
 		super("CloudConnection(" + socket.getRemoteSocketAddress() + ")");
 
 		this.socket = socket;
-		this.context = context;
 
 		this.setDaemon(true);
 
@@ -128,9 +127,6 @@ public class CloudConnection<T> extends Thread {
 
 				sender = new Sender(this, new DataOutputStream(new BufferedOutputStream(new GZIPOutputStream(new CipherOutputStream(socket.getOutputStream(), encrypter), 32768, true))));
 				receiver = new Receiver(this, new DataInputStream(new BufferedInputStream(new GZIPInputStream(new CipherInputStream(socket.getInputStream(), decrypter), 32768))));
-
-//				sender = new Sender(this, new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), 65536)));
-//				receiver = new Receiver(this, new DataInputStream(new BufferedInputStream(socket.getInputStream(), 65536)));
 
 				receiver.start();
 				sender.start();
@@ -163,12 +159,23 @@ public class CloudConnection<T> extends Thread {
 
 					if (request.wasSentFromHere()) {
 
-						request.onResponse(this, context);
+						request.onResponse(this);
 
 					} else {
 
-						request.onRequest(this, context);
+						request.onRequest(this);
 					}
+				}
+
+				if (count > 100) {
+
+					// intermediate commit
+					this.commitTransaction();
+					this.endTransaction();
+					this.beginTransaction();
+
+					count = 0;
+
 				}
 
 			} catch (Throwable t) {
@@ -244,7 +251,7 @@ public class CloudConnection<T> extends Thread {
 
 		transmissionAbortTime = System.currentTimeMillis() + CloudService.DEFAULT_TIMEOUT;
 
-		while (context.getCurrentProgress() < context.getTotalSize()) {
+		while (isConnected()) {
 
 			if (errorMessage != null) {
 				throw new FrameworkException(errorCode, errorMessage);
@@ -346,6 +353,8 @@ public class CloudConnection<T> extends Thread {
 
 		idMap.put(receivedNodeData.getSourceNodeId(), newOrExistingNode.getUuid());
 
+		count++;
+
 		return (NodeInterface)newOrExistingNode;
 	}
 
@@ -397,9 +406,16 @@ public class CloudConnection<T> extends Thread {
 					final PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, relType, receivedRelationshipData.getProperties());
 					return app.create(targetStartNode, targetEndNode, relType, properties);
 				}
+
+			} else {
+
+				logger.log(Level.WARNING, "Could not store relationship {0} -> {1}", new Object[]{ targetStartNode, targetEndNode });
+
 			}
 
 		}
+
+		count++;
 
 		logger.log(Level.WARNING, "Could not store relationship {0} -> {1}", new Object[]{sourceStartNodeId, sourceEndNodeId});
 
@@ -419,6 +435,8 @@ public class CloudConnection<T> extends Thread {
 
 				app.delete((RelationshipInterface)obj);
 			}
+
+			count++;
 		}
 	}
 
@@ -440,6 +458,10 @@ public class CloudConnection<T> extends Thread {
 		if (tx != null) {
 
 			try {
+
+				if (CloudService.DEBUG) {
+					System.out.println(System.currentTimeMillis() + " ############################### COMMITING TRANSACTION " + tx + " in Thread" + Thread.currentThread());
+				}
 
 				tx.success();
 
@@ -622,10 +644,6 @@ public class CloudConnection<T> extends Thread {
 
 	public T getPayload() {
 		return payload;
-	}
-
-	public void increaseTotal(final int total) {
-		context.increaseTotal(total);
 	}
 
 	public void setError(final int errorCode, final String errorMessage) {
