@@ -55,10 +55,10 @@ public class CloudService extends Thread implements RunnableService {
 	public static final int CHUNK_SIZE        = 65536;
 	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
 	public static final int LIVE_PACKET_COUNT = 200;
-	public static final long AUTH_TIMEOUT     = 500;
+	public static final long AUTH_TIMEOUT     = 5000;
 	public static final long DEFAULT_TIMEOUT  = 5000;
-	public static final boolean DEBUG         = false;
 	public static final String STREAM_CIPHER  = "RC4";
+	public static boolean DEBUG               = false;
 
 
 	private ServerSocket serverSocket = null;
@@ -77,7 +77,9 @@ public class CloudService extends Thread implements RunnableService {
 
 	@Override
 	public void initialize(StructrConf config) {
+		
 		tcpPort = Integer.parseInt(config.getProperty(Services.TCP_PORT, "54555"));
+		DEBUG   = Boolean.parseBoolean(config.getProperty("sync.debug", "false"));
 	}
 
 	@Override
