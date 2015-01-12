@@ -435,6 +435,7 @@ var _Entities = {
 
     },
     listProperties: function (entity, view, tabView, typeInfo) {
+        var null_prefix = 'null_attr_';
         $.ajax({
             url: rootUrl + entity.id + (view ? '/' + view : ''),
             dataType: 'json',
@@ -463,26 +464,26 @@ var _Entities = {
                             });
 
                             // Always show non-empty attributes
-                            if (res[key]) {
+                            if (res[key] !== null) {
                                 display = true;
                             }
 
                             if (display || key === '_html_class' || key === '_html_id') {
                                 props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
-                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             } else if (key !== 'id') {
                                 props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td>'
-                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             }
                         } else if (view === 'in' || view === 'out') {
                             if (key === 'id') {
                                 // set ID to rel ID
                                 id = res[key];
                             }
-                            props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                            props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
                         } else {
 
-                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             var cell = $('.value.' + key + '_', props);
 
                             if (!typeInfo[key]) {
@@ -577,9 +578,9 @@ var _Entities = {
                             }
                         }
 
-                        var nullIcon = $('#null_' + key);
+                        var nullIcon = $('#' + null_prefix + key);
                         nullIcon.on('click', function () {
-                            var key = $(this).prop('id').substring(5);
+                            var key = $(this).prop('id').substring(null_prefix.length);
                             var input = $('.' + key + '_').find('input');
                             _Entities.setProperty(id, key, isArray ? '[]' : null, false, function (newVal) {
                                 if (!newVal) {
