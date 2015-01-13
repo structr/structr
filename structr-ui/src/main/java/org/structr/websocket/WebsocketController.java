@@ -36,6 +36,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
+import org.structr.core.TransactionSource;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationEvent;
@@ -182,7 +183,11 @@ public class WebsocketController implements StructrTransactionListener {
 
 	// ----- interface StructrTransactionListener -----
 	@Override
-	public void transactionCommited(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents) {
+	public void beforeCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) {
+	}
+
+	@Override
+	public void afterCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
@@ -198,6 +203,8 @@ public class WebsocketController implements StructrTransactionListener {
 				} catch (FrameworkException ignore) {
 				}
 			}
+
+			tx.success();
 
 		} catch (FrameworkException ex) {
 			ex.printStackTrace();

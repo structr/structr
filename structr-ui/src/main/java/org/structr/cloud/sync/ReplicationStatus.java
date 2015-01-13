@@ -19,6 +19,7 @@ public class ReplicationStatus extends Message<ReplicationStatus> {
 
 	private String masterId = null;
 	private String slaveId  = null;
+	private String role     = null;
 	private long lastSync   = 0L;
 	private boolean update  = false;
 
@@ -51,6 +52,10 @@ public class ReplicationStatus extends Message<ReplicationStatus> {
 		return lastSync;
 	}
 
+	public String getRole() {
+		return role;
+	}
+
 	@Override
 	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 
@@ -69,6 +74,7 @@ public class ReplicationStatus extends Message<ReplicationStatus> {
 			// this is not an error, we want the sync time for the
 			// given MASTER, since a slave can have multiple masters
 			this.lastSync = app.getGlobalSetting(masterId, 0L);
+			this.role     = StructrApp.getConfigurationValue("sync.role", "slave");
 		}
 
 		serverConnection.send(this);
@@ -89,6 +95,7 @@ public class ReplicationStatus extends Message<ReplicationStatus> {
 
 		this.masterId = (String)SyncCommand.deserialize(inputStream);
 		this.slaveId  = (String)SyncCommand.deserialize(inputStream);
+		this.role     = (String)SyncCommand.deserialize(inputStream);
 		this.lastSync = (Long)SyncCommand.deserialize(inputStream);
 		this.update   = (Boolean)SyncCommand.deserialize(inputStream);
 	}
@@ -98,6 +105,7 @@ public class ReplicationStatus extends Message<ReplicationStatus> {
 
 		SyncCommand.serialize(outputStream, masterId);
 		SyncCommand.serialize(outputStream, slaveId);
+		SyncCommand.serialize(outputStream, role);
 		SyncCommand.serialize(outputStream, lastSync);
 		SyncCommand.serialize(outputStream, update);
 	}

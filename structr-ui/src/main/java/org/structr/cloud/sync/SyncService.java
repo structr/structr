@@ -20,6 +20,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.StructrTransactionListener;
+import org.structr.core.TransactionSource;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.TransactionCommand;
@@ -34,9 +36,16 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	private static final BlockingQueue<List<ModificationEvent>> syncQueue = new ArrayBlockingQueue<>(1000);
 	private static final Logger logger                                    = Logger.getLogger(CloudService.class.getName());
 
+	public enum SyncRole {
+		master,
+		slave
+	};
+
 	private final List<SyncHostInfo> syncHosts = new LinkedList<>();
 	private boolean running                    = false;
 	private boolean active                     = false;
+	private String allowedMaster               = null;
+	private SyncRole role                      = null;
 	private int requiredSyncCount              = 0;
 	private int retryInterval                  = 60;
 
@@ -57,6 +66,14 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 		if (active) {
 
+			// initialize role and master
+			role          = SyncRole.valueOf(config.getProperty("sync.role", "master"));
+			allowedMaster = config.getProperty("sync.master", null);
+
+			if (allowedMaster == null && SyncRole.slave.equals(role)) {
+				throw new IllegalStateException("no master address set for this slave, please set sync.master in structr.conf.");
+			}
+
 			final String minimum = config.getProperty("sync.minimum", "1");
 			final String retry   = config.getProperty("sync.retry", "60");
 			final String hosts   = config.getProperty("sync.hosts");
@@ -64,75 +81,78 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			final String pwds    = config.getProperty("sync.passwords");
 			final String ports   = config.getProperty("sync.ports");
 
-			if (StringUtils.isEmpty(hosts)) {
-				throw new IllegalStateException("no sync hosts set but service is enabled, please set sync.hosts in structr.conf.");
-			}
+			// check only if we are a replication master
+			if (SyncRole.master.equals(role)) {
 
-			if (StringUtils.isEmpty(users)) {
-				throw new IllegalStateException("no sync users set but service is enabled, please set sync.users in structr.conf.");
-			}
+				if (StringUtils.isEmpty(hosts)) {
+					throw new IllegalStateException("no slave hosts set for this master, please set sync.hosts in structr.conf.");
+				}
 
-			if (StringUtils.isEmpty(pwds)) {
-				throw new IllegalStateException("no sync passwords set but service is enabled, please set sync.passwords in structr.conf.");
-			}
+				if (StringUtils.isEmpty(users)) {
+					throw new IllegalStateException("no slave users set for this master, please set sync.users in structr.conf.");
+				}
 
-			if (StringUtils.isEmpty(ports)) {
-				throw new IllegalStateException("no sync ports set but service is enabled, please set sync.ports in structr.conf.");
+				if (StringUtils.isEmpty(pwds)) {
+					throw new IllegalStateException("no slave passwords set for this master, please set sync.passwords in structr.conf.");
+				}
+
+				if (StringUtils.isEmpty(ports)) {
+					throw new IllegalStateException("no slave ports set for this master, please set sync.ports in structr.conf.");
+				}
+
+				final String[] remoteHosts = hosts != null ? hosts.split("[, ]+") : new String[0];
+				final String[] remoteUsers = users != null ? users.split("[, ]+") : new String[0];
+				final String[] remotePwds  = pwds  != null ? pwds.split("[, ]+")  : new String[0];
+				final String[] remotePorts = ports != null ? ports.split("[, ]+") : new String[0];
+
+				String previousUser = null;
+				String previousPwd  = null;
+				String previousPort = null;
+
+				for (int i=0; i<remoteHosts.length; i++) {
+
+					final String host = remoteHosts[i];
+
+					final String user = remoteUsers.length > i ? remoteUsers[i] : previousUser;
+					final String pwd  = remotePwds.length > i ?  remotePwds[i]   : previousPwd;
+					final String port = remotePorts.length > i ? remotePorts[i] : previousPort;
+
+					previousUser = user;
+					previousPwd  = pwd;
+					previousPort = port;
+
+					if (StringUtils.isEmpty(user)) {
+						throw new IllegalStateException("no sync user found for remote host " + host + ", please set sync.users in structr.conf.");
+					}
+
+					if (StringUtils.isEmpty(pwd)) {
+						throw new IllegalStateException("no sync password found for remote host " + host + ", please set sync.passwords in structr.conf.");
+					}
+
+					if (StringUtils.isEmpty(port)) {
+						throw new IllegalStateException("no sync port found for remote host " + host + ", please set sync.ports in structr.conf.");
+					}
+
+					final SyncHostInfo syncHostInfo = new SyncHostInfo(host, user, pwd, port);
+					syncHosts.add(syncHostInfo);
+
+					logger.log(Level.INFO, "Adding slave host {0}, user {2}", new Object[] { syncHostInfo, port, user } );
+				}
+
+				try {
+					// check and initialize sync hosts and policy
+					initializeSyncHosts(minimum);
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
 			}
 
 			if (StringUtils.isNotBlank(retry)) {
-
 				this.retryInterval = Integer.valueOf(retry);
 			}
 
 			logger.log(Level.INFO, "Retry interval is set to {0} seconds", retryInterval);
-
-			final String[] remoteHosts = hosts.split("[, ]+");
-			final String[] remoteUsers = users.split("[, ]+");
-			final String[] remotePwds  = pwds.split("[, ]+");
-			final String[] remotePorts = ports.split("[, ]+");
-
-			String previousUser = null;
-			String previousPwd  = null;
-			String previousPort = null;
-
-			for (int i=0; i<remoteHosts.length; i++) {
-
-				final String host = remoteHosts[i];
-
-				final String user = remoteUsers.length > i ? remoteUsers[i] : previousUser;
-				final String pwd  = remotePwds.length > i ?  remotePwds[i]   : previousPwd;
-				final String port = remotePorts.length > i ? remotePorts[i] : previousPort;
-
-				previousUser = user;
-				previousPwd  = pwd;
-				previousPort = port;
-
-				if (StringUtils.isEmpty(user)) {
-					throw new IllegalStateException("no sync user found for remote host " + host + ", please set sync.users in structr.conf.");
-				}
-
-				if (StringUtils.isEmpty(pwd)) {
-					throw new IllegalStateException("no sync password found for remote host " + host + ", please set sync.passwords in structr.conf.");
-				}
-
-				if (StringUtils.isEmpty(port)) {
-					throw new IllegalStateException("no sync port found for remote host " + host + ", please set sync.ports in structr.conf.");
-				}
-
-				final SyncHostInfo syncHostInfo = new SyncHostInfo(host, user, pwd, port);
-				syncHosts.add(syncHostInfo);
-
-				logger.log(Level.INFO, "Adding synchronization host {0}, user {2}", new Object[] { syncHostInfo, port, user } );
-			}
-
-			try {
-				// check and initialize sync hosts and policy
-				initializeSyncHosts(minimum);
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-			}
 		}
 	}
 
@@ -183,29 +203,17 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 					// define success as "at least one sync process was successful"
 					final SyncListener successListener = new SyncListener(requiredSyncCount);
 
-					try (final Tx tx = StructrApp.getInstance().tx()) {
+					final SyncTransmission transmission = new SyncTransmission(transaction);
 
-						final SyncTransmission transmission = new SyncTransmission(transaction);
+					for (final SyncHostInfo info : syncHosts) {
 
-						for (final SyncHostInfo info : syncHosts) {
+						try {
 
-							try {
+							CloudService.doRemote(transmission, info, successListener);
 
-								transmission.setCurrentInstanceId(info.getInstanceId());
-
-								CloudService.doRemote(transmission, info, successListener);
-
-							} catch (FrameworkException fex) {
-								logger.log(Level.WARNING, "Unable to synchronize with host {0}: {1}", new Object[] { info, fex.getMessage() } );
-							}
+						} catch (FrameworkException fex) {
+							logger.log(Level.WARNING, "Unable to synchronize with host {0}: {1}", new Object[] { info, fex.getMessage() } );
 						}
-
-						tx.success();
-
-					} catch (FrameworkException fex) {
-
-						// should not happen, and should output a stracktrace if it happens
-						fex.printStackTrace();
 					}
 
 					// remove sync changeset from queue when sync
@@ -248,12 +256,41 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 	// ----- interface StructrTransactionListener -----
 	@Override
-	public void transactionCommited(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents) {
+	public void beforeCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException {
+
+		// prevent all (!) transactions from being committed on slave instances
+		if (SyncRole.slave.equals(role) && (source == null || !allowedMaster.equals(source.getOriginAddress()))) {
+
+			if (modificationEvents != null && !modificationEvents.isEmpty()) {
+
+				throw new FrameworkException(500, "Illegal write transaction on active slave.");
+			}
+		}
+	}
+
+	@Override
+	public void afterCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) {
+
+		if (source != null && source.isRemote()) {
+			return;
+		}
 
 		// only react if desired
 		if (active && running && !modificationEvents.isEmpty()) {
 
 			try {
+				// store last sync timestamp for the given instance ID
+				final App app = StructrApp.getInstance();
+				app.setGlobalSetting(app.getInstanceId() + ".lastModified", System.currentTimeMillis());
+
+			} catch (FrameworkException fex) {
+
+				logger.log(Level.SEVERE, "Unable to store last modified date for current instance.", fex);
+			}
+
+
+			try {
+
 				// copy all modification events and return quickly
 				syncQueue.put(new ArrayList<>(modificationEvents));
 
@@ -270,12 +307,14 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	// ----- private methods -----
 	private void initializeSyncHosts(final String minimum) throws FrameworkException {
 
-		final String instanceId = StructrApp.getInstance().getInstanceId();
+		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		final String instanceId           = StructrApp.getInstance().getInstanceId();
 
 		// check connection and version of sync host
 		for (Iterator<SyncHostInfo> it = syncHosts.iterator(); it.hasNext();) {
 
 			final SyncHostInfo host = it.next();
+			boolean reachable       = true;
 
 			try {
 
@@ -291,8 +330,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 						if (syncTimestamp != 0L) {
 
-							final SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-							lastSyncString = "last sync was " + df.format(syncTimestamp);
+							lastSyncString = "last sync was " + dateFormat.format(syncTimestamp);
 						}
 
 						logger.log(Level.INFO, "Determined instance ID of {0} to be {1}, {2}.", new Object[] { host, slaveId, lastSyncString } );
@@ -302,21 +340,23 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 					} else {
 
-						logger.log(Level.WARNING, "Host {0} has no slave ID, not usable for sync.", host.getHostName());
-						it.remove();
+						reachable = false;
 					}
 
 				} else {
 
-					logger.log(Level.WARNING, "Synchronization server {0} not reachable, removing from list.", host);
-					it.remove();
+					reachable = false;
 				}
 
 			} catch (Throwable t) {
 
 				t.printStackTrace();
+				reachable = false;
+			}
 
-				logger.log(Level.WARNING, "Synchronization server {0} not reachable, removing from list.", host);
+			if (!reachable) {
+
+				logger.log(Level.WARNING, "Synchronization slave {0} not reachable, removing from list.", host);
 				it.remove();
 			}
 		}
@@ -342,9 +382,9 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 	private void checkAndInitializeSyncHost(final SyncHostInfo host) throws FrameworkException {
 
-		final String slaveInstanceId  = host.getInstanceId();
+		final String masterId         = StructrApp.getInstance().getInstanceId();
 		final SimpleDateFormat df     = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		final long localSyncTimestamp = StructrApp.getInstance().getGlobalSetting(slaveInstanceId, 0L);
+		final long localSyncTimestamp = StructrApp.getInstance().getGlobalSetting(masterId + ".lastModified", 0L);
 
 		if (localSyncTimestamp == 0L) {
 
@@ -383,6 +423,8 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+
+		logger.log(Level.INFO, "Done.");
 	}
 
 	// ----- nested classes -----
