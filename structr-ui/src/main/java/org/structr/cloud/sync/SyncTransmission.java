@@ -36,9 +36,9 @@ import org.structr.cloud.message.NodeDataContainer;
 import org.structr.cloud.message.RelationshipDataContainer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationEvent;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.dynamic.File;
 
@@ -50,15 +50,10 @@ public class SyncTransmission implements CloudTransmission {
 
 	private static final Logger logger = Logger.getLogger(SyncTransmission.class.getName());
 	private List<ModificationEvent> transaction = null;
-	private String currentInstanceId            = null;
 
 	public SyncTransmission(final List<ModificationEvent> transaction) {
 
 		this.transaction = transaction;
-	}
-
-	public void setCurrentInstanceId(final String instanceId) {
-		this.currentInstanceId = instanceId;
 	}
 
 	@Override
@@ -66,63 +61,63 @@ public class SyncTransmission implements CloudTransmission {
 
 		int count = 0;
 
-		for (final ModificationEvent event : transaction) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final GraphObject graphObject  = event.getGraphObject();
+			for (final ModificationEvent event : transaction) {
 
-			if (event.isDeleted()) {
+				final GraphObject graphObject  = event.getGraphObject();
 
-				final String id = event.getRemovedProperties().get(GraphObject.id);
-				if (id != null) {
+				if (event.isDeleted()) {
 
-					client.send(new Delete(id));
-				}
+					final String id = event.getRemovedProperties().get(GraphObject.id);
+					if (id != null) {
 
-			} else {
+						client.send(new Delete(id));
+					}
 
-				try {
+				} else {
 
-					final Set<String> propertyKeys = new LinkedHashSet<>();
+					try {
 
-					// collect all possibly modified property keys
-					mapPropertyKeysToStrings(propertyKeys, event.getNewProperties().keySet());
-					mapPropertyKeysToStrings(propertyKeys, event.getModifiedProperties().keySet());
-					mapPropertyKeysToStrings(propertyKeys, event.getRemovedProperties().keySet());
+						final Set<String> propertyKeys = new LinkedHashSet<>();
 
-					if (graphObject.isNode()) {
+						// collect all possibly modified property keys
+						mapPropertyKeysToStrings(propertyKeys, event.getNewProperties().keySet());
+						mapPropertyKeysToStrings(propertyKeys, event.getModifiedProperties().keySet());
+						mapPropertyKeysToStrings(propertyKeys, event.getRemovedProperties().keySet());
 
-						if (graphObject instanceof File) {
+						if (graphObject.isNode()) {
 
-							sendFile(client, (File)graphObject, CloudService.CHUNK_SIZE);
+							if (graphObject instanceof File) {
+
+								sendFile(client, (File)graphObject, CloudService.CHUNK_SIZE);
+
+							} else {
+
+								client.send(new NodeDataContainer(graphObject.getSyncNode(), count, propertyKeys));
+							}
 
 						} else {
 
-							client.send(new NodeDataContainer(graphObject.getSyncNode(), count, propertyKeys));
+							client.send(new RelationshipDataContainer(graphObject.getSyncRelationship(), count, propertyKeys));
 						}
 
-					} else {
+					} catch (NotFoundException nfex) {
 
-						client.send(new RelationshipDataContainer(graphObject.getSyncRelationship(), count, propertyKeys));
+						logger.log(Level.INFO, "Trying to synchronize deleted entity, ignoring");
 					}
-
-				} catch (NotFoundException nfex) {
-
-					logger.log(Level.INFO, "Trying to synchronize deleted entity, ignoring");
 				}
+
+				count++;
 			}
 
-			count++;
+			tx.success();
 		}
-
-		final long lastSync = System.currentTimeMillis();
-		final App app       = StructrApp.getInstance();
-
-		// store last sync timestamp for the given instance ID
-		app.setGlobalSetting(currentInstanceId, lastSync);
 
 		// synchronize last sync timestamp with slave instance
 		// (we're sending out own instance ID (master) for the slave to store)
-		client.send(new ReplicationStatus(StructrApp.getInstance().getInstanceId(), lastSync));
+		final String masterId = StructrApp.getInstance().getInstanceId();
+		client.send(new ReplicationStatus(masterId, StructrApp.getInstance().getGlobalSetting(masterId + ".lastModified", 0L)));
 
 		// wait for end of transmission
 		client.waitForTransmission();

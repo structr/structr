@@ -1032,14 +1032,14 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		boolean hidden = true;
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
+//		try (Tx tx = StructrApp.getInstance().tx()) {
 
 			hidden = getProperty(Page.hidden);
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in isHidden() of page", fex);
-		}
+//			tx.success();
+//
+//		} catch (FrameworkException fex) {
+//			logger.log(Level.SEVERE, "Error in isHidden() of page", fex);
+//		}
 
 		return hidden;
 	}

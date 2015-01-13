@@ -45,7 +45,9 @@ public class Finish extends Message {
 
 	@Override
 	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
+		
 		serverConnection.send(new End());
+		serverConnection.commitTransaction();
 	}
 
 	@Override

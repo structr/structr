@@ -73,8 +73,6 @@ public class Sender extends Thread {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
-
 				connection.close();
 			}
 
