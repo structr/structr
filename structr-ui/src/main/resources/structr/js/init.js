@@ -181,8 +181,8 @@ $(function() {
         }
     });
 
-    Structr.updateVersionInfo();
     Structr.connect();
+    Structr.updateVersionInfo();
 
     // Reset keys in case of window switching
     
