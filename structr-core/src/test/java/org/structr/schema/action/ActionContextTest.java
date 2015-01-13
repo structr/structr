@@ -64,7 +64,7 @@ public class ActionContextTest extends StructrTest {
 		final String numberString2        = numberFormat2.format(2.234);
 		final String numberString3        = numberFormat3.format(2.234);
 		MailTemplate template             = null;
-		MailTemplate template2             = null;
+		MailTemplate template2            = null;
 		TestOne testOne                   = null;
 		TestTwo testTwo                   = null;
 		TestThree testThree               = null;
@@ -1041,6 +1041,44 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid string array access result with nth", "four", testFour.replaceVariables(securityContext, ctx, "${nth(this.stringArrayProperty, 3)}"));
 			assertEquals("Invalid string array access result with contains()", "true", testFour.replaceVariables(securityContext, ctx, "${contains(this.stringArrayProperty, 'two')}"));
 			assertEquals("Invalid string array access result with contains()", "false", testFour.replaceVariables(securityContext, ctx, "${contains(this.stringArrayProperty, 'five')}"));
+
+
+			// create
+			Integer noOfOnes = 1;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne'))}"));
+
+			// currently the creation of nodes must take place in a node of another type
+			testFour.replaceVariables(securityContext, ctx, "${create('TestOne', 'name', 'createTestOne1')}");
+			noOfOnes++;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne'))}"));
+			assertEquals("Invalid number of TestOne's", "1", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne1'))}"));
+
+			testFour.replaceVariables(securityContext, ctx, "${create('TestOne', 'name', 'createTestOne1')}");
+			noOfOnes++;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne'))}"));
+			assertEquals("Invalid number of TestOne's", "2", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne1'))}"));
+
+
+			// currently this must be executed on another node type
+			testFour.replaceVariables(securityContext, ctx, "${create('TestOne', 'name', 'createTestOne2', 'aCreateString', 'newCreateString1')}");
+			noOfOnes++;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne'))}"));
+			assertEquals("Invalid number of TestOne's", "1", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne2'))}"));
+			assertEquals("Invalid number of TestOne's", "0", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'aCreateString', 'DOES_NOT_EXIST'))}"));
+			assertEquals("Invalid number of TestOne's", "1", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'aCreateString', 'newCreateString1'))}"));
+			assertEquals("Invalid number of TestOne's", "0", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateString', 'NOT_newCreateString1'))}"));
+			assertEquals("Invalid number of TestOne's", "1", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateString', 'newCreateString1'))}"));
+
+
+			// currently this must be executed on another node type
+			testFour.replaceVariables(securityContext, ctx, "${create('TestOne', 'name', 'createTestOne2', 'aCreateInt', '256')}");
+			noOfOnes++;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne'))}"));
+			assertEquals("Invalid number of TestOne's", "2", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne2'))}"));
+			assertEquals("Invalid number of TestOne's", "1", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'aCreateInt', '256'))}"));
+			assertEquals("Invalid number of TestOne's", "0", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateInt', '255'))}"));
+			assertEquals("Invalid number of TestOne's", "1", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateInt', '256'))}"));
+
 
 			tx.success();
 
