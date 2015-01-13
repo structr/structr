@@ -20,17 +20,19 @@ package org.structr.core;
 
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.ModificationEvent;
 
 /**
  * An interface that allows you to be notified when a graph object is
  * modified, with the option to veto the modification.
- * 
+ *
  * In order to use this interface, you must register your implementation in SchemaHelper.
  *
  * @author Christian Morgner
  */
 public interface StructrTransactionListener {
 
-	public void transactionCommited(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents);
+	public void beforeCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException;
+	public void afterCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source);
 }

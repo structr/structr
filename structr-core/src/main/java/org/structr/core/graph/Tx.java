@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
+import org.structr.core.TransactionSource;
 import org.structr.core.app.StructrApp;
 
 /**
@@ -33,6 +34,7 @@ public class Tx implements AutoCloseable {
 
 	private AtomicBoolean guard             = new AtomicBoolean(false);
 	private SecurityContext securityContext = null;
+	private TransactionSource source        = null;
 	private boolean success                 = false;
 	private boolean doValidation            = true;
 	private boolean doCallbacks             = true;
@@ -65,6 +67,11 @@ public class Tx implements AutoCloseable {
 	}
 
 	public void success() throws FrameworkException {
+
+		for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+			listener.beforeCommit(securityContext, cmd.getModificationEvents(), source);
+		}
+
 		cmd.commitTx(doValidation);
 		success = true;
 	}
@@ -87,9 +94,9 @@ public class Tx implements AutoCloseable {
 					if (doNotifications) {
 
 						final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
-						for (StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+						for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
 
-							listener.transactionCommited(securityContext, modificationEvents);
+							listener.afterCommit(securityContext, modificationEvents, source);
 						}
 					}
 
@@ -101,5 +108,9 @@ public class Tx implements AutoCloseable {
 
 			guard.set(false);
 		}
+	}
+
+	public void setSource(final TransactionSource source) {
+		this.source = source;
 	}
 }

@@ -68,6 +68,9 @@ public class TestOne extends AbstractNode {
 	public static final Property<TestFour>      testFour           = new EndNode<>("testFour",  OneFourOneToOne.class);
 	public static final Property<List<TestSix>> manyToManyTestSixs = new StartNodes<>("manyToManyTestSixs", SixOneManyToMany.class);
 
+	public static final Property<String>        aCreateString      = new StringProperty("aCreateString").indexed();
+	public static final Property<Integer>       aCreateInt         = new IntProperty("aCreateInt").indexed();
+
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
 		name, anInt, aDouble, aLong, aDate, createdDate, aString, anotherString, aBoolean, anEnum, stringWithDefault
 	);
