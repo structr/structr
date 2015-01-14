@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import org.neo4j.graphdb.Lock;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Transaction;
+import org.structr.core.TransactionSource;
 
 /**
  *
@@ -28,18 +29,20 @@ import org.neo4j.graphdb.Transaction;
  */
 public class TransactionReference implements Transaction {
 
-	private Transaction tx     = null;
-	private int referenceCount = 0;
-	private boolean successful = false;
-	
+	private TransactionSource source = null;
+	private Transaction tx           = null;
+	private int referenceCount       = 0;
+	private boolean successful       = false;
+
 	public TransactionReference(final Transaction tx) {
-		this.tx = tx;
+		this.source = source;
+		this.tx     = tx;
 	}
-	
+
 	public boolean isToplevel() {
 		return referenceCount == 1;
 	}
-	
+
 	public boolean isSuccessful() {
 		return successful;
 	}
@@ -47,15 +50,23 @@ public class TransactionReference implements Transaction {
 	public void begin() {
 		referenceCount++;
 	}
-	
+
 	public void end() {
 		referenceCount--;
 	}
-	
+
 	public int getReferenceCount() {
 		return referenceCount;
 	}
-	
+
+	public void setSource(final TransactionSource source) {
+		this.source = source;
+	}
+
+	public TransactionSource getSource() {
+		return source;
+	}
+
 	// ----- interface Transaction -----
 	@Override
 	public void failure() {
@@ -76,15 +87,15 @@ public class TransactionReference implements Transaction {
 
 	@Override
 	public void close() {
-		
+
 		// only finish transaction if we are at root level
 		if (--referenceCount == 0) {
-			
+
 			// fail transaction if no success() call was made
 			if (!successful) {
 				tx.failure();
 			}
-			
+
 			tx.close();
 		}
 	}
