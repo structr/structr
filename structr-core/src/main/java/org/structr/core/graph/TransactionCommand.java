@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
+import org.structr.core.TransactionSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 
@@ -91,6 +92,11 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			final ModificationQueue modificationQueue = queues.get();
 			final ErrorBuffer errorBuffer             = buffers.get();
+
+			// 0.5: let transaction listeners examine (and prevent?) commit
+			for (final StructrTransactionListener listener : listeners) {
+				listener.beforeCommit(securityContext, modificationQueue.getModificationEvents(), tx.getSource());
+			}
 
 			// 1. do inner callbacks (may cause transaction to fail)
 			if (doValidation && !modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
@@ -188,6 +194,25 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		if (modificationQueue != null) {
 
 			return modificationQueue.getModificationEvents();
+		}
+
+		return null;
+	}
+
+	public void setSource(final TransactionSource source) {
+
+		TransactionReference tx = transactions.get();
+		if (tx != null) {
+			tx.setSource(source);
+		}
+	}
+
+	public TransactionSource getSource() {
+
+		TransactionReference tx = transactions.get();
+		if (tx != null) {
+
+			return tx.getSource();
 		}
 
 		return null;
