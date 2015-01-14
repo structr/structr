@@ -2735,81 +2735,49 @@ public class Functions {
 					if (sources.length >= 1 && sources[0] != null) {
 
 						type = config.getNodeEntityClass(sources[0].toString());
+
 						if (type != null) {
 
 							query.andTypes(type);
 						}
 					}
 
-					switch (sources.length) {
+					final Integer parameter_count = sources.length;
 
-						case 7: // third (key,value) tuple
+					if (parameter_count % 2 == 0) {
 
-							final PropertyKey key3 = config.getPropertyKeyForJSONName(type, sources[5].toString());
-							if (key3 != null) {
-
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key3.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key3.jsonName() + " is not indexed.");
-								}
-
-								final PropertyConverter inputConverter = key3.inputConverter(securityContext);
-								Object value = sources[6].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								query.and(key3, value);
-							}
-
-						case 5: // second (key,value) tuple
-
-							final PropertyKey key2 = config.getPropertyKeyForJSONName(type, sources[3].toString());
-							if (key2 != null) {
-
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key2.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key2.jsonName() + " is not indexed.");
-								}
-
-								final PropertyConverter inputConverter = key2.inputConverter(securityContext);
-								Object value = sources[4].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								query.and(key2, value);
-							}
-
-						case 3: // (key,value) tuple
-
-							final PropertyKey key1 = config.getPropertyKeyForJSONName(type, sources[1].toString());
-							if (key1 != null) {
-
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key1.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key1.jsonName() + " is not indexed.");
-								}
-
-								final PropertyConverter inputConverter = key1.inputConverter(securityContext);
-								Object value = sources[2].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								query.and(key1, value);
-							}
-							break;
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
 					}
 
+					for (Integer c = 1; c < parameter_count; c+=2) {
+
+						final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+
+						if (key != null) {
+
+							// throw exception if key is not indexed (otherwise the user will never know)
+							if (!key.isSearchable()) {
+
+								throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
+							}
+
+							final PropertyConverter inputConverter = key.inputConverter(securityContext);
+							Object value = sources[c+1].toString();
+
+							if (inputConverter != null) {
+
+								value = inputConverter.convert(value);
+							}
+
+							query.and(key, value);
+						}
+
+					}
+
+					final Object x = query.getAsList();
+
 					// return search results
-					return query.getAsList();
+					return x;
 				}
 
 				return "";
@@ -2840,113 +2808,37 @@ public class Functions {
 						type = config.getNodeEntityClass(sources[0].toString());
 
 						if (type.equals(entity.getClass())) {
+
 							throw new FrameworkException(422, "Cannot create() entity of the same type in save action.");
 						}
 					}
 
-					switch (sources.length) {
 
-						case 13: // sixth (key,value) tuple
+					final Integer parameter_count = sources.length;
 
-							final PropertyKey key6 = config.getPropertyKeyForJSONName(type, sources[11].toString());
-							if (key6 != null) {
+					if (parameter_count % 2 == 0) {
 
-								final PropertyConverter inputConverter = key6.inputConverter(securityContext);
-								Object value = sources[12].toString();
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_CREATE);
+					}
 
-								if (inputConverter != null) {
+					for (Integer c = 1; c < parameter_count; c+=2) {
 
-									value = inputConverter.convert(value);
-								}
+						final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 
-								propertyMap.put(key6, value);
+						if (key != null) {
 
+							final PropertyConverter inputConverter = key.inputConverter(securityContext);
+							Object value = sources[c+1].toString();
+
+							if (inputConverter != null) {
+
+								value = inputConverter.convert(value);
 							}
 
-						case 11: // fifth (key,value) tuple
+							propertyMap.put(key, value);
 
-							final PropertyKey key5 = config.getPropertyKeyForJSONName(type, sources[9].toString());
-							if (key5 != null) {
+						}
 
-								final PropertyConverter inputConverter = key5.inputConverter(securityContext);
-								Object value = sources[10].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								propertyMap.put(key5, value);
-
-							}
-
-						case 9: // fourth (key,value) tuple
-
-							final PropertyKey key4 = config.getPropertyKeyForJSONName(type, sources[7].toString());
-							if (key4 != null) {
-
-								final PropertyConverter inputConverter = key4.inputConverter(securityContext);
-								Object value = sources[8].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								propertyMap.put(key4, value);
-							}
-
-						case 7: // third (key,value) tuple
-
-							final PropertyKey key3 = config.getPropertyKeyForJSONName(type, sources[5].toString());
-							if (key3 != null) {
-
-								final PropertyConverter inputConverter = key3.inputConverter(securityContext);
-								Object value = sources[6].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								propertyMap.put(key3, value);
-							}
-
-						case 5: // second (key,value) tuple
-
-							final PropertyKey key2 = config.getPropertyKeyForJSONName(type, sources[3].toString());
-							if (key2 != null) {
-
-								final PropertyConverter inputConverter = key2.inputConverter(securityContext);
-								Object value = sources[4].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								propertyMap.put(key2, value);
-							}
-
-						case 3: // (key,value) tuple
-
-							final PropertyKey key1 = config.getPropertyKeyForJSONName(type, sources[1].toString());
-							if (key1 != null) {
-
-								final PropertyConverter inputConverter = key1.inputConverter(securityContext);
-								Object value = sources[2].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								propertyMap.put(key1, value);
-							}
-							break;
-
-						default:
-							return "Invalid number of parameters: " + sources.length + ", create() accepts 1-6 key-value pairs.";
 					}
 
 					if (type != null) {
