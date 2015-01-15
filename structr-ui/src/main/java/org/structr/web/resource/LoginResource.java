@@ -80,7 +80,7 @@ public class LoginResource extends Resource {
 
 			if (user != null) {
 
-				logger.log(Level.INFO, "Login successfull: {0}", new Object[]{ user });
+				logger.log(Level.INFO, "Login successful: {0}", new Object[]{ user });
 
 				RestMethodResult methodResult = new RestMethodResult(200);
 				methodResult.addContent(user);

@@ -22,12 +22,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.UUID;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportSet;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.SyncCommand;
 
 /**
@@ -88,7 +88,7 @@ public class PullNodeRequestContainer extends Message {
 				// collect export set
 				numNodes  = exportSet.getNodes().size();
 				numRels   = exportSet.getRelationships().size();
-				key       = UUID.randomUUID().toString();
+				key       = NodeServiceCommand.getNextUuid();
 
 				serverConnection.storeValue(key + "Nodes", new ArrayList<>(exportSet.getNodes()));
 				serverConnection.storeValue(key + "Rels",  new ArrayList<>(exportSet.getRelationships()));

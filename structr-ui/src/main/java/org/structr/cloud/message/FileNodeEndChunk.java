@@ -58,6 +58,7 @@ public class FileNodeEndChunk extends DataContainer {
 	@Override
 	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 		serverConnection.finishFile(this);
+		sendKeepalive(serverConnection);
 	}
 
 	@Override

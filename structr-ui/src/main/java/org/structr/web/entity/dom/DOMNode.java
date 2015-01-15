@@ -1780,6 +1780,18 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			data.add(siblingRel);
 		}
 
+		// for template nodes
+		data.add(getProperty(DOMNode.sharedComponent));
+		data.add(getIncomingRelationship(Sync.class));
+
+		if (isSynced()) {
+
+			// add parent
+			data.add(getProperty(ownerDocument));
+			data.add(getOutgoingRelationship(PageLink.class));
+		}
+
+
 		return data;
 	}
 

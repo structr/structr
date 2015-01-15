@@ -68,7 +68,7 @@ function wsConnect() {
         }
 
         log('WebSocket.readyState: ' + ws.readyState, ws);
-        
+
         ws.onopen = function() {
 
             log('############### WebSocket onopen ###############');
@@ -163,7 +163,7 @@ function wsConnect() {
                 });
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
-            
+
                 log('Error code: ' + code, message);
 
                 if (code === 403) {
@@ -439,7 +439,7 @@ function wsConnect() {
 
                 if (dialogMsg.is(':visible')) {
                     var msgObj = JSON.parse(data.message);
-                    dialogMsg.html('<div class="infoBox info">Transferred ' + msgObj.current + ' of ' + msgObj.total + ' objects</div>');
+                    dialogMsg.html('<div class="infoBox info">' + msgObj.message + '</div>');
                 }
 
             } else if (command === 'FINISHED') { /*********************** FINISHED ************************/

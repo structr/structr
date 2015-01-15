@@ -41,6 +41,8 @@ public class ExportSet {
 
 		if (data.isNode()) {
 
+			System.out.println("adding " + data.getSyncNode());
+
 			if (nodes.add(data.getSyncNode())) {
 
 				size++;
@@ -55,6 +57,8 @@ public class ExportSet {
 			}
 
 		} else {
+
+			System.out.println("adding " + data.getSyncRelationship());
 
 			if (relationships.add(data.getSyncRelationship())) {
 

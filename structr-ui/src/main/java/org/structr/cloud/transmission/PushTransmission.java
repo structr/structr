@@ -29,7 +29,6 @@ import org.structr.cloud.message.FileNodeChunk;
 import org.structr.cloud.message.FileNodeDataContainer;
 import org.structr.cloud.message.FileNodeEndChunk;
 import org.structr.cloud.message.NodeDataContainer;
-import org.structr.cloud.message.PushNodeRequestContainer;
 import org.structr.cloud.message.RelationshipDataContainer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -65,9 +64,6 @@ public class PushTransmission implements CloudTransmission {
 	@Override
 	public Boolean doRemote(final CloudConnection client) throws IOException, FrameworkException {
 
-		// send type of request
-		client.send(new PushNodeRequestContainer());
-
 		// reset sequence number
 		sequenceNumber = 0;
 
@@ -90,6 +86,8 @@ public class PushTransmission implements CloudTransmission {
 
 			if (nodes.contains(r.getSourceNode()) && nodes.contains(r.getTargetNode())) {
 				client.send(new RelationshipDataContainer(r, sequenceNumber++));
+			} else {
+				System.out.println("NOT sending relationship data container " + r + " because source or target node are not in the export set.");
 			}
 		}
 

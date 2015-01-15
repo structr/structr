@@ -1043,6 +1043,10 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid string array access result with contains()", "false", testFour.replaceVariables(securityContext, ctx, "${contains(this.stringArrayProperty, 'five')}"));
 
 
+			// find
+			assertEquals("Invalid find() result for empty values", testThree.getUuid(), testOne.replaceVariables(securityContext, ctx, "${first(find('TestThree', 'oneToOneTestSix', null))}"));
+			assertEquals("Invalid find() result for empty values", testThree.getUuid(), testOne.replaceVariables(securityContext, ctx, "${first(find('TestThree', 'oneToManyTestSix', null))}"));
+
 			// create
 			Integer noOfOnes = 1;
 			assertEquals("Invalid number of TestOne's", ""+noOfOnes, testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne'))}"));

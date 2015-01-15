@@ -451,7 +451,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		}
 
 		@Override
-		public void transmissionProgress(int current, int total) {
+		public void transmissionProgress(final String message) {
 		}
 
 		public boolean wasSuccessful() {
@@ -534,9 +534,8 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		}
 
 		@Override
-		public void transmissionProgress(int current, int total) {
-
-			logger.log(Level.INFO, "Transmission progress {0}/{1}", new Object[] { current, total } );
+		public void transmissionProgress(final String message) {
+			logger.log(Level.INFO, "Transmission progress {0}", new Object[] { message } );
 		}
 	}
 }

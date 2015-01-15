@@ -36,6 +36,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudListener;
 import org.structr.cloud.sync.Diff;
 import org.structr.cloud.sync.EndOfSync;
 import org.structr.cloud.sync.Ping;
@@ -78,7 +79,6 @@ public abstract class Message<T> {
 		typeMap.put(PullNode.class.getSimpleName(),                  PullNode.class);
 		typeMap.put(PullNodeRequestContainer.class.getSimpleName(),  PullNodeRequestContainer.class);
 		typeMap.put(PullRelationship.class.getSimpleName(),          PullRelationship.class);
-		typeMap.put(PushNodeRequestContainer.class.getSimpleName(),  PushNodeRequestContainer.class);
 		typeMap.put(RelationshipDataContainer.class.getSimpleName(), RelationshipDataContainer.class);
 		typeMap.put(ReplicationStatus.class.getSimpleName(),         ReplicationStatus.class);
 		typeMap.put(Synchronize.class.getSimpleName(),               Synchronize.class);
@@ -183,7 +183,18 @@ public abstract class Message<T> {
 
 		// send keepalive randomly
 		if (Math.random() < 0.05) {
-			connection.send(new Ping());
+
+			final String message = "Current batch: " + connection.getCount() + ", total: " + connection.getTotal();
+
+			// send message to remote
+			connection.send(new Ping(message));
+
+			// update progress locally
+			final CloudListener listener = connection.getListener();
+			if (listener != null) {
+
+				listener.transmissionProgress(message);
+			}
 		}
 	}
 
