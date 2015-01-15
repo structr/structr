@@ -62,6 +62,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 	@Override
 	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 		serverConnection.beginFile(this);
+		sendKeepalive(serverConnection);
 	}
 
 	@Override
@@ -133,7 +134,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 
 		} else {
 
-			logger.log(Level.WARNING, "outputStream was null!");
+			logger.log(Level.WARNING, "outputStream was null, fileSize: " + fileSize + "..");
 		}
 	}
 

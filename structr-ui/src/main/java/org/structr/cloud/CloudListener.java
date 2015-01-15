@@ -43,13 +43,10 @@ public interface CloudListener {
 	public void transmissionAborted();
 
 	/**
-	 * Called on every transmission progress event. Please
-	 * note that both the current and the total values can
-	 * change (increase) at any time due to the lazy handling
-	 * of file chunks.
-	 * 
-	 * @param current
-	 * @param total
+	 * Can be called by the Ping message to signal
+	 * progress to the sender / receiver.
+	 *
+	 * @param message
 	 */
-	public void transmissionProgress(int current, int total);
+	public void transmissionProgress(String message);
 }

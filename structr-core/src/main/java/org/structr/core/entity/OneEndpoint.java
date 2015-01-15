@@ -60,7 +60,7 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 		// let relation check multiplicity
 		relation.ensureCardinality(securityContext, sourceNode, targetNode);
 
-		if (targetNode != null) {
+		if (sourceNode != null && targetNode != null) {
 
 			// create new relationship
 			StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), targetNode.getUuid() + ".out"));

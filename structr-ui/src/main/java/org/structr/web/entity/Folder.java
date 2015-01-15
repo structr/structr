@@ -108,8 +108,8 @@ public class Folder extends AbstractFile {
 		//}
 
 		// parent only
-		data.add(getProperty(parent));
-		data.add(getIncomingRelationship(Folders.class));
+		//data.add(getProperty(parent));
+		//data.add(getIncomingRelationship(Folders.class));
 
 		return data;
 	}

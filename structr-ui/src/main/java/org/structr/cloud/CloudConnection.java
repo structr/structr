@@ -47,6 +47,7 @@ import org.structr.cloud.message.Message;
 import org.structr.cloud.message.NodeDataContainer;
 import org.structr.cloud.message.RelationshipDataContainer;
 import org.structr.cloud.message.SyncableInfo;
+import org.structr.cloud.sync.Ping;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -85,6 +86,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 	// private fields
 	private final ConfigurationProvider config = Services.getInstance().getConfigurationProvider();
 	private App app                            = StructrApp.getInstance();
+	private CloudListener listener             = null;
 	private long transmissionAbortTime         = 0L;
 	private boolean authenticated              = false;
 	private String errorMessage                = null;
@@ -99,12 +101,14 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
  	private T payload                          = null;
  	private Tx tx                              = null;
 	private int count                          = 0;
+	private int total                          = 0;
 
 	public CloudConnection(final Socket socket, final CloudListener listener) {
 
 		super("CloudConnection(" + socket.getRemoteSocketAddress() + ")");
 
 		this.remoteAddress = socket.getInetAddress().getHostAddress();
+		this.listener      = listener;
 		this.socket        = socket;
 
 		this.setDaemon(true);
@@ -168,7 +172,15 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 					}
 				}
 
-				if (count > 100) {
+				if (count >= 100) {
+
+					final String message = "Committing batch..";
+
+					sender.send(new Ping(message));
+
+					if (listener != null) {
+						listener.transmissionProgress(message);
+					}
 
 					// intermediate commit
 					this.commitTransaction();
@@ -352,6 +364,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 		idMap.put(receivedNodeData.getSourceNodeId(), newOrExistingNode.getUuid());
 
 		count++;
+		total++;
 
 		return (NodeInterface)newOrExistingNode;
 	}
@@ -393,6 +406,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				final RelationshipInterface existingCandidate = app.relationshipQuery().and(GraphObject.id, uuid).includeDeletedAndHidden().getFirst();
 
 				count++;
+				total++;
 
 				if (existingCandidate != null) {
 
@@ -435,6 +449,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			}
 
 			count++;
+			total++;
 		}
 	}
 
@@ -515,7 +530,11 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 	}
 
 	public void beginFile(final FileNodeDataContainer container) {
+
 		fileMap.put(container.getSourceNodeId(), container);
+
+		count++;
+		total++;
 	}
 
 	public void finishFile(final FileNodeEndChunk endChunk) throws FrameworkException {
@@ -553,6 +572,9 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				// interrupted here
 				t.printStackTrace();
 			}
+
+			count++;
+			total++;
 		}
 	}
 
@@ -567,6 +589,9 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 		} else {
 
 			container.addChunk(chunk);
+
+			count++;
+			total++;
 		}
 	}
 
@@ -664,5 +689,17 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 	@Override
 	public String getOriginAddress() {
 		return remoteAddress;
+	}
+
+	public CloudListener getListener() {
+		return listener;
+	}
+
+	public int getCount() {
+		return count;
+	}
+
+	public int getTotal() {
+		return total;
 	}
 }

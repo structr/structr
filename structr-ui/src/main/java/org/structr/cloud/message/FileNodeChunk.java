@@ -76,6 +76,7 @@ public class FileNodeChunk extends DataContainer {
 	@Override
 	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 		serverConnection.fileChunk(this);
+		sendKeepalive(serverConnection);
 	}
 
 	@Override

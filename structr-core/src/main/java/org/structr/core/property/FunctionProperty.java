@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -30,6 +32,8 @@ import org.structr.schema.action.ActionContext;
  * @author Christian Morgner
  */
 public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
+
+	private static final Logger logger = Logger.getLogger(FunctionProperty.class.getName());
 
 	public FunctionProperty(final String name, final String expression) {
 
@@ -57,6 +61,9 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 				return (T)Functions.evaluate(securityContext, new ActionContext(), obj, format);
 
 			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Exception while evaluating function property {0}.", jsonName());
+
 				t.printStackTrace();
 			}
 		}

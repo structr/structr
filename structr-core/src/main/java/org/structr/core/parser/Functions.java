@@ -1263,6 +1263,7 @@ public class Functions {
 
 						// filter null objects
 						for (Object obj : (Collection) source) {
+
 							if (obj != null) {
 
 								list.add(obj);
@@ -2762,7 +2763,7 @@ public class Functions {
 							}
 
 							final PropertyConverter inputConverter = key.inputConverter(securityContext);
-							Object value = sources[c+1].toString();
+							Object value = sources[c+1];
 
 							if (inputConverter != null) {
 
@@ -3017,7 +3018,7 @@ public class Functions {
 								return true;
 							}
 						}
-						
+
 					}
 
 				}
@@ -3073,7 +3074,7 @@ public class Functions {
 								return true;
 							}
 						}
-						
+
 					}
 
 				}
@@ -3129,7 +3130,7 @@ public class Functions {
 								return true;
 							}
 						}
-						
+
 					}
 
 				}

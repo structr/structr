@@ -126,7 +126,7 @@ var _Entities = {
 
     },
     appendRowWithInputField: function (entity, el, key, label) {
-        el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + formatValue(entity[key]) + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+        el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
         var inp = $('[name="' + key + '"]', el);
         _Entities.activateInput(inp, entity.id);
         var nullIcon = $('#null_' + key, el);
