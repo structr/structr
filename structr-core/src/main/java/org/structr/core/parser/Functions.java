@@ -2636,7 +2636,7 @@ public class Functions {
 					final String textContent = sources[5].toString();
 
 					try {
-						MailHelper.sendSimpleMail(from, fromName, to, toName, null, null, from, subject, textContent);
+						return MailHelper.sendSimpleMail(from, fromName, to, toName, null, null, from, subject, textContent);
 
 					} catch (EmailException eex) {
 						eex.printStackTrace();
@@ -2671,7 +2671,7 @@ public class Functions {
 					}
 
 					try {
-						MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent);
+						return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent);
 
 					} catch (EmailException eex) {
 						eex.printStackTrace();
