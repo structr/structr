@@ -50,7 +50,7 @@ public abstract class MailHelper {
 
 	//~--- methods --------------------------------------------------------
 
-	public static void sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
+	public static String sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
 					final String htmlContent, final String textContent)
 		throws EmailException {
 
@@ -59,11 +59,11 @@ public abstract class MailHelper {
 		setup(mail, to, toName, from, fromName, cc, bcc, bounce, subject);
 		mail.setHtmlMsg(htmlContent);
 		mail.setTextMsg(textContent);
-		mail.send();
 
+		return mail.send();
 	}
 
-	public static void sendSimpleMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
+	public static String sendSimpleMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
 					  final String textContent)
 		throws EmailException {
 
@@ -71,8 +71,8 @@ public abstract class MailHelper {
 
 		setup(mail, to, toName, from, fromName, cc, bcc, bounce, subject);
 		mail.setMsg(textContent);
-		mail.send();
 
+		return mail.send();
 	}
 
 	private static void setup(final Email mail, final String to, final String toName, final String from, final String fromName, final String cc, final String bcc, final String bounce, final String subject)
