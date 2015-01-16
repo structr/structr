@@ -1058,6 +1058,21 @@ public class Functions {
 			}
 
 		});
+		functions.put("eq", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				return functions.get("equal").apply(ctx, entity, sources);
+			}
+
+			@Override
+			public String usage() {
+
+				return functions.get("equal").usage();
+			}
+
+		});
 		functions.put("add", new Function<Object, Object>() {
 
 			@Override
