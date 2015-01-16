@@ -375,6 +375,57 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(20, add(\"10\", \"010\")), \"true\", \"false\")}"));
 			assertEquals("Invalid usage message for add()", Functions.ERROR_MESSAGE_ADD, testOne.replaceVariables(securityContext, ctx, "${add()}"));
 
+			// eq
+			assertEquals("Invalideq) result", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(this.id, this.id)}"));
+			assertEquals("Invalid eq() result", "false",  testOne.replaceVariables(securityContext, ctx, "${eq(\"1\", this.anInt)}"));
+			assertEquals("Invalid eq() result", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(1, this.anInt)}"));
+			assertEquals("Invalid eq() result", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(1.0, this.anInt)}"));
+			assertEquals("Invalid eq() result", "false",  testOne.replaceVariables(securityContext, ctx, "${eq(this.anInt, \"1\")}"));
+			assertEquals("Invalid eq() result", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(this.anInt, 1)}"));
+			assertEquals("Invalid eq() result", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(this.anInt, 1.0)}"));
+			assertEquals("Invalid eq() result", "false",  testOne.replaceVariables(securityContext, ctx, "${eq(this.aBoolean, \"true\")}"));
+			assertEquals("Invalid eq() result", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(this.aBoolean, true)}"));
+			assertEquals("Invalid eq() result", "false",  testOne.replaceVariables(securityContext, ctx, "${eq(this.aBoolean, false)}"));
+			assertEquals("Invalid eq() result", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(this.anEnum, 'One')}"));
+
+			// if + eq
+			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(this.id, this.id), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(\"abc\", \"abc\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(3, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(\"3\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(3.1414, 3.1414), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(\"3.1414\", \"3.1414\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(23.44242222243633337234623462, 23.44242222243633337234623462), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(\"23.44242222243633337234623462\", \"23.44242222243633337234623462\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(13, 013), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(eq(13, \"013\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(eq(\"13\", \"013\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "false",  testOne.replaceVariables(securityContext, ctx, "${if(eq(\"13\", \"00013\"), \"true\", \"false\")}"));
+			assertEquals("Invalid usage message for eq()", Functions.ERROR_MESSAGE_EQUAL, testOne.replaceVariables(securityContext, ctx, "${eq()}"));
+
+			// disabled: java StreamTokenizer can NOT handle scientific notation
+//			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(23.4462, 2.34462e1)}"));
+//			assertEquals("Invalid if(eq()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(0.00234462, 2.34462e-3)}"));
+//			assertEquals("Invalid if(eq()) result with null value", "false",  testOne.replaceVariables(securityContext, ctx, "${eq(this.alwaysNull, 2.34462e-3)}"));
+			assertEquals("Invalid if(eq()) result with null value", "false",  testOne.replaceVariables(securityContext, ctx, "${eq(0.00234462, this.alwaysNull)}"));
+			assertEquals("Invalid if(eq()) result with null value", "true",  testOne.replaceVariables(securityContext, ctx, "${eq(this.alwaysNull, this.alwaysNull)}"));
+
+			// if + eq + add
+			assertEquals("Invalid if(eq(add())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(eq(\"2\", add(\"1\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2, add(\"1\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2, add(1, 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2, add(\"1\", 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2, add(1, \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2, add(1, 1.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2.0, add(\"1\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2.0, add(1, 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2.0, add(\"1\", 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2.0, add(1, \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(2.0, add(1, 1.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(20, add(\"10\", \"10\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(eq(20, add(\"10\", \"010\")), \"true\", \"false\")}"));
+
+
 			// add with null
 			assertEquals("Invalid add() result with null value", "10.0",  testOne.replaceVariables(securityContext, ctx, "${add(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid add() result with null value", "11.0",  testOne.replaceVariables(securityContext, ctx, "${add(this.alwaysNull, \"11\")}"));
