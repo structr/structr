@@ -29,6 +29,8 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -235,6 +237,28 @@ public class ModificationQueue {
 		}
 	}
 
+	public boolean isDeleted(final Node node) {
+
+		final GraphObjectModificationState state = modifications.get("N" + node.getId());
+		if (state != null) {
+
+			return state.isDeleted() || state.isPassivelyDeleted();
+		}
+
+		return false;
+	}
+
+	public boolean isDeleted(final Relationship rel) {
+
+		final GraphObjectModificationState state = modifications.get("R" + rel.getId());
+		if (state != null) {
+
+			return state.isDeleted() || state.isPassivelyDeleted();
+		}
+
+		return false;
+	}
+
 	// ----- private methods -----
 	private void modifyEndNodes(NodeInterface startNode, NodeInterface endNode, RelationshipType relType) {
 
@@ -286,12 +310,16 @@ public class ModificationQueue {
 		return state;
 	}
 
-	private GraphObjectModificationState getState(RelationshipInterface rel) {
+	private GraphObjectModificationState getState(final RelationshipInterface rel) {
+		return getState(rel, true);
+	}
+
+	private GraphObjectModificationState getState(final RelationshipInterface rel, final boolean create) {
 
 		String hash = hash(rel);
 		GraphObjectModificationState state = modifications.get(hash);
 
-		if (state == null) {
+		if (state == null && create) {
 
 			state = new GraphObjectModificationState(rel);
 			modifications.put(hash, state);

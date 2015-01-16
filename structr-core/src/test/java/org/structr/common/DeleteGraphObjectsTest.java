@@ -18,6 +18,8 @@
  */
 package org.structr.common;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -35,6 +37,7 @@ import java.util.logging.Logger;
 import org.structr.core.Result;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestSix;
+import org.structr.core.entity.TestTen;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -476,6 +479,90 @@ public class DeleteGraphObjectsTest extends StructrTest {
 				// End node should still be there
 				assertNodeExists(endNodeId);
 			}
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	public void test08OverlappingDeleteCascades() {
+
+		/*
+		 * This test creates a ternary tree of depth 2 (39 nodes)
+		 * linked with relationship type "TEN", with two additional
+		 * links throughout the tree. It creates a situation where
+		 * two delete cascades overlap when a node is deleted and
+		 * tests the correct handling of such a situation.
+		 *
+		 *           1-------+       1->2, 1->3, 1->4, 1->D
+		 *         / | \     |
+		 *        /  |  \    |
+		 *       2   3   4  /
+		 *      /|\ /|\ /|\/
+		 *      567 89A BCD
+		 */
+
+		try {
+
+			final List<TestTen> rootNodes        = new LinkedList<>();
+			final List<TestTen> allChildren      = new LinkedList<>();
+			final List<TestTen> allGrandChildren = new LinkedList<>();
+
+			try (final Tx tx = app.tx()) {
+
+				// create some nodes..
+				rootNodes.addAll(createTestNodes(TestTen.class, 3));
+
+				for (final TestTen node : rootNodes) {
+
+					final List<TestTen> children = createTestNodes(TestTen.class, 3);
+					node.setProperty(TestTen.tenTenChildren, children);
+
+					for (final TestTen child : children) {
+
+						final List<TestTen> grandChildren = createTestNodes(TestTen.class, 3);
+						child.setProperty(TestTen.tenTenChildren, grandChildren);
+
+						allGrandChildren.addAll(grandChildren);
+					}
+
+					allChildren.addAll(children);
+				}
+
+				// create some additional links off a different type but with cascading delete
+				rootNodes.get(0).setProperty(TestTen.testChild,   allGrandChildren.get(0));
+				allChildren.get(0).setProperty(TestTen.testChild, allGrandChildren.get(1));
+
+				tx.success();
+			}
+
+			// check preconditions: exactly 39 nodes should exist
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Wrong number of nodes", 39, app.nodeQuery(TestTen.class).getAsList().size());
+				tx.success();
+			}
+
+			// delete one root node
+			try (final Tx tx = app.tx()) {
+
+				app.delete(rootNodes.get(0));
+				tx.success();
+			}
+
+			// check conditions after deletion, 26 nodes shoud exist
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Wrong number of nodes", 26, app.nodeQuery(TestTen.class).getAsList().size());
+				tx.success();
+			}
+
 
 		} catch (FrameworkException ex) {
 

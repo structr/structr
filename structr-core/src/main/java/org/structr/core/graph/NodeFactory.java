@@ -66,6 +66,10 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	@Override
 	public T instantiateWithType(final Node node, final Class<T> nodeClass, boolean isCreation) throws FrameworkException {
 
+		// cannot instantiate node without type
+		if (nodeClass == null) {
+			return null;
+		}
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newNode                       = null;
