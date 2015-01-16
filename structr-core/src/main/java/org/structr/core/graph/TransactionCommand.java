@@ -28,6 +28,8 @@ import org.neo4j.graphdb.GraphDatabaseService;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
@@ -382,6 +384,35 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		return currentCommand.get() != null;
 	}
 
+	public static boolean isDeleted(final Node node) {
+
+		if (!inTransaction()) {
+			throw new IllegalStateException("Not in transaction.");
+		}
+
+		final ModificationQueue queue = queues.get();
+		if (queue != null) {
+			return queue.isDeleted(node);
+		}
+
+		return false;
+	}
+
+	public static boolean isDeleted(final Relationship rel) {
+
+		if (!inTransaction()) {
+			throw new IllegalStateException("Not in transaction.");
+		}
+
+		final ModificationQueue queue = queues.get();
+		if (queue != null) {
+			return queue.isDeleted(rel);
+		}
+
+		return false;
+	}
+
+	// ----- private methods -----
 	private ModificationQueue getModificationQueue() {
 		return queues.get();
 	}

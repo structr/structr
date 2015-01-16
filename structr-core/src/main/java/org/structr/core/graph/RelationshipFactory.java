@@ -60,6 +60,11 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	@Override
 	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final boolean isCreation) throws FrameworkException {
 
+		// cannot instantiate relationship without type
+		if (relClass == null) {
+			return null;
+		}
+
 		logger.log(Level.FINEST, "Instantiate relationship with type {0}", relClass.getName());
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();

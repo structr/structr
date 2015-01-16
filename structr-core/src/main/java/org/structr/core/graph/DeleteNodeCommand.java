@@ -18,12 +18,12 @@
  */
 package org.structr.core.graph;
 
+import java.util.HashSet;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 
 //~--- JDK imports ------------------------------------------------------------
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -43,7 +43,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(DeleteNodeCommand.class.getName());
 
-	private Set<NodeInterface> deletedNodes = new LinkedHashSet<>();
+	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
 	//~--- methods --------------------------------------------------------
 	public void execute(NodeInterface node) {
@@ -81,42 +81,48 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			// by relationships which are marked with DELETE_OUTGOING
 			for (AbstractRelationship rel : node.getOutgoingRelationships()) {
 
-				int cascadeDelete = rel.cascadeDelete();
-				NodeInterface endNode = rel.getTargetNode();
+				// deleted rels can be null..
+				if (rel != null) {
 
-				if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+					int cascadeDelete = rel.cascadeDelete();
+					NodeInterface endNode = rel.getTargetNode();
 
-					nodesToCheckAfterDeletion.add(endNode);
+					if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+
+						nodesToCheckAfterDeletion.add(endNode);
+					}
+
+					if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET)) {
+
+						// remove end node from index
+						endNode.removeFromIndex();
+						doDeleteNode(endNode);
+					}
 				}
-
-				if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET)) {
-
-					// remove end node from index
-					endNode.removeFromIndex();
-					doDeleteNode(endNode);
-				}
-
 			}
 
 			// Delete all start nodes of incoming relationships which are connected
 			// by relationships which are marked with DELETE_INCOMING
 			for (AbstractRelationship rel : node.getIncomingRelationships()) {
 
-				int cascadeDelete = rel.cascadeDelete();
-				NodeInterface startNode = rel.getSourceNode();
+				// deleted rels can be null
+				if (rel != null) {
 
-				if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+					int cascadeDelete = rel.cascadeDelete();
+					NodeInterface startNode = rel.getSourceNode();
 
-					nodesToCheckAfterDeletion.add(startNode);
+					if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+
+						nodesToCheckAfterDeletion.add(startNode);
+					}
+
+					if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE)) {
+
+						// remove start node from index
+						startNode.removeFromIndex();
+						doDeleteNode(startNode);
+					}
 				}
-
-				if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE)) {
-
-					// remove start node from index
-					startNode.removeFromIndex();
-					doDeleteNode(startNode);
-				}
-
 			}
 
 			// deletion callback, must not prevent node deletion!
