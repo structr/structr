@@ -105,10 +105,10 @@ function StructrApp(baseUrl) {
             
             var id = btn.attr('data-structr-id');
             var container = $('[data-structr-id="' + id + '"]');
-            var data = s.collectData(btn, id, attrs);
+            var data = s.collectData(btn, id, attrs, type, suffix);
             
             if (action === 'create') {
-                s.create(type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
+                s.create(btn, type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
             } else if (action === 'edit') {
                 s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn);});
@@ -130,54 +130,55 @@ function StructrApp(baseUrl) {
                 s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
             
             } else {
-                s.customAction(id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
-            
+                s.customAction(btn, id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
             }
         });
     },
-    this.collectData = function(btn, id, attrs) {
-        var a = btn.attr('data-structr-action').split(':');
-        var action = a[0], type = a[1], suffix = a[2];
+    this.getPossibleFields = function(form, container, suffix, type, key) {
+        var possibleFields;
+        if (typeof suffix === 'string' && suffix.length) {
+            // if a suffix is given, use only input elements with that suffix
+            possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
+        } else if (form && form.length) {
+            // if we are in a form, try to find input elements in form only
+            possibleFields = form.find('[data-structr-name="' + key + '"]');
+        } else {
+            if (container.length) {
+                possibleFields = $('[data-structr-name="' + key + '"]', container);
+            } else {
+                possibleFields = $('[data-structr-name="' + key + '"]');
+            }
+        }
+        var val;
+        if (possibleFields.length !== 1) {
+            // none, or more than one field: try with type prefix
+            if (container.length) {
+                possibleFields = $('[data-structr-name="' + type + '.' + key + '"]', container);
+            } else {
+                possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
+            }
+        }
+        if (possibleFields.length !== 1) {
+            // if still not found, try both, type prefix and suffix
+            if (container.length) {
+                possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]', container);
+            } else {
+                possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
+            }
+        }
+        return possibleFields;
+    },
+    this.collectData = function(btn, id, attrs, type, suffix) {
         var data = {};
         var form = btn.closest('form');
         var container = $('[data-structr-id="' + id + '"]');
         $.each(attrs, function(i, key) {
-            var possibleFields;
-
-            if (typeof suffix === 'string' && suffix.length) {
-                // if a suffix is given, use only input elements with that suffix
-                possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
-            } else if (form && form.length) {
-                // if we are in a form, try to find input elements in form only
-                possibleFields = form.find('[data-structr-name="' + key + '"]');
-            } else {
-                if (container.length) {
-                    possibleFields = $('[data-structr-name="' + key + '"]', container);
-                } else {
-                    possibleFields = $('[data-structr-name="' + key + '"]');
-                }
-            }
-            var val;
-            if (possibleFields.length !== 1) {
-                // none, or more than one field: try with type prefix
-                if (container.length) {
-                    possibleFields = $('[data-structr-name="' + type + '.' + key + '"]', container);
-                } else {
-                    possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
-                }
-            }
-            if (possibleFields.length !== 1) {
-                // if still not found, try both, type prefix and suffix
-                if (container.length) {
-                    possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]', container);
-                } else {
-                    possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
-                }
-            }
-            val = possibleFields.val();
+            var field = s.getPossibleFields(form, container, suffix, type, key);
+            var val = field.val();
             // treat empty string as null
             val = (val === '') ? undefined : val;
-            data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
+            val = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
+            data[key] = val;
         });
         return data;
     },
@@ -377,7 +378,7 @@ function StructrApp(baseUrl) {
             }
         });
         //console.log('PUT', structrRestUrl + id, s.data[id]);
-        s.request('PUT', structrRestUrl + id, s.data[id], false, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+        s.request(btn, 'PUT', structrRestUrl + id, s.data[id], false, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
         });
     },
@@ -596,24 +597,24 @@ function StructrApp(baseUrl) {
     };
 
     this.getRelatedType = function(type, key, callback) {
-        s.request('GET', structrRestUrl + '_schema', null, false, false, null, null, function(data) {
+        s.request(null, 'GET', structrRestUrl + '_schema', null, false, false, null, null, function(data) {
             //console.log(data);
         });
     },
 
-    this.create = function(type, data, reload, appendId, successCallback, errorCallback) {
+    this.create = function(btn, type, data, reload, appendId, successCallback, errorCallback) {
         //console.log('Create', type, data, reload, successCallback, errorCallback);
-        s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
+        s.request(btn, 'POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
     };
 
-    this.customAction = function(id, type, action, data, reload, appendId, successCallback, errorCallback) {
+    this.customAction = function(btn, id, type, action, data, reload, appendId, successCallback, errorCallback) {
         //console.log('Custom action', action, type, data, reload);
-        s.request('POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+        s.request(btn, 'POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
     };
 
-    this.request = function(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
+    this.request = function(btn, method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
         var dataString = JSON.stringify(data);
-        //console.log(dataString);
+        //console.log(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError);
         $.ajax({
             type: method,
             url: url,
@@ -669,7 +670,7 @@ function StructrApp(baseUrl) {
                 },
                 422: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    s.showFormErrors(data.responseJSON);
+                    s.showFormErrors(btn, data.responseJSON);
                     if (onError) {
                         onError();
                     }
@@ -689,13 +690,17 @@ function StructrApp(baseUrl) {
         el.addClass(type).html(msg).show().delay(2000).fadeOut(200);
     };
     
-    this.showFormErrors = function(msg) {
+    this.showFormErrors = function(btn, msg) {
+        var a = btn.attr('data-structr-action').split(':');
+        var suffix = a[2];
+        var id = btn.attr('data-structr-id');
+        var container = $('[data-structr-id="' + id + '"]');
         if (window.jQuery.validator) {
             var form;
             Object.keys(msg.errors).forEach(function(type) {
-               Object.keys(msg.errors[type]).forEach(function(attr) {
-                   var inp = $('[data-structr-name="' + type + '.' + attr + '"]');
-                   inp.attr('name', type + '.' + attr);
+               Object.keys(msg.errors[type]).forEach(function(key) {
+                   var inp = s.getPossibleFields(form, container, suffix, type, key);
+                   inp.attr('name', type + '.' + key);
                    inp.attr('required', 'required');
                    inp.attr('data-validate', 'required');
                    form = inp.closest('form');
