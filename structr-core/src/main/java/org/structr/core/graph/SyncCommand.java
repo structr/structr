@@ -169,8 +169,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			exportToStream(
 				new FileOutputStream(fileName),
-				app.nodeQuery(NodeInterface.class).getAsList(),
-				app.relationshipQuery(RelationshipInterface.class).getAsList(),
+				app.nodeQuery(NodeInterface.class).includeDeletedAndHidden().getAsList(),
+				app.relationshipQuery(RelationshipInterface.class).includeDeletedAndHidden().getAsList(),
 				null,
 				includeFiles
 			);
@@ -494,10 +494,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				dos.write('\n');
 
 				nodeCount++;
-
-			} else {
-
-				System.out.println("NOT exporting node " + nodeObject + ", no UUID");
 			}
 		}
 
@@ -534,11 +530,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 					relCount++;
 				}
-
-
-			} else {
-
-				System.out.println("NOT exporting relationship " + rel + ", no UUID");
 			}
 
 		}
@@ -632,7 +623,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						if (objectType == 'N') {
 
 							// break look after 200 objects, commit and restart afterwards
-							 if(nodeCount + relCount > 200) {
+							 if(nodeCount + relCount >= 200) {
 								 dis.reset();
 								 break;
 							 }
@@ -646,7 +637,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						} else if (objectType == 'R') {
 
 							// break look after 200 objects, commit and restart afterwards
-							 if(nodeCount + relCount > 200) {
+							 if(nodeCount + relCount >= 200) {
 								 dis.reset();
 								 break;
 							 }
@@ -665,9 +656,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 								// store for later use
 								rels.add((Relationship)currentObject);
-							}
 
-							relCount++;
+								relCount++;
+
+							} else {
+
+								System.out.println("NOT creating relationship of type " + relTypeName + ", start: " + startId + ", end: " + endId);
+							}
 
 						} else {
 

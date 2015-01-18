@@ -391,18 +391,23 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			Iterator<S> resultPage = neoResult.nextPage();
 
 			while ( resultPage.hasNext()) {
-				T n = (T) instantiate(resultPage.next());
-				if(n != null){
-					nodes.add(n);
+
+				final S s = resultPage.next();
+				final T t = (T) instantiate(s);
+
+				if(t != null){
+
+					nodes.add(t);
 				}
 			}
 
 		} else {
+
 			try (final IndexHits<S> closeable = input) {
 
-				for (S node : closeable) {
+				for (S s : closeable) {
 
-					T n = instantiate(node);
+					T n = instantiate(s);
 
 					if (n != null) {
 
@@ -436,7 +441,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 							}
 						}
-
 					}
 
 				}
