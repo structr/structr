@@ -451,7 +451,27 @@ public class AdvancedPagingTest extends PagingTest {
 			fail("Unexpected exception");
 
 		}
+	}
 
+	public void test07PagingOverflow() {
 
+		try {
+
+			final Class type = TestOne.class;
+
+			// create 20 nodes
+			createTestNodes(type, 20);
+
+			try (final Tx tx = app.tx()) {
+
+				// request a page beyond the number of existing elements
+				app.nodeQuery(type).pageSize(10).page(100).getAsList();
+
+				tx.success();
+			}
+
+		} catch (Throwable t) {
+			fail("Requesting a page beyond the number of existing elements should not throw an exception.");
+		}
 	}
 }

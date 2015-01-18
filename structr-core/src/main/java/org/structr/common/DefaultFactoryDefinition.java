@@ -137,11 +137,21 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	@Override
 	public Class determineRelationshipType(Relationship relationship) {
 
-		final String type = GraphObject.type.dbName();
-
-		// check deletion first
 		if (TransactionCommand.isDeleted(relationship)) {
 			return null;
+		}
+
+		final String type = GraphObject.type.dbName();
+
+		// first try: duck-typing
+		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : "";
+		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : "";
+		final String relType    = relationship.getType().name();
+		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
+
+		if (entityType != null) {
+			logger.log(Level.FINE, "Class for assembled combined {0}", entityType.getName());
+			return entityType;
 		}
 
 		// first try: type property
@@ -155,22 +165,10 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 				Class relationClass = StructrApp.getConfiguration().getRelationshipEntityClass(obj.toString());
 				if (relationClass != null) {
-
-					//StructrApp.getConfiguration().setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
+					StructrApp.getConfiguration().setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
 					return relationClass;
 				}
 			}
-		}
-
-		// second try: duck-typing
-		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : "";
-		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : "";
-		final String relType    = relationship.getType().name();
-		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
-
-		if (entityType != null) {
-			logger.log(Level.FINE, "Class for assembled combined {0}", entityType.getName());
-			return entityType;
 		}
 
 		// fallback to old type

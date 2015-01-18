@@ -31,9 +31,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -71,9 +71,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	private static final Logger logger                = Logger.getLogger(SyncCommand.class.getName());
 	private static final String STRUCTR_ZIP_DB_NAME   = "db";
 
-	private static final Map<Class, Byte> typeMap     = new LinkedHashMap<>();
-	private static final Map<Class, Method> methodMap = new LinkedHashMap<>();
-	private static final Map<Byte, Class> classMap    = new LinkedHashMap<>();
+	private static final Map<Class, Byte> typeMap     = new HashMap<>();
+	private static final Map<Byte, Class> classMap    = new HashMap<>();
 
 	static {
 
@@ -495,6 +494,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				dos.write('\n');
 
 				nodeCount++;
+
+			} else {
+
+				System.out.println("NOT exporting node " + nodeObject + ", no UUID");
 			}
 		}
 
@@ -532,6 +535,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					relCount++;
 				}
 
+
+			} else {
+
+				System.out.println("NOT exporting relationship " + rel + ", no UUID");
 			}
 
 		}
@@ -624,6 +631,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 						if (objectType == 'N') {
 
+							// break look after 200 objects, commit and restart afterwards
+							 if(nodeCount + relCount > 200) {
+								 dis.reset();
+								 break;
+							 }
+
 							currentObject = graphDb.createNode();
 							nodeCount++;
 
@@ -631,6 +644,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 							nodes.add((Node)currentObject);
 
 						} else if (objectType == 'R') {
+
+							// break look after 200 objects, commit and restart afterwards
+							 if(nodeCount + relCount > 200) {
+								 dis.reset();
+								 break;
+							 }
 
 							String startId     = (String)deserialize(dis);
 							String endId       = (String)deserialize(dis);
@@ -700,7 +719,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						finished = true;
 					}
 
-				} while (!finished && (nodeCount + relCount < 200));
+				} while (!finished);
 
 				totalNodeCount += nodeCount;
 				totalRelCount  += relCount;
