@@ -80,7 +80,13 @@ public class Sender extends Thread {
 		}
 	}
 
-	public void send(final Message message) throws InterruptedException {
-		outputQueue.put(message);
+	public void send(final Message message) {
+
+		try {
+			outputQueue.put(message);
+
+		} catch (InterruptedException iex) {
+			iex.printStackTrace();
+		}
 	}
 }
