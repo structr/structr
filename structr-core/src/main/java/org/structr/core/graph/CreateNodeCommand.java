@@ -54,28 +54,28 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 	private static final Logger logger = Logger.getLogger(CreateNodeCommand.class.getName());
 
 	public T execute(Collection<NodeAttribute<?>> attributes) throws FrameworkException {
-		
+
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
-			
+
 			properties.put(attribute.getKey(), attribute.getValue());
 		}
-		
+
 		return execute(properties);
-		
+
 	}
-	
+
 	public T execute(NodeAttribute<?>... attributes) throws FrameworkException {
-		
+
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
-			
+
 			properties.put(attribute.getKey(), attribute.getValue());
 		}
-		
+
 		return execute(properties);
 	}
-	
+
 	public T execute(PropertyMap attributes) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
@@ -96,12 +96,12 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			// Create node with type
 			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
 			if(node != null) {
-				
+
 				TransactionCommand.nodeCreated(node);
 
 				// set type
 				if (nodeType != null) {
-					
+
 					node.unlockReadOnlyPropertiesOnce();
 					node.setProperty(GraphObject.type, nodeType.getSimpleName());
 				}
@@ -119,16 +119,16 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				node.setProperty(AbstractNode.lastModifiedDate, now);
 
 				// properties.remove(AbstractNode.type);
-				
+
 				if ((user != null) && user instanceof AbstractNode) {
 
 					// Create new relationship to user and grant permissions to user or group
 					Principal owner = (Principal)user;
 
 					App app = StructrApp.getInstance(securityContext);
-					
+
 					app.create(owner, (NodeInterface)node, PrincipalOwnsNode.class);
-					
+
 					Security securityRel = app.create(owner, (NodeInterface)node, Security.class);
 					securityRel.setAllowed(Permission.values());
 
@@ -153,7 +153,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		}
 
 		if (node != null) {
-			
+
 			// notify node of its creation
 			node.onNodeCreation();
 
@@ -164,7 +164,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				transformation.apply(securityContext, node);
 
 			}
-			
+
 			if (transformations.isEmpty()) {
 				logger.log(Level.FINE, "No entity creation transformation for {0}", node.getClass());
 			}

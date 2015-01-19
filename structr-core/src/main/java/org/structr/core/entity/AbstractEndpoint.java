@@ -87,6 +87,8 @@ public abstract class AbstractEndpoint {
 					}
 				}
 
+				System.out.println("get: " + storageKey + ": " + notionProperties);
+
 				return notionProperties;
 			}
 		}

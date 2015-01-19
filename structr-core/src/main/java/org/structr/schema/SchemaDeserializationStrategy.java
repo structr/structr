@@ -143,6 +143,16 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 				}
 			}
 
+			// test set notion attributes for relationship creation
+			Map<String, PropertyMap> notionPropertyMap = (Map<String, PropertyMap>)securityContext.getAttribute("notionProperties");
+			if (notionPropertyMap == null) {
+
+				notionPropertyMap = new HashMap<>();
+				securityContext.setAttribute("notionProperties", notionPropertyMap);
+			}
+
+			System.out.println("################################################################################");
+
 			// just check for existance
 			final int size = result.size();
 			switch (size) {
@@ -155,15 +165,11 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 						T newNode = app.create(type, attributes);
 						if (newNode != null) {
 
-							// test set notion attributes for relationship creation
-							Map<String, PropertyMap> notionPropertyMap = (Map<String, PropertyMap>)securityContext.getAttribute("notionProperties");
-							if (notionPropertyMap == null) {
+							final String storageKey = sourceNode.getUuid() + relationProperty.getRelation().getClass() + newNode.getUuid();
 
-								notionPropertyMap = new LinkedHashMap<>();
-								securityContext.setAttribute("notionProperties", notionPropertyMap);
-							}
+							System.out.println("SET: " + storageKey + ": " + foreignProperties);
 
-							notionPropertyMap.put(newNode.getUuid() + "." + relationProperty.getDirectionKey(), foreignProperties);
+							notionPropertyMap.put(storageKey, foreignProperties);
 
 							return newNode;
 						}
@@ -172,7 +178,12 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 					break;
 
 				case 1:
+
 					final T typedResult = getTypedResult(result, type);
+
+					System.out.println("SET: " + typedResult.getUuid() + "." + relationProperty.getDirectionKey() + ": " + typedResult.getName() + ": " + foreignProperties);
+
+					notionPropertyMap.put(typedResult.getUuid() + "." + relationProperty.getDirectionKey(), foreignProperties);
 
 					// set properties on existing node (relationships)
 					for (final Entry<PropertyKey, Object> entry : attributes.entrySet()) {
@@ -205,6 +216,4 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 		return result.get(0);
 	}
-
-
 }

@@ -59,7 +59,10 @@ public class SchemaNotion extends Notion {
 					SchemaRelationship.sourceNotion,
 					SchemaRelationship.targetNotion,
 					SchemaRelationship.sourceJsonName,
-					SchemaRelationship.targetJsonName
+					SchemaRelationship.targetJsonName,
+					SchemaRelationship.cascadingDeleteFlag,
+					SchemaRelationship.autocreationFlag
+//					SchemaRelationship.extendsClass
 				)
 			)
 		);

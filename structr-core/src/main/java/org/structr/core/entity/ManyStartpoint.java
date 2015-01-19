@@ -107,8 +107,10 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 			if (sourceNode != null && targetNode != null) {
 
+				final String storageKey = sourceNode.getUuid() + relation.getClass() + targetNode.getUuid();
+
 				relation.ensureCardinality(securityContext, sourceNode, targetNode);
-				app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), sourceNode.getUuid() + ".in"));
+				app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
 			}
 		}
 	}
