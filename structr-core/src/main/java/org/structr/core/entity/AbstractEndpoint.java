@@ -70,8 +70,6 @@ public abstract class AbstractEndpoint {
 	 */
 	protected PropertyMap getNotionProperties(final SecurityContext securityContext, final Class type, final String storageKey) {
 
-		System.out.print("get: " + storageKey + ": ");
-
 		final Map<String, PropertyMap> notionPropertyMap = (Map<String, PropertyMap>)securityContext.getAttribute("notionProperties");
 		if (notionPropertyMap != null) {
 
@@ -88,8 +86,6 @@ public abstract class AbstractEndpoint {
 						it.remove();
 					}
 				}
-
-				System.out.println(notionProperties);
 
 				return notionProperties;
 			}

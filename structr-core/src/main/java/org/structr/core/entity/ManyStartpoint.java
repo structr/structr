@@ -96,11 +96,6 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 				if (relTypeName.equals(desiredRelType) && rel.getSourceNode().equals(sourceNode)) {
 
-					System.out.println("DELETING            " + rel.getSourceNode() + "-" + rel.getRelType().name() + "->" + rel.getTargetNode());
-					System.out.println("                   (" + rel.getSourceNode().getName() + "-" + rel.getRelType().name() + "->" + rel.getTargetNode().getName() + ")");
-					System.out.println("to be replaced with " + sourceNode.getUuid() + "-" + relation.name() + "->" + targetNode.getUuid());
-					System.out.println("                   (" + sourceNode.getName() + "-" + relation.name() + "->" + targetNode.getName() + ")");
-
 					app.delete(rel);
 				}
 
@@ -116,10 +111,6 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 				relation.ensureCardinality(securityContext, sourceNode, targetNode);
 				app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
-
-				System.out.println("CREATED             " + sourceNode.getUuid() + "-" + relation.name() + "->" + targetNode.getUuid());
-				System.out.println("                   (" + sourceNode.getName() + "-" + relation.name() + "->" + targetNode.getName() + ")");
-
 			}
 		}
 	}

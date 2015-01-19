@@ -166,9 +166,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 						T newNode = app.create(type, attributes);
 						if (newNode != null) {
 
-							final String storageKey = getStorageKey(relationProperty, newNode, sourceTypeName);
-							System.out.println("0: SET: " + storageKey + ": " + foreignProperties);
-							notionPropertyMap.put(storageKey, foreignProperties);
+							notionPropertyMap.put(getStorageKey(relationProperty, newNode, sourceTypeName), foreignProperties);
 
 							return newNode;
 						}
@@ -178,11 +176,9 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 				case 1:
 
-					final T typedResult     = getTypedResult(result, type);
-					final String storageKey = getStorageKey(relationProperty, typedResult, sourceTypeName);
+					final T typedResult = getTypedResult(result, type);
 
-					System.out.println("1: SET: " + storageKey + ": " + foreignProperties);
-					notionPropertyMap.put(storageKey, foreignProperties);
+					notionPropertyMap.put(getStorageKey(relationProperty, typedResult, sourceTypeName), foreignProperties);
 
 					// set properties on existing node (relationships)
 					for (final Entry<PropertyKey, Object> entry : attributes.entrySet()) {
