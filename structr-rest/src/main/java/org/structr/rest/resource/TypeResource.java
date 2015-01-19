@@ -229,6 +229,7 @@ public class TypeResource extends SortableResource {
 				if (newRelationship != null) {
 
 					result.addHeader("Location", buildLocationHeader(newRelationship));
+					result.addContent(newRelationship);
 				}
 
 				result.serializeAsPrimitiveArray(true);
