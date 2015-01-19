@@ -53,7 +53,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 	}
 
 	@Override
-	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 

@@ -62,7 +62,9 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 
 		if (sourceNode != null && targetNode != null) {
 
-			StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), sourceNode.getUuid() + ".out"));
+			final String storageKey = sourceNode.getName() + relation.name() + targetNode.getName();
+
+			StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
 		}
 	}
 

@@ -18,7 +18,7 @@
  */
 package org.structr.core.entity;
 
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -71,15 +71,15 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 	public void set(final SecurityContext securityContext, final NodeInterface targetNode, final Iterable<S> collection) throws FrameworkException {
 
 		final App app            = StructrApp.getInstance(securityContext);
-		final Set<S> toBeDeleted = new LinkedHashSet<>(Iterables.toList(get(securityContext, targetNode, null)));
-		final Set<S> toBeCreated = new LinkedHashSet<>();
+		final Set<S> toBeDeleted = new HashSet<>(Iterables.toList(get(securityContext, targetNode, null)));
+		final Set<S> toBeCreated = new HashSet<>();
 
 		if (collection != null) {
 			Iterables.addAll(toBeCreated, collection);
 		}
 
 		// create intersection of both sets
-		final Set<S> intersection = new LinkedHashSet<>(toBeCreated);
+		final Set<S> intersection = new HashSet<>(toBeCreated);
 		intersection.retainAll(toBeDeleted);
 
 		// intersection needs no change
@@ -107,8 +107,10 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 			if (sourceNode != null && targetNode != null) {
 
+				final String storageKey = sourceNode.getName() + relation.name() + targetNode.getName();
+
 				relation.ensureCardinality(securityContext, sourceNode, targetNode);
-				app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), sourceNode.getUuid() + ".in"));
+				app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
 			}
 		}
 	}

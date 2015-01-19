@@ -195,6 +195,15 @@ public class StructrTest extends TestCase {
 		return (T) createTestNode(type, new PropertyMap());
 	}
 
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final String name) throws FrameworkException {
+
+		final PropertyMap map = new PropertyMap();
+
+		map.put(AbstractNode.name, name);
+
+		return (T) createTestNode(type, map);
+	}
+
 	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
 
 		props.put(AbstractNode.type, type.getSimpleName());

@@ -68,7 +68,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 	}
 
 	@Override
-	public T deserialize(final SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException {
 
 		// TODO: check why this doesn't work for setProperty with plain uuid..
 

@@ -25,8 +25,10 @@ import java.util.List;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
+import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.Tx;
 
 /**
@@ -156,7 +158,48 @@ public class CollectionPropertyTest extends StructrTest {
 
 	}
 
-	public void testCascadingDelete() {
+	public void testCardinalityEnforcement() {
+
+		// try to recreate the error case where a standalone schema relationship is deleted
+		// because of a self-relationship on the end node of that schema node.
+		SchemaNode task    = null;
+		SchemaNode worker  = null;
+
+		try (final Tx tx = app.tx()) {
+
+			task    = createTestNode(SchemaNode.class, "Task");
+			worker  = createTestNode(SchemaNode.class, "Worker");
+
+			final PropertyMap taskTaskProperties = new PropertyMap();
+			taskTaskProperties.put(SchemaRelationship.relationshipType, "SUBTASK");
+			app.create(task, task, SchemaRelationship.class, taskTaskProperties);
+
+			final PropertyMap workerTaskProperties = new PropertyMap();
+			workerTaskProperties.put(SchemaRelationship.relationshipType, "WORKS_ON");
+			app.create(worker, task, SchemaRelationship.class, workerTaskProperties);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// check condition, relationship task->task still exists
+			final List<SchemaNode> relatedTos   = task.getProperty(SchemaNode.relatedTo);
+			final List<SchemaNode> relatedFroms = task.getProperty(SchemaNode.relatedFrom);
+
+			assertEquals("Invalid cardinality result", 1, relatedTos.size());
+			assertEquals("Invalid cardinality result", 2, relatedFroms.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+
 
 
 	}

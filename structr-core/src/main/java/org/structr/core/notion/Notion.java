@@ -87,7 +87,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 		this.securityContext = securityContext;
 
-		return new Adapter<S, T>() {
+		return new NotionAdapter<S, T>() {
 
 			@Override
 			public T adapt(S s) throws FrameworkException {
@@ -98,7 +98,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	public Adapter<T, S> getAdapterForSetter(final SecurityContext securityContext) {
 
-		return new Adapter<T, S>() {
+		return new NotionAdapter<T, S>() {
 
 			@Override
 			public S adapt(T s) throws FrameworkException {
@@ -107,14 +107,14 @@ public abstract class Notion<S extends NodeInterface, T> {
 					throw new ClassCastException("Invalid source type.");
 				}
 
-				return deserializationStrategy.deserialize(securityContext, type, s);
+				return deserializationStrategy.deserialize(securityContext, type, s, context);
 			}
 		};
 	}
 
 	public Adapter<List<S>, List<T>> getCollectionAdapterForGetter(final SecurityContext securityContext) {
 
-		return new Adapter<List<S>, List<T>>() {
+		return new NotionAdapter<List<S>, List<T>>() {
 
 			@Override
 			public List<T> adapt(List<S> s) throws FrameworkException {
@@ -134,7 +134,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	public Adapter<List<T>, List<S>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
 
-		return new Adapter<List<T>, List<S>>() {
+		return new NotionAdapter<List<T>, List<S>>() {
 
 			@Override
 			public List<S> adapt(List<T> s) throws FrameworkException {
@@ -146,7 +146,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 				List<S> list = new LinkedList<>();
 				for (T t : s) {
 
-					list.add(deserializationStrategy.deserialize(securityContext, type, t));
+					list.add(deserializationStrategy.deserialize(securityContext, type, t, context));
 
 				}
 
@@ -161,12 +161,20 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 			@Override
 			public T revert(S source) throws FrameworkException {
-				return getAdapterForGetter(securityContext).adapt(source);
+
+				final NotionAdapter<S, T> adapter = (NotionAdapter)getAdapterForGetter(securityContext);
+				adapter.setContext(context);
+
+				return adapter.adapt(source);
 			}
 
 			@Override
 			public S convert(T source) throws FrameworkException {
-				return getAdapterForSetter(securityContext).adapt(source);
+
+				final NotionAdapter<T, S> adapter = (NotionAdapter)getAdapterForSetter(securityContext);
+				adapter.setContext(context);
+
+				return adapter.adapt(source);
 			}
 		};
 
@@ -178,18 +186,24 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 			@Override
 			public List<T> revert(List<S> source) throws FrameworkException {
-				return getCollectionAdapterForGetter(securityContext).adapt(source);
+
+				final NotionAdapter<List<S>, List<T>> adapter = (NotionAdapter)getCollectionAdapterForGetter(securityContext);
+				adapter.setContext(context);
+
+				return adapter.adapt(source);
 			}
 
 			@Override
 			public List<S> convert(List<T> source) throws FrameworkException {
-				return getCollectionAdapterForSetter(securityContext).adapt(source);
+
+				final NotionAdapter<List<T>, List<S>> adapter = (NotionAdapter)getCollectionAdapterForSetter(securityContext);
+				adapter.setContext(context);
+
+				return adapter.adapt(source);
 			}
 		};
 
 	}
-
-	//~--- set methods ----------------------------------------------------
 
 	public void setType(Class<S> type) {
 		this.type = type;
@@ -213,5 +227,15 @@ public abstract class Notion<S extends NodeInterface, T> {
 	}
 
 		return result;
+	}
+
+	// ----- nested classes -----
+	public static abstract class NotionAdapter<S, T> implements Adapter<S, T> {
+
+		protected Object context = null;
+
+		public void setContext(final Object context) {
+			this.context = context;
+		}
 	}
 }

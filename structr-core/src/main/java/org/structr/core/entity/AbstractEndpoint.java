@@ -91,6 +91,8 @@ public abstract class AbstractEndpoint {
 			}
 		}
 
+		System.out.println();
+
 		return null;
 	}
 }
