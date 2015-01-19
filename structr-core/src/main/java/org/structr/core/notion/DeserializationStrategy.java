@@ -33,7 +33,7 @@ import org.structr.core.property.RelationProperty;
  */
 public interface DeserializationStrategy<S, T extends NodeInterface> {
 
-	public T deserialize(final SecurityContext securityContext, Class<T> type, S source) throws FrameworkException;
+	public T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException;
 
 	public void setRelationProperty(final RelationProperty<S> parentProperty);
 }

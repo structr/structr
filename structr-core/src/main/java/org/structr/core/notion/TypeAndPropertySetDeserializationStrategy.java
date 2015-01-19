@@ -71,7 +71,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 	}
 
 	@Override
-	public T deserialize(SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source, final Object context) throws FrameworkException {
 
 		if (source instanceof JsonInput) {
 
@@ -88,7 +88,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		return null;
 	}
 
-	private T deserialize(SecurityContext securityContext, Class<T> type, PropertyMap attributes) throws FrameworkException {
+	private T deserialize(final SecurityContext securityContext, Class<T> type, final PropertyMap attributes) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 

@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.neo4j.graphdb.Direction;
@@ -79,7 +80,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 		}
 
 		// create intersection of both sets
-		final Set<T> intersection = new LinkedHashSet<>(toBeCreated);
+		final Set<T> intersection = new HashSet<>(toBeCreated);
 		intersection.retainAll(toBeDeleted);
 
 		// intersection needs no change
@@ -108,8 +109,10 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 			if (sourceNode != null && targetNode != null) {
 
+				final String storageKey = sourceNode.getName() + relation.name() + targetNode.getName();
+
 				relation.ensureCardinality(securityContext, sourceNode, targetNode);
-				app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), targetNode.getUuid() + ".out"));
+				app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
 			}
 		}
 	}
