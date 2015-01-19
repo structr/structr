@@ -73,24 +73,24 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 	}
 
 	@Override
-	public T deserialize(SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
+	public T deserialize(SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException {
 
 		if (source instanceof JsonInput) {
 
 			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, ((JsonInput)source).getAttributes());
-			return deserialize(securityContext, type, attributes);
+			return deserialize(securityContext, type, attributes, context);
 		}
 
 		if (source instanceof Map) {
 
 			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)source);
-			return deserialize(securityContext, type, attributes);
+			return deserialize(securityContext, type, attributes, context);
 		}
 
 		return null;
 	}
 
-	private T deserialize(final SecurityContext securityContext, final Class<T> type, final PropertyMap attributes) throws FrameworkException {
+	private T deserialize(final SecurityContext securityContext, final Class<T> type, final PropertyMap attributes, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -111,6 +111,9 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 					it.remove();
 				}
 			}
+
+			// retrieve and remove source type name (needed for foreign properties)
+			final String sourceTypeName   = (String)((Map)context).get("name");
 
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.id)) {
@@ -151,8 +154,6 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 				securityContext.setAttribute("notionProperties", notionPropertyMap);
 			}
 
-			System.out.println("################################################################################");
-
 			// just check for existance
 			final int size = result.size();
 			switch (size) {
@@ -165,10 +166,8 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 						T newNode = app.create(type, attributes);
 						if (newNode != null) {
 
-							final String storageKey = sourceNode.getUuid() + relationProperty.getRelation().getClass() + newNode.getUuid();
-
-							System.out.println("SET: " + storageKey + ": " + foreignProperties);
-
+							final String storageKey = getStorageKey(relationProperty, newNode, sourceTypeName);
+							System.out.println("0: SET: " + storageKey + ": " + foreignProperties);
 							notionPropertyMap.put(storageKey, foreignProperties);
 
 							return newNode;
@@ -179,11 +178,11 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 				case 1:
 
-					final T typedResult = getTypedResult(result, type);
+					final T typedResult     = getTypedResult(result, type);
+					final String storageKey = getStorageKey(relationProperty, typedResult, sourceTypeName);
 
-					System.out.println("SET: " + typedResult.getUuid() + "." + relationProperty.getDirectionKey() + ": " + typedResult.getName() + ": " + foreignProperties);
-
-					notionPropertyMap.put(typedResult.getUuid() + "." + relationProperty.getDirectionKey(), foreignProperties);
+					System.out.println("1: SET: " + storageKey + ": " + foreignProperties);
+					notionPropertyMap.put(storageKey, foreignProperties);
 
 					// set properties on existing node (relationships)
 					for (final Entry<PropertyKey, Object> entry : attributes.entrySet()) {
@@ -215,5 +214,19 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 		}
 
 		return result.get(0);
+	}
+
+	private String getStorageKey(final RelationProperty relationProperty, final NodeInterface newNode, final String sourceTypeName) {
+
+		switch (relationProperty.getDirectionKey()) {
+
+			case "in":
+				return newNode.getName() + relationProperty.getRelation().name() + sourceTypeName;
+
+			case "out":
+				return sourceTypeName + relationProperty.getRelation().name() + newNode.getName();
+		}
+
+		return null;
 	}
 }

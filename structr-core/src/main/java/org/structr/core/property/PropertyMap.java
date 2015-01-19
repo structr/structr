@@ -317,6 +317,10 @@ public class PropertyMap {
 					if (converter != null) {
 
 						try {
+
+							// test
+							converter.setContext(source);
+
 							Object propertyValue = converter.convert(value);
 							resultMap.put(propertyKey, propertyValue);
 

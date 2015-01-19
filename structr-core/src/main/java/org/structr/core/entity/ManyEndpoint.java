@@ -18,7 +18,7 @@
  */
 package org.structr.core.entity;
 
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -71,15 +71,15 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 	public void set(final SecurityContext securityContext, final NodeInterface sourceNode, final Iterable<T> collection) throws FrameworkException {
 
 		final App app            = StructrApp.getInstance(securityContext);
-		final Set<T> toBeDeleted = new LinkedHashSet<>(Iterables.toList(get(securityContext, sourceNode, null)));
-		final Set<T> toBeCreated = new LinkedHashSet<>();
+		final Set<T> toBeDeleted = new HashSet<>(Iterables.toList(get(securityContext, sourceNode, null)));
+		final Set<T> toBeCreated = new HashSet<>();
 
 		if (collection != null) {
 			Iterables.addAll(toBeCreated, collection);
 		}
 
 		// create intersection of both sets
-		final Set<T> intersection = new LinkedHashSet<>(toBeCreated);
+		final Set<T> intersection = new HashSet<>(toBeCreated);
 		intersection.retainAll(toBeDeleted);
 
 		// intersection needs no change
@@ -108,7 +108,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 			if (sourceNode != null && targetNode != null) {
 
-				final String storageKey = sourceNode.getUuid() + relation.getClass() + targetNode.getUuid();
+				final String storageKey = sourceNode.getName() + relation.name() + targetNode.getName();
 
 				relation.ensureCardinality(securityContext, sourceNode, targetNode);
 				app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
