@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -71,8 +72,8 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 	public void set(final SecurityContext securityContext, final NodeInterface sourceNode, final Iterable<T> collection) throws FrameworkException {
 
 		final App app            = StructrApp.getInstance(securityContext);
-		final Set<T> toBeDeleted = new HashSet<>(Iterables.toList(get(securityContext, sourceNode, null)));
-		final Set<T> toBeCreated = new HashSet<>();
+		final Set<T> toBeDeleted = new LinkedHashSet<>(Iterables.toList(get(securityContext, sourceNode, null)));
+		final Set<T> toBeCreated = new LinkedHashSet<>();
 
 		if (collection != null) {
 			Iterables.addAll(toBeCreated, collection);
