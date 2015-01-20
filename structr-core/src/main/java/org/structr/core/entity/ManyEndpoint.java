@@ -21,6 +21,8 @@ package org.structr.core.entity;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -40,6 +42,8 @@ import org.structr.core.graph.NodeInterface;
  * @author Christian Morgner
  */
 public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint implements Target<Iterable<Relationship>, Iterable<T>> {
+
+	private static final Logger logger = Logger.getLogger(ManyEndpoint.class.getName());
 
 	private Relation<?, T, ?, ManyEndpoint<T>> relation = null;
 
@@ -95,11 +99,17 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 				final String relTypeName    = rel.getRelType().name();
 				final String desiredRelType = relation.name();
 
-				if (relTypeName.equals(desiredRelType) && rel.getTargetNode().equals(targetNode)) {
+				if (sourceNode.equals(targetNode)) {
 
-					app.delete(rel);
+					logger.log(Level.WARNING, "Preventing deletion of self relationship {0}-[{1}]->{2}. If you exprience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType().name(), targetNode } );
+
+					// skip self relationships
+					continue;
 				}
 
+				if (relTypeName.equals(desiredRelType) && rel.getTargetNode().equals(targetNode)) {
+					app.delete(rel);
+				}
 			}
 		}
 
