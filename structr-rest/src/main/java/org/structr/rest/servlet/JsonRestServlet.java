@@ -274,10 +274,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		RestMethodResult result         = null;
-		Resource resource               = null;
+		final SecurityContext securityContext;
+		final Authenticator authenticator;
+		final Resource resource;
+
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 
 		try {
 
@@ -381,13 +382,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		final List<RestMethodResult> results = new LinkedList<>();
-		SecurityContext securityContext      = null;
-		Authenticator authenticator          = null;
-		IJsonInput jsonInput 		     = null;
-		Resource resource                    = null;
+		final SecurityContext securityContext;
+		final Authenticator authenticator;
+		final Resource resource;
 
 		try {
-
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -401,19 +400,10 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 			}
 
-			final App app = StructrApp.getInstance(securityContext);
-
-			String input = IOUtils.toString(request.getReader());
-			if (StringUtils.isBlank(input)) {
-				input = "{}";
-			}
-
-			// isolate input parsing (will include read and write operations)
-			try (final Tx tx = app.tx()) {
-				jsonInput   = gson.get().fromJson(input, IJsonInput.class);
-				tx.success();
-			}
-
+			final App app              = StructrApp.getInstance(securityContext);
+			final String input         = IOUtils.toString(request.getReader());
+			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
+			
 			if (securityContext != null) {
 
 				// isolate resource authentication
@@ -518,7 +508,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "JsonSyntaxException in POST", jsex);
+			logger.log(Level.WARNING, "POST: Invalid JSON syntax", jsex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -527,7 +517,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "JsonParseException in POST", jpex);
+			logger.log(Level.WARNING, "Unable to parse JSON string", jpex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -536,7 +526,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.log(Level.WARNING, "POST not supported", uoe);
+			logger.log(Level.WARNING, "POST not supported");
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -572,12 +562,12 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		RestMethodResult result         = null;
-		IJsonInput jsonInput            = null;
-		Resource resource               = null;
+		final SecurityContext securityContext;
+		final Authenticator authenticator;
+		final Resource resource;
 
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+		
 		try {
 
 			// first thing to do!
@@ -592,18 +582,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 			}
 
-			final App app = StructrApp.getInstance(securityContext);
-
-			String input = IOUtils.toString(request.getReader());
-			if (StringUtils.isBlank(input)) {
-				input = "{}";
-			}
-
-			// isolate input parsing (will include read and write operations)
-			try (final Tx tx = app.tx()) {
-				jsonInput   = gson.get().fromJson(input, IJsonInput.class);
-				tx.success();
-			}
+			final App app              = StructrApp.getInstance(securityContext);
+			final String input         = IOUtils.toString(request.getReader());
+			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
 
 			if (securityContext != null) {
 
@@ -658,7 +639,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "JsonSyntaxException in PUT", jsex);
+			logger.log(Level.WARNING, "PUT: Invalid JSON syntax", jsex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -667,7 +648,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "JsonParseException in PUT", jpex);
+			logger.log(Level.WARNING, "PUT: Unable to parse JSON string", jpex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -717,6 +698,35 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 
+	private IJsonInput cleanAndParseJsonString(final App app, final String input) throws FrameworkException {
+		
+		IJsonInput jsonInput;
+		
+		// isolate input parsing (will include read and write operations)
+		try (final Tx tx = app.tx()) {
+			jsonInput   = gson.get().fromJson(input, IJsonInput.class);
+			tx.success();
+		}
+
+		if (jsonInput == null) {
+
+			if (StringUtils.isBlank(input)) {
+
+				try (final Tx tx = app.tx()) {
+					jsonInput   = gson.get().fromJson("{}", IJsonInput.class);
+					tx.success();
+				}
+
+			} else {
+				//throw new JsonParseException("Invalid or empty JSON string, must at least contain {} to be valid!");
+				jsonInput = new JsonSingleInput();
+			}
+		}
+		
+		return jsonInput;
+		
+	}
+	
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 
 		if (propertySet != null) {
