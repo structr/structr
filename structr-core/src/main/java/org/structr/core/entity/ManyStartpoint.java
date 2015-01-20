@@ -101,7 +101,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 				if (sourceNode.equals(targetNode)) {
 
-					logger.log(Level.WARNING, "Preventing deletion of self relationship {0}-[{1}]->{2}. If you exprience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType().name(), targetNode } );
+					logger.log(Level.WARNING, "Preventing deletion of self relationship {0}-[{1}]->{2}. If you experience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType().name(), targetNode } );
 
 					// skip self relationships
 					continue;
