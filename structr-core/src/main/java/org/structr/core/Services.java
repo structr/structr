@@ -32,6 +32,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -243,15 +245,14 @@ public class Services {
 		logger.log(Level.INFO, "Reading {0}..", configFileName);
 
 		try {
-			final FileInputStream fis = new FileInputStream(configFileName);
-			structrConf.load(fis);
-			fis.close();
+//			final FileInputStream fis = new FileInputStream(configFileName);
+//			structrConf.load(fis);
+//			fis.close();
 
-		} catch (IOException ioex) {
+			structrConf.load(new PropertiesConfiguration(configFileName));
 
-			logger.log(Level.WARNING, "Unable to read configuration file {0}: {1}", new Object[] { configFileName, ioex.getMessage() } );
-
-			System.exit(1);
+		} catch (ConfigurationException ex) {
+			logger.log(Level.SEVERE, null, ex);
 		}
 
 		mergeConfiguration(config, structrConf);
