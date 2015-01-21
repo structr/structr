@@ -1182,16 +1182,19 @@ var _Crud = {
     },
     crudUpdate: function(id, key, newValue, oldValue, onSuccess, onError) {
         var url = rootUrl + id;
-        var json;
-        if (!newValue || newValue === '') {
-            json = '{"' + key + '":null}';
+        
+        var obj = {};
+        if (newValue && newValue !== '') {
+            obj[key] = newValue;
         } else {
-            json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
+            obj[key] = null;
         }
-        //console.log('crudUpdate', url, json);
+        
+        //console.log('crudUpdate          ', url, json);
+        
         $.ajax({
             url: url,
-            data: json,
+            data: JSON.stringify(obj),
             type: 'PUT',
             contentType: 'application/json; charset=utf-8',
             statusCode: {
@@ -1256,10 +1259,11 @@ var _Crud = {
     },
     crudRemoveProperty: function(id, key, onSuccess, onError) {
         var url = rootUrl + id;
-        var json = '{"' + key + '":null}';
+        var obj = {};
+        obj[key] = null;
         $.ajax({
             url: url,
-            data: json,
+            data: JSON.stringify(obj),
             type: 'PUT',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
