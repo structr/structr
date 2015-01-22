@@ -21,6 +21,7 @@ package org.structr.common;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.core.GraphObject;
@@ -30,6 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 
 /**
@@ -93,7 +95,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			final Object obj =  node.getProperty(type);
 			if (obj != null) {
 
-				Class nodeType = StructrApp.getConfiguration().getNodeEntities().get(obj.toString());
+				final Class nodeType = StructrApp.getConfiguration().getNodeEntities().get(obj.toString());
 				if (nodeType != null) {
 
 					return nodeType;
@@ -120,12 +122,26 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 					// genericNodeExtender.getType(externalNodeType);
 
 					// return dynamic type
-					Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(typeObj.toString());
+					final Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(typeObj.toString());
 					if (dynamicType != null) {
 
 						return dynamicType;
 					}
 				}
+			}
+			
+			final Iterable<Label> labels = node.getLabels();
+			if (labels != null && labels.iterator().hasNext()) {
+				final Label firstLabel = labels.iterator().next();
+				
+				// return dynamic type
+				final Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(firstLabel.name());
+				if (dynamicType != null) {
+					
+					return dynamicType;
+				}
+				
+				
 			}
 
 

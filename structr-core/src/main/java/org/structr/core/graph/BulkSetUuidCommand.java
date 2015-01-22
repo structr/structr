@@ -90,6 +90,13 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 						try {
 
 							node.setProperty(GraphObject.id, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
+							
+							// make sure type attribute is filled if it wasn't already
+							if (node.getProperty(NodeInterface.type) == null) {
+								
+								node.setProperty(NodeInterface.type, type.getSimpleName());
+							}
+
 
 						} catch (FrameworkException fex) {
 
