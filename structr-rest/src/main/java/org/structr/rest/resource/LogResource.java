@@ -490,9 +490,7 @@ public class LogResource extends Resource {
 				final String message         = part2;
 
 				final PropertyMap properties = new PropertyMap();
-				final String contentHash     = LogEvent.getContentHash(action, subjectId, objectId, timestamp);
 
-				properties.put(LogEvent.hashProperty,      contentHash);
 				properties.put(LogEvent.messageProperty,   message);
 				properties.put(LogEvent.actionProperty,    action);
 				properties.put(LogEvent.subject,           subjectId);

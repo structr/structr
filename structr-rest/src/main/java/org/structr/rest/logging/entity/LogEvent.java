@@ -3,7 +3,6 @@ package org.structr.rest.logging.entity;
 import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
@@ -14,8 +13,6 @@ import org.structr.core.property.StringProperty;
  * @author Christian Morgner
  */
 public class LogEvent extends AbstractNode {
-
-	public static final Property<String> hashProperty      = new StringProperty("hash").indexed();
 
 	public static final Property<String> path              = new StringProperty("path");
 	public static final Property<String> messageProperty   = new StringProperty("message");
@@ -54,15 +51,5 @@ public class LogEvent extends AbstractNode {
 
 	public String getObjectId() {
 		return getProperty(LogEvent.object);
-	}
-
-	public static String getContentHash(final String action, final String subjectId, final String objectId, final long timestamp) throws FrameworkException {
-
-		String contentHash  = action;
-		contentHash        += subjectId;
-		contentHash        += objectId;
-		contentHash        += Long.toString(timestamp);
-
-		return contentHash;
 	}
 }
