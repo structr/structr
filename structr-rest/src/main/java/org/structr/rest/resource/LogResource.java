@@ -241,7 +241,7 @@ public class LogResource extends Resource {
 
 			final boolean initialize = "true".equals(request.getParameter("initialize"));
 			final String count       = request.getParameter("count");
-			final int max            = count != null ? Integer.valueOf(count) : 1000;
+			final int max            = count != null ? Integer.valueOf(count) : 10000;
 
 			if (initialize) {
 
@@ -370,8 +370,11 @@ public class LogResource extends Resource {
 					context.commit(true);
 				}
 
-				// remove file / directory after reading
-				Files.delete(p);
+				// remove file / directory after reading, but only
+				// if max is not reached.
+				if (context.getTotal() <= context.getMax()) {
+					Files.delete(p);
+				}
 
 			}
 
