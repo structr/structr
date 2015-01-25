@@ -19,11 +19,11 @@ public class LogEvent extends AbstractNode {
 
 	public static final Property<String> actionProperty    = new StringProperty("action").indexed();
 	public static final Property<Date>   timestampProperty = new ISO8601DateProperty("timestamp").indexed();
-	public static final Property<String> subject           = new StringProperty("subject").indexed();
-	public static final Property<String> object            = new StringProperty("object").indexed();
+	public static final Property<String> subjectProperty           = new StringProperty("subject").indexed();
+	public static final Property<String> objectProperty            = new StringProperty("object").indexed();
 
 	public static final View defaultView = new View(LogEvent.class, PropertyView.Public,
-		path, actionProperty, messageProperty, timestampProperty, subject, object
+		path, actionProperty, messageProperty, timestampProperty, subjectProperty, objectProperty
 	);
 
 	public long getTimestamp() {
@@ -46,10 +46,10 @@ public class LogEvent extends AbstractNode {
 	}
 
 	public String getSubjectId() {
-		return getProperty(LogEvent.subject);
+		return getProperty(LogEvent.subjectProperty);
 	}
 
 	public String getObjectId() {
-		return getProperty(LogEvent.object);
+		return getProperty(LogEvent.objectProperty);
 	}
 }

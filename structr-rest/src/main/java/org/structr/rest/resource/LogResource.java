@@ -157,8 +157,8 @@ public class LogResource extends Resource {
 
 				processData(logState, StructrApp.getInstance(securityContext)
 					.nodeQuery(LogEvent.class)
-					.and(LogEvent.subject, subjectId)
-					.and(LogEvent.object, objectId)
+					.and(LogEvent.subjectProperty, subjectId)
+					.and(LogEvent.objectProperty, objectId)
 					.and(LogEvent.actionProperty, logState.logAction)
 					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
 					.getAsList()
@@ -168,7 +168,7 @@ public class LogResource extends Resource {
 
 				processData(logState, StructrApp.getInstance(securityContext)
 					.nodeQuery(LogEvent.class)
-					.and(LogEvent.subject, subjectId)
+					.and(LogEvent.subjectProperty, subjectId)
 					.and(LogEvent.actionProperty, logState.logAction)
 					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
 					.getAsList()
@@ -180,7 +180,7 @@ public class LogResource extends Resource {
 
 				processData(logState, StructrApp.getInstance(securityContext)
 					.nodeQuery(LogEvent.class)
-					.and(LogEvent.object, objectId)
+					.and(LogEvent.objectProperty, objectId)
 					.and(LogEvent.actionProperty, logState.logAction)
 					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
 					.getAsList()
@@ -239,15 +239,12 @@ public class LogResource extends Resource {
 		final HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
 
-			final boolean initialize = "true".equals(request.getParameter("initialize"));
-			final String count       = request.getParameter("count");
-			final int max            = count != null ? Integer.valueOf(count) : 10000;
-
-			if (initialize) {
+			// initialize?!
+			if ("true".equals(request.getParameter("initialize"))) {
 
 				final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
 
-				try (final Context context  = new Context(1000, max)) {
+				try (final Context context  = new Context(1000)) {
 
 					collectFilesAndStore(context, new File(filesPath + SUBJECTS).toPath(), 0);
 
@@ -258,7 +255,6 @@ public class LogResource extends Resource {
 				return new RestMethodResult(200);
 			}
 
-			final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
 			final String subjectId = (String) propertySet.get(subjectProperty.jsonName());
 			final String objectId  = (String) propertySet.get(objectProperty.jsonName());
 			final String action    = (String) propertySet.get(actionProperty.jsonName());
@@ -266,27 +262,50 @@ public class LogResource extends Resource {
 
 			if (subjectId != null && objectId != null && action != null) {
 
-				try {
+				final App app  = StructrApp.getInstance(securityContext);
+				LogEvent event = null;
 
-					final StringBuilder data = new StringBuilder();
-					data.append(System.currentTimeMillis());
-					data.append(",");
-					data.append(action);
-					data.append(",");
-					data.append(message);
-					data.append("\n");
+				try (final Tx tx = app.tx()) {
 
-					// write data and create link
-					final Path actualPath = write(filesPath + SUBJECTS, mergeIds(subjectId, objectId), data.toString());
-					link(filesPath + OBJECTS, mergeIds(objectId, subjectId), actualPath);
+					final PropertyMap properties = new PropertyMap();
+					properties.put(LogEvent.actionProperty,  action);
+					properties.put(LogEvent.subjectProperty, subjectId);
+					properties.put(LogEvent.objectProperty,  objectId);
+					properties.put(LogEvent.messageProperty, message);
 
-					return new RestMethodResult(200);
+					event = app.create(LogEvent.class, properties);
 
-				} catch (IOException ioex) {
-
-					ioex.printStackTrace();
-					throw new FrameworkException(500, ioex.getMessage());
+					tx.success();
 				}
+
+				final RestMethodResult result = new RestMethodResult(201);
+				result.addContent(event);
+
+				return result;
+
+
+//
+//				try {
+//
+//					final StringBuilder data = new StringBuilder();
+//					data.append(System.currentTimeMillis());
+//					data.append(",");
+//					data.append(action);
+//					data.append(",");
+//					data.append(message);
+//					data.append("\n");
+//
+//					// write data and create link
+//					final Path actualPath = write(filesPath + SUBJECTS, mergeIds(subjectId, objectId), data.toString());
+//					link(filesPath + OBJECTS, mergeIds(objectId, subjectId), actualPath);
+//
+//					return new RestMethodResult(200);
+//
+//				} catch (IOException ioex) {
+//
+//					ioex.printStackTrace();
+//					throw new FrameworkException(500, ioex.getMessage());
+//				}
 
 			} else {
 
@@ -345,11 +364,6 @@ public class LogResource extends Resource {
 	// ----- private methods -----
 	private void collectFilesAndStore(final Context context, final Path dir, final int level) throws FrameworkException {
 
-		// exit when max is reached
-		if (context.getTotal() > context.getMax()) {
-			return;
-		}
-
 		if (level == 1) {
 			logger.log(Level.INFO, "Path {0}", dir);
 		}
@@ -370,11 +384,7 @@ public class LogResource extends Resource {
 					context.commit(true);
 				}
 
-				// remove file / directory after reading, but only
-				// if max is not reached.
-				if (context.getTotal() <= context.getMax()) {
-					Files.delete(p);
-				}
+				Files.delete(p);
 
 			}
 
@@ -493,8 +503,8 @@ public class LogResource extends Resource {
 
 				properties.put(LogEvent.messageProperty,   message);
 				properties.put(LogEvent.actionProperty,    action);
-				properties.put(LogEvent.subject,           subjectId);
-				properties.put(LogEvent.object,            objectId);
+				properties.put(LogEvent.subjectProperty,           subjectId);
+				properties.put(LogEvent.objectProperty,            objectId);
 				properties.put(LogEvent.timestampProperty, new Date(timestamp));
 
 				app.create(LogEvent.class, properties);
@@ -1234,12 +1244,10 @@ public class LogResource extends Resource {
 		private int total       = 0;
 		private int count       = 0;
 		private int commitCount = 0;
-		private int max         = 0;
 
-		public Context(final int commitCount, final int max) {
+		public Context(final int commitCount) {
 
 			this.commitCount = commitCount;
-			this.max         = max;
 			this.tx          = app.tx(false, false, false);
 		}
 
@@ -1263,10 +1271,6 @@ public class LogResource extends Resource {
 
 		public int getTotal() {
 			return total;
-		}
-
-		public int getMax() {
-			return max;
 		}
 
 		public void update(final int count) {
