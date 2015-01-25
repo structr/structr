@@ -441,14 +441,11 @@ function getComments(el) {
             var id = f.nodeValue.extractVal('data-structr-id');
             var raw = f.nodeValue.extractVal('data-structr-raw-value');
             if (id) {
-                f = f.nextSibling;
-                if (f && f.nodeType === 3) {
-                    var comment = {};
-                    comment.id = id;
-                    comment.textNode = f;
-                    comment.rawContent = raw;
-                    comments.push(comment);
-                }
+                var comment = {};
+                comment.id = id;
+                comment.node = f;
+                comment.rawContent = raw;
+                comments.push(comment);
             }
         }
         f = f ? f.nextSibling : f;
