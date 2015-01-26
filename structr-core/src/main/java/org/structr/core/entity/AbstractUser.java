@@ -93,12 +93,16 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 			final String[] ids = getProperty(Principal.sessionIds);
 			if (ids != null) {
-				
+
 				if (!ArrayUtils.contains(ids, sessionId)) {
 
 					setProperty(Principal.sessionIds, (String[]) ArrayUtils.add(getProperty(Principal.sessionIds), sessionId));
 
 				}
+
+			} else {
+
+				setProperty(Principal.sessionIds, new String[] {  sessionId } );
 			}
 
 
