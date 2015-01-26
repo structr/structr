@@ -8,4 +8,4 @@ To build Structr from the sources, do the following:
     cd structr
     mvn clean install -DskipTests
     cd structr-ui
-    mvn exec:exec
+    mvn validate exec:exec
