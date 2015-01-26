@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 import java.io.IOException;
-import org.apache.commons.codec.binary.Base64;
 
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -32,6 +31,7 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.dynamic.File;
+import org.structr.util.Base64;
 import org.structr.web.common.FileHelper;
 import org.structr.websocket.StructrWebSocket;
 
@@ -73,8 +73,8 @@ public class ChunkCommand extends AbstractCommand {
 
 					logger.log(Level.FINEST, "Raw data: {0}", rawData);
 
-//                                      data = Base64.decodeBase64(((String)rawData).getBytes("UTF-8"));
-					data = Base64.decodeBase64(((String) rawData));
+//                                        data = Base64.decodeBase64(((String)rawData).getBytes("UTF-8"));
+					data = Base64.decode(((String) rawData));
 
 					logger.log(Level.FINEST, "Decoded data: {0}", data);
 

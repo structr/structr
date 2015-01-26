@@ -35,6 +35,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
@@ -60,12 +64,14 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.parser.Functions;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -86,6 +92,8 @@ import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Renderable;
+import static org.structr.web.entity.dom.DOMNode.dataKey;
+import static org.structr.web.entity.dom.DOMNode.ownerDocument;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
@@ -93,7 +101,6 @@ import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
@@ -311,6 +318,64 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				return "Usage: ${strip_html(html)}. Example: ${strip_html(\"<p>foo</p>\")}";
 			}
 
+		});
+
+		Functions.functions.put("POST", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (Functions.arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final String uri    = sources[0].toString();
+					final String body   = sources[1].toString();
+					String contentType  = "application/json";
+					String charset      = "utf-8";
+
+					// override default content type
+					if (sources.length >= 3 && sources[2] != null) {
+						contentType = sources[2].toString();
+					}
+
+					// override default content type
+					if (sources.length >= 4 && sources[3] != null) {
+						charset = sources[3].toString();
+					}
+
+					final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
+					final HttpClient client       = new HttpClient(params);
+					final PostMethod postMethod   = new PostMethod(uri);
+
+					try {
+
+						postMethod.setRequestEntity(new StringRequestEntity(body, contentType, charset));
+
+						final int statusCode      = client.executeMethod(postMethod);
+						final String responseBody = postMethod.getResponseBodyAsString();
+
+						final GraphObjectMap response = new GraphObjectMap();
+						response.setProperty(new IntProperty("status"), statusCode);
+						response.setProperty(new StringProperty("body"), responseBody);
+						response.setProperty(new ArrayProperty<>("headers", String.class), postMethod.getResponseHeaders());
+
+						return response;
+
+					} catch (IOException ioex) {
+						ioex.printStackTrace();
+					}
+
+				} else {
+
+					return usage();
+				}
+
+				return null;
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";
+			}
 		});
 
 		Functions.functions.put("GET", new Function<Object, Object>() {
