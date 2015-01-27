@@ -555,10 +555,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		for (Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
 
-			if (p.equals(r.getSourceNode())) {
+			if (r != null) {
 
-				return r;
+				if (p.equals(r.getSourceNode())) {
 
+					return r;
+
+				}
 			}
 		}
 
@@ -693,10 +696,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		// check any security relationships
 		for (Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
 
-			// check security properties
-			Principal principalNode = r.getSourceNode();
+			if (r != null) {
 
-			principalList.add(principalNode);
+				// check security properties
+				Principal principalNode = r.getSourceNode();
+
+				principalList.add(principalNode);
+			}
 		}
 
 		return principalList;
