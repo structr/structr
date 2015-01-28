@@ -179,7 +179,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			try (final Tx tx = app.tx()) {
 
 				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, config.getDefaultIdProperty()), config.getDefaultIdProperty());
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
 				tx.success();
 			}
@@ -302,7 +302,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				resource = ResourceHelper.applyViewTransformation(request, securityContext,
 					ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 						config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
 
@@ -412,7 +412,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					resource = ResourceHelper.applyViewTransformation(request, securityContext,
 							ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
 
@@ -595,7 +595,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					resource = ResourceHelper.applyViewTransformation(request, securityContext,
 						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
 
@@ -772,7 +772,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					ResourceHelper.optimizeNestedResourceChain(
 						ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
 
