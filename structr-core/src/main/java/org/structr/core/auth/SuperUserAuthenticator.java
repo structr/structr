@@ -36,25 +36,25 @@ public class SuperUserAuthenticator implements Authenticator {
 	private static final SuperUser superUser = new SuperUser();
 
 	@Override
-	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 		return SecurityContext.getSuperUserInstance(request);
 	}
 
 	@Override
-	public void checkResourceAccess(HttpServletRequest request, String resourceSignature, String propertyView) throws FrameworkException {
+	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String resourceSignature, final String propertyView) throws FrameworkException {
 	}
 
 	@Override
-	public Principal doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(final HttpServletRequest request, final String userName, final String password) throws AuthenticationException {
 		return superUser;
 	}
 
 	@Override
-	public void doLogout(HttpServletRequest request) {
+	public void doLogout(final HttpServletRequest request) {
 	}
 
 	@Override
-	public Principal getUser(HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
+	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 		return superUser;
 	}
 

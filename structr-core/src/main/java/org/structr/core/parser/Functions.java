@@ -196,6 +196,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_SEND_HTML_MAIL = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 	public static final String ERROR_MESSAGE_GEOCODE = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
 	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
+	public static final String ERROR_MESSAGE_SEARCH = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\"}";
 	public static final String ERROR_MESSAGE_CREATE = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
 	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(entity)}. Example: ${delete(this)}";
 	public static final String ERROR_MESSAGE_CACHE = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
@@ -2786,6 +2787,76 @@ public class Functions {
 							}
 
 							query.and(key, value);
+						}
+
+					}
+
+					final Object x = query.getAsList();
+
+					// return search results
+					return x;
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_FIND;
+			}
+		});
+		functions.put("search", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null) {
+
+					final SecurityContext securityContext = entity.getSecurityContext();
+					final ConfigurationProvider config = StructrApp.getConfiguration();
+					final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+
+					// the type to query for
+					Class type = null;
+
+					if (sources.length >= 1 && sources[0] != null) {
+
+						type = config.getNodeEntityClass(sources[0].toString());
+
+						if (type != null) {
+
+							query.andTypes(type);
+						}
+					}
+
+					final Integer parameter_count = sources.length;
+
+					if (parameter_count % 2 == 0) {
+
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
+					}
+
+					for (Integer c = 1; c < parameter_count; c+=2) {
+
+						final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+
+						if (key != null) {
+
+							// throw exception if key is not indexed (otherwise the user will never know)
+							if (!key.isSearchable()) {
+
+								throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
+							}
+
+							final PropertyConverter inputConverter = key.inputConverter(securityContext);
+							Object value = sources[c+1];
+
+							if (inputConverter != null) {
+
+								value = inputConverter.convert(value);
+							}
+
+							query.and(key, value, false);
 						}
 
 					}

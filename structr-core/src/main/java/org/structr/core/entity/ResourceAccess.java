@@ -199,12 +199,12 @@ public class ResourceAccess extends AbstractNode {
 		grantCache.clear();
 	}
 
-	public static ResourceAccess findGrant(String signature) throws FrameworkException {
+	public static ResourceAccess findGrant(final SecurityContext securityContext, final String signature) throws FrameworkException {
 
 		ResourceAccess grant = grantCache.get(signature);
 		if (grant == null) {
 
-			grant = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			grant = StructrApp.getInstance(securityContext).nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
 			if (grant != null) {
 
 				grantCache.put(signature, grant);

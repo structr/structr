@@ -753,7 +753,7 @@ var _Pages = {
                 getComments(element).forEach(function(c) {
 
                     var inner = $(getNonCommentSiblings(c.node));
-                    $(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, true) + '"></div>');
+                    $(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
                     var el = $(element).children('[data-structr-id="' + c.id + '"]');
                     el.append(inner);
 
@@ -774,12 +774,12 @@ var _Pages = {
                             e.stopPropagation();
                             e.preventDefault();
                             var self = $(this);
-                            var prevEl = doc.find('[data-structr-id="' + contentSourceId + '"]');
-                            if (self.attr('data-structr-id') === contentSourceId) {
-                                return;
-                            }
-                            if (prevEl && prevEl.length) {
-                               _Pages.saveInlineElement(prevEl);
+
+                            if (contentSourceId) {
+                                // click on same element again?
+                                if (self.attr('data-structr-id') === contentSourceId) {
+                                    return;
+                                }
                             }
                             contentSourceId = self.attr('data-structr-id');
 
@@ -788,10 +788,11 @@ var _Pages = {
                             }
                             self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
 
-                            // Store old text in global var
+                            // Store old text in global var and attribute
                             textBeforeEditing = self.text();
-
+                            
                             var srcText = expandNewline(self.attr('data-structr-raw-content'));
+
                             // Replace only if it differs (e.g. for variables)
                             if (srcText !== textBeforeEditing) {
                                 self.html(srcText);
@@ -821,11 +822,12 @@ var _Pages = {
         var self = $(el);
         contentSourceId = self.attr('data-structr-id');
         var text = unescapeTags(cleanText(self.html()));
-        Command.setProperty(contentSourceId, 'content', text, false, function() {
-            contentSourceId = null;
-            self.attr('contenteditable', false);
-            self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
-        });
+        Command.setProperty(contentSourceId, 'content', text, false);
+        self.attr('contenteditable', false);
+        self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
+        _Pages.loadIframe(activeTab);
+        contentSourceId = null;
+
     },
     findDroppablesInIframe: function(iframeDocument, id) {
         var droppables = iframeDocument.find('[data-structr-id]');
@@ -1088,3 +1090,26 @@ var _Pages = {
         }
     }
 };
+
+function ucs2decode(string) {
+		var output = [],
+		    counter = 0,
+		    length = string.length,
+		    value,
+		    extra;
+		while (counter < length) {
+			value = string.charCodeAt(counter++);
+			if ((value & 0xF800) == 0xD800 && counter < length) {
+				// high surrogate, and there is a next character
+				extra = string.charCodeAt(counter++);
+				if ((extra & 0xFC00) == 0xDC00) { // low surrogate
+					output.push(((value & 0x3FF) << 10) + (extra & 0x3FF) + 0x10000);
+				} else {
+					output.push(value, extra);
+				}
+			} else {
+				output.push(value);
+			}
+		}
+		return output;
+	}
