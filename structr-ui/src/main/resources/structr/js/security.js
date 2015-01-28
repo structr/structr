@@ -100,7 +100,7 @@ var _Security = {
                     blinkRed(inp);
                 }
             });
-            
+            _Security.resize();
         });
     },
 

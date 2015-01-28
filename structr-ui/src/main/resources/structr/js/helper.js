@@ -81,7 +81,9 @@ function unescapeTags(str) {
             .replace(/&nbsp;/g, ' ')
             .replace(/&amp;/g, '&')
             .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>');
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, '\'');
 }
 
 $.fn.reverse = [].reverse;
@@ -108,6 +110,7 @@ if (typeof String.prototype.capitalize !== 'function') {
 if (typeof String.prototype.escapeForJSON !== 'function') {
     String.prototype.escapeForJSON = function() {
         return this
+                .replace(/\\/g, '\\\\')
                 .replace(/"/g, '\\"');
     };
 }
@@ -159,10 +162,12 @@ function cleanText(input) {
     }
     //console.log(input);
     var output = input
-            .replace(/<br><\/div>/ig, '\n')
-            .replace(/<div>/ig, '\n')
+            .replace(/<div><br><\/div>/ig, '\n')
+            .replace(/<div><\/div>/g, '\n')
             .replace(/<br(\s*)\/*>/ig, '\n')
-            .replace(/(<([^>]+)>)/ig, "");
+            .replace(/(<([^>]+)>)/ig, "")
+            .replace(/\u00A0/ig, String.fromCharCode(32))
+    ;
 
     //console.log(output);
     return output;
@@ -440,14 +445,11 @@ function getComments(el) {
             var id = f.nodeValue.extractVal('data-structr-id');
             var raw = f.nodeValue.extractVal('data-structr-raw-value');
             if (id) {
-                f = f.nextSibling;
-                if (f && f.nodeType === 3) {
-                    var comment = {};
-                    comment.id = id;
-                    comment.textNode = f;
-                    comment.rawContent = raw;
-                    comments.push(comment);
-                }
+                var comment = {};
+                comment.id = id;
+                comment.node = f;
+                comment.rawContent = raw;
+                comments.push(comment);
             }
         }
         f = f ? f.nextSibling : f;

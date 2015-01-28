@@ -18,11 +18,10 @@
  */
 package org.structr.web.common;
 
+import java.net.HttpCookie;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -347,6 +346,8 @@ public class RenderContextTest extends StructrUiTest {
 			detailsDataObject = app.create(TestOne.class, "TestOne");
 			page              = Page.createNewPage(securityContext, "testpage");
 
+			page.setProperty(Page.visibleToPublicUsers, true);
+
 			assertTrue(page != null);
 			assertTrue(page instanceof Page);
 
@@ -412,6 +413,11 @@ public class RenderContextTest extends StructrUiTest {
 
 			assertNotNull("User tester1 should exist.", tester1);
 			assertNotNull("User tester2 should exist.", tester2);
+
+			// create admin user for later use
+			final User admin = app.create(User.class, "admin");
+			admin.setProperty(User.password, "admin");
+			admin.setProperty(User.isAdmin, true);
 
 			tx.success();
 
@@ -492,12 +498,41 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("tester1", p1.replaceVariables(tester1Context, ctx, "${me.name}"));
 			assertEquals("tester2", p1.replaceVariables(tester2Context, ctx, "${me.name}"));
 
+			// allow unauthenticated GET on /pages
+			grant("Page/_Ui", 16, false);
+
+			// test GET REST access
+			assertEquals("Invalid GET notation result", page.getName(), p1.replaceVariables(securityContext, ctx, "${from_json(GET('http://localhost:8875/structr/rest/pages/ui')).result[0].name}"));
+
+			grant("Folder", 64, true);
+			grant("_login", 64, false);
+
+			assertEquals("Invalid POST result", "201",                             page.replaceVariables(securityContext, ctx, "${POST('http://localhost:8875/structr/rest/folders', '{name:Test}').status}"));
+			assertEquals("Invalid POST result", "1.0",                             page.replaceVariables(securityContext, ctx, "${POST('http://localhost:8875/structr/rest/folders', '{name:Test}').body.result_count}"));
+			assertEquals("Invalid POST result", "application/json; charset=utf-8", page.replaceVariables(securityContext, ctx, "${POST('http://localhost:8875/structr/rest/folders', '{name:Test}').headers.Content-Type}"));
+
+			// test POST with invalid name containing curly braces to provoke 422
+			assertEquals("Invalid POST result", "422",                             page.replaceVariables(securityContext, ctx, "${POST('http://localhost:8875/structr/rest/folders', '{name:\"Test{{{}}{}{}{}\"}').status}"));
+
+			System.out.println(page.replaceVariables(securityContext, ctx, "${POST('http://localhost:8875/structr/rest/login', '{name:admin,password:admin}')}"));
+
+			// test login and sessions
+			final String sessionIdCookie = page.replaceVariables(securityContext, ctx, "${POST('http://localhost:8875/structr/rest/login', '{name:admin,password:admin}').headers.Set-Cookie}");
+			final String sessionId       = HttpCookie.parse(sessionIdCookie).get(0).getValue();
+
+			// test authenticated GET request using session ID cookie
+			assertEquals("Invalid authenticated GET result", "admin",   page.replaceVariables(securityContext, ctx, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:8875/structr/rest/users')).result[0].name}"));
+			assertEquals("Invalid authenticated GET result", "tester1", page.replaceVariables(securityContext, ctx, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:8875/structr/rest/users')).result[1].name}"));
+			assertEquals("Invalid authenticated GET result", "tester2", page.replaceVariables(securityContext, ctx, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:8875/structr/rest/users')).result[2].name}"));
+
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
+
 			fail("Unexpected exception");
 		}
-
 	}
 }

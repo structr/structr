@@ -21,7 +21,7 @@ package org.structr.schema.action;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -38,9 +38,10 @@ import org.structr.core.parser.Functions;
  */
 public class ActionContext {
 
-	protected Map<String, Object> constants  = new LinkedHashMap<>();
-	protected Map<String, Object> tmpStore   = new LinkedHashMap<>();
-	protected Map<Integer, Integer> counters = new LinkedHashMap<>();
+	protected Map<String, String> headers    = new HashMap<>();
+	protected Map<String, Object> constants  = new HashMap<>();
+	protected Map<String, Object> tmpStore   = new HashMap<>();
+	protected Map<Integer, Integer> counters = new HashMap<>();
 	protected ErrorBuffer errorBuffer        = new ErrorBuffer();
 
 	public ActionContext() {
@@ -82,10 +83,6 @@ public class ActionContext {
 	public boolean returnRawValue(final SecurityContext securityContext) {
 		return false;
 	}
-
-//	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
-//		return getReferencedProperty(securityContext, entity, refKey, null);
-//	}
 
 	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey, final Object initialData) throws FrameworkException {
 
@@ -160,6 +157,14 @@ public class ActionContext {
 
 	public Object retrieve(final String key) {
 		return tmpStore.get(key);
+	}
+
+	public void addHeader(final String key, final String value) {
+		headers.put(key, value);
+	}
+
+	public Map<String, String> getHeaders() {
+		return headers;
 	}
 
 	// ----- protected methods -----

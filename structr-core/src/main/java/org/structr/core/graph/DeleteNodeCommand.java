@@ -131,7 +131,10 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			// Delete any relationship (this is PASSIVE DELETION)
 			for (AbstractRelationship r : node.getRelationships()) {
 
-				app.delete(r);
+				if (r != null) {
+					
+					app.delete(r);
+				}
 			}
 
 			// remove node from index

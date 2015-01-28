@@ -24,6 +24,7 @@ import org.structr.web.common.StructrUiTest;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -90,6 +91,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/folders");
 
 			// allow GET for authenticated users => access without user/pass should be still forbidden
+			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_GET);
 
 			tx.success();
@@ -156,6 +158,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/folders");
 
 			// allow POST for non-authenticated users => access without user/pass should be allowed
+			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_POST);
 
 			tx.success();
@@ -233,6 +236,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
 			// allow PUT for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
+			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);		
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
 
 			tx.success();
@@ -349,6 +353,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
+			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
 
 			tx.success();

@@ -18,8 +18,10 @@
  */
 package org.structr.core.property;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 
 import org.structr.common.StructrTest;
@@ -167,20 +169,31 @@ public class CollectionPropertyTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			// internal stuff: simulate "foreign properties"
+			Map<String, PropertyMap> notionPropertyMap = new HashMap<>();
+			securityContext.setAttribute("notionProperties", notionPropertyMap);
+
 			task    = createTestNode(SchemaNode.class, "Task");
 			worker  = createTestNode(SchemaNode.class, "Worker");
 
+			// simulate existance of "foreign properties" in JSON
 			final PropertyMap taskTaskProperties = new PropertyMap();
 			taskTaskProperties.put(SchemaRelationship.relationshipType, "SUBTASK");
-			app.create(task, task, SchemaRelationship.class, taskTaskProperties);
+			notionPropertyMap.put("TaskIS_RELATED_TOTask", taskTaskProperties);
 
+			task.setProperty(SchemaNode.relatedTo, toList(task));
+
+			// simulate existance of "foreign properties" in JSON
 			final PropertyMap workerTaskProperties = new PropertyMap();
 			workerTaskProperties.put(SchemaRelationship.relationshipType, "WORKS_ON");
-			app.create(worker, task, SchemaRelationship.class, workerTaskProperties);
+			notionPropertyMap.put("WorkerIS_RELATED_TOTask", workerTaskProperties);
+
+			task.setProperty(SchemaNode.relatedFrom, toList(worker));
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -196,6 +209,7 @@ public class CollectionPropertyTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

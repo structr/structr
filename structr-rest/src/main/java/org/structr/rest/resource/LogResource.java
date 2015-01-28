@@ -17,23 +17,20 @@
  */
 package org.structr.rest.resource;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -59,14 +56,19 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
+import org.structr.rest.logging.entity.LogEvent;
 
 /**
  *
@@ -75,27 +77,26 @@ import org.structr.rest.exception.IllegalMethodException;
  */
 public class LogResource extends Resource {
 
-	private static final Logger logger = Logger.getLogger(LogResource.class.getName());
-	private static final Pattern RangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
+	private static final Logger logger                          = Logger.getLogger(LogResource.class.getName());
+	private static final Pattern RangeQueryPattern              = Pattern.compile("\\[(.+) TO (.+)\\]");
 
-	private static final String SUBJECTS = "/s/";
-	private static final String OBJECTS = "/o/";
-	private static final String CORRELATION_SEPARATOR = "::";
+	private static final String SUBJECTS                        = "/s/";
+	private static final String CORRELATION_SEPARATOR           = "::";
 
-	private static final Property<String> subjectProperty = new StringProperty("subject");
-	private static final Property<String> objectProperty = new StringProperty("object");
-	private static final Property<String> actionProperty = new StringProperty("action");
-	private static final Property<String> actionsProperty = new StringProperty("actions");
-	private static final Property<String> messageProperty = new StringProperty("message");
-	private static final Property<Integer> entryCountProperty = new IntProperty("entryCount");
-	private static final Property<Integer> totalProperty = new IntProperty("total");
-	private static final ISO8601DateProperty timestampProperty = new ISO8601DateProperty("timestamp");
+	private static final Property<String> subjectProperty       = new StringProperty("subject");
+	private static final Property<String> objectProperty        = new StringProperty("object");
+	private static final Property<String> actionProperty        = new StringProperty("action");
+	private static final Property<String> actionsProperty       = new StringProperty("actions");
+	private static final Property<String> messageProperty       = new StringProperty("message");
+	private static final Property<Integer> entryCountProperty   = new IntProperty("entryCount");
+	private static final Property<Integer> totalProperty        = new IntProperty("total");
+	private static final ISO8601DateProperty timestampProperty  = new ISO8601DateProperty("timestamp");
 	private static final ISO8601DateProperty firstEntryProperty = new ISO8601DateProperty("firstEntry");
-	private static final ISO8601DateProperty lastEntryProperty = new ISO8601DateProperty("lastEntry");
+	private static final ISO8601DateProperty lastEntryProperty  = new ISO8601DateProperty("lastEntry");
 
-	private static final Set<String> ReservedRequestParameters = new LinkedHashSet<>(Arrays.asList(new String[]{"subject", "object", "action", "message", "timestamp", "aggregate", "histogram", "correlate"}));
+	private static final Set<String> ReservedRequestParameters  = new LinkedHashSet<>(Arrays.asList(new String[]{"subject", "object", "action", "message", "timestamp", "aggregate", "histogram", "correlate"}));
 
-	public static final String LOG_RESOURCE_URI = "log";
+	public static final String LOG_RESOURCE_URI                 = "log";
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
@@ -143,76 +144,57 @@ public class LogResource extends Resource {
 		final HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
 
-			final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
-			final String subjectId = request.getParameter(subjectProperty.jsonName());
-			final String objectId = request.getParameter(objectProperty.jsonName());
+			final String subjectId           = request.getParameter(subjectProperty.jsonName());
+			final String objectId            = request.getParameter(objectProperty.jsonName());
 			final GraphObjectMap overviewMap = new GraphObjectMap();
-			final LogState logState = new LogState(request);
+			final LogState logState          = new LogState(request);
 
 			if (StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
-				final String fileName = mergeIds(subjectId, objectId);
-				final String path = getDirectoryPath(fileName, 8);
-				final Path filePath = new File(filesPath + SUBJECTS + path + fileName).toPath();
-
-				if (Files.exists(filePath)) {
-					read(toMap(filePath, logState), logState);
-				}
+				processData(logState, StructrApp.getInstance(securityContext)
+					.nodeQuery(LogEvent.class)
+					.and(LogEvent.subjectProperty, subjectId)
+					.and(LogEvent.objectProperty, objectId)
+					.and(LogEvent.actionProperty, logState.logAction)
+					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
+					.getAsList()
+				);
 
 			} else if (StringUtils.isNotEmpty(subjectId) && StringUtils.isEmpty(objectId)) {
 
-				final String path = getDirectoryPath(subjectId, 8);
-				final Path directoryPath = new File(filesPath + SUBJECTS + path).toPath();
-
-				try (final DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath, subjectId + "????????????????????????????????")) {
-
-					final Map<String, ArrayList<String>> fileLines = new LinkedHashMap<>();
-
-					for (final Path p : stream) {
-						fileLines.putAll(toMap(p, logState));
-					}
-
-					read(fileLines, logState);
-
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
-				}
+				processData(logState, StructrApp.getInstance(securityContext)
+					.nodeQuery(LogEvent.class)
+					.and(LogEvent.subjectProperty, subjectId)
+					.and(LogEvent.actionProperty, logState.logAction)
+					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
+					.getAsList()
+				);
 
 			} else if (StringUtils.isEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
 				logState.inverse(true);
 
-				final String path = getDirectoryPath(objectId, 8);
-				final Path directoryPath = new File(filesPath + OBJECTS + path).toPath();
-
-				try (final DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath, objectId + "????????????????????????????????")) {
-
-					final Map<String, ArrayList<String>> fileLines = new LinkedHashMap<>();
-
-					for (final Path p : stream) {
-						fileLines.putAll(toMap(p, logState));
-					}
-
-					read(fileLines, logState);
-
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
-				}
+				processData(logState, StructrApp.getInstance(securityContext)
+					.nodeQuery(LogEvent.class)
+					.and(LogEvent.objectProperty, objectId)
+					.and(LogEvent.actionProperty, logState.logAction)
+					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
+					.getAsList()
+				);
 
 			} else if (logState.doActionQuery()) {
 
-				final Map<String, ArrayList<String>> fileLines = collectFiles(new File(filesPath + SUBJECTS).toPath(), logState);
-
-				read(fileLines, logState);
+				processData(logState);
 
 			} else {
 
 				// create overview of existing logs
 				logState.overview(true);
 
-				final Map<String, ArrayList<String>> fileLines = collectFiles(new File(filesPath + SUBJECTS).toPath(), logState);
-
-				read(fileLines, logState);
+				processData(logState, StructrApp.getInstance(securityContext)
+					.nodeQuery(LogEvent.class)
+					.getAsList()
+				);
 			}
 
 			if (logState.overview()) {
@@ -253,35 +235,73 @@ public class LogResource extends Resource {
 		final HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
 
-			final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+			// initialize?!
+			if ("true".equals(request.getParameter("initialize"))) {
+
+				final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+
+				try (final Context context  = new Context(1000)) {
+
+					collectFilesAndStore(context, new File(filesPath + SUBJECTS).toPath(), 0);
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
+
+				return new RestMethodResult(200);
+			}
+
 			final String subjectId = (String) propertySet.get(subjectProperty.jsonName());
-			final String objectId = (String) propertySet.get(objectProperty.jsonName());
-			final String action = (String) propertySet.get(actionProperty.jsonName());
-			final String message = (String) propertySet.get(messageProperty.jsonName());
+			final String objectId  = (String) propertySet.get(objectProperty.jsonName());
+			final String action    = (String) propertySet.get(actionProperty.jsonName());
+			final String message   = (String) propertySet.get(messageProperty.jsonName());
 
 			if (subjectId != null && objectId != null && action != null) {
 
-				try {
+				final App app  = StructrApp.getInstance(securityContext);
+				LogEvent event = null;
 
-					final StringBuilder data = new StringBuilder();
-					data.append(System.currentTimeMillis());
-					data.append(",");
-					data.append(action);
-					data.append(",");
-					data.append(message);
-					data.append("\n");
+				try (final Tx tx = app.tx()) {
 
-					// write data and create link
-					final Path actualPath = write(filesPath + SUBJECTS, mergeIds(subjectId, objectId), data.toString());
-					link(filesPath + OBJECTS, mergeIds(objectId, subjectId), actualPath);
+					final PropertyMap properties = new PropertyMap();
+					properties.put(LogEvent.actionProperty,  action);
+					properties.put(LogEvent.subjectProperty, subjectId);
+					properties.put(LogEvent.objectProperty,  objectId);
+					properties.put(LogEvent.messageProperty, message);
 
-					return new RestMethodResult(200);
+					event = app.create(LogEvent.class, properties);
 
-				} catch (IOException ioex) {
-
-					ioex.printStackTrace();
-					throw new FrameworkException(500, ioex.getMessage());
+					tx.success();
 				}
+
+				final RestMethodResult result = new RestMethodResult(201);
+				result.addContent(event);
+
+				return result;
+
+
+//
+//				try {
+//
+//					final StringBuilder data = new StringBuilder();
+//					data.append(System.currentTimeMillis());
+//					data.append(",");
+//					data.append(action);
+//					data.append(",");
+//					data.append(message);
+//					data.append("\n");
+//
+//					// write data and create link
+//					final Path actualPath = write(filesPath + SUBJECTS, mergeIds(subjectId, objectId), data.toString());
+//					link(filesPath + OBJECTS, mergeIds(objectId, subjectId), actualPath);
+//
+//					return new RestMethodResult(200);
+//
+//				} catch (IOException ioex) {
+//
+//					ioex.printStackTrace();
+//					throw new FrameworkException(500, ioex.getMessage());
+//				}
 
 			} else {
 
@@ -338,255 +358,169 @@ public class LogResource extends Resource {
 	}
 
 	// ----- private methods -----
-	private Map<String, ArrayList<String>> collectFiles(final Path dir, final LogState state) {
+	private void collectFilesAndStore(final Context context, final Path dir, final int level) throws FrameworkException {
 
-		final Map<String, ArrayList<String>> fileLines = new LinkedHashMap<>();
-		final List<Path> paths = new LinkedList<>();
+		if (level == 1) {
+			logger.log(Level.INFO, "Path {0}", dir);
+		}
 
-		try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*")) {
+		try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
 
 			for (final Path p : stream) {
 
 				if (Files.isDirectory(p)) {
 
-					fileLines.putAll(collectFiles(p, state));
+					collectFilesAndStore(context, p, level+1);
 
 				} else {
 
-					paths.add(p);
+					context.update(storeLogEntry(p));
+
+					// update object count and commit
+					context.commit(true);
 				}
 
+				Files.delete(p);
+
 			}
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
 		}
-
-		for (final Path path : paths) {
-
-			fileLines.putAll(toMap(path, state));
-
-		}
-
-		return fileLines;
-
 	}
 
-	private Map<String, ArrayList<String>> toMap(final Path path, final LogState state) {
+	private void processData(final LogState state) throws FrameworkException {
 
-		final Map<String, ArrayList<String>> fileLines = new LinkedHashMap<>();
-		try (final BufferedReader reader = Files.newBufferedReader(path, Charset.forName("utf-8"))) {
+		if (state.doCorrelate()) {
 
-			// skip older files
-			if (!state.includeFile(path.toFile())) {
-				return Collections.EMPTY_MAP;
-			}
+			final List<LogEvent> correlationResult = StructrApp.getInstance(securityContext)
+				.nodeQuery(LogEvent.class)
+				.and(LogEvent.actionProperty, state.correlationAction)
+				.getAsList();
 
-			final String fileName = path.getFileName().toString();
-			if (fileName.length() != 64) {
+			for (final LogEvent entry : correlationResult) {
 
-				logger.log(Level.WARNING, "Invalid log file name {0}, ignoring.", path.toAbsolutePath().getFileName());
-				return Collections.EMPTY_MAP;
-			}
+				final String pathSubjectId = state.inverse() ? entry.getSubjectId() : entry.getObjectId();
+				final String pathObjectId  = state.inverse() ? entry.getObjectId() : entry.getSubjectId();
+				final String entryMessage  = entry.getMessage();
 
-			String l;
+				if (state.correlationPattern != null) {
 
-			final ArrayList<String> lines = new ArrayList<>();
+					final Matcher matcher = state.correlationPattern.matcher(entryMessage);
+					if (matcher.matches()) {
 
-			// Read rows
-			while ((l = reader.readLine()) != null) {
-				lines.add(l);
-			}
+						state.addCorrelationEntry(matcher.group(1), entryMessage);
 
-			fileLines.put(fileName, lines);
-
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
-		}
-
-		return fileLines;
-
-	}
-
-	private void read(final Map<String, ArrayList<String>> fileLines, final LogState state) {
-
-		for (final String fileName : fileLines.keySet()) {
-
-			final String pathSubjectId = state.inverse() ? fileName.substring(32, 64) : fileName.substring(0, 32);
-			final String pathObjectId = state.inverse() ? fileName.substring(0, 32) : fileName.substring(32, 64);
-
-			if (state.doCorrelate()) {
-
-				for (String line : fileLines.get(fileName)) {
-
-					try {
-
-						final int pos0 = line.indexOf(",");
-						final int pos1 = line.indexOf(",", pos0 + 1);
-
-						final String part0 = line.substring(0, pos0);
-						final String part1 = line.substring(pos0 + 1, pos1);
-						final String part2 = line.substring(pos1 + 1);
-
-//						final long timestamp = Long.valueOf(part0);
-						final String entryAction = part1;
-						final String entryMessage = part2;
-
-//						// determine first timestamp
-//						if (timestamp <= state.beginTimestamp()) {
-//							state.beginTimestamp(timestamp);
-//						}
-//
-//						// determine last timestamp
-//						if (timestamp >= state.endTimestamp()) {
-//							state.endTimestamp(timestamp);
-//						}
-						// If correlation with another action was requested,
-						// and the entry matches this action, store entry
-						if (state.isCorrelatedAction(entryAction)) {
-
-							if (state.correlationPattern != null) {
-
-								final Matcher matcher = state.correlationPattern.matcher(line);
-
-								if (matcher.matches()) {
-
-									state.addCorrelationEntry(matcher.group(1), entryMessage);
-
-								}
-
-							} else {
-								// fallback: subjectId and objectId
-								state.addCorrelationEntry(key(pathSubjectId, pathObjectId), entryMessage);
-							}
-
-						}
-
-					} catch (Throwable t) {
-						t.printStackTrace();
 					}
 
+				} else {
+					// fallback: subjectId and objectId
+					state.addCorrelationEntry(key(pathSubjectId, pathObjectId), entryMessage);
 				}
-
 			}
-
 		}
 
 		logger.log(Level.FINE, "No. of correlations: {0}", state.getCorrelations().entrySet().size());
 
-		for (final String fileName : fileLines.keySet()) {
+		final List<LogEvent> result = StructrApp.getInstance(securityContext).nodeQuery(LogEvent.class)
+			.and(LogEvent.actionProperty, state.logAction)
+			.andRange(LogEvent.timestampProperty, new Date(state.beginTimestamp), new Date(state.endTimestamp))
+			.getAsList();
 
-			final String pathSubjectId = state.inverse() ? fileName.substring(32, 64) : fileName.substring(0, 32);
-			final String pathObjectId = state.inverse() ? fileName.substring(0, 32) : fileName.substring(32, 64);
+		processData(state, result);
+	}
 
-			for (String line : fileLines.get(fileName)) {
+	private void processData(final LogState state, final Iterable<LogEvent> result) throws FrameworkException {
 
-				try {
+		int count = 0;
 
-					final int pos0 = line.indexOf(",");
-					final int pos1 = line.indexOf(",", pos0 + 1);
+		for (final LogEvent event : result) {
 
-					final String part0 = line.substring(0, pos0);
-					final String part1 = line.substring(pos0 + 1, pos1);
-					final String part2 = line.substring(pos1 + 1);
+			if ((++count % 100000) == 0) {
+				System.out.println(count);
+			}
 
-					final long timestamp = Long.valueOf(part0);
-					final String entryAction = part1;
-					final String entryMessage = part2;
+			final String pathSubjectId = state.inverse() ? event.getSubjectId() : event.getObjectId();
+			final String pathObjectId  = state.inverse() ? event.getObjectId() : event.getSubjectId();
+			final long timestamp       = event.getTimestamp();
+			final String entryAction   = event.getAction();
+			final String entryMessage  = event.getMessage();
 
-					// determine first timestamp
-					if (timestamp <= state.beginTimestamp()) {
-						state.beginTimestamp(timestamp);
-					}
+			// determine first timestamp
+			if (timestamp <= state.beginTimestamp()) {
+				state.beginTimestamp(timestamp);
+			}
 
-					// determine last timestamp
-					if (timestamp >= state.endTimestamp()) {
-						state.endTimestamp(timestamp);
-					}
+			// determine last timestamp
+			if (timestamp >= state.endTimestamp()) {
+				state.endTimestamp(timestamp);
+			}
 
-					if (state.overview()) {
+			if (state.overview()) {
 
-						state.countAction(entryAction);
+				state.countAction(entryAction);
 
-					} else {
+			} else {
 
-						// action present or matching?
-						if (state.isRequestedActionOrNull(entryAction)) {
+				// action present or matching?
+				if (state.correlates(key(pathSubjectId, pathObjectId), entryMessage)) {
 
-							final Map<String, Object> map = new LinkedHashMap<>();
-							map.put(subjectProperty.jsonName(), pathSubjectId);
-							map.put(objectProperty.jsonName(), pathObjectId);
-							map.put(actionProperty.jsonName(), entryAction);
-							map.put(timestampProperty.jsonName(), timestamp);
-							map.put(messageProperty.jsonName(), entryMessage);
+					final Map<String, Object> map = new HashMap<>();
 
-							// date predicate present?
-							if (state.isInRangeOrNull(timestamp) && state.correlates(key(pathSubjectId, pathObjectId), entryMessage)) {
-								state.addEntry(map);
-							}
-						}
+					map.put(subjectProperty.jsonName(), pathSubjectId);
+					map.put(objectProperty.jsonName(), pathObjectId);
+					map.put(actionProperty.jsonName(), entryAction);
+					map.put(timestampProperty.jsonName(), timestamp);
+					map.put(messageProperty.jsonName(), entryMessage);
 
-					}
-
-				} catch (Throwable t) {
-					t.printStackTrace();
+					state.addEntry(map);
 				}
 			}
 		}
-
 	}
 
-	private Path write(final String basePath, final String fileName, final String data) throws IOException {
+	private int storeLogEntry(final Path path) throws IOException, FrameworkException {
 
-		final String path = getDirectoryPath(fileName, 8);
-		final Path directoryPath = new File(basePath + path).toPath();
-		final Path filePath = new File(basePath + path + fileName).toPath();
+		final App app          = StructrApp.getInstance(securityContext);
+		final String fileName  = path.getFileName().toString();
+		int count              = 0;
 
-		if (!Files.exists(filePath)) {
-			Files.createDirectories(directoryPath);
-		}
+		if (fileName.length() == 64) {
 
-		final FileOutputStream fos = new FileOutputStream(filePath.toString(), true);
-		final FileChannel channel = fos.getChannel();
+			final String subjectId = fileName.substring(0, 32);
+			final String objectId  = fileName.substring(32, 64);
 
-		channel.write(ByteBuffer.wrap(data.getBytes()));
+			for (final String line : Files.readAllLines(path, Charset.forName("utf-8"))) {
 
-		fos.flush();
-		fos.close();
+				final int pos1               = line.indexOf(",", 14);
 
-		return filePath;
-	}
+				final String part0           = line.substring(0, 13);
+				final String part1           = line.substring(14, pos1);
+				final String part2           = line.substring(pos1 + 1);
 
-	private void link(final String basePath, final String fileName, final Path existing) {
+				final long timestamp         = Long.valueOf(part0);
+				final String action          = part1;
+				final String message         = part2;
 
-		try {
-			final String path = getDirectoryPath(fileName, 8);
-			final Path directoryPath = new File(basePath + path).toPath();
-			final Path filePath = new File(basePath + path + fileName).toPath();
+				final PropertyMap properties = new PropertyMap();
 
-			if (Files.notExists(filePath)) {
-				Files.createDirectories(directoryPath);
+				properties.put(LogEvent.messageProperty,   message);
+				properties.put(LogEvent.actionProperty,    action);
+				properties.put(LogEvent.subjectProperty,           subjectId);
+				properties.put(LogEvent.objectProperty,            objectId);
+				properties.put(LogEvent.timestampProperty, new Date(timestamp));
+
+				app.create(LogEvent.class, properties);
+
+				count++;
 			}
 
-			if (Files.notExists(filePath)) {
-				Files.createLink(filePath, existing);
-			}
+		} else {
 
-		} catch (IOException ignore) {
-
-			// can be safely ignored because the actual work (linking
-			// the files) is already done when an exception is thrown
+			System.out.println("Skipping entry " + fileName);
 		}
-	}
 
-	private String mergeIds(final String id1, final String id2) {
-
-		final StringBuilder buf = new StringBuilder();
-
-		buf.append(id1);
-		buf.append(id2);
-
-		return buf.toString();
+		return count;
 	}
 
 	private String getDirectoryPath(final String uuid, final int depth) {
@@ -610,13 +544,13 @@ public class LogResource extends Resource {
 		// sort entries before aggregation
 		state.sortEntries();
 
-		final long startTimestamp = state.beginTimestamp();
-		final long endTimestamp = state.endTimestamp();
-		final GraphObjectMap result = new GraphObjectMap();
-		final long interval = findInterval(state.aggregate());
-		final long start = alignDateOnFormat(state.aggregate(), startTimestamp);
+		final long startTimestamp                         = state.beginTimestamp();
+		final long endTimestamp                           = state.endTimestamp();
+		final GraphObjectMap result                       = new GraphObjectMap();
+		final long interval                               = findInterval(state.aggregate());
+		final long start                                  = alignDateOnFormat(state.aggregate(), startTimestamp);
 		final TreeMap<Long, Map<String, Object>> countMap = toAggregatedCountMap(state);
-		final Set<String> countProperties = getCountProperties(countMap);
+		final Set<String> countProperties                 = getCountProperties(countMap);
 
 		for (long current = start; current <= endTimestamp; current += interval) {
 
@@ -914,37 +848,76 @@ public class LogResource extends Resource {
 		return result;
 	}
 
+	private <T> Set<T> toSet(final T element) {
+
+		final Set<T> set = new HashSet<>();
+		set.add(element);
+
+		return set;
+	}
+
+	private <T> Set<T> toSet(final Iterable<T> iterable) {
+
+		final Set<T> set = new HashSet<>();
+		for (final T path : iterable) {
+
+			set.add(path);
+		}
+
+		return set;
+	}
+
 	private static class LogState {
 
-		private final Map<String, Pattern> aggregationPatterns = new LinkedHashMap<>();
-		private final List<Map<String, Object>> entries = new LinkedList<>();
-		private final Map<String, String> correlations = new ConcurrentHashMap<>();
-		private final Map<String, Integer> actions = new LinkedHashMap<>();
-		private long beginTimestamp = Long.MAX_VALUE;
-		private long endTimestamp = 0L;
-		private String logAction = null;
-		private String aggregate = null;
-		private String histogram = null;
-		private String multiplier = null;
-		private String correlate = null;
-		private String correlationAction = null;
-		private String correlationOp = null;
-		private Pattern correlationPattern = null;
-		private boolean inverse = false;
-		private boolean overview = false;
-		private Range range = null;
-		private int actionCount = 0;
+		private final Map<String, Pattern> aggregationPatterns = new HashMap<>();
+		private final List<Map<String, Object>> entries        = new LinkedList<>();
+		private final Map<String, String> correlations         = new ConcurrentHashMap<>();
+		private final Map<String, Integer> actions             = new HashMap<>();
+		private long beginTimestamp                            = Long.MAX_VALUE;
+		private long endTimestamp                              = 0L;
+		private String logAction                               = null;
+		private String aggregate                               = null;
+		private String histogram                               = null;
+		private String multiplier                              = null;
+		private String correlate                               = null;
+		private String correlationAction                       = null;
+		private String correlationOp                           = null;
+		private Pattern correlationPattern                     = null;
+		private boolean inverse                                = false;
+		private boolean overview                               = false;
+		private Range range                                    = null;
+		private int actionCount                                = 0;
+		private boolean doCorrelate                            = false;
 
 		public LogState(final HttpServletRequest request) {
 
 			aggregationPatterns.putAll(getAggregationPatterns(request));
 
-			this.logAction = request.getParameter(actionProperty.jsonName());
-			this.aggregate = request.getParameter("aggregate");
-			this.histogram = request.getParameter("histogram");
-			this.correlate = request.getParameter("correlate");
+			this.logAction  = request.getParameter(actionProperty.jsonName());
+			this.aggregate  = request.getParameter("aggregate");
+			this.histogram  = request.getParameter("histogram");
+			this.correlate  = request.getParameter("correlate");
 			this.multiplier = request.getParameter("multiplier");
-			this.range = getRange(request);
+			this.range      = getRange(request);
+
+			if (StringUtils.isNotBlank(correlate)) {
+
+				final String[] parts = correlate.split(CORRELATION_SEPARATOR);
+
+				if (parts.length > 0) {
+					correlationAction = parts[0];
+				}
+
+				if (parts.length > 1) {
+					correlationOp = parts[1];
+				}
+
+				if (parts.length > 2) {
+					correlationPattern = Pattern.compile(parts[2]);
+				}
+
+				doCorrelate = true;
+			}
 
 		}
 
@@ -1063,7 +1036,7 @@ public class LogResource extends Resource {
 				final Matcher matcher = correlationPattern.matcher(message);
 
 				if (matcher.matches()) {
-					
+
 					final String value = matcher.group(1);
 
 					switch (correlationOp) {
@@ -1081,7 +1054,7 @@ public class LogResource extends Resource {
 					}
 
 				}
-				
+
 				return "not".equals(correlationOp);
 
 			} else {
@@ -1116,28 +1089,7 @@ public class LogResource extends Resource {
 		}
 
 		public boolean doCorrelate() {
-
-			if (StringUtils.isNotBlank(correlate)) {
-
-				final String[] parts = correlate.split(CORRELATION_SEPARATOR);
-
-				if (parts.length > 0) {
-					correlationAction = parts[0];
-				}
-
-				if (parts.length > 1) {
-					correlationOp = parts[1];
-				}
-
-				if (parts.length > 2) {
-					correlationPattern = Pattern.compile(parts[2]);
-				}
-
-				return true;
-
-			}
-
-			return false;
+			return doCorrelate;
 		}
 
 		public boolean doActionQuery() {
@@ -1205,7 +1157,12 @@ public class LogResource extends Resource {
 	}
 
 	private static String key(final String subjectId, final String objectId) {
-		return subjectId.concat(objectId);
+
+		if (subjectId != null && objectId != null) {
+			return subjectId.concat(objectId);
+		}
+
+		return "NULLNULL";
 	}
 
 	private static class Range {
@@ -1232,6 +1189,55 @@ public class LogResource extends Resource {
 			final Long timestamp2 = (Long) o2.get(timestampProperty.jsonName());
 
 			return timestamp1.compareTo(timestamp2);
+		}
+	}
+
+	private static class Context implements AutoCloseable {
+
+		private final App app   = StructrApp.getInstance();
+		private Tx tx           = null;
+		private int total       = 0;
+		private int count       = 0;
+		private int commitCount = 0;
+
+		public Context(final int commitCount) {
+
+			this.commitCount = commitCount;
+			this.tx          = app.tx(false, false, false);
+		}
+
+		public void commit(final boolean intermediate) throws FrameworkException {
+
+			if (count > commitCount) {
+
+				logger.log(Level.INFO, "Committing transaction after {0} objects..", total);
+
+				tx.success();
+				tx.close();
+
+				if (intermediate) {
+
+					tx = app.tx(false, false, false);
+				}
+
+				count = 0;
+			}
+		}
+
+		public int getTotal() {
+			return total;
+		}
+
+		public void update(final int count) {
+			this.count += count;
+			this.total += count;
+		}
+
+		@Override
+		public void close() throws FrameworkException {
+
+			tx.success();
+			tx.close();
 		}
 	}
 }

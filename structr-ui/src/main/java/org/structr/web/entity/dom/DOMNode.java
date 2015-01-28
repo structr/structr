@@ -23,7 +23,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,13 +31,19 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -66,6 +71,7 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -86,6 +92,8 @@ import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Renderable;
+import static org.structr.web.entity.dom.DOMNode.dataKey;
+import static org.structr.web.entity.dom.DOMNode.ownerDocument;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
@@ -93,7 +101,6 @@ import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
@@ -313,6 +320,69 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		});
 
+		Functions.functions.put("POST", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (Functions.arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final String uri    = sources[0].toString();
+					final String body   = sources[1].toString();
+					String contentType  = "application/json";
+					String charset      = "utf-8";
+
+					// override default content type
+					if (sources.length >= 3 && sources[2] != null) {
+						contentType = sources[2].toString();
+					}
+
+					// override default content type
+					if (sources.length >= 4 && sources[3] != null) {
+						charset = sources[3].toString();
+					}
+
+					final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
+					final HttpClient client       = new HttpClient(params);
+					final PostMethod postMethod   = new PostMethod(uri);
+
+					// add request headers from context
+					for (final Entry<String, String> header : ctx.getHeaders().entrySet()) {
+						postMethod.addRequestHeader(header.getKey(), header.getValue());
+					}
+
+					try {
+
+						postMethod.setRequestEntity(new StringRequestEntity(body, contentType, charset));
+
+						final int statusCode      = client.executeMethod(postMethod);
+						final String responseBody = postMethod.getResponseBodyAsString();
+
+						final GraphObjectMap response = new GraphObjectMap();
+						response.setProperty(new IntProperty("status"), statusCode);
+						response.setProperty(new StringProperty("body"), Functions.functions.get("from_json").apply(ctx, entity, new Object[] { responseBody }));
+						response.setProperty(new StringProperty("headers"), extractHeaders(postMethod.getResponseHeaders()));
+
+						return response;
+
+					} catch (IOException ioex) {
+						ioex.printStackTrace();
+					}
+
+				} else {
+
+					return usage();
+				}
+
+				return null;
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";
+			}
+		});
+
 		Functions.functions.put("GET", new Function<Object, Object>() {
 
 			@Override
@@ -332,27 +402,25 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						//long t0 = System.currentTimeMillis();
 						if ("text/html".equals(contentType)) {
 
-							String selector = null;
+							final Connection connection = Jsoup.connect(address);
+
+							// add request headers from context
+							for (final Entry<String, String> header : ctx.getHeaders().entrySet()) {
+								connection.header(header.getKey(), header.getValue());
+							}
 
 							if (sources.length > 2) {
 
-								selector = sources[2].toString();
-
-								String html = Jsoup.parse(new URL(address), 5000).select(selector).html();
-								return html;
+								return connection.get().select(sources[2].toString()).html();
 
 							} else {
 
-								String html = Jsoup.parse(new URL(address), 5000).html();
-								//logger.log(Level.INFO, "Jsoup took {0} ms to get and parse page.", (System.currentTimeMillis() - t0));
-
-								return html;
-
+								return connection.get().html();
 							}
 
 						} else {
 
-							return getFromUrl(address);
+							return getFromUrl(ctx, address);
 						}
 
 					} catch (Throwable t) {
@@ -467,7 +535,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					try {
 
-						final List<GraphObjectMap> elements     = new LinkedList<>();
 						final String source                     = sources[0].toString();
 						final Gson gson                         = new GsonBuilder().create();
 						List<Map<String, Object>> objects       = new LinkedList<>();
@@ -475,33 +542,125 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						if (StringUtils.startsWith(source, "[")) {
 
 							final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {}.getType());
+							final List<GraphObjectMap> elements  = new LinkedList<>();
+
 							if (list != null) {
 
 								objects.addAll(list);
 							}
 
+							for (final Map<String, Object> src : objects) {
+
+								final GraphObjectMap destination = new GraphObjectMap();
+								elements.add(destination);
+
+								Functions.recursivelyConvertMapToGraphObjectMap(destination, src, 0);
+							}
+
+							return elements;
+
 						} else if (StringUtils.startsWith(source, "{")) {
 
-							final Map<String, Object> value = gson.fromJson(source, new TypeToken<Map<String, Object>>() {}.getType());
+							final Map<String, Object> value  = gson.fromJson(source, new TypeToken<Map<String, Object>>() {}.getType());
+							final GraphObjectMap destination = new GraphObjectMap();
+
 							if (value != null) {
 
-								objects.add(value);
+								Functions.recursivelyConvertMapToGraphObjectMap(destination, value, 0);
 							}
+
+							return destination;
 						}
-
-						for (final Map<String, Object> map : objects) {
-
-							final GraphObjectMap obj = new GraphObjectMap();
-							elements.add(obj);
-
-							Functions.recursivelyConvertMapToGraphObjectMap(obj, map, 0);
-						}
-
-						return elements;
 
 					} catch (Throwable t) {
 						t.printStackTrace();
 					}
+
+					return "";
+				}
+
+				return usage();
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
+			}
+		});
+
+		Functions.functions.put("from_json", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+
+				if (sources != null && sources.length > 0) {
+
+					try {
+
+						final String source                     = sources[0].toString();
+						final Gson gson                         = new GsonBuilder().create();
+						List<Map<String, Object>> objects       = new LinkedList<>();
+
+						if (StringUtils.startsWith(source, "[")) {
+
+							final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {}.getType());
+							final List<GraphObjectMap> elements  = new LinkedList<>();
+
+							if (list != null) {
+
+								objects.addAll(list);
+							}
+
+							for (final Map<String, Object> src : objects) {
+
+								final GraphObjectMap destination = new GraphObjectMap();
+								elements.add(destination);
+
+								Functions.recursivelyConvertMapToGraphObjectMap(destination, src, 0);
+							}
+
+							return elements;
+
+						} else if (StringUtils.startsWith(source, "{")) {
+
+							final Map<String, Object> value  = gson.fromJson(source, new TypeToken<Map<String, Object>>() {}.getType());
+							final GraphObjectMap destination = new GraphObjectMap();
+
+							if (value != null) {
+
+								Functions.recursivelyConvertMapToGraphObjectMap(destination, value, 0);
+							}
+
+							return destination;
+						}
+
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+
+					return "";
+				}
+
+				return usage();
+			}
+
+			@Override
+			public String usage() {
+				return "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
+			}
+		});
+
+		Functions.functions.put("add_header", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+
+				if (sources != null && sources.length == 2) {
+
+					final String name  = sources[0].toString();
+					final String value = sources[1].toString();
+
+					ctx.addHeader(name, value);
 
 					return "";
 				}
@@ -1692,8 +1851,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (_page != null) {
 
-			final App app = StructrApp.getInstance(securityContext);
-
 			try {
 				setProperty(ownerDocument, _page);
 
@@ -1707,15 +1864,35 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return this;
 	}
 
+	public static GraphObjectMap extractHeaders(final Header[] headers) {
+
+		final GraphObjectMap map = new GraphObjectMap();
+
+		for (final Header header : headers) {
+
+			map.put(new StringProperty(header.getName()), header.getValue());
+		}
+
+		return map;
+	}
+
 	// ----- static methods -----
-	private static String getFromUrl(final String requestUrl) throws IOException {
+	private static String getFromUrl(final ActionContext ctx, final String requestUrl) throws IOException {
 
-		DefaultHttpClient client = new DefaultHttpClient();
-		HttpGet get = new HttpGet(requestUrl);
+		final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
+		final HttpClient client       = new HttpClient(params);
+		final GetMethod getMethod     = new GetMethod(requestUrl);
 
-		get.setHeader("Connection", "close");
+		getMethod.addRequestHeader("Connection", "close");
 
-		return IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
+		// add request headers from context
+		for (final Entry<String, String> header : ctx.getHeaders().entrySet()) {
+			getMethod.addRequestHeader(header.getKey(), header.getValue());
+		}
+
+		client.executeMethod(getMethod);
+
+		return getMethod.getResponseBodyAsString();
 
 	}
 

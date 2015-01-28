@@ -133,7 +133,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 			try (final Tx tx = app.tx()) {
 
 				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty);
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
 				tx.success();
 			}
@@ -143,7 +143,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				String resourceSignature = resource.getResourceSignature();
 
 				// let authenticator examine request again
-				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				authenticator.checkResourceAccess(securityContext, request, resourceSignature, propertyView.get(securityContext));
 
 				// add sorting & paging
 				String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);

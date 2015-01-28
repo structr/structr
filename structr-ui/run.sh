@@ -1,5 +1,4 @@
 #!/bin/bash
-
 NAME=$1
 HEAPSIZE=$2
 

@@ -396,7 +396,7 @@ public class StructrUiTest extends TestCase {
 				.contentType("application/json; charset=UTF-8")
 				.header("X-User", "superadmin")
 				.header("X-Password", "sehrgeheim")
-				.body(" { 'signature' : '" + signature + "', 'flags': " + flags + " } ")
+				.body(" { 'signature' : '" + signature + "', 'flags': " + flags + ", 'visibleToPublicUsers': true } ")
 
 			.expect()
 				.statusCode(201)
