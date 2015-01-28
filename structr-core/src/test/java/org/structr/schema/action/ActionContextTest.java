@@ -1061,7 +1061,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("unexpected result of delete", "",  testOne.replaceVariables(securityContext, ctx, "${delete(first(get_outgoing_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')))}"));
 			assertEquals("Invalid number of relationships", "0", testOne.replaceVariables(securityContext, ctx, "${size(get_outgoing_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT'))}"));
 
-
 			// array index access
 			assertEquals("Invalid array index accessor result", testSixs.get(0).getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs[0]}"));
 			assertEquals("Invalid array index accessor result", testSixs.get(2).getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs[2]}"));

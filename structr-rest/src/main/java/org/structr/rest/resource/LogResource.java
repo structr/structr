@@ -18,10 +18,7 @@
 package org.structr.rest.resource;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -84,7 +81,6 @@ public class LogResource extends Resource {
 	private static final Pattern RangeQueryPattern              = Pattern.compile("\\[(.+) TO (.+)\\]");
 
 	private static final String SUBJECTS                        = "/s/";
-	private static final String OBJECTS                         = "/o/";
 	private static final String CORRELATION_SEPARATOR           = "::";
 
 	private static final Property<String> subjectProperty       = new StringProperty("subject");
@@ -460,18 +456,25 @@ public class LogResource extends Resource {
 				state.endTimestamp(timestamp);
 			}
 
-			// action present or matching?
-			if (state.correlates(key(pathSubjectId, pathObjectId), entryMessage)) {
+			if (state.overview()) {
 
-				final Map<String, Object> map = new HashMap<>();
+				state.countAction(entryAction);
 
-				map.put(subjectProperty.jsonName(), pathSubjectId);
-				map.put(objectProperty.jsonName(), pathObjectId);
-				map.put(actionProperty.jsonName(), entryAction);
-				map.put(timestampProperty.jsonName(), timestamp);
-				map.put(messageProperty.jsonName(), entryMessage);
+			} else {
 
-				state.addEntry(map);
+				// action present or matching?
+				if (state.correlates(key(pathSubjectId, pathObjectId), entryMessage)) {
+
+					final Map<String, Object> map = new HashMap<>();
+
+					map.put(subjectProperty.jsonName(), pathSubjectId);
+					map.put(objectProperty.jsonName(), pathObjectId);
+					map.put(actionProperty.jsonName(), entryAction);
+					map.put(timestampProperty.jsonName(), timestamp);
+					map.put(messageProperty.jsonName(), entryMessage);
+
+					state.addEntry(map);
+				}
 			}
 		}
 	}
@@ -518,59 +521,6 @@ public class LogResource extends Resource {
 		}
 
 		return count;
-	}
-
-	private Path write(final String basePath, final String fileName, final String data) throws IOException {
-
-		final String path = getDirectoryPath(fileName, 8);
-		final Path directoryPath = new File(basePath + path).toPath();
-		final Path filePath = new File(basePath + path + fileName).toPath();
-
-		if (!Files.exists(filePath)) {
-			Files.createDirectories(directoryPath);
-		}
-
-		final FileOutputStream fos = new FileOutputStream(filePath.toString(), true);
-		final FileChannel channel = fos.getChannel();
-
-		channel.write(ByteBuffer.wrap(data.getBytes()));
-
-		fos.flush();
-		fos.close();
-
-		return filePath;
-	}
-
-	private void link(final String basePath, final String fileName, final Path existing) {
-
-		try {
-			final String path = getDirectoryPath(fileName, 8);
-			final Path directoryPath = new File(basePath + path).toPath();
-			final Path filePath = new File(basePath + path + fileName).toPath();
-
-			if (Files.notExists(filePath)) {
-				Files.createDirectories(directoryPath);
-			}
-
-			if (Files.notExists(filePath)) {
-				Files.createLink(filePath, existing);
-			}
-
-		} catch (IOException ignore) {
-
-			// can be safely ignored because the actual work (linking
-			// the files) is already done when an exception is thrown
-		}
-	}
-
-	private String mergeIds(final String id1, final String id2) {
-
-		final StringBuilder buf = new StringBuilder();
-
-		buf.append(id1);
-		buf.append(id2);
-
-		return buf.toString();
 	}
 
 	private String getDirectoryPath(final String uuid, final int depth) {
@@ -1207,7 +1157,12 @@ public class LogResource extends Resource {
 	}
 
 	private static String key(final String subjectId, final String objectId) {
-		return subjectId.concat(objectId);
+
+		if (subjectId != null && objectId != null) {
+			return subjectId.concat(objectId);
+		}
+
+		return "NULLNULL";
 	}
 
 	private static class Range {

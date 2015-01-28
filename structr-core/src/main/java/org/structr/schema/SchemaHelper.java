@@ -169,28 +169,28 @@ public class SchemaHelper {
 	}
 
 	private static String stem(final String term) {
-		
-		
+
+
 		String lastWord;
 		String begin = "";
-		
+
 		if (StringUtils.contains(term, WORD_SEPARATOR)) {
-			
+
 			lastWord = StringUtils.substringAfterLast(term, WORD_SEPARATOR);
 			begin = StringUtils.substringBeforeLast(term, WORD_SEPARATOR);
-			
+
 		} else {
-			
+
 			lastWord = term;
-			
+
 		}
-		
+
 		lastWord = PlingStemmer.stem(lastWord);
-		
+
 		return begin.concat(WORD_SEPARATOR).concat(lastWord);
-		
+
 	}
-	
+
 	public static Class getEntityClassForRawType(final String rawType) {
 
 		// first try: raw name
@@ -784,13 +784,9 @@ public class SchemaHelper {
 
 				final Map<String, String> replacements = new LinkedHashMap<>();
 
-				int start = value.indexOf("${");
-				int end = value.indexOf("}", start);
+				for (final String expression : extractTemplateExpressions(value)) {
 
-				while (start >= 0 && end >= 0) {
-
-					String group = value.substring(start, end + 1);
-					String source = value.substring(start + 2, end);
+					String source         = expression.substring(2, expression.length() - 1);
 					Object extractedValue = Functions.evaluate(securityContext, actionContext, entity, source);
 
 					if (extractedValue == null) {
@@ -800,7 +796,7 @@ public class SchemaHelper {
 					String partValue = extractedValue.toString();
 					if (partValue != null) {
 
-						replacements.put(group, partValue);
+						replacements.put(expression, partValue);
 
 					} else {
 
@@ -808,13 +804,10 @@ public class SchemaHelper {
 						// replace it by null to make it possible for HTML attributes to not be rendered
 						// and avoid something like ... selected="" ... which is interpreted as selected==true by
 						// all browsers
-						if (!value.equals(group)) {
-							replacements.put(group, "");
+						if (!value.equals(expression)) {
+							replacements.put(expression, "");
 						}
 					}
-
-					start = value.indexOf("${", end);
-					end = value.indexOf("}", start);
 				}
 
 				// apply replacements
@@ -844,7 +837,65 @@ public class SchemaHelper {
 		}
 
 		return value;
+	}
 
+	public static List<String> extractTemplateExpressions(final String source) {
+
+		final List<String> expressions = new LinkedList<>();
+		final int length               = source.length();
+		boolean inSingleQuotes         = false;
+		boolean inDoubleQuotes         = false;
+		boolean inTemplate             = false;
+		boolean hasDollar              = false;
+		int level                      = 0;
+		int start                      = 0;
+		int end                        = 0;
+
+		for (int i=0; i<length; i++) {
+
+			final char c = source.charAt(i);
+
+			switch (c) {
+
+				case '\'':
+					inSingleQuotes = !inSingleQuotes;
+					hasDollar = false;
+					break;
+
+				case '\"':
+					inDoubleQuotes = !inDoubleQuotes;
+					hasDollar = false;
+					break;
+
+				case '$':
+					hasDollar = true;
+					break;
+
+				case '{':
+					if (!inSingleQuotes && !inDoubleQuotes && hasDollar) {
+
+						inTemplate = true;
+						start = i-1;
+					}
+					break;
+
+				case '}':
+					if (!inSingleQuotes && !inDoubleQuotes && inTemplate) {
+
+						inTemplate = false;
+						end = i+1;
+
+						expressions.add(source.substring(start, end));
+					}
+					break;
+
+				default:
+					hasDollar = false;
+					break;
+			}
+		}
+
+		return expressions;
 	}
 
 	// ----- private methods -----

@@ -385,7 +385,7 @@ public class Functions {
 		}
 	}
 
-	private static int nextToken(final StreamTokenizer tokenizer) {
+	public static int nextToken(final StreamTokenizer tokenizer) {
 
 		try {
 
@@ -3807,7 +3807,7 @@ public class Functions {
 
 	}
 
-	public static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap target, final Map<String, Object> source, final int depth) {
+	public static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap destination, final Map<String, Object> source, final int depth) {
 
 		if (depth > 20) {
 			return;
@@ -3823,16 +3823,37 @@ public class Functions {
 				final Map<String, Object> map = (Map<String, Object>) value;
 				final GraphObjectMap obj = new GraphObjectMap();
 
-				target.put(new StringProperty(key), obj);
+				destination.put(new StringProperty(key), obj);
 
-				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
+				recursivelyConvertMapToGraphObjectMap(obj, map, depth+1);
+
+			} else if (value instanceof Collection) {
+
+				final List list              = new LinkedList();
+				final Collection collection  = (Collection)value;
+
+				for (final Object obj : collection) {
+
+					if (obj instanceof Map) {
+
+						final GraphObjectMap container = new GraphObjectMap();
+						list.add(container);
+
+						recursivelyConvertMapToGraphObjectMap(container, (Map<String, Object>)obj, depth+1);
+
+					} else {
+
+						list.add(obj);
+					}
+				}
+
+				destination.put(new StringProperty(key), list);
 
 			} else {
 
-				target.put(new StringProperty(key), value);
+				destination.put(new StringProperty(key), value);
 			}
 		}
-
 	}
 
 	public static Object numberOrString(final String value) {
