@@ -43,6 +43,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
@@ -175,7 +176,16 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		}
 
 		// do action
-		Result result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+		Result result = Result.EMPTY_RESULT;
+		
+		try {
+			result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+		
+		} catch (NotFoundException nfe) {
+			logger.log(Level.WARNING, "No result from internal REST query: {0}", restQuery);
+		}
+		
+		
 		result.setIsCollection(resource.isCollectionResource());
 		result.setIsPrimitiveArray(resource.isPrimitiveArray());
 
