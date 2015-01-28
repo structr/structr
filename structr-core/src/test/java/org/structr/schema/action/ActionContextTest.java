@@ -1097,6 +1097,15 @@ public class ActionContextTest extends StructrTest {
 			// find
 			assertEquals("Invalid find() result for empty values", testThree.getUuid(), testOne.replaceVariables(securityContext, ctx, "${first(find('TestThree', 'oneToOneTestSix', null))}"));
 			assertEquals("Invalid find() result for empty values", testThree.getUuid(), testOne.replaceVariables(securityContext, ctx, "${first(find('TestThree', 'oneToManyTestSix', null))}"));
+			
+			// search
+			assertEquals("Invalid search() result", testOne.getUuid(), testTwo.replaceVariables(securityContext, ctx, "${first(search('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))}"));
+			assertEquals("Invalid search() result", testOne.getUuid(), testTwo.replaceVariables(securityContext, ctx, "${first(search('TestOne', 'name', '*little-name-for-my-test-object'))}"));
+			assertEquals("Invalid search() result", testOne.getUuid(), testTwo.replaceVariables(securityContext, ctx, "${first(search('TestOne', 'name', 'A-nice-little-name-for*'))}"));
+
+			// negative test for find()			
+			assertEquals("Invalid find() result", "", testTwo.replaceVariables(securityContext, ctx, "${first(find('TestOne', 'name', '*little-name-for-my-test-object'))}"));
+			assertEquals("Invalid find() result", "", testTwo.replaceVariables(securityContext, ctx, "${first(find('TestOne', 'name', 'A-nice-little-name-for*'))}"));
 
 			// create
 			Integer noOfOnes = 1;
