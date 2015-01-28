@@ -139,6 +139,18 @@ public class ActionContextTest extends StructrTest {
 
 			final ActionContext ctx = new ActionContext(testOne, null);
 
+			// test quotes etc.
+			assertEquals("Invalid result for quoted template expression", "''", testOne.replaceVariables(securityContext, ctx, "'${err}'"));
+			assertEquals("Invalid result for quoted template expression", " '' ", testOne.replaceVariables(securityContext, ctx, " '${err}' "));
+			assertEquals("Invalid result for quoted template expression", "\"\"", testOne.replaceVariables(securityContext, ctx, "\"${this.error}\""));
+			assertEquals("Invalid result for quoted template expression", "''''''", testOne.replaceVariables(securityContext, ctx, "'''${this.this.this.error}'''"));
+			assertEquals("Invalid result for quoted template expression", "''", testOne.replaceVariables(securityContext, ctx, "'${parent.error}'"));
+			assertEquals("Invalid result for quoted template expression", "''", testOne.replaceVariables(securityContext, ctx, "'${this.owner}'"));
+			assertEquals("Invalid result for quoted template expression", "''", testOne.replaceVariables(securityContext, ctx, "'${this.alwaysNull}'"));
+			assertEquals("Invalid result for quoted template expression", "''", testOne.replaceVariables(securityContext, ctx, "'${parent.owner}'"));
+
+
+
 			// test for "empty" return value
 			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${err}"));
 			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.error}"));
@@ -1096,13 +1108,13 @@ public class ActionContextTest extends StructrTest {
 			// find
 			assertEquals("Invalid find() result for empty values", testThree.getUuid(), testOne.replaceVariables(securityContext, ctx, "${first(find('TestThree', 'oneToOneTestSix', null))}"));
 			assertEquals("Invalid find() result for empty values", testThree.getUuid(), testOne.replaceVariables(securityContext, ctx, "${first(find('TestThree', 'oneToManyTestSix', null))}"));
-			
+
 			// search
 			assertEquals("Invalid search() result", testOne.getUuid(), testTwo.replaceVariables(securityContext, ctx, "${first(search('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))}"));
 			assertEquals("Invalid search() result", testOne.getUuid(), testTwo.replaceVariables(securityContext, ctx, "${first(search('TestOne', 'name', '*little-name-for-my-test-object'))}"));
 			assertEquals("Invalid search() result", testOne.getUuid(), testTwo.replaceVariables(securityContext, ctx, "${first(search('TestOne', 'name', 'A-nice-little-name-for*'))}"));
 
-			// negative test for find()			
+			// negative test for find()
 			assertEquals("Invalid find() result", "", testTwo.replaceVariables(securityContext, ctx, "${first(find('TestOne', 'name', '*little-name-for-my-test-object'))}"));
 			assertEquals("Invalid find() result", "", testTwo.replaceVariables(securityContext, ctx, "${first(find('TestOne', 'name', 'A-nice-little-name-for*'))}"));
 

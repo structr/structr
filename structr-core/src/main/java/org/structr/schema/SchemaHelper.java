@@ -847,7 +847,6 @@ public class SchemaHelper {
 		boolean inDoubleQuotes         = false;
 		boolean inTemplate             = false;
 		boolean hasDollar              = false;
-		int level                      = 0;
 		int start                      = 0;
 		int end                        = 0;
 
@@ -858,12 +857,16 @@ public class SchemaHelper {
 			switch (c) {
 
 				case '\'':
-					inSingleQuotes = !inSingleQuotes;
+					if (inTemplate) {
+						inSingleQuotes = !inSingleQuotes;
+					}
 					hasDollar = false;
 					break;
 
 				case '\"':
-					inDoubleQuotes = !inDoubleQuotes;
+					if (inTemplate) {
+						inDoubleQuotes = !inDoubleQuotes;
+					}
 					hasDollar = false;
 					break;
 
@@ -872,11 +875,12 @@ public class SchemaHelper {
 					break;
 
 				case '{':
-					if (!inSingleQuotes && !inDoubleQuotes && hasDollar) {
+					if (!inTemplate && hasDollar) {
 
 						inTemplate = true;
 						start = i-1;
 					}
+					hasDollar = false;
 					break;
 
 				case '}':
@@ -887,6 +891,7 @@ public class SchemaHelper {
 
 						expressions.add(source.substring(start, end));
 					}
+					hasDollar = true;
 					break;
 
 				default:
