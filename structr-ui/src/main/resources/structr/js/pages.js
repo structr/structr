@@ -592,7 +592,7 @@ var _Pages = {
         });
 
         div.append('<img class="typeIcon" src="icon/page.png">'
-                + '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
+                + '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
         _Entities.appendAccessControlIcon(div, entity);

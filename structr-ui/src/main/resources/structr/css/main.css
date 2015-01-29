@@ -686,6 +686,10 @@ ul#previewTabs {
     display: none;
 }
 
+.page .position {
+    color: #999;
+}
+
 .image .icons {
     width: 100px;
     height: 20px;
