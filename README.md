@@ -22,7 +22,7 @@ cd structr
 mvn clean install -DskipTests
 cd structr-ui
 
-mvn exec:exec
+mvn validate exec:exec
 ```
 
 Login with the credentials admin/admin at:
