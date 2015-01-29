@@ -26,6 +26,7 @@ var sel;
 var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
+var leftSlideoutWidthKey = 'structrLeftSlideoutWidthKey_' + port;
 var activeTabRightKey = 'structrActiveTabRight_' + port;
 var activeTabLeftKey = 'structrActiveTabLeft_' + port;
 var selectedTypeKey = 'structrSelectedType_' + port;
@@ -143,7 +144,12 @@ var _Pages = {
         rsw = widgetsSlideout.width() + 12;
 
         $('#pagesTab').on('click', function() {
-            if (Math.abs(pagesSlideout.position().left + lsw) <= 3) {
+            if ($(this).hasClass('noclick')) {
+               $(this).removeClass('noclick');
+               return;
+            }
+            var psw = pagesSlideout.width() + 12;
+            if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
                 Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
             } else {
@@ -152,7 +158,8 @@ var _Pages = {
         }).droppable({
             tolerance: 'touch',
             over: function(e, ui) {
-                if (Math.abs(pagesSlideout.position().left + lsw) <= 3) {
+                var psw = pagesSlideout.width() + 12;
+                if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
                     Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
                     Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
                 } else {
@@ -162,7 +169,12 @@ var _Pages = {
         });
 
         $('#activeElementsTab').on('click', function() {
-            if (Math.abs(activeElementsSlideout.position().left + lsw) <= 3) {
+            if ($(this).hasClass('noclick')) {
+               $(this).removeClass('noclick');
+               return;
+            }
+            var asw = activeElementsSlideout.width() + 12;
+            if (Math.abs(activeElementsSlideout.position().left + asw) <= 3) {
                 Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function() {
                 });
@@ -172,7 +184,12 @@ var _Pages = {
         });
 
         $('#dataBindingTab').on('click', function() {
-            if (Math.abs(dataBindingSlideout.position().left + lsw) <= 3) {
+            if ($(this).hasClass('noclick')) {
+               $(this).removeClass('noclick');
+               return;
+            }
+            var dsw = dataBindingSlideout.width() + 12;
+            if (Math.abs(dataBindingSlideout.position().left + dsw) <= 3) {
                 Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function() {
                     _Pages.reloadDataBindingWizard();
@@ -249,6 +266,22 @@ var _Pages = {
         _Pages.refresh();
 
         if (activeTabLeft) {
+            
+            if (localStorage.getItem(leftSlideoutWidthKey)) {
+                
+                var leftSlideoutWidth = parseInt(localStorage.getItem(leftSlideoutWidthKey));
+                var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
+                leftSlideout.css({
+                    width: leftSlideoutWidth + 'px',
+                    left: '-' + (leftSlideoutWidth + 12) + 'px'
+                });
+                setTimeout(function() {
+                    $('.node.page', leftSlideout).css({
+                        width: (leftSlideoutWidth-13) + 'px'
+                    });
+                }, 100);
+                log(localStorage.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
+            }
             $('#' + activeTabLeft).addClass('active').click();
         }
 

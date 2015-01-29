@@ -18,14 +18,11 @@
  */
 package org.structr.websocket.command;
 
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -69,8 +66,6 @@ public class ClonePageCommand extends AbstractCommand {
 			newName = "unknown";
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-
 		if (nodeToClone != null) {
 
 			try {
@@ -86,7 +81,7 @@ public class ClonePageCommand extends AbstractCommand {
 						firstChild = (DOMNode) pageToClone.treeGetFirstChild();
 					}
 					
-					final DOMNode newHtmlNode = cloneAndAppendChildren(securityContext, firstChild);
+					final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
 					final Page newPage = Page.createNewPage(securityContext, newName);
 					
 					newPage.appendChild(newHtmlNode);
@@ -107,30 +102,6 @@ public class ClonePageCommand extends AbstractCommand {
 
 		}
 
-	}
-
-	/**
-	 * Recursively clone given node, all its direct children and connect the cloned
-	 * child nodes to the clone parent node.
-	 *
-	 * @param nodeToClone
-	 */
-	private DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) {
-
-		final App app = StructrApp.getInstance(securityContext);
-
-		final DOMNode newNode = (DOMNode) nodeToClone.cloneNode(false);
-
-		final List<DOMNode> childrenToClone = (List<DOMNode>) nodeToClone.getChildNodes();
-
-		for (final DOMNode childNodeToClone : childrenToClone) {
-
-			final DOMNode newChildNode = (DOMNode) cloneAndAppendChildren(securityContext, childNodeToClone);
-			newNode.appendChild(newChildNode);
-
-		}
-
-		return newNode;
 	}
 
 	//~--- get methods ----------------------------------------------------

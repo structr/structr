@@ -598,12 +598,13 @@ var Command = {
      * and append it to a the parent with given parentId.
      *
      */
-    cloneNode: function(id, parentId) {
+    cloneNode: function(id, parentId, deep) {
         var obj = {};
         obj.command = 'CLONE_NODE';
         obj.id = id;
         var data = {};
         data.parentId = parentId;
+        data.deep = deep;
         obj.data = data;
         log('cloneNode()', obj);
         return sendObj(obj);

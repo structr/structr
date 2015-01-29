@@ -205,41 +205,41 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		return false;
 	}
 
-	@Override
-	public Node cloneNode(final boolean deep) {
-
-		if (deep) {
-
-			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
-
-		} else {
-
-			Node node = super.cloneNode(deep);
-
-			for (Iterator<PropertyKey> it = getPropertyKeys(htmlView.name()).iterator(); it.hasNext();) {
-
-				PropertyKey key = it.next();
-
-				// omit system properties (except type), parent/children and page relationships
-				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
-					&& !key.equals(GraphObject.id)
-					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
-					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
-					&& !key.equals(DOMElement.syncedNodes)
-					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
-
-					try {
-						((DOMNode) node).setProperty(key, getProperty(key));
-					} catch (FrameworkException ex) {
-						logger.log(Level.WARNING, "Could not set property " + key + " while cloning DOMElement " + this, ex);
-					}
-				}
-			}
-			return node;
-
-		}
-
-	}
+//	@Override
+//	public Node cloneNode(final boolean deep) {
+//
+//		if (deep) {
+//
+//			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
+//
+//		} else {
+//
+//			Node node = super.cloneNode(deep);
+//
+//			for (Iterator<PropertyKey> it = getPropertyKeys(htmlView.name()).iterator(); it.hasNext();) {
+//
+//				PropertyKey key = it.next();
+//
+//				// omit system properties (except type), parent/children and page relationships
+//				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
+//					&& !key.equals(GraphObject.id)
+//					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
+//					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
+//					&& !key.equals(DOMElement.syncedNodes)
+//					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
+//
+//					try {
+//						((DOMNode) node).setProperty(key, getProperty(key));
+//					} catch (FrameworkException ex) {
+//						logger.log(Level.WARNING, "Could not set property " + key + " while cloning DOMElement " + this, ex);
+//					}
+//				}
+//			}
+//			return node;
+//
+//		}
+//
+//	}
 
 	@Override
 	public void updateFromNode(final DOMNode newNode) throws FrameworkException {

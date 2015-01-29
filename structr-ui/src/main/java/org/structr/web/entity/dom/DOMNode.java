@@ -1672,7 +1672,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (deep) {
 
-			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
+			return cloneAndAppendChildren(securityContext, this);
 
 		} else {
 
@@ -1931,6 +1931,30 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 	}
 
+	/**
+	 * Recursively clone given node, all its direct children and connect the cloned
+	 * child nodes to the clone parent node.
+	 *
+	 * @param securityContext
+	 * @param nodeToClone
+	 * @return 
+	 */
+	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) {
+
+		final DOMNode newNode = (DOMNode) nodeToClone.cloneNode(false);
+
+		final List<DOMNode> childrenToClone = (List<DOMNode>) nodeToClone.getChildNodes();
+
+		for (final DOMNode childNodeToClone : childrenToClone) {
+
+			final DOMNode newChildNode = (DOMNode) cloneAndAppendChildren(securityContext, childNodeToClone);
+			newNode.appendChild(newChildNode);
+
+		}
+
+		return newNode;
+	}
+	
 	// ----- interface Syncable -----
 	@Override
 	public List<GraphObject> getSyncData() {

@@ -94,7 +94,7 @@ var CollapsibleLists =
 
       this.openAll = function() {
         var closedNodes = document.getElementsByClassName('collapsibleListClosed');
-        console.log(closedNodes);
+        //console.log(closedNodes);
         for (var i = 0; i < closedNodes.length; ++i) {
           toggle(closedNodes[i]);
         }
