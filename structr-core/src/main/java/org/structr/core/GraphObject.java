@@ -298,7 +298,7 @@ public interface GraphObject {
 
 
 	// ----- Cloud synchronization and replication -----
-	public List<GraphObject> getSyncData();
+	public List<GraphObject> getSyncData() throws FrameworkException;
 
 	public boolean isNode();
 	public boolean isRelationship();

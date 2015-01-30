@@ -848,6 +848,17 @@ span.id {
     position: absolute;
 }
 
+.link_icon {
+    display: none;
+    cursor: pointer;
+    height: 16px;
+    width: 16px;
+    margin-left: 24px ! important;
+    vertical-align: top;
+    /*float: right;*/
+    position: absolute;
+}
+
 .edit_icon, .edit_file_icon {
     right: 64px;
 }
