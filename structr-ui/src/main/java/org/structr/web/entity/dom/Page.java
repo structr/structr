@@ -1161,7 +1161,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	// ----- interface Syncable -----
 	@Override
-	public List<GraphObject> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
 		final List<GraphObject> data = super.getSyncData();
 

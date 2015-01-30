@@ -1238,7 +1238,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	// ----- Cloud synchronization and replication -----
 	@Override
-	public List<GraphObject> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 		return new ArrayList<>(); // provide a basis for super.getSyncData() calls
 	}
 

@@ -24,6 +24,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import static org.structr.core.graph.NodeInterface.name;
@@ -82,7 +83,7 @@ public class Folder extends AbstractFile {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<GraphObject> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
 		final List<GraphObject> data = super.getSyncData();
 

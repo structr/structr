@@ -45,7 +45,7 @@ public class PushTransmission implements CloudTransmission {
 	private ExportSet exportSet = null;
 	private int sequenceNumber  = 0;
 
-	public PushTransmission(final GraphObject source, final boolean recursive) {
+	public PushTransmission(final GraphObject source, final boolean recursive) throws FrameworkException {
 
 		// create export set before first progress callback is called
 		// so the client gets the correct total from the beginning

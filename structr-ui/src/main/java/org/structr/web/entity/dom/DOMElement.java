@@ -21,7 +21,6 @@ package org.structr.web.entity.dom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -1021,7 +1020,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<GraphObject> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
 		final List<GraphObject> data = super.getSyncData();
 
