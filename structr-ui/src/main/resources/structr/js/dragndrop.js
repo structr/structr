@@ -160,6 +160,9 @@ var _Dragndrop = {
                 //$(ui.sortable).remove();
                 sorting = false;
                 _Entities.resetMouseOverState(ui.item);
+                $(event.toElement).one('click', function(e) {
+                    e.stopImmediatePropagation();
+                });
             }
         };
 
@@ -183,6 +186,11 @@ var _Dragndrop = {
             if (shadowPage && source.pageId === shadowPage.id) {
 
                 Command.cloneComponent(source.id, target.id);
+                log('dropped', source.id, 'onto', target.id, 'in page', pageId);
+
+            } else if (source.pageId !== target.pageId) {
+
+                Command.cloneNode(source.id, target.id, true);
                 log('dropped', source.id, 'onto', target.id, 'in page', pageId);
 
             } else {

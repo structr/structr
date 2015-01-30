@@ -237,7 +237,7 @@ var _Dashboard = {
     },
     execQuery: function(query, type, params) {
 
-        console.log('exec', type, 'query: ', query, ', with parameters.', params);
+        //console.log('exec', type, 'query: ', query, ', with parameters.', params);
 
         if (query && query.length) {
 

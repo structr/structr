@@ -1063,33 +1063,57 @@ var Structr = {
         if (wasOpen) {
             _Pages.resize(0, -rsw);
         }
-
         localStorage.removeItem(activeTabKey);
     },
     openLeftSlideOut: function(slideout, tab, activeTabKey, callback) {
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
-        s.animate({left: '+=' + lsw + 'px'}, {duration: 100}).zIndex(1);
+        var sw = slideout.width() + 12;
+        s.animate({left: '+=' + sw + 'px'}, {duration: 100}).zIndex(1);
         localStorage.setItem(activeTabKey, t.prop('id'));
         if (callback) {
             callback();
         }
-        _Pages.resize(lsw, 0);
+        _Pages.resize(sw, 0);
+        t.draggable({
+            axis: 'x',
+            start: function(e, ui) {
+                $(this).addClass('noclick');
+            },
+            drag: function(e, ui) {
+                var w = ui.position.left - 12;
+                slideout.css({
+                    width: w + 'px',
+                });
+                ui.position.top += (ui.helper.width()/2-6);
+                ui.position.left -= (ui.helper.width()/2-6);
+                var oldLsw = sw;
+                sw = w + 12;
+                $('.node.page', slideout).width(w-13);
+                _Pages.resize(sw-oldLsw, 0);
+            },
+            stop: function(e, ui) {
+                localStorage.setItem(leftSlideoutWidthKey, slideout.width());
+            }
+        });       
     },
     closeLeftSlideOuts: function(slideouts, activeTabKey) {
         var wasOpen = false;
+        var osw;
         slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
+            var sw = s.width() + 12;
             if (Math.abs(l) <= 3) {
                 wasOpen = true;
-                s.animate({left: '-=' + lsw + 'px'}, {duration: 100}).zIndex(2);
-                $('.compTab.active', s).removeClass('active');
+                osw = sw;
+                s.animate({left: '-=' + sw + 'px'}, {duration: 100}).zIndex(2);
+                $('.compTab.active', s).removeClass('active').draggable("destroy");
             }
         });
         if (wasOpen) {
-            _Pages.resize(-lsw, 0);
+            _Pages.resize(-osw, 0);
         }
         localStorage.removeItem(activeTabKey);
     },

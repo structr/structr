@@ -369,6 +369,11 @@ var _Elements = {
             + _Elements.classIdString(entity._html_id, entity._html_class)
             + '</div>');
 
+        div.append('<img title="Clone element \'' + entity.name + '\'" alt="Clone element \'' + entity.name + '\'" class="clone_icon button" src="icon/page_copy.png">');
+        $('.clone_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            Command.cloneNode(entity.id, entity.parent.id, true);
+        });
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
 

@@ -300,18 +300,22 @@ var _Files = {
             //helper: 'clone',
             //containment: 'document',
             //stack: '.node',
-            appendTo: '#main',
+            //appendTo: '#main',
             zIndex: 2,
             start: function(e, ui) {
-                $(this).hide();
-                $(ui)[0].helper.css({
+                $(this).css({
+                   opacity: 0 
+                });
+                ui.helper.css({
                     width: files.width() + 'px'
                 });
-
             },
             stop: function(e, ui) {
                 $(this).show();
                 //$('#pages_').droppable('enable').removeClass('nodeHover');
+                $(e.toElement).one('click', function(e) {
+                    e.stopImmediatePropagation();
+                });
             },
             helper: function(event) {
                 selectedElements = $('.node.selected');
