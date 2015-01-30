@@ -20,6 +20,7 @@ package org.structr.cloud;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -90,7 +91,7 @@ public class ExportSet {
 		return new ExportSet();
 	}
 
-	public static ExportSet getInstance(final GraphObject start, final boolean recursive) {
+	public static ExportSet getInstance(final GraphObject start, final boolean recursive) throws FrameworkException {
 
 		final ExportSet exportSet = new ExportSet();
 
@@ -99,7 +100,7 @@ public class ExportSet {
 		return exportSet;
 	}
 
-	private void collectSyncables(final GraphObject start, boolean recursive) {
+	private void collectSyncables(final GraphObject start, boolean recursive) throws FrameworkException {
 
 		add(start);
 

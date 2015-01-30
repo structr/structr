@@ -1937,7 +1937,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 *
 	 * @param securityContext
 	 * @param nodeToClone
-	 * @return 
+	 * @return
 	 */
 	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) {
 
@@ -1954,10 +1954,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		return newNode;
 	}
-	
+
 	// ----- interface Syncable -----
 	@Override
-	public List<GraphObject> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
 		final List<GraphObject> data = super.getSyncData();
 

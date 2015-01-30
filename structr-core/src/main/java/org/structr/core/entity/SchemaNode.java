@@ -239,7 +239,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
 		if (key != null) {
 
-			
+
 			// return "extended" multiplicity when the falling back to a NodeInterface property
 			// to signal the code generator that it must not append "Property" to the name of
 			// the generated NotionProperty parameter, i.e. NotionProperty(owner, ...) instead
@@ -370,9 +370,16 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 	// ----- interface GraphObject -----
 	@Override
-	public List<GraphObject> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
 		final List<GraphObject> data = super.getSyncData();
+
+		// special SchemaNode behaviour when syncing:
+		// the schema needs to be transferred as a whole
+		// because the individual nodes and relationships
+		// depend on each other, so each schema node adds
+		// all other schema nodes to its list.
+		data.addAll(StructrApp.getInstance(securityContext).nodeQuery(SchemaNode.class).getAsList());
 
 		// outgoing relationships
 		for (final SchemaRelationship rel : getOutgoingRelationships(SchemaRelationship.class)) {

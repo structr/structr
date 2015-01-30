@@ -346,6 +346,12 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			return null;
 		}
 
+		// skip builtin schema node types
+		if(Boolean.TRUE.equals(receivedNodeData.getProperties().get(SchemaNode.isBuiltinType.dbName()))) {
+			return null;
+		}
+
+
 		final String uuid              = receivedNodeData.getSourceNodeId();
 		GraphObject newOrExistingNode  = app.get(nodeType, uuid);
 

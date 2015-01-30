@@ -19,6 +19,7 @@
 package org.structr.web.entity;
 
 import java.util.List;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
@@ -40,7 +41,7 @@ public class LinkSource extends DOMElement {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<GraphObject> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
 		final List<GraphObject> data = super.getSyncData();
 

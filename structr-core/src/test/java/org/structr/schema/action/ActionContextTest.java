@@ -149,8 +149,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid result for quoted template expression", "''", testOne.replaceVariables(securityContext, ctx, "'${this.alwaysNull}'"));
 			assertEquals("Invalid result for quoted template expression", "''", testOne.replaceVariables(securityContext, ctx, "'${parent.owner}'"));
 
-
-
 			// test for "empty" return value
 			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${err}"));
 			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.error}"));
