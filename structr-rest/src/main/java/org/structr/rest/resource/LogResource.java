@@ -264,11 +264,13 @@ public class LogResource extends Resource {
 				try (final Tx tx = app.tx()) {
 
 					final PropertyMap properties = new PropertyMap();
-					properties.put(LogEvent.timestampProperty, new Date());
-					properties.put(LogEvent.actionProperty,    action);
-					properties.put(LogEvent.subjectProperty,   subjectId);
-					properties.put(LogEvent.objectProperty,    objectId);
-					properties.put(LogEvent.messageProperty,   message);
+					properties.put(LogEvent.timestampProperty,           new Date());
+					properties.put(LogEvent.actionProperty,              action);
+					properties.put(LogEvent.subjectProperty,             subjectId);
+					properties.put(LogEvent.objectProperty,              objectId);
+					properties.put(LogEvent.messageProperty,             message);
+					properties.put(LogEvent.visibleToPublicUsers,        true);
+					properties.put(LogEvent.visibleToAuthenticatedUsers, true);
 
 					event = app.create(LogEvent.class, properties);
 
@@ -505,11 +507,13 @@ public class LogResource extends Resource {
 
 				final PropertyMap properties = new PropertyMap();
 
-				properties.put(LogEvent.messageProperty,   message);
-				properties.put(LogEvent.actionProperty,    action);
-				properties.put(LogEvent.subjectProperty,           subjectId);
-				properties.put(LogEvent.objectProperty,            objectId);
-				properties.put(LogEvent.timestampProperty, new Date(timestamp));
+				properties.put(LogEvent.messageProperty,             message);
+				properties.put(LogEvent.actionProperty,              action);
+				properties.put(LogEvent.subjectProperty,             subjectId);
+				properties.put(LogEvent.objectProperty,              objectId);
+				properties.put(LogEvent.timestampProperty,           new Date(timestamp));
+				properties.put(LogEvent.visibleToPublicUsers,        true);
+				properties.put(LogEvent.visibleToAuthenticatedUsers, true);
 
 				app.create(LogEvent.class, properties);
 
