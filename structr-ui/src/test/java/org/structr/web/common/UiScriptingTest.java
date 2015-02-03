@@ -124,6 +124,10 @@ public class UiScriptingTest extends StructrUiTest {
 			ctx.setPage(page);
 
 			test(p, text, "${Structr.div.id}", "<p>" + div.getUuid() + "</p>", ctx);
+			test(p, text, "${Structr.page.id}", "<p>" + page.getUuid() + "</p>", ctx);
+			test(p, text, "${Structr.parent.type}", "<p>" + div.getUuid() + "</p>", ctx);
+			test(p, text, "${Structr.parent.id}", "<p>" + div.getUuid() + "</p>", ctx);
+			test(p, text, "${Structr.children}", "<p>" + div.getUuid() + "</p>", ctx);
 
 
 			tx.success();
@@ -408,12 +412,12 @@ public class UiScriptingTest extends StructrUiTest {
 
 		@Override
 		public String getServerName() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+			return "localhost";
 		}
 
 		@Override
 		public int getServerPort() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+			return 12345;
 		}
 
 		@Override

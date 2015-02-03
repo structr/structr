@@ -60,30 +60,6 @@ public class StructrScriptable extends NativeObject {
 		return super.get(index, start);
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	public void setData(final Object data) {
 		this.data = data;
 	}
