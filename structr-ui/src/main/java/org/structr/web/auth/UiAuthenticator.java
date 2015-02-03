@@ -148,7 +148,7 @@ public class UiAuthenticator implements Authenticator {
 
 		securityContext.setAuthenticator(this);
 
-		// test for cross site resource sharing
+		// Check CORS settings (Cross-origin resource sharing, see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 		String origin = request.getHeader("Origin");
 		if (!StringUtils.isBlank(origin)) {
 

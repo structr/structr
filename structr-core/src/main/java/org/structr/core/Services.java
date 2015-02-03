@@ -248,8 +248,11 @@ public class Services {
 //			final FileInputStream fis = new FileInputStream(configFileName);
 //			structrConf.load(fis);
 //			fis.close();
-
-			structrConf.load(new PropertiesConfiguration(configFileName));
+			
+			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			final PropertiesConfiguration propConf = new PropertiesConfiguration(configFileName);
+			
+			structrConf.load(propConf);
 
 		} catch (ConfigurationException ex) {
 			logger.log(Level.SEVERE, null, ex);
