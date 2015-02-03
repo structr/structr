@@ -156,7 +156,7 @@ public class LogResource extends Resource {
 					.and(LogEvent.subjectProperty, subjectId)
 					.and(LogEvent.objectProperty, objectId)
 					.and(LogEvent.actionProperty, logState.logAction)
-					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
+					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 					.getAsList()
 				);
 
@@ -166,7 +166,7 @@ public class LogResource extends Resource {
 					.nodeQuery(LogEvent.class)
 					.and(LogEvent.subjectProperty, subjectId)
 					.and(LogEvent.actionProperty, logState.logAction)
-					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
+					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 					.getAsList()
 				);
 
@@ -178,7 +178,7 @@ public class LogResource extends Resource {
 					.nodeQuery(LogEvent.class)
 					.and(LogEvent.objectProperty, objectId)
 					.and(LogEvent.actionProperty, logState.logAction)
-					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
+					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 					.getAsList()
 				);
 
@@ -425,7 +425,7 @@ public class LogResource extends Resource {
 
 		final List<LogEvent> result = StructrApp.getInstance(securityContext).nodeQuery(LogEvent.class)
 			.and(LogEvent.actionProperty, state.logAction)
-			.andRange(LogEvent.timestampProperty, new Date(state.beginTimestamp), new Date(state.endTimestamp))
+			.andRange(LogEvent.timestampProperty, new Date(state.beginTimestamp()), new Date(state.endTimestamp()))
 			.getAsList();
 
 		processData(state, result);
