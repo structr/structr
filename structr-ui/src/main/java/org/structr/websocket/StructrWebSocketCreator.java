@@ -23,7 +23,6 @@ import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse;
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.property.PropertyKey;
 
 /**
  * Custom creator for structr WebSockets.
@@ -35,30 +34,28 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 	private static final String STRUCTR_PROTOCOL = "structr";
 
 	private WebsocketController syncController = null;
-	private Gson gson = null;
-	private PropertyKey idProperty = null;
-	private Authenticator authenticator = null;
+	private Authenticator authenticator        = null;
+	private Gson gson                          = null;
 
-	public StructrWebSocketCreator(final WebsocketController syncController, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
+	public StructrWebSocketCreator(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
 
 		this.syncController = syncController;
-		this.gson = gson;
-		this.idProperty = idProperty;
-		this.authenticator = authenticator;
+		this.authenticator  = authenticator;
+		this.gson           = gson;
 	}
 
 	@Override
 	public Object createWebSocket(ServletUpgradeRequest request, ServletUpgradeResponse response) {
 
 		for (String subprotocol : request.getSubProtocols()) {
-			
+
 			if (STRUCTR_PROTOCOL.equals(subprotocol)) {
 
 				response.setAcceptedSubProtocol(subprotocol);
-				
-				StructrWebSocket webSocket = new StructrWebSocket(syncController, gson, idProperty, authenticator);
+
+				StructrWebSocket webSocket = new StructrWebSocket(syncController, gson, authenticator);
 				webSocket.setRequest(request.getHttpServletRequest());
-				
+
 				return webSocket;
 			}
 		}

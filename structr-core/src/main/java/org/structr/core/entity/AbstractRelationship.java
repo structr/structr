@@ -61,6 +61,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationshipTypeProperty;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.TargetId;
+import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -700,7 +701,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
-		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
+		return Scripting.replaceVariables(securityContext, this, actionContext, rawValue);
 	}
 
 	@Override
@@ -725,7 +726,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				return value;
 		}
 	}
-	
+
 	@Override
 	public Object invokeMethod(String methodName, Map<String, Object> parameters) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");

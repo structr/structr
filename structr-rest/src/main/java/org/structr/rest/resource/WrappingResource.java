@@ -53,8 +53,6 @@ public abstract class WrappingResource extends Resource {
 	}
 
 	protected void wrapResource(Resource wrappedResource) {
-
-		this.idProperty      = wrappedResource.idProperty;
 		this.wrappedResource = wrappedResource;
 	}
 

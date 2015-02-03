@@ -66,6 +66,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -309,15 +310,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	public Long getNodeId() {
-
 		return getId();
 
 	}
 
 	public String getIdString() {
-
 		return Long.toString(getId());
-
 	}
 
 	/**
@@ -1076,7 +1074,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
-		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
+		return Scripting.replaceVariables(securityContext, this, actionContext, rawValue);
 	}
 
 	@Override

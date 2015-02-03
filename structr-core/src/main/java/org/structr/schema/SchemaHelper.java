@@ -25,7 +25,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
@@ -48,8 +47,8 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
@@ -762,145 +761,8 @@ public class SchemaHelper {
 
 	public static String getPropertyWithVariableReplacement(SecurityContext securityContext, final GraphObject entity, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
 
-		return replaceVariables(securityContext, entity, renderContext, entity.getProperty(key));
+		return Scripting.replaceVariables(securityContext, entity, renderContext, entity.getProperty(key));
 
-	}
-
-	public static String replaceVariables(final SecurityContext securityContext, final GraphObject entity, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
-
-		String value = null;
-
-		if (rawValue == null) {
-
-			return null;
-
-		}
-
-		if (rawValue instanceof String) {
-
-			value = (String) rawValue;
-
-			if (!actionContext.returnRawValue(securityContext)) {
-
-				final Map<String, String> replacements = new LinkedHashMap<>();
-
-				for (final String expression : extractTemplateExpressions(value)) {
-
-					String source         = expression.substring(2, expression.length() - 1);
-					Object extractedValue = Functions.evaluate(securityContext, actionContext, entity, source);
-
-					if (extractedValue == null) {
-						extractedValue = "";
-					}
-
-					String partValue = extractedValue.toString();
-					if (partValue != null) {
-
-						replacements.put(expression, partValue);
-
-					} else {
-
-						// If the whole expression should be replaced, and partValue is null
-						// replace it by null to make it possible for HTML attributes to not be rendered
-						// and avoid something like ... selected="" ... which is interpreted as selected==true by
-						// all browsers
-						if (!value.equals(expression)) {
-							replacements.put(expression, "");
-						}
-					}
-				}
-
-				// apply replacements
-				for (final Entry<String, String> entry : replacements.entrySet()) {
-
-					final String group = entry.getKey();
-					final String replacement = entry.getValue();
-
-					value = value.replace(group, replacement);
-				}
-
-			}
-
-		} else if (rawValue instanceof Boolean) {
-
-			value = Boolean.toString((Boolean) rawValue);
-
-		} else {
-
-			value = rawValue.toString();
-
-		}
-
-		// return literal null
-		if (Functions.NULL_STRING.equals(value)) {
-			return null;
-		}
-
-		return value;
-	}
-
-	public static List<String> extractTemplateExpressions(final String source) {
-
-		final List<String> expressions = new LinkedList<>();
-		final int length               = source.length();
-		boolean inSingleQuotes         = false;
-		boolean inDoubleQuotes         = false;
-		boolean inTemplate             = false;
-		boolean hasDollar              = false;
-		int start                      = 0;
-		int end                        = 0;
-
-		for (int i=0; i<length; i++) {
-
-			final char c = source.charAt(i);
-
-			switch (c) {
-
-				case '\'':
-					if (inTemplate) {
-						inSingleQuotes = !inSingleQuotes;
-					}
-					hasDollar = false;
-					break;
-
-				case '\"':
-					if (inTemplate) {
-						inDoubleQuotes = !inDoubleQuotes;
-					}
-					hasDollar = false;
-					break;
-
-				case '$':
-					hasDollar = true;
-					break;
-
-				case '{':
-					if (!inTemplate && hasDollar) {
-
-						inTemplate = true;
-						start = i-1;
-					}
-					hasDollar = false;
-					break;
-
-				case '}':
-					if (!inSingleQuotes && !inDoubleQuotes && inTemplate) {
-
-						inTemplate = false;
-						end = i+1;
-
-						expressions.add(source.substring(start, end));
-					}
-					hasDollar = true;
-					break;
-
-				default:
-					hasDollar = false;
-					break;
-			}
-		}
-
-		return expressions;
 	}
 
 	// ----- private methods -----

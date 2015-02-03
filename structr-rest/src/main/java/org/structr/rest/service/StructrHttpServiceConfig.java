@@ -24,10 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.property.Property;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.compiler.NodeExtender;
 
@@ -39,7 +37,6 @@ public class StructrHttpServiceConfig {
 
 	private static final Logger logger            = Logger.getLogger(StructrHttpServiceConfig.class.getName());
 
-	private final Property<String> defaultIdProperty  = GraphObject.id;
 	private String defaultPropertyView                = PropertyView.Public;
 	private ResourceProvider resourceProvider         = null;
 	private Class authenticatorClass                  = null;
@@ -47,10 +44,6 @@ public class StructrHttpServiceConfig {
 	private boolean userAutoCreate                    = false;
 	private boolean userAutoLogin                     = false;
 	private int outputNestingDepth                    = 3;
-
-	public Property<String> getDefaultIdProperty() {
-		return defaultIdProperty;
-	}
 
 	public ResourceProvider getResourceProvider() {
 		return resourceProvider;

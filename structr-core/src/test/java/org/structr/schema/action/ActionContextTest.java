@@ -1152,7 +1152,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid number of TestOne's", "0", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateInt', '255'))}"));
 			assertEquals("Invalid number of TestOne's", "1", testOne.replaceVariables(securityContext, ctx, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateInt', '256'))}"));
 
-
 			tx.success();
 
 		} catch (FrameworkException fex) {

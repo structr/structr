@@ -33,7 +33,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.Result;
@@ -45,18 +44,18 @@ import org.structr.core.Result;
  */
 public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializer<Result> {
 
-	private DecimalFormat decimalFormat                   = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
 
-	public ResultGSONAdapter(Value<String> propertyView, PropertyKey idProperty, final int outputNestingDepth) {
-		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyView, idProperty, outputNestingDepth);
+	public ResultGSONAdapter(Value<String> propertyView, final int outputNestingDepth) {
+		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyView, outputNestingDepth);
 	}
 
 	@Override
 	public JsonElement serialize(Result src, Type typeOfSrc, JsonSerializationContext context) {
 
 		long t0 = System.nanoTime();
-		
+
 		JsonObject result = new JsonObject();
 
 		// result fields in alphabetical order
@@ -125,18 +124,18 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 					// serialize list of results
 					JsonArray resultArray = new JsonArray();
 					for(GraphObject graphObject : results) {
-						
+
 						JsonElement element = graphObjectGsonAdapter.serialize(graphObject, startTime);
 						if (element != null) {
-							
+
 							resultArray.add(element);
-							
+
 						} else {
-							
+
 							// stop serialization if timeout occurs
 							result.add("status", new JsonPrimitive("Serialization aborted due to timeout"));
 							src.setHasPartialContent(true);
-							
+
 							break;
 						}
 					}
@@ -162,7 +161,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		if(sortOrder != null) {
 			result.add("sort_order", new JsonPrimitive(sortOrder));
 		}
-		
+
 		if (metaData != null) {
 
 			JsonElement element = graphObjectGsonAdapter.serialize(metaData, System.currentTimeMillis());
@@ -171,7 +170,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 				result.add("meta_data", element);
 			}
 		}
-		
+
 		result.add("serialization_time", new JsonPrimitive(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0)));
 
 		return result;

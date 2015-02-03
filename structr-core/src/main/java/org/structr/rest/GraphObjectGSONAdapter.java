@@ -35,11 +35,9 @@ import java.util.concurrent.TimeUnit;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.UuidProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,21 +55,18 @@ public class GraphObjectGSONAdapter {
 	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<>();
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
-	private final Property<String> id                    = new UuidProperty(); //StringProperty("id");
-	private int outputNestingDepth                       = 3;
 	private final Serializer<GraphObject> root           = new RootSerializer();
-	private PropertyKey idProperty                       = null;
+	private int outputNestingDepth                       = 3;
 	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
 	private JsonWriter writer                            = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public GraphObjectGSONAdapter(Value<String> propertyView, PropertyKey idProperty, final int outputNestingDepth) {
+	public GraphObjectGSONAdapter(Value<String> propertyView, final int outputNestingDepth) {
 
 		this.securityContext    = SecurityContext.getSuperUserInstance();
 		this.propertyView       = propertyView;
-		this.idProperty         = idProperty;
 		this.outputNestingDepth = outputNestingDepth;
 
 		serializers.put(GraphObject.class, root);
@@ -250,31 +245,10 @@ public class GraphObjectGSONAdapter {
 
 			JsonObject jsonObject = new JsonObject();
 
+			jsonObject.add("id", new JsonPrimitive(source.getUuid()));
+
 			// prevent endless recursion by pruning at depth n
-			if (depth > outputNestingDepth) {
-
-				jsonObject.add("id", new JsonPrimitive(source.getUuid()));
-
-			} else {
-
-				// id (only if idProperty is not set)
-				if (idProperty == null) {
-
-					jsonObject.add("id", new JsonPrimitive(source.getId()));
-
-				} else {
-
-					Object idPropertyValue = source.getProperty(idProperty);
-
-					if (idPropertyValue != null) {
-
-						String idString = idPropertyValue.toString();
-
-						jsonObject.add("id", new JsonPrimitive(idString));
-
-					}
-
-				}
+			if (depth <= outputNestingDepth) {
 
 				// property keys
 				Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
@@ -283,11 +257,6 @@ public class GraphObjectGSONAdapter {
 
 						Object value = source.getProperty(key);
 						PropertyKey localKey = key;
-
-						if (localKey.equals(idProperty)) {
-
-							localKey = id;
-						}
 
 						if (value != null) {
 
@@ -345,13 +314,8 @@ public class GraphObjectGSONAdapter {
 
 				for (Entry<String, Object> entry : ((Map<String, Object>)source).entrySet()) {
 
-					String key = entry.getKey();
+					String key   = entry.getKey();
 					Object value = entry.getValue();
-
-					// id property mapping again..
-					if (idProperty.jsonName().equals(key)) {
-						key = "id";
-					}
 
 					object.add(key, serializeRoot(value, localPropertyView, depth));
 				}
@@ -381,12 +345,7 @@ public class GraphObjectGSONAdapter {
 				for (Entry<PropertyKey, Object> entry : source.entrySet()) {
 
 					PropertyKey key = entry.getKey();
-					if (key.equals(idProperty)) {
-
-						key = id;
-					}
-
-					Object value = entry.getValue();
+					Object value    = entry.getValue();
 
 					object.add(key.jsonName(), serializeProperty(key, value, localPropertyView, depth));
 				}
