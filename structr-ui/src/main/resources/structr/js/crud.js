@@ -264,6 +264,8 @@ var _Crud = {
                     _Crud.types.push(typeObj.type);
                 });
 
+                _Crud.types.sort();
+
                 if (callback) {
                     callback();
                 }
