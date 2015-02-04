@@ -766,9 +766,10 @@ var _Schema = {
                     _Schema.removeLocalProperty(entity, key);
                 });
 
+                entity[key] = val;
+
                 _Schema.bindEvents(entity, type, key);
 
-                entity[key] = val;
             }, function() {
                 blinkRed($('.new', el));
                 _Schema.bindEvents(entity, type, key);
@@ -934,7 +935,7 @@ var _Schema = {
 
     },
     property: function(res, key) {
-        
+
         var name = key.substring(1);
         var dbName = '';
         var type;
