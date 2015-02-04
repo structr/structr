@@ -277,6 +277,11 @@ function wsConnect() {
 
                 log('CHILDREN', data);
 
+                // sort the folders/files in the Files tab
+                if (command === 'CHILDREN' && result.length > 0 && result[0].name) {
+                    result.sort(function(a,b) { return a.name.localeCompare(b.name); } );
+                }
+
                 $(result).each(function(i, entity) {
 
                     StructrModel.create(entity);
