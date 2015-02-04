@@ -4,13 +4,12 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.Undefined;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.parser.Functions;
 import org.structr.schema.action.ActionContext;
 
@@ -19,8 +18,6 @@ import org.structr.schema.action.ActionContext;
  * @author Christian Morgner
  */
 public class Scripting {
-
-	private static final String scriptEngineName = StructrApp.getConfigurationValue("scripting.engine", "structr");
 
 	public static String replaceVariables(final SecurityContext securityContext, final GraphObject entity, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
 
@@ -37,59 +34,7 @@ public class Scripting {
 
 			if (!actionContext.returnRawValue(securityContext)) {
 
-				final StructrScriptable scriptable     = new StructrScriptable(securityContext, actionContext, entity);
-				final ScriptEngine engine              = new ScriptEngineManager().getEngineByName(scriptEngineName);
-				final Map<String, String> replacements = new LinkedHashMap<>();
-
-				engine.put("Structr", scriptable);
-				engine.put("_securityContext", securityContext);
-				engine.put("_actionContext", actionContext);
-				engine.put("_entity", entity);
-
-				for (final String expression : extractScripts(value)) {
-
-					String source         = expression.substring(2, expression.length() - 1);
-					Object extractedValue = null;
-
-					try {
-						 //Functions.evaluate(securityContext, actionContext, entity, source);
-						extractedValue = engine.eval(source);
-
-					} catch (ScriptException spex) {
-
-						final Throwable cause = spex.getCause();
-
-						// extract wrapped FrameworkException
-						if (cause instanceof FrameworkException) {
-							throw (FrameworkException)cause;
-
-						} else {
-
-							throw new FrameworkException(500, spex.getMessage());
-						}
-
-					}
-
-					if (extractedValue == null) {
-						extractedValue = "";
-					}
-
-					String partValue = extractedValue.toString();
-					if (partValue != null) {
-
-						replacements.put(expression, partValue);
-
-					} else {
-
-						// If the whole expression should be replaced, and partValue is null
-						// replace it by null to make it possible for HTML attributes to not be rendered
-						// and avoid something like ... selected="" ... which is interpreted as selected==true by
-						// all browsers
-						if (!value.equals(expression)) {
-							replacements.put(expression, "");
-						}
-					}
-				}
+				final Map<String, String> replacements = evaluate(securityContext, actionContext, entity, value);
 
 				// apply replacements
 				for (final Map.Entry<String, String> entry : replacements.entrySet()) {
@@ -190,5 +135,86 @@ public class Scripting {
 		}
 
 		return expressions;
+	}
+
+	public static Map<String, String> evaluate(final SecurityContext securityContext, final ActionContext actionContext, final GraphObject entity, final String value) throws FrameworkException {
+
+		final Map<String, String> replacements = new LinkedHashMap<>();
+		final Context scriptingContext         = Context.enter();
+
+		try {
+
+			// Set version to JavaScript1.2 so that we get object-literal style
+			// printing instead of "[object Object]"
+			scriptingContext.setLanguageVersion(Context.VERSION_1_2);
+
+			// Initialize the standard objects (Object, Function, etc.)
+			// This must be done before scripts can be executed.
+			Scriptable scope = scriptingContext.initStandardObjects();
+
+			final StructrScriptable scriptable = new StructrScriptable(securityContext, actionContext, entity);
+
+			// register Structr scriptable
+			scope.put("Structr", scope, scriptable);
+
+			for (final String expression : extractScripts(value)) {
+
+				//final Object extractedValue = evaluateJavascript(scriptingContext, scope, scriptable, expression.substring(2, expression.length() - 1));
+				final Object extractedValue = Functions.evaluate(securityContext, actionContext, entity, expression.substring(2, expression.length() - 1));
+				String partValue            = extractedValue != null ? extractedValue.toString() : "";
+
+				if (partValue != null) {
+
+					replacements.put(expression, partValue);
+
+				} else {
+
+					// If the whole expression should be replaced, and partValue is null
+					// replace it by null to make it possible for HTML attributes to not be rendered
+					// and avoid something like ... selected="" ... which is interpreted as selected==true by
+					// all browsers
+					if (!value.equals(expression)) {
+						replacements.put(expression, "");
+					}
+				}
+			}
+
+		} finally {
+
+			Context.exit();
+		}
+
+		return replacements;
+	}
+
+	public static Object evaluateJavascript(final Context scriptingContext, final Scriptable scope, final StructrScriptable scriptable, final String script) throws FrameworkException {
+
+		Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "source", 1, null);
+
+		if (scriptable.hasException()) {
+			throw scriptable.getException();
+		}
+
+		if (extractedValue == null || extractedValue == Undefined.instance) {
+			extractedValue = scope.get("_structrMainResult", scope);
+		}
+
+		if (extractedValue == null || extractedValue == Undefined.instance) {
+			extractedValue = "";
+		}
+
+		return extractedValue;
+	}
+
+	public static String embedInFunction(final String source) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("function main() {\n\n");
+		buf.append(source);
+		buf.append("\n}\n");
+		buf.append("var _structrMainResult = main();");
+
+		return buf.toString();
 	}
 }

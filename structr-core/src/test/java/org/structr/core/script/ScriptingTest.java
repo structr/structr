@@ -49,9 +49,9 @@ public class ScriptingTest extends StructrTest {
 			test.setProperty(TestOne.stringWithQuotes  , "''\"\"''");
 
 			assertEquals("Invalid JavaScript evaluation result", "test", Scripting.replaceVariables(securityContext, test, actionContext, "${ 'test' }"));
-			assertEquals("Invalid JavaScript evaluation result", "1", Scripting.replaceVariables(securityContext, test, actionContext, "${ Structr.this.anInt; }"));
-			assertEquals("Invalid JavaScript evaluation result", "2", Scripting.replaceVariables(securityContext, test, actionContext, "${ Structr.this.aLong; }"));
-			assertEquals("Invalid JavaScript evaluation result", "3.0", Scripting.replaceVariables(securityContext, test, actionContext, "${ Structr.this.aDouble; }"));
+			assertEquals("Invalid JavaScript evaluation result", "1", Scripting.replaceVariables(securityContext, test, actionContext, "${ Structr.get('this').anInt; }"));
+			assertEquals("Invalid JavaScript evaluation result", "2", Scripting.replaceVariables(securityContext, test, actionContext, "${ Structr.get('this').aLong; }"));
+			assertEquals("Invalid JavaScript evaluation result", "3.0", Scripting.replaceVariables(securityContext, test, actionContext, "${ Structr.get('this').aDouble; }"));
 
 			tx.success();
 

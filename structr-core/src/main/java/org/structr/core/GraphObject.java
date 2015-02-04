@@ -292,7 +292,6 @@ public interface GraphObject {
 	public void indexPassiveProperties();
 
 	public String getPropertyWithVariableReplacement(final SecurityContext securityContext, final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
-	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException;
 	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException;
 	public Object invokeMethod(final String methodName, final Map<String, Object> parameters) throws FrameworkException;
 

@@ -66,7 +66,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -1070,11 +1069,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
 		return SchemaHelper.getPropertyWithVariableReplacement(securityContext, this, renderContext, key);
-	}
-
-	@Override
-	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
-		return Scripting.replaceVariables(securityContext, this, actionContext, rawValue);
 	}
 
 	@Override

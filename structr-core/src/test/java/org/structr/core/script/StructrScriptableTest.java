@@ -54,10 +54,10 @@ public class StructrScriptableTest extends StructrTest {
 			assertEquals("Invalid JavaScript evaluation result",                 10, engine.eval("Structr.find('TestThree').length;"));
 			assertEquals("Invalid JavaScript evaluation result", allIdsConcatenated, engine.eval("var conc = ''; Structr.find('TestThree').forEach(function(s) { conc += s.id; }); conc.toString();"));
 
-			engine.eval("var o = Structr.find('TestOne')[0]; o.name = 'Object'; o.xy = 2;");
+			engine.eval("var o = Structr.find('TestThree')[0]; o.name = 'Object'; o.xy = 2;");
 
-			assertEquals("Invalid JavaScript evaluation result", "Object", engine.eval("Structr.find('TestOne')[0].name"));
-			assertNull("Invalid JavaScript evaluation result", engine.eval("Structr.find('TestOne')[0].xy"));
+			assertEquals("Invalid JavaScript evaluation result", "Object", engine.eval("Structr.find('TestThree')[0].name"));
+			assertNull("Invalid JavaScript evaluation result", engine.eval("Structr.find('TestThree')[0].xy"));
 
 			tx.success();
 

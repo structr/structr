@@ -59,8 +59,6 @@ import org.structr.web.entity.dom.Page;
  *
  * @author Christian Morgner
  */
-
-
 public class UiScriptingTest extends StructrUiTest {
 
 	public void testScripting() {
@@ -123,11 +121,9 @@ public class UiScriptingTest extends StructrUiTest {
 			ctx.setDetailsDataObject(detailsDataObject);
 			ctx.setPage(page);
 
-			test(p, text, "${Structr.div.id}", "<p>" + div.getUuid() + "</p>", ctx);
-			test(p, text, "${Structr.page.id}", "<p>" + page.getUuid() + "</p>", ctx);
-			test(p, text, "${Structr.parent.type}", "<p>" + div.getUuid() + "</p>", ctx);
-			test(p, text, "${Structr.parent.id}", "<p>" + div.getUuid() + "</p>", ctx);
-			test(p, text, "${Structr.children}", "<p>" + div.getUuid() + "</p>", ctx);
+			test(p, text, "${Structr.get('div').id}", "<p>" + div.getUuid() + "</p>", ctx);
+			test(p, text, "${Structr.get('page').id}", "<p>" + page.getUuid() + "</p>", ctx);
+			test(p, text, "${Structr.get('parent').id}", "<p>" + p.getUuid() + "</p>", ctx);
 
 
 			tx.success();

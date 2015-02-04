@@ -23,6 +23,7 @@ import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.script.Scripting;
 
 /**
  *
@@ -64,14 +65,13 @@ public class Actions {
 	public static boolean execute(final SecurityContext securityContext, final GraphObject entity, final String source) throws FrameworkException {
 
 		return execute(securityContext, entity, source, Collections.EMPTY_MAP);
-	}		
-	
+	}
+
 	public static boolean execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters) throws FrameworkException {
 
 		final ActionContext context = new ActionContext(parameters);
-		
-		// ignore result for now
-		entity.replaceVariables(securityContext, context, source);
+
+		Scripting.replaceVariables(securityContext, entity, context, source);
 
 		// check for errors raised by scripting
 		if (context.hasError()) {
