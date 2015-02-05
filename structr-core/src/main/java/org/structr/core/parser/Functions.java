@@ -2940,7 +2940,7 @@ public class Functions {
 							if (key != null) {
 
 								final PropertyConverter inputConverter = key.inputConverter(securityContext);
-								Object value = sources[c+1].toString();
+								Object value = sources[c+1];
 
 								if (inputConverter != null) {
 
