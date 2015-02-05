@@ -73,6 +73,30 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
+		if ("print".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
+					actionContext.print(parameters);
+					return null;
+				}
+			}, null, 0, 0);
+		}
+
+		if ("clear".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
+					actionContext.clear();
+					return null;
+				}
+			}, null, 0, 0);
+		}
+
 		if ("log".equals(name)) {
 
 			return new IdFunctionObject(new IdFunctionCall() {

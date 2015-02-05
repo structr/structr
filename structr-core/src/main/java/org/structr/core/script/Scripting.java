@@ -119,10 +119,19 @@ public class Scripting {
 			// register Structr scriptable
 			scope.put("Structr", scope, scriptable);
 
+			// clear output buffer
+			actionContext.clear();
+
 			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "source", 1, null);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();
+			}
+
+			// prioritize written output over result returned from method
+			final String output = actionContext.getOutput();
+			if (output != null && !output.isEmpty()) {
+				extractedValue = output;
 			}
 
 			if (extractedValue == null || extractedValue == Undefined.instance) {

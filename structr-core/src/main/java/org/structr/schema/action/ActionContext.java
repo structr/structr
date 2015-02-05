@@ -43,6 +43,7 @@ public class ActionContext {
 	protected Map<String, Object> tmpStore   = new HashMap<>();
 	protected Map<Integer, Integer> counters = new HashMap<>();
 	protected ErrorBuffer errorBuffer        = new ErrorBuffer();
+	protected StringBuilder outputBuffer     = new StringBuilder();
 
 	public ActionContext() {
 		this(null, null);
@@ -231,5 +232,24 @@ public class ActionContext {
 		}
 
 		return value;
+	}
+
+	public void print(final Object... objects) {
+
+		for (final Object obj : objects) {
+
+			if (obj != null) {
+
+				outputBuffer.append(obj.toString());
+			}
+		}
+	}
+
+	public void clear() {
+		outputBuffer.setLength(0);
+	}
+
+	public String getOutput() {
+		return outputBuffer.toString();
 	}
 }
