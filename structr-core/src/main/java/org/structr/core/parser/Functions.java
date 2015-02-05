@@ -1895,7 +1895,7 @@ public class Functions {
 						if (text != null) {
 
 							// recursive replacement call, be careful here
-							Scripting.replaceVariables(entity.getSecurityContext(), templateInstance, ctx, text);
+							return Scripting.replaceVariables(entity.getSecurityContext(), templateInstance, ctx, text);
 						}
 					}
 				}

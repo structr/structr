@@ -930,7 +930,7 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid number of incoming relationships", "1",   Scripting.replaceVariables(securityContext, testTwo, ctx, "${size(incoming(this))}"));
 			assertEquals("Invalid number of incoming relationships", "1",   Scripting.replaceVariables(securityContext, testThree, ctx, "${size(incoming(this))}"));
 			assertEquals("Invalid relationship type", "IS_AT",              Scripting.replaceVariables(securityContext, testTwo, ctx, "${get(incoming(this), 'relType')}"));
-			assertEquals("Invalid relationship type", "OWNS",               Scripting.replaceVariables(securityContext, testOne, ctx, "${get(incoming(this), 'relType')}"));
+			assertEquals("Invalid relationship type", "OWNS",               Scripting.replaceVariables(securityContext, testThree, ctx, "${get(incoming(this), 'relType')}"));
 
 			// outgoing
 			assertEquals("Invalid number of outgoing relationships", "3",  Scripting.replaceVariables(securityContext, testOne, ctx, "${size(outgoing(this))}"));
@@ -947,13 +947,13 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(securityContext, testOne, ctx, "${has_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
 			assertEquals("Invalid result of has_relationship", "false",  Scripting.replaceVariables(securityContext, testOne, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'THIS_DOES_NOT_EXIST')}"));
 
-			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(securityContext, testOne, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
-			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(securityContext, testOne, ctx, "${has_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
+			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(securityContext, testTwo, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
+			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(securityContext, testTwo, ctx, "${has_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
 
 			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(securityContext, testOne, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
 			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(securityContext, testOne, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
 
-			assertEquals("Invalid result of has_relationship", "false", Scripting.replaceVariables(securityContext, testOne, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_relationship", "false", Scripting.replaceVariables(securityContext, testTwo, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST')}"));
 			assertEquals("Invalid result of has_relationship", "false",  Scripting.replaceVariables(securityContext, testOne, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
 
 			// has_incoming_relationship
@@ -1122,19 +1122,19 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(securityContext, testOne, ctx, "${size(find('TestOne'))}"));
 
 			// currently the creation of nodes must take place in a node of another type
-			Scripting.replaceVariables(securityContext, testOne, ctx, "${create('TestOne', 'name', 'createTestOne1')}");
+			Scripting.replaceVariables(securityContext, testFour, ctx, "${create('TestOne', 'name', 'createTestOne1')}");
 			noOfOnes++;
 			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(securityContext, testOne, ctx, "${size(find('TestOne'))}"));
 			assertEquals("Invalid number of TestOne's", "1", Scripting.replaceVariables(securityContext, testOne, ctx, "${size(find('TestOne', 'name', 'createTestOne1'))}"));
 
-			Scripting.replaceVariables(securityContext, testOne, ctx, "${create('TestOne', 'name', 'createTestOne1')}");
+			Scripting.replaceVariables(securityContext, testFour, ctx, "${create('TestOne', 'name', 'createTestOne1')}");
 			noOfOnes++;
 			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(securityContext, testOne, ctx, "${size(find('TestOne'))}"));
 			assertEquals("Invalid number of TestOne's", "2", Scripting.replaceVariables(securityContext, testOne, ctx, "${size(find('TestOne', 'name', 'createTestOne1'))}"));
 
 
 			// currently this must be executed on another node type
-			Scripting.replaceVariables(securityContext, testOne, ctx, "${create('TestOne', 'name', 'createTestOne2', 'aCreateString', 'newCreateString1')}");
+			Scripting.replaceVariables(securityContext, testFour, ctx, "${create('TestOne', 'name', 'createTestOne2', 'aCreateString', 'newCreateString1')}");
 			noOfOnes++;
 			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(securityContext, testOne, ctx, "${size(find('TestOne'))}"));
 			assertEquals("Invalid number of TestOne's", "1", Scripting.replaceVariables(securityContext, testOne, ctx, "${size(find('TestOne', 'name', 'createTestOne2'))}"));
@@ -1145,7 +1145,7 @@ public class ActionContextTest extends StructrTest {
 
 
 			// currently this must be executed on another node type
-			Scripting.replaceVariables(securityContext, testOne, ctx, "${create('TestOne', 'name', 'createTestOne2', 'aCreateInt', '256')}");
+			Scripting.replaceVariables(securityContext, testFour, ctx, "${create('TestOne', 'name', 'createTestOne2', 'aCreateInt', '256')}");
 			noOfOnes++;
 			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(securityContext, testOne, ctx, "${size(find('TestOne'))}"));
 			assertEquals("Invalid number of TestOne's", "2", Scripting.replaceVariables(securityContext, testOne, ctx, "${size(find('TestOne', 'name', 'createTestOne2'))}"));

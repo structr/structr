@@ -107,7 +107,7 @@ public class Scripting {
 						inTemplate = true;
 						start = i-1;
 
-					} else if (!inSingleQuotes && !inDoubleQuotes) {
+					} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes) {
 						level++;
 					}
 
@@ -116,7 +116,7 @@ public class Scripting {
 
 				case '}':
 
-					if (!inSingleQuotes && !inDoubleQuotes && level-- == 0 && inTemplate) {
+					if (!inSingleQuotes && !inDoubleQuotes && inTemplate && level-- == 0) {
 
 						inTemplate = false;
 						end = i+1;
@@ -125,7 +125,7 @@ public class Scripting {
 
 						level = 0;
 					}
-					hasDollar = true;
+					hasDollar = false;
 					break;
 
 				default:
@@ -159,10 +159,21 @@ public class Scripting {
 
 			for (final String expression : extractScripts(value)) {
 
-				//final Object extractedValue = evaluateJavascript(scriptingContext, scope, scriptable, expression.substring(2, expression.length() - 1));
-				final Object extractedValue = Functions.evaluate(securityContext, actionContext, entity, expression.substring(2, expression.length() - 1));
-				String partValue            = extractedValue != null ? extractedValue.toString() : "";
+				final boolean isJavascript = expression.startsWith("${{") && expression.endsWith("}}");
+				final int prefixOffset     = isJavascript ? 1 : 0;
+				final String source        = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
+				Object extractedValue      = null;
 
+				if (isJavascript) {
+
+					extractedValue = evaluateJavascript(scriptingContext, scope, scriptable, source);
+
+				} else {
+
+					extractedValue = Functions.evaluate(securityContext, actionContext, entity, source);
+				}
+
+				String partValue = extractedValue != null ? extractedValue.toString() : "";
 				if (partValue != null) {
 
 					replacements.put(expression, partValue);
