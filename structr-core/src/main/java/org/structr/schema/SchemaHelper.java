@@ -405,36 +405,19 @@ public class SchemaHelper {
 
 			if (propertyContainer.hasProperty(rawActionName)) {
 
-				// split value on ";"
-				final String value = propertyContainer.getProperty(rawActionName).toString();
-				final String[] parts1 = value.split("[;]+");
-				final int parts1Length = parts1.length;
+				final String value           = propertyContainer.getProperty(rawActionName).toString();
+				final ActionEntry entry      = new ActionEntry(rawActionName, value);
+				List<ActionEntry> actionList = actions.get(entry.getType());
 
-				for (int i = 0; i < parts1Length; i++) {
+				if (actionList == null) {
 
-					// split value on "&&"
-					final String[] parts2 = parts1[i].split("\\&\\&");
-					final int parts2Length = parts2.length;
-
-					for (int j = 0; j < parts2Length; j++) {
-
-						// since the parts in this loop are separated by "&&", all parts AFTER
-						// the first one should only be run if the others before succeeded.
-						final ActionEntry entry = new ActionEntry(rawActionName, parts2[j], j == 0);
-						List<ActionEntry> actionList = actions.get(entry.getType());
-
-						if (actionList == null) {
-
-							actionList = new LinkedList<>();
-							actions.put(entry.getType(), actionList);
-						}
-
-						actionList.add(entry);
-
-						Collections.sort(actionList);
-					}
-
+					actionList = new LinkedList<>();
+					actions.put(entry.getType(), actionList);
 				}
+
+				actionList.add(entry);
+
+				Collections.sort(actionList);
 			}
 		}
 
@@ -652,15 +635,13 @@ public class SchemaHelper {
 		for (final ActionEntry action : actionList) {
 
 			src.append("\n\t@Export\n");
-			src.append("\tpublic RestMethodResult ");
+			src.append("\tpublic Object ");
 			src.append(action.getName());
 			src.append("(final Map<String, Object> parameters) throws FrameworkException {\n\n");
 
-			src.append("\t\t");
+			src.append("\t\treturn ");
 			src.append(action.getSource("this", true));
 			src.append(";\n\n");
-
-			src.append("\t\treturn new RestMethodResult(200);\n");
 			src.append("\t}\n");
 		}
 
@@ -670,15 +651,13 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\tpublic static RestMethodResult ");
+			src.append("\tpublic static Object ");
 			src.append(action.getName());
 			src.append("(final AbstractNode obj) throws FrameworkException {\n\n");
 
-			src.append("\t\t");
+			src.append("\t\treturn ");
 			src.append(action.getSource("obj"));
 			src.append(";\n\n");
-
-			src.append("\t\treturn new RestMethodResult(200);\n");
 			src.append("\t}\n");
 		}
 
@@ -700,24 +679,12 @@ public class SchemaHelper {
 
 		if (!actionList.isEmpty()) {
 
-			src.append("\t\tif (!error) {\n");
-
 			for (final ActionEntry action : actionList) {
 
-				if (action.runOnError()) {
-
-					src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
-
-				} else {
-
-					src.append("\t\tif (!error) {\n");
-					src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
-					src.append("\t\t}\n");
-
-				}
+				src.append("\t\tif (!error) {\n");
+				src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
+				src.append("\t\t}\n");
 			}
-
-			src.append("\t\t}\n");
 		}
 
 		src.append("\n\t\treturn !error;\n");
@@ -734,24 +701,12 @@ public class SchemaHelper {
 
 		if (!actionList.isEmpty()) {
 
-			src.append("\t\tif (!error) {\n");
-
 			for (final ActionEntry action : actionList) {
 
-				if (action.runOnError()) {
-
-					src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
-
-				} else {
-
-					src.append("\t\tif (!error) {\n");
-					src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
-					src.append("\t\t}\n");
-
-				}
+				src.append("\t\tif (!error) {\n");
+				src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
+				src.append("\t\t}\n");
 			}
-
-			src.append("\t\t}\n");
 		}
 
 		src.append("\n\t\treturn !error;\n");

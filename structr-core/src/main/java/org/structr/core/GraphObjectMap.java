@@ -230,7 +230,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters) throws FrameworkException {
+	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method is not supported as this is a property map.");
 	}
 

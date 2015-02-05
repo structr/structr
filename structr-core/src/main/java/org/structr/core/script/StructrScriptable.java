@@ -1,5 +1,6 @@
 package org.structr.core.script;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -7,10 +8,13 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.IdFunctionCall;
 import org.mozilla.javascript.IdFunctionObject;
 import org.mozilla.javascript.NativeJavaArray;
+import org.mozilla.javascript.NativeJavaMethod;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.Wrapper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.parser.Functions;
@@ -168,11 +172,32 @@ public class StructrScriptable extends ScriptableObject {
 
 		@Override
 		public String toString() {
-			return "Array";
+
+			final StringBuilder buf = new StringBuilder();
+			boolean first           = true;
+
+			for (final Object obj : (Object[])unwrap()) {
+
+				if (first) {
+
+					buf.append("[");
+					first = false;
+
+				} else {
+
+					buf.append(",");
+				}
+
+				buf.append(obj.toString());
+			}
+
+			buf.append("]");
+
+			return buf.toString();
 		}
 	}
 
-	public class GraphObjectWrapper implements Scriptable {
+	public class GraphObjectWrapper implements Scriptable, Wrapper {
 
 		private Scriptable parentScope = null;
 		private Scriptable prototype   = null;
@@ -195,12 +220,28 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		@Override
-		public Object get(String string, Scriptable s) {
+		public Object get(final String name, final Scriptable s) {
 
-			final PropertyKey key = getKey(string);
+			// first try: property key
+			final PropertyKey key = getKey(name);
 			if (key != null) {
 
 				return wrap(parentScope, obj.getProperty(key));
+			}
+
+			// second try: exported method
+			final Method method = StructrApp.getConfiguration().getAnnotatedMethods(obj.getClass(), Export.class).get(name);
+			if (method != null) {
+
+				return new NativeJavaMethod(method, name);
+			}
+
+			// default: direct evaluation of object
+			try {
+				return obj.evaluate(securityContext, name, null);
+
+			} catch (FrameworkException fex) {
+				exception = fex;
 			}
 
 			return null;
@@ -285,7 +326,16 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		@Override
-		public Object getDefaultValue(Class<?> type) {
+		public Object getDefaultValue(final Class<?> hint) {
+
+			if (hint == null) {
+				return unwrap();
+			}
+
+			if (String.class.equals(hint)) {
+				return toString();
+			}
+
 			return null;
 		}
 
@@ -296,6 +346,11 @@ public class StructrScriptable extends ScriptableObject {
 
 		private PropertyKey getKey(final String name) {
 			return StructrApp.getConfiguration().getPropertyKeyForJSONName(obj.getClass(), name, false);
+		}
+
+		@Override
+		public Object unwrap() {
+			return obj;
 		}
 	}
 }

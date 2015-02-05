@@ -16,16 +16,16 @@ import java.util.Map;
 
 import javatools.parsers.Char;
 
-/** 
+/**
  This class is part of the Java Tools (see http://mpii.de/yago-naga/javatools).
- It is licensed under the Creative Commons Attribution License 
- (see http://creativecommons.org/licenses/by/3.0) by 
+ It is licensed under the Creative Commons Attribution License
+ (see http://creativecommons.org/licenses/by/3.0) by
  the YAGO-NAGA team (see http://mpii.de/yago-naga).
- 
- 
- 
 
- 
+
+
+
+
  This class provides convenience methods for Input/Output.
  Allows to do basic I/O with easy procedure calls
  -- nearly like in normal programming languages.
@@ -36,38 +36,38 @@ import javatools.parsers.Char;
  D.p("This is an easy way to write a string");
  // And this is an easy way to read one:
  String s=D.r();
- 
+
  // Here is a cool way to print something inline
  computeProduct(factor1,(Integer)D.p(factor2));
- 
+
  // Here are some tricks with enums
  enum T {a,b,c};
  EnumSet&lt;T> i=D.intersection(EnumSet.of(T.a,T.b),EnumSet.of(T.b,T.c));
  EnumSet&lt;T> u=D.union(EnumSet.of(T.a,T.b),EnumSet.of(T.b,T.c));
- 
+
  // Here is how to compare things, even if they are NULL
  D.compare(object1, object2);
- 
+
  // Here is how to add something to maps that contain lists
  Map&lt;String,List&lt;String>> string2list=new TreeMap&lt;String,List&lt;String>>();
- D.addKeyValue(string2list,"key","new list element",ArrayList.class); 
+ D.addKeyValue(string2list,"key","new list element",ArrayList.class);
  // now, the map contains "key" -> [ "new list element" ]
  D.addKeyValue(string2list,"key","again a new list element",ArrayList.class);
- // now, the map contains "key" -> [ "new list element", "again a new list element" ]  
+ // now, the map contains "key" -> [ "new list element", "again a new list element" ]
 
  // Here is how to add something to maps that contain integers
  Map&lt;String,Integer> string2list=new TreeMap&lt;String,Integer>();
  D.addKeyValue(string2list,"key",7); // map now contains "key" -> 7
  D.addKeyValue(string2list,"key",3); // map now contains "key" -> 10
 
- </PRE>  
+ </PRE>
  */
 public class D {
 
   /** Indentation margin. All methods indent their output by indent spaces */
   public static int indent = 0;
 
-  /** Prints <indent> spaces */
+  /** Prints #indent spaces */
   protected static void i() {
     for (int i = 0; i < indent; i++)
       System.out.print(" ");
@@ -88,7 +88,7 @@ public class D {
   }
 
   /** Prints some Objects on one line */
-  public static void pl(Object... a) {    
+  public static void pl(Object... a) {
     System.out.print(toString(a));
   }
 
@@ -243,7 +243,7 @@ public class D {
   public static <K, V, C extends Collection<V>, L extends Collection> void addKeyValues(Map<K, C> map, K key, C values, Class<L> collectionType) {
     for(V val : values) addKeyValue(map,key,val,collectionType);
   }
-  
+
   /** Given a map that maps to integers, adds a new key/value pair or increases the counter*/
   public static <K> void addKeyValue(Map<K, Integer> map, K key, int value) {
     Integer coll = map.get(key);
@@ -262,9 +262,9 @@ public class D {
       map.put(key, value);
       return;
     }
-    map.put(key, coll + value);    
+    map.put(key, coll + value);
   }
-  
+
   /** Given a map that maps to doubles, adds a new key/value pair or increases the counter*/
   public static <K> void addKeyValueDbl(Map<K, Double> map, K key, double value) {
     Double coll = map.get(key);
@@ -273,9 +273,9 @@ public class D {
       return;
 
     }
-    map.put(key, coll + value);    
+    map.put(key, coll + value);
   }
-  
+
   /** Given a map that maps to comparable objects, sets a key to a given value iff the current value is null or smaller than the given value*/
   public static <K ,V extends Comparable<V>> void setKeyValueIfGreaterThanCurrent(Map<K, V> map, K key, V value) {
     V coll = map.get(key);
@@ -284,9 +284,9 @@ public class D {
       return;
     }
     if(coll.compareTo(value)<0)
-      map.put(key, value);    
+      map.put(key, value);
   }
-  
+
 
   /** Returns the element of a map or 0*/
   public static <K> int getOrZero(Map<K, Integer> map, K key) {
@@ -301,7 +301,7 @@ public class D {
     if (i == null) return (0);
     return (i);
   }
-  
+
   /** Returns the element of a map or a default value*/
   public static <K,V> V getOr(Map<K, V> map, K key, V defValue) {
     V i = map.get(key);
@@ -320,7 +320,7 @@ public class D {
       }});
     return(list);
   }
-  
+
   /** Returns a sorted list of the items*/
   public static<T> List<T> sortedDouble(final Map<T, Double> map) {
     List<T> list=new ArrayList<T>(map.keySet());
@@ -332,7 +332,7 @@ public class D {
       }});
     return(list);
   }
-  
+
   /** Returns true if two things are equal, including NULL */
   public static <E> boolean equal(E s1, E s2) {
     if (s1 == s2) return (true);
@@ -406,13 +406,13 @@ public class D {
     }
     return (b.toString());
   }
-  
+
   /** Picks one element from a set or NULL*/
   public static <T> T pick(Collection<T> set) {
     if(set==null || set.isEmpty()) return(null);
     return(set.iterator().next());
   }
-  
+
   /** Returns the size of the intersection*/
   public static<T> int intersectionSize(Collection<T> c1, Collection<T> c2) {
 	  if(c1.size()>c2.size()) return(intersectionSize(c2,c1));

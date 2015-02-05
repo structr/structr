@@ -110,7 +110,9 @@ if (typeof String.prototype.capitalize !== 'function') {
 if (typeof String.prototype.escapeForJSON !== 'function') {
     String.prototype.escapeForJSON = function() {
         return this
-                .replace(/\\/g, '\\\\')
+
+            /* this breaks newlines, removing!*/
+            /*  .replace(/\\/g, '\\\\')*/
                 .replace(/"/g, '\\"');
     };
 }

@@ -18,10 +18,8 @@
  */
 package org.structr.rest.resource;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import org.structr.common.PagingHelper;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,6 +30,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ScriptRuntime;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
@@ -39,7 +39,6 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
@@ -254,13 +253,42 @@ public class StaticRelationshipResource extends SortableResource {
 
 			if (entity != null && entityType != null && methodName != null) {
 
-				return (RestMethodResult) entity.invokeMethod(methodName, propertySet);
-				
+				final Object obj              = entity.invokeMethod(methodName, propertySet, true);
+				final RestMethodResult result = new RestMethodResult(200);
+
+				// unwrap nested object(s)
+				unwrapTo(obj, result);
+
+				return result;
 			}
 
 		}
 
 		throw new IllegalPathException();
+	}
+
+	private void unwrapTo(final Object source, final RestMethodResult result) {
+
+		if (source != null) {
+
+			final Object unwrapped = Context.jsToJava(source, ScriptRuntime.ObjectClass);
+			if (unwrapped.getClass().isArray()) {
+
+				for (final Object element : (Object[])unwrapped) {
+					unwrapTo(element, result);
+				}
+
+			} else if (unwrapped instanceof Collection) {
+
+				for (final Object element : (Collection)unwrapped) {
+					unwrapTo(element, result);
+				}
+
+			} else if (unwrapped instanceof GraphObject) {
+
+				result.addContent((GraphObject)unwrapped);
+			}
+		}
 	}
 
 	@Override
