@@ -40,7 +40,7 @@ import org.structr.core.graph.search.SearchAttribute;
  *
  * @author Christian Morgner
  */
-public class IntProperty extends AbstractPrimitiveProperty<Integer> {
+public class IntProperty extends AbstractPrimitiveProperty<Integer> implements NumericalPropertyKey<Integer> {
 
 	private static final Logger logger = Logger.getLogger(IntProperty.class.getName());
 	public static final String INT_EMPTY_FIELD_VALUE = NumericUtils.intToPrefixCoded(Integer.MIN_VALUE);
@@ -96,6 +96,16 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	@Override
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
+	}
+
+	@Override
+	public Integer convertToNumber(Double source) {
+
+		if (source != null) {
+			return source.intValue();
+		}
+
+		return null;
 	}
 
 	protected class InputConverter extends PropertyConverter<Object, Integer> {

@@ -41,7 +41,7 @@ import org.structr.core.graph.search.SearchAttribute;
  *
  * @author Christian Morgner
  */
-public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
+public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements NumericalPropertyKey<Double> {
 
 	private static final Logger logger = Logger.getLogger(DoubleProperty.class.getName());
 
@@ -107,6 +107,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	@Override
 	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
+	}
+
+	@Override
+	public Double convertToNumber(Double source) {
+		return source;
 	}
 
 	protected class InputConverter extends PropertyConverter<Object, Double> {

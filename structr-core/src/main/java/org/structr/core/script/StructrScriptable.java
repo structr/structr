@@ -1,7 +1,10 @@
 package org.structr.core.script;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.mozilla.javascript.Context;
@@ -17,7 +20,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.parser.Functions;
+import org.structr.core.property.EnumProperty;
+import org.structr.core.property.NumericalPropertyKey;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -165,6 +171,36 @@ public class StructrScriptable extends ScriptableObject {
 		return array;
 	}
 
+	private Object unwrap(final Object source) {
+
+		if (source != null) {
+
+			if (source instanceof Wrapper) {
+
+				return unwrap(((Wrapper)source).unwrap());
+
+			} else {
+
+				if (source.getClass().isArray()) {
+
+					final List list = new ArrayList();
+					for (final Object obj : (Object[])source) {
+
+						list.add(unwrap(obj));
+					}
+
+					return list;
+				}
+
+				if (source instanceof Scriptable && "Date".equals(((Scriptable)source).getClassName())) {
+					return Context.jsToJava(source, Date.class);
+				}
+			}
+		}
+
+		return source;
+	}
+
 	// ----- nested classes -----
 	public class FunctionWrapper implements IdFunctionCall {
 
@@ -178,7 +214,16 @@ public class StructrScriptable extends ScriptableObject {
 		public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
 
 			try {
-				return wrap(externalScriptable, function.apply(actionContext, entity, parameters));
+
+				final Object[] unwrappedParameters = new Object[parameters.length];
+				int i                              = 0;
+
+				// unwrap JS objects
+				for (final Object param : parameters) {
+					unwrappedParameters[i++] = unwrap(param);
+				}
+
+				return wrap(externalScriptable, function.apply(actionContext, entity, unwrappedParameters));
 
 			} catch (FrameworkException fex) {
 				exception = fex;
@@ -293,7 +338,27 @@ public class StructrScriptable extends ScriptableObject {
 			if (key != null) {
 
 				try {
-					obj.setProperty(key, o);
+
+					// call enclosing class's unwrap method instead of ours
+					Object value = StructrScriptable.this.unwrap(o);
+
+					// ECMA will return numbers a double, all the time.....
+					if (value instanceof Double && key instanceof NumericalPropertyKey) {
+						value = ((NumericalPropertyKey)key).convertToNumber((Double)value);
+					}
+
+					// use inputConverter of EnumProperty to convert to native enums
+					if (key instanceof EnumProperty) {
+
+						// should we really use the inputConverter here??
+						PropertyConverter inputConverter = key.inputConverter(securityContext);
+						if (inputConverter != null) {
+
+							value = inputConverter.convert(value);
+						}
+					}
+
+					obj.setProperty(key, value);
 
 				} catch (FrameworkException fex) {
 					fex.printStackTrace();
