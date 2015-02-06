@@ -3,12 +3,18 @@ package org.structr.core.script;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.TestUser;
 import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
@@ -176,9 +182,87 @@ public class StructrScriptableTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
-//
-//	@Override
-//	public void setUp() {
-//		super.setUp(toMap("NodeExtender.log", "true"));
-//	}
+
+	public void testGrantViaScripting() {
+
+		/**
+		 * This test creates two connected SchemaNodes and tests the script-based
+		 * association of one instance with several others in the onCreate method.
+		 */
+
+
+		// setup phase: create schema nodes
+		try (final Tx tx = app.tx()) {
+
+			// create two nodes and associate them with each other
+			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "Source");
+
+			sourceNode.setProperty(new StringProperty("___doTest01"), "{ var e = Structr.get('this'); e.grant(Structr.find('TestUser')[0], 'read', 'write'); }");
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class sourceType             = config.getNodeEntityClass("Source");
+		Principal testUser                 = null;
+
+		// create test node as superuser
+		try (final Tx tx = app.tx()) {
+
+			app.create(sourceType);
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// create test user
+		try (final Tx tx = app.tx()) {
+
+			testUser = app.create(TestUser.class,
+				new NodeAttribute<>(Principal.name,     "test"),
+				new NodeAttribute<>(Principal.password, "test")
+			);
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final App userApp = StructrApp.getInstance(SecurityContext.getInstance(testUser, AccessMode.Backend));
+
+		// first test without grant, expect no test object to be found using the user context
+		try (final Tx tx = userApp.tx()) { assertEquals("Invalid grant() scripting result", 0, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// grant read access to test user
+		try (final Tx tx = app.tx()) {
+
+			app.nodeQuery(sourceType).getFirst().invokeMethod("doTest01", Collections.EMPTY_MAP, true);
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// first test without grant, expect no test object to be found using the user context
+		try (final Tx tx = userApp.tx()) { assertEquals("Invalid grant() scripting result", 1, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
 }

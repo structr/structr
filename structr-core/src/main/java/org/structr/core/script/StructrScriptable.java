@@ -298,7 +298,14 @@ public class StructrScriptable extends ScriptableObject {
 				return wrap(parentScope, obj.getProperty(key));
 			}
 
-			// second try: exported method
+			// second try, methods
+			final Object value = checkEntityMethods(name);
+			if (value != null) {
+
+				return value;
+			}
+
+			// third try: exported method
 			final Method method = StructrApp.getConfiguration().getAnnotatedMethods(obj.getClass(), Export.class).get(name);
 			if (method != null) {
 
@@ -433,13 +440,67 @@ public class StructrScriptable extends ScriptableObject {
 			return false;
 		}
 
+		@Override
+		public Object unwrap() {
+			return obj;
+		}
+
+		// ----- private methods -----
 		private PropertyKey getKey(final String name) {
 			return StructrApp.getConfiguration().getPropertyKeyForJSONName(obj.getClass(), name, false);
 		}
 
-		@Override
-		public Object unwrap() {
-			return obj;
+		private Object checkEntityMethods(final String name) {
+
+			if ("grant".equals(name)) {
+
+				return new IdFunctionObject(new IdFunctionCall() {
+
+					@Override
+					public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
+
+						if (parameters.length > 0 && parameters[0] != null) {
+
+							try {
+
+								final Function grant = Functions.functions.get("grant");
+								if (grant != null) {
+
+									if (parameters.length >= 2 && parameters[0] != null && parameters[1] != null) {
+
+										// principal, node, string
+										final Object principal = StructrScriptable.this.unwrap(parameters[0]);
+										String permissions     = parameters[1].toString();
+
+										// append additional parameters to permission string
+										if (parameters.length > 2) {
+
+											for (int i=2; i<parameters.length; i++) {
+
+												if (parameters[i] != null) {
+													permissions += "," + parameters[i].toString();
+												}
+											}
+										}
+
+										// call function, entity can be null here!
+										grant.apply(actionContext, null, new Object[] { principal, obj, permissions } );
+									}
+								}
+
+								return null;
+
+							} catch (FrameworkException ex) {
+								exception = ex;
+							}
+						}
+
+						return null;
+					}
+				}, null, 0, 0);
+			}
+
+			return null;
 		}
 	}
 }

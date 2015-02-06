@@ -462,17 +462,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
-
-		try {
-
-			this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.WARNING, "Could not get security context instance", ex);
-
-		}
-
+		this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 	}
 
 	@Override
