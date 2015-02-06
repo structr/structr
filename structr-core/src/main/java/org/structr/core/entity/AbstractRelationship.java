@@ -699,11 +699,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
-		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
-	}
-
-	@Override
 	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
 
 		switch (key) {
@@ -725,9 +720,9 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				return value;
 		}
 	}
-	
+
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters) throws FrameworkException {
+	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwException) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");
 	}
 

@@ -43,6 +43,7 @@ public class ActionContext {
 	protected Map<String, Object> tmpStore   = new HashMap<>();
 	protected Map<Integer, Integer> counters = new HashMap<>();
 	protected ErrorBuffer errorBuffer        = new ErrorBuffer();
+	protected StringBuilder outputBuffer     = new StringBuilder();
 
 	public ActionContext() {
 		this(null, null);
@@ -72,7 +73,7 @@ public class ActionContext {
 		init(parent, data);
 	}
 
-	private final void init(final GraphObject parent, final Object data) {
+	private void init(final GraphObject parent, final Object data) {
 
 		constants.put("parent", parent);
 		constants.put("data", data);
@@ -167,8 +168,7 @@ public class ActionContext {
 		return headers;
 	}
 
-	// ----- protected methods -----
-	protected Object evaluate(final SecurityContext securityContext, final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final SecurityContext securityContext, final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
 
 		Object value = constants.get(key);
 		if (value == null) {
@@ -232,5 +232,24 @@ public class ActionContext {
 		}
 
 		return value;
+	}
+
+	public void print(final Object... objects) {
+
+		for (final Object obj : objects) {
+
+			if (obj != null) {
+
+				outputBuffer.append(obj.toString());
+			}
+		}
+	}
+
+	public void clear() {
+		outputBuffer.setLength(0);
+	}
+
+	public String getOutput() {
+		return outputBuffer.toString();
 	}
 }

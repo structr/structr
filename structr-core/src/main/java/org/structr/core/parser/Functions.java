@@ -51,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -99,6 +100,7 @@ import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -128,7 +130,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_CAPITALIZE = "Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}";
 	public static final String ERROR_MESSAGE_TITLEIZE = "Usage: ${titleize(string, separator}. Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
 	public static final String ERROR_MESSAGE_NUM = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
-	public static final String ERROR_MESSAGE_INT = "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
+	public static final String ERROR_MESSAGE_INT = "Usage: ${to_int(string)}. Example: ${int(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_RANDOM = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
 	public static final String ERROR_MESSAGE_RINT = "Usage: ${rint(range)}. Example: ${rint(1000)}";
 	public static final String ERROR_MESSAGE_INDEX_OF = "Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}";
@@ -707,7 +709,7 @@ public class Functions {
 				return ERROR_MESSAGE_NUM;
 			}
 		});
-		functions.put("int", new Function<Object, Object>() {
+		functions.put("to_int", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -907,7 +909,7 @@ public class Functions {
 					if (node != null) {
 
 						// recursive replacement call, be careful here
-						return node.replaceVariables(entity.getSecurityContext(), ctx, template);
+						return Scripting.replaceVariables(entity.getSecurityContext(), node, ctx, template);
 					}
 
 					return "";
@@ -1893,7 +1895,7 @@ public class Functions {
 						if (text != null) {
 
 							// recursive replacement call, be careful here
-							return templateInstance.replaceVariables(entity.getSecurityContext(), ctx, text);
+							return Scripting.replaceVariables(entity.getSecurityContext(), templateInstance, ctx, text);
 						}
 					}
 				}
@@ -2744,7 +2746,7 @@ public class Functions {
 
 					final SecurityContext securityContext = entity.getSecurityContext();
 					final ConfigurationProvider config = StructrApp.getConfiguration();
-					final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+					final Query query = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
 
 					// the type to query for
 					Class type = null;
@@ -2759,36 +2761,44 @@ public class Functions {
 						}
 					}
 
-					final Integer parameter_count = sources.length;
+					// extension for native javascript objects
+					if (sources.length == 2 && sources[1] instanceof Map) {
 
-					if (parameter_count % 2 == 0) {
+						query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
-					}
+					} else {
 
-					for (Integer c = 1; c < parameter_count; c+=2) {
 
-						final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+						final Integer parameter_count = sources.length;
 
-						if (key != null) {
+						if (parameter_count % 2 == 0) {
 
-							// throw exception if key is not indexed (otherwise the user will never know)
-							if (!key.isSearchable()) {
-
-								throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
-							}
-
-							final PropertyConverter inputConverter = key.inputConverter(securityContext);
-							Object value = sources[c+1];
-
-							if (inputConverter != null) {
-
-								value = inputConverter.convert(value);
-							}
-
-							query.and(key, value);
+							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
 						}
 
+						for (Integer c = 1; c < parameter_count; c+=2) {
+
+							final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+
+							if (key != null) {
+
+								// throw exception if key is not indexed (otherwise the user will never know)
+								if (!key.isSearchable()) {
+
+									throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
+								}
+
+								final PropertyConverter inputConverter = key.inputConverter(securityContext);
+								Object value = sources[c+1];
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								query.and(key, value);
+							}
+						}
 					}
 
 					final Object x = query.getAsList();
@@ -2813,11 +2823,9 @@ public class Functions {
 				if (sources != null) {
 
 					final SecurityContext securityContext = entity.getSecurityContext();
-					final ConfigurationProvider config = StructrApp.getConfiguration();
-					final Query query = StructrApp.getInstance(securityContext).nodeQuery();
-
-					// the type to query for
-					Class type = null;
+					final ConfigurationProvider config    = StructrApp.getConfiguration();
+					final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
+					Class type                            = null;
 
 					if (sources.length >= 1 && sources[0] != null) {
 
@@ -2829,36 +2837,48 @@ public class Functions {
 						}
 					}
 
-					final Integer parameter_count = sources.length;
+					// extension for native javascript objects
+					if (sources.length == 2 && sources[1] instanceof Map) {
 
-					if (parameter_count % 2 == 0) {
+						final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
+						for (final Entry<PropertyKey, Object> entry : map.entrySet()) {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
-					}
-
-					for (Integer c = 1; c < parameter_count; c+=2) {
-
-						final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
-
-						if (key != null) {
-
-							// throw exception if key is not indexed (otherwise the user will never know)
-							if (!key.isSearchable()) {
-
-								throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
-							}
-
-							final PropertyConverter inputConverter = key.inputConverter(securityContext);
-							Object value = sources[c+1];
-
-							if (inputConverter != null) {
-
-								value = inputConverter.convert(value);
-							}
-
-							query.and(key, value, false);
+							query.and(entry.getKey(), entry.getValue(), false);
 						}
 
+					} else {
+
+						final Integer parameter_count = sources.length;
+
+						if (parameter_count % 2 == 0) {
+
+							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
+						}
+
+						for (Integer c = 1; c < parameter_count; c+=2) {
+
+							final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+
+							if (key != null) {
+
+								// throw exception if key is not indexed (otherwise the user will never know)
+								if (!key.isSearchable()) {
+
+									throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
+								}
+
+								final PropertyConverter inputConverter = key.inputConverter(securityContext);
+								Object value = sources[c+1];
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								query.and(key, value, false);
+							}
+
+						}
 					}
 
 					final Object x = query.getAsList();
@@ -2883,12 +2903,10 @@ public class Functions {
 				if (sources != null) {
 
 					final SecurityContext securityContext = entity.getSecurityContext();
-					final App app = StructrApp.getInstance(securityContext);
-					final ConfigurationProvider config = StructrApp.getConfiguration();
-					PropertyMap propertyMap = new PropertyMap();
-
-					// the type to query for
-					Class type = null;
+					final App app                         = StructrApp.getInstance(securityContext);
+					final ConfigurationProvider config    = StructrApp.getConfiguration();
+					PropertyMap propertyMap               = null;
+					Class type                            = null;
 
 					if (sources.length >= 1 && sources[0] != null) {
 
@@ -2900,32 +2918,40 @@ public class Functions {
 						}
 					}
 
+					// extension for native javascript objects
+					if (sources.length == 2 && sources[1] instanceof Map) {
 
-					final Integer parameter_count = sources.length;
+						propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
 
-					if (parameter_count % 2 == 0) {
+					} else {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_CREATE);
-					}
+						propertyMap                   = new PropertyMap();
+						final Integer parameter_count = sources.length;
 
-					for (Integer c = 1; c < parameter_count; c+=2) {
+						if (parameter_count % 2 == 0) {
 
-						final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
-
-						if (key != null) {
-
-							final PropertyConverter inputConverter = key.inputConverter(securityContext);
-							Object value = sources[c+1].toString();
-
-							if (inputConverter != null) {
-
-								value = inputConverter.convert(value);
-							}
-
-							propertyMap.put(key, value);
-
+							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_CREATE);
 						}
 
+						for (Integer c = 1; c < parameter_count; c+=2) {
+
+							final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+
+							if (key != null) {
+
+								final PropertyConverter inputConverter = key.inputConverter(securityContext);
+								Object value = sources[c+1];
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								propertyMap.put(key, value);
+
+							}
+
+						}
 					}
 
 					if (type != null) {

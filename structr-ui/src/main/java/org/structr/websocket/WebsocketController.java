@@ -114,15 +114,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 					// For non-authenticated clients, construct a security context without user
 					if (securityContext == null) {
-
-						try {
-
-							securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-
-						} catch (FrameworkException ex) {
-
-							continue;
-						}
+						securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 					}
 
 					clientData.setResult(filter(securityContext, result));

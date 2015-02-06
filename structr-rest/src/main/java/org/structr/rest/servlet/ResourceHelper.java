@@ -36,7 +36,6 @@ import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.ViewTransformation;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
@@ -59,16 +58,15 @@ public class ResourceHelper {
 
 	/**
 	 * Parse the request path and match with possible resource patterns
-	 * 
+	 *
 	 * @param securityContext
 	 * @param request
 	 * @param resourceMap
 	 * @param propertyView
-	 * @param defaultIdProperty
 	 * @return resourceChain
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
-	public static List<Resource> parsePath(final SecurityContext securityContext, final HttpServletRequest request, final Map<Pattern, Class<? extends Resource>> resourceMap, final Value<String> propertyView, final PropertyKey defaultIdProperty) throws FrameworkException {
+	public static List<Resource> parsePath(final SecurityContext securityContext, final HttpServletRequest request, final Map<Pattern, Class<? extends Resource>> resourceMap, final Value<String> propertyView) throws FrameworkException {
 
 		final String path = request.getPathInfo();
 
@@ -94,20 +92,19 @@ public class ResourceHelper {
 			if (part.length() > 0) {
 
 				boolean found = false;
-				
+
 				// check views first
 				if (propertyViews.contains(part)) {
-				
+
 					Resource resource = new ViewFilterResource();
 					resource.checkAndConfigure(part, securityContext, request);
-					resource.configureIdProperty(defaultIdProperty);
 					resource.configurePropertyView(propertyView);
-					
+
 					resourceChain.add(resource);
-					
+
 					// mark this part as successfully parsed
 					found = true;
-					
+
 				} else {
 
 					// look for matching pattern
@@ -143,7 +140,6 @@ public class ResourceHelper {
 
 									// allow constraint to modify context
 									resource.configurePropertyView(propertyView);
-									resource.configureIdProperty(defaultIdProperty);
 
 									// add constraint and go on
 									resourceChain.add(resource);
@@ -174,13 +170,12 @@ public class ResourceHelper {
 
 	/**
 	 * Optimize the resource chain by trying to combine two resources to a new one
-	 * 
+	 *
 	 * @param resourceChain
-	 * @param defaultIdProperty
 	 * @return finalResource
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
-	public static Resource optimizeNestedResourceChain(final List<Resource> resourceChain, final PropertyKey defaultIdProperty) throws FrameworkException {
+	public static Resource optimizeNestedResourceChain(final List<Resource> resourceChain) throws FrameworkException {
 
 		ViewFilterResource view = null;
 		int num                 = resourceChain.size();
@@ -243,14 +238,11 @@ public class ResourceHelper {
 
 				finalResource = finalResource.tryCombineWith(view);
 			}
-			
+
 			if (finalResource == null) {
 				// fall back to original resource
 				finalResource = resourceChain.get(0);
 			}
-
-			// inform final constraint about the configured ID property
-			finalResource.configureIdProperty(defaultIdProperty);
 
 			return finalResource;
 
@@ -262,13 +254,13 @@ public class ResourceHelper {
 
 	/**
 	 * Apply view transformation on final resource, if any
-	 * 
+	 *
 	 * @param request
 	 * @param securityContext
 	 * @param finalResource
 	 * @param propertyView
 	 * @return transformedResource
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public static Resource applyViewTransformation(final HttpServletRequest request, final SecurityContext securityContext, final Resource finalResource, final Value<String> propertyView) throws FrameworkException {
 
@@ -277,15 +269,15 @@ public class ResourceHelper {
 		// add view transformation
 		Class type = finalResource.getEntityClass();
 		if (type != null) {
-			
+
 			ViewTransformation transformation = StructrApp.getConfiguration().getViewTransformation(type, propertyView.get(securityContext));
 			if (transformation != null) {
-				
+
 				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
 			}
 		}
 
 		return transformedResource;
 	}
-	
+
 }

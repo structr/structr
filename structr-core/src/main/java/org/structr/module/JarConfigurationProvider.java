@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -102,7 +103,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private final Map<String, Map<String, PropertyGroup>> globalPropertyGroupMap                   = new ConcurrentHashMap<>(100);
 	private final Map<String, Map<String, ViewTransformation>> viewTransformations                 = new ConcurrentHashMap<>(100);
 	private final Map<String, Set<Transformation<GraphObject>>> globalTransformationMap            = new ConcurrentHashMap<>(100);
-	private final Map<String, Set<Method>> exportedMethodMap                                       = new ConcurrentHashMap<>(100);
+	private final Map<String, Map<String, Method>> exportedMethodMap                               = new ConcurrentHashMap<>(100);
 	private final Map<Class, Set<Class>> interfaceMap                                              = new ConcurrentHashMap<>(2000);
 	private final Map<String, Class> reverseInterfaceMap                                           = new ConcurrentHashMap<>(5000);
 
@@ -479,10 +480,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public Set<Method> getAnnotatedMethods(Class entityType, Class annotationType) {
+	public Map<String, Method> getAnnotatedMethods(Class entityType, Class annotationType) {
 
-		Set<Method> methods = new LinkedHashSet<>();
-		Set<Class<?>> allTypes = getAllTypes(entityType);
+		Map<String, Method> methods = new HashMap<>();
+		Set<Class<?>> allTypes      = getAllTypes(entityType);
 
 		for (Class<?> type : allTypes) {
 
@@ -490,7 +491,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 				if (method.getAnnotation(annotationType) != null) {
 
-					methods.add(method);
+					methods.put(method.getName(), method);
 				}
 			}
 		}
@@ -586,13 +587,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			t.printStackTrace();
 		}
 
-		Set<Method> typeMethods = exportedMethodMap.get(type.getName());
+		Map<String, Method> typeMethods = exportedMethodMap.get(type.getName());
 		if (typeMethods == null) {
-			typeMethods = new LinkedHashSet<>();
+			typeMethods = new HashMap<>();
 			exportedMethodMap.put(type.getName(), typeMethods);
 		}
 
-		typeMethods.addAll(getAnnotatedMethods(type, Export.class));
+		typeMethods.putAll(getAnnotatedMethods(type, Export.class));
 
 		// extract interfaces for later use
 		getInterfacesForType(type);
@@ -636,7 +637,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public Set<Method> getExportedMethodsForType(Class type) {
+	public Map<String, Method> getExportedMethodsForType(Class type) {
 		return exportedMethodMap.get(type.getName());
 	}
 

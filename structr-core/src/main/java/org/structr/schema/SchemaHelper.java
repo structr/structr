@@ -25,7 +25,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
@@ -48,8 +47,8 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
@@ -406,36 +405,19 @@ public class SchemaHelper {
 
 			if (propertyContainer.hasProperty(rawActionName)) {
 
-				// split value on ";"
-				final String value = propertyContainer.getProperty(rawActionName).toString();
-				final String[] parts1 = value.split("[;]+");
-				final int parts1Length = parts1.length;
+				final String value           = propertyContainer.getProperty(rawActionName).toString();
+				final ActionEntry entry      = new ActionEntry(rawActionName, value);
+				List<ActionEntry> actionList = actions.get(entry.getType());
 
-				for (int i = 0; i < parts1Length; i++) {
+				if (actionList == null) {
 
-					// split value on "&&"
-					final String[] parts2 = parts1[i].split("\\&\\&");
-					final int parts2Length = parts2.length;
-
-					for (int j = 0; j < parts2Length; j++) {
-
-						// since the parts in this loop are separated by "&&", all parts AFTER
-						// the first one should only be run if the others before succeeded.
-						final ActionEntry entry = new ActionEntry(rawActionName, parts2[j], j == 0);
-						List<ActionEntry> actionList = actions.get(entry.getType());
-
-						if (actionList == null) {
-
-							actionList = new LinkedList<>();
-							actions.put(entry.getType(), actionList);
-						}
-
-						actionList.add(entry);
-
-						Collections.sort(actionList);
-					}
-
+					actionList = new LinkedList<>();
+					actions.put(entry.getType(), actionList);
 				}
+
+				actionList.add(entry);
+
+				Collections.sort(actionList);
 			}
 		}
 
@@ -653,15 +635,13 @@ public class SchemaHelper {
 		for (final ActionEntry action : actionList) {
 
 			src.append("\n\t@Export\n");
-			src.append("\tpublic RestMethodResult ");
+			src.append("\tpublic Object ");
 			src.append(action.getName());
 			src.append("(final Map<String, Object> parameters) throws FrameworkException {\n\n");
 
-			src.append("\t\t");
+			src.append("\t\treturn ");
 			src.append(action.getSource("this", true));
 			src.append(";\n\n");
-
-			src.append("\t\treturn new RestMethodResult(200);\n");
 			src.append("\t}\n");
 		}
 
@@ -671,15 +651,13 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\tpublic static RestMethodResult ");
+			src.append("\tpublic static Object ");
 			src.append(action.getName());
 			src.append("(final AbstractNode obj) throws FrameworkException {\n\n");
 
-			src.append("\t\t");
+			src.append("\t\treturn ");
 			src.append(action.getSource("obj"));
 			src.append(";\n\n");
-
-			src.append("\t\treturn new RestMethodResult(200);\n");
 			src.append("\t}\n");
 		}
 
@@ -701,24 +679,12 @@ public class SchemaHelper {
 
 		if (!actionList.isEmpty()) {
 
-			src.append("\t\tif (!error) {\n");
-
 			for (final ActionEntry action : actionList) {
 
-				if (action.runOnError()) {
-
-					src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
-
-				} else {
-
-					src.append("\t\tif (!error) {\n");
-					src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
-					src.append("\t\t}\n");
-
-				}
+				src.append("\t\tif (!error) {\n");
+				src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
+				src.append("\t\t}\n");
 			}
-
-			src.append("\t\t}\n");
 		}
 
 		src.append("\n\t\treturn !error;\n");
@@ -735,24 +701,12 @@ public class SchemaHelper {
 
 		if (!actionList.isEmpty()) {
 
-			src.append("\t\tif (!error) {\n");
-
 			for (final ActionEntry action : actionList) {
 
-				if (action.runOnError()) {
-
-					src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
-
-				} else {
-
-					src.append("\t\tif (!error) {\n");
-					src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
-					src.append("\t\t}\n");
-
-				}
+				src.append("\t\tif (!error) {\n");
+				src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
+				src.append("\t\t}\n");
 			}
-
-			src.append("\t\t}\n");
 		}
 
 		src.append("\n\t\treturn !error;\n");
@@ -762,145 +716,8 @@ public class SchemaHelper {
 
 	public static String getPropertyWithVariableReplacement(SecurityContext securityContext, final GraphObject entity, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
 
-		return replaceVariables(securityContext, entity, renderContext, entity.getProperty(key));
+		return Scripting.replaceVariables(securityContext, entity, renderContext, entity.getProperty(key));
 
-	}
-
-	public static String replaceVariables(final SecurityContext securityContext, final GraphObject entity, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
-
-		String value = null;
-
-		if (rawValue == null) {
-
-			return null;
-
-		}
-
-		if (rawValue instanceof String) {
-
-			value = (String) rawValue;
-
-			if (!actionContext.returnRawValue(securityContext)) {
-
-				final Map<String, String> replacements = new LinkedHashMap<>();
-
-				for (final String expression : extractTemplateExpressions(value)) {
-
-					String source         = expression.substring(2, expression.length() - 1);
-					Object extractedValue = Functions.evaluate(securityContext, actionContext, entity, source);
-
-					if (extractedValue == null) {
-						extractedValue = "";
-					}
-
-					String partValue = extractedValue.toString();
-					if (partValue != null) {
-
-						replacements.put(expression, partValue);
-
-					} else {
-
-						// If the whole expression should be replaced, and partValue is null
-						// replace it by null to make it possible for HTML attributes to not be rendered
-						// and avoid something like ... selected="" ... which is interpreted as selected==true by
-						// all browsers
-						if (!value.equals(expression)) {
-							replacements.put(expression, "");
-						}
-					}
-				}
-
-				// apply replacements
-				for (final Entry<String, String> entry : replacements.entrySet()) {
-
-					final String group = entry.getKey();
-					final String replacement = entry.getValue();
-
-					value = value.replace(group, replacement);
-				}
-
-			}
-
-		} else if (rawValue instanceof Boolean) {
-
-			value = Boolean.toString((Boolean) rawValue);
-
-		} else {
-
-			value = rawValue.toString();
-
-		}
-
-		// return literal null
-		if (Functions.NULL_STRING.equals(value)) {
-			return null;
-		}
-
-		return value;
-	}
-
-	public static List<String> extractTemplateExpressions(final String source) {
-
-		final List<String> expressions = new LinkedList<>();
-		final int length               = source.length();
-		boolean inSingleQuotes         = false;
-		boolean inDoubleQuotes         = false;
-		boolean inTemplate             = false;
-		boolean hasDollar              = false;
-		int start                      = 0;
-		int end                        = 0;
-
-		for (int i=0; i<length; i++) {
-
-			final char c = source.charAt(i);
-
-			switch (c) {
-
-				case '\'':
-					if (inTemplate) {
-						inSingleQuotes = !inSingleQuotes;
-					}
-					hasDollar = false;
-					break;
-
-				case '\"':
-					if (inTemplate) {
-						inDoubleQuotes = !inDoubleQuotes;
-					}
-					hasDollar = false;
-					break;
-
-				case '$':
-					hasDollar = true;
-					break;
-
-				case '{':
-					if (!inTemplate && hasDollar) {
-
-						inTemplate = true;
-						start = i-1;
-					}
-					hasDollar = false;
-					break;
-
-				case '}':
-					if (!inSingleQuotes && !inDoubleQuotes && inTemplate) {
-
-						inTemplate = false;
-						end = i+1;
-
-						expressions.add(source.substring(start, end));
-					}
-					hasDollar = true;
-					break;
-
-				default:
-					hasDollar = false;
-					break;
-			}
-		}
-
-		return expressions;
 	}
 
 	// ----- private methods -----
