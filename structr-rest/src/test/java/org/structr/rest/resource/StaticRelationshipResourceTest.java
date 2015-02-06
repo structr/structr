@@ -18,7 +18,12 @@
  */
 package org.structr.rest.resource;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.Tx;
 import org.structr.rest.common.StructrRestTest;
+import org.structr.rest.entity.TestOne;
 
 /**
  *
@@ -26,17 +31,72 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class StaticRelationshipResourceTest extends StructrRestTest {
 
-	public void testDoGet() {
-		
-		
+	public void testInvokeMethodResult() {
+
+		String id = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final TestOne test = app.create(TestOne.class);
+
+			// store ID for later use
+			id = test.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// execute test method, expect sane result (not 500)
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.when()
+			.post(concat("/test_ones/", id, "/test01"));
+
+
+		// execute test method, expect sane result (not 500)
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.when()
+			.post(concat("/test_ones/", id, "/test02"));
+
+
+		// execute test method, expect sane result (not 500)
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.when()
+			.post(concat("/test_ones/", id, "/test03"));
+
+
+		// execute test method, expect sane result (not 500)
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.when()
+			.post(concat("/test_ones/", id, "/test04"));
+
 	}
-	
-	public void testDoPut() {
-		
-	}
-	
-	public void testDoPost() {
-		
-		
-	}
+
 }

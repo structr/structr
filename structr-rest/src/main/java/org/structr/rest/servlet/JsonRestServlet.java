@@ -403,7 +403,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			final App app              = StructrApp.getInstance(securityContext);
 			final String input         = IOUtils.toString(request.getReader());
 			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
-			
+
 			if (securityContext != null) {
 
 				// isolate resource authentication
@@ -464,24 +464,27 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						final RestMethodResult result = results.get(0);
 						final int resultCount         = results.size();
 
-						if (resultCount > 1) {
+						if (result != null) {
 
-							for (final RestMethodResult r : results) {
+							if (resultCount > 1) {
 
-								final GraphObject objectCreated = r.getContent().get(0);
-								if (!result.getContent().contains(objectCreated)) {
+								for (final RestMethodResult r : results) {
 
-									result.addContent(objectCreated);
+									final GraphObject objectCreated = r.getContent().get(0);
+									if (!result.getContent().contains(objectCreated)) {
+
+										result.addContent(objectCreated);
+									}
+
 								}
 
+								// remove Location header if more than one object was
+								// written because it may only contain a single URL
+								result.addHeader("Location", null);
 							}
 
-							// remove Location header if more than one object was
-							// written because it may only contain a single URL
-							result.addHeader("Location", null);
+							result.commitResponse(gson.get(), response);
 						}
-
-						result.commitResponse(gson.get(), response);
 
 					}
 
@@ -567,7 +570,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		final Resource resource;
 
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-		
+
 		try {
 
 			// first thing to do!
@@ -699,9 +702,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 
 	private IJsonInput cleanAndParseJsonString(final App app, final String input) throws FrameworkException {
-		
+
 		IJsonInput jsonInput;
-		
+
 		// isolate input parsing (will include read and write operations)
 		try (final Tx tx = app.tx()) {
 			jsonInput   = gson.get().fromJson(input, IJsonInput.class);
@@ -722,11 +725,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				jsonInput = new JsonSingleInput();
 			}
 		}
-		
+
 		return jsonInput;
-		
+
 	}
-	
+
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 
 		if (propertySet != null) {
