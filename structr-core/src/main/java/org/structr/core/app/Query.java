@@ -69,6 +69,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public <P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact);
 	public <P> Query<T> and(final PropertyMap attributes);
 	public Query<T> and();
+	public Query<T> andNot();
 	public <P> Query<T> or(final PropertyKey<P> key, P value);
 	public <P> Query<T> or(final PropertyKey<P> key, P value, boolean exact);
 	public <P> Query<T> or(final PropertyMap attributes);

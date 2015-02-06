@@ -586,15 +586,22 @@ public abstract class Property<T> implements PropertyKey<T> {
 			throw new FrameworkException(422, "Mixing of AND and OR not allowed in request parameters");
 		}
 
-		if (requestParameter.contains(";")) {
+		boolean notQuery = requestParameter.startsWith("^");
+		String usedParameter = notQuery?requestParameter.substring(1):requestParameter;
+		
+		if (usedParameter.contains(";")) {
 
 			if (multiValueSplitAllowed()) {
 
 				// descend into a new group
-				query.and();
+				if(notQuery){
+					query.andNot();
+				} else {
+					query.and();
+					
+				}
 
-				for (final String part : requestParameter.split("[;]+")) {
-
+				for (final String part : usedParameter.split("[;]+")) {
 					query.or(this, convertSearchValue(securityContext, part));
 				}
 
@@ -602,13 +609,15 @@ public abstract class Property<T> implements PropertyKey<T> {
 				query.parent();
 
 			} else {
-
-				query.or(this, convertSearchValue(securityContext, requestParameter));
+				
+				query.or(this, convertSearchValue(securityContext, usedParameter));
 			}
 
 		} else {
-
-			query.and(this, convertSearchValue(securityContext, requestParameter));
+			if(notQuery){
+				query.not();
+			}
+			query.and(this, convertSearchValue(securityContext, usedParameter));
 		}
 	}
 

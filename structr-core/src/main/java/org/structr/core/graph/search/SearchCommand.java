@@ -676,6 +676,18 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		return this;
 	}
+	
+	@Override	
+	public org.structr.core.app.Query<T> andNot() {
+
+		// create nested group that the user can add to
+		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, BooleanClause.Occur.MUST_NOT);
+
+		currentGroup.getSearchAttributes().add(group);
+		currentGroup = group;
+
+		return this;
+	}		
 
 	@Override
 	public <P> org.structr.core.app.Query<T> or(final PropertyKey<P> key, P value) {
