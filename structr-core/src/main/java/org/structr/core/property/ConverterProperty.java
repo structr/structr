@@ -39,7 +39,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 	private static final Logger logger = Logger.getLogger(ConverterProperty.class.getName());
 	private Constructor constructor    = null;
 	
-	public ConverterProperty(String name, Class<? extends PropertyConverter<?, T>> converterClass) {
+	public ConverterProperty(final String name, final Class<? extends PropertyConverter<?, T>> converterClass) {
 		
 		super(name);
 		

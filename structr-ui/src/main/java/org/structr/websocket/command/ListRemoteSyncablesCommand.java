@@ -49,7 +49,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class ListRemoteSyncablesCommand extends AbstractCommand {
 
-	private static final Property<Boolean> isSynchronized = new BooleanProperty("isSynchronized", false);
+	private static final Property<Boolean> isSynchronized = new BooleanProperty("isSynchronized").defaultValue(false);
 
 	static {
 

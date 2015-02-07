@@ -70,7 +70,7 @@ public class Content extends DOMNode implements Text {
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
-	public static final Property<Boolean> isContent                                      = new BooleanProperty("isContent", true).readOnly();
+	public static final Property<Boolean> isContent                                      = new BooleanProperty("isContent").defaultValue(true).readOnly();
 
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<>();
 

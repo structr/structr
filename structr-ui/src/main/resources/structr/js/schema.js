@@ -948,12 +948,13 @@ var _Schema = {
 
         var notNull = (res[key].indexOf('+') > -1);
         var unique = (res[key].indexOf('!') > -1);
-
+        var contentType;
+        
         type = type.replace('+', '').replace('!', '');
 
         var defaultValue = '';
         var format = '';
-
+        
         var defaultBegin = type.indexOf(':');
         var formatBegin = type.indexOf('(');
 
@@ -976,7 +977,15 @@ var _Schema = {
             type = type.substring(0, formatBegin);
         }
         
-        return { type: type, name: name, dbName: dbName, notNull: notNull, unique: unique, defaultValue: defaultValue, format: format };
+        var contentTypeBegin = type.indexOf('[');
+        if (contentTypeBegin > -1) {
+            var contentTypeEnd = type.indexOf(']');
+            contentType = type.substring(contentTypeBegin, contentTypeEnd+1);
+            type = type.replace(contentType, '');
+            contentType = contentType.replace('[', '').replace(']', '');
+        }
+
+        return { type: type, contentType: contentType, name: name, dbName: dbName, notNull: notNull, unique: unique, defaultValue: defaultValue, format: format };
         
     },
     bindEvents: function(entity, type, key) {
@@ -990,6 +999,18 @@ var _Schema = {
         var el = $('.local.schema-props');
 
         $('.' + key + ' .property-type option[value="' + type + '"]', el).attr('selected', true).prop('disabled', null);
+        
+        var typeField = $('.' + key + ' .property-type', el);
+        $('.' + key + ' .property-type option[value=""]', el).remove();
+        
+        if (type === 'String') {
+            if (!$('input.content-type', typeField.parent()).length) {
+                typeField.after('<input type="text" size="5" class="content-type">');
+            }
+            $('.' + key + ' .content-type', el).on('blur', function() {
+                _Schema.savePropertyDefinition(entity, key);
+            }).prop('disabled', null).val(property.contentType);
+        }
 
         $('.' + key + ' .property-type', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);
@@ -1022,6 +1043,8 @@ var _Schema = {
         var el = $('.local.schema-props');
 
         $('.' + key + ' .property-type', el).off('change').prop('disabled', 'disabled');
+        
+        $('.' + key + ' .content-type', el).off('change').prop('disabled', 'disabled');
 
         $('.' + key + ' .property-format', el).off('blur').prop('disabled', 'disabled');
 
@@ -1158,6 +1181,7 @@ var _Schema = {
         var name = $('.' + key + ' .property-name').val();
         var dbName = $('.' + key + ' .property-dbname').val();
         var type = $('.' + key + ' .property-type').val();
+        var contentType = $('.' + key + ' .content-type').val();
         var format = $('.' + key + ' .property-format').val();
         var notNull = $('.' + key + ' .not-null').is(':checked');
         var unique = $('.' + key + ' .unique').is(':checked');
@@ -1167,6 +1191,7 @@ var _Schema = {
             var val = (dbName ? dbName + '|' : '')
                     + (notNull ? '+' : '')
                     + (type === 'del' ? null : type)
+                    + (contentType ? '[' + contentType.escapeForJSON() + ']' : '')
                     + (unique ? '!' : '')
                     + (format ? '(' + format.escapeForJSON() + ')' : '')
                     + (defaultValue ? ':' + defaultValue.escapeForJSON() : '');
@@ -1806,7 +1831,7 @@ function denormalizeAttrs(attrs) {
     }).join(', ');
 }
 
-var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
+var typeOptions = '<select class="property-type"><option value="">--Select--</option>'
         + '<option value="String">String</option>'
         + '<option value="Integer">Integer</option>'
         + '<option value="Long">Long</option>'

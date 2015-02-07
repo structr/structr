@@ -71,7 +71,7 @@ public class DatePropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
 		if (expression != null) {
 

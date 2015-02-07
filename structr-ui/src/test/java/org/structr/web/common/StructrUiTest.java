@@ -183,6 +183,8 @@ public class StructrUiTest extends TestCase {
 		config.setProperty("StructrUiHandler.directoriesListed", Boolean.toString(false));
 		config.setProperty("StructrUiHandler.welcomeFiles", "index.html");
 
+		config.setProperty("NodeExtender.log", "true");
+		
 		final Services services = Services.getInstance(config);
 
 		// wait for service layer to be initialized

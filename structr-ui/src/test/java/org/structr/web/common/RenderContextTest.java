@@ -119,7 +119,7 @@ public class RenderContextTest extends StructrUiTest {
 			assertTrue(value instanceof Collection);
 
 			final Collection coll = (Collection)value;
-			assertEquals("FUCK", 2, coll.size());
+			assertEquals(2, coll.size());
 
 			tx.success();
 

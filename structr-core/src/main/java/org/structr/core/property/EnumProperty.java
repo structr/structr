@@ -34,15 +34,15 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 	private Class<T> enumType = null;
 
-	public EnumProperty(String name, Class<T> enumType, final PropertyValidator<T>... validators) {
+	public EnumProperty(final String name, final Class<T> enumType, final PropertyValidator<T>... validators) {
 		this(name, enumType, null, validators);
 	}
 
-	public EnumProperty(String name, Class<T> enumType, T defaultValue, final PropertyValidator<T>... validators) {
+	public EnumProperty(final String name, final Class<T> enumType, final T defaultValue, final PropertyValidator<T>... validators) {
 		this(name, name, enumType, defaultValue, validators);
 	}
 
-	public EnumProperty(String jsonName, String dbName, Class<T> enumType, T defaultValue, final PropertyValidator<T>... validators) {
+	public EnumProperty(final String jsonName, final String dbName, final Class<T> enumType, final T defaultValue, final PropertyValidator<T>... validators) {
 
 		super(jsonName, dbName, defaultValue);
 

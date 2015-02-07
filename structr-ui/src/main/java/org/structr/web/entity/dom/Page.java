@@ -110,8 +110,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
-	public static final Property<Boolean> isPage = new BooleanProperty("isPage", true).readOnly();
-	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache", false);
+	public static final Property<Boolean> isPage = new BooleanProperty("isPage").defaultValue(true).readOnly();
+	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache").defaultValue(false);
         public static final Property<String> path = new StringProperty("path").indexed();
 	public static final Property<Site> site = new StartNode<>("Site", Pages.class, new UiNotion()).indexedWhenEmpty();
 

@@ -53,7 +53,7 @@ public class Widget extends AbstractNode implements Taggable {
 	public static final Property<String>      description = new StringProperty("description");
 	public static final Property<String>      treePath    = new StringProperty("treePath").indexed();
 	public static final Property<List<Image>> pictures    = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
-	public static final Property<Boolean>     isWidget    = new BooleanProperty("isWidget", true).readOnly();
+	public static final Property<Boolean>     isWidget    = new BooleanProperty("isWidget").defaultValue(true).readOnly();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Widget.class, PropertyView.Ui,
 		type, name, source, description, pictures, tags, treePath, isWidget
