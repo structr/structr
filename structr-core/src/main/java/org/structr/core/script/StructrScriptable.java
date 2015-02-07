@@ -15,7 +15,6 @@ import org.mozilla.javascript.NativeJavaMethod;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Wrapper;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -36,14 +35,12 @@ public class StructrScriptable extends ScriptableObject {
 
 	private static final Logger logger = Logger.getLogger(StructrScriptable.class.getName());
 
-	private SecurityContext securityContext = null;
 	private ActionContext actionContext     = null;
 	private GraphObject entity              = null;
 	private FrameworkException exception    = null;
 
-	public StructrScriptable(final SecurityContext securityContext, final ActionContext actionContext, final GraphObject entity) {
+	public StructrScriptable(final ActionContext actionContext, final GraphObject entity) {
 
-		this.securityContext = securityContext;
 		this.actionContext   = actionContext;
 		this.entity          = entity;
 	}
@@ -67,7 +64,7 @@ public class StructrScriptable extends ScriptableObject {
 
 						try {
 
-							return wrap(externalScriptable, actionContext.evaluate(securityContext, entity, parameters[0].toString(), null, null));
+							return wrap(externalScriptable, actionContext.evaluate(entity, parameters[0].toString(), null, null));
 
 						} catch (FrameworkException ex) {
 							exception = ex;
@@ -171,7 +168,7 @@ public class StructrScriptable extends ScriptableObject {
 		return array;
 	}
 
-	private Object unwrap(final Object source) {
+	public Object unwrap(final Object source) {
 
 		if (source != null) {
 
@@ -314,7 +311,7 @@ public class StructrScriptable extends ScriptableObject {
 
 			// default: direct evaluation of object
 			try {
-				return obj.evaluate(securityContext, name, null);
+				return obj.evaluate(actionContext.getSecurityContext(), name, null);
 
 			} catch (FrameworkException fex) {
 				exception = fex;
@@ -358,7 +355,7 @@ public class StructrScriptable extends ScriptableObject {
 					if (key instanceof EnumProperty) {
 
 						// should we really use the inputConverter here??
-						PropertyConverter inputConverter = key.inputConverter(securityContext);
+						PropertyConverter inputConverter = key.inputConverter(actionContext.getSecurityContext());
 						if (inputConverter != null) {
 
 							value = inputConverter.convert(value);

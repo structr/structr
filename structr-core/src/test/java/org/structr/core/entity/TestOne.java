@@ -49,9 +49,9 @@ public class TestOne extends AbstractNode {
 	public static final Property<Long>          aLong              = new LongProperty("aLong").indexed().indexedWhenEmpty();
 	public static final Property<Double>        aDouble            = new DoubleProperty("aDouble").indexed().indexedWhenEmpty();
 	public static final Property<Date>          aDate              = new ISO8601DateProperty("aDate").indexed().indexedWhenEmpty();
-	public static final Property<Status>        anEnum             = new EnumProperty<>("anEnum", Status.class);
+	public static final Property<Status>        anEnum             = new EnumProperty<>("anEnum", Status.class).indexed();
 	public static final Property<String>        aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
-	public static final Property<Boolean>       aBoolean           = new BooleanProperty("aBoolean");
+	public static final Property<Boolean>       aBoolean           = new BooleanProperty("aBoolean").indexed();
 	public static final Property<String>        anotherString      = new StringProperty("anotherString");
 	public static final Property<String>        replaceString      = new StringProperty("replaceString");
 	public static final Property<String>        cleanTestString    = new StringProperty("cleanTestString");

@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity.dom;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.common.RenderContext;
 
@@ -29,7 +28,7 @@ import org.structr.web.common.RenderContext;
 public class Comment extends Content implements org.w3c.dom.Comment {
 
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(RenderContext renderContext, int depth) throws FrameworkException {
 
 		renderContext.getBuffer().append("<!--".concat(getProperty(content)).concat("-->"));
 

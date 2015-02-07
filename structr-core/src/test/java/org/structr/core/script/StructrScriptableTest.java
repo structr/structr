@@ -3,6 +3,7 @@ package org.structr.core.script;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
@@ -12,6 +13,12 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.TestFour;
+import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestOne.Status;
+import org.structr.core.entity.TestSix;
+import org.structr.core.entity.TestThree;
+import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.TestUser;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
@@ -21,6 +28,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.action.ActionContext;
 
 
 /**
@@ -185,12 +193,6 @@ public class StructrScriptableTest extends StructrTest {
 
 	public void testGrantViaScripting() {
 
-		/**
-		 * This test creates two connected SchemaNodes and tests the script-based
-		 * association of one instance with several others in the onCreate method.
-		 */
-
-
 		// setup phase: create schema nodes
 		try (final Tx tx = app.tx()) {
 
@@ -264,5 +266,107 @@ public class StructrScriptableTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	public void testScriptedFindWithJSONObject() {
+
+		final Random random    = new Random();
+		final long long1       = 13475233523455L;
+		final long long2       = 327326252322L;
+		final double double1   = 1234.56789;
+		final double double2   = 5678.975321;
+
+		List<TestSix> testSixs = null;
+		TestOne testOne1       = null;
+		TestOne testOne2       = null;
+		TestTwo testTwo1       = null;
+		TestTwo testTwo2       = null;
+		TestThree testThree1   = null;
+		TestThree testThree2   = null;
+		TestFour testFour1     = null;
+		TestFour testFour2     = null;
+		Date date1             = null;
+		Date date2             = null;
+
+		// setup phase
+		try (final Tx tx = app.tx()) {
+
+			testSixs             = createTestNodes(TestSix.class, 10);
+			testOne1             = app.create(TestOne.class);
+			testOne2             = app.create(TestOne.class);
+			testTwo1             = app.create(TestTwo.class);
+			testTwo2             = app.create(TestTwo.class);
+			testThree1           = app.create(TestThree.class);
+			testThree2           = app.create(TestThree.class);
+			testFour1            = app.create(TestFour.class);
+			testFour2            = app.create(TestFour.class);
+			date1                = new Date(random.nextLong());
+			date2                = new Date();
+
+			testOne1.setProperty(TestOne.anInt             , 42);
+			testOne1.setProperty(TestOne.aLong             , long1);
+			testOne1.setProperty(TestOne.aDouble           , double1);
+			testOne1.setProperty(TestOne.aDate             , date1);
+			testOne1.setProperty(TestOne.anEnum            , Status.One);
+			testOne1.setProperty(TestOne.aString           , "aString1");
+			testOne1.setProperty(TestOne.aBoolean          , true);
+			testOne1.setProperty(TestOne.anotherString     , "anotherString1");
+			testOne1.setProperty(TestOne.stringWithQuotes  , "1String\"with'quotes");
+			testOne1.setProperty(TestOne.testTwo           , testTwo1);
+			testOne1.setProperty(TestOne.testThree         , testThree1);
+			testOne1.setProperty(TestOne.testFour          , testFour1);
+			testOne1.setProperty(TestOne.manyToManyTestSixs, testSixs.subList(0, 5));
+
+			testOne2.setProperty(TestOne.anInt             , 33);
+			testOne2.setProperty(TestOne.aLong             , long2);
+			testOne2.setProperty(TestOne.aDouble           , double2);
+			testOne2.setProperty(TestOne.aDate             , date2);
+			testOne2.setProperty(TestOne.anEnum            , Status.Two);
+			testOne2.setProperty(TestOne.aString           , "aString2");
+			testOne2.setProperty(TestOne.aBoolean          , false);
+			testOne2.setProperty(TestOne.anotherString     , "anotherString2");
+			testOne2.setProperty(TestOne.stringWithQuotes  , "2String\"with'quotes");
+			testOne2.setProperty(TestOne.testTwo           , testTwo2);
+			testOne2.setProperty(TestOne.testThree         , testThree2);
+			testOne2.setProperty(TestOne.testFour          , testFour2);
+			testOne2.setProperty(TestOne.manyToManyTestSixs, testSixs.subList(5, 10));
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test phase, find all the things using scripting
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anInt: 42 })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anInt: 33 })[0]; }}"));
+
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aLong: " + long1 + " })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aLong: " + long2 + " })[0]; }}"));
+
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aDouble: " + double1 + " })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aDouble: " + double2 + " })[0]; }}"));
+
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'One' })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'Two' })[0]; }}"));
+
+
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+
 	}
 }

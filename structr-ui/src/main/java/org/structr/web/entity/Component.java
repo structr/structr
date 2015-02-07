@@ -37,7 +37,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.IntProperty;
@@ -62,15 +61,15 @@ public class Component extends DOMElement {
 
 	public static final Property<Integer> position   = new IntProperty("position").indexed();
 	public static final Property<String>  kind       = new StringProperty("kind").indexed();
-	
+
 	public static final org.structr.common.View uiView = new org.structr.common.View(Component.class, PropertyView.Ui,
 		type, name, kind
 	);
-	
+
 	public static final org.structr.common.View publicView = new org.structr.common.View(Component.class, PropertyView.Public,
 		type, name, kind
 	);
-	
+
 	private Map<String, AbstractNode> contentNodes = new WeakHashMap<>();
 	private Set<String> subTypes                   = new LinkedHashSet<>();
 
@@ -98,7 +97,7 @@ public class Component extends DOMElement {
 			logger.log(Level.SEVERE, "Exception while deleting nested Components: {0}", t.getMessage());
 		}
 	}
-	
+
 	private void collectChildren(List<Component> children, DOMNode startNode, int depth, AbstractRelationship ref) {
 
 		if (depth > MAX_DEPTH) {
@@ -272,9 +271,9 @@ public class Component extends DOMElement {
 	public short getNodeType() {
 		return ELEMENT_NODE;
 	}
-	
+
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
-		super.render(securityContext, renderContext, depth - 1);
+	public void render(RenderContext renderContext, int depth) throws FrameworkException {
+		super.render(renderContext, depth - 1);
 	}
 }

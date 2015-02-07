@@ -20,7 +20,6 @@ package org.structr.core.parser;
 
 import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -67,13 +66,13 @@ public class CacheExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 		if (keyExpression == null) {
 			return "Error: cache(): key expression may not be empty.";
 		}
 
-		final Object keyObject = keyExpression.evaluate(securityContext, ctx, entity);
+		final Object keyObject = keyExpression.evaluate(ctx, entity);
 		if (keyObject == null) {
 
 			return "Error: cache(): key may not be empty.";
@@ -89,7 +88,7 @@ public class CacheExpression extends Expression {
 			return "Error: cache(): timeout expression may not be empty.";
 		}
 
-		final Object timeoutValue = timeoutExpression.evaluate(securityContext, ctx, entity);
+		final Object timeoutValue = timeoutExpression.evaluate(ctx, entity);
 		if (timeoutValue == null || !(timeoutValue instanceof Number)) {
 
 			return "Error: cache(): timeout must be non-empty and a number.";
@@ -116,7 +115,7 @@ public class CacheExpression extends Expression {
 
 		// refresh value from value expression (this is the only place the value expression is evaluated)
 		if (cachedValue.isExpired()) {
-			cachedValue.refresh(valueExpression.evaluate(securityContext, ctx, entity));
+			cachedValue.refresh(valueExpression.evaluate(ctx, entity));
 		}
 
 		return cachedValue.getValue();
@@ -153,7 +152,7 @@ public class CacheExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
 		return source;
 	}
 }

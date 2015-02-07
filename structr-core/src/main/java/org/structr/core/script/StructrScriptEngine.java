@@ -12,7 +12,6 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 import org.apache.commons.io.IOUtils;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.parser.Functions;
@@ -36,11 +35,10 @@ public class StructrScriptEngine extends AbstractScriptEngine {
 
 		try {
 
-			final SecurityContext securityContext = (SecurityContext)get("_securityContext");
 			final ActionContext actionContext     = (ActionContext)get("_actionContext");
 			final GraphObject entity              = (GraphObject)get("_entity");
 
-			return Functions.evaluate(securityContext, actionContext, entity, script);
+			return Functions.evaluate(actionContext, entity, script);
 
 		} catch (FrameworkException fex) {
 

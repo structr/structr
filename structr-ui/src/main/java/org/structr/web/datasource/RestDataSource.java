@@ -65,20 +65,21 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 	private static final Logger logger = Logger.getLogger(RestDataSource.class.getName());
 
 	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
+	public List<GraphObject> getData(final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
 
-		final String restQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMNode.restQuery);
+		final String restQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, DOMNode.restQuery);
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
 		}
 
-		return getData(securityContext, renderContext, restQuery);
+		return getData(renderContext, restQuery);
 	}
 
 	// FIXME: this method is needed by the websocket search command because there is no reference node for the above method
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final String restQuery) throws FrameworkException {
+	public List<GraphObject> getData(final RenderContext renderContext, final String restQuery) throws FrameworkException {
 
-		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
+		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
+		final SecurityContext securityContext                     = renderContext.getSecurityContext();
 
 		ResourceProvider resourceProvider = renderContext == null ? null : renderContext.getResourceProvider();
 		if (resourceProvider == null) {

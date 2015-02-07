@@ -77,7 +77,8 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public RenderContext() {
+	public RenderContext(final SecurityContext securityContext) {
+		super(securityContext);
 	}
 
 	/**
@@ -107,7 +108,9 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public RenderContext(final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
+	public RenderContext(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
+
+		super(securityContext);
 
 		this.request = request;
 		this.response = response;
@@ -117,11 +120,11 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public static RenderContext getInstance(final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
+	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
 
 		String editString = StringUtils.defaultString(request.getParameter("edit"));
 
-		return new RenderContext(request, response, editMode(editString), locale);
+		return new RenderContext(securityContext, request, response, editMode(editString), locale);
 
 	}
 
@@ -329,7 +332,7 @@ public class RenderContext extends ActionContext {
 	}
 
 	@Override
-	public boolean returnRawValue(final SecurityContext securityContext) {
+	public boolean returnRawValue() {
 		EditMode editMode = getEditMode(securityContext.getUser(false));
 		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
 	}
@@ -339,14 +342,14 @@ public class RenderContext extends ActionContext {
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
 
 		if (hasDataForKey(key)) {
 			return getDataNode(key);
 		}
 
 		// evaluate non-ui specific context
-		Object value = super.evaluate(securityContext, entity, key, data, defaultValue);
+		Object value = super.evaluate(entity, key, data, defaultValue);
 		if (value == null) {
 
 			if (data != null) {

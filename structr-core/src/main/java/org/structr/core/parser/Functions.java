@@ -220,10 +220,10 @@ public class Functions {
 		return functions.get(name);
 	}
 
-	public static Object evaluate(final SecurityContext securityContext, final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
 
 		final String expressionWithoutNewlines = expression.replace('\n', ' ');
-		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
+		final StreamTokenizer tokenizer        = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
 		tokenizer.eolIsSignificant(true);
 		tokenizer.ordinaryChar('.');
 		tokenizer.wordChars('_', '_');
@@ -339,7 +339,7 @@ public class Functions {
 			throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
 		}
 
-		return root.evaluate(securityContext, actionContext, entity);
+		return root.evaluate(actionContext, entity);
 	}
 
 	private static Expression checkReservedWords(final String word) throws FrameworkException {
@@ -909,7 +909,7 @@ public class Functions {
 					if (node != null) {
 
 						// recursive replacement call, be careful here
-						return Scripting.replaceVariables(entity.getSecurityContext(), node, ctx, template);
+						return Scripting.replaceVariables(ctx, node, template);
 					}
 
 					return "";
@@ -1895,7 +1895,7 @@ public class Functions {
 						if (text != null) {
 
 							// recursive replacement call, be careful here
-							return Scripting.replaceVariables(entity.getSecurityContext(), templateInstance, ctx, text);
+							return Scripting.replaceVariables(ctx, templateInstance, text);
 						}
 					}
 				}
@@ -2744,9 +2744,9 @@ public class Functions {
 
 				if (sources != null) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
-					final ConfigurationProvider config = StructrApp.getConfiguration();
-					final Query query = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
+					final SecurityContext securityContext = ctx.getSecurityContext();
+					final ConfigurationProvider config    = StructrApp.getConfiguration();
+					final Query query                     = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
 
 					// the type to query for
 					Class type = null;
@@ -2801,10 +2801,7 @@ public class Functions {
 						}
 					}
 
-					final Object x = query.getAsList();
-
-					// return search results
-					return x;
+					return query.getAsList();
 				}
 
 				return "";

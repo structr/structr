@@ -68,8 +68,8 @@ public class Actions {
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters) throws FrameworkException {
 
-		final ActionContext context = new ActionContext(parameters);
-		final Object result         = Scripting.evaluate(securityContext, context, entity, source);
+		final ActionContext context = new ActionContext(securityContext, parameters);
+		final Object result         = Scripting.evaluate(context, entity, source);
 
 		// check for errors raised by scripting
 		if (context.hasError()) {

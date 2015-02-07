@@ -117,7 +117,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final RenderContext ctx = new RenderContext(new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE, Locale.GERMAN);
+			final RenderContext ctx = new RenderContext(securityContext, new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE, Locale.GERMAN);
 			ctx.setDetailsDataObject(detailsDataObject);
 			ctx.setPage(page);
 
@@ -141,7 +141,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		// clear queue
 		context.getBuffer().getQueue().clear();
-		p.render(securityContext, context, 0);
+		p.render(context, 0);
 
 		assertEquals("Invalid JavaScript evaluation result", expected, concat(context.getBuffer().getQueue()));
 	}

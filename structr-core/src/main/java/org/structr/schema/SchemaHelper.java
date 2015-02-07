@@ -714,9 +714,9 @@ public class SchemaHelper {
 
 	}
 
-	public static String getPropertyWithVariableReplacement(SecurityContext securityContext, final GraphObject entity, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+	public static String getPropertyWithVariableReplacement(ActionContext renderContext, final GraphObject entity, PropertyKey<String> key) throws FrameworkException {
 
-		return Scripting.replaceVariables(securityContext, entity, renderContext, entity.getProperty(key));
+		return Scripting.replaceVariables(renderContext, entity, entity.getProperty(key));
 
 	}
 

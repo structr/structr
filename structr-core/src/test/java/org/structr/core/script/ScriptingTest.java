@@ -41,7 +41,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final ActionContext actionContext = new ActionContext();
+			final ActionContext actionContext = new ActionContext(securityContext);
 			final TestOne test                = createTestNode(TestOne.class);
 
 			test.setProperty(TestOne.anInt             , 1);
@@ -54,10 +54,10 @@ public class ScriptingTest extends StructrTest {
 			test.setProperty(TestOne.anotherString     , "oneTwoThree${{{");
 			test.setProperty(TestOne.stringWithQuotes  , "''\"\"''");
 
-			assertEquals("Invalid JavaScript evaluation result", "test", Scripting.replaceVariables(securityContext, test, actionContext, "${{ return 'test' }}"));
-			assertEquals("Invalid JavaScript evaluation result", "1",    Scripting.replaceVariables(securityContext, test, actionContext, "${{ return Structr.get('this').anInt; }}"));
-			assertEquals("Invalid JavaScript evaluation result", "2",    Scripting.replaceVariables(securityContext, test, actionContext, "${{ return Structr.get('this').aLong; }}"));
-			assertEquals("Invalid JavaScript evaluation result", "3.0",  Scripting.replaceVariables(securityContext, test, actionContext, "${{ return Structr.get('this').aDouble; }}"));
+			assertEquals("Invalid JavaScript evaluation result", "test", Scripting.replaceVariables(actionContext, test, "${{ return 'test' }}"));
+			assertEquals("Invalid JavaScript evaluation result", "1",    Scripting.replaceVariables(actionContext, test, "${{ return Structr.get('this').anInt; }}"));
+			assertEquals("Invalid JavaScript evaluation result", "2",    Scripting.replaceVariables(actionContext, test, "${{ return Structr.get('this').aLong; }}"));
+			assertEquals("Invalid JavaScript evaluation result", "3.0",  Scripting.replaceVariables(actionContext, test, "${{ return Structr.get('this').aDouble; }}"));
 
 			tx.success();
 

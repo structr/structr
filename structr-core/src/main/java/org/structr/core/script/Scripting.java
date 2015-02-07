@@ -7,7 +7,6 @@ import java.util.Map;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.parser.Functions;
@@ -19,7 +18,7 @@ import org.structr.schema.action.ActionContext;
  */
 public class Scripting {
 
-	public static String replaceVariables(final SecurityContext securityContext, final GraphObject entity, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
+	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
 		if (rawValue == null) {
 
@@ -32,14 +31,15 @@ public class Scripting {
 
 			value = (String) rawValue;
 
-			if (!actionContext.returnRawValue(securityContext)) {
+			if (!actionContext.returnRawValue()) {
 
 				final Map<String, String> replacements = new LinkedHashMap<>();
 
 				for (final String expression : extractScripts(value)) {
 
-					final Object extractedValue = evaluate(securityContext, actionContext, entity, expression);
-					String partValue = extractedValue != null ? extractedValue.toString() : "";
+					final Object extractedValue = evaluate(actionContext, entity, expression);
+					String partValue            = extractedValue != null ? extractedValue.toString() : "";
+
 					if (partValue != null) {
 
 						replacements.put(expression, partValue);
@@ -84,7 +84,19 @@ public class Scripting {
 		return value;
 	}
 
-	public static Object evaluate(final SecurityContext securityContext, final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
+	/**
+	 * Evaluate the given script according to the parsing conventions: ${} will try to evaluate
+	 * Structr script, ${{}} means Javascript.
+	 *
+	 * @param securityContext the security context
+	 * @param actionContext the action context
+	 * @param entity the entity - may not be null because internal functions will fetch the security context from it
+	 * @param expression the scripting expression
+	 *
+	 * @return
+	 * @throws FrameworkException
+	 */
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
 
 		final boolean isJavascript = expression.startsWith("${{") && expression.endsWith("}}");
 		final int prefixOffset     = isJavascript ? 1 : 0;
@@ -92,15 +104,15 @@ public class Scripting {
 
 		if (isJavascript) {
 
-			return evaluateJavascript(securityContext, actionContext, entity, source);
+			return evaluateJavascript(actionContext, entity, source);
 
 		} else {
 
-			return Functions.evaluate(securityContext, actionContext, entity, source);
+			return Functions.evaluate(actionContext, entity, source);
 		}
 	}
 
-	private static Object evaluateJavascript(final SecurityContext securityContext, final ActionContext actionContext, final GraphObject entity, final String script) throws FrameworkException {
+	private static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final String script) throws FrameworkException {
 
 		final Context scriptingContext = Context.enter();
 
@@ -114,7 +126,7 @@ public class Scripting {
 			// This must be done before scripts can be executed.
 			Scriptable scope = scriptingContext.initStandardObjects();
 
-			final StructrScriptable scriptable = new StructrScriptable(securityContext, actionContext, entity);
+			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity);
 
 			// register Structr scriptable
 			scope.put("Structr", scope, scriptable);
@@ -135,7 +147,7 @@ public class Scripting {
 			}
 
 			if (extractedValue == null || extractedValue == Undefined.instance) {
-				extractedValue = scope.get("_structrMainResult", scope);
+				extractedValue = scriptable.unwrap(scope.get("_structrMainResult", scope));
 			}
 
 			if (extractedValue == null || extractedValue == Undefined.instance) {

@@ -291,7 +291,7 @@ public interface GraphObject {
 	public void removeFromIndex();
 	public void indexPassiveProperties();
 
-	public String getPropertyWithVariableReplacement(final SecurityContext securityContext, final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
+	public String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
 	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException;
 	public Object invokeMethod(final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
 

@@ -18,7 +18,6 @@
  */
 package org.structr.core.parser;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -52,26 +51,26 @@ public class ValueExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
-		Object value = ctx.getReferencedProperty(securityContext, entity, keyword, null);
+		Object value = ctx.getReferencedProperty(entity, keyword, null);
 
 		for (final Expression expression : expressions) {
 
 			// evaluate expressions from left to right
-			value = expression.transform(securityContext, ctx, entity, value);
+			value = expression.transform(ctx, entity, value);
 		}
 
 		return value;
 	}
 
 	@Override
-	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException {
 
 		// evaluate dot syntax
 		if (keyword.startsWith(".") && value instanceof GraphObject) {
 
-			return ctx.getReferencedProperty(securityContext, entity, keyword.substring(1), value);
+			return ctx.getReferencedProperty(entity, keyword.substring(1), value);
 		}
 
 		return value;

@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.common.RenderContext;
 
@@ -28,7 +27,7 @@ import org.structr.web.common.RenderContext;
  */
 public interface Renderable {
 
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException;
-	public void renderContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException;
+	public void render(RenderContext renderContext, int depth) throws FrameworkException;
+	public void renderContent(RenderContext renderContext, int depth) throws FrameworkException;
 
 }

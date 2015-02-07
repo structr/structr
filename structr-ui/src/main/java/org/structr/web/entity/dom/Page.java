@@ -570,10 +570,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 */
 	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
 
-		final RenderContext ctx = new RenderContext(null, null, editMode, Locale.GERMAN);
+		final RenderContext ctx = new RenderContext(securityContext, null, null, editMode, Locale.GERMAN);
 		final StringRenderBuffer buffer = new StringRenderBuffer();
 		ctx.setBuffer(buffer);
-		render(securityContext, ctx, 0);
+		render(ctx, 0);
 
 		// extract source
 		return buffer.getBuffer().toString();
@@ -681,7 +681,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(RenderContext renderContext, int depth) throws FrameworkException {
 
 		renderContext.setPage(this);
 
@@ -703,7 +703,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			if (subNode.isNotDeleted() && securityContext.isVisible(subNode)) {
 
-				subNode.render(securityContext, renderContext, depth);
+				subNode.render(renderContext, depth);
 			}
 
 			subNode = (DOMNode) subNode.getNextSibling();
@@ -713,7 +713,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 	}
 
 	@Override

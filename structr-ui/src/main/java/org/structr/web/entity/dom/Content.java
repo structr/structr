@@ -311,9 +311,9 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
+		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
 			return;
 		}
 
@@ -325,7 +325,7 @@ public class Content extends DOMNode implements Text {
 		String _contentType = getProperty(contentType);
 
 		// fetch content with variable replacement
-		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
+		String _content = getPropertyWithVariableReplacement(renderContext, Content.content);
 
 		if (!(EditMode.RAW.equals(edit) || EditMode.WIDGET.equals(edit)) && (_contentType == null || ("text/plain".equals(_contentType)))) {
 
