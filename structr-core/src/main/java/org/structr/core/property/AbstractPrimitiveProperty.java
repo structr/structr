@@ -43,25 +43,25 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	
 	public static final String STRING_EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
 	
-	public AbstractPrimitiveProperty(String name) {
+	public AbstractPrimitiveProperty(final String name) {
 		super(name);
 	}
 
-	public AbstractPrimitiveProperty(String jsonName, String dbName) {
+	public AbstractPrimitiveProperty(final String jsonName, final String dbName) {
 		super(jsonName, dbName);
 	}
 
-	public AbstractPrimitiveProperty(String jsonName, String dbName, T defaultValue) {
+	public AbstractPrimitiveProperty(final String jsonName, final String dbName, final T defaultValue) {
 		super(jsonName, dbName, defaultValue);
 	}
 	
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 	
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		Object value = null;
 		
@@ -107,7 +107,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 	
 	@Override
-	public void setProperty(SecurityContext securityContext, final GraphObject obj, T value) throws FrameworkException {
+	public void setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException {
 		
 		PropertyConverter converter = databaseConverter(securityContext, obj);
 		final Object convertedValue;
@@ -180,6 +180,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				}
 				
 			} catch (Throwable t) {
+
 				
 				t.printStackTrace();
 				

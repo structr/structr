@@ -44,7 +44,7 @@ import org.structr.schema.SchemaService;
 public class Group extends AbstractUser implements Principal {
 
 	public static final Property<List<Principal>> members = new EndNodes<>("members", Groups.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>        isGroup  = new BooleanProperty("isGroup", true).readOnly();
+	public static final Property<Boolean>        isGroup  = new BooleanProperty("isGroup").defaultValue(true).readOnly();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Group.class, PropertyView.Ui,
 		type, name, members, blocked, isGroup

@@ -29,7 +29,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.LongSearchAttribute;
@@ -46,32 +45,32 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	public static final String LONG_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 
 	public LongProperty(final String name) {
-		this(name, name, null);
+		super(name);
 	}
 
-	public LongProperty(final String jsonName, final String dbName) {
-		this(jsonName, dbName, null);
-	}
-
-	public LongProperty(final String name, final Long defaultValue) {
-		this(name, name, defaultValue);
-	}
-
-	public LongProperty(final String name, final PropertyValidator<Long>... validators) {
-		this(name, name, null, validators);
-	}
-
-	public LongProperty(final String name, final Long defaultValue, final PropertyValidator<Long>... validators) {
-		this(name, name, defaultValue, validators);
-	}
-
-	public LongProperty(final String jsonName, final String dbName, final Long defaultValue, final PropertyValidator<Long>... validators) {
-		super(jsonName, dbName, defaultValue);
-
-		for (PropertyValidator<Long> validator : validators) {
-			addValidator(validator);
-		}
-	}
+//	public LongProperty(final String jsonName, final String dbName) {
+//		this(jsonName, dbName, null);
+//	}
+//
+//	public LongProperty(final String name, final Long defaultValue) {
+//		this(name, name, defaultValue);
+//	}
+//
+//	public LongProperty(final String name, final PropertyValidator<Long>... validators) {
+//		this(name, name, null, validators);
+//	}
+//
+//	public LongProperty(final String name, final Long defaultValue, final PropertyValidator<Long>... validators) {
+//		this(name, name, defaultValue, validators);
+//	}
+//
+//	public LongProperty(final String jsonName, final String dbName, final Long defaultValue, final PropertyValidator<Long>... validators) {
+//		super(jsonName, dbName, defaultValue);
+//
+//		for (PropertyValidator<Long> validator : validators) {
+//			addValidator(validator);
+//		}
+//	}
 
 	@Override
 	public String typeName() {

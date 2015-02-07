@@ -18,53 +18,97 @@
  */
 package org.structr.core.property;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.mail.internet.ContentType;
+import javax.mail.internet.ParseException;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 
 /**
- * A property that stores and retrieves a simple String value.
+ * A property that stores and retrieves a String value.
+ * 
+ * The String can have an optional content MIME type, as described in http://en.wikipedia.org/wiki/MIME
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class StringProperty extends AbstractPrimitiveProperty<String> {
 	
-	public StringProperty(String jsonName) {
-		this(jsonName, jsonName, new PropertyValidator[0]);
-	}
-
-	public StringProperty(String jsonName, String defaultValue) {
+	private static final Logger logger = Logger.getLogger(StringProperty.class.getName());
+	private ContentType contentType;
+	
+	public StringProperty(final String jsonName) {
 		super(jsonName);
-		this.defaultValue = defaultValue;
 	}
 
-	public StringProperty(String name, String dbName, String defaultValue) {
-		super(name, dbName, defaultValue);
-	}
-	
-	public StringProperty(String name, String dbName, String defaultValue, String pattern) {
-		this(name, dbName, defaultValue);
-		this.format = pattern;
+	public StringProperty(final String jsonName, final String dbName) {
+		super(jsonName);
+		this.dbName = dbName;
 	}
 
-	public StringProperty(String name, PropertyValidator<String>... validators) {
-		this(name, name, validators);
+	public StringProperty(final String jsonName, final PropertyValidator<String>... validators) {
+		this(jsonName, jsonName, validators);
 	}
-	
-	public StringProperty(String jsonName, String dbName, PropertyValidator<String>... validators) {
-		this(jsonName, dbName, null, validators);
-	}
-	
-	public StringProperty(String jsonName, String dbName, String defaultValue, PropertyValidator<String>... validators) {
 
-		super(jsonName, dbName, defaultValue);
+	public StringProperty(final String jsonName, final String dbName, final PropertyValidator<String>... validators) {
+	
+		super(jsonName);
+		this.dbName = dbName;
 		
 		for (PropertyValidator<String> validator : validators) {
 			addValidator(validator);
 		}
 	}
-	
+//
+//	
+//	
+//	public StringProperty(final String jsonName, final ContentType contentType, final String defaultValue) {
+//		this(jsonName, jsonName, contentType, defaultValue, null, new PropertyValidator[0]);
+//	}
+//
+//	public StringProperty(final String jsonName, final ContentType contentType, final String defaultValue, final String format) {
+//		this(jsonName, jsonName, contentType, defaultValue, format, new PropertyValidator[0]);
+//	}
+//
+//	
+//	
+//	public StringProperty(final String jsonName, final String dbName, final PropertyValidator<String>... validators) {
+//		this(jsonName, dbName, null, null, null, validators);
+//	}
+//
+//	public StringProperty(final String jsonName, final String dbName, final String defaultValue, final PropertyValidator<String>... validators) {
+//		this(jsonName, dbName, null, defaultValue, null, validators);
+//	}
+//
+//	public StringProperty(final String jsonName, final String dbName, final String defaultValue, final String format, final PropertyValidator<String>... validators) {
+//		this(jsonName, dbName, null, defaultValue, format, validators);
+//	}
+//
+//	public StringProperty(final String jsonName, final String dbName, final ContentType contentType, final String defaultValue) {
+//		this(jsonName, dbName, contentType, defaultValue, null, new PropertyValidator[0]);
+//	}
+//	
+//	public StringProperty(final String jsonName, final String dbName, final ContentType contentType, final String defaultValue, final String format) {
+//		this(jsonName, dbName, contentType, defaultValue, format, new PropertyValidator[0]);
+//	}
+//
+//
+//	
+//	public StringProperty(final String jsonName, final String dbName, final ContentType contentType, final String defaultValue, final String format, final PropertyValidator<String>... validators) {
+//
+//		super(jsonName, dbName, defaultValue);
+//		this.contentType = contentType;
+//		this.format = format;
+//		
+//		for (PropertyValidator<String> validator : validators) {
+//			addValidator(validator);
+//		}
+//	}
+
 	@Override
 	public String typeName() {
 		return "String";
@@ -104,4 +148,34 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
+
+	/**
+	 * Returns the optional content type for this property.
+	 *
+	 * @return contentType
+	 */
+	public String contentType() {
+		return contentType != null ? contentType.toString() : null;
+	}
+
+	public StringProperty contentType(final String contentType) {
+		this.contentType = parse(contentType);
+		return this;
+	}
+	
+	private static ContentType parse(final String contentTypeString) {
+		
+		try {
+			
+			return new ContentType(contentTypeString);
+			
+		} catch (ParseException pe) {
+			
+			logger.log(Level.WARNING, "Could not parse " + contentTypeString, pe);
+			
+		}
+		
+		return null;
+	}
+	
 }

@@ -53,10 +53,6 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 		this(jsonName, dbName, null);
 	}
 
-	public DoubleProperty(final String name, final Double defaultValue) {
-		this(name, name, defaultValue);
-	}
-
 	public DoubleProperty(final String name, final PropertyValidator<Double>... validators) {
 		this(name, name, null, validators);
 	}

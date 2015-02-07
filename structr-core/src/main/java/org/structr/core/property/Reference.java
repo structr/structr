@@ -295,4 +295,30 @@ public class Reference<T> implements PropertyKey<T> {
 	public boolean isUnique() {
 		return false;
 	}
+
+	@Override
+	public boolean isNotNull() {
+		return false;
+	}
+
+	@Override
+	public Property<T> defaultValue(final T defaultValue) {
+		return null;
+	}
+
+	@Override
+	public Property<T> format(final String format) {
+		return null;
+	}
+	
+	@Override
+	public Property<T> unique(final boolean unique) {
+		return null;
+	}
+	
+	@Override
+	public Property<T> notNull(final boolean notNull) {
+		return null;
+	}
+
 }

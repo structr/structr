@@ -32,6 +32,7 @@ public class PropertyParameters {
 	public Boolean notNull;
 	public String format;
 	public String defaultValue;
+	public String contentType;
 
 	public PropertyParameters(final String rawSource) {
 		this.rawSource = rawSource;

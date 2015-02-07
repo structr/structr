@@ -37,8 +37,8 @@ import org.structr.core.property.StringProperty;
  */
 public class TestGroupPropOne extends AbstractNode{
 	
-	public static final GroupProperty gP1 = new GroupProperty("gP1", TestGroupPropOne.class, new StringProperty("sP"),new IntProperty("iP"));
-	public static final GroupProperty gP2 = new GroupProperty("gP2", TestGroupPropOne.class, new DoubleProperty("dblP"),new DateProperty("dP","dd.MM.yyyy"));
+	public static final GroupProperty gP1 = new GroupProperty("gP1", TestGroupPropOne.class, new StringProperty("sP"), new IntProperty("iP"));
+	public static final GroupProperty gP2 = new GroupProperty("gP2", TestGroupPropOne.class, new DoubleProperty("dblP"), new DateProperty("dP").format("dd.MM.yyyy"));
 	
 	
 	public static final View defaultView = new View(TestGroupPropOne.class, PropertyView.Public,name,gP1,gP2 );
