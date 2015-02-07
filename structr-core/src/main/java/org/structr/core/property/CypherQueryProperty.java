@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -58,7 +59,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObje
 
 			try {
 
-				final String query = obj.replaceVariables(securityContext, new ActionContext(), this.format);
+				final String query = Scripting.replaceVariables(securityContext, obj, new ActionContext(), this.format);
 				final Map<String, Object> parameters = new LinkedHashMap<>();
 
 				parameters.put("id", obj.getUuid());

@@ -442,17 +442,12 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public String replaceVariables(SecurityContext securityContext, ActionContext actionContext, Object rawValue) throws FrameworkException {
-		return null;
-	}
-
-	@Override
 	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
 		return null;
 	}
 
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters) throws FrameworkException {
+	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		return null;
 	}
 

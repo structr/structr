@@ -24,13 +24,12 @@ package org.structr.schema.action;
  */
 public class ActionEntry implements Comparable<ActionEntry> {
 
-	private boolean runOnError = true;
 	private Actions.Type type  = null;
 	private String call        = null;
 	private String name        = null;
 	private int position       = 0;
 
-	public ActionEntry(final String sourceName, final String value, final boolean runOnError) {
+	public ActionEntry(final String sourceName, final String value) {
 
 		int positionOffset = 0;
 
@@ -69,7 +68,6 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		}
 
 		this.call       = value.trim();
-		this.runOnError = runOnError;
 	}
 
 	public String getSource(final String objVariable) {
@@ -80,14 +78,41 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		final StringBuilder buf = new StringBuilder();
 
+		switch (type) {
+
+			case Create:
+			case Save:
+			case Delete:
+				// prepend boolean evaluation for passive actions
+				buf.append("Boolean.TRUE.equals(");
+				break;
+
+			case Custom:
+				break;
+		}
+
 		buf.append(Actions.class.getSimpleName());
 		buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
 		buf.append(replaceQuotes(call));
 		buf.append("}\"");
+
 		if (includeParameters) {
 			buf.append(", parameters");
 		}
 		buf.append(")");
+
+		switch (type) {
+
+			case Create:
+			case Save:
+			case Delete:
+				// append closing brace for passive actions
+				buf.append(")");
+				break;
+
+			case Custom:
+				break;
+		}
 
 		return buf.toString();
 	}
@@ -109,10 +134,6 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		return position;
 	}
 
-	public boolean runOnError() {
-		return runOnError;
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -129,4 +150,3 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		return result;
 	}
 }
-

@@ -46,8 +46,6 @@ import java.util.logging.Logger;
 import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
-import org.structr.core.Value;
-import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,30 +58,16 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 	private static final Logger logger = Logger.getLogger(JsonInputGSONAdapter.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
-	private PropertyKey idProperty         = null;
-
-	//~--- constructors ---------------------------------------------------
-
-	public JsonInputGSONAdapter() {}
-
-	public JsonInputGSONAdapter(Value<String> propertyView, PropertyKey idProperty) {
-
-		this.idProperty     = idProperty;
-	}
-
-	//~--- methods --------------------------------------------------------
-
 	@Override
 	public IJsonInput createInstance(Type type) {
+
 		try {
 			return (IJsonInput)type.getClass().newInstance();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
+
+		} catch (InstantiationException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
+
 		return null;
 	}
 
@@ -96,17 +80,21 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 	public IJsonInput deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
 		IJsonInput jsonInput = null;
-		JsonInput wrapper = null;
+		JsonInput wrapper    = null;
+
 		if (json.isJsonObject()) {
+
 			jsonInput = new JsonSingleInput();
-			wrapper = deserialize(json, context);
+			wrapper   = deserialize(json, context);
 			jsonInput.add(wrapper);
 
 		} else if(json.isJsonArray()) {
+
 			jsonInput = new JsonSingleInput();
 
 			JsonArray array = json.getAsJsonArray();
 			for(JsonElement elem : array) {
+
 				wrapper = deserialize(elem, context);
 				jsonInput.add(wrapper);
 			}
@@ -114,25 +102,19 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 		return jsonInput;
 	}
-	
-	
+
+
 	private JsonInput deserialize(JsonElement json, JsonDeserializationContext context) throws JsonParseException {
 
 		JsonInput wrapper = new JsonInput();
 		if (json.isJsonObject()) {
+
 			JsonObject obj = json.getAsJsonObject();
 
 			for (Entry<String, JsonElement> entry : obj.entrySet()) {
 
 				String key       = entry.getKey();
 				JsonElement elem = entry.getValue();
-
-				// static mapping of IdProperty if present
-				if ((idProperty != null) && "id".equals(key)) {
-
-					key = idProperty.jsonName();
-
-				}
 
 				if (elem.isJsonNull()) {
 
@@ -144,12 +126,17 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 				} else if (elem.isJsonArray()) {
 
-					JsonArray array = elem.getAsJsonArray();
-					List list = new LinkedList();
+					final JsonArray array = elem.getAsJsonArray();
+					final List list       = new LinkedList();
+
 					for(JsonElement element : array) {
+
 						if (element.isJsonPrimitive()) {
+
 							list.add(fromPrimitive((element.getAsJsonPrimitive())));
+
 						} else if(element.isJsonObject()) {
+
 							// create map of values
 							list.add(deserialize(element, context));
 						}
@@ -169,12 +156,17 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 			JsonArray array = json.getAsJsonArray();
 			for(JsonElement elem : array) {
-				wrapper = new JsonInput();
+
 				if (elem.isJsonPrimitive()) {
+
 					wrapper.add(elem.toString(), fromPrimitive(elem.getAsJsonPrimitive()));
+
 				} else if(elem.isJsonObject()) {
+
 					wrapper.add(elem.toString(), deserialize(elem, context));
+
 				} else if(elem.isJsonArray()) {
+
 					wrapper.add(elem.toString(), deserialize(elem, context));
 				}
 			}
@@ -186,28 +178,26 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 	public static Object fromPrimitive(final JsonPrimitive p) {
 
 		if (p.isNumber()) {
-			
+
 			Number number = p.getAsNumber();
-			
+
 			// Detect if value is floating point
 			if (p.getAsString().contains(".")) {
-				
+
 				return number.doubleValue();
-				
+
 			} else {
-				
+
 				return number.longValue();
-				
+
 			}
 
 		} else if (p.isBoolean()) {
-			
+
 			return p.getAsBoolean();
-			
+
 		}
 
 		return p.getAsString();
 	}
-
-	//~--- get methods ----------------------------------------------------
 }

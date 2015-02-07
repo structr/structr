@@ -49,8 +49,6 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.log.ReadLogCommand;
-import org.structr.core.log.WriteLogCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.files.ftp.FtpService;
 import org.structr.module.JarConfigurationProvider;
@@ -77,8 +75,6 @@ public class StructrUiTest extends TestCase {
 	protected StructrConf config = new StructrConf();
 	protected GraphDatabaseCommand graphDbCommand = null;
 	protected SecurityContext securityContext = null;
-	protected ReadLogCommand readLogCommand;
-	protected WriteLogCommand writeLogCommand;
 
 	protected App app = null;
 
@@ -113,6 +109,10 @@ public class StructrUiTest extends TestCase {
 	//~--- methods --------------------------------------------------------
 	@Override
 	protected void setUp() throws Exception {
+		setUp(null);
+	}
+
+	protected void setUp(final Map<String, Object> additionalConfig) {
 
 		System.out.println("\n######################################################################################");
 		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
@@ -129,7 +129,7 @@ public class StructrUiTest extends TestCase {
 		config.setProperty(Services.TESTING, "true");
 
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService SchemaService");
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService FtpService HttpService SchemaService");
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
 		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
@@ -183,8 +183,10 @@ public class StructrUiTest extends TestCase {
 		config.setProperty("StructrUiHandler.directoriesListed", Boolean.toString(false));
 		config.setProperty("StructrUiHandler.welcomeFiles", "index.html");
 
-		config.setProperty("NodeExtender.log", "true");
-		
+		if (additionalConfig != null) {
+			config.putAll(additionalConfig);
+		}
+
 		final Services services = Services.getInstance(config);
 
 		// wait for service layer to be initialized
@@ -201,8 +203,6 @@ public class StructrUiTest extends TestCase {
 		app = StructrApp.getInstance(securityContext);
 
 		graphDbCommand = app.command(GraphDatabaseCommand.class);
-		writeLogCommand = app.command(WriteLogCommand.class);
-		readLogCommand = app.command(ReadLogCommand.class);
 
 	}
 

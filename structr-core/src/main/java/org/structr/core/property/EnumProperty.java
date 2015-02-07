@@ -92,6 +92,10 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		return null;
 	}
 
+	public Class<T> getEnumType() {
+		return enumType;
+	}
+
 	protected class DatabaseConverter extends PropertyConverter<T, String> {
 
 		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
@@ -103,7 +107,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 			if (source != null) {
 
-				return (T) Enum.valueOf(enumType, source.toString());
+				return (T) Enum.valueOf(enumType, source);
 			}
 
 			return null;

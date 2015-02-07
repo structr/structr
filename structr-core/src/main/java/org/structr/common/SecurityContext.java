@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
@@ -243,12 +242,12 @@ public class SecurityContext {
 
 	}
 
-	public static SecurityContext getInstance(Principal user, AccessMode accessMode) throws FrameworkException {
+	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
 		return new SecurityContext(user, accessMode);
 
 	}
 
-	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) throws FrameworkException {
+	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
 		return new SecurityContext(user, request, accessMode);
 
 	}

@@ -171,6 +171,9 @@ var _Types = {
                     _Types.types.push(typeObj.type);
                 });
 
+
+                _Types.types.sort();
+
                 if (callback) {
                     callback();
                 }

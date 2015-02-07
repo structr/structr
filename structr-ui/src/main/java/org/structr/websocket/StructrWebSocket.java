@@ -37,7 +37,6 @@ import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.dynamic.File;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
@@ -60,27 +59,25 @@ public class StructrWebSocket implements WebSocketListener {
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
 	//~--- fields ---------------------------------------------------------
-	private String callback = null;
-	private Session session = null;
-	private Gson gson = null;
-	private PropertyKey idProperty = null;
-	private HttpServletRequest request = null;
-	private SecurityContext securityContext = null;
-	private WebsocketController syncController = null;
+	private String callback                        = null;
+	private Session session                        = null;
+	private Gson gson                              = null;
+	private HttpServletRequest request             = null;
+	private SecurityContext securityContext        = null;
+	private WebsocketController syncController     = null;
 	private Map<String, FileUploadHandler> uploads = null;
-	private Authenticator authenticator = null;
-	private String pagePath = null;
+	private Authenticator authenticator            = null;
+	private String pagePath                        = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public StructrWebSocket() {}
 
-	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
+	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
 
 		this.uploads = new LinkedHashMap<>();
 		this.syncController = syncController;
 		this.gson = gson;
-		this.idProperty = idProperty;
 		this.authenticator = authenticator;
 
 	}
@@ -191,7 +188,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 				abstractCommand.setWebSocket(this);
 				abstractCommand.setSession(session);
-				abstractCommand.setIdProperty(idProperty);
 
 				// The below blocks allow a websocket command to manage its own
 				// transactions in case of bulk processing commands etc.
@@ -240,11 +236,11 @@ public class StructrWebSocket implements WebSocketListener {
 					if (t instanceof FrameworkException) {
 
 						send(MessageBuilder.status().message(t.toString()).jsonErrorObject(((FrameworkException) t).toJSON()).build(), true);
-						
+
 					} else {
-					
+
 						send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
-					
+
 					}
 
 					// commit transaction
@@ -277,13 +273,13 @@ public class StructrWebSocket implements WebSocketListener {
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			isAuthenticated = isAuthenticated();
-			
+
 			tx.success();
 
 		} catch (FrameworkException t) {
 			t.printStackTrace();
 		}
-		
+
 
 		// return session status to client
 		message.setSessionValid(isAuthenticated);
@@ -319,7 +315,7 @@ public class StructrWebSocket implements WebSocketListener {
                         }
 
 			session.getRemote().sendString(msg);
-			
+
 			tx.success();
 
 		} catch (Throwable t) {
@@ -466,17 +462,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
-
-		try {
-
-			this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.WARNING, "Could not get security context instance", ex);
-
-		}
-
+		this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 	}
 
 	@Override

@@ -50,7 +50,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.entity.relationship.Ownership;
@@ -309,15 +308,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	public Long getNodeId() {
-
 		return getId();
 
 	}
 
 	public String getIdString() {
-
 		return Long.toString(getId());
-
 	}
 
 	/**
@@ -1075,11 +1071,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
-		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
-	}
-
-	@Override
 	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
 
 		switch (key) {
@@ -1096,7 +1087,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					return value;
 				}
 
-				value = invokeMethod(key, Collections.EMPTY_MAP);
+				value = invokeMethod(key, Collections.EMPTY_MAP, false);
 				if (value != null) {
 					return value;
 				}
@@ -1106,45 +1097,46 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public Object invokeMethod(final String methodName, final Map<String, Object> propertySet) throws FrameworkException {
+	public Object invokeMethod(final String methodName, final Map<String, Object> propertySet, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 
-		for (final Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
+		final Method method = StructrApp.getConfiguration().getExportedMethodsForType(entityType).get(methodName);
+		if (method != null) {
 
-			if (methodName.equals(method.getName())) {
+			try {
 
-				if (method.getAnnotation(Export.class) != null) {
+				// First, try if single parameter is a map, then directly invoke method
+				if (method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(Map.class)) {
+					return method.invoke(this, propertySet);
+				}
 
-					try {
+				// second try: extracted parameter list
+				return method.invoke(this, extractParameters(propertySet, method.getParameterTypes()));
 
-						// First, try if single parameter is a map, then directly invoke method
-						if (method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(Map.class)) {
-							return method.invoke(this, propertySet);
-						}
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
 
-						final Object[] parameters = extractParameters(propertySet, method.getParameterTypes());
-						return method.invoke(this, parameters);
+				if (t instanceof FrameworkException) {
 
-					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
+					throw (FrameworkException) t;
 
-						if (t instanceof FrameworkException) {
+				} else if (t.getCause() instanceof FrameworkException) {
 
-							throw (FrameworkException) t;
+					throw (FrameworkException) t.getCause();
 
-						} else if (t.getCause() instanceof FrameworkException) {
+				} else {
 
-							throw (FrameworkException) t.getCause();
+					t.printStackTrace();
 
-						} else {
-
-							logger.log(Level.WARNING, "Unable to invoke method {0}: {1}", new Object[]{methodName, t.getMessage()});
-						}
-					}
+					logger.log(Level.WARNING, "Unable to invoke method {0}: {1}", new Object[]{methodName, t.getMessage()});
 				}
 			}
 		}
 
-		return null;
+		// in the case of REST access we want to know if the method exists or not
+		if (throwExceptionForUnknownMethods) {
+			throw new FrameworkException(400, "Method " + methodName + " not found in type " + getType());
+		}
 
+		return null;
 	}
 
 	private Object[] extractParameters(Map<String, Object> properties, Class[] parameterTypes) {

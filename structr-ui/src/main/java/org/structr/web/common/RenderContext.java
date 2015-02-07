@@ -52,24 +52,24 @@ public class RenderContext extends ActionContext {
 	private static final Logger logger = Logger.getLogger(RenderContext.class.getName());
 
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
-	private final long renderStartTime = System.currentTimeMillis();
-	private Locale locale = Locale.getDefault();
-	private EditMode editMode = EditMode.NONE;
-	private AsyncBuffer buffer = new AsyncBuffer();
-	private int depth = 0;
-	private boolean inBody = false;
-	private boolean appLibRendered = false;
-	private GraphObject detailsDataObject = null;
-	private GraphObject currentDataObject = null;
-	private GraphObject sourceDataObject = null;
-	private Iterable<GraphObject> listSource = null;
-	private PropertyKey relatedProperty = null;
-	private Page page = null;
-	private HttpServletRequest request = null;
-	private HttpServletResponse response = null;
-	private ResourceProvider resourceProvider = null;
-	private Result result = null;
-	private boolean anyChildNodeCreatesNewLine = false;
+	private final long renderStartTime                 = System.currentTimeMillis();
+	private Locale locale                              = Locale.getDefault();
+	private EditMode editMode                          = EditMode.NONE;
+	private AsyncBuffer buffer                         = new AsyncBuffer();
+	private int depth                                  = 0;
+	private boolean inBody                             = false;
+	private boolean appLibRendered                     = false;
+	private GraphObject detailsDataObject              = null;
+	private GraphObject currentDataObject              = null;
+	private GraphObject sourceDataObject               = null;
+	private Iterable<GraphObject> listSource           = null;
+	private PropertyKey relatedProperty                = null;
+	private Page page                                  = null;
+	private HttpServletRequest request                 = null;
+	private HttpServletResponse response               = null;
+	private ResourceProvider resourceProvider          = null;
+	private Result result                              = null;
+	private boolean anyChildNodeCreatesNewLine         = false;
 
 	public enum EditMode {
 
@@ -338,10 +338,8 @@ public class RenderContext extends ActionContext {
 		return System.currentTimeMillis() > (renderStartTime + timeout);
 	}
 
-	// ----- protected methods -----
-
 	@Override
-	protected Object evaluate(final SecurityContext securityContext, final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final SecurityContext securityContext, final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
 
 		if (hasDataForKey(key)) {
 			return getDataNode(key);
@@ -495,5 +493,4 @@ public class RenderContext extends ActionContext {
 
 		return value;
 	}
-
 }

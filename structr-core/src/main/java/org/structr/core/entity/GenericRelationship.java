@@ -127,7 +127,7 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 //	}
 
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters) throws FrameworkException {
+	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

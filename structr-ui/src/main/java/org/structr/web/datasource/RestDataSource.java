@@ -142,7 +142,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
 		// store original request
 		final HttpServletRequest origRequest = securityContext.getRequest();
-		
+
 		// update request in security context
 		securityContext.setRequest(request);
 
@@ -150,23 +150,23 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		Resource resource = null;
 		try {
 
-			resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, GraphObject.id), GraphObject.id), propertyView);
+			resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView)), propertyView);
 
 		} catch (IllegalPathException ipe) {
-			
+
 			logger.log(Level.WARNING, "Illegal path for REST query: {0}", restQuery);
-			
-		}	
+
+		}
 
 		// reset request to old context
 		securityContext.setRequest(origRequest);
-		
+
 		if (resource == null) {
-			
+
 			return Collections.EMPTY_LIST;
-			
+
 		}
-		
+
 		// TODO: decide if we need to rest the REST request here
 		//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 		// add sorting & paging
@@ -196,15 +196,15 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
 		// do action
 		Result result = Result.EMPTY_RESULT;
-		
+
 		try {
 			result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
-		
+
 		} catch (NotFoundException nfe) {
 			logger.log(Level.WARNING, "No result from internal REST query: {0}", restQuery);
 		}
-		
-		
+
+
 		result.setIsCollection(resource.isCollectionResource());
 		result.setIsPrimitiveArray(resource.isPrimitiveArray());
 
