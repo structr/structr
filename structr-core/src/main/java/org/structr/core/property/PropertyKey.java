@@ -82,6 +82,14 @@ public interface PropertyKey<T> {
 	public Property<T> indexed();
 
 	/**
+	 * Use this method to mark a property for case-insensitive indexing. This
+	 * method registers the property in the case-insensitive (all-lowercase) index.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> indexedCaseInsensitive();
+
+	/**
 	 * Use this method to mark a property for indexing
 	 * in the given index.
 	 *

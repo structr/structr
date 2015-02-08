@@ -59,11 +59,6 @@ public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<No
 	}
 
 	@Override
-	public Index<Node> getUuidIndex() {
-		return  (Index<Node>) arguments.get(NodeService.NodeIndex.uuid.name());
-	}
-
-	@Override
 	public Index<Node> getFulltextIndex() {
 		return  (Index<Node>) arguments.get(NodeService.NodeIndex.fulltext.name());
 	}

@@ -182,6 +182,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Property<T> indexedCaseInsensitive() {
+
+		indexed();
+
+		nodeIndices.add(NodeIndex.caseInsensitive);
+
+		return this;
+	}
+
+	@Override
 	public Property<T> indexed(RelationshipIndex relIndex) {
 
 		this.indexed = true;

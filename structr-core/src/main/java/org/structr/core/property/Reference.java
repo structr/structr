@@ -257,6 +257,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Property<T> indexedCaseInsensitive() {
+		return propertyKey.indexedCaseInsensitive();
+	}
+
+	@Override
 	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
 		return propertyKey.indexed(nodeIndex);
 	}

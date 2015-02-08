@@ -40,11 +40,6 @@ public class SearchRelationshipCommand<T extends RelationshipInterface> extends 
 	}
 
 	@Override
-	public Index<Relationship> getUuidIndex() {
-		return  (Index<Relationship>) arguments.get(NodeService.RelationshipIndex.rel_uuid.name());
-	}
-
-	@Override
 	public Index<Relationship> getFulltextIndex() {
 		return  (Index<Relationship>) arguments.get(NodeService.RelationshipIndex.rel_fulltext.name());
 	}
