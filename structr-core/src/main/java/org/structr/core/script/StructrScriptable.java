@@ -21,7 +21,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.parser.Functions;
-import org.structr.core.property.EnumProperty;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.NumericalPropertyKey;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
@@ -352,7 +352,7 @@ public class StructrScriptable extends ScriptableObject {
 					}
 
 					// use inputConverter of EnumProperty to convert to native enums
-					if (key instanceof EnumProperty) {
+					if (!(key instanceof DateProperty)) {
 
 						// should we really use the inputConverter here??
 						PropertyConverter inputConverter = key.inputConverter(actionContext.getSecurityContext());
