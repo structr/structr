@@ -192,6 +192,10 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	@Override
 	public void index(GraphObject entity, Object value) {
+		// In case of default value, we need to convert it to Long
+		if (value != null && value instanceof Date) {
+			value = ((Date) value).getTime();
+		}
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 
