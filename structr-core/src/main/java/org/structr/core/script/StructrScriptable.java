@@ -17,8 +17,6 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.TopLevel;
 import org.mozilla.javascript.Wrapper;
-import org.neo4j.helpers.collection.Iterables;
-import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -38,19 +36,16 @@ import org.structr.schema.action.Function;
 public class StructrScriptable extends ScriptableObject {
 
 	private static final Logger logger = Logger.getLogger(StructrScriptable.class.getName());
+	private static final Object[] IDs  = { "id", "type" };
 
 	private ActionContext actionContext     = null;
 	private FrameworkException exception    = null;
-	private Scriptable globalScope          = null;
 	private GraphObject entity              = null;
-	private Context context                 = null;
 
-	public StructrScriptable(final Context context, final Scriptable scope, final ActionContext actionContext, final GraphObject entity) {
+	public StructrScriptable(final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext   = actionContext;
 		this.entity          = entity;
-		this.context         = context;
-		this.globalScope           = scope;
 	}
 
 	@Override
@@ -466,15 +461,7 @@ public class StructrScriptable extends ScriptableObject {
 
 		@Override
 		public Object[] getIds() {
-			
-			return Iterables.toArray(String.class, Iterables.map(new org.neo4j.helpers.Function<PropertyKey, String>() {
-
-				@Override
-				public String apply(PropertyKey from) {
-					return from.jsonName();
-				}
-
-			}, obj.getPropertyKeys(PropertyView.Ui)));
+			return IDs;
 		}
 
 		@Override
