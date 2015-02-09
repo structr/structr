@@ -152,6 +152,10 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 					return relatedNode;
 				}
 
+			} else if (type.isAssignableFrom(source.getClass())) {
+
+				return (T)source;
+
 			} else {
 
 				// interpret source as a raw ID string and fetch entity

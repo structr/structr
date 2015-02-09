@@ -392,9 +392,10 @@ public class StructrScriptableTest extends StructrTest {
 
 	public void testCollectionOperations() {
 
-		Group group    = null;
-		TestUser user1 = null;
-		TestUser user2 = null;
+		Group group            = null;
+		TestUser user1         = null;
+		TestUser user2         = null;
+		TestOne testOne        = null;
 
 		// setup phase
 		try (final Tx tx = app.tx()) {
@@ -404,6 +405,10 @@ public class StructrScriptableTest extends StructrTest {
 			user2  = app.create(TestUser.class, "Tester2");
 
 			group.setProperty(Group.members, Arrays.asList(new Principal[] { user1 } ));
+
+
+			testOne = app.create(TestOne.class);
+			createTestNodes(TestSix.class, 10);
 
 			tx.success();
 
@@ -435,6 +440,17 @@ public class StructrScriptableTest extends StructrTest {
 			// test direct push on member property
 			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('TestUser', { name: 'Tester2' })[0]); }}");
 			assertEquals("Invalid scripted array operation result", 2, group.getProperty(Group.members).size());
+
+
+
+			// test scripting association
+			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs; testSixs.push(Structr.find('TestSix')[0]); }}");
+			assertEquals("Invalid scripted array operation result", 1, testOne.getProperty(TestOne.manyToManyTestSixs).size());
+
+			// test direct push on member property
+			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs.push(Structr.find('TestSix')[1]); }}");
+			assertEquals("Invalid scripted array operation result", 2, testOne.getProperty(TestOne.manyToManyTestSixs).size());
+
 
 			tx.success();
 

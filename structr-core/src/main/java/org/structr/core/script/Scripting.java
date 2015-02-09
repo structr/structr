@@ -127,6 +127,7 @@ public class Scripting {
 			Scriptable scope = scriptingContext.initStandardObjects();
 
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity);
+			scriptable.setParentScope(scope);
 
 			// register Structr scriptable
 			scope.put("Structr", scope, scriptable);
@@ -134,7 +135,7 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "source", 1, null);
+			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "source", -3, null);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();

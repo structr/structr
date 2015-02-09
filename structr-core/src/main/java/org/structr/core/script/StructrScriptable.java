@@ -308,6 +308,16 @@ public class StructrScriptable extends ScriptableObject {
 
 			return obj;
 		}
+
+		@Override
+		public Object getDefaultValue(final Class<?> hint) {
+
+			if (String.class.equals(hint)) {
+				return toString();
+			}
+
+			return "[object Array]";
+		}
 	}
 
 	public class GraphObjectWrapper implements Scriptable, Wrapper {
