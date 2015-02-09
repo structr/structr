@@ -10,10 +10,12 @@ import java.util.logging.Logger;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.IdFunctionCall;
 import org.mozilla.javascript.IdFunctionObject;
-import org.mozilla.javascript.NativeJavaArray;
+import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaMethod;
+import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.TopLevel;
 import org.mozilla.javascript.Wrapper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
@@ -21,7 +23,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.parser.Functions;
-import org.structr.core.property.DateProperty;
+import org.structr.core.property.EnumProperty;
 import org.structr.core.property.NumericalPropertyKey;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
@@ -36,13 +38,17 @@ public class StructrScriptable extends ScriptableObject {
 	private static final Logger logger = Logger.getLogger(StructrScriptable.class.getName());
 
 	private ActionContext actionContext     = null;
-	private GraphObject entity              = null;
 	private FrameworkException exception    = null;
+	private Scriptable globalScope          = null;
+	private GraphObject entity              = null;
+	private Context context                 = null;
 
-	public StructrScriptable(final ActionContext actionContext, final GraphObject entity) {
+	public StructrScriptable(final Context context, final Scriptable scope, final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext   = actionContext;
 		this.entity          = entity;
+		this.context         = context;
+		this.globalScope           = scope;
 	}
 
 	@Override
@@ -58,13 +64,13 @@ public class StructrScriptable extends ScriptableObject {
 			return new IdFunctionObject(new IdFunctionCall() {
 
 				@Override
-				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 
 					if (parameters.length > 0 && parameters[0] != null) {
 
 						try {
 
-							return wrap(externalScriptable, actionContext.evaluate(entity, parameters[0].toString(), null, null));
+							return wrap(thisObject, null, actionContext.evaluate(entity, parameters[0].toString(), null, null));
 
 						} catch (FrameworkException ex) {
 							exception = ex;
@@ -81,7 +87,7 @@ public class StructrScriptable extends ScriptableObject {
 			return new IdFunctionObject(new IdFunctionCall() {
 
 				@Override
-				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 					actionContext.print(parameters);
 					return null;
 				}
@@ -93,7 +99,7 @@ public class StructrScriptable extends ScriptableObject {
 			return new IdFunctionObject(new IdFunctionCall() {
 
 				@Override
-				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 					actionContext.clear();
 					return null;
 				}
@@ -105,7 +111,7 @@ public class StructrScriptable extends ScriptableObject {
 			return new IdFunctionObject(new IdFunctionCall() {
 
 				@Override
-				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 
 					if (parameters.length > 0 && parameters[0] != null) {
 
@@ -142,27 +148,27 @@ public class StructrScriptable extends ScriptableObject {
 	}
 
 	// ----- private methods -----
-	private Object wrap(final Scriptable rootScriptable, final Object value) {
+	private Object wrap(final Scriptable scope, final String key, final Object value) {
 
 		if (value instanceof Collection) {
-			return new StructrArray(rootScriptable, wrapCollection(rootScriptable, (Collection)value));
+			return new StructrArray(scope, key, wrapCollection(scope, key, (Collection)value));
 		}
 
 		if (value instanceof GraphObject) {
-			return new GraphObjectWrapper(rootScriptable, (GraphObject)value);
+			return new GraphObjectWrapper(scope, (GraphObject)value);
 		}
 
 		return value;
 	}
 
-	private Object[] wrapCollection(final Scriptable rootScriptable, final Collection collection) {
+	private Object[] wrapCollection(final Scriptable scope, final String key, final Collection collection) {
 
 		final int size       = collection.size();
 		final Object[] array = new Object[size];
 		int i                = 0;
 
 		for (final Object obj : collection) {
-			array[i++] = wrap(rootScriptable, obj);
+			array[i++] = wrap(scope, key, obj);
 		}
 
 		return array;
@@ -208,7 +214,7 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		@Override
-		public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
+		public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 
 			try {
 
@@ -220,7 +226,7 @@ public class StructrScriptable extends ScriptableObject {
 					unwrappedParameters[i++] = unwrap(param);
 				}
 
-				return wrap(externalScriptable, function.apply(actionContext, entity, unwrappedParameters));
+				return wrap(scope, null, function.apply(actionContext, entity, unwrappedParameters));
 
 			} catch (FrameworkException fex) {
 				exception = fex;
@@ -230,10 +236,19 @@ public class StructrScriptable extends ScriptableObject {
 		}
 	}
 
-	public class StructrArray extends NativeJavaArray {
+	public class StructrArray extends NativeArray {
 
-		public StructrArray(final Scriptable scope, final Object[] array) {
-			super(scope, array);
+		private Scriptable rootScriptable = null;
+		private String key                = null;
+
+		public StructrArray(final Scriptable rootScriptable, final String key, final Object[] array) {
+
+			super(array);
+
+			ScriptRuntime.setBuiltinProtoAndParent(this, rootScriptable, TopLevel.Builtins.Array);
+
+			this.rootScriptable = rootScriptable;
+			this.key            = key;
 		}
 
 		@Override
@@ -242,16 +257,14 @@ public class StructrScriptable extends ScriptableObject {
 			final StringBuilder buf = new StringBuilder();
 			boolean first           = true;
 
-			for (final Object obj : (Object[])unwrap()) {
+			buf.append("[");
 
-				if (first) {
+			for (final Object obj : this.toArray()) {
 
-					buf.append("[");
-					first = false;
-
-				} else {
+				if (!first) {
 
 					buf.append(",");
+					first = false;
 				}
 
 				buf.append(obj.toString());
@@ -261,17 +274,54 @@ public class StructrScriptable extends ScriptableObject {
 
 			return buf.toString();
 		}
+
+		@Override
+		public Object get(final String name, final Scriptable s) {
+
+			final Object obj = super.get(name, s);
+
+			if (key != null && obj != null && "push".equals(name)) {
+
+				final Scriptable prototype = getPrototype();
+				if (prototype != null) {
+
+					final Object pushFunction = prototype.get(name, s);
+					if (pushFunction != null && pushFunction instanceof IdFunctionObject) {
+
+						final IdFunctionObject push = (IdFunctionObject)pushFunction;
+
+						return new IdFunctionObject(new IdFunctionCall() {
+
+							@Override
+							public Object execIdCall(IdFunctionObject f, Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+
+								// exec wrapped function call
+								final Object result = push.call(cx, scope, thisObj, args);
+
+								// do association
+								rootScriptable.put(key, rootScriptable, StructrArray.this);
+
+								return result;
+							}
+
+						}, "Array", push.methodId(), push.getArity());
+					}
+				}
+			}
+
+			return obj;
+		}
 	}
 
 	public class GraphObjectWrapper implements Scriptable, Wrapper {
 
-		private Scriptable parentScope = null;
-		private Scriptable prototype   = null;
-		private GraphObject obj        = null;
+		private Scriptable prototype = null;
+		private Scriptable scope     = null;
+		private GraphObject obj      = null;
 
-		public GraphObjectWrapper(final Scriptable parentScope, final GraphObject obj) {
+		public GraphObjectWrapper(final Scriptable scope, final GraphObject obj) {
 
-			this.parentScope = parentScope;
+			this.scope = scope;
 			this.obj         = obj;
 		}
 
@@ -292,7 +342,7 @@ public class StructrScriptable extends ScriptableObject {
 			final PropertyKey key = getKey(name);
 			if (key != null) {
 
-				return wrap(parentScope, obj.getProperty(key));
+				return wrap(this, name, obj.getProperty(key));
 			}
 
 			// second try, methods
@@ -352,7 +402,7 @@ public class StructrScriptable extends ScriptableObject {
 					}
 
 					// use inputConverter of EnumProperty to convert to native enums
-					if (!(key instanceof DateProperty)) {
+					if (key instanceof EnumProperty) {
 
 						// should we really use the inputConverter here??
 						PropertyConverter inputConverter = key.inputConverter(actionContext.getSecurityContext());
@@ -405,12 +455,12 @@ public class StructrScriptable extends ScriptableObject {
 
 		@Override
 		public Scriptable getParentScope() {
-			return parentScope;
+			return scope;
 		}
 
 		@Override
 		public void setParentScope(Scriptable s) {
-			this.parentScope = s;
+			this.scope = s;
 		}
 
 		@Override
@@ -454,7 +504,7 @@ public class StructrScriptable extends ScriptableObject {
 				return new IdFunctionObject(new IdFunctionCall() {
 
 					@Override
-					public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable externalScriptable, final Scriptable structrScriptable, final Object[] parameters) {
+					public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 
 						if (parameters.length > 0 && parameters[0] != null) {
 

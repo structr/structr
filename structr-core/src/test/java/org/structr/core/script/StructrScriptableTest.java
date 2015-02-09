@@ -1,5 +1,6 @@
 package org.structr.core.script;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.TestFour;
@@ -310,8 +312,6 @@ public class StructrScriptableTest extends StructrTest {
 			testOne1.setProperty(TestOne.anEnum            , Status.One);
 			testOne1.setProperty(TestOne.aString           , "aString1");
 			testOne1.setProperty(TestOne.aBoolean          , true);
-			testOne1.setProperty(TestOne.anotherString     , "anotherString1");
-			testOne1.setProperty(TestOne.stringWithQuotes  , "1String\"with'quotes");
 			testOne1.setProperty(TestOne.testTwo           , testTwo1);
 			testOne1.setProperty(TestOne.testThree         , testThree1);
 			testOne1.setProperty(TestOne.testFour          , testFour1);
@@ -324,8 +324,6 @@ public class StructrScriptableTest extends StructrTest {
 			testOne2.setProperty(TestOne.anEnum            , Status.Two);
 			testOne2.setProperty(TestOne.aString           , "aString2");
 			testOne2.setProperty(TestOne.aBoolean          , false);
-			testOne2.setProperty(TestOne.anotherString     , "anotherString2");
-			testOne2.setProperty(TestOne.stringWithQuotes  , "2String\"with'quotes");
 			testOne2.setProperty(TestOne.testTwo           , testTwo2);
 			testOne2.setProperty(TestOne.testThree         , testThree2);
 			testOne2.setProperty(TestOne.testFour          , testFour2);
@@ -356,6 +354,8 @@ public class StructrScriptableTest extends StructrTest {
 			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'One' })[0]; }}"));
 			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'Two' })[0]; }}"));
 
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aBoolean: true })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aBoolean: false })[0]; }}"));
 
 
 			tx.success();
@@ -365,8 +365,135 @@ public class StructrScriptableTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	public void testWrappingUnwrapping() {
+
+		// setup phase
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+			final TestOne context             = app.create(TestOne.class);
+
+			Scripting.evaluate(actionContext, context, "${{ Structr.create('Group', { name: 'Group1' } ); }}");
+			Scripting.evaluate(actionContext, context, "${{ Structr.create('Group', 'name', 'Group2'); }}");
+
+			assertEquals("Invalid unwrapping result", 2, app.nodeQuery(Group.class).getAsList().size());
 
 
+			tx.success();
 
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	public void testCollectionOperations() {
+
+		Group group    = null;
+		TestUser user1 = null;
+		TestUser user2 = null;
+
+		// setup phase
+		try (final Tx tx = app.tx()) {
+
+			group = app.create(Group.class, "Group");
+			user1  = app.create(TestUser.class, "Tester1");
+			user2  = app.create(TestUser.class, "Tester2");
+
+			group.setProperty(Group.members, Arrays.asList(new Principal[] { user1 } ));
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test phase, find all the things using scripting
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			// test prerequisites
+			assertEquals("Invalid prerequisite",     1, group.getProperty(Group.members).size());
+			assertEquals("Invalid prerequisite", user2, Scripting.evaluate(actionContext, group, "${{ return Structr.find('TestUser', { name: 'Tester2' })[0]; }}"));
+
+			// test scripting association
+			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('TestUser', { name: 'Tester2' })[0]); }}");
+			assertEquals("Invalid scripted array operation result", 2, group.getProperty(Group.members).size());
+
+			// reset group
+			group.setProperty(Group.members, Arrays.asList(new Principal[] { user1 } ));
+
+			// test prerequisites
+			assertEquals("Invalid prerequisite",     1, group.getProperty(Group.members).size());
+
+			// test direct push on member property
+			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('TestUser', { name: 'Tester2' })[0]); }}");
+			assertEquals("Invalid scripted array operation result", 2, group.getProperty(Group.members).size());
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	public void testSorting() {
+
+		final Random random = new Random();
+		TestOne testOne     = null;
+
+		// setup phase
+		try (final Tx tx = app.tx()) {
+
+			final List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
+			testOne                      = app.create(TestOne.class);
+
+			for (final TestSix t : testSixs) {
+				t.setProperty(TestSix.index, random.nextInt(1000));
+			}
+
+			testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test phase, find all the things using scripting
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Scripting.evaluate(actionContext, testOne,
+				  "${{"
+				+ "	var testOne = Structr.find('TestOne')[0]; "
+
+				+ "	var members = testOne.manyToManyTestSixs.sort(function(x, y) {"
+
+				+ "		return x.index < y.index ? -1 : 1;"
+				+ "	});"
+
+				+ "	Structr.log(members);"
+				+ "	return members;"
+				+ "}}");
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 }

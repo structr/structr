@@ -126,7 +126,7 @@ public class Scripting {
 			// This must be done before scripts can be executed.
 			Scriptable scope = scriptingContext.initStandardObjects();
 
-			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity);
+			final StructrScriptable scriptable = new StructrScriptable(scriptingContext, scope, actionContext, entity);
 
 			// register Structr scriptable
 			scope.put("Structr", scope, scriptable);
@@ -156,10 +156,16 @@ public class Scripting {
 
 			return extractedValue;
 
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+
 		} finally {
 
 			Context.exit();
 		}
+
+		return null;
 	}
 
 	private static String embedInFunction(final String source) {
