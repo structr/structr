@@ -17,6 +17,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.TopLevel;
 import org.mozilla.javascript.Wrapper;
+import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -127,7 +128,7 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		// execute builtin function?
-		final Function<Object, Object> function = Functions.functions.get(name);
+		final Function<Object, Object> function = Functions.functions.get(CaseHelper.toUnderscore(name, false));
 		if (function != null) {
 
 			return new IdFunctionObject(new FunctionWrapper(function), null, 0, 0);
