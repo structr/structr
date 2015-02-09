@@ -30,6 +30,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
+import org.structr.core.validator.LowercaseTypeUniquenessValidator;
 import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.core.validator.SimpleRegexValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -58,8 +59,8 @@ public class User extends AbstractUser {
 	public static final Property<Folder>      homeDirectory    = new EndNode<>("homeDirectory", UserHomeDir.class);
 	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
 	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new UiNotion());
-	public static final Property<Boolean>     isUser           = new BooleanProperty("isUser", true).readOnly();
-	public static final Property<String>      eMail            = new StringProperty("eMail").indexed();
+	public static final Property<Boolean>     isUser           = new BooleanProperty("isUser").defaultValue(true).readOnly();
+	public static final Property<String>      eMail            = new StringProperty("eMail").indexedCaseInsensitive();
 	public static final Property<String>      twitterName      = new StringProperty("twitterName").indexed();
 	public static final Property<String>      localStorage     = new StringProperty("localStorage");
 
@@ -76,7 +77,7 @@ public class User extends AbstractUser {
 	// register this type as an overridden builtin type
 		SchemaService.registerBuiltinTypeOverride("User", User.class.getName());
 
-		User.eMail.addValidator(new TypeUniquenessValidator(User.class));
+		User.eMail.addValidator(new LowercaseTypeUniquenessValidator(User.class));
 		User.name.addValidator(new SimpleNonEmptyValueValidator());
 		User.name.addValidator(new TypeUniquenessValidator(User.class));
 		User.eMail.addValidator(new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));

@@ -46,6 +46,7 @@ public abstract class PropertyParser {
 	protected String source                   = "";
 	protected String format                   = "";
 	protected String defaultValue             = "";
+	protected String contentType              = "";
 	protected boolean notNull                 = false;
 	protected boolean unique                  = false;
 	protected PropertyParameters params;
@@ -68,6 +69,7 @@ public abstract class PropertyParser {
 		this.notNull      = Boolean.TRUE.equals(params.notNull);
 		this.dbName       = params.dbName;
 		this.defaultValue = params.defaultValue;
+		this.contentType  = params.contentType;
 
 		if (this.propertyName.startsWith("_")) {
 			this.propertyName = this.propertyName.substring(1);
@@ -110,31 +112,41 @@ public abstract class PropertyParser {
 
 		final StringBuilder buf = new StringBuilder();
 
-		String valueType = getValueType();
+		final String valueType     = getValueType();
 
 		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
+		
 		if (dbName != null) {
 			buf.append(", \"").append(dbName).append("\"");
-		} else if ("String".equals(valueType)) {
-			// StringProperty has three leading String parameters
-			buf.append(", \"").append(propertyName).append("\"");
 		}
+		
 		buf.append(getPropertyParameters());
-		if (defaultValue != null) {
-			buf.append(", ").append(getDefaultValueSource());
-		}
+		
 		buf.append(localValidator);
+		
 		buf.append(")");
+
+		if (defaultValue != null) {
+			buf.append(".defaultValue(").append(getDefaultValueSource()).append(")");
+		}
+
+		if (format != null) {
+			buf.append(".format(\"").append(format).append("\")");
+		}
+
+		if (unique) {
+			buf.append(".unique()");
+		}
+
+		if (notNull) {
+			buf.append(".notNull()");
+		}
 
 		if (defaultValue != null) {
 			buf.append(".indexedWhenEmpty()");
 		} else {
 			buf.append(".indexed()");
-		}
-
-		if (unique) {
-			buf.append(".unique()");
 		}
 
 		buf.append(";\n");
@@ -194,6 +206,14 @@ public abstract class PropertyParser {
 
 			params.format = substringBetween(params.source, "(", ")");
 			params.source = params.source.replaceFirst("\\(.*\\)", "");
+
+		}
+
+		// detect and remove content-type: <type>[...]
+		if (StringUtils.isNotBlank(params.source)) {
+
+			params.contentType = substringBetween(params.source, "[", "]");
+			params.source = params.source.replaceFirst("\\[.*\\]", "");
 
 		}
 

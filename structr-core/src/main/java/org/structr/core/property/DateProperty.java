@@ -45,24 +45,13 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	public static final String DATE_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 
-	public DateProperty(final String name, final String pattern) {
+	public DateProperty(final String name) {
 		super(name);
-		this.format = pattern;
 	}
 
-	public DateProperty(final String name, final String pattern, final Date defaultValue) {
-		super(name, name, defaultValue);
-		this.format = pattern;
-	}
-
-	public DateProperty(final String name, final String dbName, final String pattern) {
-		super(name, dbName);
-		this.format = pattern;
-	}
-
-	public DateProperty(final String name, final String dbName, final Date defaultValue, final String pattern) {
-		super(name, dbName, defaultValue);
-		this.format = pattern;
+	public DateProperty(final String name, final String format) {
+		super(name);
+		this.format = format;
 	}
 
 	@Override
@@ -203,6 +192,10 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	@Override
 	public void index(GraphObject entity, Object value) {
+		// In case of default value, we need to convert it to Long
+		if (value != null && value instanceof Date) {
+			value = ((Date) value).getTime();
+		}
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 

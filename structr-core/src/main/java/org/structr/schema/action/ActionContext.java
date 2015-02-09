@@ -38,27 +38,34 @@ import org.structr.core.parser.Functions;
  */
 public class ActionContext {
 
-	protected Map<String, String> headers    = new HashMap<>();
-	protected Map<String, Object> constants  = new HashMap<>();
-	protected Map<String, Object> tmpStore   = new HashMap<>();
-	protected Map<Integer, Integer> counters = new HashMap<>();
-	protected ErrorBuffer errorBuffer        = new ErrorBuffer();
+	protected SecurityContext securityContext = null;
+	protected Map<String, String> headers     = new HashMap<>();
+	protected Map<String, Object> constants   = new HashMap<>();
+	protected Map<String, Object> tmpStore    = new HashMap<>();
+	protected Map<Integer, Integer> counters  = new HashMap<>();
+	protected ErrorBuffer errorBuffer         = new ErrorBuffer();
+	protected StringBuilder outputBuffer      = new StringBuilder();
 
-	public ActionContext() {
-		this(null, null);
+	public ActionContext(final SecurityContext securityContext) {
+		this(securityContext, null);
 	}
 
-	public ActionContext(final Map<String, Object> parameters) {
-		this();
-		this.tmpStore.putAll(parameters);
+	public ActionContext(final SecurityContext securityContext, final Map<String, Object> parameters) {
+
+		if (parameters != null) {
+			this.tmpStore.putAll(parameters);
+		}
+
+		this.securityContext = securityContext;
 	}
 
 	public ActionContext(final ActionContext other) {
 
-		this.tmpStore    = other.tmpStore;
-		this.counters    = other.counters;
-		this.errorBuffer = other.errorBuffer;
-		this.constants   = other.constants;
+		this.tmpStore        = other.tmpStore;
+		this.counters        = other.counters;
+		this.errorBuffer     = other.errorBuffer;
+		this.constants       = other.constants;
+		this.securityContext = other.securityContext;
 	}
 
 	public ActionContext(final ActionContext other, final GraphObject parent, final Object data) {
@@ -68,11 +75,14 @@ public class ActionContext {
 		init(parent, data);
 	}
 
-	public ActionContext(final GraphObject parent, final Object data) {
+	public ActionContext(final SecurityContext securityContext, final GraphObject parent, final Object data) {
+
+		this.securityContext = securityContext;
+
 		init(parent, data);
 	}
 
-	private final void init(final GraphObject parent, final Object data) {
+	private void init(final GraphObject parent, final Object data) {
 
 		constants.put("parent", parent);
 		constants.put("data", data);
@@ -80,11 +90,15 @@ public class ActionContext {
 		constants.put("false", false);
 	}
 
-	public boolean returnRawValue(final SecurityContext securityContext) {
+	public SecurityContext getSecurityContext() {
+		return securityContext;
+	}
+
+	public boolean returnRawValue() {
 		return false;
 	}
 
-	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey, final Object initialData) throws FrameworkException {
+	public Object getReferencedProperty(final GraphObject entity, final String refKey, final Object initialData) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
 		final String[] parts           = refKey.split("[\\.]+");
@@ -107,7 +121,7 @@ public class ActionContext {
 				}
 			}
 
-			_data = evaluate(securityContext, entity, key, _data, defaultValue);
+			_data = evaluate(entity, key, _data, defaultValue);
 		}
 
 		return _data;
@@ -167,8 +181,7 @@ public class ActionContext {
 		return headers;
 	}
 
-	// ----- protected methods -----
-	protected Object evaluate(final SecurityContext securityContext, final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
 
 		Object value = constants.get(key);
 		if (value == null) {
@@ -232,5 +245,24 @@ public class ActionContext {
 		}
 
 		return value;
+	}
+
+	public void print(final Object... objects) {
+
+		for (final Object obj : objects) {
+
+			if (obj != null) {
+
+				outputBuffer.append(obj.toString());
+			}
+		}
+	}
+
+	public void clear() {
+		outputBuffer.setLength(0);
+	}
+
+	public String getOutput() {
+		return outputBuffer.toString();
 	}
 }

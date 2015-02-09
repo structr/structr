@@ -58,7 +58,7 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 
 			try {
 
-				return (T)Functions.evaluate(securityContext, new ActionContext(), obj, format);
+				return (T)Functions.evaluate(new ActionContext(securityContext), obj, format);
 
 			} catch (Throwable t) {
 

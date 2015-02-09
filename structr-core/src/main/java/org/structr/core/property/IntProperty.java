@@ -29,7 +29,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.IntegerSearchAttribute;
@@ -40,38 +39,38 @@ import org.structr.core.graph.search.SearchAttribute;
  *
  * @author Christian Morgner
  */
-public class IntProperty extends AbstractPrimitiveProperty<Integer> {
+public class IntProperty extends AbstractPrimitiveProperty<Integer> implements NumericalPropertyKey<Integer> {
 
 	private static final Logger logger = Logger.getLogger(IntProperty.class.getName());
 	public static final String INT_EMPTY_FIELD_VALUE = NumericUtils.intToPrefixCoded(Integer.MIN_VALUE);
 
 	public IntProperty(final String name) {
-		this(name, name, null);
+		super(name);
 	}
 
-	public IntProperty(final String jsonName, final String dbName) {
-		this(jsonName, dbName, null);
-	}
-
-	public IntProperty(final String name, final Integer defaultValue) {
-		this(name, name, defaultValue);
-	}
-
-	public IntProperty(final String name, final PropertyValidator<Integer>... validators) {
-		this(name, name, null, validators);
-	}
-
-	public IntProperty(final String name, final Integer defaultValue, final PropertyValidator<Integer>... validators) {
-		this(name, name, defaultValue, validators);
-	}
-
-	public IntProperty(final String jsonName, final String dbName, final Integer defaultValue, final PropertyValidator<Integer>... validators) {
-		super(jsonName, dbName, defaultValue);
-
-		for (PropertyValidator<Integer> validator : validators) {
-			addValidator(validator);
-		}
-	}
+//	public IntProperty(final String jsonName, final String dbName) {
+//		this(jsonName, dbName, null);
+//	}
+//
+//	public IntProperty(final String name, final Integer defaultValue) {
+//		this(name, name, defaultValue);
+//	}
+//
+//	public IntProperty(final String name, final PropertyValidator<Integer>... validators) {
+//		this(name, name, null, validators);
+//	}
+//
+//	public IntProperty(final String name, final Integer defaultValue, final PropertyValidator<Integer>... validators) {
+//		this(name, name, defaultValue, validators);
+//	}
+//
+//	public IntProperty(final String jsonName, final String dbName, final Integer defaultValue, final PropertyValidator<Integer>... validators) {
+//		super(jsonName, dbName, defaultValue);
+//
+//		for (PropertyValidator<Integer> validator : validators) {
+//			addValidator(validator);
+//		}
+//	}
 
 	@Override
 	public String typeName() {
@@ -96,6 +95,16 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	@Override
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
+	}
+
+	@Override
+	public Integer convertToNumber(Double source) {
+
+		if (source != null) {
+			return source.intValue();
+		}
+
+		return null;
 	}
 
 	protected class InputConverter extends PropertyConverter<Object, Integer> {

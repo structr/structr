@@ -110,8 +110,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
-	public static final Property<Boolean> isPage = new BooleanProperty("isPage", true).readOnly();
-	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache", false);
+	public static final Property<Boolean> isPage = new BooleanProperty("isPage").defaultValue(true).readOnly();
+	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache").defaultValue(false);
         public static final Property<String> path = new StringProperty("path").indexed();
 	public static final Property<Site> site = new StartNode<>("Site", Pages.class, new UiNotion()).indexedWhenEmpty();
 
@@ -570,10 +570,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 */
 	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
 
-		final RenderContext ctx = new RenderContext(null, null, editMode, Locale.GERMAN);
+		final RenderContext ctx = new RenderContext(securityContext, null, null, editMode, Locale.GERMAN);
 		final StringRenderBuffer buffer = new StringRenderBuffer();
 		ctx.setBuffer(buffer);
-		render(securityContext, ctx, 0);
+		render(ctx, 0);
 
 		// extract source
 		return buffer.getBuffer().toString();
@@ -681,7 +681,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(RenderContext renderContext, int depth) throws FrameworkException {
 
 		renderContext.setPage(this);
 
@@ -703,7 +703,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			if (subNode.isNotDeleted() && securityContext.isVisible(subNode)) {
 
-				subNode.render(securityContext, renderContext, depth);
+				subNode.render(renderContext, depth);
 			}
 
 			subNode = (DOMNode) subNode.getNextSibling();
@@ -713,7 +713,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 	}
 
 	@Override

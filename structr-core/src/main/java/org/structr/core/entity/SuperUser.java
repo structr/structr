@@ -437,12 +437,7 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return null;
-	}
-
-	@Override
-	public String replaceVariables(SecurityContext securityContext, ActionContext actionContext, Object rawValue) throws FrameworkException {
+	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
 		return null;
 	}
 
@@ -452,7 +447,7 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters) throws FrameworkException {
+	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		return null;
 	}
 

@@ -18,7 +18,6 @@
  */
 package org.structr.core.parser;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -46,12 +45,12 @@ public class GroupExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 		final StringBuilder buf = new StringBuilder();
 		for (Expression expr : expressions) {
 
-			final Object result = expr.evaluate(securityContext, ctx, entity);
+			final Object result = expr.evaluate(ctx, entity);
 			if (result != null) {
 
 				buf.append(result);
@@ -62,7 +61,7 @@ public class GroupExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
 		return source;
 	}
 }

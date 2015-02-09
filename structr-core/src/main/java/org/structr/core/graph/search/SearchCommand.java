@@ -121,7 +121,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private int page                             = 1;
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
-	public abstract Index<S> getUuidIndex();
 	public abstract Index<S> getFulltextIndex();
 	public abstract Index<S> getKeywordIndex();
 	public abstract LayerNodeIndex getSpatialIndex();

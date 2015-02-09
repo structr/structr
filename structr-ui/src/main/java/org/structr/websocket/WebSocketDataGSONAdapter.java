@@ -52,13 +52,13 @@ import org.structr.websocket.message.WebSocketMessage;
 public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage>, JsonDeserializer<WebSocketMessage> {
 
 	private static final Logger logger                   = Logger.getLogger(WebSocketDataGSONAdapter.class.getName());
+	private final Value<String> propertyView             = new StaticValue<>(PropertyView.Public);
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
-	private Value<String> propertyView                   = new StaticValue<>(PropertyView.Public);
 
 	//~--- constructors ---------------------------------------------------
 
-	public WebSocketDataGSONAdapter(final PropertyKey idProperty, final int outputNestingDepth) {
-		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, idProperty, outputNestingDepth);
+	public WebSocketDataGSONAdapter(final int outputNestingDepth) {
+		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, outputNestingDepth);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -260,7 +260,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			root.add("result", result);
 			root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
-			
+
 		}
 
 		return root;

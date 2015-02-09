@@ -20,6 +20,7 @@ package org.structr.web.entity.html;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.property.Property;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -69,7 +70,13 @@ public class Script extends LinkSource {
 		if (newChild instanceof Content) {
 
 			try {
-				((Content)newChild).setProperty(Content.contentType, getProperty(_type));
+				final String scriptType = getProperty(_type);
+				
+				if (StringUtils.isNotBlank(scriptType)) {
+				
+					((Content)newChild).setProperty(Content.contentType, scriptType);
+				
+				}
 
 			} catch (FrameworkException fex) {
 

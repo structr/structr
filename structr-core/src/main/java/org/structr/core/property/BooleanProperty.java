@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -40,32 +39,32 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
 
 	public BooleanProperty(final String name) {
-		this(name, name, null);
+		super(name);
 	}
 
-	public BooleanProperty(final String jsonName, final String dbName) {
-		this(jsonName, dbName, null);
-	}
-
-	public BooleanProperty(final String name, final Boolean defaultValue) {
-		this(name, name, defaultValue);
-	}
-
-	public BooleanProperty(final String name, final PropertyValidator<Boolean>... validators) {
-		this(name, name, null, validators);
-	}
-
-	public BooleanProperty(final String name, final Boolean defaultValue, final PropertyValidator<Boolean>... validators) {
-		this(name, name, defaultValue, validators);
-	}
-
-	public BooleanProperty(final String jsonName, final String dbName, final Boolean defaultValue, final PropertyValidator<Boolean>... validators) {
-		super(jsonName, dbName, defaultValue);
-
-		for (PropertyValidator<Boolean> validator : validators) {
-			addValidator(validator);
-		}
-	}
+//	public BooleanProperty(final String jsonName, final String dbName) {
+//		this(jsonName, dbName, null);
+//	}
+//
+//	public BooleanProperty(final String name, final Boolean defaultValue) {
+//		this(name, name, defaultValue);
+//	}
+//
+//	public BooleanProperty(final String name, final PropertyValidator<Boolean>... validators) {
+//		this(name, name, null, validators);
+//	}
+//
+//	public BooleanProperty(final String name, final Boolean defaultValue, final PropertyValidator<Boolean>... validators) {
+//		this(name, name, defaultValue, validators);
+//	}
+//
+//	public BooleanProperty(final String jsonName, final String dbName, final Boolean defaultValue, final PropertyValidator<Boolean>... validators) {
+//		super(jsonName, dbName, defaultValue);
+//
+//		for (PropertyValidator<Boolean> validator : validators) {
+//			addValidator(validator);
+//		}
+//	}
 
 	@Override
 	public Property<Boolean> indexed() {

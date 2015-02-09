@@ -41,8 +41,6 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.log.ReadLogCommand;
-import org.structr.core.log.WriteLogCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
@@ -65,8 +63,6 @@ public class StructrTest extends TestCase {
 	protected StructrConf config                 = new StructrConf();
 	protected GraphDatabaseCommand graphDbCommand = null;
 	protected SecurityContext securityContext     = null;
-	protected ReadLogCommand readLogCommand;
-	protected WriteLogCommand writeLogCommand;
 
 	protected App app = null;
 
@@ -86,7 +82,7 @@ public class StructrTest extends TestCase {
 		long timestamp = now.getTime();
 
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Services.CONFIGURED_SERVICES, "ModuleService NodeService LogService");
+		config.setProperty(Services.CONFIGURED_SERVICES, "ModuleService NodeService");
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
 		config.setProperty(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
@@ -98,23 +94,21 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		
+
 		final Services services = Services.getInstance(config);
 
 		// wait for service layer to be initialized
 		do {
 			try { Thread.sleep(100); } catch(Throwable t) {}
-			
+
 		} while(!services.isInitialized());
 
 		securityContext           = SecurityContext.getSuperUserInstance();
-		
+
 		app = StructrApp.getInstance(securityContext);
-		
+
 		graphDbCommand            = app.command(GraphDatabaseCommand.class);
-		writeLogCommand           = app.command(WriteLogCommand.class);
-		readLogCommand            = app.command(ReadLogCommand.class);
-		
+
 	}
 
 	@Override
@@ -133,7 +127,7 @@ public class StructrTest extends TestCase {
 
 				testDir.delete();
 			}
-			
+
 		} catch(Throwable t) {
 		}
 
@@ -197,7 +191,7 @@ public class StructrTest extends TestCase {
 	}
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number) throws FrameworkException {
-		
+
 		return createTestNodes(type, number, 0);
 
 	}
@@ -248,7 +242,7 @@ public class StructrTest extends TestCase {
 	protected <T> List<T> toList(T... elements) {
 		return Arrays.asList(elements);
 	}
-	
+
 	//~--- get methods ----------------------------------------------------
 
 	/**

@@ -18,7 +18,6 @@
  */
 package org.structr.web.common;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 
@@ -30,5 +29,5 @@ import org.structr.core.entity.AbstractNode;
 
 public interface GraphDataSource<T> {
 
-	public T getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException;
+	public T getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException;
 }

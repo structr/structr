@@ -19,7 +19,6 @@
 package org.structr.core;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -121,6 +120,7 @@ public class Services {
 	private StructrConf structrConf                    = new StructrConf();
 	private ConfigurationProvider configuration        = null;
 	private boolean initializationDone                 = false;
+	private boolean shutdownDone                       = false;
 	private String configuredServiceNames              = null;
 	private String configurationClass                  = null;
 
@@ -249,7 +249,10 @@ public class Services {
 //			structrConf.load(fis);
 //			fis.close();
 
-			structrConf.load(new PropertiesConfiguration(configFileName));
+			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			final PropertiesConfiguration propConf = new PropertiesConfiguration(configFileName);
+
+			structrConf.load(propConf);
 
 		} catch (ConfigurationException ex) {
 			logger.log(Level.SEVERE, null, ex);
@@ -340,37 +343,43 @@ public class Services {
 
 		initializationDone = false;
 
-		System.out.println("INFO: Shutting down...");
-		for (Service service : serviceCache.values()) {
+		if (!shutdownDone) {
+			
+			System.out.println("INFO: Shutting down...");
+			for (Service service : serviceCache.values()) {
 
-			try {
+				try {
 
-				if (service instanceof RunnableService) {
+					if (service instanceof RunnableService) {
 
-					RunnableService runnableService = (RunnableService) service;
+						RunnableService runnableService = (RunnableService) service;
 
-					if (runnableService.isRunning()) {
-						runnableService.stopService();
+						if (runnableService.isRunning()) {
+							runnableService.stopService();
+						}
 					}
+
+					service.shutdown();
+
+				} catch (Throwable t) {
+
+					System.out.println("WARNING: Failed to shut down " + service.getName() + ": " + t.getMessage());
 				}
-
-				service.shutdown();
-
-			} catch (Throwable t) {
-
-				System.out.println("WARNING: Failed to shut down " + service.getName() + ": " + t.getMessage());
 			}
+
+			serviceCache.clear();
+
+			// shut down configuration provider
+			configuration.shutdown();
+
+			// clear singleton instance
+			singletonInstance = null;
+
+			System.out.println("INFO: Shutdown complete");
+
+			// signal shutdown is complete
+			shutdownDone = true;
 		}
-
-		serviceCache.clear();
-
-		// shut down configuration provider
-		configuration.shutdown();
-
-		// clear singleton instance
-		singletonInstance = null;
-
-		System.out.println("INFO: Shutdown complete");
 
 	}
 

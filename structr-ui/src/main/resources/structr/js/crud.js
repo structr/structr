@@ -264,6 +264,8 @@ var _Crud = {
                     _Crud.types.push(typeObj.type);
                 });
 
+                _Crud.types.sort();
+
                 if (callback) {
                     callback();
                 }
@@ -2376,8 +2378,15 @@ var _Crud = {
         var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
         var filteredKeys = {};
         if (filterSource) {
-
             filteredKeys = JSON.parse(filterSource);
+        } else {
+            // default
+            filteredKeys = { createdBy: 0, deleted: 0, hidden: 0, visibilityStartDate: 0, visibilityEndDate: 0};
+            if (type === 'User') {
+                filteredKeys.password = 0;
+                filteredKeys.sessionIds = 0;
+            }
+            localStorage.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
         }
 
         return $.grep(sourceArray, function(key) {

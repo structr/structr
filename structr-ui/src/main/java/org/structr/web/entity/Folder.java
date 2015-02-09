@@ -54,7 +54,7 @@ public class Folder extends AbstractFile {
 	public static final Property<List<Folder>> folders   = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
 	public static final Property<List<File>>   files     = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
 	public static final Property<List<Image>>  images    = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>      isFolder  = new BooleanProperty("isFolder", true).readOnly();
+	public static final Property<Boolean>      isFolder  = new BooleanProperty("isFolder").defaultValue(true).readOnly();
 
 	public static final Property<Integer>		position     = new IntProperty("position").indexed();
 

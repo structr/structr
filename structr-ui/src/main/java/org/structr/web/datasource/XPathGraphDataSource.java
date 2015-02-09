@@ -27,7 +27,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -47,7 +46,7 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 	private static final Logger logger = Logger.getLogger(XPathGraphDataSource.class.getName());
 
 	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
+	public List<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
 		final String xpathQuery = referenceNode.getProperty(DOMNode.xpathQuery);
 

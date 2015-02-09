@@ -264,13 +264,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
-	public void openingTag(final SecurityContext securityContext, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		out.append("<").append(tag);
 
 		for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.Html)) {
 
-			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
+			String value = getPropertyWithVariableReplacement(renderContext, attribute);
 
 			if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
@@ -326,13 +326,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * @throws FrameworkException
 	 */
 	@Override
-	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		if (renderContext.hasTimeout(RENDER_TIMEOUT)) {
 			return;
 		}
 
-		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
+		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
 			return;
 		}
 
@@ -356,7 +356,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		if (StringUtils.isNotBlank(_tag)) {
 
-			openingTag(securityContext, out, _tag, editMode, renderContext, depth);
+			openingTag(out, _tag, editMode, renderContext, depth);
 
 			try {
 
@@ -387,7 +387,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 						anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
 					}
 
-					subNode.render(securityContext, renderContext, depth + 1);
+					subNode.render(renderContext, depth + 1);
 
 				}
 
@@ -881,7 +881,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			if (key.startsWith("data-")) {
 
-				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key)).trim();
+				String value = getPropertyWithVariableReplacement(renderContext, new GenericProperty(key)).trim();
 
 				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 

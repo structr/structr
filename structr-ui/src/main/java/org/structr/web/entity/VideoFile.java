@@ -59,7 +59,7 @@ public class VideoFile extends File {
 
 	private static final Logger logger = Logger.getLogger(VideoFile.class.getName());
 
-	public static final Property<Boolean> isVideo        = new BooleanProperty("isVideo", true).readOnly();
+	public static final Property<Boolean> isVideo        = new BooleanProperty("isVideo").defaultValue(true).readOnly();
 	public static final Property<String>  videoCodecName = new StringProperty("videoCodecName");
 	public static final Property<String>  videoCodec     = new StringProperty("videoCodec");
 	public static final Property<String>  pixelFormat    = new StringProperty("pixelFormat");

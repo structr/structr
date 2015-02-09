@@ -52,24 +52,24 @@ public class RenderContext extends ActionContext {
 	private static final Logger logger = Logger.getLogger(RenderContext.class.getName());
 
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
-	private final long renderStartTime = System.currentTimeMillis();
-	private Locale locale = Locale.getDefault();
-	private EditMode editMode = EditMode.NONE;
-	private AsyncBuffer buffer = new AsyncBuffer();
-	private int depth = 0;
-	private boolean inBody = false;
-	private boolean appLibRendered = false;
-	private GraphObject detailsDataObject = null;
-	private GraphObject currentDataObject = null;
-	private GraphObject sourceDataObject = null;
-	private Iterable<GraphObject> listSource = null;
-	private PropertyKey relatedProperty = null;
-	private Page page = null;
-	private HttpServletRequest request = null;
-	private HttpServletResponse response = null;
-	private ResourceProvider resourceProvider = null;
-	private Result result = null;
-	private boolean anyChildNodeCreatesNewLine = false;
+	private final long renderStartTime                 = System.currentTimeMillis();
+	private Locale locale                              = Locale.getDefault();
+	private EditMode editMode                          = EditMode.NONE;
+	private AsyncBuffer buffer                         = new AsyncBuffer();
+	private int depth                                  = 0;
+	private boolean inBody                             = false;
+	private boolean appLibRendered                     = false;
+	private GraphObject detailsDataObject              = null;
+	private GraphObject currentDataObject              = null;
+	private GraphObject sourceDataObject               = null;
+	private Iterable<GraphObject> listSource           = null;
+	private PropertyKey relatedProperty                = null;
+	private Page page                                  = null;
+	private HttpServletRequest request                 = null;
+	private HttpServletResponse response               = null;
+	private ResourceProvider resourceProvider          = null;
+	private Result result                              = null;
+	private boolean anyChildNodeCreatesNewLine         = false;
 
 	public enum EditMode {
 
@@ -77,7 +77,8 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public RenderContext() {
+	public RenderContext(final SecurityContext securityContext) {
+		super(securityContext);
 	}
 
 	/**
@@ -107,7 +108,9 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public RenderContext(final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
+	public RenderContext(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
+
+		super(securityContext);
 
 		this.request = request;
 		this.response = response;
@@ -117,11 +120,11 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public static RenderContext getInstance(final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
+	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
 
 		String editString = StringUtils.defaultString(request.getParameter("edit"));
 
-		return new RenderContext(request, response, editMode(editString), locale);
+		return new RenderContext(securityContext, request, response, editMode(editString), locale);
 
 	}
 
@@ -329,7 +332,7 @@ public class RenderContext extends ActionContext {
 	}
 
 	@Override
-	public boolean returnRawValue(final SecurityContext securityContext) {
+	public boolean returnRawValue() {
 		EditMode editMode = getEditMode(securityContext.getUser(false));
 		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
 	}
@@ -338,17 +341,15 @@ public class RenderContext extends ActionContext {
 		return System.currentTimeMillis() > (renderStartTime + timeout);
 	}
 
-	// ----- protected methods -----
-
 	@Override
-	protected Object evaluate(final SecurityContext securityContext, final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
 
 		if (hasDataForKey(key)) {
 			return getDataNode(key);
 		}
 
 		// evaluate non-ui specific context
-		Object value = super.evaluate(securityContext, entity, key, data, defaultValue);
+		Object value = super.evaluate(entity, key, data, defaultValue);
 		if (value == null) {
 
 			if (data != null) {
@@ -495,5 +496,4 @@ public class RenderContext extends ActionContext {
 
 		return value;
 	}
-
 }

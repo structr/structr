@@ -76,7 +76,7 @@ var _Contents = {
         
         _Entities.appendAccessControlIcon(div, entity);
 
-        div.append('<img title="Clone content node \'' + entity.name + '\'" alt="Clone content node \'' + entity.name + '\'" class="clone_icon button" src="icon/page_copy.png">');
+        div.append('<img title="Clone content node ' + entity.id + '" alt="Clone content node ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
         $('.clone_icon', div).on('click', function(e) {
             e.stopPropagation();
             Command.cloneNode(entity.id, entity.parent.id, true)

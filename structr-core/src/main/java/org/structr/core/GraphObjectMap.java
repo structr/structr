@@ -211,13 +211,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return SchemaHelper.getPropertyWithVariableReplacement(securityContext, this, renderContext, key);
-	}
-
-	@Override
-	public String replaceVariables(SecurityContext securityContext, ActionContext actionContext, Object rawValue) throws FrameworkException {
-		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
+	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+		return SchemaHelper.getPropertyWithVariableReplacement(renderContext, this, key);
 	}
 
 	@Override
@@ -235,7 +230,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters) throws FrameworkException {
+	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method is not supported as this is a property map.");
 	}
 

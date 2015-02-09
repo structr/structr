@@ -20,7 +20,6 @@ package org.structr.core.parser;
 
 import java.util.Collection;
 import org.apache.commons.collections.CollectionUtils;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -59,7 +58,7 @@ public class ArrayExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 		switch (expressions.size()) {
 
@@ -67,7 +66,7 @@ public class ArrayExpression extends Expression {
 				throw new FrameworkException(422, "Invalid expression: expected expression, found ].");
 
 			case 1:
-				final Object value = expressions.get(0).evaluate(securityContext, ctx, entity);
+				final Object value = expressions.get(0).evaluate(ctx, entity);
 				if (value instanceof Number) {
 
 					return ((Number)value).intValue();
@@ -78,13 +77,13 @@ public class ArrayExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException {
 
 		if (value == null) {
 			return null;
 		}
-		
-		final Integer index = (Integer)evaluate(securityContext, ctx, entity);
+
+		final Integer index = (Integer)evaluate(ctx, entity);
 		if (index != null) {
 
 			if (value instanceof Collection || value.getClass().isArray()) {

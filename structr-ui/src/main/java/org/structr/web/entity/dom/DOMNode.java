@@ -192,14 +192,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					if (sources[0] instanceof DOMNode) {
 
-						((DOMNode) sources[0]).render(entity.getSecurityContext(), innerCtx, 0);
+						((DOMNode) sources[0]).render(innerCtx, 0);
 
 					} else if (sources[0] instanceof Collection) {
 
 						for (final Object obj : (Collection) sources[0]) {
 
 							if (obj instanceof DOMNode) {
-								((DOMNode) obj).render(entity.getSecurityContext(), innerCtx, 0);
+								((DOMNode) obj).render(innerCtx, 0);
 							}
 
 						}
@@ -238,7 +238,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					if (node != null) {
 
-						node.render(entity.getSecurityContext(), innerCtx, 0);
+						node.render(innerCtx, 0);
 
 					} else {
 
@@ -789,7 +789,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * @throws FrameworkException
 	 */
 	@Override
-	public void render(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void render(final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		if (!securityContext.isVisible(this)) {
 			return;
@@ -810,7 +810,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 
-			renderContent(securityContext, renderContext, depth);
+			renderContent(renderContext, depth);
 
 		} else {
 
@@ -831,7 +831,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					renderContext.setDataObject(details);
 					renderContext.putDataObject(subKey, details);
-					renderContent(securityContext, renderContext, depth);
+					renderContent(renderContext, depth);
 
 				} else {
 
@@ -854,7 +854,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 										GraphObject graphObject = (GraphObject) o;
 										renderContext.putDataObject(subKey, graphObject);
-										renderContent(securityContext, renderContext, depth);
+										renderContent(renderContext, depth);
 
 									}
 								}
@@ -878,7 +878,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 											if (o instanceof GraphObject) {
 
 												renderContext.putDataObject(subKey, (GraphObject) o);
-												renderContent(securityContext, renderContext, depth);
+												renderContent(renderContext, depth);
 
 											}
 										}
@@ -902,7 +902,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 
 			} else {
-				renderContent(securityContext, renderContext, depth);
+				renderContent(renderContext, depth);
 			}
 		}
 
@@ -1028,7 +1028,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				// make current data object available in renderContext
 				renderContext.putDataObject(dataKey, dataObject);
 
-				renderContent(securityContext, renderContext, depth + 1);
+				renderContent(renderContext, depth + 1);
 
 			}
 			renderContext.clearDataObject(dataKey);
@@ -1082,7 +1082,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			try {
 
-				List<GraphObject> graphData = source.getData(securityContext, renderContext, this);
+				List<GraphObject> graphData = source.getData(renderContext, this);
 				if (graphData != null && !graphData.isEmpty()) {
 					return graphData;
 				}
@@ -1269,7 +1269,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * @param renderContext
 	 * @return true if node should be displayed
 	 */
-	protected boolean displayForConditions(final SecurityContext securityContext, final RenderContext renderContext) {
+	protected boolean displayForConditions(final RenderContext renderContext) {
 
 		// In raw or widget mode, render everything
 		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
@@ -1286,7 +1286,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If hide conditions evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Functions.evaluate(securityContext, renderContext, this, _hideConditions))) {
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Functions.evaluate(renderContext, this, _hideConditions))) {
 				return false;
 			}
 
@@ -1295,7 +1295,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If show conditions don't evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_showConditions) && !(Boolean.TRUE.equals(Functions.evaluate(securityContext, renderContext, this, _showConditions)))) {
+			if (StringUtils.isNotBlank(_showConditions) && !(Boolean.TRUE.equals(Functions.evaluate(renderContext, this, _showConditions)))) {
 				return false;
 			}
 

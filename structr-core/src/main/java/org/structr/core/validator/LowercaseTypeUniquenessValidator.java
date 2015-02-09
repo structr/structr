@@ -42,12 +42,17 @@ public class LowercaseTypeUniquenessValidator implements PropertyValidator<Strin
 	private final NodeIndex nodeIndex;
 	private final Class type;
 
+	public LowercaseTypeUniquenessValidator(final Class type) {
+
+		this.type = type;
+		this.nodeIndex = NodeIndex.caseInsensitive;
+	}
+
 	public LowercaseTypeUniquenessValidator(final Class type, final NodeIndex indexKey) {
 
 		nodeIndex = indexKey;
 		this.type = type;
 	}
-
 
 	@Override
 	public boolean isValid(SecurityContext securityContext, final GraphObject object, final PropertyKey<String> key, final String value, final ErrorBuffer errorBuffer) {

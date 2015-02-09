@@ -156,7 +156,7 @@ public class LogResource extends Resource {
 					.and(LogEvent.subjectProperty, subjectId)
 					.and(LogEvent.objectProperty, objectId)
 					.and(LogEvent.actionProperty, logState.logAction)
-					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
+					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 					.getAsList()
 				);
 
@@ -166,7 +166,7 @@ public class LogResource extends Resource {
 					.nodeQuery(LogEvent.class)
 					.and(LogEvent.subjectProperty, subjectId)
 					.and(LogEvent.actionProperty, logState.logAction)
-					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
+					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 					.getAsList()
 				);
 
@@ -178,7 +178,7 @@ public class LogResource extends Resource {
 					.nodeQuery(LogEvent.class)
 					.and(LogEvent.objectProperty, objectId)
 					.and(LogEvent.actionProperty, logState.logAction)
-					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp), new Date(logState.endTimestamp))
+					.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 					.getAsList()
 				);
 
@@ -264,10 +264,13 @@ public class LogResource extends Resource {
 				try (final Tx tx = app.tx()) {
 
 					final PropertyMap properties = new PropertyMap();
-					properties.put(LogEvent.actionProperty,  action);
-					properties.put(LogEvent.subjectProperty, subjectId);
-					properties.put(LogEvent.objectProperty,  objectId);
-					properties.put(LogEvent.messageProperty, message);
+					properties.put(LogEvent.timestampProperty,           new Date());
+					properties.put(LogEvent.actionProperty,              action);
+					properties.put(LogEvent.subjectProperty,             subjectId);
+					properties.put(LogEvent.objectProperty,              objectId);
+					properties.put(LogEvent.messageProperty,             message);
+					properties.put(LogEvent.visibleToPublicUsers,        true);
+					properties.put(LogEvent.visibleToAuthenticatedUsers, true);
 
 					event = app.create(LogEvent.class, properties);
 
@@ -424,7 +427,7 @@ public class LogResource extends Resource {
 
 		final List<LogEvent> result = StructrApp.getInstance(securityContext).nodeQuery(LogEvent.class)
 			.and(LogEvent.actionProperty, state.logAction)
-			.andRange(LogEvent.timestampProperty, new Date(state.beginTimestamp), new Date(state.endTimestamp))
+			.andRange(LogEvent.timestampProperty, new Date(state.beginTimestamp()), new Date(state.endTimestamp()))
 			.getAsList();
 
 		processData(state, result);
@@ -504,11 +507,13 @@ public class LogResource extends Resource {
 
 				final PropertyMap properties = new PropertyMap();
 
-				properties.put(LogEvent.messageProperty,   message);
-				properties.put(LogEvent.actionProperty,    action);
-				properties.put(LogEvent.subjectProperty,           subjectId);
-				properties.put(LogEvent.objectProperty,            objectId);
-				properties.put(LogEvent.timestampProperty, new Date(timestamp));
+				properties.put(LogEvent.messageProperty,             message);
+				properties.put(LogEvent.actionProperty,              action);
+				properties.put(LogEvent.subjectProperty,             subjectId);
+				properties.put(LogEvent.objectProperty,              objectId);
+				properties.put(LogEvent.timestampProperty,           new Date(timestamp));
+				properties.put(LogEvent.visibleToPublicUsers,        true);
+				properties.put(LogEvent.visibleToAuthenticatedUsers, true);
 
 				app.create(LogEvent.class, properties);
 

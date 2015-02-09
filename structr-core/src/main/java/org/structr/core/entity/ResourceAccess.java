@@ -80,7 +80,7 @@ public class ResourceAccess extends AbstractNode {
 	public static final Property<Long>                 flags              = new LongProperty("flags").indexed();
 	public static final Property<Integer>              position           = new IntProperty("position").indexed();
 	public static final Property<List<PropertyAccess>> propertyAccess     = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>              isResourceAccess   = new BooleanProperty("isResourceAccess", true).readOnly();
+	public static final Property<Boolean>              isResourceAccess   = new BooleanProperty("isResourceAccess").defaultValue(true).readOnly();
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position, isResourceAccess

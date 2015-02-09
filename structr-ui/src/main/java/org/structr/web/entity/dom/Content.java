@@ -70,7 +70,7 @@ public class Content extends DOMNode implements Text {
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
-	public static final Property<Boolean> isContent                                      = new BooleanProperty("isContent", true).readOnly();
+	public static final Property<Boolean> isContent                                      = new BooleanProperty("isContent").defaultValue(true).readOnly();
 
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<>();
 
@@ -311,9 +311,9 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
+		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
 			return;
 		}
 
@@ -325,7 +325,7 @@ public class Content extends DOMNode implements Text {
 		String _contentType = getProperty(contentType);
 
 		// fetch content with variable replacement
-		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
+		String _content = getPropertyWithVariableReplacement(renderContext, Content.content);
 
 		if (!(EditMode.RAW.equals(edit) || EditMode.WIDGET.equals(edit)) && (_contentType == null || ("text/plain".equals(_contentType)))) {
 

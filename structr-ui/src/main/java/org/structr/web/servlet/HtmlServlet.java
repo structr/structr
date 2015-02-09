@@ -167,7 +167,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				final RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
+				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response, getEffectiveLocale(request));
 
 				renderContext.setResourceProvider(config.getResourceProvider());
 
@@ -351,7 +351,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 										//final long start = System.currentTimeMillis();
 
 										// render
-										rootNode.render(securityContext, renderContext, 0);
+										rootNode.render(renderContext, 0);
 										finished.set(true);
 
 										//final long end = System.currentTimeMillis();
@@ -427,7 +427,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							renderContext.setBuffer(buffer);
 
 							// render
-							rootElement.render(securityContext, renderContext, 0);
+							rootElement.render(renderContext, 0);
 
 							response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
 							response.getOutputStream().flush();
@@ -502,7 +502,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				final RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
+				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response, getEffectiveLocale(request));
 
 				renderContext.setResourceProvider(config.getResourceProvider());
 
@@ -856,11 +856,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			if (node instanceof Page) { // && path.equals(node.getPath())) {
 
 				final Page page = (Page) node;
-				
+
 				if (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) {
 					return page;
 				}
-				
+
 			}
 		}
 
@@ -892,7 +892,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				}
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -1169,7 +1169,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		final ServletOutputStream out = response.getOutputStream();
 		final String downloadAsFilename = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
-		
+
 		if (downloadAsFilename != null) {
 			// Set Content-Disposition header to suggest a default filename and force a "save-as" dialog
 			// See:
@@ -1255,13 +1255,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return locale;
 
 	}
-	
+
 	/**
 	 * Check if the given page is visible for the requested site defined by a hostname and a port.
-	 * 
+	 *
 	 * @param request
 	 * @param page
-	 * @return 
+	 * @return
 	 */
 	private boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
@@ -1286,7 +1286,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		if (serverPort != sitePort) {
 			return false;
 		}
-		
+
 		return true;
 
 	}

@@ -14,16 +14,14 @@ import org.structr.core.property.StringProperty;
  */
 public class LogEvent extends AbstractNode {
 
-	public static final Property<String> path              = new StringProperty("path");
 	public static final Property<String> messageProperty   = new StringProperty("message");
-
 	public static final Property<String> actionProperty    = new StringProperty("action").indexed();
 	public static final Property<Date>   timestampProperty = new ISO8601DateProperty("timestamp").indexed();
-	public static final Property<String> subjectProperty           = new StringProperty("subject").indexed();
-	public static final Property<String> objectProperty            = new StringProperty("object").indexed();
+	public static final Property<String> subjectProperty   = new StringProperty("subject").indexed();
+	public static final Property<String> objectProperty    = new StringProperty("object").indexed();
 
 	public static final View defaultView = new View(LogEvent.class, PropertyView.Public,
-		path, actionProperty, messageProperty, timestampProperty, subjectProperty, objectProperty
+		actionProperty, messageProperty, timestampProperty, subjectProperty, objectProperty
 	);
 
 	public long getTimestamp() {

@@ -66,7 +66,6 @@ public abstract class Resource {
 	private static final Logger logger = Logger.getLogger(Resource.class.getName());
 
 	protected SecurityContext securityContext = null;
-	protected PropertyKey idProperty          = null;
 
 	public abstract Resource tryCombineWith(Resource next) throws FrameworkException;
 
@@ -175,10 +174,6 @@ public abstract class Resource {
 	public void configurePropertyView(final Value<String> propertyView) {
 	}
 
-	public void configureIdProperty(PropertyKey idProperty) {
-		this.idProperty = idProperty;
-	}
-
 	public void postProcessResultSet(final Result result) {
 	}
 
@@ -226,16 +221,7 @@ public abstract class Resource {
 
 		if (newObject != null) {
 
-			// use configured id property
-			if (idProperty == null) {
-
-				uriBuilder.append(newObject.getUuid());
-
-			} else {
-
-				uriBuilder.append(newObject.getProperty(idProperty));
-
-			}
+			uriBuilder.append(newObject.getUuid());
 		}
 
 		return uriBuilder.toString();
