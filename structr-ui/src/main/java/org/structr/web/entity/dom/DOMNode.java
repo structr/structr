@@ -1694,6 +1694,23 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 			}
 
+			// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
+			for (Iterator<PropertyKey> it = getPropertyKeys(DOMElement.htmlView.name()).iterator(); it.hasNext();) {
+
+				PropertyKey key = it.next();
+
+				// omit system properties (except type), parent/children and page relationships
+				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
+					&& !key.equals(GraphObject.id)
+					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
+					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
+					&& !key.equals(DOMElement.syncedNodes)
+					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
+
+					properties.put(key, getProperty(key));
+				}
+			}
+
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
