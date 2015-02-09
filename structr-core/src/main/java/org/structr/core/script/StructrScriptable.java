@@ -262,12 +262,11 @@ public class StructrScriptable extends ScriptableObject {
 			for (final Object obj : this.toArray()) {
 
 				if (!first) {
-
 					buf.append(",");
-					first = false;
 				}
 
 				buf.append(obj.toString());
+				first = false;
 			}
 
 			buf.append("]");
@@ -346,7 +345,7 @@ public class StructrScriptable extends ScriptableObject {
 			}
 
 			// second try, methods
-			final Object value = checkEntityMethods(name);
+			final Object value = wrap(this, null, checkEntityMethods(name));
 			if (value != null) {
 
 				return value;
@@ -361,7 +360,7 @@ public class StructrScriptable extends ScriptableObject {
 
 			// default: direct evaluation of object
 			try {
-				return obj.evaluate(actionContext.getSecurityContext(), name, null);
+				return wrap(this, null, obj.evaluate(actionContext.getSecurityContext(), name, null));
 
 			} catch (FrameworkException fex) {
 				exception = fex;

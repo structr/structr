@@ -475,18 +475,28 @@ public class StructrScriptableTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
+//			Scripting.evaluate(actionContext, testOne,
+//				  "${{"
+//				+ "	var testOne = Structr.find('TestOne')[0]; "
+//
+//				+ "	var members = testOne.manyToManyTestSixs.sort(function(x, y) {"
+//
+//				+ "		return x.index < y.index ? -1 : 1;"
+//				+ "	});"
+//
+//				+ "	Structr.log(members);"
+//				+ "	return members;"
+//				+ "}}");
+
+
 			Scripting.evaluate(actionContext, testOne,
 				  "${{"
-				+ "	var testOne = Structr.find('TestOne')[0]; "
-
-				+ "	var members = testOne.manyToManyTestSixs.sort(function(x, y) {"
-
-				+ "		return x.index < y.index ? -1 : 1;"
-				+ "	});"
-
-				+ "	Structr.log(members);"
-				+ "	return members;"
+				+ "	var x = {}; "
+				+ "	x['test'] = Structr.create('TestOne'); "
+				+ "	Structr.log(JSON.stringify(x);"
 				+ "}}");
+
+
 
 			tx.success();
 
