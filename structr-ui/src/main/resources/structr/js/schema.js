@@ -1213,12 +1213,15 @@ var _Schema = {
     },
     saveActionDefinition: function(entity, key) {
         var name = $('.' + key + ' .action.property-name').val();
-        var func = $('.' + key + ' .action.property-code').val().replace(/\n/g, "\\n");
+        var func = $('.' + key + ' .action.property-code').val();
         // var func = $('.' + key + ' .action.property-code').val();
         if (name && name.length) {
             var k = '___' + name;
             var v = (func ? func.escapeForJSON() : '');
-            _Schema.putPropertyDefinition(entity, ' {"' + k + '": "' + v + '"}',
+            var obj = {};
+            obj[k] = v;
+            //_Schema.putPropertyDefinition(entity, ' {"' + k + '": "' + v + '"}',
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj),
             function() {
                 blinkGreen($('.actions .' + key));
                 entity[k] = v;
