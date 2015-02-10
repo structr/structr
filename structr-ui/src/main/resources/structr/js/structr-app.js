@@ -365,10 +365,14 @@ function StructrApp(baseUrl) {
                 var ids = [];
                 $('option:selected', inp).each(function() {
                     var self = $(this);
-                    ids.push(self.val());
+                    if (self.val()) {
+                        ids.push(self.val());
+                    }
                 });
 
-                if (!f.type.endsWith('[]')) {
+                if (!ids.length) {
+                    s.data[id][key] = null;
+                } else if (!f.type.endsWith('[]')) {
                     s.data[id][key] = {'id':ids[0]};
                 } else {
                     s.data[id][key] = ids.map(function(id) {
@@ -1106,7 +1110,7 @@ function singleSelect(f) {
         statusCode: {
             200: function(data) {
                 var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
-                sel.append('<option value="null"></option>');
+                sel.append('<option></option>');
                 if (data.result && data.result.length) {
                     $.each(data.result, function(i, o) {
                         sel.append('<option value="' + o.id + '" ' + (o.id === f.val ? 'selected' : '') + '>' + o.name + '</option>');
