@@ -20,6 +20,7 @@ package org.structr.schema.parser;
 
 import java.util.Set;
 import java.util.LinkedHashSet;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -132,7 +133,7 @@ public abstract class PropertyParser {
 		}
 
 		if (format != null) {
-			buf.append(".format(\"").append(format).append("\")");
+			buf.append(".format(\"").append(StringEscapeUtils.escapeJava(format)).append("\")");
 		}
 
 		if (unique) {
