@@ -31,43 +31,48 @@ import org.structr.core.converter.PropertyConverter;
  * and will be removed in future releases.
  *
  * @deprecated This property is needed for backwards compatibility only and will be removed in future releases
- * 
+ *
  * @author Christian Morgner
  */
 public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
-	
+
 	private static final Logger logger = Logger.getLogger(ConverterProperty.class.getName());
 	private Constructor constructor    = null;
-	
+
 	public ConverterProperty(final String name, final Class<? extends PropertyConverter<?, T>> converterClass) {
-		
+
 		super(name);
-		
+
 		try {
 			this.constructor = converterClass.getConstructor(SecurityContext.class, GraphObject.class);
-			
+
 		} catch(NoSuchMethodException nsmex) {
-			
+
 			logger.log(Level.SEVERE, "Unable to instantiate converter of type {0} for key {1}", new Object[] {
 				converterClass.getName(),
 				name
 			});
 		}
-		
+
 		// make us known to the entity context
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
-	
+
 	@Override
 	public String typeName() {
 		return ""; // read-only
 	}
 
 	@Override
+	public Class valueType() {
+		return null;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return null;
 	}
-	
+
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
@@ -87,21 +92,21 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
-	
+
 	private PropertyConverter createConverter(SecurityContext securityContext, GraphObject entity) {
-		
+
 		try {
-			
+
 			return (PropertyConverter<?, T>)constructor.newInstance(securityContext, entity);
-			
+
 		} catch(Throwable t) {
-			
+
 			logger.log(Level.SEVERE, "Unable to instantiate converter of type {0} for key {1}", new Object[] {
 				constructor.getClass().getName(),
 				dbName
 			});
 		}
-		
+
 		return null;
 	}
 }

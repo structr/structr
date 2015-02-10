@@ -20,7 +20,6 @@ package org.structr.core.property;
 
 import java.util.List;
 import org.apache.lucene.search.SortField;
-import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
@@ -32,19 +31,24 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 
 	private EndNodes<?, ?> collectionProperty = null;
 	private Property<Long> valueProperty                = null;
-	
+
 	public LongSumProperty(String name, EndNodes<?, ?> collectionProperty, Property<Long> valueProperty, Long defaultValue) {
-		
+
 		super(name, defaultValue);
-		
+
 		this.collectionProperty = collectionProperty;
 		this.valueProperty = valueProperty;
 		this.defaultValue = defaultValue;
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return null;
+	}
+
+	@Override
+	public Class valueType() {
+		return Long.class;
 	}
 
 	@Override
@@ -54,25 +58,25 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 
 	@Override
 	public Long getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		List<? extends GraphObject> collection = obj.getProperty(collectionProperty);
 		if (collection != null) {
-			
+
 			long sum = 0L;
-			
+
 			for (GraphObject element : collection) {
-				
+
 				Long value = element.getProperty(valueProperty);
 				if (value != null) {
-				
+
 					sum += value.longValue();
 				}
-				
+
 			}
-			
+
 			return Long.valueOf(sum);
 		}
-		
+
 		return defaultValue();
 	}
 
@@ -83,8 +87,8 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 
 	@Override
 	public Integer getSortType() {
-		
+
 		return SortField.LONG;
-		
+
 	}
 }

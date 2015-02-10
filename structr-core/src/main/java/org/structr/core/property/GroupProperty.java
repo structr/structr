@@ -44,96 +44,96 @@ import org.structr.core.graph.search.PropertySearchAttribute;
  * @author Christian Morgner
  */
 public class GroupProperty extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
-	
+
 	private static final Logger logger = Logger.getLogger(GroupProperty.class.getName());
-	
-	// indicates whether this group property is 
+
+	// indicates whether this group property is
 	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<>();
 	protected Class<? extends GraphObject> entityClass = null;
 	protected Property<Boolean> nullValuesOnlyProperty = null;
-	
+
 	public GroupProperty(String name, Class<? extends GraphObject> entityClass, PropertyKey... properties) {
-		
+
 		super(name);
-		
+
 		for (PropertyKey key : properties) {
 			propertyKeys.put(key.jsonName(), key);
 			key.dbName(name.concat(".").concat(key.dbName()));
 		}
-		
+
 		this.nullValuesOnlyProperty = new BooleanProperty(name.concat(".").concat("nullValuesOnly"));
 		this.entityClass            = entityClass;
 
 		// register in entity context
 		// FIXME: StructrApp.getConfiguration().registerProperty(entityClass, nullValuesOnlyProperty);
-		StructrApp.getConfiguration().registerPropertyGroup(entityClass, this, this);	
+		StructrApp.getConfiguration().registerPropertyGroup(entityClass, this, this);
 	}
-	
+
 	@Override
 	public GroupProperty indexed() {
-		
+
 		for (PropertyKey key : propertyKeys.values()) {
 			key.indexed();
 		}
-		
+
 		return (GroupProperty)super.indexed();
 	}
-	
+
 	@Override
 	public GroupProperty indexed(NodeIndex nodeIndex) {
-		
+
 		for (PropertyKey key : propertyKeys.values()) {
 			key.indexed(nodeIndex);
 		}
-		
+
 		return (GroupProperty)super.indexed(nodeIndex);
 	}
-	
+
 	@Override
 	public GroupProperty indexed(RelationshipIndex relIndex) {
-		
+
 		for (PropertyKey key : propertyKeys.values()) {
 			key.indexed(relIndex);
 		}
-		
+
 		return (GroupProperty)super.indexed(relIndex);
 	}
-	
+
 	@Override
 	public GroupProperty passivelyIndexed() {
-		
+
 		for (PropertyKey key : propertyKeys.values()) {
 			key.passivelyIndexed();
 		}
-		
+
 		return (GroupProperty)super.passivelyIndexed();
 	}
-	
+
 	@Override
 	public GroupProperty passivelyIndexed(NodeIndex nodeIndex) {
-		
+
 		for (PropertyKey key : propertyKeys.values()) {
 			key.passivelyIndexed(nodeIndex);
 		}
-		
+
 		return (GroupProperty)super.passivelyIndexed(nodeIndex);
 	}
-	
+
 	@Override
 	public GroupProperty passivelyIndexed(RelationshipIndex relIndex) {
-		
+
 		for (PropertyKey key : propertyKeys.values()) {
 			key.passivelyIndexed(relIndex);
 		}
-		
+
 		return (GroupProperty)super.passivelyIndexed(relIndex);
 	}
-	
+
 	@Override
 	public String typeName() {
 		return "Object";
 	}
-	
+
 	@Override
 	public PropertyConverter<PropertyMap, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
@@ -151,18 +151,18 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, PropertyMap searchValues, boolean exactMatch, Query query) {
-		
+
 		SearchAttributeGroup group = new SearchAttributeGroup(occur);
-		
+
 		for (PropertyKey key : propertyKeys.values()) {
-			
+
 			Object value = searchValues.get(new GenericProperty(key.jsonName()));
 			if (value != null) {
-				
+
 				group.add(new PropertySearchAttribute(key, value.toString(), Occur.MUST, exactMatch));
 			}
 		}
-		
+
 		return group;
 	}
 
@@ -170,45 +170,45 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	 * Returns the nested group property for the given name. The PropertyKey returned by
 	 * this method can be used to get and/or set the property value in a PropertyMap that
 	 * is obtained or stored in the group property.
-	 * 
+	 *
 	 * @param <T>
 	 * @param name
 	 * @param type
 	 * @return property
 	 */
 	public <T> PropertyKey<T> getNestedProperty(String name, Class<T> type) {
-		
+
 		if (!propertyKeys.containsKey(name)) {
 			throw new IllegalArgumentException("GroupProperty " + dbName + " does not contain grouped property " + name + "!");
 		}
-		
+
 		return propertyKeys.get(name);
 	}
-	
+
 	/**
 	 * Returns a wrapped group property that can be used to access a nested group
 	 * property directly, i.e. without having to fetch the group first.
-	 * 
+	 *
 	 * @param <T>
 	 * @param name
 	 * @param type
 	 * @return property
 	 */
 	public <T> PropertyKey<T> getDirectAccessGroupProperty(String name, Class<T> type) {
-		
+
 		if (!propertyKeys.containsKey(name)) {
 			throw new IllegalArgumentException("GroupProperty " + dbName + " does not contain grouped property " + name + "!");
 		}
-		
+
 		return new GenericProperty(propertyKeys.get(name).dbName());
 	}
-	
+
 	private class InputConverter extends PropertyConverter<Map<String, Object>, PropertyMap> {
 
 		public InputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
-		
+
 		@Override
 		public Map<String, Object> revert(PropertyMap source) throws FrameworkException {
 			return PropertyMap.javaTypeToInputType(securityContext, entityClass, source);
@@ -219,14 +219,14 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			return PropertyMap.inputTypeToJavaType(securityContext, entityClass, source);
 		}
 	}
-	
+
 	// ----- interface PropertyGroup -----
 	@Override
 	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
 		PropertyMap groupedProperties = new PropertyMap();
 		Boolean nullValuesOnly        = source.getProperty(nullValuesOnlyProperty);
-		
+
 		// return immediately, as there are no properties in this group
 		if (nullValuesOnly != null && nullValuesOnly.booleanValue()) {
 			return null;
@@ -235,7 +235,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		for (PropertyKey key : propertyKeys.values()) {
 
 			Object value = source.getProperty(key);
-			
+
 			groupedProperties.put(key, value);
 			if (value != null) {
 
@@ -243,7 +243,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			}
 
 		}
-		
+
 		return groupedProperties;
 	}
 
@@ -253,46 +253,46 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		if (source.containsKey(nullValuesOnlyProperty)) {
 			throw new FrameworkException("base", new ReadOnlyPropertyToken(nullValuesOnlyProperty));
 		}
-		
+
 		if (source.isEmpty()) {
 
 			destination.setProperty(nullValuesOnlyProperty, true);
-			
+
 			return;
-			
+
 		}
-		
+
 		// indicate that this group actually contains values
 		destination.setProperty(nullValuesOnlyProperty, false);
-		
+
 		// set properties
 		for (PropertyKey key : propertyKeys.values()) {
-			
+
 			Object value = source.get(new GenericProperty(key.jsonName()));
 
 			PropertyConverter converter = key.inputConverter(securityContext);
 			if (converter != null) {
-				
+
 				try {
 					Object convertedValue = converter.convert(value);
 					destination.setProperty(key, convertedValue);
-					
+
 				} catch(FrameworkException fex) {
-					
+
 					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
 						key.dbName(),
 						source.getClass().getSimpleName(),
 						fex.getMessage()
-						
+
 					});
 				}
-				
-				
+
+
 			} else {
-				
+
 				destination.setProperty(key, value);
 			}
-			
+
 		}
 	}
 
@@ -310,17 +310,17 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		return getGroupedProperties(securityContext, obj);
 	}
-	
+
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
 		setGroupedProperties(securityContext, value, obj);
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return null;
 	}
-	
+
 	@Override
 	public boolean isCollection() {
 		return false;
@@ -330,10 +330,15 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public Integer getSortType() {
 		return null;
 	}
-	
+
+	@Override
+	public Class valueType() {
+		return PropertyMap.class;
+	}
+
 	@Override
 	public void setDeclaringClass(Class declaringClass) {
-		
+
 		for (PropertyKey key : propertyKeys.values()) {
 
 			key.setDeclaringClass(declaringClass);
@@ -348,7 +353,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			key.index(entity, entity.getPropertyForIndexing(key));
 		}
 	}
-		
+
 	@Override
 	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
 

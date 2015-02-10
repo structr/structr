@@ -77,6 +77,11 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 
 	@Override
+	public Class valueType() {
+		return Boolean.class;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return null;
 	}

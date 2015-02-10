@@ -35,10 +35,8 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 
 	private static final Logger logger = Logger.getLogger(FunctionProperty.class.getName());
 
-	public FunctionProperty(final String name, final String expression) {
-
+	public FunctionProperty(final String name) {
 		super(name);
-		this.format = expression;
 	}
 
 	@Override
@@ -79,5 +77,10 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 	@Override
 	public Integer getSortType() {
 		return null; // use string search
+	}
+
+	@Override
+	public Class valueType() {
+		return null;
 	}
 }

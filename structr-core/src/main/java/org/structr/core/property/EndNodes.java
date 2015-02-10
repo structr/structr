@@ -156,6 +156,11 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
+	@Override
 	public boolean isCollection() {
 		return true;
 	}

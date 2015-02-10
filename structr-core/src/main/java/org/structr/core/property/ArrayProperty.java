@@ -64,6 +64,11 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
+	public Class valueType() {
+		return componentType;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return null;
 	}

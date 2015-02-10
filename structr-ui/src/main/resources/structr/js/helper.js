@@ -113,7 +113,7 @@ if (typeof String.prototype.escapeForJSON !== 'function') {
 
             /* this breaks newlines, removing!*/
             /*  .replace(/\\/g, '\\\\')*/
-                .replace(/"/g, '\\"');
+            /*    .replace(/"/g, '\\"');*/
     };
 }
 

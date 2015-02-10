@@ -85,6 +85,10 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			return deserialize(securityContext, type, attributes);
 		}
 
+		if (source != null && type.isAssignableFrom(source.getClass())) {
+			return (T)source;
+		}
+
 		return null;
 	}
 

@@ -34,17 +34,22 @@ public class PathsProperty extends AbstractPrimitiveProperty<Set<String>> {
 	public PathsProperty(String name) {
 		super(name);
 	}
-	
+
 	@Override
 	public String typeName() {
 		return ""; // read-only
 	}
-	
+
+	@Override
+	public Class valueType() {
+		return String.class;
+	}
+
 	@Override
 	public PropertyConverter<Set<String>, ?> databaseConverter(SecurityContext securityContext) {
 		return new PathsConverter(securityContext);
 	}
-	
+
 	@Override
 	public PropertyConverter<Set<String>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new PathsConverter(securityContext, entity);

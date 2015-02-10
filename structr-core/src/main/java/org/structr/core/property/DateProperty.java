@@ -60,6 +60,11 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	}
 
 	@Override
+	public Class valueType() {
+		return Date.class;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return SortField.LONG;
 	}

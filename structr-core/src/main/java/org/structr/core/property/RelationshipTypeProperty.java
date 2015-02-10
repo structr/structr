@@ -31,10 +31,15 @@ public class RelationshipTypeProperty extends AbstractReadOnlyProperty<String> {
 	public RelationshipTypeProperty(final String name) {
 		super(name);
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return null;
+	}
+
+	@Override
+	public Class valueType() {
+		return String.class;
 	}
 
 	@Override
@@ -44,12 +49,12 @@ public class RelationshipTypeProperty extends AbstractReadOnlyProperty<String> {
 
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		if (obj instanceof RelationshipInterface) {
-			
+
 			return ((RelationshipInterface)obj).getRelType().name();
 		}
-		
+
 		return null;
 	}
 

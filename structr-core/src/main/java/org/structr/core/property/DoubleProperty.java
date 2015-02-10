@@ -86,6 +86,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	}
 
 	@Override
+	public Class valueType() {
+		return Double.class;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return SortField.DOUBLE;
 	}

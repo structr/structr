@@ -37,7 +37,7 @@ public class TargetId extends Property<String> {
 		super(name);
 		super.passivelyIndexed();
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return null;
@@ -50,24 +50,24 @@ public class TargetId extends Property<String> {
 
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		if (obj instanceof RelationshipInterface) {
-		
+
 			try {
 				final Relationship relationship = ((RelationshipInterface)obj).getRelationship();
 				final NodeInterface endNode     = new NodeFactory<>(securityContext).instantiate(relationship.getEndNode());
 
 				if (endNode != null) {
-					
+
 					return endNode.getUuid();
 				}
 				
 			} catch (Throwable t) {
-				
+
 				t.printStackTrace();
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -83,18 +83,18 @@ public class TargetId extends Property<String> {
 
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, String value) throws FrameworkException {
-		
+
 		if (obj instanceof RelationshipInterface) {
-		
+
 			try {
 				((RelationshipInterface)obj).setTargetNodeId(value);
-				
+
 			} catch (FrameworkException fex) {
-				
+
 				throw fex;
-				
+
 			} catch (Throwable t) {
-				
+
 				t.printStackTrace();
 			}
 		}
@@ -113,6 +113,11 @@ public class TargetId extends Property<String> {
 	@Override
 	public String typeName() {
 		return null;
+	}
+
+	@Override
+	public Class valueType() {
+		return String.class;
 	}
 
 	@Override

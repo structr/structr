@@ -50,41 +50,41 @@ public class SourceId extends Property<String> {
 
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		if (obj instanceof RelationshipInterface) {
-		
+
 			try {
 				final Relationship relationship = ((RelationshipInterface)obj).getRelationship();
 				final NodeInterface startNode   = new NodeFactory<>(securityContext).instantiate(relationship.getStartNode());
-				
+
 				if (startNode != null) {
-					
+
 					return startNode.getUuid();
 				}
-				
+
 			} catch (Throwable t) {
-				
+
 				t.printStackTrace();
 			}
 		}
-		
+
 		return null;
 	}
 
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, String value) throws FrameworkException {
-		
+
 		if (obj instanceof RelationshipInterface) {
-		
+
 			try {
 				((RelationshipInterface)obj).setSourceNodeId(value);
-				
+
 			} catch (FrameworkException fex) {
-				
+
 				throw fex;
 
 			} catch (Throwable t) {
-				
+
 				t.printStackTrace();
 			}
 		}
@@ -113,6 +113,11 @@ public class SourceId extends Property<String> {
 	@Override
 	public String typeName() {
 		return null;
+	}
+
+	@Override
+	public Class valueType() {
+		return String.class;
 	}
 
 	@Override

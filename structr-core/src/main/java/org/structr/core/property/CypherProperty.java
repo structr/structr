@@ -32,29 +32,34 @@ import org.structr.core.cypher.CypherQueryHandler;
  * @author Christian Morgner
  */
 public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
-	
+
 	private CypherQueryHandler handler = null;
-	
+
 	public CypherProperty(final String name, final CypherQueryHandler handler) {
 		super(name);
-		
+
 		this.handler = handler;
-		
+
 		// make us known to the entity context
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 
 	}
-	
+
 	@Override
 	public String typeName() {
 		return ""; // read-only
 	}
 
 	@Override
+	public Class valueType() {
+		return null;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return null;
 	}
-	
+
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);

@@ -20,6 +20,7 @@ package org.structr.schema.parser;
 
 import java.util.Set;
 import java.util.LinkedHashSet;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -116,15 +117,15 @@ public abstract class PropertyParser {
 
 		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
-		
+
 		if (dbName != null) {
 			buf.append(", \"").append(dbName).append("\"");
 		}
-		
+
 		buf.append(getPropertyParameters());
-		
+
 		buf.append(localValidator);
-		
+
 		buf.append(")");
 
 		if (defaultValue != null) {
@@ -132,7 +133,7 @@ public abstract class PropertyParser {
 		}
 
 		if (format != null) {
-			buf.append(".format(\"").append(format).append("\")");
+			buf.append(".format(\"").append(StringEscapeUtils.escapeJava(format)).append("\")");
 		}
 
 		if (unique) {

@@ -18,7 +18,6 @@
  */
 package org.structr.schema.parser;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.FunctionProperty;
@@ -30,8 +29,6 @@ import org.structr.schema.SchemaHelper.Type;
  * @author Christian Morgner
  */
 public class FunctionPropertyParser extends PropertyParser {
-
-	private String auxType = "";
 
 	public FunctionPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
 		super(errorBuffer, className, propertyName, params);
@@ -54,7 +51,7 @@ public class FunctionPropertyParser extends PropertyParser {
 
 	@Override
 	public String getPropertyParameters() {
-		return auxType;
+		return "";
 	}
 
 	@Override
@@ -63,7 +60,8 @@ public class FunctionPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
-		auxType = ", \"" + StringEscapeUtils.escapeJava(expression) + "\"";
+	public void parseFormatString(Schema entity, String expression) throws FrameworkException {
+		
 	}
+
 }

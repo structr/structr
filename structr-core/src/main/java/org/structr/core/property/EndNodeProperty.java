@@ -72,7 +72,11 @@ public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	public String typeName() {
 
 		return null;
+	}
 
+	@Override
+	public Class valueType() {
+		return null;
 	}
 
 	@Override
