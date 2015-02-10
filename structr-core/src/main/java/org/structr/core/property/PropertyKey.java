@@ -152,6 +152,13 @@ public interface PropertyKey<T> {
 	public String typeName();
 
 	/**
+	 * Returns the type of the value this property returns.
+	 *
+	 * @return the value type
+	 */
+	public Class valueType();
+
+	/**
 	 * Returns the type of the related property this property key references, or
 	 * null if this is not a relationship property.
 	 *
@@ -297,7 +304,7 @@ public interface PropertyKey<T> {
 	 * @return processingOrderPosition
 	 */
 	public int getProcessingOrderPosition();
-	
+
 	public PropertyKey<T> defaultValue(final T defaultValue);
 	public PropertyKey<T> notNull(final boolean notNull);
 	public PropertyKey<T> unique(final boolean unique);

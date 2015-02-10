@@ -23,24 +23,23 @@ import java.util.logging.Logger;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 
 /**
  * A property that stores and retrieves a String value.
- * 
+ *
  * The String can have an optional content MIME type, as described in http://en.wikipedia.org/wiki/MIME
  *
  * @author Christian Morgner
  * @author Axel Morgner
  */
 public class StringProperty extends AbstractPrimitiveProperty<String> {
-	
+
 	private static final Logger logger = Logger.getLogger(StringProperty.class.getName());
 	private ContentType contentType;
-	
+
 	public StringProperty(final String jsonName) {
 		super(jsonName);
 	}
@@ -55,17 +54,17 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	public StringProperty(final String jsonName, final String dbName, final PropertyValidator<String>... validators) {
-	
+
 		super(jsonName);
 		this.dbName = dbName;
-		
+
 		for (PropertyValidator<String> validator : validators) {
 			addValidator(validator);
 		}
 	}
 //
-//	
-//	
+//
+//
 //	public StringProperty(final String jsonName, final ContentType contentType, final String defaultValue) {
 //		this(jsonName, jsonName, contentType, defaultValue, null, new PropertyValidator[0]);
 //	}
@@ -74,8 +73,8 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 //		this(jsonName, jsonName, contentType, defaultValue, format, new PropertyValidator[0]);
 //	}
 //
-//	
-//	
+//
+//
 //	public StringProperty(final String jsonName, final String dbName, final PropertyValidator<String>... validators) {
 //		this(jsonName, dbName, null, null, null, validators);
 //	}
@@ -91,19 +90,19 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 //	public StringProperty(final String jsonName, final String dbName, final ContentType contentType, final String defaultValue) {
 //		this(jsonName, dbName, contentType, defaultValue, null, new PropertyValidator[0]);
 //	}
-//	
+//
 //	public StringProperty(final String jsonName, final String dbName, final ContentType contentType, final String defaultValue, final String format) {
 //		this(jsonName, dbName, contentType, defaultValue, format, new PropertyValidator[0]);
 //	}
 //
 //
-//	
+//
 //	public StringProperty(final String jsonName, final String dbName, final ContentType contentType, final String defaultValue, final String format, final PropertyValidator<String>... validators) {
 //
 //		super(jsonName, dbName, defaultValue);
 //		this.contentType = contentType;
 //		this.format = format;
-//		
+//
 //		for (PropertyValidator<String> validator : validators) {
 //			addValidator(validator);
 //		}
@@ -115,17 +114,22 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
+	public Class valueType() {
+		return String.class;
+	}
+
+	@Override
 	public Object fixDatabaseProperty(Object value) {
-		
+
 		if (value != null) {
-			
+
 			if (value instanceof String) {
 				return value;
 			}
-			
+
 			return value.toString();
 		}
-		
+
 		return null;
 	}
 
@@ -162,20 +166,19 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 		this.contentType = parse(contentType);
 		return this;
 	}
-	
+
 	private static ContentType parse(final String contentTypeString) {
-		
+
 		try {
-			
+
 			return new ContentType(contentTypeString);
-			
+
 		} catch (ParseException pe) {
-			
+
 			logger.log(Level.WARNING, "Could not parse " + contentTypeString, pe);
-			
+
 		}
-		
+
 		return null;
 	}
-	
 }

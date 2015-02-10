@@ -80,4 +80,9 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 	public Integer getSortType() {
 		return null; // use string search
 	}
+
+	@Override
+	public Class valueType() {
+		return null;
+	}
 }

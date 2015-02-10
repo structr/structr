@@ -20,7 +20,6 @@ package org.structr.core.property;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -32,17 +31,17 @@ import org.structr.core.entity.AbstractNode;
  * @author Christian Morgner
  */
 public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNode> extends AbstractReadOnlyProperty<List<T>> {
-	
+
 	Property<List<S>> step1 = null;
 	Property<T> step2       = null;
-	
+
 	public HyperRelationProperty(String name, Property<List<S>> step1, Property<T> step2) {
-		
+
 		super(name);
-		
+
 		this.step1 = step1;
 		this.step2 = step2;
-		
+
 		// make us known to the Collection context
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
@@ -57,23 +56,28 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 
 		List<S> connectors = obj.getProperty(step1);
 		List<T> endNodes   = new LinkedList<>();
-		
+
 		if (connectors != null) {
 
 			for (AbstractNode node : connectors) {
-				
+
 				endNodes.add(node.getProperty(step2));
 			}
 		}
-		
+
 		return endNodes;
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return step2.relatedType();
 	}
-	
+
+	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
 	@Override
 	public boolean isCollection() {
 		return true;

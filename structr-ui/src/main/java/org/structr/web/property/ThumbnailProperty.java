@@ -30,7 +30,7 @@ import org.structr.web.entity.Image;
 
 /**
  * A property that automatically created a thumbnail for an image. (?)
- * 
+ *
  * @author Axel Morgner
  */
 public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
@@ -42,7 +42,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	public ThumbnailProperty(final String name, final ThumbnailParameters tnParams) {
 
 		super(name);
-		
+
 		this.unvalidated = true;
 		this.tnParams    = tnParams;
 
@@ -61,22 +61,27 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 
 	@Override
 	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		try {
 			return databaseConverter(securityContext, obj).revert(null);
-			
+
 		} catch (Throwable t) {
-			
+
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return Image.class;
 	}
-	
+
+	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
 	@Override
 	public boolean isCollection() {
 		return false;

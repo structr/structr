@@ -324,7 +324,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.defaultValue = defaultValue;
 		return this;
 	}
-	
+
 	@Override
 	public T defaultValue() {
 		return defaultValue;
@@ -340,19 +340,19 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.format = format;
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> unique(final boolean unique) {
 		this.unique = unique;
 		return this;
 	}
-	
+
 	@Override
 	public Property<T> notNull(final boolean notNull) {
 		this.notNull = notNull;
 		return this;
 	}
-	
+
 	@Override
 	public int hashCode() {
 

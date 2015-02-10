@@ -115,6 +115,11 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 	}
 
 	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
+	@Override
 	public boolean isCollection() {
 		return true;
 	}

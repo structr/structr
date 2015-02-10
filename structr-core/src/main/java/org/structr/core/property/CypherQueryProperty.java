@@ -48,6 +48,11 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObje
 	}
 
 	@Override
+	public Class valueType() {
+		return GraphObject.class;
+	}
+
+	@Override
 	public List<GraphObject> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}

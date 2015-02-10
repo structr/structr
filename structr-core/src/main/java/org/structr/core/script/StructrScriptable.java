@@ -3,7 +3,6 @@ package org.structr.core.script;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +24,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.EnumProperty;
-import org.structr.core.property.NumericalPropertyKey;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -191,10 +189,6 @@ public class StructrScriptable extends ScriptableObject {
 					}
 
 					return list;
-				}
-
-				if (source instanceof Scriptable && "Date".equals(((Scriptable)source).getClassName())) {
-					return Context.jsToJava(source, Date.class);
 				}
 			}
 		}
@@ -402,12 +396,16 @@ public class StructrScriptable extends ScriptableObject {
 
 					// call enclosing class's unwrap method instead of ours
 					Object value = StructrScriptable.this.unwrap(o);
-
-					// ECMA will return numbers a double, all the time.....
-					if (value instanceof Double && key instanceof NumericalPropertyKey) {
-						value = ((NumericalPropertyKey)key).convertToNumber((Double)value);
-					}
-
+//
+//					if (source instanceof Scriptable && "Date".equals(((Scriptable)source).getClassName())) {
+//						return Context.jsToJava(source, Date.class);
+//					}
+//
+//					// ECMA will return numbers a double, all the time.....
+//					if (value instanceof Double && key instanceof NumericalPropertyKey) {
+//						value = ((NumericalPropertyKey)key).convertToNumber((Double)value);
+//					}
+//
 					// use inputConverter of EnumProperty to convert to native enums
 					if (key instanceof EnumProperty) {
 
@@ -416,6 +414,18 @@ public class StructrScriptable extends ScriptableObject {
 						if (inputConverter != null) {
 
 							value = inputConverter.convert(value);
+						}
+
+
+					} else {
+
+						final Class valueType   = key.valueType();
+						final Class relatedType = key.relatedType();
+
+						// do not convert entity / collection properties
+						if (valueType != null && relatedType == null) {
+
+							value = Context.jsToJava(value, valueType);
 						}
 					}
 

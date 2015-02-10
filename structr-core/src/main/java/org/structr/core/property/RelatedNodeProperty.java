@@ -30,43 +30,48 @@ import org.structr.core.converter.RelatedNodePropertyMapper;
  * to reproduce the value of a given node on a node with a different
  * type. This propert works in both directions, i.e. you can get and
  * set the value as if it was a local property.
- * 
+ *
  * @author Christian Morgner
  */
 public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
-	
+
 	private PropertyKey sourceKey  = null;
 	private PropertyKey<T> targetKey = null;
-	
+
 	public RelatedNodeProperty(String name, PropertyKey sourceKey, PropertyKey<T> targetKey) {
 		super(name);
-		
+
 		this.sourceKey  = sourceKey;
 		this.targetKey  = targetKey;
-		
+
 		// make us known to the entity context
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
-	
+
 	@Override
 	public String typeName() {
 		return "FIXME: RelatedNodeProperty.java:49";
 	}
-	
+
+	@Override
+	public Class valueType() {
+		return sourceKey.valueType();
+	}
+
 	@Override
 	public Property<T> indexed() {
-		
+
 		// related node properties are always indexed passively
 		// (because they can change without setProperty())
 		super.passivelyIndexed();
 		return this;
 	}
-	
+
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
-	
+
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject currentObject) {
 		return new RelatedNodePropertyMapper(securityContext, currentObject, sourceKey, targetKey);

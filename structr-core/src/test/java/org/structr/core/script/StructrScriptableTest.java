@@ -460,4 +460,67 @@ public class StructrScriptableTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
+
+	public void testPropertyConversion() {
+
+		TestOne testOne = null;
+
+		// setup phase
+		try (final Tx tx = app.tx()) {
+
+			testOne = app.create(TestOne.class);
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test phase, find all the things using scripting
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aString = 12; }}");
+			assertEquals("Invalid scripted property conversion result", "12", testOne.getProperty(TestOne.aString));
+
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.anInt = '12'; }}");
+			assertEquals("Invalid scripted property conversion result", 12, (int)testOne.getProperty(TestOne.anInt));
+
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = '12.2342'; }}");
+			assertEquals("Invalid scripted property conversion result", 12.2342, (double)testOne.getProperty(TestOne.aDouble));
+
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = 2; }}");
+			assertEquals("Invalid scripted property conversion result", 2.0, (double)testOne.getProperty(TestOne.aDouble));
+
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aBoolean = true; }}");
+			assertEquals("Invalid scripted property conversion result", true, (boolean)testOne.getProperty(TestOne.aBoolean));
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	public void testQuotes() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Scripting.evaluate(actionContext, app.create(TestOne.class), "${{\n // \"test\n}}");
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
 }

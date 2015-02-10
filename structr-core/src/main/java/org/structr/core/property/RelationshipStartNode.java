@@ -65,6 +65,11 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 	}
 
 	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
+	@Override
 	public Class relatedType() {
 		return AbstractRelationship.class;
 	}

@@ -109,6 +109,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Class valueType() {
+		return propertyKey.valueType();
+	}
+
+	@Override
 	public T defaultValue() {
 		return propertyKey.defaultValue();
 	}
@@ -315,12 +320,12 @@ public class Reference<T> implements PropertyKey<T> {
 	public Property<T> format(final String format) {
 		return null;
 	}
-	
+
 	@Override
 	public Property<T> unique(final boolean unique) {
 		return null;
 	}
-	
+
 	@Override
 	public Property<T> notNull(final boolean notNull) {
 		return null;

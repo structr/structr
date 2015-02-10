@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.lucene.search.SortField;
-import org.neo4j.graphdb.Node;
 
 /**
  *
@@ -33,18 +32,23 @@ import org.neo4j.graphdb.Node;
  */
 public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 
-	private List<Property<Integer>> sumProperties = new LinkedList<Property<Integer>>();
-	
+	private List<Property<Integer>> sumProperties = new LinkedList<>();
+
 	public IntegerSumProperty(String name, Property<Integer>... properties) {
-		
+
 		super(name);
-		
+
 		this.sumProperties = Arrays.asList(properties);
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return null;
+	}
+
+	@Override
+	public Class valueType() {
+		return Integer.class;
 	}
 
 	@Override
@@ -59,19 +63,19 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 
 	@Override
 	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		int sum = 0;
-		
+
 		for (Property<Integer> prop : sumProperties) {
-			
+
 			Integer value = obj.getProperty(prop);
-			
+
 			if (value != null) {
 
 				sum = sum + value.intValue();
 			}
 		}
-		
+
 		return sum;
 	}
 

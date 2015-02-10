@@ -135,7 +135,7 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "source", -3, null);
+			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source, line ", 1, null);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();
@@ -173,7 +173,7 @@ public class Scripting {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append("function main() {\n\n");
+		buf.append("function main() { ");
 		buf.append(source);
 		buf.append("\n}\n");
 		buf.append("var _structrMainResult = main();");

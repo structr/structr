@@ -78,6 +78,11 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
+	public Class valueType() {
+		return Integer.class;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return SortField.INT;
 	}

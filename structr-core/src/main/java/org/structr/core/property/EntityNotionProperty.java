@@ -173,6 +173,11 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
+	@Override
 	public boolean isCollection() {
 		return false;
 	}

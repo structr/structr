@@ -78,6 +78,11 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	}
 
 	@Override
+	public Class valueType() {
+		return Long.class;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return SortField.LONG;
 	}

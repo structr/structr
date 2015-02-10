@@ -60,6 +60,11 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
+	public Class valueType() {
+		return enumType;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return null;
 	}
