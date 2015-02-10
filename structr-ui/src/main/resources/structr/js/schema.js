@@ -537,9 +537,8 @@ var _Schema = {
         });
 
         classSelect.on('change', function() {
-            var value = $(this).val();
-            _Schema.putPropertyDefinition(entity, ' {"extendsClass":"' + value.escapeForJSON() + '"}');
-
+            var obj = {extendsClass: $(this).val()};
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj));
         });
 
         _Schema.appendLocalPropertiesAndActions(el, entity);
@@ -739,18 +738,17 @@ var _Schema = {
         var unique = $('.new .unique', el).is(':checked');
         var defaultValue = $('.new .property-default', el).val();
         if (name && name.length && type) {
-            var d = {};
+            var obj = {};
             var key = '_' + name;
             var val = ''
                     + (dbName ? dbName + '|' : '')
                     + (notNull ? '+' : '')
                     + (type ? type : '')
                     + (unique ? '!' : '')
-                    + (format ? '(' + format.escapeForJSON() + ')' : '')
-                    + (defaultValue ? ':' + defaultValue.escapeForJSON() : '');
-            d[key] = val;
-            //console.log(val, d)
-            _Schema.putPropertyDefinition(entity, JSON.stringify(d), function() {
+                    + (format ? '(' + format + ')' : '')
+                    + (defaultValue ? ':' + defaultValue : '');
+            obj[key] = val;
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj), function() {
 
                 var row = $('.new', el);
                 blinkGreen(row);
@@ -889,12 +887,12 @@ var _Schema = {
         if (canvas) {
             canvas.css({
                 width: w + 'px',
-                height: h + 'px',
+                height: h + 'px'
             });
         }
 
         $('body').css({
-            position: 'relative',
+            position: 'relative'
 //            background: '#fff'
         });
 
@@ -1187,16 +1185,17 @@ var _Schema = {
         var unique = $('.' + key + ' .unique').is(':checked');
         var defaultValue = $('.' + key + ' .property-default').val();
         if (name && name.length && type) {
-            var d = {};
+            var obj = {};
+            var key = '_' + name;
             var val = (dbName ? dbName + '|' : '')
                     + (notNull ? '+' : '')
                     + (type === 'del' ? null : type)
-                    + (contentType ? '[' + contentType.escapeForJSON() + ']' : '')
+                    + (contentType ? '[' + contentType + ']' : '')
                     + (unique ? '!' : '')
-                    + (format ? '(' + format.escapeForJSON() + ')' : '')
-                    + (defaultValue ? ':' + defaultValue.escapeForJSON() : '');
-            d['_' + name] = val;
-            _Schema.putPropertyDefinition(entity, JSON.stringify(d), function() {
+                    + (format ? '(' + format + ')' : '')
+                    + (defaultValue ? ':' + defaultValue : '');
+            obj[key] = val;
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj), function() {
                 blinkGreen($('.local .' + key));
                 entity['_' + name] = val;
                 _Schema.bindEvents(entity, type, key);
@@ -1214,13 +1213,11 @@ var _Schema = {
     saveActionDefinition: function(entity, key) {
         var name = $('.' + key + ' .action.property-name').val();
         var func = $('.' + key + ' .action.property-code').val();
-        // var func = $('.' + key + ' .action.property-code').val();
         if (name && name.length) {
-            var k = '___' + name;
-            var v = (func ? func.escapeForJSON() : '');
             var obj = {};
+            var k = '___' + name;
+            var v = (func ? func : '');
             obj[k] = v;
-            //_Schema.putPropertyDefinition(entity, ' {"' + k + '": "' + v + '"}',
             _Schema.putPropertyDefinition(entity, JSON.stringify(obj),
             function() {
                 blinkGreen($('.actions .' + key));
@@ -1232,39 +1229,17 @@ var _Schema = {
         }
 
     },
-    removePropertyFromViewDefinitions: function(entity, key) {
-        _Schema.unbindEvents(key);
-        var keys = Object.keys(entity);
-        $('.view.property-name').closest('tr').each(function(v, row) {
-            var name = $('.view.property-name', row).val();
-            var attrs = $('.view.property-attrs', row).val();
-            if (name && name.length) {
-                attrs = normalizeAttrs(attrs.splice(attrs.indexOf(key)), keys.concat(remotePropertyKeys));
-                var k = '__' + name;
-                var v = (attrs ? attrs.escapeForJSON() : '');
-                _Schema.putPropertyDefinition(entity, ' {"' + k + '": "' + v + '"}',
-                function() {
-                    blinkGreen(row);
-                    entity[k] = v;
-                },
-                function() {
-                    blinkRed(row);
-                },
-                function() {
-                    _Schema.bindEvents(entity, type, key);
-                });
-            }
-        });
-    },
     saveViewDefinition: function(entity, key) {
         var keys = Object.keys(entity);
         var name = $('.' + key + ' .view.property-name').val();
         var attrs = $('.' + key + ' .view.property-attrs').val();
         if (name && name.length) {
             attrs = normalizeAttrs(attrs, keys.concat(remotePropertyKeys));
+            var obj = {};
             var k = '__' + name;
-            var v = (attrs ? attrs.escapeForJSON() : '');
-            _Schema.putPropertyDefinition(entity, ' {"' + k + '": "' + v + '"}',
+            var v = (attrs ? attrs : '');
+            obj[k] = v;
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj),
             function() {
                 blinkGreen($('.views .' + key));
                 entity[k] = v;
@@ -1330,7 +1305,7 @@ var _Schema = {
 
                     }
 
-                },
+                }
             }
         });
     },
@@ -1587,7 +1562,7 @@ var _Schema = {
             Command.pushSchema(host, port, username, password, key, function() {
                 dialog.empty();
                 dialogCancelButton.click();
-            })
+            });
         });
 
         return false;

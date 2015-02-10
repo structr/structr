@@ -107,16 +107,6 @@ if (typeof String.prototype.capitalize !== 'function') {
     };
 }
 
-if (typeof String.prototype.escapeForJSON !== 'function') {
-    String.prototype.escapeForJSON = function() {
-        return this
-
-            /* this breaks newlines, removing!*/
-            /*  .replace(/\\/g, '\\\\')*/
-            /*    .replace(/"/g, '\\"');*/
-    };
-}
-
 if (typeof String.prototype.lpad !== 'function') {
     String.prototype.lpad = function(padString, length) {
         var str = this;

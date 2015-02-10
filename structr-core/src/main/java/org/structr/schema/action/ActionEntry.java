@@ -18,6 +18,8 @@
  */
 package org.structr.schema.action;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 /**
  *
  * @author Christian Morgner
@@ -93,7 +95,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		buf.append(Actions.class.getSimpleName());
 		buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
-		buf.append(replaceQuotes(call));
+		buf.append(StringEscapeUtils.escapeJava(call));
 		buf.append("}\"");
 
 		if (includeParameters) {
