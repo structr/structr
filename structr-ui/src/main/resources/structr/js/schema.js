@@ -525,14 +525,22 @@ var _Schema = {
         var classSelect = $('.extends-class-select', el);
         $.get(rootUrl + '_schema', function(data) {
             var result = data.result;
+            var classNames = [];
             $.each(result, function(t, cls) {
                 var type = cls.type;
                 var fqcn = cls.className;
-                if (!type || type.startsWith('_') || fqcn.startsWith('org.structr.web.entity.html')) {
+                if ( !type || type.startsWith('_') || fqcn.startsWith('org.structr.web.entity.html') || fqcn.endsWith('.' + entity.name) ) {
                     return;
                 }
-                classSelect.append('<option ' + (entity.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
+                classNames.push(fqcn);
             });
+
+            classNames.sort();
+
+            classNames.forEach( function (classname) {
+                classSelect.append('<option ' + (entity.extendsClass === classname ? 'selected="selected"' : '') + ' value="' + classname + '">' + classname + '</option>');
+            });
+
             classSelect.chosen({ search_contains: true });
         });
 
