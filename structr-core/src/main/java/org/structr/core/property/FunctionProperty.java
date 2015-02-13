@@ -24,7 +24,7 @@ import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.parser.Functions;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -56,7 +56,7 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 
 			try {
 
-				return (T)Functions.evaluate(new ActionContext(securityContext), obj, format);
+				return (T)Scripting.evaluate(new ActionContext(securityContext), obj, "${".concat(format).concat("}"));
 
 			} catch (Throwable t) {
 
