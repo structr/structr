@@ -1384,7 +1384,7 @@ public class Functions {
 
 			@Override
 			public String usage() {
-				return ERROR_MESSAGE_MERGE;
+				return ERROR_MESSAGE_UNWIND;
 			}
 
 		});

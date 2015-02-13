@@ -4,13 +4,16 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.IdFunctionCall;
 import org.mozilla.javascript.IdFunctionObject;
+import org.mozilla.javascript.IdScriptableObject;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaMethod;
+import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -123,6 +126,17 @@ public class StructrScriptable extends ScriptableObject {
 					return null;
 				}
 			}, null, 0, 0);
+		}
+
+		if ("vars".equals(name)) {
+
+			NativeObject nobj = new NativeObject();
+
+			for (Map.Entry<String, Object> entry : actionContext.getAllVariables().entrySet()) {
+				nobj.defineProperty(entry.getKey(), entry.getValue(), NativeObject.READONLY);
+			}
+
+			return nobj;
 		}
 
 		// execute builtin function?

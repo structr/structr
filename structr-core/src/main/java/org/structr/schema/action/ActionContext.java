@@ -173,6 +173,10 @@ public class ActionContext {
 		return tmpStore.get(key);
 	}
 
+	public Map<String, Object> getAllVariables () {
+		return tmpStore;
+	}
+
 	public void addHeader(final String key, final String value) {
 		headers.put(key, value);
 	}
