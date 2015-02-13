@@ -128,7 +128,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
 	public static final String ERROR_MESSAGE_ABBR = "Usage: ${abbr(longString, maxLength)}. Example: ${abbr(this.title, 20)}";
 	public static final String ERROR_MESSAGE_CAPITALIZE = "Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}";
-	public static final String ERROR_MESSAGE_TITLEIZE = "Usage: ${titleize(string, separator}. Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
+	public static final String ERROR_MESSAGE_TITLEIZE = "Usage: ${titleize(string, separator}. (Default separator is \" \") Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
 	public static final String ERROR_MESSAGE_NUM = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_INT = "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_RANDOM = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
@@ -659,7 +659,7 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (sources == null || sources.length < 2 || sources[0] == null) {
+				if (sources == null || sources[0] == null) {
 					return null;
 				}
 
@@ -667,11 +667,14 @@ public class Functions {
 					return "";
 				}
 
-				if (sources[1] == null) {
-					sources[1] = " ";
+				final String separator;
+				if (sources.length < 2) {
+					separator = " ";
+				} else {
+					separator = sources[1].toString();
 				}
 
-				String[] in = StringUtils.split(sources[0].toString(), sources[1].toString());
+				String[] in = StringUtils.split(sources[0].toString(), separator);
 				String[] out = new String[in.length];
 				for (int i = 0; i < in.length; i++) {
 					out[i] = StringUtils.capitalize(in[i]);
