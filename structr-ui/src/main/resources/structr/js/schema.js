@@ -1017,6 +1017,15 @@ var _Schema = {
                 _Schema.savePropertyDefinition(entity, key);
             }).prop('disabled', null).val(property.contentType);
         }
+        
+        if (type && type !== '') {
+            $('.' + key + ' .property-name', el).on('change', function() {
+                _Schema.savePropertyDefinition(entity, key);
+            }).prop('disabled', null).val(property.name);
+            $('.' + key + ' .property-dbname', el).on('change', function() {
+                _Schema.savePropertyDefinition(entity, key);
+            }).prop('disabled', null).val(property.dbName);
+        }
 
         $('.' + key + ' .property-type', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);

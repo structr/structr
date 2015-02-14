@@ -39,6 +39,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
@@ -71,6 +72,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 		
 		query.orTypes(DOMElement.class);
 		query.orType(Content.class);
+		query.orType(Template.class);
 
 		try {
 

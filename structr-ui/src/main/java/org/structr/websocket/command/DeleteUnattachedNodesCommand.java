@@ -35,6 +35,7 @@ import org.structr.core.graph.Tx;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -67,6 +68,7 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 		query.includeDeletedAndHidden();
 		query.orTypes(DOMElement.class);
 		query.orType(Content.class);
+		query.orType(Template.class);
 
 		try (final Tx tx = app.tx()) {
 

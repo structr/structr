@@ -121,11 +121,7 @@ public class StringPropertyParser extends PropertyParser {
 			return;
 		}
 
-		if ("multi-line".equals(expression)) {
-
-			localValidator = ", \""  + expression + "\"";
-
-		} else if (StringUtils.isNotBlank(expression)) {
+		if (StringUtils.isNotBlank(expression) && !("multi-line".equals(expression))) {
 
 			localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
 			
