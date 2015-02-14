@@ -407,4 +407,67 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	}
 
+	public void testCustomSchema13() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType13\", \"_foo\": \"fooDb|+String[text/html]!([a-f0-9]{32}):xyz\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("fooDb"))
+				.body("result[-1].contentType", equalTo("text/html"))
+				.body("result[-1].notNull", equalTo(true))
+				.body("result[-1].format", equalTo("[a-f0-9]{32}"))
+				.body("result[-1].defaultValue", equalTo("xyz"))
+
+			.when()
+				.get("/_schema/TestType13/ui");
+
+	}
+
+	public void testCustomSchema14() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType14\", \"_foo\": \"fooDb|+String[text/html]!(multi-line):xyz\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("fooDb"))
+				.body("result[-1].contentType", equalTo("text/html"))
+				.body("result[-1].notNull", equalTo(true))
+				.body("result[-1].format", equalTo("multi-line"))
+				.body("result[-1].defaultValue", equalTo("xyz"))
+
+			.when()
+				.get("/_schema/TestType14/ui");
+
+	}
 }
