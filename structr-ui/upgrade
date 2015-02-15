@@ -1,18 +1,19 @@
 #!/bin/bash
 
 cd /opt/structr
-git pull
 
 VERSION=$1
 
 # no version requested
 if [ -z $VERSION ]; then
   echo "No version requested, falling back to develop branch"
-  git checkout develop
+  git checkout structrdb-master
 else
   echo "Checking out version $VERSION"
   git checkout $VERSION
 fi
+
+git pull
 
 mvn -U clean install -DskipTests
 cd structr-ui
