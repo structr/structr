@@ -10,7 +10,7 @@ The following pages provide details on how to configure OAuth for the different 
     </tr>
     <tr>
       <td>Google</td>
-      <td><a href="https://developer.linkedin.com/documents/authentication">https://developer.linkedin.com/documents/authentication</a></td>
+      <td><a href="https://developers.google.com/accounts/docs/OAuth2">https://developers.google.com/accounts/docs/OAuth2</a></td>
     </tr>
     <tr>
       <td>Facebook</td>
