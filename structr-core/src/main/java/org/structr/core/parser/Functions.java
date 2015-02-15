@@ -3267,24 +3267,35 @@ public class Functions {
 					final Object source = sources[0];
 					final Object target = sources[1];
 
-					AbstractNode sourceNode = null;
-					AbstractNode targetNode = null;
+					NodeInterface sourceNode = null;
+					NodeInterface targetNode = null;
 
-					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+					if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
-						sourceNode = (AbstractNode) source;
-						targetNode = (AbstractNode) target;
+						sourceNode = (NodeInterface) source;
+						targetNode = (NodeInterface) target;
 
 					} else {
 
-						return "Error: entities are not nodes.";
+						return "Error: Entities are not nodes.";
 					}
 
 					if (sources.length == 2) {
 
 						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
+							
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
 
-							if ( (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (
+							       s != null
+							    && t != null
+							    && (
+								     (s.equals(sourceNode) && t.equals(targetNode))
+							          || (s.equals(targetNode) && t.equals(sourceNode))
+								)
+							   ) {
 								list.add(rel);
 							}
 						}
@@ -3296,7 +3307,21 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-							if ( rel.getRelType().name().equals(relType) && ((rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode))) ) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (
+							       s != null
+							    && t != null
+							    && (
+								   rel.getRelType().name().equals(relType)
+								&& (
+								         (s.equals(sourceNode) && t.equals(targetNode))
+							              || (s.equals(targetNode) && t.equals(sourceNode))
+								   )
+							       )
+							   ) {
 								list.add(rel);
 							}
 						}
