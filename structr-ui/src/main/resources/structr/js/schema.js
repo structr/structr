@@ -952,12 +952,7 @@ var _Schema = {
             type = res[key];
         }
 
-        var notNull = (res[key].indexOf('+') > -1);
-        var unique = (res[key].indexOf('!') > -1);
         var contentType;
-        
-        type = type.replace('+', '').replace('!', '');
-
         var defaultValue = '';
         var format = '';
         
@@ -983,6 +978,10 @@ var _Schema = {
             type = type.substring(0, formatBegin);
         }
         
+        var notNull = (type.indexOf('+') > -1);
+        var unique = (type.indexOf('!') > -1);
+        type = type.replace('+', '').replace('!', '');
+
         var contentTypeBegin = type.indexOf('[');
         if (contentTypeBegin > -1) {
             var contentTypeEnd = type.indexOf(']');
