@@ -135,7 +135,7 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source, line ", 1, null);
+			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source (UUID: " + entity.getUuid() + "), line ", 1, null);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();
