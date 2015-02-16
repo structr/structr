@@ -9,6 +9,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.parser.Functions;
 import org.structr.schema.action.ActionContext;
 
@@ -135,7 +136,7 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source (UUID: " + entity.getUuid() + "), line ", 1, null);
+			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source [" + ( !((NodeInterface)entity).getName().equals("") ? "\""+((NodeInterface)entity).getName()+"\":" : "" ) + entity.getUuid() + "], line ", 1, null);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();
