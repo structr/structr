@@ -97,7 +97,7 @@ smtp.tls.required = false
 
 # Ports for low-level binary protocols
 tcp.port = 54555
-
+#udp.port = 57555
 
 #############################################################################
 # Servlets
