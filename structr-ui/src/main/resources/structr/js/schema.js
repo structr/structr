@@ -978,10 +978,6 @@ var _Schema = {
             type = type.substring(0, formatBegin);
         }
         
-        var notNull = (type.indexOf('+') > -1);
-        var unique = (type.indexOf('!') > -1);
-        type = type.replace('+', '').replace('!', '');
-
         var contentTypeBegin = type.indexOf('[');
         if (contentTypeBegin > -1) {
             var contentTypeEnd = type.indexOf(']');
@@ -989,6 +985,10 @@ var _Schema = {
             type = type.replace(contentType, '');
             contentType = contentType.replace('[', '').replace(']', '');
         }
+
+        var notNull = (type.indexOf('+') > -1);
+        var unique = (type.indexOf('!') > -1);
+        type = type.replace('+', '').replace('!', '');
 
         return { type: type, contentType: contentType, name: name, dbName: dbName, notNull: notNull, unique: unique, defaultValue: defaultValue, format: format };
         
