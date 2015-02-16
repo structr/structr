@@ -952,12 +952,7 @@ var _Schema = {
             type = res[key];
         }
 
-        var notNull = (res[key].indexOf('+') > -1);
-        var unique = (res[key].indexOf('!') > -1);
         var contentType;
-        
-        type = type.replace('+', '').replace('!', '');
-
         var defaultValue = '';
         var format = '';
         
@@ -990,6 +985,10 @@ var _Schema = {
             type = type.replace(contentType, '');
             contentType = contentType.replace('[', '').replace(']', '');
         }
+
+        var notNull = (type.indexOf('+') > -1);
+        var unique = (type.indexOf('!') > -1);
+        type = type.replace('+', '').replace('!', '');
 
         return { type: type, contentType: contentType, name: name, dbName: dbName, notNull: notNull, unique: unique, defaultValue: defaultValue, format: format };
         
