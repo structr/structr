@@ -326,9 +326,6 @@ public class StructrRestTest extends TestCase {
 		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
 		config.setProperty("JsonRestServlet.outputdepth", "3");
 		
-		config.setProperty("NodeExtender.log", "true");
-		
-
 		final Services services = Services.getInstance(config);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
