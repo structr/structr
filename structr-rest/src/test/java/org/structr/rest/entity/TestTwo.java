@@ -41,9 +41,10 @@ public class TestTwo extends AbstractNode {
 	public static final Property<Date>          aDate    = new ISO8601DateProperty("aDate").indexed();
 
 	public static final Property<List<TestOne>> testOnes = new EndNodes<>("test_ones", TwoOneOneToMany.class);
+	public static final Property<List<TestOne>> testOnesAlt = new EndNodes<>("testOnes", TwoOneOneToMany.class);
 
 	public static final View publicView = new View(TestTwo.class, PropertyView.Public,
-		name, anInt, aLong, aDate, testOnes
+		name, anInt, aLong, aDate, testOnes, testOnesAlt
 	);
 }
 

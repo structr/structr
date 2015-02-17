@@ -53,6 +53,7 @@ import org.structr.core.notion.Notion;
 import org.structr.core.property.RelationProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotFoundException;
 //~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
@@ -117,6 +118,7 @@ public class StaticRelationshipResource extends SortableResource {
 					} else {
 
 						// what here?
+						throw new NotFoundException();
 					}
 				}
 

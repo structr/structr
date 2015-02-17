@@ -1653,7 +1653,10 @@ var _Crud = {
         var values = format.split(',');
         input.append('<option></option>');
         values.forEach(function(value) {
-           input.append('<option ' + (value === oldValue ? 'selected="selected"' : '') + 'value="' + value + '">' + value + '</option>');
+            value = value.trim();
+            if (value.length > 0) {
+                input.append('<option ' + (value === oldValue ? 'selected="selected"' : '') + 'value="' + value + '">' + value + '</option>');
+            }
         });
         input.on('change', function() {
             var newValue = input.val();

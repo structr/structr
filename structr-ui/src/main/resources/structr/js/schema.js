@@ -943,52 +943,81 @@ var _Schema = {
     property: function(res, key) {
 
         var name = key.substring(1);
+        var unparsed = res[key];
+
+        // dbName
+        // NOTE: The format string can likely contain pipes when it is javascript...
+        // that's why we are ignoring the pipe if it is after the first plus, colon, bracket, bang, etc
         var dbName = '';
-        var type;
-        if (res[key].indexOf('|') > -1) {
-            dbName = res[key].substring(0, res[key].indexOf('|'));
-            type = res[key].substring(res[key].indexOf('|') + 1);
-        } else {
-            type = res[key];
-        }
+        var locFirstPipe = unparsed.indexOf('|');
+        if (locFirstPipe !== -1) {
+            dbName = unparsed.substring(0, locFirstPipe);
 
-        var notNull = (res[key].indexOf('+') > -1);
-        var unique = (res[key].indexOf('!') > -1);
-        var contentType;
-        
-        type = type.replace('+', '').replace('!', '');
-
-        var defaultValue = '';
-        var format = '';
-        
-        var defaultBegin = type.indexOf(':');
-        var formatBegin = type.indexOf('(');
-
-        if (formatBegin > -1 && defaultBegin > -1 && defaultBegin > formatBegin) {
-            // we have a format string => we need to find the location of the matching closing bracket for the bracket at pos formatBegin
-
-            var defaultBegin = type.indexOf('):');
-            if (defaultBegin > -1) {
-                defaultBegin++;
+            if (dbName.indexOf('+') !== -1 || dbName.indexOf('[') !== -1 || dbName.indexOf('!') !== -1 || dbName.indexOf('(') !== -1 || dbName.indexOf(':') !== -1) {
+                // ignore dbName
+                dbName = '';
+            } else {
+                unparsed = unparsed.substring(locFirstPipe + 1);
             }
         }
 
-        if (defaultBegin > -1) {
-            defaultValue = (type.substring(defaultBegin + 1));
-            type = type.substring(0, defaultBegin);
+
+        // notNull
+        var notNull = (unparsed[0] === '+');
+        if (notNull) {
+            unparsed = unparsed.substring(1);
         }
 
-        if (formatBegin > -1) {
-            format = type.substring(formatBegin + 1, type.length - 1);
-            type = type.substring(0, formatBegin);
+
+        // read the type (this works by finding the first of the known delimiters and cutting off at that point)
+        var type = '';
+        var firstDelimLoc = unparsed.length;
+        var delims = ['[', '!', '(', ':'];
+        delims.forEach(function (d) {
+            var loc = unparsed.indexOf(d);
+            if (loc !== -1 && firstDelimLoc > loc) {
+                firstDelimLoc = loc;
+            }
+        });
+        type = unparsed.substring(0, firstDelimLoc);
+        unparsed = unparsed.substring(firstDelimLoc);
+
+
+        // content-type
+        var contentType = '';
+        if (unparsed.length > 0 && unparsed[0] === '[') {
+
+            // NOTE: this can break if the content-type contains a ']' which is an allowed character
+            var contentTypeEnd = unparsed.indexOf(']');
+
+            contentType = unparsed.substring(1, contentTypeEnd);
+            unparsed = unparsed.substring(contentTypeEnd + 1);
         }
-        
-        var contentTypeBegin = type.indexOf('[');
-        if (contentTypeBegin > -1) {
-            var contentTypeEnd = type.indexOf(']');
-            contentType = type.substring(contentTypeBegin, contentTypeEnd+1);
-            type = type.replace(contentType, '');
-            contentType = contentType.replace('[', '').replace(']', '');
+
+
+        // unique
+        var unique = (unparsed.length > 0 && unparsed[0] === '!');
+        if (unique) {
+            unparsed = unparsed.substring(1);
+        }
+
+
+        // format
+        var format = '';
+        if (unparsed.length > 0 && unparsed[0] === '(') {
+            // NOTE: this can break if the default value contains the string ')'
+            // but since format is way more likely to contain ')' we use lastIndexOf
+            var formatEnd = unparsed.lastIndexOf(')');
+
+            format = unparsed.substring(1, formatEnd);
+            unparsed = unparsed.substring(formatEnd + 1);
+        }
+
+
+        // defaultValue
+        var defaultValue = '';
+        if (unparsed.length > 0 && unparsed[0] === ':') {
+            defaultValue = unparsed.substring(1);
         }
 
         return { type: type, contentType: contentType, name: name, dbName: dbName, notNull: notNull, unique: unique, defaultValue: defaultValue, format: format };
