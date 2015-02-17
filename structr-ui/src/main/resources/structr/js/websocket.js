@@ -143,6 +143,7 @@ function wsConnect() {
                     Structr.clearMain();
                     Structr.login(msg);
                 } else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
+                    loginBox.hide();
                     Structr.refreshUi();
                 }
 
