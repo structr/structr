@@ -470,4 +470,100 @@ public class SchemaResourceTest extends StructrRestTest {
 				.get("/_schema/TestType14/ui");
 
 	}
+
+	public void testCustomSchema15() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType15\", \"_foo\": \"fooDb|+String[text/html]!(some-format with | pipe in it):xyz\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("fooDb"))
+				.body("result[-1].contentType", equalTo("text/html"))
+				.body("result[-1].notNull", equalTo(true))
+				.body("result[-1].format", equalTo("some-format with | pipe in it"))
+				.body("result[-1].defaultValue", equalTo("xyz"))
+
+			.when()
+				.get("/_schema/TestType15/ui");
+
+	}
+
+	
+	public void testCustomSchema16() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType16\", \"_foo\": \"+String[text/html]!(some-format with no pipe in it):xyz\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].contentType", equalTo("text/html"))
+				.body("result[-1].notNull", equalTo(true))
+				.body("result[-1].format", equalTo("some-format with no pipe in it"))
+				.body("result[-1].defaultValue", equalTo("xyz"))
+
+			.when()
+				.get("/_schema/TestType16/ui");
+
+	}
+
+	public void testCustomSchema17() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType17\", \"_foo\": \"+String[text/html]!(some-format with a | pipe in it):xyz\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].contentType", equalTo("text/html"))
+				.body("result[-1].notNull", equalTo(true))
+				.body("result[-1].format", equalTo("some-format with a | pipe in it"))
+				.body("result[-1].defaultValue", equalTo("xyz"))
+
+			.when()
+				.get("/_schema/TestType17/ui");
+
+	}
+	
 }

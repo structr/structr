@@ -188,26 +188,26 @@ public abstract class PropertyParser {
 
 		final PropertyParameters params = new PropertyParameters(rawSource);
 
-		// detect optional db name
-		if (rawSource.contains("|")) {
-
-			params.dbName = rawSource.substring(0, rawSource.indexOf("|"));
-			params.source = rawSource.substring(rawSource.indexOf("|")+1);
-
-		}
-
-		// detect and remove not-null constraint
-		if (params.source.startsWith("+")) {
-			params.source = params.source.substring(1);
-			params.notNull = true;
-		}
-
 		// detect and remove format: <type>(...)
 		if (StringUtils.isNotBlank(params.source)) {
 
 			params.format = substringBetween(params.source, "(", ")");
 			params.source = params.source.replaceFirst("\\(.*\\)", "");
 
+		}
+
+		// detect optional db name
+		if (params.source.contains("|")) {
+
+			params.dbName = params.source.substring(0, params.source.indexOf("|"));
+			params.source = params.source.substring(params.source.indexOf("|")+1);
+
+		}
+		
+		// detect and remove not-null constraint
+		if (params.source.startsWith("+")) {
+			params.source = params.source.substring(1);
+			params.notNull = true;
 		}
 
 		// detect and remove content-type: <type>[...]
