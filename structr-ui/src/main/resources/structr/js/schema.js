@@ -131,6 +131,11 @@ var _Schema = {
                 _Schema.syncSchemaDialog();
             });
 
+            schemaContainer.append('<button class="btn" id="save-layout"><img src="icon/database.png"> Save layout</button>');
+            $('#save-layout').on('click', function() {
+                Structr.saveLocalStorage();
+            });
+
             /*
              schemaContainer.append('<button class="btn" id="do-layout"><img src="icon/wrench.png"> Layout</button>');
              $('#do-layout').on('click', function() {

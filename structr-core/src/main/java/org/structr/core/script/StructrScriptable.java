@@ -56,7 +56,7 @@ public class StructrScriptable extends ScriptableObject {
 	}
 
 	@Override
-	public Object get(String name, Scriptable start) {
+	public Object get(final String name, Scriptable start) {
 
 		if ("get".equals(name)) {
 
@@ -137,6 +137,36 @@ public class StructrScriptable extends ScriptableObject {
 			}
 
 			return nobj;
+		}
+
+		if ("include".equals(name) || "render".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+						if (parameters.length > 0 && parameters[0] != null) {
+
+							try {
+
+								final Function func = Functions.functions.get(name);
+
+								if (func != null) {
+
+									actionContext.print(func.apply(actionContext, entity, parameters ));
+								}
+
+								return null;
+
+							} catch (FrameworkException ex) {
+								exception = ex;
+							}
+						}
+
+						return null;
+				}
+			}, null, 0, 0);
 		}
 
 		// execute builtin function?
