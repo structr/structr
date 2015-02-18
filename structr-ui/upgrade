@@ -6,14 +6,14 @@ VERSION=$1
 
 # no version requested
 if [ -z $VERSION ]; then
-  echo "No version requested, falling back to develop branch"
-  git checkout structrdb-master
+  echo "No version requested, falling back to default branch"
+  VERSION=structrdb-master
 else
   echo "Checking out version $VERSION"
-  git checkout $VERSION
 fi
 
-git pull
+git checkout $VERSION
+git pull origin $VERSION
 
 mvn -U clean install -DskipTests
 cd structr-ui
