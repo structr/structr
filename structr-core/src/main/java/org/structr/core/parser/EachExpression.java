@@ -87,7 +87,7 @@ public class EachExpression extends Expression {
 
 			for (Object obj : source) {
 
-				eachExpression.evaluate(new ActionContext(ctx, entity, obj), entity);
+				eachExpression.evaluate(new ActionContext(ctx, obj), entity);
 			}
 		}
 
