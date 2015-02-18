@@ -122,7 +122,7 @@ public class RenderContext extends ActionContext {
 
 	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
 
-		String editString = StringUtils.defaultString(request.getParameter("edit"));
+		final String editString = StringUtils.defaultString(request.getParameter("edit"));
 
 		return new RenderContext(securityContext, request, response, editMode(editString), locale);
 
@@ -333,7 +333,7 @@ public class RenderContext extends ActionContext {
 
 	@Override
 	public boolean returnRawValue() {
-		EditMode editMode = getEditMode(securityContext.getUser(false));
+		final EditMode editMode = getEditMode(securityContext.getUser(false));
 		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
 	}
 
@@ -349,7 +349,7 @@ public class RenderContext extends ActionContext {
 		}
 
 		// evaluate non-ui specific context
-		Object value = super.evaluate(entity, key, data, defaultValue);
+		final Object value = super.evaluate(entity, key, data, defaultValue);
 		if (value == null) {
 
 			if (data != null) {
@@ -361,7 +361,7 @@ public class RenderContext extends ActionContext {
 
 						if (data instanceof AbstractNode) {
 
-							ResourceLink rel = ((AbstractNode)data).getOutgoingRelationship(ResourceLink.class);
+							final ResourceLink rel = ((AbstractNode)data).getOutgoingRelationship(ResourceLink.class);
 							if (rel != null) {
 
 								return rel.getTargetNode();
@@ -445,7 +445,7 @@ public class RenderContext extends ActionContext {
 					case "result_count":
 					case "result_size":
 
-						Result sizeResult = this.getResult();
+						final Result sizeResult = this.getResult();
 						if (sizeResult != null) {
 
 							return sizeResult.getRawResultCount();
@@ -454,7 +454,7 @@ public class RenderContext extends ActionContext {
 
 					case "page_size":
 
-						Result pageSizeResult = this.getResult();
+						final Result pageSizeResult = this.getResult();
 						if (pageSizeResult != null) {
 
 							return pageSizeResult.getPageSize();
@@ -464,7 +464,7 @@ public class RenderContext extends ActionContext {
 
 					case "page_count":
 
-						Result pageCountResult = this.getResult();
+						final Result pageCountResult = this.getResult();
 						if (pageCountResult != null) {
 
 							Integer pageCount = result.getPageCount();
@@ -482,7 +482,7 @@ public class RenderContext extends ActionContext {
 
 					case "page_no":
 
-						Result pageNoResult = this.getResult();
+						final Result pageNoResult = this.getResult();
 						if (pageNoResult != null) {
 
 							return pageNoResult.getPage();

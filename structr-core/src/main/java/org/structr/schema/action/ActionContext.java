@@ -68,23 +68,22 @@ public class ActionContext {
 		this.securityContext = other.securityContext;
 	}
 
-	public ActionContext(final ActionContext other, final GraphObject parent, final Object data) {
+	public ActionContext(final ActionContext other, final Object data) {
 
 		this(other);
 
-		init(parent, data);
+		init(data);
 	}
 
-	public ActionContext(final SecurityContext securityContext, final GraphObject parent, final Object data) {
+	public ActionContext(final SecurityContext securityContext, final Object data) {
 
 		this.securityContext = securityContext;
 
-		init(parent, data);
+		init(data);
 	}
 
-	private void init(final GraphObject parent, final Object data) {
+	private void init(final Object data) {
 
-		constants.put("parent", parent);
 		constants.put("data", data);
 		constants.put("true", true);
 		constants.put("false", false);
