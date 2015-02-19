@@ -396,6 +396,7 @@ public class LogResource extends Resource {
 
 		if (state.doCorrelate()) {
 
+			// get the basic correlation set (pds_click in the test case)
 			final List<LogEvent> correlationResult = StructrApp.getInstance(securityContext)
 				.nodeQuery(LogEvent.class)
 				.and(LogEvent.actionProperty, state.correlationAction)
@@ -403,8 +404,8 @@ public class LogResource extends Resource {
 
 			for (final LogEvent entry : correlationResult) {
 
-				final String pathSubjectId = state.inverse() ? entry.getSubjectId() : entry.getObjectId();
-				final String pathObjectId  = state.inverse() ? entry.getObjectId() : entry.getSubjectId();
+				final String pathSubjectId = state.inverse() ? entry.getObjectId() : entry.getSubjectId();
+				final String pathObjectId  = state.inverse() ? entry.getSubjectId() : entry.getObjectId();
 				final String entryMessage  = entry.getMessage();
 
 				if (state.correlationPattern != null) {
@@ -412,13 +413,13 @@ public class LogResource extends Resource {
 					final Matcher matcher = state.correlationPattern.matcher(entryMessage);
 					if (matcher.matches()) {
 
-						state.addCorrelationEntry(matcher.group(1), entryMessage);
+						state.addCorrelationEntry(matcher.group(1), entry);
 
 					}
 
 				} else {
 					// fallback: subjectId and objectId
-					state.addCorrelationEntry(key(pathSubjectId, pathObjectId), entryMessage);
+					state.addCorrelationEntry(key(pathSubjectId, pathObjectId), entry);
 				}
 			}
 		}
@@ -443,8 +444,8 @@ public class LogResource extends Resource {
 				System.out.println(count);
 			}
 
-			final String pathSubjectId = state.inverse() ? event.getSubjectId() : event.getObjectId();
-			final String pathObjectId  = state.inverse() ? event.getObjectId() : event.getSubjectId();
+			final String pathSubjectId = state.inverse() ? event.getObjectId() : event.getSubjectId();
+			final String pathObjectId  = state.inverse() ? event.getSubjectId() : event.getObjectId();
 			final long timestamp       = event.getTimestamp();
 			final String entryAction   = event.getAction();
 			final String entryMessage  = event.getMessage();
@@ -466,17 +467,19 @@ public class LogResource extends Resource {
 			} else {
 
 				// action present or matching?
-				if (state.correlates(key(pathSubjectId, pathObjectId), entryMessage)) {
+				if (state.correlates(pathSubjectId, pathObjectId, entryMessage)) {
 
-					final Map<String, Object> map = new HashMap<>();
+					if (pathObjectId.equals(event.getObjectId())) {
+						final Map<String, Object> map = new HashMap<>();
 
-					map.put(subjectProperty.jsonName(), pathSubjectId);
-					map.put(objectProperty.jsonName(), pathObjectId);
-					map.put(actionProperty.jsonName(), entryAction);
-					map.put(timestampProperty.jsonName(), timestamp);
-					map.put(messageProperty.jsonName(), entryMessage);
+						map.put(subjectProperty.jsonName(), pathSubjectId);
+						map.put(objectProperty.jsonName(), pathObjectId);
+						map.put(actionProperty.jsonName(), entryAction);
+						map.put(timestampProperty.jsonName(), timestamp);
+						map.put(messageProperty.jsonName(), entryMessage);
 
-					state.addEntry(map);
+						state.addEntry(map);
+					}
 				}
 			}
 		}
@@ -876,7 +879,7 @@ public class LogResource extends Resource {
 
 		private final Map<String, Pattern> aggregationPatterns = new HashMap<>();
 		private final List<Map<String, Object>> entries        = new LinkedList<>();
-		private final Map<String, String> correlations         = new ConcurrentHashMap<>();
+		private final Map<String, LinkedList<LogEvent>> correlations         = new ConcurrentHashMap<>();
 		private final Map<String, Integer> actions             = new HashMap<>();
 		private long beginTimestamp                            = Long.MAX_VALUE;
 		private long endTimestamp                              = 0L;
@@ -934,14 +937,22 @@ public class LogResource extends Resource {
 			entries.add(entry);
 		}
 
-		public void addCorrelationEntry(final String key, final String message) {
+		public void addCorrelationEntry(final String key, final LogEvent event) {
 
-			logger.log(Level.FINE, "No. of correllation entries: {0}, adding action: {1} {2}", new Object[]{correlations.keySet().size(), key, message});
+			logger.log(Level.FINE, "No. of correllation entry lists: {0}, adding action: {1} {2}", new Object[]{correlations.keySet().size(), key, event.getMessage()});
 
-			correlations.put(key, message != null ? message : "");
+			LinkedList<LogEvent> existingEventList = correlations.get(key);
+
+			if (existingEventList == null) {
+				existingEventList = new LinkedList<>();
+			}
+
+			existingEventList.add(event);
+
+			correlations.put(key, existingEventList);
 		}
 
-		public Map<String, String> getCorrelations() {
+		public Map<String, LinkedList<LogEvent>> getCorrelations() {
 			return correlations;
 		}
 
@@ -1028,13 +1039,16 @@ public class LogResource extends Resource {
 			return aggregate;
 		}
 
-		public boolean correlates(final String key, final String message) {
+		public boolean correlates(final String pathSubjectId, final String pathObjectId, final String message) {
 
 			if (correlations.isEmpty()) {
 
+				// TODO: why would this be true? wouldnt it be false?
 				return true;
 
 			}
+
+			LinkedList<LogEvent> correlationEntries;
 
 			if (correlationOp != null && correlationPattern != null) {
 
@@ -1049,6 +1063,46 @@ public class LogResource extends Resource {
 						case "and":
 
 							return correlations.containsKey(value);
+
+						case "andSubject":
+
+							correlationEntries = correlations.get(value);
+
+							if (correlationEntries != null) {
+
+								for (LogEvent correlationEntry : correlationEntries) {
+
+									if (correlationEntry.getSubjectId().equals(pathSubjectId)) {
+
+										return true;
+
+									}
+
+								}
+
+							}
+
+							return false;
+
+						case "andObject":
+
+							correlationEntries = correlations.get(value);
+
+							if (correlationEntries != null) {
+
+								for (LogEvent correlationEntry : correlationEntries) {
+
+									if (correlationEntry.getObjectId().equals(pathObjectId)) {
+
+										return true;
+
+									}
+
+								}
+
+							}
+
+							return false;
 
 						case "not":
 
@@ -1065,7 +1119,7 @@ public class LogResource extends Resource {
 			} else {
 
 				// fallback
-				return correlations.containsKey(key);
+				return correlations.containsKey(key(pathSubjectId, pathObjectId));
 
 			}
 
