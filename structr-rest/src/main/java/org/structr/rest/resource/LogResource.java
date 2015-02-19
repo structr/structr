@@ -469,17 +469,15 @@ public class LogResource extends Resource {
 				// action present or matching?
 				if (state.correlates(pathSubjectId, pathObjectId, entryMessage)) {
 
-					if (pathObjectId.equals(event.getObjectId())) {
-						final Map<String, Object> map = new HashMap<>();
+					final Map<String, Object> map = new HashMap<>();
 
-						map.put(subjectProperty.jsonName(), pathSubjectId);
-						map.put(objectProperty.jsonName(), pathObjectId);
-						map.put(actionProperty.jsonName(), entryAction);
-						map.put(timestampProperty.jsonName(), timestamp);
-						map.put(messageProperty.jsonName(), entryMessage);
+					map.put(subjectProperty.jsonName(), pathSubjectId);
+					map.put(objectProperty.jsonName(), pathObjectId);
+					map.put(actionProperty.jsonName(), entryAction);
+					map.put(timestampProperty.jsonName(), timestamp);
+					map.put(messageProperty.jsonName(), entryMessage);
 
-						state.addEntry(map);
-					}
+					state.addEntry(map);
 				}
 			}
 		}
