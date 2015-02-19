@@ -1388,14 +1388,15 @@ function enable(button, func) {
 }
 
 function setPosition(parentId, nodeUrl, pos) {
-    var toPut = '{ "' + parentId + '" : ' + pos + ' }';
+    var toPut = {};
+    toPut[parentId] = pos;
     $.ajax({
         url: nodeUrl + '/in',
         type: 'PUT',
         async: false,
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        data: toPut,
+        data: JSON.stringify(toPut),
         success: function(data) {
             //appendElement(parentId, elementId, data);
         }

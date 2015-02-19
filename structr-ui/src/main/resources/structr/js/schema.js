@@ -1223,7 +1223,9 @@ var _Schema = {
     removePropertyDefinition: function(entity, key) {
         entity[key] = undefined;
         delete entity[key];
-        _Schema.putPropertyDefinition(entity, ' {"' + key + '":null}');
+        var obj = {};
+        obj[key] = null;
+        _Schema.putPropertyDefinition(entity, JSON.stringify(obj));
     },
     savePropertyDefinition: function(entity, key) {
         _Schema.unbindEvents(key);
@@ -1259,7 +1261,9 @@ var _Schema = {
         }
     },
     removeActionDefinition: function(entity, name) {
-        _Schema.putPropertyDefinition(entity, ' {"' + name + '": null}');
+        var obj = {};
+        obj[name] = null;
+        _Schema.putPropertyDefinition(entity, JSON.stringify(obj));
     },
     saveActionDefinition: function(entity, key) {
         var name = $('.' + key + ' .action.property-name').val();
@@ -1367,7 +1371,7 @@ var _Schema = {
             type: 'POST',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: '{ "name": "' + type + '"}',
+            data: JSON.stringify({name: type}),
             statusCode: {
                 201: function() {
                     _Schema.reload();
@@ -1398,16 +1402,21 @@ var _Schema = {
         });
     },
     createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
-        var data = '{"sourceId":"' + sourceId + '","targetId":"' + targetId + '"'
-                + (relationshipType && relationshipType.length ? ',"relationshipType":"' + relationshipType + '"' : '')
-                + ', "sourceMultiplicity" : "*", "targetMultiplicity" : "*"'
-                + '}';
+        var data = {
+            sourceId: sourceId,
+            targetId: targetId,
+            sourceMultiplicity: '*',
+            targetMultiplicity: '*'
+        };
+        if (relationshipType && relationshipType.length) {
+            data.relationshipType = relationshipType;
+        }
         $.ajax({
             url: rootUrl + 'schema_relationships',
             type: 'POST',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: data,
+            data: JSON.stringify(data),
             statusCode: {
                 201: function() {
                     _Schema.reload();
