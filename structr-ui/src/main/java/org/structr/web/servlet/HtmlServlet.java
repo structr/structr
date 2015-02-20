@@ -1265,16 +1265,22 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
+		logger.log(Level.FINE, "Page: {0} [{1}], server name: {2}, server port: {3}", new Object[]{page.getName(), page.getUuid(), request.getServerName(), request.getServerPort()});
+		
 		final Site site = page.getProperty(Page.site);
 
 		if (site == null) {
+			logger.log(Level.FINE, "Page {0} [{1}] has no site assigned.", new Object[]{page.getName(), page.getUuid()});
 			return true;
 		}
 
+		logger.log(Level.FINE, "Checking site: {0} [{1}], hostname: {2}, port: {3}", new Object[]{site.getName(), site.getUuid(), site.getProperty(Site.hostname), site.getProperty(Site.port)});
+		
 		final String serverName = request.getServerName();
 		final int serverPort = request.getServerPort();
 
 		if (StringUtils.isNotBlank(serverName) && !serverName.equals(site.getProperty(Site.hostname))) {
+			logger.log(Level.FINE, "Server name {0} does not fit site hostname {1}", new Object[]{serverName, site.getProperty(Site.hostname)});
 			return false;
 		}
 
@@ -1284,9 +1290,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		if (serverPort != sitePort) {
+			logger.log(Level.FINE, "Server port {0} does not match site port {1}", new Object[]{serverPort, sitePort});
 			return false;
 		}
 
+		logger.log(Level.FINE, "Matching site: {0} [{1}], hostname: {2}, port: {3}", new Object[]{site.getName(), site.getUuid(), site.getProperty(Site.hostname), site.getProperty(Site.port)});
+		
 		return true;
 
 	}
