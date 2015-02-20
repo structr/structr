@@ -81,7 +81,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 		final SecurityContext securityContext                     = renderContext.getSecurityContext();
 
-		ResourceProvider resourceProvider = renderContext == null ? null : renderContext.getResourceProvider();
+		ResourceProvider resourceProvider = renderContext.getResourceProvider();
 		if (resourceProvider == null) {
 			try {
 				resourceProvider = UiResourceProvider.class.newInstance();
@@ -97,9 +97,14 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		Value<String> propertyView = new ThreadLocalPropertyView();
 		propertyView.set(securityContext, PropertyView.Ui);
 
+		HttpServletRequest request = securityContext.getRequest();
+		if (request == null) {
+			request = renderContext.getRequest();
+		}
+		
 		// initialize variables
 		// mimic HTTP request
-		final HttpServletRequest request = new HttpServletRequestWrapper(securityContext.getRequest()) {
+		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
 
 			@Override
 			public Enumeration<String> getParameterNames() {
@@ -145,13 +150,13 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		final HttpServletRequest origRequest = securityContext.getRequest();
 
 		// update request in security context
-		securityContext.setRequest(request);
+		securityContext.setRequest(wrappedRequest);
 
 		//HttpServletResponse response = renderContext.getResponse();
 		Resource resource = null;
 		try {
 
-			resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView)), propertyView);
+			resource = ResourceHelper.applyViewTransformation(wrappedRequest, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, wrappedRequest, resourceMap, propertyView)), propertyView);
 
 		} catch (IllegalPathException ipe) {
 
@@ -171,11 +176,11 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		// TODO: decide if we need to rest the REST request here
 		//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 		// add sorting & paging
-		String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-		String pageParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-		String offsetId = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
-		String sortOrder = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-		String sortKeyName = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+		String pageSizeParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+		String pageParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
+		String offsetId = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
+		String sortOrder = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+		String sortKeyName = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 		boolean sortDescending = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
 		int pageSize = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 		int page = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
