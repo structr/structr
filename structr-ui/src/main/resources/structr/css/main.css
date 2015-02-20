@@ -1812,6 +1812,17 @@ button.add_property {
     /*display: none;*/
 }
 
+.starttag, .endtag {
+    font-family: monospace;
+    background-color: #fff;
+    color: #888;
+    margin-left: 30px;
+}
+
+.endtag {
+    margin-top:  -4px;    
+}
+
 #queries > div, #filters > div {
     margin: 8px 8px 0 30px;
 }

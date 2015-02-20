@@ -622,7 +622,7 @@ var Structr = {
         });
         
     },
-    resize: function() {
+    resize: function(callback) {
 
         // Calculate dimensions of dialog
         Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
@@ -639,6 +639,9 @@ var Structr = {
             Structr.maximize();
         }
 
+        if (callback) {
+            callback();
+        }
 
     },
     maximize: function() {

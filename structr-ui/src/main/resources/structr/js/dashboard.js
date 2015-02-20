@@ -248,10 +248,10 @@ var _Dashboard = {
         if (query && query.length) {
 
             if (type === 'cypher') {
-                Command.cypher(query.replace(/(\r\n|\n|\r)/gm,""), params);
+                Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params);
                 _Dashboard.saveQuery(query, 'cypher', params);
             } else {
-                Command.rest(query.replace(/(\r\n|\n|\r)/gm,""));
+                Command.rest(query.replace(/(\r\n|\n|\r)/gm, ''));
                 _Dashboard.saveQuery(query, 'rest');
             }
 
