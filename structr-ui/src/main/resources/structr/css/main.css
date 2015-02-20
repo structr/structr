@@ -1826,6 +1826,7 @@ button.add_property {
 
 #queries textarea {
     width: 327px;
+    font-size: 1.3em;
 }
 
 .query-box {

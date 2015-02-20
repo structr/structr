@@ -99,7 +99,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
 		// initialize variables
 		// mimic HTTP request
-		final HttpServletRequest request = new HttpServletRequestWrapper(renderContext == null ? securityContext.getRequest() : renderContext.getRequest()) {
+		final HttpServletRequest request = new HttpServletRequestWrapper(securityContext.getRequest()) {
 
 			@Override
 			public Enumeration<String> getParameterNames() {
