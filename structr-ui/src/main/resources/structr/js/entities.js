@@ -918,6 +918,7 @@ var _Entities = {
 
         if (entity.tag === 'html' || entity.tag === 'body' || entity.tag === 'head'
                 || entity.tag === 'title' || entity.tag === 'script'
+                || entity.tag === 'input' || entity.tag === 'label' || entity.tag === 'button' || entity.tag === 'textarea'
                 || entity.tag === 'link' || entity.tag === 'meta' || entity.tag === 'noscript'
                 || entity.tag === 'tbody' || entity.tag === 'thead' || entity.tag === 'tr' || entity.tag === 'td'
                 || entity.tag === 'caption' || entity.tag === 'colgroup' || entity.tag === 'tfoot' || entity.tag === 'col') {
