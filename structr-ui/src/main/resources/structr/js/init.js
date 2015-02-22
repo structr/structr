@@ -622,7 +622,7 @@ var Structr = {
         });
         
     },
-    resize: function() {
+    resize: function(callback) {
 
         // Calculate dimensions of dialog
         Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
@@ -639,6 +639,9 @@ var Structr = {
             Structr.maximize();
         }
 
+        if (callback) {
+            callback();
+        }
 
     },
     maximize: function() {
@@ -1388,14 +1391,15 @@ function enable(button, func) {
 }
 
 function setPosition(parentId, nodeUrl, pos) {
-    var toPut = '{ "' + parentId + '" : ' + pos + ' }';
+    var toPut = {};
+    toPut[parentId] = pos;
     $.ajax({
         url: nodeUrl + '/in',
         type: 'PUT',
         async: false,
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        data: toPut,
+        data: JSON.stringify(toPut),
         success: function(data) {
             //appendElement(parentId, elementId, data);
         }

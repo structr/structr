@@ -483,16 +483,16 @@ function sendObj(obj, callback) {
         StructrModel.callbacks[obj.callback] = callback;
     }
 
-    text = $.toJSON(obj);
+    var t = $.toJSON(obj);
 
-    if (!text) {
+    if (!t) {
         log('No text to send!');
         return false;
     }
 
     try {
-        ws.send(text);
-        log('Sent: ' + text);
+        ws.send(t);
+        log('Sent: ' + t);
     } catch (exception) {
         log('Error in send(): ' + exception);
         //Structr.ping();

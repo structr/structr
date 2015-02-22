@@ -717,7 +717,8 @@ function StructrApp(baseUrl) {
 
     this.add = function(id, sourceId, sourceType, relatedProperty) {
 
-        var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
+        var d = {};
+        d[relatedProperty] = [ {'id': id} ];
 
         $.ajax({
             url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
@@ -760,7 +761,8 @@ function StructrApp(baseUrl) {
 
     this.remove = function(id, sourceId, sourceType, relatedProperty) {
 
-        var d = JSON.parse('{"' + relatedProperty + '":[]}');
+        var d = {};
+        d[relatedProperty] = [];
 
         $.ajax({
             url: structrRestUrl + sourceId + '/ui', method: 'GET', contentType: 'application/json',

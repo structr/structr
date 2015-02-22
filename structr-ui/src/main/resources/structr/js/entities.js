@@ -204,17 +204,29 @@ var _Entities = {
             contentType: contentType,
             success: function (data) {
                 text = data;
+                text = text.replace(/<!DOCTYPE[^>]*>/, '');
+                var startTag  = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$1').replace(/^\s+|\s+$/g, '');
+                var innerText = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
+                var endTag    = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$3').replace(/^\s+|\s+$/g, '');
+                text = innerText;
+                
                 dialog.append('<div class="editor"></div>');
+                
                 var contentBox = $('.editor', dialog);
                 var lineWrapping = localStorage.getItem(lineWrappingKey);
 
                 // Intitialize editor
                 editor = CodeMirror(contentBox.get(0), {
-                    value: unescapeTags(text),
+                    value: unescapeTags(innerText),
                     mode: contentType,
                     lineNumbers: true,
                     lineWrapping: lineWrapping
                 });
+
+                $('.CodeMirror-scroll').prepend('<div class="starttag"></div>');
+                $('.CodeMirror-scroll').append('<div class="endtag"></div>');
+                $('.starttag', dialog).append(escapeTags(startTag.replace(/\sdata-structr-hash=".{32}"/, "")));
+                $('.endtag', dialog).append(escapeTags(endTag));
 
                 editor.id = entity.id;
 
@@ -232,6 +244,7 @@ var _Entities = {
 
                     //text1 = $(contentNode).children('.content_').text();
                     text2 = editor.getValue();
+                    //console.log(text, text2, text === text2);
                     if (text === text2) {
                         dialogSaveButton.prop("disabled", true).addClass('disabled');
                         saveAndClose.prop("disabled", true).addClass('disabled');
@@ -245,8 +258,8 @@ var _Entities = {
 
                 dialogSaveButton.on('click', function (e) {
                     e.stopPropagation();
-                    var text2 = editor.getValue();
-
+                    text2 = editor.getValue();
+                    //console.log(text, text2, text === text2);
                     if (text === text2) {
                         dialogSaveButton.prop("disabled", true).addClass('disabled');
                         saveAndClose.prop("disabled", true).addClass('disabled');
@@ -255,20 +268,26 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
-                    Command.saveNode(text2, entity.id, function () {
+                    Command.saveNode(startTag + editor.getValue() + endTag, entity.id, function () {
                         $.ajax({
                             url: url,
                             contentType: contentType,
                             success: function (data) {
-                                text = unescapeTags(data);
+                                text = unescapeTags(data).replace(/<!DOCTYPE[^>]*>/, '');
+                                text = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
                                 editor.setValue(text);
+                                
+                                dialogSaveButton.prop("disabled", true).addClass('disabled');
+                                saveAndClose.prop("disabled", true).addClass('disabled');
+                                dialogMsg.html('<div class="infoBox success">Node source saved and DOM tree rebuilt.</div>');
+                                $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                                
+                                if (_Entities.isExpanded(Structr.node(entity.id))) {
+                                    $('.expand_icon', Structr.node(entity.id)).click().click();
+                                }
                             }
                         });
 
-                        dialogSaveButton.prop("disabled", true).addClass('disabled');
-                        saveAndClose.prop("disabled", true).addClass('disabled');
-                        dialogMsg.html('<div class="infoBox success">Node source saved and DOM tree rebuilt.</div>');
-                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
 
                     });
 
@@ -296,7 +315,7 @@ var _Entities = {
                     }
                     editor.refresh();
                 });
-
+                
                 Structr.resize();
 
                 _Entities.hideDataHashAttribute(editor);
@@ -309,18 +328,10 @@ var _Entities = {
 
     },
     hideDataHashAttribute: function (editor) {
-//        var doc = editor.getDoc();
-//        var hashElements = $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")');
-//        console.log(hashElements);
         var sc = editor.getSearchCursor(/\sdata-structr-hash=".{32}"/);
         while (sc.findNext()) {
-            //console.log(sc.from(), sc.to());
-            //editor.markText(sc.from(), sc.to(), {collapsed: true});
             editor.markText(sc.from(), sc.to(), {className: 'data-structr-hash', collapsed: true, inclusiveLeft: true});
         }
-
-        //$('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
-        //$($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
     },
     showProperties: function (entity) {
 
@@ -905,6 +916,15 @@ var _Entities = {
     },
     appendEditSourceIcon: function (parent, entity) {
 
+        if (entity.tag === 'html' || entity.tag === 'body' || entity.tag === 'head'
+                || entity.tag === 'title' || entity.tag === 'script'
+                || entity.tag === 'input' || entity.tag === 'label' || entity.tag === 'button' || entity.tag === 'textarea'
+                || entity.tag === 'link' || entity.tag === 'meta' || entity.tag === 'noscript'
+                || entity.tag === 'tbody' || entity.tag === 'thead' || entity.tag === 'tr' || entity.tag === 'td'
+                || entity.tag === 'caption' || entity.tag === 'colgroup' || entity.tag === 'tfoot' || entity.tag === 'col') {
+            return;
+        }
+
         var editIcon = $('.edit_icon', parent);
 
         if (!(editIcon && editIcon.length)) {
@@ -1095,28 +1115,28 @@ var _Entities = {
             $('#preview_' + getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
         }
     },
+    isExpanded : function(element) {
+        var b = $(element).children('.expand_icon').first(), src = b.prop('src');
+        if (!b || ! src) {
+            return false;
+        }
+        return src.endsWith('icon/tree_arrow_down.png');
+    },
     ensureExpanded: function (element, callback) {
-
+        if (!element) {
+            return;
+        }
         var el = $(element);
-        var b;
-        var src = el.prop('src');
-
         var id = getId(el);
 
         addExpandedNode(id);
 
-        b = el.children('.expand_icon').first();
-        src = b.prop('src');
-
-        if (!src)
-            return;
-
-        if (src.endsWith('icon/tree_arrow_down.png')) {
+        if (_Entities.isExpanded(element)) {
             return;
         } else {
             log('ensureExpanded: fetch children', el);
             Command.children(id, callback);
-            b.prop('src', 'icon/tree_arrow_down.png');
+            el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png');
         }
     },
     expandAll: function (ids) {
@@ -1142,19 +1162,13 @@ var _Entities = {
     toggleElement: function (element, expanded) {
 
         var el = $(element);
-        var b;
-        var src = el.prop('src');
         var id = getId(el) || getComponentId(el);
 
         log('toggleElement: ', el, id);
 
-        b = el.children('.expand_icon').first();
-        src = b.prop('src');
+        var b = el.children('.expand_icon').first();
 
-        if (!src)
-            return;
-
-        if (src.endsWith('icon/tree_arrow_down.png')) {
+        if (_Entities.isExpanded(element)) {
 
             $.each(el.children('.node'), function (i, child) {
                 $(child).remove();

@@ -219,8 +219,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		});
 
 		/**
-		 * Conveniance method for ${render(find('DOMNode', 'name',
-		 * name))}
+		 * Convenience method for ${render(first(find('DOMNode', 'name', name)))}
 		 */
 		Functions.functions.put("include", new Function<Object, Object>() {
 
