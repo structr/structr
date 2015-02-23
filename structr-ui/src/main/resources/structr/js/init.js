@@ -92,82 +92,49 @@ $(function() {
     });
 
     $('#dashboard_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('dashboard');
-        Structr.modules['dashboard'].onload();
+        Structr.activateModule(e, 'dashboard');
     });
 
     $('#pages_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('pages');
-        Structr.modules['pages'].onload();
+        Structr.activateModule(e, 'pages');
         _Pages.resize();
     });
 
     $('#widgets_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('widgets');
-        Structr.modules['widgets'].onload();
+        Structr.activateModule(e, 'widgets');
         Structr.resize();
     });
 
     $('#types_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('types');
-        Structr.modules['types'].onload();
+        Structr.activateModule(e, 'types');
     });
 
     $('#schema_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('schema');
-        Structr.modules['schema'].onload();
+        Structr.activateModule(e, 'schema');
     });
 
     $('#elements_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('elements');
-        Structr.modules['elements'].onload();
+        Structr.activateModule(e, 'elements');
     });
 
     $('#contents_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('contents');
-        Structr.modules['contents'].onload();
+        Structr.activateModule(e, 'contents');
     });
 
     $('#crud_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('crud');
-        Structr.modules['crud'].onload();
+        Structr.activateModule(e, 'crud');
     });
 
     $('#files_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('files');
-        Structr.modules['files'].onload();
+        Structr.activateModule(e, 'files');
     });
 
     $('#images_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('images');
-        Structr.modules['images'].onload();
+        Structr.activateModule(e, 'images');
     });
 
     $('#security_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('security');
-        Structr.modules['security'].onload();
+        Structr.activateModule(e, 'security');
     });
 
     $('#usernameField').keypress(function(e) {
@@ -766,6 +733,15 @@ var Structr = {
                 backgroundColor: 'transparent'
             }
         });
+    },
+    activateModule: function (event, name) {
+        event.stopPropagation();
+
+        if (localStorage.getItem(lastMenuEntryKey) !== name) {
+            Structr.clearMain();
+            Structr.activateMenuEntry(name);
+            Structr.modules[name].onload();
+        }
     },
     activateMenuEntry: function(name) {
         lastMenuEntry = name;
@@ -1409,14 +1385,8 @@ function setPosition(parentId, nodeUrl, pos) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-function getIdFromIdString(idString) {
-    if (!idString || !idString.startsWith('id_'))
-        return false;
-    return idString.substring(3);
-}
-
 function getId(element) {
-    return getIdFromIdString($(element).prop('id')) || undefined;
+    return getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;
 }
 
 function getIdFromPrefixIdString(idString, prefix) {

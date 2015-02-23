@@ -160,7 +160,7 @@ var _Elements = {
         });
 
 
-        Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type,source,treePath', function(entity) {
+        Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type,source,treePath,isWidget', function(entity) {
             StructrModel.create(entity, null, false);
             _Widgets.appendWidgetElement(entity, false, widgets);
         });

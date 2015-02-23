@@ -165,7 +165,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		boolean valid = true;
 
 		valid &= nonEmpty(AbstractNode.name, errorBuffer);
-                valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_a-zA-Z0-9\\s\\-\\.]+", errorBuffer);
+                //valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_a-zA-Z0-9\\s\\-\\.]+", errorBuffer);
+		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_\\p{L}0-9\\s\\-\\.]+", errorBuffer);
 		valid &= super.isValid(errorBuffer);
 
 		return valid;
