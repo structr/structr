@@ -20,10 +20,14 @@ package org.structr.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+
 import org.structr.rest.common.StructrRestTest;
+
 import static org.hamcrest.Matchers.*;
+
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
@@ -774,5 +778,46 @@ public class AdvancedSearchTest extends StructrRestTest {
 			fail("Unexpected exception");
 
 		}
+	}
+	
+	public void testGraphBasedNotQuery() {
+
+		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
+		String test02 = createEntity("/test_sixs", "{ name: test02, aString: string02, anInt: 2 }");
+		String test03 = createEntity("/test_sixs", "{ name: test03, aString: string03, anInt: 3 }");
+		String test04 = createEntity("/test_sixs", "{ name: test04, aString: string04, anInt: 4 }");
+		String test05 = createEntity("/test_sixs", "{ name: test05, aString: string05, anInt: 5 }");
+		String test06 = createEntity("/test_sixs", "{ name: test06, aString: string06, anInt: 6 }");
+		String test07 = createEntity("/test_sixs", "{ name: test07, aString: string07, anInt: 7 }");
+		String test08 = createEntity("/test_sixs", "{ name: test08, aString: string08, anInt: 8 }");
+
+		String test21 = createEntity("/test_sixs", "{ name: test21, aString: string21, anInt: 21 }");
+		String test22 = createEntity("/test_sixs", "{ name: test22, aString: string22, anInt: 22 }");
+
+		System.out.println(RestAssured
+		.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+			.body("result",	      hasSize(9))
+			.body("result_count", equalTo(9))
+		.when()
+			.get(concat("/test_sixs?aString=^string07")).asString());
+		
+		RestAssured
+		.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+			.body("result",	      hasSize(4))
+			.body("result_count", equalTo(4))
+				.body("result[0].id", equalTo(test03))
+				.body("result[1].id", equalTo(test04))
+				.body("result[2].id", equalTo(test05))
+				.body("result[3].id", equalTo(test06))				
+		.when()
+			.get(concat("/test_sixs?aString=^string07;string08&anInt=[3 TO 8]"));
+		
+		
 	}
 }
