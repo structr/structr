@@ -1409,14 +1409,8 @@ function setPosition(parentId, nodeUrl, pos) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-function getIdFromIdString(idString) {
-    if (!idString || !idString.startsWith('id_'))
-        return false;
-    return idString.substring(3);
-}
-
 function getId(element) {
-    return getIdFromIdString($(element).prop('id')) || undefined;
+    return getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;
 }
 
 function getIdFromPrefixIdString(idString, prefix) {

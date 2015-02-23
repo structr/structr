@@ -1129,6 +1129,10 @@ var _Entities = {
         var el = $(element);
         var id = getId(el);
 
+        if (!id) {
+            return;
+        }
+
         addExpandedNode(id);
 
         if (_Entities.isExpanded(element)) {
