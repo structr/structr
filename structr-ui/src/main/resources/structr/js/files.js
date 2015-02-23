@@ -297,10 +297,10 @@ var _Files = {
 
         div.draggable({
             revert: 'invalid',
-            //helper: 'clone',
-            //containment: 'document',
-            //stack: '.node',
-            //appendTo: '#main',
+            helper: 'clone',
+            containment: 'document',
+            stack: '.node',
+            appendTo: '#main',
             zIndex: 2,
             start: function(e, ui) {
                 $(this).css({
