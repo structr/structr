@@ -103,6 +103,8 @@ public class Scripting {
 		final int prefixOffset     = isJavascript ? 1 : 0;
 		final String source        = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
 
+		actionContext.setJavaScriptContext(isJavascript);
+
 		if (isJavascript) {
 
 			return evaluateJavascript(actionContext, entity, source);

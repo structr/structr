@@ -209,11 +209,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
 			}
 		});
@@ -293,10 +293,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
 			}
 		});
@@ -313,7 +313,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${strip_html(html)}. Example: ${strip_html(\"<p>foo</p>\")}";
 			}
 
@@ -370,14 +370,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				} else {
 
-					return usage();
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				return null;
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";
 			}
 		});
@@ -428,11 +428,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
 			}
 		});
@@ -468,11 +468,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
 			}
 		});
@@ -516,11 +516,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${to_json(obj [, view])}. Example: ${to_json(this)}";
 			}
 		});
@@ -578,11 +578,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
 			}
 		});
@@ -640,11 +640,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
 			}
 		});
@@ -664,11 +664,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
 			}
 		});

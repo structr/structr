@@ -65,7 +65,7 @@ public class FunctionExpression extends Expression {
 		}
 
 		if (results.isEmpty()) {
-			return function.usage();
+			return function.usage(ctx.isJavaScriptContext());
 		}
 
 		return function.apply(ctx, entity, results.toArray());
