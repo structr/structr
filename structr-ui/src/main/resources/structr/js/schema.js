@@ -192,7 +192,7 @@ var _Schema = {
 
                 _Schema.loadSchema(function() {
                     instance.bind('connection', function(info) {
-                        _Schema.connect(getIdFromIdString(info.sourceId), getIdFromIdString(info.targetId));
+                        _Schema.connect(getIdFromPrefixIdString(info.sourceId, 'id_'), getIdFromPrefixIdString(info.targetId, 'id_'));
                     });
                     instance.bind('connectionDetached', function(info) {
                         Structr.confirmation('<h3>Delete schema relationship?</h3>',
