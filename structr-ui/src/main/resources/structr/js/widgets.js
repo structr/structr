@@ -263,7 +263,7 @@ var _Widgets = {
             stack: '.node',
             zIndex: 99,
             stop: function(e, ui) {
-                $('#pages_').droppable('enable').removeClass('nodeHover');
+                //$('#pages_').droppable('enable').removeClass('nodeHover');
             }
         });
 
