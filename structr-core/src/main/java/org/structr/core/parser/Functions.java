@@ -2070,6 +2070,9 @@ public class Functions {
 
 						return "";
 
+					} else {
+
+						return ERROR_MESSAGE_GET_ENTITY;
 					}
 				}
 
