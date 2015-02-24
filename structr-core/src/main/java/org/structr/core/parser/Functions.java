@@ -1425,6 +1425,8 @@ public class Functions {
 
 									List<GraphObject> sortCollection = (List<GraphObject>) list;
 									Collections.sort(sortCollection, new GraphObjectComparator(key, descending));
+
+									return sortCollection;
 								}
 							}
 
@@ -3291,7 +3293,7 @@ public class Functions {
 					if (sources.length == 2) {
 
 						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
-							
+
 							final NodeInterface s = rel.getSourceNode();
 							final NodeInterface t = rel.getTargetNode();
 
