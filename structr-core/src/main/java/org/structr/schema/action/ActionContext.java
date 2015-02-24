@@ -45,6 +45,7 @@ public class ActionContext {
 	protected Map<Integer, Integer> counters  = new HashMap<>();
 	protected ErrorBuffer errorBuffer         = new ErrorBuffer();
 	protected StringBuilder outputBuffer      = new StringBuilder();
+	private boolean javaScriptContext		  = false;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -267,5 +268,19 @@ public class ActionContext {
 
 	public String getOutput() {
 		return outputBuffer.toString();
+	}
+
+	/**
+	 * @return the javaScriptContext
+	 */
+	public boolean isJavaScriptContext() {
+		return javaScriptContext;
+	}
+
+	/**
+	 * @param javaScriptContext the javaScriptContext to set
+	 */
+	public void setJavaScriptContext(boolean javaScriptContext) {
+		this.javaScriptContext = javaScriptContext;
 	}
 }

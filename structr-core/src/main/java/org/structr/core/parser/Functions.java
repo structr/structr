@@ -165,11 +165,16 @@ public class Functions {
 	public static final String ERROR_MESSAGE_ROUND = "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
 	public static final String ERROR_MESSAGE_MAX = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
 	public static final String ERROR_MESSAGE_MIN = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
-	public static final String ERROR_MESSAGE_CONFIG = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
-	public static final String ERROR_MESSAGE_DATE_FORMAT = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
-	public static final String ERROR_MESSAGE_PARSE_DATE = "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
-	public static final String ERROR_MESSAGE_TEMPLATE = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
+	public static final String ERROR_MESSAGE_CONFIG    = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
+	public static final String ERROR_MESSAGE_CONFIG_JS = "Usage: ${{Structr.config(keyFromStructrConf)}}. Example: ${{Structr.config(\"base.path\")}}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT    = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT_JS = "Usage: ${{Structr.date_format(value, pattern)}}. Example: ${{Structr.date_format(Structr.get('this').creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_PARSE_DATE    = "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
+	public static final String ERROR_MESSAGE_PARSE_DATE_JS = "Usage: ${{Structr.parse_date(value, pattern)}}. Example: ${{Structr.parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT    = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT_JS = "Usage: ${{Structr.number_format(value, ISO639LangCode, pattern)}}. Example: ${{Structr.number_format(12345.6789, 'en', '#,##0.00')}}";
+	public static final String ERROR_MESSAGE_TEMPLATE    = "Usage: ${{Structr.template(name, locale, source)}}. Example: ${{Structr.template(\"TEXT_TEMPLATE_1\", \"en_EN\", Structr.get('this'))}}";
+	public static final String ERROR_MESSAGE_TEMPLATE_JS = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
 	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_AND = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_OR = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
@@ -185,9 +190,12 @@ public class Functions {
 	public static final String ERROR_MESSAGE_MERGE_PROPERTIES = "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
 	public static final String ERROR_MESSAGE_KEYS = "Usage: ${keys(entity, viewName)}. Example: ${keys(this, \"ui\")}";
 	public static final String ERROR_MESSAGE_EACH = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
-	public static final String ERROR_MESSAGE_STORE = "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
-	public static final String ERROR_MESSAGE_RETRIEVE = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
-	public static final String ERROR_MESSAGE_PRINT = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
+	public static final String ERROR_MESSAGE_STORE    = "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
+	public static final String ERROR_MESSAGE_STORE_JS = "Usage: ${{Structr.store(key, value)}}. Example: ${{Structr.store('tmpUser', Structr.get('this').owner)}}";
+	public static final String ERROR_MESSAGE_RETRIEVE    = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
+	public static final String ERROR_MESSAGE_RETRIEVE_JS = "Usage: ${{Structr.retrieve(key)}}. Example: ${{retrieve('tmpUser')}}";
+	public static final String ERROR_MESSAGE_PRINT    = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
+	public static final String ERROR_MESSAGE_PRINT_JS = "Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}";
 	public static final String ERROR_MESSAGE_READ = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
 	public static final String ERROR_MESSAGE_WRITE = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
 	public static final String ERROR_MESSAGE_APPEND = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
@@ -459,7 +467,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ERROR;
 			}
 		});
@@ -475,7 +483,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MD5;
 			}
 		});
@@ -491,7 +499,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_UPPER;
 			}
 
@@ -508,7 +516,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LOWER;
 			}
 
@@ -535,7 +543,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_JOIN;
 			}
 
@@ -570,7 +578,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CONCAT;
 			}
 
@@ -596,7 +604,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SPLIT;
 			}
 
@@ -633,7 +641,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ABBR;
 			}
 
@@ -650,7 +658,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CAPITALIZE;
 			}
 		});
@@ -684,7 +692,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_TITLEIZE;
 			}
 
@@ -708,7 +716,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_NUM;
 			}
 		});
@@ -735,7 +743,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INT;
 			}
 		});
@@ -758,7 +766,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_RANDOM;
 			}
 		});
@@ -781,7 +789,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_RINT;
 			}
 		});
@@ -802,7 +810,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INDEX_OF;
 			}
 		});
@@ -837,7 +845,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CONTAINS;
 			}
 		});
@@ -864,7 +872,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SUBSTRING;
 			}
 		});
@@ -882,7 +890,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SUBSTRING;
 			}
 		});
@@ -918,12 +926,12 @@ public class Functions {
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_REPLACE;
 			}
 		});
@@ -946,7 +954,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CLEAN;
 			}
 
@@ -963,7 +971,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_URLENCODE;
 			}
 
@@ -980,7 +988,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ESCAPE_JS;
 			}
 
@@ -1007,7 +1015,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IF;
 			}
 
@@ -1028,7 +1036,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_EMPTY;
 			}
 
@@ -1059,7 +1067,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_EQUAL;
 			}
 
@@ -1073,9 +1081,9 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 
-				return functions.get("equal").usage();
+				return functions.get("equal").usage(inJavaScriptContext);
 			}
 
 		});
@@ -1115,7 +1123,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ADD;
 			}
 
@@ -1143,7 +1151,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_DOUBLE_SUM;
 			}
 
@@ -1171,7 +1179,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INT_SUM;
 			}
 
@@ -1190,7 +1198,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IS_COLLECTION;
 			}
 
@@ -1209,7 +1217,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IS_ENTITY;
 			}
 
@@ -1267,7 +1275,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_EXTRACT;
 			}
 
@@ -1301,7 +1309,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MERGE;
 			}
 
@@ -1340,7 +1348,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_COMPLEMENT;
 			}
 
@@ -1386,7 +1394,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_UNWIND;
 			}
 
@@ -1430,7 +1438,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SORT;
 			}
 
@@ -1455,7 +1463,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LT;
 			}
 		});
@@ -1479,7 +1487,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GT;
 			}
 		});
@@ -1503,7 +1511,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LTE;
 			}
 		});
@@ -1527,7 +1535,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GTE;
 			}
 		});
@@ -1562,7 +1570,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SUBT;
 			}
 		});
@@ -1595,7 +1603,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MULT;
 			}
 		});
@@ -1632,7 +1640,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_QUOT;
 			}
 		});
@@ -1668,7 +1676,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ROUND;
 			}
 		});
@@ -1701,7 +1709,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MAX;
 			}
 		});
@@ -1734,7 +1742,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MIN;
 			}
 		});
@@ -1755,8 +1763,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_CONFIG;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_CONFIG_JS : ERROR_MESSAGE_CONFIG);
 			}
 		});
 		functions.put("date_format", new Function<Object, Object>() {
@@ -1765,7 +1773,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 2) {
-					return ERROR_MESSAGE_DATE_FORMAT;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
@@ -1801,8 +1809,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_DATE_FORMAT;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_DATE_FORMAT_JS : ERROR_MESSAGE_DATE_FORMAT);
 			}
 		});
 		functions.put("parse_date", new Function<Object, Object>() {
@@ -1811,7 +1819,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 2) {
-					return ERROR_MESSAGE_PARSE_DATE;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
@@ -1838,8 +1846,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_PARSE_DATE;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_DATE_JS : ERROR_MESSAGE_PARSE_DATE);
 			}
 		});
 		functions.put("number_format", new Function<Object, Object>() {
@@ -1848,7 +1856,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 3) {
-					return ERROR_MESSAGE_NUMBER_FORMAT;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
@@ -1873,8 +1881,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_NUMBER_FORMAT;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_NUMBER_FORMAT_JS : ERROR_MESSAGE_NUMBER_FORMAT);
 			}
 		});
 		functions.put("template", new Function<Object, Object>() {
@@ -1883,7 +1891,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 3) {
-					return ERROR_MESSAGE_TEMPLATE;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode) {
@@ -1909,8 +1917,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_TEMPLATE;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_TEMPLATE_JS : ERROR_MESSAGE_TEMPLATE);
 			}
 		});
 		functions.put("not", new Function<Object, Object>() {
@@ -1928,7 +1936,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_NOT;
 			}
 
@@ -1943,7 +1951,7 @@ public class Functions {
 				if (sources != null) {
 
 					if (sources.length < 2) {
-						return usage();
+						return usage(ctx.isJavaScriptContext());
 					}
 
 					for (Object i : sources) {
@@ -1973,7 +1981,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_AND;
 			}
 
@@ -1988,7 +1996,7 @@ public class Functions {
 				if (sources != null) {
 
 					if (sources.length < 2) {
-						return usage();
+						return usage(ctx.isJavaScriptContext());
 					}
 
 					for (Object i : sources) {
@@ -2018,7 +2026,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_OR;
 			}
 		});
@@ -2070,11 +2078,11 @@ public class Functions {
 					}
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET;
 			}
 		});
@@ -2115,7 +2123,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SIZE;
 			}
 		});
@@ -2144,7 +2152,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_FIRST;
 			}
 		});
@@ -2176,7 +2184,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LAST;
 			}
 		});
@@ -2217,7 +2225,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_NTH;
 			}
 		});
@@ -2235,7 +2243,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET_COUNTER;
 			}
 		});
@@ -2264,7 +2272,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INC_COUNTER;
 			}
 		});
@@ -2282,7 +2290,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_RESET_COUNTER;
 			}
 		});
@@ -2322,7 +2330,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MERGE_PROPERTIES;
 			}
 		});
@@ -2347,7 +2355,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_KEYS;
 			}
 		});
@@ -2364,13 +2372,13 @@ public class Functions {
 
 				} else {
 
-					return ERROR_MESSAGE_RETRIEVE;
+					return usage(ctx.isJavaScriptContext());
 				}
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_RETRIEVE;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_RETRIEVE_JS : ERROR_MESSAGE_RETRIEVE);
 			}
 		});
 		functions.put("store", new Function<Object, Object>() {
@@ -2384,15 +2392,15 @@ public class Functions {
 
 				} else {
 
-					return ERROR_MESSAGE_STORE;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				return "";
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_STORE;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_STORE_JS : ERROR_MESSAGE_STORE);
 			}
 		});
 		functions.put("print", new Function<Object, Object>() {
@@ -2414,7 +2422,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_PRINT;
 			}
 		});
@@ -2448,7 +2456,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_READ;
 			}
 		});
@@ -2492,7 +2500,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_WRITE;
 			}
 		});
@@ -2528,7 +2536,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_APPEND;
 			}
 		});
@@ -2560,7 +2568,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_XML;
 			}
 		});
@@ -2585,7 +2593,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_XPATH;
 			}
 		});
@@ -2640,7 +2648,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SET;
 			}
 		});
@@ -2670,7 +2678,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SEND_PLAINTEXT_MAIL;
 			}
 		});
@@ -2705,7 +2713,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SEND_HTML_MAIL;
 			}
 		});
@@ -2738,7 +2746,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GEOCODE;
 			}
 		});
@@ -2813,7 +2821,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_FIND;
 			}
 		});
@@ -2893,7 +2901,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_FIND;
 			}
 		});
@@ -2971,7 +2979,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CREATE;
 			}
 		});
@@ -3003,7 +3011,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_DELETE;
 			}
 		});
@@ -3043,7 +3051,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INCOMING;
 			}
 		});
@@ -3084,7 +3092,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_OUTGOING;
 			}
 		});
@@ -3141,7 +3149,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_HAS_RELATIONSHIP;
 			}
 		});
@@ -3197,7 +3205,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP;
 			}
 		});
@@ -3253,7 +3261,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP;
 			}
 		});
@@ -3335,7 +3343,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET_RELATIONSHIPS;
 			}
 		});
@@ -3392,7 +3400,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS;
 			}
 		});
@@ -3449,7 +3457,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS;
 			}
 		});
@@ -3494,7 +3502,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CREATE_RELATIONSHIP;
 			}
 		});
@@ -3552,12 +3560,12 @@ public class Functions {
 
 				} else {
 
-					return ERROR_MESSAGE_GRANT;
+					return usage(ctx.isJavaScriptContext());
 				}
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GRANT;
 			}
 		});
@@ -3615,12 +3623,12 @@ public class Functions {
 
 				} else {
 
-					return ERROR_MESSAGE_REVOKE;
+					return usage(ctx.isJavaScriptContext());
 				}
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_REVOKE;
 			}
 		});

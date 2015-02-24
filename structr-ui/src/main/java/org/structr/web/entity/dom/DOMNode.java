@@ -42,6 +42,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -131,6 +132,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC = "Document nodes cannot be adopted by another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME = "Renaming of nodes is not supported by this implementation.";
 
+	// ----- usage messages for DOMNode functions -----
+	public static final String ERROR_MESSAGE_MD5 = "";
+	public static final String ERROR_MESSAGE_RENDER     = "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
+	public static final String ERROR_MESSAGE_RENDER_JS  = "Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}. Example: ${{Structr.render(Structr.get('this').children)}}";
+	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
+	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}";
+	public static final String ERROR_MESSAGE_STRIP_HTML    = "Usage: ${strip_html(html)}. Example: ${strip_html(\"<p>foo</p>\")}";
+	public static final String ERROR_MESSAGE_STRIP_HTML_JS = "Usage: ${{Structr.strip_html(html)}}. Example: ${{Structr.strip_html(\"<p>foo</p>\")}}";
+	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";;
+	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";;
+	public static final String ERROR_MESSAGE_GET    = "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
+	public static final String ERROR_MESSAGE_GET_JS = "Usage: ${{Structr.GET(URL[, contentType[, selector]])}}. Example: ${{Structr.GET('http://structr.org', 'text/html')}}";
+	public static final String ERROR_MESSAGE_PARSE    = "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
+	public static final String ERROR_MESSAGE_PARSE_JS = "Usage: ${{Structr.parse(URL, selector)}}. Example: ${{Structr.parse('http://structr.org', 'li.data')}}";
+	public static final String ERROR_MESSAGE_TO_JSON    = "Usage: ${to_json(obj [, view])}. Example: ${to_json(this)}";
+	public static final String ERROR_MESSAGE_TO_JSON_JS = "Usage: ${{Structr.to_json(obj [, view])}}. Example: ${{Structr.to_json(Structr.get('this'))}}";
+	public static final String ERROR_MESSAGE_FROM_JSON    = "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
+	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
+	public static final String ERROR_MESSAGE_ADD_HEADER    = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
+	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
+
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
 
 	static {
@@ -209,12 +231,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
-				return "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_RENDER_JS : ERROR_MESSAGE_RENDER);
 			}
 		});
 
@@ -293,11 +315,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 			@Override
-			public String usage() {
-				return "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_INCLUDE_JS : ERROR_MESSAGE_INCLUDE);
 			}
 		});
 
@@ -313,8 +335,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String usage() {
-				return "Usage: ${strip_html(html)}. Example: ${strip_html(\"<p>foo</p>\")}";
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_STRIP_HTML_JS : ERROR_MESSAGE_STRIP_HTML);
 			}
 
 		});
@@ -370,15 +392,15 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				} else {
 
-					return usage();
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				return null;
 			}
 
 			@Override
-			public String usage() {
-				return "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_POST_JS : ERROR_MESSAGE_POST);
 			}
 		});
 
@@ -428,12 +450,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
-				return "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_GET_JS : ERROR_MESSAGE_GET);
 			}
 		});
 
@@ -468,12 +490,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
-				return "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_JS : ERROR_MESSAGE_PARSE);
 			}
 		});
 
@@ -516,74 +538,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
-				return "Usage: ${to_json(obj [, view])}. Example: ${to_json(this)}";
-			}
-		});
-
-		Functions.functions.put("from_json", new Function<Object, Object>() {
-
-			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
-
-				if (sources != null && sources.length > 0) {
-
-					try {
-
-						final String source                     = sources[0].toString();
-						final Gson gson                         = new GsonBuilder().create();
-						List<Map<String, Object>> objects       = new LinkedList<>();
-
-						if (StringUtils.startsWith(source, "[")) {
-
-							final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {}.getType());
-							final List<GraphObjectMap> elements  = new LinkedList<>();
-
-							if (list != null) {
-
-								objects.addAll(list);
-							}
-
-							for (final Map<String, Object> src : objects) {
-
-								final GraphObjectMap destination = new GraphObjectMap();
-								elements.add(destination);
-
-								Functions.recursivelyConvertMapToGraphObjectMap(destination, src, 0);
-							}
-
-							return elements;
-
-						} else if (StringUtils.startsWith(source, "{")) {
-
-							final Map<String, Object> value  = gson.fromJson(source, new TypeToken<Map<String, Object>>() {}.getType());
-							final GraphObjectMap destination = new GraphObjectMap();
-
-							if (value != null) {
-
-								Functions.recursivelyConvertMapToGraphObjectMap(destination, value, 0);
-							}
-
-							return destination;
-						}
-
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
-
-					return "";
-				}
-
-				return usage();
-			}
-
-			@Override
-			public String usage() {
-				return "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_TO_JSON_JS : ERROR_MESSAGE_TO_JSON);
 			}
 		});
 
@@ -640,12 +600,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
-				return "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_FROM_JSON_JS : ERROR_MESSAGE_FROM_JSON);
 			}
 		});
 
@@ -664,12 +624,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
-				return "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_ADD_HEADER_JS : ERROR_MESSAGE_ADD_HEADER);
 			}
 		});
 	}

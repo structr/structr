@@ -28,5 +28,5 @@ import org.structr.core.GraphObject;
 public interface Function<S, T> {
 
 	public T apply(ActionContext ctx, GraphObject entity, S[] sources) throws FrameworkException;
-	public String usage();
+	public String usage(boolean inJavaScriptContext);
 }
