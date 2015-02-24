@@ -1762,10 +1762,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				if (inJavaScriptContext) {
-					return ERROR_MESSAGE_CONFIG_JS;
-				}
-				return ERROR_MESSAGE_CONFIG;
+				return (inJavaScriptContext ? ERROR_MESSAGE_CONFIG_JS : ERROR_MESSAGE_CONFIG);
 			}
 		});
 		functions.put("date_format", new Function<Object, Object>() {
@@ -1811,10 +1808,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				if (inJavaScriptContext) {
-					return ERROR_MESSAGE_DATE_FORMAT_JS;
-				}
-				return ERROR_MESSAGE_DATE_FORMAT;
+				return (inJavaScriptContext ? ERROR_MESSAGE_DATE_FORMAT_JS : ERROR_MESSAGE_DATE_FORMAT);
 			}
 		});
 		functions.put("parse_date", new Function<Object, Object>() {
@@ -1851,10 +1845,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				if (inJavaScriptContext) {
-					return ERROR_MESSAGE_PARSE_DATE_JS;
-				}
-				return ERROR_MESSAGE_PARSE_DATE;
+				return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_DATE_JS : ERROR_MESSAGE_PARSE_DATE);
 			}
 		});
 		functions.put("number_format", new Function<Object, Object>() {
@@ -1889,10 +1880,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				if (inJavaScriptContext) {
-					return ERROR_MESSAGE_NUMBER_FORMAT_JS;
-				}
-				return ERROR_MESSAGE_NUMBER_FORMAT;
+				return (inJavaScriptContext ? ERROR_MESSAGE_NUMBER_FORMAT_JS : ERROR_MESSAGE_NUMBER_FORMAT);
 			}
 		});
 		functions.put("template", new Function<Object, Object>() {
@@ -1928,10 +1916,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				if (inJavaScriptContext) {
-					return ERROR_MESSAGE_TEMPLATE_JS;
-				}
-				return ERROR_MESSAGE_TEMPLATE;
+				return (inJavaScriptContext ? ERROR_MESSAGE_TEMPLATE_JS : ERROR_MESSAGE_TEMPLATE);
 			}
 		});
 		functions.put("not", new Function<Object, Object>() {
@@ -2388,10 +2373,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				if (inJavaScriptContext) {
-					return ERROR_MESSAGE_RETRIEVE_JS;
-				}
-				return ERROR_MESSAGE_RETRIEVE;
+				return (inJavaScriptContext ? ERROR_MESSAGE_RETRIEVE_JS : ERROR_MESSAGE_RETRIEVE);
 			}
 		});
 		functions.put("store", new Function<Object, Object>() {
@@ -2413,10 +2395,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				if (inJavaScriptContext) {
-					return ERROR_MESSAGE_STORE_JS;
-				}
-				return ERROR_MESSAGE_STORE;
+				return (inJavaScriptContext ? ERROR_MESSAGE_STORE_JS : ERROR_MESSAGE_STORE);
 			}
 		});
 		functions.put("print", new Function<Object, Object>() {
