@@ -398,7 +398,7 @@ function wsConnect() {
 
                         if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
 
-                            StructrModel.create(entity, null, false);
+                            entity = StructrModel.create(entity, null, false);
                             var el;
                             if (entity.isContent || entity.type === 'Template') {
                                 el = _Contents.appendContentElement(entity, components, true);
