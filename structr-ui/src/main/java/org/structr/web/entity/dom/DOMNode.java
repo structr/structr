@@ -100,6 +100,7 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
+import org.structr.websocket.command.AbstractCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -241,7 +242,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		});
 
 		/**
-		 * Convenience method for ${render(first(find('DOMNode', 'name', name)))}
+		 * Convenience method to render named nodes (contained in the ShadowDocument => a shared component)
+		 * if more than one node is found, we return an error message that informs the user that this
+		 * is not allowed and can result in unexpected behavior (instead of including the template)
 		 */
 		Functions.functions.put("include", new Function<Object, Object>() {
 
@@ -255,7 +258,23 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					final RenderContext innerCtx = new RenderContext((RenderContext) ctx);
 
-					final DOMNode node = app.nodeQuery(DOMNode.class).andName((String) sources[0]).getFirst();
+					final ShadowDocument shadowDoc = StructrApp.getInstance(securityContext).nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getFirst();
+
+					final List<DOMNode> nodeList = app.nodeQuery(DOMNode.class).andName((String) sources[0]).and(DOMNode.ownerDocument, shadowDoc).getAsList();
+
+					DOMNode node = null;
+
+					final int listSize = nodeList.size();
+
+					if (listSize == 1) {
+
+						node = nodeList.get(0);
+
+					} else if (listSize > 1) {
+
+						return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
+
+					}
 
 					if (node != null) {
 

@@ -147,10 +147,10 @@ public class StructrHttpServiceConfig {
 
 		try {
 			authenticator = (Authenticator) authenticatorClass.newInstance();
-		authenticator.setUserAutoCreate(userAutoCreate, userClass);
-		authenticator.setUserAutoLogin(userAutoLogin, userClass);
+			authenticator.setUserAutoCreate(userAutoCreate, userClass);
+			authenticator.setUserAutoLogin(userAutoLogin, userClass);
 
-		} catch (Throwable t) {
+		} catch (InstantiationException | IllegalAccessException t) {
 
 			logger.log(Level.SEVERE, "Unable to instantiate authenticator {0}: {1}", new Object[] { authenticatorClass, t.getMessage() } );
 		}
