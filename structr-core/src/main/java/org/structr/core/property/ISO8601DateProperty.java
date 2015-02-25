@@ -19,12 +19,15 @@
 package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
@@ -33,20 +36,24 @@ import org.structr.core.converter.PropertyConverter;
  * A property that stores and retrieves a Date string in ISO8601 format. This property
  * uses a long value internally to provide millisecond precision.
  *
- * Note: Java's SimpleDateFormat doesn't accept 'Z' as indicator for general time zone (UTC),
- * which breaks ISO8601. This class replaces the 'Z' by '+0000' before parsing
- * as a workaround.
- *
  * @author Christian Morgner
  * @author Axel Morgner
  */
 public class ISO8601DateProperty extends DateProperty {
 	
 	public static final String PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
+	public static final String NEW_PATTERN = "yyyy-MM-dd'T'HH:mm:ssX";
+	
+	private boolean newStyle = false;
 
 	public ISO8601DateProperty(final String name) {
 		super(name);
-		this.format = PATTERN;
+		this.format   = PATTERN;
+		this.newStyle = Boolean.parseBoolean(Services.getInstance().getConfigurationValue("ISO8601DateProperty.useNewFormat"));
+		
+		if (newStyle) {
+			this.format = NEW_PATTERN;
+		}
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -121,13 +128,21 @@ public class ISO8601DateProperty extends DateProperty {
 
 				try {
 
-					// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
-					if (StringUtils.contains(source, "Z")) {
+					if (newStyle) {
+					
+						return DatatypeConverter.parseDateTime(source).getTime();
 
-						source = StringUtils.replace(source, "Z", "+0000");
+					} else {
+
+						// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
+						if (StringUtils.contains(source, "Z")) {
+
+							source = StringUtils.replace(source, "Z", "+0000");
+						}
+
+						return new SimpleDateFormat(format).parse(source);					
+					
 					}
-
-					return new SimpleDateFormat(format).parse(source);
 					
 				} catch (Throwable t) {
 
@@ -146,7 +161,17 @@ public class ISO8601DateProperty extends DateProperty {
 
 			if (source != null) {
 
-				return new SimpleDateFormat(format).format(source);
+				if (newStyle) {
+				
+					final Calendar cal = Calendar.getInstance();
+					cal.setTime(source);
+					return DatatypeConverter.printDateTime(cal);
+				
+				} else {
+					
+					return new SimpleDateFormat(format).format(source);					
+					
+				}
 			}
 
 			return null;
