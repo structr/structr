@@ -78,6 +78,7 @@
                     <systemPropertyVariables>
                         <user.timezone>UTC</user.timezone>
                     </systemPropertyVariables>
+                    <reuseForks>false</reuseForks>
                 </configuration>
             </plugin>
             <plugin>
