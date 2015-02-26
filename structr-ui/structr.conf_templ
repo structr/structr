@@ -74,7 +74,6 @@ configured.services = NodeService AgentService CronService SchemaService LogServ
 # You have to set a superuser username and password in order to use
 # administration and maintenance tools
 # IMPORTANT: this is *not* used as the main login credentials
-
 superuser.username = superadmin
 superuser.password = 
 
@@ -98,6 +97,9 @@ smtp.tls.required = false
 # Ports for low-level binary protocols
 tcp.port = 54555
 #udp.port = 57555
+
+# Default date format (SimpleDateFormat pattern), uncomment to enable full ISO8601 compliant date handling
+#DateProperty.defaultFormat = yyyy-MM-dd'T'HH:mm:ss.SSSXXX
 
 #############################################################################
 # Servlets

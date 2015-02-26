@@ -38,7 +38,6 @@ import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.graph.Tx;
 import org.structr.core.parser.Functions;
-import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.script.Scripting;
 
 /**
@@ -54,7 +53,7 @@ public class ActionContextTest extends StructrTest {
 		final Date now                    = new Date();
 		final SimpleDateFormat format1    = new SimpleDateFormat("dd.MM.yyyy");
 		final SimpleDateFormat format2    = new SimpleDateFormat("HH:mm:ss");
-		final SimpleDateFormat format3    = new SimpleDateFormat(ISO8601DateProperty.PATTERN);
+		final SimpleDateFormat format3    = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 		final String nowString1           = format1.format(now);
 		final String nowString2           = format2.format(now);
 		final String nowString3           = format3.format(now);
