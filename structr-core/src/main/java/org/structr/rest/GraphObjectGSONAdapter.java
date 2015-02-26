@@ -245,7 +245,14 @@ public class GraphObjectGSONAdapter {
 
 			JsonObject jsonObject = new JsonObject();
 
-			jsonObject.add("id", new JsonPrimitive(source.getUuid()));
+			final String uuid = source.getUuid();
+			if (uuid != null) {
+				jsonObject.add("id", new JsonPrimitive(uuid));
+
+			} else {
+
+				logger.log(Level.WARNING, "Found object without UUID: {0}", source);
+			}
 
 			// prevent endless recursion by pruning at depth n
 			if (depth <= outputNestingDepth) {
