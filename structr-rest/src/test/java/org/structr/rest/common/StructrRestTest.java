@@ -30,8 +30,10 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
@@ -285,6 +287,10 @@ public class StructrRestTest extends TestCase {
 
 	@Override
 	protected void setUp() throws Exception {
+		setUp(null);
+	}
+
+	protected void setUp(final Map<String, Object> additionalConfig) {
 
 		System.out.println("\n######################################################################################");
 		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
@@ -326,6 +332,10 @@ public class StructrRestTest extends TestCase {
 		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
 		config.setProperty("JsonRestServlet.outputdepth", "3");
 		
+		if (additionalConfig != null) {
+			config.putAll(additionalConfig);
+		}
+
 		final Services services = Services.getInstance(config);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
@@ -362,5 +372,32 @@ public class StructrRestTest extends TestCase {
 	private static String getEncodingInUse() {
 		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
 		return writer.getEncoding();
+	}
+
+	protected Map<String, Object> toMap(final String key1, final Object value1) {
+		return toMap(key1, value1, null, null);
+	}
+
+	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2) {
+		return toMap(key1, value1, key2, value2, null, null);
+	}
+
+	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2, final String key3, final Object value3) {
+
+		final Map<String, Object> map = new LinkedHashMap<>();
+
+		if (key1 != null && value1 != null) {
+			map.put(key1, value1);
+		}
+
+		if (key2 != null && value2 != null) {
+			map.put(key2, value2);
+		}
+
+		if (key3 != null && value3 != null) {
+			map.put(key3, value3);
+		}
+
+		return map;
 	}
 }
