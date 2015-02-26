@@ -464,3 +464,20 @@ function getNonCommentSiblings(el) {
 function pluralize(name) {
     return name.endsWith('y') ? name.substring(0, name.length - 1) + 'ies' : (name.endsWith('s') ? name : name + 's');
 }
+
+function getDateTimePickerFormat(rawFormat) {
+    var dateTimeFormat, obj = {};
+    if (rawFormat.indexOf('T') > 0) {
+        dateTimeFormat = rawFormat.split('\'T\'');
+    } else {
+        dateTimeFormat = rawFormat.split(' ');
+    }
+    var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+    obj.dateFormat = DateFormatConverter.convert(moment().toMomentFormatString(dateFormat), DateFormatConverter.momentJs, DateFormatConverter.datepicker);
+    var timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+    if (timeFormat) {
+        obj.timeFormat = DateFormatConverter.convert(moment().toMomentFormatString(timeFormat), DateFormatConverter.momentJs, DateFormatConverter.timepicker);
+    }
+    obj.separator = (rawFormat.indexOf('T') > 0) ? 'T' : ' ';
+    return obj;
+}
