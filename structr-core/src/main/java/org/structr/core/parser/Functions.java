@@ -1793,7 +1793,7 @@ public class Functions {
 						try {
 
 							// parse with format from IS
-							date = new SimpleDateFormat(ISO8601DateProperty.PATTERN).parse(sources[0].toString());
+							date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(sources[0].toString());
 
 						} catch (ParseException ex) {
 							ex.printStackTrace();

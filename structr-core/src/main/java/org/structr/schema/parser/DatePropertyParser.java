@@ -23,12 +23,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.DateProperty;
-import org.structr.core.property.ISO8601DateProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -38,8 +38,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class DatePropertyParser extends PropertyParser {
 
-	private String pattern = ISO8601DateProperty.PATTERN;
-	private String auxType = ", \"" + pattern + "\"";
+	private String pattern = null;
+	private String auxType = ", null";
 
 	public DatePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
 		super(errorBuffer, className, propertyName, params);
@@ -87,22 +87,104 @@ public class DatePropertyParser extends PropertyParser {
 
 	@Override
 	public String getDefaultValueSource() {
-		return "DatePropertyParser.parse(\"" + pattern + "\", \"" + defaultValue + "\")";
+		return "DatePropertyParser.parse(\"" + defaultValue + "\", " + (pattern != null ? "\"" + pattern + "\"" : "null") + ")";
 	}
 
 	/**
 	 * Static method to catch parse exception
 	 *
-	 * @param pattern
-	 * @param value
+	 * @param source
+	 * @param pattern optional SimpleDateFormat pattern
 	 * @return
 	 */
-	public static Date parse(final String pattern, final String value) {
-		try {
-			return new SimpleDateFormat(pattern).parse(value);
-		} catch (ParseException ex) {
-			Logger.getLogger(DatePropertyParser.class.getName()).log(Level.SEVERE, "Unable to parse " + value + " with pattern " + pattern, ex);
+	public static Date parse(String source, final String pattern) {
+		
+		if (StringUtils.isBlank(pattern)) {
+		
+			return parseISO8601DateString(source);
+
+		} else {
+
+			try {
+				// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
+				if (StringUtils.contains(source, "Z")) {
+
+					source = StringUtils.replace(source, "Z", "+0000");
+				}
+
+				return new SimpleDateFormat(pattern).parse(source);
+
+			} catch (ParseException ex) {
+				Logger.getLogger(DatePropertyParser.class.getName()).log(Level.WARNING, "Unable to parse " + source + " with primary pattern " + pattern, ex.getMessage());
+			}
+	
+			// try to parse as ISO8601 date (supports multiple formats)
+			return parseISO8601DateString(source);
+			
 		}
-		return null;
+
 	}
+
+	/**
+	 * Try to parse source string as a ISO8601 date.
+	 * 
+	 * @param source
+	 * @return null if unable to parse
+	 */
+	public static Date parseISO8601DateString(String source) {
+		
+		final String[] supportedFormats = new String[] { "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss.SSSZ" };
+			
+		// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
+		if (StringUtils.contains(source, "Z")) {
+
+			source = StringUtils.replace(source, "Z", "+0000");
+		}
+
+		Date parsedDate = null;
+
+		for (final String format : supportedFormats) {
+
+			try {
+
+				parsedDate = new SimpleDateFormat(format).parse(source);					
+
+			} catch (ParseException pe) {
+			}
+
+			if (parsedDate != null) {
+				return parsedDate;
+			}
+		}
+
+		return null;
+		
+	}
+	
+	/**
+	 * Central method to format a date into a string.
+	 * 
+	 * If no format is given, use the (old) default format.
+	 * 
+	 * @param date
+	 * @param format optional SimpleDateFormat pattern
+	 * @return 
+	 */
+	public static String format(final Date date, String format) {
+		
+		if (date != null) {
+			
+			if (StringUtils.isBlank(format)) {
+			
+				format = DateProperty.getDefaultFormat();
+				
+			}
+			
+			return new SimpleDateFormat(format).format(date);
+		}
+		
+		return null;
+		
+	}
+
 }

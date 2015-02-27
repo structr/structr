@@ -18,17 +18,14 @@
  */
 package org.structr.core.property;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.schema.parser.DatePropertyParser;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,19 +38,8 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class ISO8601DateProperty extends DateProperty {
 	
-	public static final String PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
-	public static final String NEW_PATTERN = "yyyy-MM-dd'T'HH:mm:ssX";
-	
-	private boolean newStyle = false;
-
 	public ISO8601DateProperty(final String name) {
 		super(name);
-		this.format   = PATTERN;
-		this.newStyle = Boolean.parseBoolean(Services.getInstance().getConfigurationValue("ISO8601DateProperty.useNewFormat"));
-		
-		if (newStyle) {
-			this.format = NEW_PATTERN;
-		}
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -126,25 +112,13 @@ public class ISO8601DateProperty extends DateProperty {
 
 			if (StringUtils.isNotBlank(source)) {
 
-				try {
+				Date result = DatePropertyParser.parseISO8601DateString(source);
 
-					if (newStyle) {
-					
-						return DatatypeConverter.parseDateTime(source).getTime();
+				if (result != null) {
 
-					} else {
+					return result;
 
-						// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
-						if (StringUtils.contains(source, "Z")) {
-
-							source = StringUtils.replace(source, "Z", "+0000");
-						}
-
-						return new SimpleDateFormat(format).parse(source);					
-					
-					}
-					
-				} catch (Throwable t) {
+				} else {
 
 					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(ISO8601DateProperty.this));
 
@@ -158,24 +132,9 @@ public class ISO8601DateProperty extends DateProperty {
 
 		@Override
 		public String revert(Date source) throws FrameworkException {
-
-			if (source != null) {
-
-				if (newStyle) {
-				
-					final Calendar cal = Calendar.getInstance();
-					cal.setTime(source);
-					return DatatypeConverter.printDateTime(cal);
-				
-				} else {
-					
-					return new SimpleDateFormat(format).format(source);					
-					
-				}
-			}
-
-			return null;
-
+			
+			return DatePropertyParser.format(source, null);
+			
 		}
 	}
 }

@@ -1171,7 +1171,7 @@ public class LogResource extends Resource {
 
 						if (matcher.groupCount() == 2) {
 
-							final SimpleDateFormat parser = new SimpleDateFormat(ISO8601DateProperty.PATTERN);
+							final SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 							String rangeStart = matcher.group(1);
 							String rangeEnd = matcher.group(2);
 

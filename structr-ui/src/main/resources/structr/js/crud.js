@@ -1523,8 +1523,7 @@ var _Crud = {
             } else if (propertyType === 'Date') {
                 cell.html(nvl(formatValue(value), '<img alt="Show calendar" title="Show calendar" src="icon/calendar.png">'));
                 if (!readOnly) {
-                    var dateTimeFormat = _Crud.getFormat(key, type).split('\'T\'');
-                    var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+                    var dateTimePickerFormat = getDateTimePickerFormat(_Crud.getFormat(key, type));
                     cell.on('mouseup', function(event) {
                         event.preventDefault();
                         var self = $(this);
@@ -1533,31 +1532,32 @@ var _Crud = {
                         var input = $('input', self);
                         input.val(oldValue);
 
-                        if (timeFormat) {
+                        if (dateTimePickerFormat.timeFormat) {
                             input.datetimepicker({
-                                // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                                dateFormat: 'yy-mm-dd',
-                                timeFormat: 'HH:mm:ssz',
-                                separator: 'T',
+                                parse: 'loose',
+                                dateFormat: dateTimePickerFormat.dateFormat,
+                                timeFormat: dateTimePickerFormat.timeFormat,
+                                separator: dateTimePickerFormat.separator,
                                 onClose: function() {
                                     var newValue = input.val();
-                                    var formattedValue = (newValue && newValue !== '') ? moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T')) : '';
-                                    input.val(formattedValue);
-                                    if (id) {
-                                        _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
+                                    if (id && newValue !== oldValue) {
+                                        _Crud.crudUpdate(id, key, newValue);
+                                    } else {
+                                        _Crud.resetCell(id, key, oldValue);
                                     }
                                 }
                             });
                             input.datetimepicker('show');
                         } else {
                             input.datepicker({
-                                dateFormat: 'yy-mm-dd',
+                                parse: 'loose',
+                                dateFormat: dateTimePickerFormat.dateFormat,
                                 onClose: function() {
                                     var newValue = input.val();
-                                    var formattedValue = (newValue && newValue !== '') ? moment(newValue).formatWithJDF(dateFormat) : '';
-                                    input.val(formattedValue);
-                                    if (id) {
-                                        _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
+                                    if (id && newValue !== oldValue) {
+                                        _Crud.crudUpdate(id, key, newValue);
+                                    } else {
+                                        _Crud.resetCell(id, key, oldValue);
                                     }
                                 }
                             });

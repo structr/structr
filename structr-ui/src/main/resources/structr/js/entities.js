@@ -529,7 +529,6 @@ var _Entities = {
                                                         }
                                                         checkbox.prop('checked', newVal);
                                                     });
-
                                                 });
                                             } else {
                                                 checkbox.prop('disabled', 'disabled');
@@ -543,11 +542,11 @@ var _Entities = {
                                         }
                                         cell.append('<input class="dateField" name="' + key + '" type="text" value="' + res[key] + '">');
                                         var dateField = $(props.find('.dateField'));
+                                        var dateTimePickerFormat = getDateTimePickerFormat(typeInfo[key].format);
                                         dateField.datetimepicker({
-                                            showSecond: true,
-                                            timeFormat: 'hh:mm:ssz',
-                                            dateFormat: 'yy-mm-dd',
-                                            separator: 'T'
+                                            dateFormat: dateTimePickerFormat.dateFormat,
+                                            timeFormat: dateTimePickerFormat.timeFormat,
+                                            separator: dateTimePickerFormat.separator
                                         });
                                     } else if (isRelated && res[key] && (res[key].constructor === Object || res[key].constructor === Array)) {
                                         if (res[key] && res[key].constructor === Object) {
