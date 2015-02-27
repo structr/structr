@@ -20,7 +20,6 @@ package org.structr.core.property;
 
 import java.util.List;
 import org.apache.lucene.search.SortField;
-import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -35,16 +34,16 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	private Property<List<T>> collectionKey = null;
 	private Property<S> valueKey            = null;
 	private Predicate<T> predicate          = null;
-	
+
 	public CollectionSumProperty(String name, Property<List<T>> collectionKey, Property<S> valueKey) {
 		super(name);
-		
+
 		this.collectionKey = collectionKey;
 		this.valueKey = valueKey;
 	}
-	
+
 	public CollectionSumProperty(String name, Property<List<T>> collectionKey, Property<S> valueKey, Predicate<T> predicate) {
-		
+
 		this(name, collectionKey, valueKey);
 		this.predicate = predicate;
 	}
@@ -52,6 +51,11 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	@Override
 	public Class relatedType() {
 		return null;
+	}
+
+	@Override
+	public Class valueType() {
+		return valueKey.valueType();
 	}
 
 	@Override
@@ -66,22 +70,22 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 
 	@Override
 	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> pred) {
-		
+
 		Integer intSum    = 0;
 		Long    longSum   = 0L;
 		Double  doubleSum = 0.0d;
 		Float   floatSum  = 0.0f;
-		
+
 		Class cls = Integer.class;
-		
+
 		for (T collectionObj : obj.getProperty(collectionKey)) {
-			
+
 			if (predicate != null && !predicate.accept(collectionObj)) {
 				continue;
 			}
-			
+
 			S value = collectionObj.getProperty(valueKey);
-						
+
 			if (value instanceof Integer) {
 				intSum += (Integer) value;
 			} else if (value instanceof Long) {
@@ -95,14 +99,14 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 				cls = Float.class;
 			}
 		}
-		
+
 		switch (cls.getSimpleName()) {
 			case "Integer": return (S) intSum;
 			case "Long":    return (S) longSum;
 			case "Double":  return (S) doubleSum;
 			case "Float":   return (S) floatSum;
 		}
-		
+
 		return (S) intSum;
 	}
 

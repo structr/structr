@@ -28,7 +28,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
@@ -50,26 +49,15 @@ public abstract class AbstractCommand {
 	public static final String ID_KEY      = "id";
 	private static final Logger logger     = Logger.getLogger(AbstractCommand.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	private Session session                = null;
-	private PropertyKey<String> idProperty = null;
 	private StructrWebSocket webSocket     = null;
 
-	//~--- methods --------------------------------------------------------
-
 	public abstract void processMessage(final WebSocketMessage webSocketData) throws FrameworkException;
-
-	//~--- get methods ----------------------------------------------------
 
 	public abstract String getCommand();
 
 	public Session getSession() {
 		return session;
-	}
-
-	public PropertyKey<String> getIdProperty() {
-		return idProperty;
 	}
 
 	public StructrWebSocket getWebSocket() {
@@ -180,20 +168,6 @@ public abstract class AbstractCommand {
 		return true;
 	}
 
-	// ----- protected methods -----
-	protected String getIdFromNode(final AbstractNode node) {
-
-		if (idProperty != null) {
-
-			return node.getProperty(idProperty);
-
-		} else {
-
-			return node.getIdString();
-
-		}
-	}
-
 	/**
 	 * Make child nodes of the source nodes child nodes of the target node.
 	 *
@@ -245,14 +219,8 @@ public abstract class AbstractCommand {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
-
 	public void setSession(final Session session) {
 		this.session = session;
-	}
-
-	public void setIdProperty(final PropertyKey<String> idProperty) {
-		this.idProperty = idProperty;
 	}
 
 	public void setWebSocket(final StructrWebSocket webSocket) {

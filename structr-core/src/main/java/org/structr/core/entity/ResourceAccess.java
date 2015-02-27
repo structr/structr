@@ -80,7 +80,7 @@ public class ResourceAccess extends AbstractNode {
 	public static final Property<Long>                 flags              = new LongProperty("flags").indexed();
 	public static final Property<Integer>              position           = new IntProperty("position").indexed();
 	public static final Property<List<PropertyAccess>> propertyAccess     = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>              isResourceAccess   = new BooleanProperty("isResourceAccess", true).readOnly();
+	public static final Property<Boolean>              isResourceAccess   = new BooleanProperty("isResourceAccess").defaultValue(true).readOnly();
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position, isResourceAccess
@@ -199,11 +199,13 @@ public class ResourceAccess extends AbstractNode {
 		grantCache.clear();
 	}
 
-	public static ResourceAccess findGrant(String signature) throws FrameworkException {
+	public static ResourceAccess findGrant(final SecurityContext securityContext, final String signature) throws FrameworkException {
 
 		ResourceAccess grant = grantCache.get(signature);
 		if (grant == null) {
 
+			//grant = StructrApp.getInstance(securityContext).nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			// ignore security context for now, so ResourceAccess objects don't have to be visible
 			grant = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
 			if (grant != null) {
 

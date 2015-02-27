@@ -102,37 +102,13 @@ function StructrApp(baseUrl) {
             var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
                 return s.trim();
             });
+            
             var id = btn.attr('data-structr-id');
             var container = $('[data-structr-id="' + id + '"]');
+            var data = s.collectData(btn, id, attrs, type, suffix);
             
             if (action === 'create') {
-                var data = {};
-                var form = btn.closest('form');
-                $.each(attrs, function(i, key) {
-                    var possibleFields;
-                    
-                    if (typeof suffix === 'string' && suffix.length) {
-                        // if a suffix is given, use only input elements with that suffix
-                        possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
-                    } else if (form && form.length) {
-                        // if we are in a form, try to find input elements in form only
-                        possibleFields = form.find('[data-structr-name="' + key + '"]');
-                    } else {
-                        possibleFields = $('[data-structr-name="' + key + '"]');
-                    }
-                    var val;
-                    if (possibleFields.length !== 1) {
-                        // none, or more than one field: try with type prefix
-                        possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
-                    }
-                    if (possibleFields.length !== 1) {
-                        // if still not found, try both, type prefix and suffix
-                        possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
-                    }
-                    val = possibleFields.val();
-                    data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
-                });
-                s.create(type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
+                s.create(btn, type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
             } else if (action === 'edit') {
                 s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn);});
@@ -152,18 +128,60 @@ function StructrApp(baseUrl) {
 
             } else if (action === 'registration') {
                 s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
-
+            
             } else {
-                var data = {};
-                $.each(attrs, function(i, key) {
-                    var val = $('[data-structr-name="' + key + '"]').val();
-                    data[key] = val ? val.parseIfJSON() : val;
-                });
-                s.customAction(id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
+                s.customAction(btn, id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
             }
         });
     },
-
+    this.getPossibleFields = function(form, container, suffix, type, key) {
+        var possibleFields;
+        if (typeof suffix === 'string' && suffix.length) {
+            // if a suffix is given, use only input elements with that suffix
+            possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
+        } else if (form && form.length) {
+            // if we are in a form, try to find input elements in form only
+            possibleFields = form.find('[data-structr-name="' + key + '"]');
+        } else {
+            if (container.length) {
+                possibleFields = $('[data-structr-name="' + key + '"]', container);
+            } else {
+                possibleFields = $('[data-structr-name="' + key + '"]');
+            }
+        }
+        var val;
+        if (possibleFields.length !== 1) {
+            // none, or more than one field: try with type prefix
+            if (container.length) {
+                possibleFields = $('[data-structr-name="' + type + '.' + key + '"]', container);
+            } else {
+                possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
+            }
+        }
+        if (possibleFields.length !== 1) {
+            // if still not found, try both, type prefix and suffix
+            if (container.length) {
+                possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]', container);
+            } else {
+                possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
+            }
+        }
+        return possibleFields;
+    },
+    this.collectData = function(btn, id, attrs, type, suffix) {
+        var data = {};
+        var form = btn.closest('form');
+        var container = $('[data-structr-id="' + id + '"]');
+        $.each(attrs, function(i, key) {
+            var field = s.getPossibleFields(form, container, suffix, type, key);
+            var val = field.val();
+            // treat empty string as null
+            val = (val === '') ? undefined : val;
+            val = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
+            data[key] = val;
+        });
+        return data;
+    },
     this.editAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-id="' + id + '"]');
 
@@ -287,9 +305,11 @@ function StructrApp(baseUrl) {
             }
 
         });
+        var clazz = btn.attr('data-structr-edit-class');
         $('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
         var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
         saveButton.prop('class', btn.prop('class')).after(' ');
+        saveButton.addClass(clazz);
         enableButton(saveButton);
         saveButton.on('click', function() {
             s.saveAction(btn, id, attrs, reload);
@@ -345,10 +365,14 @@ function StructrApp(baseUrl) {
                 var ids = [];
                 $('option:selected', inp).each(function() {
                     var self = $(this);
-                    ids.push(self.val());
+                    if (self.val()) {
+                        ids.push(self.val());
+                    }
                 });
 
-                if (!f.type.endsWith('[]')) {
+                if (!ids.length) {
+                    s.data[id][key] = null;
+                } else if (!f.type.endsWith('[]')) {
                     s.data[id][key] = {'id':ids[0]};
                 } else {
                     s.data[id][key] = ids.map(function(id) {
@@ -358,7 +382,7 @@ function StructrApp(baseUrl) {
             }
         });
         //console.log('PUT', structrRestUrl + id, s.data[id]);
-        s.request('PUT', structrRestUrl + id, s.data[id], false, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+        s.request(btn, 'PUT', structrRestUrl + id, s.data[id], false, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
         });
     },
@@ -577,24 +601,24 @@ function StructrApp(baseUrl) {
     };
 
     this.getRelatedType = function(type, key, callback) {
-        s.request('GET', structrRestUrl + '_schema', null, false, false, null, null, function(data) {
+        s.request(null, 'GET', structrRestUrl + '_schema', null, false, false, null, null, function(data) {
             //console.log(data);
         });
     },
 
-    this.create = function(type, data, reload, appendId, successCallback, errorCallback) {
+    this.create = function(btn, type, data, reload, appendId, successCallback, errorCallback) {
         //console.log('Create', type, data, reload, successCallback, errorCallback);
-        s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
+        s.request(btn, 'POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
     };
 
-    this.customAction = function(id, type, action, data, reload, appendId, successCallback, errorCallback) {
+    this.customAction = function(btn, id, type, action, data, reload, appendId, successCallback, errorCallback) {
         //console.log('Custom action', action, type, data, reload);
-        s.request('POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+        s.request(btn, 'POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
     };
 
-    this.request = function(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
+    this.request = function(btn, method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
         var dataString = JSON.stringify(data);
-        //console.log(dataString);
+        //console.log(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError);
         $.ajax({
             type: method,
             url: url,
@@ -626,42 +650,37 @@ function StructrApp(baseUrl) {
                 },
                 400: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError();
                     }
                 },
                 401: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError();
                     }
                 },
                 403: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError();
                     }
                 },
                 404: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError(data);
                     }
                 },
                 422: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
+                    s.showFormErrors(btn, data.responseJSON);
                     if (onError) {
                         onError();
                     }
                 },
                 500: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
-                    console.log(data, status, xhr);
                     if (onError) {
                         onError();
                     }
@@ -674,10 +693,32 @@ function StructrApp(baseUrl) {
         var el = $('[data-structr-dialog="' + type + '"]');
         el.addClass(type).html(msg).show().delay(2000).fadeOut(200);
     };
+    
+    this.showFormErrors = function(btn, msg) {
+        var a = btn.attr('data-structr-action').split(':');
+        var suffix = a[2];
+        var id = btn.attr('data-structr-id');
+        var container = $('[data-structr-id="' + id + '"]');
+        if (window.jQuery.validator) {
+            var form;
+            Object.keys(msg.errors).forEach(function(type) {
+               Object.keys(msg.errors[type]).forEach(function(key) {
+                   var inp = s.getPossibleFields(form, container, suffix, type, key);
+                   inp.attr('name', type + '.' + key);
+                   inp.attr('required', 'required');
+                   inp.attr('data-validate', 'required');
+                   form = inp.closest('form');
+               });
+            });
+            form.validate();
+            form.valid();
+        }
+    };
 
     this.add = function(id, sourceId, sourceType, relatedProperty) {
 
-        var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
+        var d = {};
+        d[relatedProperty] = [ {'id': id} ];
 
         $.ajax({
             url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
@@ -720,7 +761,8 @@ function StructrApp(baseUrl) {
 
     this.remove = function(id, sourceId, sourceType, relatedProperty) {
 
-        var d = JSON.parse('{"' + relatedProperty + '":[]}');
+        var d = {};
+        d[relatedProperty] = [];
 
         $.ajax({
             url: structrRestUrl + sourceId + '/ui', method: 'GET', contentType: 'application/json',
@@ -985,7 +1027,7 @@ String.prototype.parseIfJSON = function() {
         var cleaned = this.replace(/'/g, "\"");
         return JSON.parse(cleaned);
     }
-    return this;
+    return this.toString();
 };
 
 String.prototype.splitAndTitleize = function(sep) {
@@ -1070,7 +1112,7 @@ function singleSelect(f) {
         statusCode: {
             200: function(data) {
                 var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
-                sel.append('<option value="null"></option>');
+                sel.append('<option></option>');
                 if (data.result && data.result.length) {
                     $.each(data.result, function(i, o) {
                         sel.append('<option value="' + o.id + '" ' + (o.id === f.val ? 'selected' : '') + '>' + o.name + '</option>');

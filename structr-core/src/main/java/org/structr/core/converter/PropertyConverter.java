@@ -34,6 +34,7 @@ public abstract class PropertyConverter<S, T> {
 	protected SecurityContext securityContext = null;
 	protected GraphObject currentObject       = null;
 	protected boolean rawMode                 = false;
+	protected Object context                  = null;
 
 	public PropertyConverter(SecurityContext securityContext) {
 		this(securityContext, null);
@@ -43,57 +44,61 @@ public abstract class PropertyConverter<S, T> {
 		this.securityContext = securityContext;
 		this.currentObject = currentObject;
 	}
-	
+
 	/**
 	 * Converts from destination type to source type. Caution: source
 	 * will be null if there is no value in the database.
-	 * 
+	 *
 	 * @param source
 	 * @return reverted source
-	 * @throws org.structr.common.error.FrameworkException 
+	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public abstract S revert(T source) throws FrameworkException;
-	
+
 	/**
 	 * Converts from source type to destination type. Caution: source
 	 * will be null if there is no value in the database.
-	 * 
+	 *
 	 * @param source
 	 * @return converted source
-	 * @throws org.structr.common.error.FrameworkException 
+	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public abstract T convert(S source) throws FrameworkException;
 
 	/**
 	 * Convert from source type to Comparable to allow a more
-	 * fine-grained control over the sorted results. Override 
+	 * fine-grained control over the sorted results. Override
 	 * this method to modify sorting behaviour of entities.
-	 * 
+	 *
 	 * @param source
 	 * @return converted source
-	 * @throws org.structr.common.error.FrameworkException 
+	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public Comparable convertForSorting(S source) throws FrameworkException {
-		
+
 		if(source != null) {
-			
+
 			if (source instanceof Comparable) {
-				
+
 				return (Comparable)source;
 			}
-			
+
 			// fallback
 			return source.toString();
 		}
-		
+
 		return null;
 	}
 
 	public void setRawMode(boolean rawMode) {
 		this.rawMode = rawMode;
 	}
-	
+
 	public boolean getRawMode() {
 		return rawMode;
+	}
+
+	public void setContext(final Object context) {
+		this.context = context;
 	}
 }

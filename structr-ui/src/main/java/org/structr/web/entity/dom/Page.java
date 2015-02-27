@@ -35,11 +35,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
+import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -48,7 +48,6 @@ import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
@@ -111,8 +110,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
-	public static final Property<Boolean> isPage = new BooleanProperty("isPage", true).readOnly();
-	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache", false);
+	public static final Property<Boolean> isPage = new BooleanProperty("isPage").defaultValue(true).readOnly();
+	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache").defaultValue(false);
         public static final Property<String> path = new StringProperty("path").indexed();
 	public static final Property<Site> site = new StartNode<>("Site", Pages.class, new UiNotion()).indexedWhenEmpty();
 
@@ -147,18 +146,18 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		// do nothing
 	}
 
-	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-
-		if (properties.containsKey(NodeInterface.name)) {
-
-			final String newName = properties.get(NodeInterface.name);
-			if (newName != null) {
-
-				setProperty(NodeInterface.name, newName);
-			}
-		}
-	}
+//	@Override
+//	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+//
+//		if (properties.containsKey(NodeInterface.name)) {
+//
+//			final String newName = properties.get(NodeInterface.name);
+//			if (newName != null) {
+//
+//				setProperty(NodeInterface.name, newName);
+//			}
+//		}
+//	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
@@ -166,7 +165,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		boolean valid = true;
 
 		valid &= nonEmpty(AbstractNode.name, errorBuffer);
-                valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_a-zA-Z0-9\\s\\-\\.]+", errorBuffer);
+                //valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_a-zA-Z0-9\\s\\-\\.]+", errorBuffer);
+		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_\\p{L}0-9\\s\\-\\.]+", errorBuffer);
 		valid &= super.isValid(errorBuffer);
 
 		return valid;
@@ -571,10 +571,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 */
 	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
 
-		final RenderContext ctx = new RenderContext(null, null, editMode, Locale.GERMAN);
+		final RenderContext ctx = new RenderContext(securityContext, null, null, editMode, Locale.GERMAN);
 		final StringRenderBuffer buffer = new StringRenderBuffer();
 		ctx.setBuffer(buffer);
-		render(securityContext, ctx, 0);
+		render(ctx, 0);
 
 		// extract source
 		return buffer.getBuffer().toString();
@@ -682,7 +682,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(RenderContext renderContext, int depth) throws FrameworkException {
 
 		renderContext.setPage(this);
 
@@ -704,7 +704,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			if (subNode.isNotDeleted() && securityContext.isVisible(subNode)) {
 
-				subNode.render(securityContext, renderContext, depth);
+				subNode.render(renderContext, depth);
 			}
 
 			subNode = (DOMNode) subNode.getNextSibling();
@@ -714,7 +714,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 	}
 
 	@Override
@@ -1162,9 +1162,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
-		final List<Syncable> data = super.getSyncData();
+		final List<GraphObject> data = super.getSyncData();
 
 		data.addAll(getProperty(Linkable.linkingElements));
 

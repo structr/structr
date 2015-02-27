@@ -48,7 +48,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
@@ -70,13 +69,12 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	private static final String WRITE_BOM = "bom";
 
 	//~--- fields ---------------------------------------------------------
-	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
+	private final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	private Value<String> propertyView = null;
 
 	private static boolean removeLineBreaks = false;
 	private static boolean writeBom = false;
 
-	private Property<String> defaultIdProperty;
 	private String defaultPropertyView;
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
@@ -97,7 +95,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 		// initialize variables
 		this.propertyView        = new ThreadLocalPropertyView();
 		this.defaultPropertyView = config.getDefaultPropertyView();
-		this.defaultIdProperty   = config.getDefaultIdProperty();
 	}
 
 	@Override
@@ -132,8 +129,8 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty);
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView));
+				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
 				tx.success();
 			}
@@ -143,7 +140,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				String resourceSignature = resource.getResourceSignature();
 
 				// let authenticator examine request again
-				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				authenticator.checkResourceAccess(securityContext, request, resourceSignature, propertyView.get(securityContext));
 
 				// add sorting & paging
 				String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);

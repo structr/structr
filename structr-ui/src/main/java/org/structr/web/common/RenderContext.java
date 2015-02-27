@@ -18,12 +18,9 @@
  */
 package org.structr.web.common;
 
-import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,17 +28,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Ownership;
 import org.structr.core.Result;
-import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.RelationProperty;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -60,24 +52,24 @@ public class RenderContext extends ActionContext {
 	private static final Logger logger = Logger.getLogger(RenderContext.class.getName());
 
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
-	private final long renderStartTime = System.currentTimeMillis();
-	private Locale locale = Locale.getDefault();
-	private EditMode editMode = EditMode.NONE;
-	private AsyncBuffer buffer = new AsyncBuffer();
-	private int depth = 0;
-	private boolean inBody = false;
-	private boolean appLibRendered = false;
-	private GraphObject detailsDataObject = null;
-	private GraphObject currentDataObject = null;
-	private GraphObject sourceDataObject = null;
-	private Iterable<GraphObject> listSource = null;
-	private PropertyKey relatedProperty = null;
-	private Page page = null;
-	private HttpServletRequest request = null;
-	private HttpServletResponse response = null;
-	private ResourceProvider resourceProvider = null;
-	private Result result = null;
-	private boolean anyChildNodeCreatesNewLine = false;
+	private final long renderStartTime                 = System.currentTimeMillis();
+	private Locale locale                              = Locale.getDefault();
+	private EditMode editMode                          = EditMode.NONE;
+	private AsyncBuffer buffer                         = new AsyncBuffer();
+	private int depth                                  = 0;
+	private boolean inBody                             = false;
+	private boolean appLibRendered                     = false;
+	private GraphObject detailsDataObject              = null;
+	private GraphObject currentDataObject              = null;
+	private GraphObject sourceDataObject               = null;
+	private Iterable<GraphObject> listSource           = null;
+	private PropertyKey relatedProperty                = null;
+	private Page page                                  = null;
+	private HttpServletRequest request                 = null;
+	private HttpServletResponse response               = null;
+	private ResourceProvider resourceProvider          = null;
+	private Result result                              = null;
+	private boolean anyChildNodeCreatesNewLine         = false;
 
 	public enum EditMode {
 
@@ -85,7 +77,8 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public RenderContext() {
+	public RenderContext(final SecurityContext securityContext) {
+		super(securityContext);
 	}
 
 	/**
@@ -115,7 +108,9 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public RenderContext(final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
+	public RenderContext(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
+
+		super(securityContext);
 
 		this.request = request;
 		this.response = response;
@@ -125,11 +120,11 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public static RenderContext getInstance(final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
+	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
 
-		String editString = StringUtils.defaultString(request.getParameter("edit"));
+		final String editString = StringUtils.defaultString(request.getParameter("edit"));
 
-		return new RenderContext(request, response, editMode(editString), locale);
+		return new RenderContext(securityContext, request, response, editMode(editString), locale);
 
 	}
 
@@ -336,423 +331,9 @@ public class RenderContext extends ActionContext {
 		return anyChildNodeCreatesNewLine;
 	}
 
-	// ----- interface ActionContext -----
 	@Override
-	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
-
-		final String DEFAULT_VALUE_SEP = "!";
-		final String[] parts = refKey.split("[\\.]+");
-		String referenceKey = parts[parts.length - 1];
-		String defaultValue = null;
-
-		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
-
-			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
-			referenceKey = ref[0];
-			if (ref.length > 1) {
-
-				defaultValue = ref[1];
-
-			} else {
-
-				defaultValue = "";
-			}
-		}
-
-		Page _page = this.getPage();
-		GraphObject _data = null;
-
-		// walk through template parts
-		for (int i = 0; (i < parts.length); i++) {
-
-			String part = parts[i];
-
-			if (_data != null) {
-
-				Object value = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), part));
-
-				if (value instanceof GraphObject) {
-					_data = (GraphObject) value;
-
-					continue;
-
-				}
-
-				// special keyword "size"
-				if (i > 0 && "size".equals(part)) {
-
-					Object val = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), parts[i - 1]));
-
-					if (val instanceof List) {
-
-						return ((List) val).size();
-
-					}
-
-				}
-
-				// special keyword "link", works on deeper levels, too
-				if ("link".equals(part) && _data instanceof AbstractNode) {
-
-					ResourceLink rel = ((AbstractNode) _data).getOutgoingRelationship(ResourceLink.class);
-					if (rel != null) {
-
-						_data = rel.getTargetNode();
-						break;
-
-					}
-
-					continue;
-				}
-
-				// special keyword "_source", works on relationship entities only
-				if ("_source".equals(part) && _data instanceof RelationshipInterface) {
-
-					_data = ((RelationshipInterface)_data).getSourceNode();
-					continue;
-				}
-
-				// special keyword "_target", works on relationship entities only
-				if ("_target".equals(part) && _data instanceof RelationshipInterface) {
-
-					_data = ((RelationshipInterface)_data).getTargetNode();
-					continue;
-				}
-
-				if (value == null) {
-
-					// check for default value
-					if (defaultValue != null && StringUtils.contains(refKey, "!")) {
-						return numberOrString(defaultValue);
-					}
-
-					// Need to return null here to avoid _data sticking to the (wrong) parent object
-					return null;
-
-				}
-			}
-
-			// data objects from parent elements
-			if (this.hasDataForKey(part)) {
-
-				_data = this.getDataNode(part);
-
-				if (parts.length == 1) {
-					return _data;
-				}
-
-				continue;
-
-			}
-
-			// special keyword "request"
-			if ("request".equals(part)) {
-
-				final HttpServletRequest request = this.getRequest(); //securityContext.getRequest();
-				if (request != null) {
-
-					if (StringUtils.contains(refKey, "!")) {
-
-						return numberOrString(StringUtils.defaultIfBlank(request.getParameter(referenceKey), defaultValue));
-
-					} else {
-
-						return numberOrString(StringUtils.defaultString(request.getParameter(referenceKey)));
-					}
-				}
-
-			}
-
-			// special keyword "now":
-			if ("now".equals(part)) {
-
-				return new Date();
-			}
-
-			// special keyword "me"
-			if ("me".equals(part)) {
-
-				Principal me = (Principal) securityContext.getUser(false);
-
-				if (me != null) {
-
-					_data = me;
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-				}
-
-			}
-
-			// special boolean keywords
-			if ("true".equals(part)) {
-				return true;
-			}
-
-			if ("false".equals(part)) {
-				return false;
-			}
-
-			// the following keywords work only on root level
-			// so that they can be used as property keys for data objects
-			if (_data == null) {
-
-				// details data object id
-				if ("id".equals(part)) {
-
-					GraphObject detailsObject = this.getDetailsDataObject();
-
-					if (detailsObject != null) {
-						return detailsObject.getUuid();
-					}
-
-				}
-
-				// details data object
-				if ("current".equals(part)) {
-
-					GraphObject detailsObject = this.getDetailsDataObject();
-
-					if (detailsObject != null) {
-
-						_data = detailsObject;
-
-						if (parts.length == 1) {
-							return _data;
-						}
-
-						continue;
-					}
-
-				}
-
-				// special keyword "this"
-				if ("this".equals(part)) {
-
-					_data = this.getDataObject();
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "element"
-				if ("element".equals(part)) {
-
-					_data = entity;
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "template", references the closest Template node in the current page
-				if ("template".equals(part)) {
-
-					_data = ((DOMNode) entity).getClosestTemplate(_page);
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-				}
-
-				// special keyword "ownerDocument", works only on root level
-				if ("page".equals(part)) {
-
-					_data = _page;
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "link"
-				if (entity instanceof NodeInterface && "link".equals(part)) {
-
-					ResourceLink rel = ((NodeInterface) entity).getOutgoingRelationship(ResourceLink.class);
-
-					if (rel != null) {
-						_data = rel.getTargetNode();
-
-						if (parts.length == 1) {
-							return _data;
-						}
-
-						continue;
-					}
-
-				}
-
-				// special keyword "parent"
-				if ("parent".equals(part)) {
-
-					_data = (DOMNode) ((DOMNode) entity).getParentNode();
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "children", references the children of the closest Template node in the current page
-				if ("children".equals(part)) {
-
-					if (parts.length == 1) {
-
-						final Template template = ((DOMNode) entity).getClosestTemplate(_page);
-
-						if (template != null) {
-							return template.getChildNodes();
-						}
-					}
-
-					continue;
-
-				}
-
-				// special keyword "owner"
-				if (entity instanceof NodeInterface && "owner".equals(part)) {
-
-					Ownership rel = ((NodeInterface) entity).getIncomingRelationship(PrincipalOwnsNode.class);
-					if (rel != null) {
-
-						_data = rel.getSourceNode();
-
-						if (parts.length == 1) {
-							return _data;
-						}
-					}
-
-					continue;
-
-				}
-
-				// special keyword "result_size"
-				if ("result_count".equals(part) || "result_size".equals(part)) {
-
-					Result result = this.getResult();
-
-					if (result != null) {
-
-						return result.getRawResultCount();
-
-					}
-
-				}
-
-				// special keyword "page_size"
-				if ("page_size".equals(part)) {
-
-					Result result = this.getResult();
-
-					if (result != null) {
-
-						return result.getPageSize();
-
-					}
-
-				}
-
-				// special keyword "page_count"
-				if ("page_count".equals(part)) {
-
-					Result result = this.getResult();
-
-					Integer pageCount = result.getPageCount();
-
-					if (pageCount != null) {
-						return pageCount;
-					} else {
-						return 1;
-					}
-
-				}
-
-				// special keyword "page_no"
-				if ("page_no".equals(part)) {
-
-					Result result = this.getResult();
-
-					if (result != null) {
-
-						return result.getPage();
-
-					}
-
-				}
-
-				// special keyword "host":
-				if ("host".equals(part)) {
-
-					return securityContext.getRequest().getServerName();
-				}
-
-				// special keyword "port":
-				if ("port".equals(part)) {
-
-					return securityContext.getRequest().getServerPort();
-				}
-
-				// special keyword "path_info":
-				if ("path_info".equals(part)) {
-
-					return securityContext.getRequest().getPathInfo();
-				}
-			}
-
-		}
-
-		if (_data != null) {
-
-			PropertyKey referenceKeyProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), referenceKey);
-			//return getEditModeValue(securityContext, renderContext, _data, referenceKeyProperty, defaultValue);
-			Object value = _data.getProperty(referenceKeyProperty);
-
-			PropertyConverter converter = referenceKeyProperty.inputConverter(securityContext);
-
-			if (value != null && converter != null && !(referenceKeyProperty instanceof RelationProperty)) {
-
-				try {
-					value = converter.revert(value);
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to convert property {0} of node {1}: {2}", new Object[]{referenceKeyProperty, _data, t.getMessage()});
-				}
-			}
-
-			return value != null ? value : defaultValue;
-
-		}
-
-		// check for default value
-		if (defaultValue != null && StringUtils.contains(refKey, "!")) {
-			return numberOrString(defaultValue);
-		}
-
-		return null;
-
-	}
-
-	@Override
-	public boolean returnRawValue(final SecurityContext securityContext) {
-		EditMode editMode = getEditMode(securityContext.getUser(false));
+	public boolean returnRawValue() {
+		final EditMode editMode = getEditMode(securityContext.getUser(false));
 		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
 	}
 
@@ -760,71 +341,159 @@ public class RenderContext extends ActionContext {
 		return System.currentTimeMillis() > (renderStartTime + timeout);
 	}
 
-//	private Template getClosestTemplate(DOMNode node, final Page page) {
-//
-//		while (node != null) {
-//
-//			if (node instanceof Template) {
-//
-//				final Template template = (Template) node;
-//
-//				Document doc = template.getOwnerDocument();
-//
-//				if (doc == null) {
-//
-//					doc = getClosestPage(node);
-//				}
-//
-//				if (doc != null && doc.equals(page)) {
-//
-//					try {
-//						template.setProperty(DOMNode.ownerDocument, (Page) doc);
-//
-//						return template;
-//
-//					} catch (FrameworkException ex) {
-//						ex.printStackTrace();
-//					}
-//
-//				}
-//
-//				final List<DOMNode> syncedNodes = template.getProperty(DOMNode.syncedNodes);
-//
-//				for (final DOMNode syncedNode : syncedNodes) {
-//
-//					doc = syncedNode.getOwnerDocument();
-//
-//					if (doc != null && doc.equals(page)) {
-//
-//						return (Template) syncedNode;
-//
-//					}
-//
-//				}
-//
-//			}
-//
-//			node = (DOMNode) node.getParentNode();
-//
-//		}
-//
-//		return null;
-//
-//	}
-//
-//	private Page getClosestPage(DOMNode node) {
-//
-//		while (node != null) {
-//
-//			if (node instanceof Page) {
-//
-//				return (Page) node;
-//			}
-//
-//			node = (DOMNode) node.getParentNode();
-//
-//		}
-//
-//		return null;
-//	}
+	@Override
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
+
+		if (hasDataForKey(key)) {
+			return getDataNode(key);
+		}
+
+		// evaluate non-ui specific context
+		final Object value = super.evaluate(entity, key, data, defaultValue);
+		if (value == null) {
+
+			if (data != null) {
+
+				switch (key) {
+
+					// link has two different meanings
+					case "link":
+
+						if (data instanceof AbstractNode) {
+
+							final ResourceLink rel = ((AbstractNode)data).getOutgoingRelationship(ResourceLink.class);
+							if (rel != null) {
+
+								return rel.getTargetNode();
+							}
+
+						}
+				}
+
+			} else {
+
+				// "data-less" keywords to start the evaluation chain
+				switch (key) {
+
+					case "id":
+
+						GraphObject detailsObject = this.getDetailsDataObject();
+						if (detailsObject != null) {
+
+							return detailsObject.getUuid();
+
+						} else if (defaultValue != null) {
+
+							return Functions.numberOrString(defaultValue);
+						}
+						break;
+
+					case "current":
+						return getDetailsDataObject();
+
+					case "template":
+
+						if (entity instanceof DOMNode) {
+							return ((DOMNode) entity).getClosestTemplate(getPage());
+						}
+						break;
+
+					case "page":
+						return getPage();
+
+					case "parent":
+
+						if (entity instanceof DOMNode) {
+							return ((DOMNode) entity).getParentNode();
+						}
+						break;
+
+					case "children":
+
+						if (entity instanceof DOMNode) {
+
+							final Template template = ((DOMNode) entity).getClosestTemplate(getPage());
+							if (template != null) {
+
+								return template.getChildNodes();
+							}
+						}
+						break;
+
+					// link has two different meanings
+					case "link":
+
+						if (entity instanceof NodeInterface) {
+
+							final ResourceLink rel = ((NodeInterface)entity).getOutgoingRelationship(ResourceLink.class);
+							if (rel != null) {
+
+								return rel.getTargetNode();
+							}
+						}
+						break;
+
+					case "host":
+						return securityContext.getRequest().getServerName();
+
+					case "port":
+						return securityContext.getRequest().getServerPort();
+
+					case "path_info":
+						return securityContext.getRequest().getPathInfo();
+
+					case "result_count":
+					case "result_size":
+
+						final Result sizeResult = this.getResult();
+						if (sizeResult != null) {
+
+							return sizeResult.getRawResultCount();
+						}
+						break;
+
+					case "page_size":
+
+						final Result pageSizeResult = this.getResult();
+						if (pageSizeResult != null) {
+
+							return pageSizeResult.getPageSize();
+
+						}
+						break;
+
+					case "page_count":
+
+						final Result pageCountResult = this.getResult();
+						if (pageCountResult != null) {
+
+							Integer pageCount = result.getPageCount();
+							if (pageCount != null) {
+
+								return pageCount;
+
+							} else {
+
+								return 1;
+							}
+						}
+						break;
+
+
+					case "page_no":
+
+						final Result pageNoResult = this.getResult();
+						if (pageNoResult != null) {
+
+							return pageNoResult.getPage();
+						}
+						break;
+
+				}
+			}
+
+		}
+
+		return value;
+	}
 }

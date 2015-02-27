@@ -82,6 +82,14 @@ public interface PropertyKey<T> {
 	public Property<T> indexed();
 
 	/**
+	 * Use this method to mark a property for case-insensitive indexing. This
+	 * method registers the property in the case-insensitive (all-lowercase) index.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> indexedCaseInsensitive();
+
+	/**
 	 * Use this method to mark a property for indexing
 	 * in the given index.
 	 *
@@ -144,6 +152,13 @@ public interface PropertyKey<T> {
 	public String typeName();
 
 	/**
+	 * Returns the type of the value this property returns.
+	 *
+	 * @return the value type
+	 */
+	public Class valueType();
+
+	/**
 	 * Returns the type of the related property this property key references, or
 	 * null if this is not a relationship property.
 	 *
@@ -159,7 +174,7 @@ public interface PropertyKey<T> {
 	public T defaultValue();
 
 	/**
-	 * Returns the format value for this property.
+	 * Returns the format value for this properUniquty.
 	 *
 	 * @return format
 	 */
@@ -264,6 +279,14 @@ public interface PropertyKey<T> {
 	public boolean isUnique();
 
 	/**
+	 * Indicates whether the value associated with this property is
+	 * may not be null.
+	 *
+	 * @return whether this property value is validated for uniqueness
+	 */
+	public boolean isNotNull();
+
+	/**
 	 * Returns the lucene sort type of this property.
 	 * @return sortType
 	 */
@@ -281,4 +304,9 @@ public interface PropertyKey<T> {
 	 * @return processingOrderPosition
 	 */
 	public int getProcessingOrderPosition();
+
+	public PropertyKey<T> defaultValue(final T defaultValue);
+	public PropertyKey<T> notNull(final boolean notNull);
+	public PropertyKey<T> unique(final boolean unique);
+	public PropertyKey<T> format(final String format);
 }

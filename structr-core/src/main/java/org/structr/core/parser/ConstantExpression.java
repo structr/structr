@@ -18,7 +18,6 @@
  */
 package org.structr.core.parser;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -37,12 +36,27 @@ public class ConstantExpression extends Expression {
 		this.value = value;
 	}
 
+	@Override
+	public String toString() {
+
+		if (value != null) {
+			return value.toString();
+		}
+
+		return "null";
+	}
+
 	public Object getValue() {
 		return value;
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 		return value;
+	}
+
+	@Override
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
 	}
 }

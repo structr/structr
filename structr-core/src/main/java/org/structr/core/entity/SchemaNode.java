@@ -30,19 +30,20 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
-import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -57,14 +58,14 @@ import org.structr.schema.parser.Validator;
  *
  * @author Christian Morgner
  */
-public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
+public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 	public static final Property<List<SchemaNode>>  relatedTo        = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
 	public static final Property<List<SchemaNode>>  relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
 	public static final Property<String>            extendsClass     = new StringProperty("extendsClass").indexed();
 	public static final Property<String>            defaultSortKey   = new StringProperty("defaultSortKey");
 	public static final Property<String>            defaultSortOrder = new StringProperty("defaultSortOrder");
-	public static final Property<Boolean>           isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly();
+	public static final Property<Boolean>           isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
 
 	static {
 
@@ -234,6 +235,25 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 			}
 		}
 
+		// fallback, search NodeInterface (this allows the owner relationship to be used in Notions!)
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
+		if (key != null) {
+
+
+			// return "extended" multiplicity when the falling back to a NodeInterface property
+			// to signal the code generator that it must not append "Property" to the name of
+			// the generated NotionProperty parameter, i.e. NotionProperty(owner, ...) instead
+			// of NotionProperty(ownerProperty, ...)..
+
+			if (key instanceof StartNode || key instanceof EndNode) {
+				return "1X";
+			}
+
+			if (key instanceof StartNodes || key instanceof EndNodes) {
+				return "*X";
+			}
+		}
+
 		return null;
 	}
 
@@ -255,6 +275,17 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 
 			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
 				return inRel.getSchemaNodeSourceType();
+			}
+		}
+
+		// fallback, search NodeInterface (this allows the owner relationship to be used in Notions!)
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
+		if (key != null) {
+
+			final Class relatedType = key.relatedType();
+			if (relatedType != null) {
+
+				return relatedType.getSimpleName();
 			}
 		}
 
@@ -337,11 +368,18 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
 	}
 
-	// ----- interface Syncable -----
+	// ----- interface GraphObject -----
 	@Override
-	public List<Syncable> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
-		final List<Syncable> data = new LinkedList<>();
+		final List<GraphObject> data = super.getSyncData();
+
+		// special SchemaNode behaviour when syncing:
+		// the schema needs to be transferred as a whole
+		// because the individual nodes and relationships
+		// depend on each other, so each schema node adds
+		// all other schema nodes to its list.
+		data.addAll(StructrApp.getInstance(securityContext).nodeQuery(SchemaNode.class).getAsList());
 
 		// outgoing relationships
 		for (final SchemaRelationship rel : getOutgoingRelationships(SchemaRelationship.class)) {
@@ -354,35 +392,5 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 		}
 
 		return data;
-	}
-
-	@Override
-	public boolean isNode() {
-		return true;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return false;
-	}
-
-	@Override
-	public NodeInterface getSyncNode() {
-		return this;
-	}
-
-	@Override
-	public RelationshipInterface getSyncRelationship() {
-		return null;
-	}
-
-	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-
-		// update all properties that exist in the source map
-		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
-
-			setProperty(entry.getKey(), entry.getValue());
-		}
 	}
 }

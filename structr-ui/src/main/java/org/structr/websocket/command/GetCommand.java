@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.StructrWebSocket;
@@ -56,7 +55,7 @@ public class GetCommand extends AbstractCommand {
 
 		} else {
 
-			logger.log(Level.WARNING, "Node not found for id {0}!", webSocketData.getId());
+			//logger.log(Level.WARNING, "Node not found for id {0}!", webSocketData.getId());
 			// Not necessary to send a 404 here
 			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 

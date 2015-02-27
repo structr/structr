@@ -20,6 +20,7 @@ package org.structr.schema.parser;
 
 import java.util.Set;
 import java.util.LinkedHashSet;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -46,6 +47,7 @@ public abstract class PropertyParser {
 	protected String source                   = "";
 	protected String format                   = "";
 	protected String defaultValue             = "";
+	protected String contentType              = "";
 	protected boolean notNull                 = false;
 	protected boolean unique                  = false;
 	protected PropertyParameters params;
@@ -68,6 +70,7 @@ public abstract class PropertyParser {
 		this.notNull      = Boolean.TRUE.equals(params.notNull);
 		this.dbName       = params.dbName;
 		this.defaultValue = params.defaultValue;
+		this.contentType  = params.contentType;
 
 		if (this.propertyName.startsWith("_")) {
 			this.propertyName = this.propertyName.substring(1);
@@ -110,27 +113,41 @@ public abstract class PropertyParser {
 
 		final StringBuilder buf = new StringBuilder();
 
-		String valueType = getValueType();
+		final String valueType     = getValueType();
 
 		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
+
 		if (dbName != null) {
 			buf.append(", \"").append(dbName).append("\"");
-		} else if ("String".equals(valueType)) {
-			// StringProperty has three leading String parameters
-			buf.append(", \"").append(propertyName).append("\"");
 		}
+
 		buf.append(getPropertyParameters());
-		if (defaultValue != null) {
-			buf.append(", ").append(getDefaultValueSource());
-		}
+
 		buf.append(localValidator);
+
 		buf.append(")");
 
-		buf.append(".indexed()");
+		if (defaultValue != null) {
+			buf.append(".defaultValue(").append(getDefaultValueSource()).append(")");
+		}
+
+		if (format != null) {
+			buf.append(".format(\"").append(StringEscapeUtils.escapeJava(format)).append("\")");
+		}
 
 		if (unique) {
 			buf.append(".unique()");
+		}
+
+		if (notNull) {
+			buf.append(".notNull()");
+		}
+
+		if (defaultValue != null) {
+			buf.append(".indexedWhenEmpty()");
+		} else {
+			buf.append(".indexed()");
 		}
 
 		buf.append(";\n");
@@ -171,25 +188,33 @@ public abstract class PropertyParser {
 
 		final PropertyParameters params = new PropertyParameters(rawSource);
 
-		// detect optional db name
-		if (rawSource.contains("|")) {
+		// detect and remove format: <type>(...)
+		if (StringUtils.isNotBlank(params.source)) {
 
-			params.dbName = rawSource.substring(0, rawSource.indexOf("|"));
-			params.source = rawSource.substring(rawSource.indexOf("|")+1);
+			params.format = substringBetween(params.source, "(", ")");
+			params.source = params.source.replaceFirst("\\(.*\\)", "");
 
 		}
 
+		// detect optional db name
+		if (params.source.contains("|")) {
+
+			params.dbName = params.source.substring(0, params.source.indexOf("|"));
+			params.source = params.source.substring(params.source.indexOf("|")+1);
+
+		}
+		
 		// detect and remove not-null constraint
 		if (params.source.startsWith("+")) {
 			params.source = params.source.substring(1);
 			params.notNull = true;
 		}
 
-		// detect and remove format: <type>(...)
+		// detect and remove content-type: <type>[...]
 		if (StringUtils.isNotBlank(params.source)) {
 
-			params.format = substringBetween(params.source, "(", ")");
-			params.source = params.source.replaceFirst("\\(.*\\)", "");
+			params.contentType = substringBetween(params.source, "[", "]");
+			params.source = params.source.replaceFirst("\\[.*\\]", "");
 
 		}
 

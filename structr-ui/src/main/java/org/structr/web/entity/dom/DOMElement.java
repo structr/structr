@@ -20,11 +20,10 @@ package org.structr.web.entity.dom;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +33,6 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -46,7 +44,6 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
@@ -207,82 +204,57 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		return false;
 	}
 
-	@Override
-	public Node cloneNode(final boolean deep) {
-
-		if (deep) {
-
-			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
-
-		} else {
-
-			Node node = super.cloneNode(deep);
-
-			for (Iterator<PropertyKey> it = getPropertyKeys(htmlView.name()).iterator(); it.hasNext();) {
-
-				PropertyKey key = it.next();
-
-				// omit system properties (except type), parent/children and page relationships
-				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
-					&& !key.equals(GraphObject.id)
-					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
-					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
-					&& !key.equals(DOMElement.syncedNodes)
-					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
-
-					try {
-						((DOMNode) node).setProperty(key, getProperty(key));
-					} catch (FrameworkException ex) {
-						logger.log(Level.WARNING, "Could not set property " + key + " while cloning DOMElement " + this, ex);
-					}
-				}
-			}
-			return node;
-
-		}
-
-	}
+//	@Override
+//	public Node cloneNode(final boolean deep) {
+//
+//		if (deep) {
+//
+//			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
+//
+//		} else {
+//
+//			Node node = super.cloneNode(deep);
+//
+//			for (Iterator<PropertyKey> it = getPropertyKeys(htmlView.name()).iterator(); it.hasNext();) {
+//
+//				PropertyKey key = it.next();
+//
+//				// omit system properties (except type), parent/children and page relationships
+//				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
+//					&& !key.equals(GraphObject.id)
+//					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
+//					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
+//					&& !key.equals(DOMElement.syncedNodes)
+//					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
+//
+//					try {
+//						((DOMNode) node).setProperty(key, getProperty(key));
+//					} catch (FrameworkException ex) {
+//						logger.log(Level.WARNING, "Could not set property " + key + " while cloning DOMElement " + this, ex);
+//					}
+//				}
+//			}
+//			return node;
+//
+//		}
+//
+//	}
 
 	@Override
 	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 
 		if (newNode instanceof DOMElement) {
 
-			final PropertyMap properties = new PropertyMap();
+			final Map<String, Object> properties = new HashMap<>();
 			for (final Property key : htmlView.properties()) {
 
-				properties.put(key, newNode.getProperty(key));
+				properties.put(key.jsonName(), newNode.getProperty(key));
 			}
 
 			// copy tag
-			properties.put(DOMElement.tag, newNode.getProperty(DOMElement.tag));
+			properties.put(DOMElement.tag.jsonName(), newNode.getProperty(DOMElement.tag));
 
 			updateFromPropertyMap(properties);
-		}
-	}
-
-	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-
-		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
-
-			final PropertyKey key = entry.getKey();
-			final Object value1 = this.getProperty(key);
-			final Object value2 = entry.getValue();
-
-			if (value1 == null && value2 == null) {
-				continue;
-			}
-
-			// copy attributes
-			this.setProperty(key, properties.get(key));
-		}
-
-		final String tag = properties.get(DOMElement.tag);
-		if (tag != null) {
-
-			// overwrite tag with value from source node
-			this.setProperty(DOMElement.tag, tag);
 		}
 	}
 
@@ -292,13 +264,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
-	public void openingTag(final SecurityContext securityContext, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		out.append("<").append(tag);
 
 		for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.Html)) {
 
-			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
+			String value = getPropertyWithVariableReplacement(renderContext, attribute);
 
 			if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
@@ -354,13 +326,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * @throws FrameworkException
 	 */
 	@Override
-	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		if (renderContext.hasTimeout(RENDER_TIMEOUT)) {
 			return;
 		}
 
-		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
+		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
 			return;
 		}
 
@@ -384,7 +356,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		if (StringUtils.isNotBlank(_tag)) {
 
-			openingTag(securityContext, out, _tag, editMode, renderContext, depth);
+			openingTag(out, _tag, editMode, renderContext, depth);
 
 			try {
 
@@ -415,7 +387,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 						anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
 					}
 
-					subNode.render(securityContext, renderContext, depth + 1);
+					subNode.render(renderContext, depth + 1);
 
 				}
 
@@ -909,7 +881,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			if (key.startsWith("data-")) {
 
-				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key)).trim();
+				String value = getPropertyWithVariableReplacement(renderContext, new GenericProperty(key)).trim();
 
 				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
@@ -1048,9 +1020,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
-		final List<Syncable> data = super.getSyncData();
+		final List<GraphObject> data = super.getSyncData();
 
 		data.add(getProperty(DOMElement.sharedComponent));
 		data.add(getIncomingRelationship(Sync.class));

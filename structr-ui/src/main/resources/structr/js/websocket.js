@@ -143,6 +143,7 @@ function wsConnect() {
                     Structr.clearMain();
                     Structr.login(msg);
                 } else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
+                    loginBox.hide();
                     Structr.refreshUi();
                 }
 
@@ -155,8 +156,15 @@ function wsConnect() {
                 Structr.clearMain();
                 Structr.login();
 
+            } else if (command === 'GET_LOCAL_STORAGE') { /*********************** GET_LOCAL_STORAGE ************************/
+
+                var localStorageData = JSON.parse(data.data.localStorageString);
+                Object.keys(localStorageData).forEach(function(key) {
+                    localStorage.setItem(key, localStorageData[key]);
+                });
+
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
-            
+
                 log('Error code: ' + code, message);
 
                 if (code === 403) {
@@ -170,7 +178,7 @@ function wsConnect() {
                 } else {
 
                     var msgClass;
-                    var codeStr = code.toString();
+                    var codeStr = code ? code.toString() : '';
 
                     if (codeStr.startsWith('2')) {
                         msgClass = 'success';
@@ -269,6 +277,11 @@ function wsConnect() {
             } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
 
                 log('CHILDREN', data);
+
+                // sort the folders/files in the Files tab
+                if (command === 'CHILDREN' && result.length > 0 && result[0].name) {
+                    result.sort(function(a,b) { return a.name.localeCompare(b.name); } );
+                }
 
                 $(result).each(function(i, entity) {
 
@@ -385,7 +398,7 @@ function wsConnect() {
 
                         if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
 
-                            StructrModel.create(entity, null, false);
+                            entity = StructrModel.create(entity, null, false);
                             var el;
                             if (entity.isContent || entity.type === 'Template') {
                                 el = _Contents.appendContentElement(entity, components, true);
@@ -432,7 +445,7 @@ function wsConnect() {
 
                 if (dialogMsg.is(':visible')) {
                     var msgObj = JSON.parse(data.message);
-                    dialogMsg.html('<div class="infoBox info">Transferred ' + msgObj.current + ' of ' + msgObj.total + ' objects</div>');
+                    dialogMsg.html('<div class="infoBox info">' + msgObj.message + '</div>');
                 }
 
             } else if (command === 'FINISHED') { /*********************** FINISHED ************************/
@@ -470,16 +483,16 @@ function sendObj(obj, callback) {
         StructrModel.callbacks[obj.callback] = callback;
     }
 
-    text = $.toJSON(obj);
+    var t = $.toJSON(obj);
 
-    if (!text) {
+    if (!t) {
         log('No text to send!');
         return false;
     }
 
     try {
-        ws.send(text);
-        log('Sent: ' + text);
+        ws.send(t);
+        log('Sent: ' + t);
     } catch (exception) {
         log('Error in send(): ' + exception);
         //Structr.ping();

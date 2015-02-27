@@ -18,10 +18,8 @@
  */
 package org.structr.rest.resource;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import org.structr.common.PagingHelper;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,6 +30,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ScriptRuntime;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
@@ -39,7 +39,6 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
@@ -54,6 +53,7 @@ import org.structr.core.notion.Notion;
 import org.structr.core.property.RelationProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotFoundException;
 //~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
@@ -118,6 +118,7 @@ public class StaticRelationshipResource extends SortableResource {
 					} else {
 
 						// what here?
+						throw new NotFoundException();
 					}
 				}
 
@@ -239,7 +240,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 			if (newNode != null) {
 
-				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+				final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 				result.addHeader("Location", buildLocationHeader(newNode));
 
 				return result;
@@ -248,45 +249,48 @@ public class StaticRelationshipResource extends SortableResource {
 		} else {
 
 			// look for methods that have an @Export annotation
-			GraphObject entity = typedIdResource.getIdResource().getEntity();
-			Class entityType = typedIdResource.getEntityClass();
-			String methodName = typeResource.getRawType();
+			final GraphObject entity = typedIdResource.getIdResource().getEntity();
+			final Class entityType = typedIdResource.getEntityClass();
+			final String methodName = typeResource.getRawType();
 
 			if (entity != null && entityType != null && methodName != null) {
 
-				for (Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
+				final Object obj              = entity.invokeMethod(methodName, propertySet, true);
+				final RestMethodResult result = new RestMethodResult(200);
 
-					if (methodName.equals(method.getName())) {
+				// unwrap nested object(s)
+				unwrapTo(obj, result);
 
-						if (method.getAnnotation(Export.class) != null) {
-
-							try {
-								Object[] parameters = extractParameters(propertySet, method.getParameterTypes());
-								return (RestMethodResult) method.invoke(entity, parameters);
-
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
-
-								if (t instanceof FrameworkException) {
-
-									throw (FrameworkException) t;
-
-								} else if (t.getCause() instanceof FrameworkException) {
-
-									throw (FrameworkException) t.getCause();
-
-								} else {
-
-									logger.log(Level.WARNING, "Unable to call RPC method {0}: {1}", new Object[]{methodName, t.getMessage()});
-								}
-							}
-						}
-					}
-				}
+				return result;
 			}
 
 		}
 
 		throw new IllegalPathException();
+	}
+
+	private void unwrapTo(final Object source, final RestMethodResult result) {
+
+		if (source != null) {
+
+			final Object unwrapped = Context.jsToJava(source, ScriptRuntime.ObjectClass);
+			if (unwrapped.getClass().isArray()) {
+
+				for (final Object element : (Object[])unwrapped) {
+					unwrapTo(element, result);
+				}
+
+			} else if (unwrapped instanceof Collection) {
+
+				for (final Object element : (Collection)unwrapped) {
+					unwrapTo(element, result);
+				}
+
+			} else if (unwrapped instanceof GraphObject) {
+
+				result.addContent((GraphObject)unwrapped);
+			}
+		}
 	}
 
 	@Override
@@ -356,92 +360,4 @@ public class StaticRelationshipResource extends SortableResource {
 		return null;
 	}
 
-	private Object[] extractParameters(Map<String, Object> properties, Class[] parameterTypes) {
-
-		List<Object> values = new ArrayList<>(properties.values());
-		List<Object> parameters = new ArrayList<>();
-		int index = 0;
-
-		// only try to convert when both lists have equal size
-		if (values.size() == parameterTypes.length) {
-
-			for (Class parameterType : parameterTypes) {
-
-				Object value = convert(values.get(index++), parameterType);
-				if (value != null) {
-
-					parameters.add(value);
-				}
-			}
-		}
-
-		return parameters.toArray(new Object[0]);
-	}
-
-	/*
-	 * Tries to convert the given value into an object
-	 * of the given type, using an intermediate type
-	 * of String for the conversion.
-	 */
-	private Object convert(Object value, Class type) {
-
-		Object convertedObject = null;
-
-		if (type.equals(String.class)) {
-
-			// strings can be returned immediately
-			return value.toString();
-
-		} else if (value instanceof Number) {
-
-			Number number = (Number) value;
-
-			if (type.equals(Integer.class) || type.equals(Integer.TYPE)) {
-				return number.intValue();
-
-			} else if (type.equals(Long.class) || type.equals(Long.TYPE)) {
-				return number.longValue();
-
-			} else if (type.equals(Double.class) || type.equals(Double.TYPE)) {
-				return number.doubleValue();
-
-			} else if (type.equals(Float.class) || type.equals(Float.TYPE)) {
-				return number.floatValue();
-
-			} else if (type.equals(Short.class) || type.equals(Integer.TYPE)) {
-				return number.shortValue();
-
-			} else if (type.equals(Byte.class) || type.equals(Byte.TYPE)) {
-				return number.byteValue();
-
-			}
-
-		} else if (value instanceof List) {
-
-			return value;
-
-		} else if (value instanceof Map) {
-			return value;
-		}
-
-		// fallback
-		try {
-
-			Method valueOf = type.getMethod("valueOf", String.class);
-			if (valueOf != null) {
-
-				convertedObject = valueOf.invoke(null, value.toString());
-
-			} else {
-
-				logger.log(Level.WARNING, "Unable to find static valueOf method for type {0}", type);
-			}
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Unable to deserialize value {0} of type {1}, Class has no static valueOf method.", new Object[]{value, type});
-		}
-
-		return convertedObject;
-	}
 }

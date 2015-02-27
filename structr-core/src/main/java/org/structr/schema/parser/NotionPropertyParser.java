@@ -74,6 +74,7 @@ public class NotionPropertyParser extends PropertyParser {
 
 			final String baseProperty = parts[0];
 			final String multiplicity = entity.getMultiplicity(baseProperty);
+			boolean isBuiltinProperty = false;
 
 			if (multiplicity != null) {
 
@@ -82,10 +83,22 @@ public class NotionPropertyParser extends PropertyParser {
 
 				switch (multiplicity) {
 
+					case "1X":
+						// this line exists because when a NotionProperty is set up for a builtin propery
+						// (like for example "owner", there must not be the string "Property" appended
+						// to the property name, and the SchemaNode returns the above "extended" multiplicity
+						// string when it has detected a fallback property name like "owner" from NodeInterface.
+						isBuiltinProperty = true; // no break!
 					case "1":
 						propertyType = EntityNotionProperty.class.getSimpleName();
 						break;
 
+					case "*X":
+						// this line exists because when a NotionProperty is set up for a builtin propery
+						// (like for example "owner", there must not be the string "Property" appended
+						// to the property name, and the SchemaNode returns the above "extended" multiplicity
+						// string when it has detected a fallback property name like "owner" from NodeInterface.
+						isBuiltinProperty = true; // no break!
 					case "*":
 						propertyType = CollectionNotionProperty.class.getSimpleName();
 						break;
@@ -98,7 +111,13 @@ public class NotionPropertyParser extends PropertyParser {
 				buf.append(entity.getClassName());
 				buf.append(".");
 				buf.append(baseProperty);
-				buf.append("Property,");
+
+				// append "Property" only if it is NOT a builtin property!
+				if (!isBuiltinProperty) {
+					buf.append("Property");
+				}
+
+				buf.append(",");
 
 				final boolean isBoolean = (parts.length == 3 && ("true".equals(parts[2].toLowerCase())));
 
@@ -116,7 +135,7 @@ public class NotionPropertyParser extends PropertyParser {
 
 					String propertyName = parts[i];
 
-					if (!"true".equals(propertyName.toLowerCase())) {
+					if (!"true".equals(propertyName.toLowerCase()) && !propertyName.contains(".")) {
 
 						buf.append(relatedType);
 						buf.append(".");
@@ -137,7 +156,7 @@ public class NotionPropertyParser extends PropertyParser {
 
 			} else {
 
-				// base property not found!
+				// base property not found, most likely in superclass!
 			}
 		}
 

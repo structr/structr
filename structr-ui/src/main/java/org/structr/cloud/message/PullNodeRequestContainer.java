@@ -22,14 +22,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.UUID;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.ExportContext;
 import org.structr.cloud.ExportSet;
-import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.SyncCommand;
 
 /**
@@ -71,16 +69,16 @@ public class PullNodeRequestContainer extends Message {
 	}
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 
 		try {
 			final App app = serverConnection.getApplicationContext();
 
 			// try node first, then relationship
-			Syncable syncable = (Syncable)app.nodeQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
+			GraphObject syncable = app.nodeQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
 			if (syncable == null) {
 
-				syncable = (Syncable)app.relationshipQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
+				syncable = app.relationshipQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
 			}
 
 			if (syncable != null) {
@@ -90,15 +88,13 @@ public class PullNodeRequestContainer extends Message {
 				// collect export set
 				numNodes  = exportSet.getNodes().size();
 				numRels   = exportSet.getRelationships().size();
-				key       = UUID.randomUUID().toString();
+				key       = NodeServiceCommand.getNextUuid();
 
 				serverConnection.storeValue(key + "Nodes", new ArrayList<>(exportSet.getNodes()));
 				serverConnection.storeValue(key + "Rels",  new ArrayList<>(exportSet.getRelationships()));
 
 				// send this back
 				serverConnection.send(this);
-
-				context.progress();
 			}
 
 		} catch (FrameworkException fex) {
@@ -107,9 +103,7 @@ public class PullNodeRequestContainer extends Message {
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
-
-		clientConnection.increaseTotal(numNodes + numRels);
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 
 		for (int i=0; i<numNodes; i++) {
 			clientConnection.send(new PullNode(key, i));
@@ -120,11 +114,6 @@ public class PullNodeRequestContainer extends Message {
 		}
 
 		clientConnection.send(new Finish());
-
-		// important, signal progress AFTER increasing the total size of this
-		// transaction, otherwise the thread just finishes because the goal
-		// (current == total) is met.
-		context.progress();
 	}
 
 	@Override

@@ -24,8 +24,6 @@ var sizeLimit = 1024 * 1024 * 70;
 var win = $(window);
 var selectedElements = [];
 var activeFileId, fileContents = {};
-var scrollInfoKey = 'structrScrollInfoKey_' + port;
-
 
 $(document).ready(function() {
     Structr.registerModule('files', _Files);
@@ -299,21 +297,25 @@ var _Files = {
 
         div.draggable({
             revert: 'invalid',
-            //helper: 'clone',
-            //containment: 'document',
-            //stack: '.node',
+            helper: 'clone',
+            containment: 'document',
+            stack: '.node',
             appendTo: '#main',
             zIndex: 2,
             start: function(e, ui) {
-                $(this).hide();
-                $(ui)[0].helper.css({
+                $(this).css({
+                   opacity: 0 
+                });
+                ui.helper.css({
                     width: files.width() + 'px'
                 });
-
             },
             stop: function(e, ui) {
                 $(this).show();
                 //$('#pages_').droppable('enable').removeClass('nodeHover');
+                $(e.toElement).one('click', function(e) {
+                    e.stopImmediatePropagation();
+                });
             },
             helper: function(event) {
                 selectedElements = $('.node.selected');
@@ -587,10 +589,12 @@ var _Files = {
                     return;
                 element.append('<div class="editor"></div>');
                 var contentBox = $('.editor', element);
+                var lineWrapping = localStorage.getItem(lineWrappingKey);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
                     mode: contentType,
-                    lineNumbers: true
+                    lineNumbers: true,
+                    lineWrapping: lineWrapping
                 });
 
                 var scrollInfo = JSON.parse(localStorage.getItem(scrollInfoKey + '_' + file.id));
@@ -606,6 +610,19 @@ var _Files = {
 
                 dialogBtn.children('#saveFile').remove();
                 dialogBtn.children('#saveAndClose').remove();
+
+                dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+                $('#lineWrapping').on('change', function() {
+                    var inp = $(this);
+                    if  (inp.is(':checked')) {
+                        localStorage.setItem(lineWrappingKey, "1");
+                        editor.setOption('lineWrapping', true);
+                    } else {
+                        localStorage.removeItem(lineWrappingKey);
+                        editor.setOption('lineWrapping', false);
+                    }
+                    editor.refresh();
+                });
 
                 dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');

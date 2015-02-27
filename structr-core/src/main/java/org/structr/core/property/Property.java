@@ -71,6 +71,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean searchable                           = false;
 	protected boolean indexedWhenEmpty                     = false;
 	protected boolean unique                               = false;
+	protected boolean notNull                              = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -80,15 +81,15 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected Set<RelationshipIndex> relationshipIndices   = new LinkedHashSet<>();
 	protected Set<NodeIndex> nodeIndices                   = new LinkedHashSet<>();
 
-	protected Property(String name) {
+	protected Property(final String name) {
 		this(name, name);
 	}
 
-	protected Property(String jsonName, String dbName) {
+	protected Property(final String jsonName, final String dbName) {
 		this(jsonName, dbName, null);
 	}
 
-	protected Property(String jsonName, String dbName, T defaultValue) {
+	protected Property(final String jsonName, final String dbName, final T defaultValue) {
 		this.defaultValue = defaultValue;
 		this.jsonName = jsonName;
 		this.dbName = dbName;
@@ -142,6 +143,18 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 
+	/**
+	 * Use this method to mark a property as being not-null. Please note that
+	 * using this method will not actually cause a not-null check, just
+	 * notify the system that this property should be treated as such.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> notNull() {
+		this.notNull = true;
+		return this;
+	}
+
 	@Override
 	public Property<T> indexed() {
 
@@ -164,6 +177,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.searchable = true;
 
 		nodeIndices.add(nodeIndex);
+
+		return this;
+	}
+
+	@Override
+	public Property<T> indexedCaseInsensitive() {
+
+		indexed();
+
+		nodeIndices.add(NodeIndex.caseInsensitive);
 
 		return this;
 	}
@@ -287,13 +310,19 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void dbName(String dbName) {
+	public void dbName(final String dbName) {
 		this.dbName = dbName;
 	}
 
 	@Override
-	public void jsonName(String jsonName) {
+	public void jsonName(final String jsonName) {
 		this.jsonName = jsonName;
+	}
+
+	@Override
+	public Property<T> defaultValue(final T defaultValue) {
+		this.defaultValue = defaultValue;
+		return this;
 	}
 
 	@Override
@@ -304,6 +333,24 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public String format() {
 		return format;
+	}
+
+	@Override
+	public Property<T> format(final String format) {
+		this.format = format;
+		return this;
+	}
+
+	@Override
+	public Property<T> unique(final boolean unique) {
+		this.unique = unique;
+		return this;
+	}
+
+	@Override
+	public Property<T> notNull(final boolean notNull) {
+		this.notNull = notNull;
+		return this;
 	}
 
 	@Override
@@ -375,6 +422,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isUnique() {
 		return unique;
+	}
+
+	@Override
+	public boolean isNotNull() {
+		return notNull;
 	}
 
 	@Override

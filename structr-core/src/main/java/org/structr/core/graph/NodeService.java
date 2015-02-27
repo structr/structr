@@ -71,7 +71,7 @@ public class NodeService implements SingletonService {
 
 	private GraphDatabaseService graphDb            = null;
 
-	private Index<Node> caseInsensitiveUserIndex    = null;
+	private Index<Node> caseInsensitiveIndex        = null;
 	private Index<Node> fulltextIndex               = null;
 	private Index<Node> keywordIndex                = null;
 	private Index<Node> layerIndex                  = null;
@@ -97,7 +97,7 @@ public class NodeService implements SingletonService {
 	/**
 	 * The list of existing node indices.
 	 */
-	public static enum NodeIndex { uuid, user, caseInsensitiveUser, keyword, fulltext, layer }
+	public static enum NodeIndex { uuid, user, caseInsensitive, keyword, fulltext, layer }
 
 	/**
 	 * The list of existing relationship indices.
@@ -117,7 +117,7 @@ public class NodeService implements SingletonService {
 			command.setArgument(NodeIndex.uuid.name(), uuidIndex);
 			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
 			command.setArgument(NodeIndex.user.name(), userIndex);
-			command.setArgument(NodeIndex.caseInsensitiveUser.name(), caseInsensitiveUserIndex);
+			command.setArgument(NodeIndex.caseInsensitive.name(), caseInsensitiveIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
 			command.setArgument(NodeIndex.layer.name(), layerIndex);
 
@@ -185,20 +185,20 @@ public class NodeService implements SingletonService {
 		// index creation transaction
 		try ( final Transaction tx = graphDb.beginTx() ) {
 
-			uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
-			nodeIndices.put(NodeIndex.uuid, uuidIndex);
+//			uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+//			nodeIndices.put(NodeIndex.uuid, uuidIndex);
+//
+//			logger.log(Level.FINE, "UUID index ready.");
+//			logger.log(Level.FINE, "Initializing user index...");
+//
+//			userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
+//			nodeIndices.put(NodeIndex.user, userIndex);
+//
+//			logger.log(Level.FINE, "Node Email index ready.");
+//			logger.log(Level.FINE, "Initializing exact email index...");
 
-			logger.log(Level.FINE, "UUID index ready.");
-			logger.log(Level.FINE, "Initializing user index...");
-
-			userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
-			nodeIndices.put(NodeIndex.user, userIndex);
-
-			logger.log(Level.FINE, "Node Email index ready.");
-			logger.log(Level.FINE, "Initializing exact email index...");
-
-			caseInsensitiveUserIndex = graphDb.index().forNodes("caseInsensitiveAllUsers", MapUtil.stringMap( "provider", "lucene", "type", "exact", "to_lower_case", "true" ));
-			nodeIndices.put(NodeIndex.caseInsensitiveUser, caseInsensitiveUserIndex);
+			caseInsensitiveIndex = graphDb.index().forNodes("caseInsensitiveAllNodes", MapUtil.stringMap( "provider", "lucene", "type", "exact", "to_lower_case", "true" ));
+			nodeIndices.put(NodeIndex.caseInsensitive, caseInsensitiveIndex);
 
 			logger.log(Level.FINE, "Node case insensitive node index ready.");
 			logger.log(Level.FINE, "Initializing case insensitive fulltext node index...");

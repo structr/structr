@@ -72,6 +72,11 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
+	@Override
 	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
 
 		if (notion != null) {

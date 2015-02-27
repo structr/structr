@@ -26,38 +26,43 @@ import org.structr.core.converter.PropertyMapper;
 /**
  * A property that maps another (local) property of the same node. This class can be used
  * to establish name mappings between different properties.
- * 
+ *
  * @author Christian Morgner
  */
 public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
-	
+
 	private PropertyKey<T> mappedKey = null;
-	
+
 	public MappedProperty(String name, PropertyKey<T> mappedKey) {
 		super(name);
-		
+
 		this.mappedKey = mappedKey;
 	}
-	
+
 	public PropertyKey<T> mappedKey() {
 		return mappedKey;
 	}
-	
+
 	@Override
 	public String typeName() {
 		return mappedKey.typeName();
 	}
 
 	@Override
+	public Class valueType() {
+		return mappedKey.valueType();
+	}
+
+	@Override
 	public Integer getSortType() {
 		return mappedKey.getSortType();
 	}
-	
+
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
-	
+
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new PropertyMapper(securityContext, entity, mappedKey);
@@ -67,7 +72,7 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		return mappedKey.inputConverter(securityContext);
 	}
-	
+
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {

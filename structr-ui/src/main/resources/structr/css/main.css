@@ -105,6 +105,20 @@ input[type="text"]:disabled, input.disabled {
     left: 32px;
 }
 
+#header .structr-version {
+    float: right;
+    color: #fff;
+    font-size: 8.5px;
+    margin: 38px 12px 0 0;
+}
+
+#header .structr-version a,
+#header .structr-version a:visited,
+#header .structr-version a:hover {
+    color: #fff;
+    text-decoration: none;
+}
+
 #main-help {
     position: absolute;
     top: 67px;
@@ -672,6 +686,10 @@ ul#previewTabs {
     display: none;
 }
 
+.page .position {
+    color: #999;
+}
+
 .image .icons {
     width: 100px;
     height: 20px;
@@ -825,6 +843,17 @@ span.id {
     height: 16px;
     width: 16px;
     margin-left: 4px ! important;
+    vertical-align: top;
+    /*float: right;*/
+    position: absolute;
+}
+
+.link_icon {
+    display: none;
+    cursor: pointer;
+    height: 16px;
+    width: 16px;
+    margin-left: 24px ! important;
     vertical-align: top;
     /*float: right;*/
     position: absolute;
@@ -1783,6 +1812,17 @@ button.add_property {
     /*display: none;*/
 }
 
+.starttag, .endtag {
+    font-family: monospace;
+    background-color: #fff;
+    color: #888;
+    margin-left: 30px;
+}
+
+.endtag {
+    margin-top:  -4px;    
+}
+
 #queries > div, #filters > div {
     margin: 8px 8px 0 30px;
 }
@@ -1797,6 +1837,7 @@ button.add_property {
 
 #queries textarea {
     width: 327px;
+    font-size: 1.3em;
 }
 
 .query-box {

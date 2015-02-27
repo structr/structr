@@ -33,6 +33,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -74,13 +75,13 @@ public class SearchCommand extends AbstractCommand {
 
 				try {
 					Map<String, Object> obj = null;
-					
+
 					if (StringUtils.isNoneBlank(paramString)) {
-						
+
 						obj = new Gson().fromJson(paramString, Map.class);
-						
+
 					}
-					
+
 					final List<GraphObject> result = StructrApp.getInstance(securityContext).cypher(cypherQuery, obj);
 
 					webSocketData.setResult(result);
@@ -102,10 +103,10 @@ public class SearchCommand extends AbstractCommand {
 				final RestDataSource restDataSource = new RestDataSource();
 				try {
 					securityContext.setRequest(getWebSocket().getRequest());
-					
-					webSocketData.setResult(restDataSource.getData(securityContext, null, restQuery));
+
+					webSocketData.setResult(restDataSource.getData(new RenderContext(securityContext), restQuery));
 					getWebSocket().send(webSocketData, true);
-					
+
 					return;
 
 				} catch (FrameworkException ex) {

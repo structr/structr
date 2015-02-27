@@ -428,6 +428,31 @@ var Command = {
         return sendObj(obj, callback);
     },
     /**
+     * Send a SAVE_LOCAL_STORAGE command to the server.
+     *
+     * The server will save the given string as 'localStorage' attribute
+     * of the current user.
+     *
+     */
+    saveLocalStorage: function(callback) {
+        var obj = {};
+        obj.command = 'SAVE_LOCAL_STORAGE';
+        var data = {};
+        data.localStorageString = JSON.stringify(localStorage);
+        obj.data = data;
+        log('saveLocalStorage()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a GET_LOCAL_STORAGE command to the server.
+     */
+    getLocalStorage: function() {
+        var obj = {};
+        obj.command = 'GET_LOCAL_STORAGE';
+        log('getLocalStorage()', obj);
+        return sendObj(obj);
+    },
+    /**
      * Send a REPLACE_WIDGET command to the server.
      *
      * The server will create nodes from the given source and
@@ -573,12 +598,13 @@ var Command = {
      * and append it to a the parent with given parentId.
      *
      */
-    cloneNode: function(id, parentId) {
+    cloneNode: function(id, parentId, deep) {
         var obj = {};
         obj.command = 'CLONE_NODE';
         obj.id = id;
         var data = {};
         data.parentId = parentId;
+        data.deep = deep;
         obj.data = data;
         log('cloneNode()', obj);
         return sendObj(obj);

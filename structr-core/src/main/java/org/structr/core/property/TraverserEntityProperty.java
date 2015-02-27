@@ -119,6 +119,11 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 	}
 
 	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
+	@Override
 	public boolean isCollection() {
 		return false;
 	}

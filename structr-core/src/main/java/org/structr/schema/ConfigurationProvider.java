@@ -92,7 +92,7 @@ public interface ConfigurationProvider {
 
 	public Set<Class> getInterfacesForType(final Class type);
 
-	public Set<Method> getExportedMethodsForType(final Class type);
+	public Map<String, Method> getExportedMethodsForType(final Class type);
 
 	public boolean isKnownProperty(final PropertyKey key);
 
@@ -100,11 +100,11 @@ public interface ConfigurationProvider {
 
 	public void registerFactoryDefinition(final FactoryDefinition factory);
 
-	public Set<Method> getAnnotatedMethods(final Class entityType, final Class annotationType);
+	public Map<String, Method> getAnnotatedMethods(final Class entityType, final Class annotationType);
 
 	/**
 	 * Registers the given property with the given type.
-	 * 
+	 *
 	 * @param type
 	 * @param propertyKey
 	 */

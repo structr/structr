@@ -41,6 +41,12 @@ public class CaseHelper {
 
 	public static String toUnderscore(final String input, final boolean plural) {
 
+		if (input.toUpperCase().equals(input)) {
+
+			return input;
+
+		}
+
 		StringBuilder out = new StringBuilder();
 
 		for (int i = 0; i < input.length(); i++) {

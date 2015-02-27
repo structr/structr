@@ -76,6 +76,12 @@ var _Contents = {
         
         _Entities.appendAccessControlIcon(div, entity);
 
+        div.append('<img title="Clone content node ' + entity.id + '" alt="Clone content node ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
+        $('.clone_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            Command.cloneNode(entity.id, entity.parent.id, true)
+        });
+
         div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
@@ -241,6 +247,16 @@ var _Contents = {
             $('#words').text(editor.getValue().match(/\S+/g).length);
         });
 
+        var scrollInfo = JSON.parse(localStorage.getItem(scrollInfoKey + '_' + entity.id));
+        if (scrollInfo) {
+            editor.scrollTo(scrollInfo.left, scrollInfo.top);
+        }
+
+        editor.on('scroll', function() {
+            var scrollInfo = editor.getScrollInfo();
+            localStorage.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
+        });
+
         dialogSaveButton.on('click', function(e) {
             e.stopPropagation();
 
@@ -312,7 +328,7 @@ var _Contents = {
         editor.id = entity.id;
 
         editor.focus();
-        editor.execCommand('goDocEnd');
+        //editor.execCommand('goDocEnd');
 
     }
 };

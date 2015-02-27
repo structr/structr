@@ -23,6 +23,14 @@ var StructrModel = {
     obj: function(id) {
         return StructrModel.objects[id];
     },
+    
+    ensureObject: function (entity) {
+        if (!entity || entity.id === undefined) {
+            return false;
+        }
+        return StructrModel.obj(entity.id);
+    },
+
     createSearchResult: function(data) {
 
         var obj = new StructrSearchResult(data);
@@ -350,7 +358,21 @@ var StructrModel = {
                     $(element).children('.id').after(classIdString);
                 }
             }
-
+            
+            // update icon
+            var icon = undefined;
+            if ($(element).hasClass('element')) {
+                var isComponent = obj.sharedComponent || (obj.syncedNodes && obj.syncedNodes.length);
+                var isActiveNode = obj.hideOnIndex || obj.hideOnDetail || obj.hideConditions || obj.showConditions || obj.dataKey;
+                icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
+           } else if ($(element).hasClass('file')) {
+                icon = _Files.getIcon(obj);
+            }
+            var iconEl = $(element).children('.typeIcon');
+            if (icon && iconEl.length) {
+                iconEl.attr('src', icon);
+            }
+ 
             // check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
             var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
             var keyIcon = $(element).children('.key_icon');

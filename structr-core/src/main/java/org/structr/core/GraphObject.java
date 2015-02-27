@@ -19,12 +19,16 @@
 package org.structr.core;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
@@ -193,7 +197,7 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is modified. This method can cause the underlying
@@ -205,7 +209,7 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is deleted. This method can cause the underlying
@@ -218,7 +222,7 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException;
+	public boolean onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException;
 
 	/**
 	 * Called when an entity was successfully created. Please note that this method
@@ -227,7 +231,7 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the creation took place
 	 */
-	public void afterCreation(SecurityContext securityContext);
+	public void afterCreation(final SecurityContext securityContext);
 
 	/**
 	 * Called when an entity was successfully modified. Please note that this method
@@ -236,7 +240,7 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the modification took place
 	 */
-	public void afterModification(SecurityContext securityContext);
+	public void afterModification(final SecurityContext securityContext);
 
 	/**
 	 * Called when an entity was successfully deleted. Please note that this method
@@ -244,8 +248,9 @@ public interface GraphObject {
 	 * deletion.
 	 *
 	 * @param securityContext the context in which the deletion took place
+	 * @param properties
 	 */
-	public void afterDeletion(SecurityContext securityContext, PropertyMap properties);
+	public void afterDeletion(final SecurityContext securityContext, final PropertyMap properties);
 
 	/**
 	 * Called when the owner of this entity was successfully modified. Please note
@@ -254,7 +259,7 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the owner modification took place
 	 */
-	public void ownerModified(SecurityContext securityContext);
+	public void ownerModified(final SecurityContext securityContext);
 
 	/**
 	 * Called when the permissions of this entity were successfully modified. Please note
@@ -263,7 +268,7 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the permission modification took place
 	 */
-	public void securityModified(SecurityContext securityContext);
+	public void securityModified(final SecurityContext securityContext);
 
 	/**
 	 * Called when the location of this entity was successfully modified. Please note
@@ -272,20 +277,33 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the location modification took place
 	 */
-	public void locationModified(SecurityContext securityContext);
+	public void locationModified(final SecurityContext securityContext);
 
 	/**
 	 * Called when a non-local modification occurred in the neighbourhood of this node.
 	 *
 	 * @param securityContext
 	 */
-	public void propagatedModification(SecurityContext securityContext);
+	public void propagatedModification(final SecurityContext securityContext);
 
 	public void addToIndex();
 	public void updateInIndex();
 	public void removeFromIndex();
 	public void indexPassiveProperties();
 
-	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException;
-	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException;
+	public String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
+	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException;
+	public Object invokeMethod(final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
+
+
+	// ----- Cloud synchronization and replication -----
+	public List<GraphObject> getSyncData() throws FrameworkException;
+
+	public boolean isNode();
+	public boolean isRelationship();
+
+	public NodeInterface getSyncNode();
+	public RelationshipInterface getSyncRelationship();
+
+	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException;
 }

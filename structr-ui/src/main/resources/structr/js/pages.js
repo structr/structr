@@ -26,6 +26,7 @@ var sel;
 var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
+var leftSlideoutWidthKey = 'structrLeftSlideoutWidthKey_' + port;
 var activeTabRightKey = 'structrActiveTabRight_' + port;
 var activeTabLeftKey = 'structrActiveTabLeft_' + port;
 var selectedTypeKey = 'structrSelectedType_' + port;
@@ -143,7 +144,12 @@ var _Pages = {
         rsw = widgetsSlideout.width() + 12;
 
         $('#pagesTab').on('click', function() {
-            if (Math.abs(pagesSlideout.position().left + lsw) <= 3) {
+            if ($(this).hasClass('noclick')) {
+               $(this).removeClass('noclick');
+               return;
+            }
+            var psw = pagesSlideout.width() + 12;
+            if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
                 Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
             } else {
@@ -152,7 +158,8 @@ var _Pages = {
         }).droppable({
             tolerance: 'touch',
             over: function(e, ui) {
-                if (Math.abs(pagesSlideout.position().left + lsw) <= 3) {
+                var psw = pagesSlideout.width() + 12;
+                if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
                     Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
                     Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
                 } else {
@@ -162,7 +169,12 @@ var _Pages = {
         });
 
         $('#activeElementsTab').on('click', function() {
-            if (Math.abs(activeElementsSlideout.position().left + lsw) <= 3) {
+            if ($(this).hasClass('noclick')) {
+               $(this).removeClass('noclick');
+               return;
+            }
+            var asw = activeElementsSlideout.width() + 12;
+            if (Math.abs(activeElementsSlideout.position().left + asw) <= 3) {
                 Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function() {
                 });
@@ -172,7 +184,12 @@ var _Pages = {
         });
 
         $('#dataBindingTab').on('click', function() {
-            if (Math.abs(dataBindingSlideout.position().left + lsw) <= 3) {
+            if ($(this).hasClass('noclick')) {
+               $(this).removeClass('noclick');
+               return;
+            }
+            var dsw = dataBindingSlideout.width() + 12;
+            if (Math.abs(dataBindingSlideout.position().left + dsw) <= 3) {
                 Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout], activeTabLeftKey);
                 Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function() {
                     _Pages.reloadDataBindingWizard();
@@ -249,6 +266,22 @@ var _Pages = {
         _Pages.refresh();
 
         if (activeTabLeft) {
+            
+            if (localStorage.getItem(leftSlideoutWidthKey)) {
+                
+                var leftSlideoutWidth = parseInt(localStorage.getItem(leftSlideoutWidthKey));
+                var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
+                leftSlideout.css({
+                    width: leftSlideoutWidth + 'px',
+                    left: '-' + (leftSlideoutWidth + 12) + 'px'
+                });
+                setTimeout(function() {
+                    $('.node.page', leftSlideout).css({
+                        width: (leftSlideoutWidth-13) + 'px'
+                    });
+                }, 100);
+                log(localStorage.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
+            }
             $('#' + activeTabLeft).addClass('active').click();
         }
 
@@ -512,7 +545,7 @@ var _Pages = {
             var self = $(this);
             var pageId = self.prop('id').substring('preview_'.length);
             var iframe = $('#preview_' + pageId);
-            iframe.prop('src', '');
+            iframe.contents().empty();
             log('iframe', pageId, 'deactivated');
         });
     },
@@ -578,6 +611,8 @@ var _Pages = {
     },
     appendPageElement: function(entity) {
 
+        entity = StructrModel.ensureObject(entity);
+
         var hasChildren = entity.children && entity.children.length;
 
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
@@ -590,7 +625,7 @@ var _Pages = {
         });
 
         div.append('<img class="typeIcon" src="icon/page.png">'
-                + '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
+                + '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
         _Entities.appendAccessControlIcon(div, entity);
@@ -641,20 +676,17 @@ var _Pages = {
         $('#preview_' + entity.id).load(function() {
             var doc = $(this).contents();
             var head = $(doc).find('head');
-            if (head)
+            if (head) {
                 head.append('<style media="screen" type="text/css">'
                         + '* { z-index: 0}\n'
                         + '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-                        //+ '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
                         + '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
-                        //		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
-                        //		+ '.structr-element-container { }\n'
                         + '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
                         + '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
                         + '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
                         + '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-                        + '.structr-editable-area { color: #222; background-color: #ffe; padding: 1px; margin: -1px; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
-                        + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
+                        + '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
+                        + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
                         + '.link-hover { border: 1px solid #00c; }\n'
                         + '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
                         /**
@@ -664,8 +696,8 @@ var _Pages = {
                          */
                         + '.navbar-fixed-top { -webkit-transform: none ! important; }'
                         + '</style>');
-
-            _Pages.findDroppablesInIframe($(this).contents(), entity.id).each(function(i, element) {
+            }
+            _Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
                 var el = $(element);
 
                 _Dragndrop.makeDroppable(el, entity.id);
@@ -749,76 +781,62 @@ var _Pages = {
                 }
             });
 
-            $(this).contents().find('*').each(function(i, element) {
+            doc.find('*').each(function(i, element) {
 
                 getComments(element).forEach(function(c) {
 
-                    var inner = $(getNonCommentSiblings(c.textNode));
-                    $(getNonCommentSiblings(c.textNode)).remove();
-                    $(c.textNode).replaceWith('<span data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, true) + '">' + escapeTags(c.textNode.nodeValue) + '</span>');
-
+                    var inner = $(getNonCommentSiblings(c.node));
+                    $(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
                     var el = $(element).children('[data-structr-id="' + c.id + '"]');
-
                     el.append(inner);
 
                     $(el).on({
                         mouseover: function(e) {
                             e.stopPropagation();
                             var self = $(this);
-                            //self.replaceWith('<span data-structr-id="' + id + '">' + c.nodeValue + '</span>');
-
                             self.addClass('structr-editable-area');
-                            //$('#hoverStatus').text('Editable content element: ' + self.attr('data-structr_content_id'));
-                            var contentSourceId = self.attr('data-structr-id');
-                            _Pages.highlight(contentSourceId);
+                            _Pages.highlight(self.attr('data-structr-id'));
                         },
                         mouseout: function(e) {
                             e.stopPropagation();
                             var self = $(this);
-                            //swapFgBg(self);
                             self.removeClass('structr-editable-area');
-                            //self.prop('contenteditable', false);
-                            //$('#hoverStatus').text('-- non-editable --');
-                            var contentSourceId = self.attr('data-structr-id');
-                            _Pages.unhighlight(contentSourceId);
+                            _Pages.unhighlight(self.attr('data-structr-id'));
                         },
                         click: function(e) {
                             e.stopPropagation();
                             e.preventDefault();
                             var self = $(this);
+
+                            if (contentSourceId) {
+                                // click on same element again?
+                                if (self.attr('data-structr-id') === contentSourceId) {
+                                    return;
+                                }
+                            }
+                            contentSourceId = self.attr('data-structr-id');
+
                             if (self.hasClass('structr-editable-area-active')) {
                                 return false;
                             }
-                            self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true);
+                            self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
 
-                            // Store old text in global var
-                            textBeforeEditing = self.text();//cleanText(self.contents());
-
-                            //var srcText = expandNewline(self.attr('data-structr-raw-content'));
+                            // Store old text in global var and attribute
+                            textBeforeEditing = self.text();
+                            
                             var srcText = expandNewline(self.attr('data-structr-raw-content'));
+
                             // Replace only if it differs (e.g. for variables)
                             if (srcText !== textBeforeEditing) {
                                 self.html(srcText);
                                 textBeforeEditing = srcText;
                             }
-
-                            var structrId = self.attr('data-structr-id');
-                            _Pages.expandTreeNode(structrId);
-
+                            _Pages.expandTreeNode(contentSourceId);
                             return false;
-
                         },
                         blur: function(e) {
                             e.stopPropagation();
-                            var self = $(this);
-                            var contentSourceId = self.attr('data-structr-id');
-                            var text = unescapeTags(cleanText(self.html()));
-                            //Command.patch(contentSourceId, textBeforeEditing, text);
-                            Command.setProperty(contentSourceId, 'content', text);
-                            contentSourceId = null;
-                            self.attr('contenteditable', false);
-                            self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
-                            _Pages.reloadPreviews();
+                            _Pages.saveInlineElement(this);
                         }
                     });
 
@@ -830,80 +848,18 @@ var _Pages = {
         
         _Dragndrop.makeDroppable(div);
         
-//        div.droppable({
-//            accept: '#add_html, .html_element, .template',
-//            greedy: true,
-//            hoverClass: 'nodeHover',
-//            tolerance: 'pointer',
-//            drop: function(event, ui) {
-//
-//                var self = $(this);
-//                log('dropped onto', self);
-//                // Only html elements are allowed, and only if none exists
-//
-//                if (getId(self) === getId(sortParent))
-//                    return false;
-//
-//                _Entities.ensureExpanded(self);
-//                sorting = false;
-//                sortParent = undefined;
-//
-//                var nodeData = {};
-//
-//                var page = self.closest('.page')[0];
-//
-//                var contentId = getId(ui.draggable);
-//                var elementId = getId(self);
-//                log('elementId', elementId);
-//
-//                var source = StructrModel.obj(contentId);
-//                var target = StructrModel.obj(elementId);
-//
-//                if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
-//                    event.preventDefault();
-//                    event.stopPropagation();
-//                    Command.copyDOMNode(source.id, target.id);
-//                    //_Entities.showSyncDialog(source, target);
-//                    _Elements.reloadComponents();
-//                    return;
-//                } else {
-//                    log('not copying node');
-//                }
-//
-//                if (contentId === elementId) {
-//                    log('drop on self not allowed');
-//                    return;
-//                }
-//
-//                var tag;
-//                var cls = Structr.getClass($(ui.draggable));
-//
-//                if (!contentId) {
-//                    tag = $(ui.draggable).text();
-//
-//                    if (tag !== 'html') {
-//                        return false;
-//                    }
-//
-//                    var pageId = (page ? getId(page) : target.pageId);
-//
-//                    Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
-//                    return;
-//
-//                } else {
-//                    tag = cls;
-//                    log('appendChild', contentId, elementId);
-//                    sorting = false;
-//                    Command.appendChild(contentId, elementId);
-//                    //$(ui.draggable).remove();
-//
-//                    return;
-//                }
-//                log('drop event in appendPageElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
-//            }
-//        });
-
         return div;
+
+    },
+    saveInlineElement: function(el) {
+        var self = $(el);
+        contentSourceId = self.attr('data-structr-id');
+        var text = unescapeTags(cleanText(self.html()));
+        Command.setProperty(contentSourceId, 'content', text, false);
+        self.attr('contenteditable', false);
+        self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
+        _Pages.loadIframe(activeTab);
+        contentSourceId = null;
 
     },
     findDroppablesInIframe: function(iframeDocument, id) {
@@ -919,6 +875,7 @@ var _Pages = {
     },
     appendElementElement: function(entity, refNode, refNodeIsParent) {
         log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');')
+        entity = StructrModel.ensureObject(entity);
         var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
         if (!div) {
@@ -1166,3 +1123,26 @@ var _Pages = {
         }
     }
 };
+
+function ucs2decode(string) {
+		var output = [],
+		    counter = 0,
+		    length = string.length,
+		    value,
+		    extra;
+		while (counter < length) {
+			value = string.charCodeAt(counter++);
+			if ((value & 0xF800) == 0xD800 && counter < length) {
+				// high surrogate, and there is a next character
+				extra = string.charCodeAt(counter++);
+				if ((extra & 0xFC00) == 0xDC00) { // low surrogate
+					output.push(((value & 0x3FF) << 10) + (extra & 0x3FF) + 0x10000);
+				} else {
+					output.push(value, extra);
+				}
+			} else {
+				output.push(value);
+			}
+		}
+		return output;
+	}

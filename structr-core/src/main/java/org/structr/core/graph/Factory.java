@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -343,12 +344,12 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			// FIXME: IndexHits#size() may be inaccurate!
 			int size = input.size();
-			
+
 			SecurityContext securityContext = factoryProfile.getSecurityContext();
 
 			// In case of superuser or in public context, don't check the overall result count
 			boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
-			
+
 			if(dontCheckCount){
 				fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1);//* pageSize;
 			} else {
@@ -369,61 +370,79 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		int count	    = 0;
 		int overallCount    = 0;
 		boolean pageFull    = false;
-		if(dontCheckCount){		
+
+		if(dontCheckCount){
+
 			overallCount = input.size();
-			PagingIterator<S> neoResult = new PagingIterator<S>(input.iterator(), pageSize) ; 
-			neoResult.page(offset);
-			
-			Iterator<S> resultPage = neoResult.nextPage(); 
-			
+
+			PagingIterator<S> neoResult = new PagingIterator<>(input.iterator(), pageSize) ;
+
+			try {
+				neoResult.page(offset);
+
+			} catch (NoSuchElementException nex) {
+
+				// do not throw an exception when a page beyond the
+				// number of elements is returned,
+				// return empty result instead
+				return new Result(nodes, overallCount, true, false);
+			}
+
+			Iterator<S> resultPage = neoResult.nextPage();
+
 			while ( resultPage.hasNext()) {
-				T n = (T) instantiate(resultPage.next());
-				if(n != null){
-					nodes.add(n);
+
+				final S s = resultPage.next();
+				final T t = (T) instantiate(s);
+
+				if(t != null){
+
+					nodes.add(t);
 				}
 			}
-		} else {		
+
+		} else {
+
 			try (final IndexHits<S> closeable = input) {
-	
-				for (S node : closeable) {
-	
-					T n = instantiate(node);
-	
+
+				for (S s : closeable) {
+
+					T n = instantiate(s);
+
 					if (n != null) {
-	
+
 						overallCount++;
-	
+
 						if (++position > offset) {
-	
+
 							// stop if we got enough nodes
 							// and we are above the limit
 							if (++count > pageSize) {
-	
+
 								pageFull = true;
-	
+
 								if (dontCheckCount) {
 									overallCount = overallResultCount;
 									break;
 								}
-	
+
 							}
-	
+
 							if (!pageFull) {
-	
+
 								nodes.add(n);
-	
+
 							}
-	
+
 							if (pageFull && (overallCount >= RESULT_COUNT_ACCURATE_LIMIT)) {
-	
+
 								// The overall count may be inaccurate
 								return new Result(nodes, overallResultCount, true, false);
-	
+
 							}
 						}
-	
 					}
-	
+
 				}
 			}
 		}

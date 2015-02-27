@@ -19,24 +19,18 @@
 
 package org.structr.schema.action;
 
+import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Ownership;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.parser.Functions;
 
 /**
  *
@@ -44,218 +38,90 @@ import org.structr.core.property.PropertyKey;
  */
 public class ActionContext {
 
-	protected Map<String, Object> tmpStore   = new LinkedHashMap<>();
-	protected Map<Integer, Integer> counters = new LinkedHashMap<>();
-	protected ErrorBuffer errorBuffer        = new ErrorBuffer();
-	protected GraphObject parent             = null;
-	protected Object data                    = null;
+	protected SecurityContext securityContext = null;
+	protected Map<String, String> headers     = new HashMap<>();
+	protected Map<String, Object> constants   = new HashMap<>();
+	protected Map<String, Object> tmpStore    = new HashMap<>();
+	protected Map<Integer, Integer> counters  = new HashMap<>();
+	protected ErrorBuffer errorBuffer         = new ErrorBuffer();
+	protected StringBuilder outputBuffer      = new StringBuilder();
+	private boolean javaScriptContext		  = false;
 
-	public ActionContext() {
-		this(null, null);
+	public ActionContext(final SecurityContext securityContext) {
+		this(securityContext, null);
+	}
+
+	public ActionContext(final SecurityContext securityContext, final Map<String, Object> parameters) {
+
+		if (parameters != null) {
+			this.tmpStore.putAll(parameters);
+		}
+
+		this.securityContext = securityContext;
 	}
 
 	public ActionContext(final ActionContext other) {
-		this.tmpStore = other.tmpStore;
-		this.counters = other.counters;
-		this.parent = other.parent;
-		this.errorBuffer = other.errorBuffer;
-		this.data = other.data;
+
+		this.tmpStore        = other.tmpStore;
+		this.counters        = other.counters;
+		this.errorBuffer     = other.errorBuffer;
+		this.constants       = other.constants;
+		this.securityContext = other.securityContext;
 	}
 
-	public ActionContext(final ActionContext other, final GraphObject parent, final Object data) {
-		this.tmpStore = other.tmpStore;
-		this.counters = other.counters;
-		this.parent = other.parent;
-		this.errorBuffer = other.errorBuffer;
+	public ActionContext(final ActionContext other, final Object data) {
 
-		this.data = data;
+		this(other);
+
+		init(data);
 	}
 
-	public ActionContext(final GraphObject parent, final Object data) {
-		this.parent = parent;
-		this.data   = data;
+	public ActionContext(final SecurityContext securityContext, final Object data) {
+
+		this.securityContext = securityContext;
+
+		init(data);
 	}
 
-	public boolean returnRawValue(final SecurityContext securityContext) {
+	private void init(final Object data) {
+
+		constants.put("data", data);
+		constants.put("true", true);
+		constants.put("false", false);
+	}
+
+	public SecurityContext getSecurityContext() {
+		return securityContext;
+	}
+
+	public boolean returnRawValue() {
 		return false;
 	}
 
-	public Object getReferencedProperty(final SecurityContext securityContext, final GraphObject entity, final String refKey) throws FrameworkException {
+	public Object getReferencedProperty(final GraphObject entity, final String refKey, final Object initialData) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
 		final String[] parts           = refKey.split("[\\.]+");
-		String referenceKey            = parts[parts.length - 1];
-		String defaultValue            = null;
-		Object _data                   = null;
-
-		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
-
-			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
-			referenceKey = ref[0];
-			if (ref.length > 1) {
-
-				defaultValue = ref[1];
-
-			} else {
-
-				defaultValue = "";
-			}
-		}
+		Object _data                   = initialData;
 
 		// walk through template parts
-		for (int i = 0; (i < parts.length); i++) {
+		for (int i = 0; i < parts.length; i++) {
 
-			String part = parts[i];
+			String key          = parts[i];
+			String defaultValue = null;
 
-			if (_data != null && _data instanceof GraphObject) {
 
+			if (StringUtils.contains(key, DEFAULT_VALUE_SEP)) {
 
-				// special keyword "_source", works on relationship entities only
-				if ("_source".equals(part) && _data instanceof RelationshipInterface) {
+				String[] ref = StringUtils.split(key, DEFAULT_VALUE_SEP);
+				key          = ref[0];
 
-					_data = ((RelationshipInterface)_data).getSourceNode();
-					continue;
+				if (ref.length > 1) {
+					defaultValue = ref[1];
 				}
-
-				// special keyword "_target", works on relationship entities only
-				if ("_target".equals(part) && _data instanceof RelationshipInterface) {
-
-					_data = ((RelationshipInterface)_data).getTargetNode();
-					continue;
-				}
-
-				PropertyKey referenceKeyProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), part);
-				_data                            = ((GraphObject)_data).getProperty(referenceKeyProperty);
-
-				if (_data == null) {
-
-					// check for default value
-					if (defaultValue != null && StringUtils.contains(refKey, "!")) {
-
-						return numberOrString(defaultValue);
-					}
-
-					// Need to return null here to avoid _data sticking to the (wrong) parent object
-					return null;
-
-				}
-
 			}
 
-			// special keyword "size"
-			if (i > 0 && "size".equals(part) && _data instanceof List) {
-				return ((List)_data).size();
-			}
-
-			// special keyword "now":
-			if ("now".equals(part)) {
-
-				return new Date();
-			}
-
-			// special keyword "me"
-			if ("me".equals(part)) {
-
-				Principal me = (Principal) securityContext.getUser(false);
-
-				if (me != null) {
-
-					_data = me;
-
-					continue;
-				}
-
-			}
-
-			// special boolean keywords
-			if ("true".equals(part)) {
-				return true;
-			}
-
-			if ("false".equals(part)) {
-				return false;
-			}
-
-			// the following keywords work only on root level
-			// so that they can be used as property keys for data objects
-			if (_data == null) {
-
-				// special keyword "parent":
-				if ("parent".equals(part)) {
-
-					_data = parent;
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-				}
-
-				// details data object id
-				if ("id".equals(part)) {
-
-					return entity.getUuid();
-				}
-
-				// special keyword "this"
-				if ("this".equals(part)) {
-
-					_data = entity;
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "data"
-				if ("data".equals(part)) {
-
-					_data = data;
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "element"
-				if ("element".equals(part)) {
-
-					_data = entity;
-
-					if (parts.length == 1) {
-						return _data;
-					}
-
-					continue;
-
-				}
-
-				// special keyword "owner"
-				if (entity instanceof NodeInterface && "owner".equals(part)) {
-
-					Ownership rel = ((NodeInterface)entity).getIncomingRelationship(PrincipalOwnsNode.class);
-					if (rel != null) {
-
-						_data = rel.getSourceNode();
-
-						if (parts.length == 1) {
-							return _data;
-						}
-					}
-
-					continue;
-
-				}
-
-			}
-
+			_data = evaluate(entity, key, _data, defaultValue);
 		}
 
 		return _data;
@@ -307,12 +173,114 @@ public class ActionContext {
 		return tmpStore.get(key);
 	}
 
-	protected Object numberOrString(final String value) {
+	public Map<String, Object> getAllVariables () {
+		return tmpStore;
+	}
 
-		if (NumberUtils.isNumber(value)) {
-			return NumberUtils.createNumber(value);
+	public void addHeader(final String key, final String value) {
+		headers.put(key, value);
+	}
+
+	public Map<String, String> getHeaders() {
+		return headers;
+	}
+
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
+
+		Object value = constants.get(key);
+		if (value == null) {
+
+			// special HttpServletRequest handling
+			if (data instanceof HttpServletRequest) {
+				value = ((HttpServletRequest)data).getParameter(key);
+			}
+
+			// special handling of maps..
+			if (data instanceof Map) {
+				value = ((Map)data).get(key);
+			}
+
+			if (data != null) {
+
+				if (data instanceof GraphObject) {
+
+					value = ((GraphObject)data).evaluate(securityContext, key, defaultValue);
+
+				} else {
+
+					switch (key) {
+
+						case "size":
+							if (data instanceof Collection) {
+								return ((Collection)data).size();
+							}
+							if (data.getClass().isArray()) {
+								return ((Object[])data).length;
+							}
+							break;
+					}
+
+				}
+
+			} else {
+
+				// "data-less" keywords to start the evaluation chain
+				switch (key) {
+
+					case "request":
+						return securityContext.getRequest();
+
+					case "now":
+						return new Date();
+
+					case "me":
+						return securityContext.getUser(false);
+
+					case "element":
+					case "this":
+						return entity;
+				}
+
+			}
+		}
+
+		if (value == null && defaultValue != null) {
+			return Functions.numberOrString(defaultValue);
 		}
 
 		return value;
+	}
+
+	public void print(final Object... objects) {
+
+		for (final Object obj : objects) {
+
+			if (obj != null) {
+
+				outputBuffer.append(obj.toString());
+			}
+		}
+	}
+
+	public void clear() {
+		outputBuffer.setLength(0);
+	}
+
+	public String getOutput() {
+		return outputBuffer.toString();
+	}
+
+	/**
+	 * @return the javaScriptContext
+	 */
+	public boolean isJavaScriptContext() {
+		return javaScriptContext;
+	}
+
+	/**
+	 * @param javaScriptContext the javaScriptContext to set
+	 */
+	public void setJavaScriptContext(boolean javaScriptContext) {
+		this.javaScriptContext = javaScriptContext;
 	}
 }

@@ -33,41 +33,41 @@ import org.structr.core.graph.TransactionCommand;
 
 /**
  * Abstract base class for primitive properties.
- * 
+ *
  * @author Christian Morgner
  * @param <T>
  */
 public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 	private static final Logger logger = Logger.getLogger(AbstractPrimitiveProperty.class.getName());
-	
+
 	public static final String STRING_EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
-	
-	public AbstractPrimitiveProperty(String name) {
+
+	public AbstractPrimitiveProperty(final String name) {
 		super(name);
 	}
 
-	public AbstractPrimitiveProperty(String jsonName, String dbName) {
+	public AbstractPrimitiveProperty(final String jsonName, final String dbName) {
 		super(jsonName, dbName);
 	}
 
-	public AbstractPrimitiveProperty(String jsonName, String dbName, T defaultValue) {
+	public AbstractPrimitiveProperty(final String jsonName, final String dbName, final T defaultValue) {
 		super(jsonName, dbName, defaultValue);
 	}
-	
+
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
-	
+
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		Object value = null;
-		
+
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 		if (propertyContainer != null) {
-			
+
 			// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
 			if (propertyContainer.hasProperty(dbName())) {
 
@@ -85,7 +85,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					value = converter.revert(value);
 
 				} catch (Throwable t) {
-					
+
 					t.printStackTrace();
 
 					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
@@ -93,7 +93,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						getClass().getSimpleName(),
 						t
 					});
-					
+
 				}
 			}
 		}
@@ -102,13 +102,13 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		if (value == null) {
 			value = defaultValue();
 		}
-		
+
 		return (T)value;
 	}
-	
+
 	@Override
-	public void setProperty(SecurityContext securityContext, final GraphObject obj, T value) throws FrameworkException {
-		
+	public void setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException {
+
 		PropertyConverter converter = databaseConverter(securityContext, obj);
 		final Object convertedValue;
 
@@ -156,7 +156,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 			// catch all sorts of errors and wrap them in a FrameworkException
 			try {
-				
+
 				// save space
 				if (convertedValue == null) {
 
@@ -178,11 +178,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					}
 				}
-				
+
 			} catch (Throwable t) {
-				
+
+
 				t.printStackTrace();
-				
+
 				// throw FrameworkException with the given cause
 				throw new FrameworkException(500, t);
 			}
@@ -198,14 +199,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				}
 			}
 		}
-		
+
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return null;
 	}
-	
+
 	@Override
 	public boolean isCollection() {
 		return false;

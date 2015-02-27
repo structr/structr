@@ -55,6 +55,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.JsonInputGSONAdapter;
+import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
@@ -134,7 +135,15 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 
 		// inject resources
-		resourceMap.putAll(config.getResourceProvider().getResources());
+		final ResourceProvider provider = config.getResourceProvider();
+		if (provider != null) {
+
+			resourceMap.putAll(provider.getResources());
+
+		} else {
+
+			logger.log(Level.SEVERE, "Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class.");
+		}
 
 		// initialize variables
 		this.propertyView           = new ThreadLocalPropertyView();
@@ -169,8 +178,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, config.getDefaultIdProperty()), config.getDefaultIdProperty());
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView));
+				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
 				tx.success();
 			}
@@ -265,10 +274,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		RestMethodResult result         = null;
-		Resource resource               = null;
+		final SecurityContext securityContext;
+		final Authenticator authenticator;
+		final Resource resource;
+
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 
 		try {
 
@@ -289,10 +299,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				resource = ResourceHelper.applyViewTransformation(request, securityContext,
-					ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
-						config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView)), propertyView);
+				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
 
@@ -372,13 +380,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		final List<RestMethodResult> results = new LinkedList<>();
-		SecurityContext securityContext      = null;
-		Authenticator authenticator          = null;
-		IJsonInput jsonInput 		     = null;
-		Resource resource                    = null;
+		final SecurityContext securityContext;
+		final Authenticator authenticator;
+		final Resource resource;
 
 		try {
-
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -392,28 +398,17 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 			}
 
-			final App app = StructrApp.getInstance(securityContext);
-
-			String input = IOUtils.toString(request.getReader());
-			if (StringUtils.isBlank(input)) {
-				input = "{}";
-			}
-
-			// isolate input parsing (will include read and write operations)
-			try (final Tx tx = app.tx()) {
-				jsonInput   = gson.get().fromJson(input, IJsonInput.class);
-				tx.success();
-			}
+			final App app              = StructrApp.getInstance(securityContext);
+			final String input         = IOUtils.toString(request.getReader());
+			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
 
 			if (securityContext != null) {
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.applyViewTransformation(request, securityContext,
-							ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
-							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView)), propertyView);
+					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
 
@@ -465,24 +460,27 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						final RestMethodResult result = results.get(0);
 						final int resultCount         = results.size();
 
-						if (resultCount > 1) {
+						if (result != null) {
 
-							for (final RestMethodResult r : results) {
+							if (resultCount > 1) {
 
-								final GraphObject objectCreated = r.getContent().get(0);
-								if (!result.getContent().contains(objectCreated)) {
+								for (final RestMethodResult r : results) {
 
-									result.addContent(objectCreated);
+									final GraphObject objectCreated = r.getContent().get(0);
+									if (!result.getContent().contains(objectCreated)) {
+
+										result.addContent(objectCreated);
+									}
+
 								}
 
+								// remove Location header if more than one object was
+								// written because it may only contain a single URL
+								result.addHeader("Location", null);
 							}
 
-							// remove Location header if more than one object was
-							// written because it may only contain a single URL
-							result.addHeader("Location", null);
+							result.commitResponse(gson.get(), response);
 						}
-
-						result.commitResponse(gson.get(), response);
 
 					}
 
@@ -509,7 +507,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "JsonSyntaxException in POST", jsex);
+			logger.log(Level.WARNING, "POST: Invalid JSON syntax", jsex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -518,7 +516,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "JsonParseException in POST", jpex);
+			logger.log(Level.WARNING, "Unable to parse JSON string", jpex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -527,7 +525,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.log(Level.WARNING, "POST not supported", uoe);
+			logger.log(Level.WARNING, "POST not supported");
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -563,11 +561,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		RestMethodResult result         = null;
-		IJsonInput jsonInput            = null;
-		Resource resource               = null;
+		final SecurityContext securityContext;
+		final Authenticator authenticator;
+		final Resource resource;
+
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 
 		try {
 
@@ -583,18 +581,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 			}
 
-			final App app = StructrApp.getInstance(securityContext);
-
-			String input = IOUtils.toString(request.getReader());
-			if (StringUtils.isBlank(input)) {
-				input = "{}";
-			}
-
-			// isolate input parsing (will include read and write operations)
-			try (final Tx tx = app.tx()) {
-				jsonInput   = gson.get().fromJson(input, IJsonInput.class);
-				tx.success();
-			}
+			final App app              = StructrApp.getInstance(securityContext);
+			final String input         = IOUtils.toString(request.getReader());
+			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
 
 			if (securityContext != null) {
 
@@ -602,10 +591,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				try (final Tx tx = app.tx()) {
 
 					// evaluate constraint chain
-					resource = ResourceHelper.applyViewTransformation(request, securityContext,
-						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
-							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView)), propertyView);
+					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
 
@@ -649,7 +636,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "JsonSyntaxException in PUT", jsex);
+			logger.log(Level.WARNING, "PUT: Invalid JSON syntax", jsex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -658,7 +645,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "JsonParseException in PUT", jpex);
+			logger.log(Level.WARNING, "PUT: Unable to parse JSON string", jpex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -708,6 +695,35 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 
+	private IJsonInput cleanAndParseJsonString(final App app, final String input) throws FrameworkException {
+
+		IJsonInput jsonInput;
+
+		// isolate input parsing (will include read and write operations)
+		try (final Tx tx = app.tx()) {
+			jsonInput   = gson.get().fromJson(input, IJsonInput.class);
+			tx.success();
+		}
+
+		if (jsonInput == null) {
+
+			if (StringUtils.isBlank(input)) {
+
+				try (final Tx tx = app.tx()) {
+					jsonInput   = gson.get().fromJson("{}", IJsonInput.class);
+					tx.success();
+				}
+
+			} else {
+				//throw new JsonParseException("Invalid or empty JSON string, must at least contain {} to be valid!");
+				jsonInput = new JsonSingleInput();
+			}
+		}
+
+		return jsonInput;
+
+	}
+
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 
 		if (propertySet != null) {
@@ -749,11 +765,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				resource = ResourceHelper.applyViewTransformation(request, securityContext,
-					ResourceHelper.optimizeNestedResourceChain(
-						ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
-							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
-				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView)), propertyView);
+				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
 
@@ -938,8 +951,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		@Override
 		protected Gson initialValue() {
 
-			JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter(propertyView, config.getDefaultIdProperty());
-			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, config.getDefaultIdProperty(), outputNestingDepth);
+			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, outputNestingDepth);
+			JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter();
 
 			// create GSON serializer
 			final GsonBuilder gsonBuilder = new GsonBuilder()

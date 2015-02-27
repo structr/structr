@@ -22,8 +22,12 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.GraphDatabaseAPI;
+import org.neo4j.kernel.impl.core.GraphProperties;
+import org.neo4j.kernel.impl.core.NodeManager;
 import org.structr.agent.AgentService;
 import org.structr.agent.Task;
 import org.structr.common.SecurityContext;
@@ -43,6 +47,7 @@ import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -57,7 +62,9 @@ import org.structr.schema.ConfigurationProvider;
  */
 public class StructrApp implements App {
 
-	private SecurityContext securityContext = null;
+	private static final Logger logger           = Logger.getLogger(StructrApp.class.getName());
+	private static final Object globalConfigLock = new Object();
+	private SecurityContext securityContext      = null;
 
 	private StructrApp(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
@@ -241,6 +248,57 @@ public class StructrApp implements App {
 		return Services.getInstance().command(securityContext, GraphDatabaseCommand.class).execute();
 	}
 
+	@Override
+	public <T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException {
+
+		final NodeManager mgr        = ((GraphDatabaseAPI)getGraphDatabaseService()).getDependencyResolver().resolveDependency(NodeManager.class);
+		final GraphProperties config = mgr.getGraphProperties();
+		T value                      = null;
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			value = (T)config.getProperty(key);
+			tx.success();
+
+		} catch (Throwable t) {}
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		return value;
+	}
+
+	@Override
+	public void setGlobalSetting(final String key, final Object value) throws FrameworkException {
+
+		final NodeManager mgr        = ((GraphDatabaseAPI)getGraphDatabaseService()).getDependencyResolver().resolveDependency(NodeManager.class);
+		final GraphProperties config = mgr.getGraphProperties();
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			config.setProperty(key, value);
+			tx.success();
+
+		} catch (Throwable t) {}
+	}
+
+	@Override
+	public String getInstanceId() throws FrameworkException {
+
+		synchronized (globalConfigLock) {
+
+			String instanceId = (String)getGlobalSetting("structr.instance.id", null);
+			if (instanceId == null) {
+
+				instanceId = NodeServiceCommand.getNextUuid();
+				setGlobalSetting("structr.instance.id", instanceId);
+			}
+
+			return instanceId;
+		}
+	}
+
 	// ----- public static methods ----
 	/**
 	 * Constructs a new stateful App instance, initialized with the given
@@ -274,4 +332,6 @@ public class StructrApp implements App {
 	public static String getConfigurationValue(final String key, final String defaultValue) {
 		return StringUtils.trim(Services.getInstance().getConfigurationValue(key, defaultValue));
 	}
+
+
 }

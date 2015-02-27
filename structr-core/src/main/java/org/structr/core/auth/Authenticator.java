@@ -85,16 +85,17 @@ public interface Authenticator {
 	 * @return securityContext
 	 * @throws FrameworkException 
 	 */
-	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
+	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
 	
 	/**
 	 * 
+	 * @param securityContext
 	 * @param request
 	 * @param resourceSignature
 	 * @param propertyView
 	 * @throws FrameworkException 
 	 */
-	public void checkResourceAccess(HttpServletRequest request, final String resourceSignature, final String propertyView) throws FrameworkException;
+	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String resourceSignature, final String propertyView) throws FrameworkException;
 	
 	/**
 	 *
@@ -107,14 +108,14 @@ public interface Authenticator {
 	 * @return the user that was just logged in
 	 * @throws AuthenticationException
 	 */
-	public Principal doLogin(HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException;
+	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException;
 
 	/**
 	 * Logs the given request out.
 	 *
 	 * @param request the request to log out
 	 */
-	public void doLogout(HttpServletRequest request);
+	public void doLogout(final HttpServletRequest request);
 
 	/**
 	 * Returns the user that is currently logged into the system,
@@ -125,5 +126,5 @@ public interface Authenticator {
 	 * @return the logged-in user or null
 	 * @throws FrameworkException
 	 */
-	public Principal getUser(HttpServletRequest request, final boolean tryLogin) throws FrameworkException;
+	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException;
 }

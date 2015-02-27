@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.RelationshipInterface;
@@ -45,6 +44,10 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 	public RelationshipDataContainer() {}
 
 	public RelationshipDataContainer(final RelationshipInterface relationship, final int sequenceNumber) throws FrameworkException {
+		this(relationship, sequenceNumber, relationship.getRelationship().getPropertyKeys());
+	}
+
+	public RelationshipDataContainer(final RelationshipInterface relationship, final int sequenceNumber, final Iterable<String> propertyKeys) throws FrameworkException {
 
 		super(sequenceNumber);
 
@@ -54,7 +57,7 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 		sourceEndNodeId   = relationship.getTargetNode().getUuid();
 		relationshipId    = relationship.getUuid();
 
-		collectProperties(relationship.getRelationship());
+		collectProperties(relationship.getRelationship(), propertyKeys);
 	}
 
 	/**
@@ -129,17 +132,13 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 	}
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
-
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 		serverConnection.storeRelationship(this);
-		serverConnection.send(ack());
-
-		context.progress();
+		sendKeepalive(serverConnection);
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
-		context.progress();
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 	}
 
 	@Override

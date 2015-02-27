@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
@@ -29,10 +28,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.DateSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.schema.parser.DatePropertyParser;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -44,34 +45,31 @@ import org.structr.core.graph.search.SearchAttribute;
 public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	public static final String DATE_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
+	public static final String DEFAULT_FORMAT         = "yyyy-MM-dd'T'HH:mm:ssZ";
 
-	public DateProperty(String name, String pattern) {
+	public DateProperty(final String name) {
+		super(name);
+		this.format = getDefaultFormat();
+	}
+
+	public DateProperty(final String name, final String format) {
 		super(name);
 
-		this.format = pattern;
-	}
-
-	public DateProperty(String name, String pattern, Date defaultValue) {
-		super(name, name, defaultValue);
-
-		this.format = pattern;
-	}
-
-	public DateProperty(String name, String dbName, String pattern) {
-		super(name, dbName);
-
-		this.format = pattern;
-	}
-
-	public DateProperty(String name, String dbName, Date defaultValue, String pattern) {
-		super(name, dbName, defaultValue);
-
-		this.format = pattern;
+		if (StringUtils.isNotBlank(format)) {
+			this.format = format;
+		} else {
+			this.format = getDefaultFormat();
+		}
 	}
 
 	@Override
 	public String typeName() {
 		return "Date";
+	}
+
+	@Override
+	public Class valueType() {
+		return Date.class;
 	}
 
 	@Override
@@ -116,7 +114,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 			try {
 
-				return new SimpleDateFormat(format).parse(value.toString()).getTime();
+				return DatePropertyParser.parse(value.toString(), format).getTime();
 
 			} catch (Throwable t) {
 			}
@@ -166,21 +164,13 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 			if (StringUtils.isNotBlank(source)) {
 
-				try {
+				Date result = DatePropertyParser.parse(source, format);
 
-					// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
-					if (StringUtils.contains(source, "Z")) {
-
-						source = StringUtils.replace(source, "Z", "+0000");
-					}
-
-					return new SimpleDateFormat(format).parse(source);
-
-				} catch (Throwable t) {
-
-					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(DateProperty.this));
-
+				if (result != null) {
+					return result;
 				}
+
+				throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(DateProperty.this));
 
 			}
 
@@ -191,11 +181,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		@Override
 		public String revert(Date source) throws FrameworkException {
 
-			if (source != null) {
-				return new SimpleDateFormat(format).format(source);
-			}
-
-			return null;
+			return DatePropertyParser.format(source, format);
 		}
 
 	}
@@ -207,6 +193,10 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	@Override
 	public void index(GraphObject entity, Object value) {
+		// In case of default value, we need to convert it to Long
+		if (value != null && value instanceof Date) {
+			value = ((Date) value).getTime();
+		}
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 
@@ -214,5 +204,16 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	public String getValueForEmptyFields() {
 		return DATE_EMPTY_FIELD_VALUE;
 	}
+	
+	public static String getDefaultFormat() {
 
+		final String configuredFormat = Services.getInstance().getConfigurationValue("DateProperty.defaultFormat");
+		if (StringUtils.isNotBlank(configuredFormat)) {
+			return configuredFormat;
+		} else {
+			return DEFAULT_FORMAT;
+		}
+		
+	}
+	
 }

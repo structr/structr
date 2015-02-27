@@ -36,7 +36,7 @@ import org.structr.core.notion.Notion;
  */
 public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnlyProperty<T> {
 
-	private Notion notion            = null;
+	private Notion notion = null;
 
 	public RelationshipEndNode(String name) {
 		this(name, null);
@@ -46,7 +46,7 @@ public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnl
 
 		super(name);
 
-		this.notion    = notion;
+		this.notion = notion;
 	}
 
 	@Override
@@ -62,6 +62,11 @@ public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnl
 	@Override
 	public String typeName() {
 		return "Node";
+	}
+
+	@Override
+	public Class valueType() {
+		return relatedType();
 	}
 
 	@Override

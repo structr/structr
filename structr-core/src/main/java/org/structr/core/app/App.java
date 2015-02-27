@@ -81,4 +81,17 @@ public interface App  {
 
 	public <T extends Service> T getService(final Class<T> serviceClass);
 	public GraphDatabaseService getGraphDatabaseService();
+
+	public <T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException;
+	public void setGlobalSetting(final String key, final Object value) throws FrameworkException;
+
+	/**
+	 * Returns the unique instance ID of this Structr database instance. Please
+	 * note that this method can throw a FrameworkException because it needs a
+	 * transaction to access the database.
+	 *
+	 * @return a 32 character UUID
+	 * @throws org.structr.common.error.FrameworkException
+	 */
+	public String getInstanceId() throws FrameworkException;
 }

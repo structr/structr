@@ -18,9 +18,7 @@
  */
 package org.structr.web.entity.dom;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
 import org.w3c.dom.DOMException;
@@ -81,18 +79,13 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 	}
 
 	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-		// do nothing
-	}
-
-	@Override
 	public boolean isSynced() {
 		return false;
 	}
 
 	// ----- interface Renderable -----
 	@Override
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(RenderContext renderContext, int depth) throws FrameworkException {
 
 		NodeList _children = getChildNodes();
 		int len            = _children.getLength();
@@ -103,15 +96,15 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 
 			if (child != null && child instanceof Renderable) {
 
-				((Renderable)child).render(securityContext, renderContext, depth);
+				((Renderable)child).render(renderContext, depth);
 			}
 		}
 
 	}
-	
+
 	@Override
-	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
-	}	
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
+	}
 
 	@Override
 	public Node doAdopt(Page newPage) throws DOMException {

@@ -19,10 +19,9 @@
 package org.structr.web.entity;
 
 import java.util.List;
-import org.structr.common.Syncable;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityIdProperty;
@@ -42,9 +41,9 @@ public class LinkSource extends DOMElement {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
-		final List<Syncable> data = super.getSyncData();
+		final List<GraphObject> data = super.getSyncData();
 
 		data.add(getProperty(linkable));
 
@@ -54,25 +53,4 @@ public class LinkSource extends DOMElement {
 
 		return data;
 	}
-
-	@Override
-	public boolean isNode() {
-		return true;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return false;
-	}
-
-	@Override
-	public NodeInterface getSyncNode() {
-		return this;
-	}
-
-	@Override
-	public RelationshipInterface getSyncRelationship() {
-		return null;
-	}
-
 }

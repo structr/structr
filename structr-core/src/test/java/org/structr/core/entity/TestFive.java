@@ -36,10 +36,10 @@ import org.structr.core.graph.Tx;
 public class TestFive extends AbstractNode {
 	
 	public static final Property<Integer> intProperty                  = new IntProperty("integerProperty").indexed();
-	public static final Property<Integer> modifiedInBeforeCreation     = new IntProperty("modifiedInBeforeCreation", 0).indexed().unvalidated();
-	public static final Property<Integer> modifiedInBeforeModification = new IntProperty("modifiedInBeforeModification", 0).indexed().unvalidated();
-	public static final Property<Integer> modifiedInAfterCreation      = new IntProperty("modifiedInAfterCreation", 0).indexed().unvalidated();
-	public static final Property<Integer> modifiedInAfterModification  = new IntProperty("modifiedInAfterModification", 0).indexed().unvalidated();
+	public static final Property<Integer> modifiedInBeforeCreation     = new IntProperty("modifiedInBeforeCreation").defaultValue(0).indexed().unvalidated();
+	public static final Property<Integer> modifiedInBeforeModification = new IntProperty("modifiedInBeforeModification").defaultValue(0).indexed().unvalidated();
+	public static final Property<Integer> modifiedInAfterCreation      = new IntProperty("modifiedInAfterCreation").defaultValue(0).indexed().unvalidated();
+	public static final Property<Integer> modifiedInAfterModification  = new IntProperty("modifiedInAfterModification").defaultValue(0).indexed().unvalidated();
 	
 	public static final View publicView = new View(TestFive.class, PropertyView.Public,
 		intProperty, modifiedInBeforeCreation, modifiedInBeforeModification, modifiedInAfterCreation, modifiedInAfterModification

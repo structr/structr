@@ -89,6 +89,11 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
+	public Class valueType() {
+		return Integer.class;
+	}
+
+	@Override
 	public boolean isCollection() {
 		return false;
 	}

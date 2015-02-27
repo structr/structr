@@ -25,7 +25,6 @@ import java.security.InvalidKeyException;
 import javax.crypto.Cipher;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
-import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.graph.SyncCommand;
@@ -84,7 +83,7 @@ public class AuthenticationResponse extends Message {
 	}
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 
 		try {
 
@@ -99,7 +98,7 @@ public class AuthenticationResponse extends Message {
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 	}
 
 	@Override

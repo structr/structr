@@ -22,6 +22,7 @@ package org.structr.core.entity;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import org.neo4j.graphdb.Relationship;
 import org.structr.core.property.PropertyKey;
@@ -124,4 +125,9 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 //	public TargetId getTargetIdProperty() {
 //		return endNodeId;
 //	}
+
+	@Override
+	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

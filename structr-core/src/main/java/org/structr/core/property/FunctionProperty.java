@@ -18,11 +18,13 @@
  */
 package org.structr.core.property;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.parser.Functions;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -31,10 +33,10 @@ import org.structr.schema.action.ActionContext;
  */
 public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 
-	public FunctionProperty(final String name, final String expression) {
+	private static final Logger logger = Logger.getLogger(FunctionProperty.class.getName());
 
+	public FunctionProperty(final String name) {
 		super(name);
-		this.format = expression;
 	}
 
 	@Override
@@ -54,9 +56,12 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 
 			try {
 
-				return (T)Functions.evaluate(securityContext, new ActionContext(), obj, format);
+				return (T)Scripting.evaluate(new ActionContext(securityContext), obj, "${".concat(format).concat("}"));
 
 			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Exception while evaluating function property {0}.", jsonName());
+
 				t.printStackTrace();
 			}
 		}
@@ -72,5 +77,10 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 	@Override
 	public Integer getSortType() {
 		return null; // use string search
+	}
+
+	@Override
+	public Class valueType() {
+		return null;
 	}
 }

@@ -25,6 +25,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -209,12 +211,56 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return SchemaHelper.getPropertyWithVariableReplacement(securityContext, this, renderContext, key);
+	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+		return SchemaHelper.getPropertyWithVariableReplacement(renderContext, this, key);
 	}
 
 	@Override
-	public String replaceVariables(SecurityContext securityContext, ActionContext actionContext, Object rawValue) throws FrameworkException {
-		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
+	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+
+		for (final PropertyKey propertyKey : properties.keySet()) {
+
+			if (key.equals(propertyKey.jsonName())) {
+
+				return properties.get(propertyKey);
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+		throw new UnsupportedOperationException("Invoking a method is not supported as this is a property map.");
+	}
+
+	// ----- Cloud synchronization and replication -----
+	@Override
+	public List<GraphObject> getSyncData() {
+		return Collections.EMPTY_LIST;
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return null;
+	}
+
+	@Override
+	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
 	}
 }

@@ -107,6 +107,11 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
+	@Override
 	public Integer getSortType() {
 		return null;
 	}

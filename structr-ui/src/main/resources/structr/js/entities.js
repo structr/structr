@@ -24,8 +24,7 @@ var _Entities = {
     numberAttrs: ['position', 'size'],
     hiddenAttrs: ['base'], //'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
     readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
-
-    changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
+    changeBooleanAttribute: function (attrElement, value, activeLabel, inactiveLabel) {
 
         log('Change boolean attribute ', attrElement, ' to ', value);
 
@@ -36,7 +35,7 @@ var _Entities = {
         }
 
     },
-    reloadChildren: function(id) {
+    reloadChildren: function (id) {
         var el = Structr.node(id);
 
         log('reloadChildren', el);
@@ -47,13 +46,13 @@ var _Entities = {
         Command.children(id);
 
     },
-    deleteNode: function(button, entity, rec, callback) {
+    deleteNode: function (button, entity, rec, callback) {
         buttonClicked = button;
         if (isDisabled(button))
             return;
 
-        Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (rec?' recursively':'') + '?</p>',
-                function() {
+        Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (rec ? ' recursively' : '') + '?</p>',
+                function () {
                     Command.deleteNode(entity.id, rec);
                     $.unblockUI({
                         fadeOut: 25
@@ -63,10 +62,10 @@ var _Entities = {
                     }
                 });
     },
-    showSyncDialog: function(source, target) {
-        Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() {
+    showSyncDialog: function (source, target) {
+        Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function () {
             return true;
-        }, function() {
+        }, function () {
             return true;
         });
 
@@ -74,12 +73,12 @@ var _Entities = {
         dialog.append('<div><input type="radio" name="syncMode" value="unidir"><label for="unidir">Uni-directional (master/slave)</label></div>');
         dialog.append('<div><input type="radio" name="syncMode" value="bidir"><label for="unidir">Bi-directional</label></div>');
 
-        $('input[name=syncMode]:radio', dialog).on('change', function() {
+        $('input[name=syncMode]:radio', dialog).on('change', function () {
             Command.setSyncMode(source.id, target.id, $(this).val());
         });
 
     },
-    dataBindingDialog: function(entity, el) {
+    dataBindingDialog: function (entity, el) {
 
         el.append('<table class="props"></table>');
         var t = $('.props', el);
@@ -126,13 +125,13 @@ var _Entities = {
         //_Entities.appendInput(dialog, entity, 'partialUpdateKey', 'Types to trigger partial update', '');
 
     },
-    appendRowWithInputField: function(entity, el, key, label) {
-        el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + formatValue(entity[key]) + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+    appendRowWithInputField: function (entity, el, key, label) {
+        el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
         var inp = $('[name="' + key + '"]', el);
         _Entities.activateInput(inp, entity.id);
         var nullIcon = $('#null_' + key, el);
-        nullIcon.on('click', function() {
-            Command.setProperty(entity.id, key, null, false, function() {
+        nullIcon.on('click', function () {
+            Command.setProperty(entity.id, key, null, false, function () {
                 inp.val(null);
                 blinkGreen(inp);
                 dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
@@ -141,7 +140,7 @@ var _Entities = {
         });
 
     },
-    queryDialog: function(entity, el) {
+    queryDialog: function (entity, el) {
 
         el.append('<table class="props"></table>');
         var t = $('.props', el);
@@ -170,11 +169,11 @@ var _Entities = {
         //_Entities.appendInput(dialog, entity, 'partialUpdateKey', 'Types to trigger partial update', '');
 
     },
-    activateTabs: function(elId, activeId) {
+    activateTabs: function (elId, activeId) {
         var el = $(elId);
         var tabs = $('li', el);
-        $.each(tabs, function(i, tab) {
-            $(tab).on('click', function() {
+        $.each(tabs, function (i, tab) {
+            $(tab).on('click', function () {
                 var tab = $(this);
                 tabs.removeClass('active');
                 tab.addClass('active');
@@ -188,11 +187,11 @@ var _Entities = {
         var tab = $('#' + id);
         tab.click();
     },
-    editSource: function(entity) {
+    editSource: function (entity) {
 
-        Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function() {
+        Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
             log('Element source saved')
-        }, function() {
+        }, function () {
             log('cancelled')
         });
 
@@ -203,19 +202,31 @@ var _Entities = {
             url: url,
             //async: false,
             contentType: contentType,
-            success: function(data) {
+            success: function (data) {
                 text = data;
+                text = text.replace(/<!DOCTYPE[^>]*>/, '');
+                var startTag  = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$1').replace(/^\s+|\s+$/g, '');
+                var innerText = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
+                var endTag    = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$3').replace(/^\s+|\s+$/g, '');
+                text = innerText;
+                
                 dialog.append('<div class="editor"></div>');
+                
                 var contentBox = $('.editor', dialog);
                 var lineWrapping = localStorage.getItem(lineWrappingKey);
 
                 // Intitialize editor
                 editor = CodeMirror(contentBox.get(0), {
-                    value: unescapeTags(text),
+                    value: unescapeTags(innerText),
                     mode: contentType,
                     lineNumbers: true,
                     lineWrapping: lineWrapping
                 });
+
+                $('.CodeMirror-scroll').prepend('<div class="starttag"></div>');
+                $('.CodeMirror-scroll').append('<div class="endtag"></div>');
+                $('.starttag', dialog).append(escapeTags(startTag.replace(/\sdata-structr-hash=".{32}"/, "")));
+                $('.endtag', dialog).append(escapeTags(endTag));
 
                 editor.id = entity.id;
 
@@ -224,15 +235,16 @@ var _Entities = {
 
                 dialogSaveButton = $('#saveFile', dialogBtn);
                 saveAndClose = $('#saveAndClose', dialogBtn);
-                
-                editor.on('scroll', function() {
+
+                editor.on('scroll', function () {
                     _Entities.hideDataHashAttribute(editor);
                 });
-                
-                editor.on('change', function(cm, change) {
+
+                editor.on('change', function (cm, change) {
 
                     //text1 = $(contentNode).children('.content_').text();
                     text2 = editor.getValue();
+                    //console.log(text, text2, text === text2);
                     if (text === text2) {
                         dialogSaveButton.prop("disabled", true).addClass('disabled');
                         saveAndClose.prop("disabled", true).addClass('disabled');
@@ -244,10 +256,10 @@ var _Entities = {
                     _Entities.hideDataHashAttribute(editor);
                 });
 
-                dialogSaveButton.on('click', function(e) {
+                dialogSaveButton.on('click', function (e) {
                     e.stopPropagation();
-                    var text2 = editor.getValue();
-
+                    text2 = editor.getValue();
+                    //console.log(text, text2, text === text2);
                     if (text === text2) {
                         dialogSaveButton.prop("disabled", true).addClass('disabled');
                         saveAndClose.prop("disabled", true).addClass('disabled');
@@ -256,29 +268,35 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
-                    Command.saveNode(text2, entity.id, function() {
+                    Command.saveNode(startTag + editor.getValue() + endTag, entity.id, function () {
                         $.ajax({
                             url: url,
                             contentType: contentType,
-                            success: function(data) {
-                                text = unescapeTags(data);
+                            success: function (data) {
+                                text = unescapeTags(data).replace(/<!DOCTYPE[^>]*>/, '');
+                                text = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
                                 editor.setValue(text);
+                                
+                                dialogSaveButton.prop("disabled", true).addClass('disabled');
+                                saveAndClose.prop("disabled", true).addClass('disabled');
+                                dialogMsg.html('<div class="infoBox success">Node source saved and DOM tree rebuilt.</div>');
+                                $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                                
+                                if (_Entities.isExpanded(Structr.node(entity.id))) {
+                                    $('.expand_icon', Structr.node(entity.id)).click().click();
+                                }
                             }
                         });
 
-                        dialogSaveButton.prop("disabled", true).addClass('disabled');
-                        saveAndClose.prop("disabled", true).addClass('disabled');
-                        dialogMsg.html('<div class="infoBox success">Node source saved and DOM tree rebuilt.</div>');
-                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
 
                     });
 
                 });
 
-                saveAndClose.on('click', function(e) {
+                saveAndClose.on('click', function (e) {
                     e.stopPropagation();
                     dialogSaveButton.click();
-                    setTimeout(function() {
+                    setTimeout(function () {
                         dialogSaveButton.remove();
                         saveAndClose.remove();
                         dialogCancelButton.click();
@@ -286,9 +304,9 @@ var _Entities = {
                 });
 
                 dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
-                $('#lineWrapping').on('change', function() {
+                $('#lineWrapping').on('change', function () {
                     var inp = $(this);
-                    if  (inp.is(':checked')) {
+                    if (inp.is(':checked')) {
                         localStorage.setItem(lineWrappingKey, "1");
                         editor.setOption('lineWrapping', true);
                     } else {
@@ -297,33 +315,25 @@ var _Entities = {
                     }
                     editor.refresh();
                 });
-
+                
                 Structr.resize();
 
                 _Entities.hideDataHashAttribute(editor);
 
             },
-            error: function(xhr, statusText, error) {
+            error: function (xhr, statusText, error) {
                 console.log(xhr, statusText, error);
             }
         });
 
     },
-    hideDataHashAttribute: function(editor) {
-//        var doc = editor.getDoc();
-//        var hashElements = $('.CodeMirror-code .cm-attribute:contains("data-structr-hash")');
-//        console.log(hashElements);
+    hideDataHashAttribute: function (editor) {
         var sc = editor.getSearchCursor(/\sdata-structr-hash=".{32}"/);
         while (sc.findNext()) {
-            //console.log(sc.from(), sc.to());
-            //editor.markText(sc.from(), sc.to(), {collapsed: true});
-            editor.markText(sc.from(), sc.to(), { className: 'data-structr-hash', collapsed: true, inclusiveLeft: true });
+            editor.markText(sc.from(), sc.to(), {className: 'data-structr-hash', collapsed: true, inclusiveLeft: true});
         }
-        
-        //$('.CodeMirror-code .cm-attribute:contains("data-structr-hash")').addClass('data-structr-hash').next().addClass('data-structr-hash');
-        //$($('.CodeMirror-code .cm-attribute:contains("data-structr-hash")')[0].nextSibling).replaceWith('<span class="data-structr-hash">=</span>');
     },
-    showProperties: function(entity) {
+    showProperties: function (entity) {
 
         var views, activeView = 'ui';
 
@@ -341,9 +351,9 @@ var _Entities = {
         tabTexts.out = 'Outgoing Relationships';
 
         //dialog.empty();
-        Structr.dialog('Edit Properties of ' + (entity.name ? entity.name : entity.id), function() {
+        Structr.dialog('Edit Properties of ' + (entity.name ? entity.name : entity.id), function () {
             return true;
-        }, function() {
+        }, function () {
             return true;
         });
 
@@ -352,12 +362,12 @@ var _Entities = {
 
         if (!isIn(entity.type, ['Comment', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget'])) {
 
-            _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function(c) {
+            _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function (c) {
                 _Entities.queryDialog(entity, c);
                 _Entities.activateTabs('#data-tabs', '#content-tab-rest');
             });
 
-            _Entities.appendPropTab(mainTabs, 'editBinding', 'Edit Mode Binding', false, function(c) {
+            _Entities.appendPropTab(mainTabs, 'editBinding', 'Edit Mode Binding', false, function (c) {
                 _Entities.dataBindingDialog(entity, c);
             });
         }
@@ -366,14 +376,14 @@ var _Entities = {
 
 
     },
-    appendPropTab: function(el, name, label, active, callback) {
+    appendPropTab: function (el, name, label, active, callback) {
         var ul = el.children('ul');
         ul.append('<li id="tab-' + name + '">' + label + '</li>');
         var tab = $('#tab-' + name + '');
         if (active) {
             tab.addClass('active');
         }
-        tab.on('click', function(e) {
+        tab.on('click', function (e) {
             e.stopPropagation();
             var self = $(this);
             $('.propTabContent').hide();
@@ -395,9 +405,9 @@ var _Entities = {
         }
         return content;
     },
-    appendViews: function(entity, views, texts, tabs, activeView) {
+    appendViews: function (entity, views, texts, tabs, activeView) {
 
-        $(views).each(function(i, view) {
+        $(views).each(function (i, view) {
 
             var tabText = texts[view];
 
@@ -407,7 +417,7 @@ var _Entities = {
 
             var tab = $('#tab-' + view);
 
-            tab.on('click', function(e) {
+            tab.on('click', function (e) {
                 e.stopPropagation();
                 var self = $(this);
                 tabs.children('div').hide();
@@ -421,9 +431,9 @@ var _Entities = {
                     url: rootUrl + '_schema/' + entity.type + '/ui',
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
-                    success: function(data) {
+                    success: function (data) {
                         var typeInfo = {};
-                        $(data.result).each(function(i, prop) {
+                        $(data.result).each(function (i, prop) {
                             typeInfo[prop.jsonName] = prop;
                         });
                         _Entities.listProperties(entity, view, tabView, typeInfo);
@@ -435,16 +445,17 @@ var _Entities = {
         $('#tab-' + activeView).click();
 
     },
-    listProperties: function(entity, view, tabView, typeInfo) {
+    listProperties: function (entity, view, tabView, typeInfo) {
+        var null_prefix = 'null_attr_';
         $.ajax({
             url: rootUrl + entity.id + (view ? '/' + view : ''),
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            success: function(data) {
+            success: function (data) {
                 // Default: Edit node id
                 var id = entity.id;
                 // ID of graph object to edit
-                $(data.result).each(function(i, res) {
+                $(data.result).each(function (i, res) {
 
                     // reset id for each object group
                     id = entity.id;
@@ -453,131 +464,135 @@ var _Entities = {
 
                     var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
 
-                    $(keys).each(function(i, key) {
+                    $(keys).each(function (i, key) {
 
                         if (view === '_html_') {
                             var display = false;
-                            _Elements.mostUsedAttrs.forEach(function(mostUsed) {
+                            _Elements.mostUsedAttrs.forEach(function (mostUsed) {
                                 if (isIn(entity.tag, mostUsed.elements) && isIn(key.substring(6), mostUsed.attrs)) {
                                     display = true;
                                 }
                             });
 
                             // Always show non-empty attributes
-                            if (res[key]) {
+                            if (res[key] !== null) {
                                 display = true;
                             }
 
                             if (display || key === '_html_class' || key === '_html_id') {
                                 props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
-                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             } else if (key !== 'id') {
                                 props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td>'
-                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                        + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             }
                         } else if (view === 'in' || view === 'out') {
                             if (key === 'id') {
                                 // set ID to rel ID
                                 id = res[key];
                             }
-                            props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                            props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
                         } else {
 
-                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             var cell = $('.value.' + key + '_', props);
 
-                            var type = typeInfo[key].type;
-                            var isHidden = isIn(key, _Entities.hiddenAttrs);
-                            var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly && !isAdmin);
-                            var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
-                            var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
-                            var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
-                            var isArray = type.endsWith('[]');
-                            var isRelated = typeInfo[key].relatedType;
+                            if (!typeInfo[key]) {
+                                cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
 
-                            if (!key.startsWith('_html_') && !isHidden) {
+                            } else {
 
-                                if (isBoolean) {
-                                    cell.removeClass('value').append('<input type="checkbox" class="' + key + '_">');
-                                    var checkbox = $(props.find('input[type="checkbox"].' + key + '_'));
-                                    Command.getProperty(id, key, function(val) {
-                                        if (val) {
-                                            checkbox.prop('checked', true);
-                                        }
-                                        if (!isReadOnly) {
-                                            checkbox.on('change', function() {
-                                                var checked = checkbox.prop('checked');
-                                                _Entities.setProperty(id, key, checked, false, function(newVal) {
-                                                    if (val !== newVal) {
-                                                        blinkGreen(cell);
-                                                    }
-                                                    checkbox.prop('checked', newVal);
+                                var type = typeInfo[key].type;
+                                var isHidden = isIn(key, _Entities.hiddenAttrs);
+                                var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly && !isAdmin);
+                                var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
+                                var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
+                                var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
+                                var isArray = type.endsWith('[]');
+                                var isRelated = typeInfo[key].relatedType;
+
+                                if (!key.startsWith('_html_') && !isHidden) {
+
+                                    if (isBoolean) {
+                                        cell.removeClass('value').append('<input type="checkbox" class="' + key + '_">');
+                                        var checkbox = $(props.find('input[type="checkbox"].' + key + '_'));
+                                        Command.getProperty(id, key, function (val) {
+                                            if (val) {
+                                                checkbox.prop('checked', true);
+                                            }
+                                            if (!isReadOnly) {
+                                                checkbox.on('change', function () {
+                                                    var checked = checkbox.prop('checked');
+                                                    _Entities.setProperty(id, key, checked, false, function (newVal) {
+                                                        if (val !== newVal) {
+                                                            blinkGreen(cell);
+                                                        }
+                                                        checkbox.prop('checked', newVal);
+                                                    });
                                                 });
-
-                                            });
-                                        } else {
-                                            checkbox.prop('disabled', 'disabled');
-                                            checkbox.addClass('readOnly');
-                                            checkbox.addClass('disabled');
-                                        }
-                                    });
-                                } else if (isDate && !isReadOnly) {
-                                    if (!res[key] || res[key] === 'null') {
-                                        res[key] = '';
-                                    }
-                                    cell.append('<input class="dateField" name="' + key + '" type="text" value="' + res[key] + '">');
-                                    var dateField = $(props.find('.dateField'));
-                                    dateField.datetimepicker({
-                                        showSecond: true,
-                                        timeFormat: 'hh:mm:ssz',
-                                        dateFormat: 'yy-mm-dd',
-                                        separator: 'T'
-                                    });
-                                } else if (isRelated && res[key] && (res[key].constructor === Object || res[key].constructor === Array)) {
-                                    if (res[key] && res[key].constructor === Object) {
-                                        _Entities.appendRelatedNode(cell, props, id, key, res[key], function(nodeEl) {
-                                            $('.remove', nodeEl).on('click', function(e) {
-                                                e.preventDefault();
-                                                _Entities.setProperty(id, key, null, false, function(newVal) {
-                                                    if (!newVal) {
-                                                        blinkGreen(cell);
-                                                        dialogMsg.html('<div class="infoBox success">Related node "' + displayName + '" was removed from property "' + key + '".</div>');
-                                                        $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
-                                                        cell.empty();
-                                                    } else {
-                                                        blinkRed(cell);
-                                                    }
-                                                });
-                                                return false;
-                                            });
-
+                                            } else {
+                                                checkbox.prop('disabled', 'disabled');
+                                                checkbox.addClass('readOnly');
+                                                checkbox.addClass('disabled');
+                                            }
                                         });
-                                    } else if (res[key] && res[key].constructor === Array) {
-                                        res[key].forEach(function(node) {
-                                            _Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
-                                                $('.remove', nodeEl).on('click', function(e) {
+                                    } else if (isDate && !isReadOnly) {
+                                        if (!res[key] || res[key] === 'null') {
+                                            res[key] = '';
+                                        }
+                                        cell.append('<input class="dateField" name="' + key + '" type="text" value="' + res[key] + '">');
+                                        var dateField = $(props.find('.dateField'));
+                                        var dateTimePickerFormat = getDateTimePickerFormat(typeInfo[key].format);
+                                        dateField.datetimepicker({
+                                            dateFormat: dateTimePickerFormat.dateFormat,
+                                            timeFormat: dateTimePickerFormat.timeFormat,
+                                            separator: dateTimePickerFormat.separator
+                                        });
+                                    } else if (isRelated && res[key] && (res[key].constructor === Object || res[key].constructor === Array)) {
+                                        if (res[key] && res[key].constructor === Object) {
+                                            _Entities.appendRelatedNode(cell, props, id, key, res[key], function (nodeEl) {
+                                                $('.remove', nodeEl).on('click', function (e) {
                                                     e.preventDefault();
-                                                    Command.removeFromCollection(id, key, node.id, function() {
-                                                        nodeEl.remove();
-                                                        blinkGreen(cell);
+                                                    _Entities.setProperty(id, key, null, false, function (newVal) {
+                                                        if (!newVal) {
+                                                            blinkGreen(cell);
+                                                            dialogMsg.html('<div class="infoBox success">Related node "' + displayName + '" was removed from property "' + key + '".</div>');
+                                                            $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                                                            cell.empty();
+                                                        } else {
+                                                            blinkRed(cell);
+                                                        }
                                                     });
                                                     return false;
                                                 });
-                                            });
-                                        });
-                                    }
-                                } else {
-                                    cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
-                                }
 
+                                            });
+                                        } else if (res[key] && res[key].constructor === Array) {
+                                            res[key].forEach(function (node) {
+                                                _Entities.appendRelatedNode(cell, props, id, key, node, function (nodeEl) {
+                                                    $('.remove', nodeEl).on('click', function (e) {
+                                                        e.preventDefault();
+                                                        Command.removeFromCollection(id, key, node.id, function () {
+                                                            nodeEl.remove();
+                                                            blinkGreen(cell);
+                                                        });
+                                                        return false;
+                                                    });
+                                                });
+                                            });
+                                        }
+                                    } else {
+                                        cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
+                                    }
+                                }
                             }
                         }
 
-                        var nullIcon = $('#null_' + key);
-                        nullIcon.on('click', function() {
-                            var key = $(this).prop('id').substring(5);
+                        var nullIcon = $('#' + null_prefix + key);
+                        nullIcon.on('click', function () {
+                            var key = $(this).prop('id').substring(null_prefix.length);
                             var input = $('.' + key + '_').find('input');
-                            _Entities.setProperty(id, key, isArray?'[]':null, false, function(newVal) {
+                            _Entities.setProperty(id, key, isArray ? '[]' : null, false, function (newVal) {
                                 if (!newVal) {
                                     blinkGreen(cell);
                                     dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
@@ -595,7 +610,7 @@ var _Entities = {
                         });
                     });
                     props.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
-                    $('.props tr td.value input', dialog).each(function(i, v) {
+                    $('.props tr td.value input', dialog).each(function (i, v) {
                         _Entities.activateInput(v, id);
                     });
 
@@ -604,7 +619,7 @@ var _Entities = {
                         $('input[name="_html_class"]', props).focus();
 
                         tabView.append('<button class="show-all">Show all attributes</button>');
-                        $('.show-all', tabView).on('click', function() {
+                        $('.show-all', tabView).on('click', function () {
                             $('tr.hidden').toggle();
                             $(this).remove();
                         });
@@ -616,12 +631,12 @@ var _Entities = {
         });
 
     },
-    appendRelatedNode: function(cell, props, id, key, node, onDelete) {
+    appendRelatedNode: function (cell, props, id, key, node, onDelete) {
         var displayName = _Crud.displayName(node);
         cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
         var nodeEl = $('#_' + node.id, props);
 
-        nodeEl.on('click', function(e) {
+        nodeEl.on('click', function (e) {
             e.preventDefault();
             _Entities.showProperties(node);
             return false;
@@ -631,7 +646,7 @@ var _Entities = {
             return onDelete(nodeEl);
         }
     },
-    activateInput: function(el, id) {
+    activateInput: function (el, id) {
 
         var input = $(el);
         var oldVal = input.val();
@@ -639,16 +654,16 @@ var _Entities = {
 
         if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
-            input.on('focus', function() {
+            input.on('focus', function () {
                 input.addClass('active');
             });
 
-            input.on('change', function() {
+            input.on('change', function () {
                 input.data('changed', true);
                 _Pages.reloadPreviews();
             });
 
-            input.on('focusout', function() {
+            input.on('focusout', function () {
                 log('relId', relId);
                 var objId = relId ? relId : id;
                 log('set properties of obj', objId);
@@ -662,7 +677,7 @@ var _Entities = {
 
                     // new key
                     log('new key: Command.setProperty(', objId, newKey, val);
-                    Command.setProperty(objId, newKey, val, false, function() {
+                    Command.setProperty(objId, newKey, val, false, function () {
                         blinkGreen(input);
                         dialogMsg.html('<div class="infoBox success">New property "' + newKey + '" was added and saved with value "' + val + '".</div>');
                         $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
@@ -676,7 +691,7 @@ var _Entities = {
                     if (input.data('changed')) {
                         input.data('changed', false);
                         log('existing key: Command.setProperty(', objId, key, val);
-                        _Entities.setProperty(objId, key, val, false, function(newVal) {
+                        _Entities.setProperty(objId, key, val, false, function (newVal) {
                             if (isPassword || (newVal && newVal !== oldVal)) {
                                 blinkGreen(input);
                                 input.val(newVal);
@@ -691,18 +706,18 @@ var _Entities = {
                     }
                 }
                 input.removeClass('active');
-                input.parent().children('.icon').each(function(i, img) {
+                input.parent().children('.icon').each(function (i, img) {
                     $(img).remove();
                 });
             });
         }
     },
-    setProperty: function(id, key, val, recursive, callback) {
-        Command.setProperty(id, key, val, recursive, function() {
+    setProperty: function (id, key, val, recursive, callback) {
+        Command.setProperty(id, key, val, recursive, function () {
             Command.getProperty(id, key, callback);
         });
     },
-    appendAccessControlIcon: function(parent, entity) {
+    appendAccessControlIcon: function (parent, entity) {
 
         var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
@@ -716,12 +731,21 @@ var _Entities = {
                 keyIcon.addClass('donthide');
             }
 
-            keyIcon.on('click', function(e) {
-                e.stopPropagation();
-                Structr.dialog('Access Control and Visibility', function() {
-                }, function() {
-                });
+            _Entities.bindAccessControl(keyIcon, entity.id);
+        }
+    },
+    bindAccessControl: function(btn, id) {
 
+        btn.on('click', function (e) {
+            e.stopPropagation();
+            Structr.dialog('Access Control and Visibility', function() {
+            }, function() {
+                Command.get(id, function(entity) {
+                    _Crud.refreshRow(id, entity, entity.type);
+                });
+            });
+
+            Command.get(id, function(entity) {
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
                 dialogText.append('<h3>Visibility</h3>');
@@ -745,9 +769,9 @@ var _Entities = {
                     url: rootUrl + '/' + entity.id + '/in',
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
-                    success: function(data) {
+                    success: function (data) {
 
-                        $(data.result).each(function(i, result) {
+                        $(data.result).each(function (i, result) {
 
                             var permissions = {
                                 'read': isIn('read', result.allowed),
@@ -758,7 +782,7 @@ var _Entities = {
 
                             var principalId = result.principalId;
                             if (principalId) {
-                                Command.get(principalId, function(p) {
+                                Command.get(principalId, function (p) {
                                     addPrincipal(entity, p, permissions);
                                 });
 
@@ -768,87 +792,88 @@ var _Entities = {
                     }
                 });
                 var select = $('#newPrincipal');
-                select.chosen({ width: '90%' });
-                var i=0, n=10000;
-                Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', function(group, size) {
+                select.chosen({width: '90%'});
+                var i = 0, n = 10000;
+                Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', function (group, size) {
                     select.append('<option value="' + group.id + '">' + group.name + '</option>');
                     if (++i >= size) {
                         select.trigger("chosen:updated");
                     }
                 });
-                i=0;
-                var al2 = Structr.loaderIcon(select.parent(), { float: 'right' });
-                Command.getByType('User', n, 1, 'name', 'asc', 'id,name', function(user, size) {
+                i = 0;
+                var al2 = Structr.loaderIcon(select.parent(), {float: 'right'});
+                Command.getByType('User', n, 1, 'name', 'asc', 'id,name', function (user, size) {
                     select.append('<option value="' + user.id + '">' + user.name + '</option>');
                     if (++i >= size) {
                         select.trigger("chosen:updated");
-                        if (al2.length) al2.remove();
+                        if (al2.length)
+                            al2.remove();
                     }
                 });
-                select.on('change', function() {
+                select.on('change', function () {
                     var sel = $(this);
                     var pId = sel[0].value;
                     var rec = $('#recursive', dialogText).is(':checked');
                     Command.setPermission(entity.id, pId, 'grant', 'read', rec);
                     $('#new', tb).selectedIndex = 0;
 
-                    Command.get(pId, function(p) {
+                    Command.get(pId, function (p) {
                         addPrincipal(entity, p, {'read': true});
                     });
-                });
+                });                
+            });
 
-            });
-        }
+        });        
     },
-    appendTextarea: function(el, entity, key, label, desc) {
+    appendTextarea: function (el, entity, key, label, desc) {
         if (!el || !entity) {
             return false;
         }
-        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea class="query-text" id="' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
-        el.append('<div><button id="apply_' + key + '">Save</button></div>');
-        var btn = $('#apply_' + key, el);
-        btn.on('click', function() {
-            entity.setProperty(key, $('#' + key + '_', el).val(), false, function() {
-                log(key + ' successfully updated!', entity[key]);
+        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea class="query-text ' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
+        el.append('<div><button class="apply_' + key + '">Save</button></div>');
+        var btn = $('.apply_' + key, el);
+        btn.on('click', function () {
+            Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
+                log(key + ' successfully updated!', obj[key]);
                 blinkGreen(btn);
                 _Pages.reloadPreviews();
             });
         });
     },
-    appendInput: function(el, entity, key, label, desc) {
+    appendInput: function (el, entity, key, label, desc) {
         if (!el || !entity) {
             return false;
         }
-        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" id="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button id="save_' + key + '">Save</button></div>');
-        var btn = $('#save_' + key, el);
-        btn.on('click', function() {
-            entity.setProperty('dataKey', $('#' + key + '_').val(), false, function() {
-                log(key + ' successfully updated!', entity[key]);
+        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div>');
+        var btn = $('.save_' + key, el);
+        btn.on('click', function () {
+            Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
+                log(key + ' successfully updated!', obj[key]);
                 blinkGreen(btn);
                 _Pages.reloadPreviews();
             });
         });
     },
-    appendBooleanSwitch: function(el, entity, key, label, desc, recElementId) {
+    appendBooleanSwitch: function (el, entity, key, label, desc, recElementId) {
         if (!el || !entity) {
             return false;
         }
         el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_"></button>' + desc + '</div>');
         var sw = $('.' + key + '_', el);
         _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
-        sw.on('click', function(e) {
+        sw.on('click', function (e) {
             e.stopPropagation();
-            entity.setProperty(key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function(obj) {
+            Command.setProperty(entity.id, key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function(obj) {
                 if (obj.id !== entity.id) {
                     return false;
                 }
-                _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
+                _Entities.changeBooleanAttribute(sw, obj[key], label[0], label[1]);
                 blinkGreen(sw);
                 return true;
             });
         });
     },
-    appendSimpleSelection: function(el, entity, type, title, key) {
+    appendSimpleSelection: function (el, entity, type, title, key) {
 
         var subKey;
         if (key.contains('.')) {
@@ -856,38 +881,48 @@ var _Entities = {
             key = key.substring(0, key.indexOf('.'));
         }
 
-        el.append('<h3>' + title + '</h3><p id="' + key + 'Box"></p>');
-        var element = $('#' + key + 'Box');
-        element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select"></select></span>');
-        var selectElement = $('#' + key + 'Select');
+        el.append('<h3>' + title + '</h3><p class="' + key + 'Box"></p>');
+        var element = $('.' + key + 'Box', el);
+        element.append('<span class="' + entity.id + '_"><select class="' + key + '_ ' + key + 'Select"></select></span>');
+        var selectElement = $('.' + key + 'Select');
         selectElement.append('<option></option>')
-        selectElement.css({'width':'400px'}).chosen();
+        selectElement.css({'width': '400px'}).chosen();
 
         var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
-        var al = Structr.loaderIcon(el, { position: 'absolute', left: '416px', top: '32px' });
-        var i=0, n=10000;
-        Command.getByType(type, n, 1, 'name', 'asc', 'id,name', function(result, size) {
+        var al = Structr.loaderIcon(el, {position: 'absolute', left: '416px', top: '32px'});
+        var i = 0, n = 10000;
+        Command.getByType(type, n, 1, 'name', 'asc', 'id,name', function (result, size) {
             var selected = (id === result.id ? 'selected' : '');
             selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
             if (++i >= size) {
                 selectElement.trigger("chosen:updated");
-                if (al.length) al.remove();
+                if (al.length)
+                    al.remove();
             }
         });
 
-        selectElement.on('change', function() {
+        selectElement.on('change', function () {
 
             var value = selectElement.val();
             if (subKey) {
                 entity[key][subKey] = value;
             }
 
-            entity.setProperty(key, value, false, function() {
-                blinkGreen($('#' + key + 'Select_chosen .chosen-single'));
+            Command.setProperty(entity.id, key, value, false, function () {
+                blinkGreen($('.' + key + 'Select_chosen .chosen-single'));
             });
         });
     },
-    appendEditSourceIcon: function(parent, entity) {
+    appendEditSourceIcon: function (parent, entity) {
+
+        if (entity.tag === 'html' || entity.tag === 'body' || entity.tag === 'head'
+                || entity.tag === 'title' || entity.tag === 'script'
+                || entity.tag === 'input' || entity.tag === 'label' || entity.tag === 'button' || entity.tag === 'textarea'
+                || entity.tag === 'link' || entity.tag === 'meta' || entity.tag === 'noscript'
+                || entity.tag === 'tbody' || entity.tag === 'thead' || entity.tag === 'tr' || entity.tag === 'td'
+                || entity.tag === 'caption' || entity.tag === 'colgroup' || entity.tag === 'tfoot' || entity.tag === 'col') {
+            return;
+        }
 
         var editIcon = $('.edit_icon', parent);
 
@@ -895,13 +930,13 @@ var _Entities = {
             parent.append('<img title="Edit source code" alt="Edit source code" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
             editIcon = $('.edit_icon', parent);
         }
-        editIcon.on('click', function(e) {
+        editIcon.on('click', function (e) {
             e.stopPropagation();
             log('editSource', entity);
             _Entities.editSource(entity);
         });
     },
-    appendEditPropertiesIcon: function(parent, entity) {
+    appendEditPropertiesIcon: function (parent, entity) {
 
         var editIcon = $('.edit_props_icon', parent);
 
@@ -909,13 +944,13 @@ var _Entities = {
             parent.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
             editIcon = $('.edit_props_icon', parent);
         }
-        editIcon.on('click', function(e) {
+        editIcon.on('click', function (e) {
             e.stopPropagation();
             log('showProperties', entity);
             _Entities.showProperties(entity);
         });
     },
-    appendDataIcon: function(parent, entity) {
+    appendDataIcon: function (parent, entity) {
 
         var dataIcon = $('.data_icon', parent);
 
@@ -923,13 +958,13 @@ var _Entities = {
             parent.append('<img title="Edit Data Settings" alt="Edit Data Settings" class="data_icon button" src="' + '/structr/icon/database_table.png' + '">');
             dataIcon = $('.data_icon', parent);
         }
-        dataIcon.on('click', function(e) {
+        dataIcon.on('click', function (e) {
             e.stopPropagation();
             log('showDataDialog', entity);
             _Entities.showDataDialog(entity);
         });
     },
-    appendExpandIcon: function(el, entity, hasChildren, expand) {
+    appendExpandIcon: function (el, entity, hasChildren, expand) {
 
         log('_Entities.appendExpandIcon', el, entity, hasChildren, expand);
 
@@ -950,7 +985,7 @@ var _Entities = {
                 paddingRight: 0 + 'px'
             }).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
 
-            $(el).on('click', function(e) {
+            $(el).on('click', function (e) {
                 e.stopPropagation();
                 _Entities.toggleElement(this);
             });
@@ -959,13 +994,13 @@ var _Entities = {
 
             if (button) {
 
-                button.on('click', function(e) {
+                button.on('click', function (e) {
                     e.stopPropagation();
                     _Entities.toggleElement($(this).parent('.node'));
                 });
 
                 // Prevent expand icon from being draggable
-                button.on('mousedown', function(e) {
+                button.on('mousedown', function (e) {
                     e.stopPropagation();
                 });
 
@@ -981,7 +1016,7 @@ var _Entities = {
         }
 
     },
-    removeExpandIcon: function(el) {
+    removeExpandIcon: function (el) {
         if (!el)
             return;
         log('removeExpandIcon', el);
@@ -991,28 +1026,28 @@ var _Entities = {
             paddingRight: 11 + 'px'
         });
     },
-    makeSelectable: function(el) {
+    makeSelectable: function (el) {
         var node = $(el).closest('.node');
         if (!node || !node.children) {
             return;
         }
-        node.on('click', function() {
+        node.on('click', function () {
             $(this).toggleClass('selected');
         });
     },
-    setMouseOver: function(el, allowClick, syncedNodes) {
+    setMouseOver: function (el, allowClick, syncedNodes) {
         var node = $(el).closest('.node');
         if (!node || !node.children) {
             return;
         }
 
         if (!allowClick) {
-            node.on('click', function(e) {
+            node.on('click', function (e) {
                 return false;
             });
         }
 
-        node.children('b.name_').on('click', function(e) {
+        node.children('b.name_').on('click', function (e) {
             e.stopPropagation();
             _Entities.makeNameEditable(node);
         });
@@ -1028,7 +1063,7 @@ var _Entities = {
         }
 
         node.on({
-            mouseover: function(e) {
+            mouseover: function (e) {
                 e.stopPropagation();
                 var self = $(this);
                 $('#componentId_' + nodeId).addClass('nodeHover');
@@ -1037,7 +1072,7 @@ var _Entities = {
                 }
 
                 if (syncedNodes && syncedNodes.length) {
-                    syncedNodes.forEach(function(s) {
+                    syncedNodes.forEach(function (s) {
                         $('#id_' + s).addClass('nodeHover');
                         $('#componentId_' + s).addClass('nodeHover');
                     });
@@ -1050,14 +1085,14 @@ var _Entities = {
                 self.addClass('nodeHover').children('img.button').show().css('display', 'inline-block');
                 self.children('.icons').children('img.button').show();
             },
-            mouseout: function(e) {
+            mouseout: function (e) {
                 e.stopPropagation();
                 $('#componentId_' + nodeId).removeClass('nodeHover');
                 if (isComponent) {
                     $('#id_' + nodeId).removeClass('nodeHover');
                 }
                 if (syncedNodes && syncedNodes.length) {
-                    syncedNodes.forEach(function(s) {
+                    syncedNodes.forEach(function (s) {
                         $('#id_' + s).removeClass('nodeHover');
                         $('#componentId_' + s).removeClass('nodeHover');
                     });
@@ -1066,7 +1101,7 @@ var _Entities = {
             }
         });
     },
-    resetMouseOverState: function(element) {
+    resetMouseOverState: function (element) {
         var el = $(element);
         var node = el.closest('.node')
         if (node) {
@@ -1079,42 +1114,46 @@ var _Entities = {
             $('#preview_' + getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
         }
     },
-    ensureExpanded: function(element, callback) {
-
+    isExpanded : function(element) {
+        var b = $(element).children('.expand_icon').first(), src = b.prop('src');
+        if (!b || ! src) {
+            return false;
+        }
+        return src.endsWith('icon/tree_arrow_down.png');
+    },
+    ensureExpanded: function (element, callback) {
+        if (!element) {
+            return;
+        }
         var el = $(element);
-        var b;
-        var src = el.prop('src');
-
         var id = getId(el);
+
+        if (!id) {
+            return;
+        }
 
         addExpandedNode(id);
 
-        b = el.children('.expand_icon').first();
-        src = b.prop('src');
-
-        if (!src)
-            return;
-
-        if (src.endsWith('icon/tree_arrow_down.png')) {
+        if (_Entities.isExpanded(element)) {
             return;
         } else {
             log('ensureExpanded: fetch children', el);
             Command.children(id, callback);
-            b.prop('src', 'icon/tree_arrow_down.png');
+            el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png');
         }
     },
-    expandAll: function(ids) {
+    expandAll: function (ids) {
         if (!ids || ids.length === 0) {
             return;
         }
 
-        ids.forEach(function(id) {
+        ids.forEach(function (id) {
             var el = Structr.node(id);
             if (el) {
                 $('.nodeSelected').removeClass('nodeSelected');
                 el.addClass('nodeSelected');
             }
-            _Entities.ensureExpanded(el, function(childNode) {
+            _Entities.ensureExpanded(el, function (childNode) {
                 var i = ids.indexOf(childNode.id);
                 if (i > 1) {
                     ids.slice(i - 1, i);
@@ -1123,24 +1162,18 @@ var _Entities = {
             });
         });
     },
-    toggleElement: function(element, expanded) {
+    toggleElement: function (element, expanded) {
 
         var el = $(element);
-        var b;
-        var src = el.prop('src');
         var id = getId(el) || getComponentId(el);
 
         log('toggleElement: ', el, id);
 
-        b = el.children('.expand_icon').first();
-        src = b.prop('src');
+        var b = el.children('.expand_icon').first();
 
-        if (!src)
-            return;
+        if (_Entities.isExpanded(element)) {
 
-        if (src.endsWith('icon/tree_arrow_down.png')) {
-
-            $.each(el.children('.node'), function(i, child) {
+            $.each(el.children('.node'), function (i, child) {
                 $(child).remove();
             });
 
@@ -1160,7 +1193,7 @@ var _Entities = {
         }
 
     },
-    makeNameEditable: function(element, width) {
+    makeNameEditable: function (element, width) {
 
         var w = width || 200;
         //element.off('dblclick');
@@ -1173,25 +1206,25 @@ var _Entities = {
 
         input.focus().select();
 
-        input.on('blur', function() {
+        input.on('blur', function () {
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
             self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
-            $('.name_', element).on('click', function(e) {
+            $('.name_', element).on('click', function (e) {
                 e.stopPropagation();
                 _Entities.makeNameEditable(element, w);
             });
             _Pages.reloadPreviews();
         });
 
-        input.keypress(function(e) {
+        input.keypress(function (e) {
             if (e.keyCode === 13) {
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
                 self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
-                $('.name_', element).on('click', function(e) {
+                $('.name_', element).on('click', function (e) {
                     e.stopPropagation();
                     _Entities.makeNameEditable(element, w);
                 });
@@ -1202,7 +1235,7 @@ var _Entities = {
         element.off('click');
 
     },
-    handleActiveElement: function(entity) {
+    handleActiveElement: function (entity) {
 
         if (entity) {
 
@@ -1266,7 +1299,7 @@ var _Entities = {
                     div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
                     editIcon = $('.edit_icon', div);
                 }
-                editIcon.on('click', function(e) {
+                editIcon.on('click', function (e) {
                     e.stopPropagation();
 
                     switch (entity.state) {
@@ -1288,15 +1321,15 @@ var _Entities = {
 
                 });
 
-                $('b[title]', div).on('click', function() {
+                $('b[title]', div).on('click', function () {
                     _Entities.openQueryDialog(entity.id);
                 });
 
-                $('.content_', div).on('click', function() {
+                $('.content_', div).on('click', function () {
                     _Contents.openEditContentDialog(this, entity);
                 });
 
-                $('.action', div).on('click', function() {
+                $('.action', div).on('click', function () {
                     _Entities.openEditModeBindingDialog(entity.id);
                 });
 
@@ -1313,14 +1346,14 @@ var _Entities = {
             }
         }
     },
-    openQueryDialog: function(id) {
-        Command.get(id, function(obj) {
+    openQueryDialog: function (id) {
+        Command.get(id, function (obj) {
 
             var entity = StructrModel.create(obj);
 
-            Structr.dialog('Query and Data Binding of ' + (entity.name ? entity.name : entity.id), function() {
+            Structr.dialog('Query and Data Binding of ' + (entity.name ? entity.name : entity.id), function () {
                 return true;
-            }, function() {
+            }, function () {
                 return true;
             });
 
@@ -1339,14 +1372,14 @@ var _Entities = {
             }
         });
     },
-    openEditModeBindingDialog: function(id) {
-        Command.get(id, function(obj) {
+    openEditModeBindingDialog: function (id) {
+        Command.get(id, function (obj) {
 
             var entity = StructrModel.create(obj);
 
-            Structr.dialog('Edit mode binding for ' + (entity.name ? entity.name : entity.id), function() {
+            Structr.dialog('Edit mode binding for ' + (entity.name ? entity.name : entity.id), function () {
                 return true;
-            }, function() {
+            }, function () {
                 return true;
             });
 
@@ -1361,37 +1394,37 @@ var _Entities = {
 function addPrincipal(entity, principal, permissions) {
 
     $('#newPrincipal option[value="' + principal.id + '"]').remove();
-    $('#new').after('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
+    $('#new').after('<tr class="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
-    var row = $('#_' + principal.id);
+    var row = $('._' + principal.id, dialogText);
 
-    ['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
+    ['read', 'write', 'delete', 'accessControl'].forEach(function (perm) {
 
         row.append('<td><input class="' + perm + '" type="checkbox"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
         var disabled = false;
 
-        $('.' + perm, row).on('dblclick', function() {
+        $('.' + perm, row).on('dblclick', function () {
             return false;
         });
 
-        $('.' + perm, row).on('click', function(e) {
+        $('.' + perm, row).on('click', function (e) {
             e.preventDefault();
             if (disabled)
                 return false;
             var sw = $(this);
             disabled = true;
             sw.prop('disabled', 'disabled');
-            window.setTimeout(function() {
+            window.setTimeout(function () {
                 disabled = false;
                 sw.prop('disabled', null);
             }, 200);
             if (!$('input:checked', row).length) {
-                $('#newPrincipal').append('<option value="' + row.attr('id').substring(1) + '">' + $('.name', row).text() + '</option>');
+                $('#newPrincipal').append('<option value="' + row.attr('class').substring(1) + '">' + $('.name', row).text() + '</option>');
                 row.remove();
             }
             var rec = $('#recursive', dialogText).is(':checked');
 
-            Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, rec, function() {
+            Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, rec, function () {
                 permissions[perm] = !permissions[perm];
                 sw.prop('checked', permissions[perm]);
                 log('Permission successfully updated!');
@@ -1405,7 +1438,7 @@ function addPrincipal(entity, principal, permissions) {
 
 function formatValueInputField(key, obj, isPassword, isReadOnly) {
     if (obj === null) {
-        return '<input name="' + key + '" type="' + (isPassword?'password':'text') + '" ' + (isReadOnly?'readonly class="readonly"':'') + ' value="">';
+        return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + ' value="">';
     } else if (obj.constructor === Object) {
         var node = obj;
         var displayName = _Crud.displayName(node);
@@ -1413,13 +1446,13 @@ function formatValueInputField(key, obj, isPassword, isReadOnly) {
         //return '<input name="' + key + '" type="' + (isPassword?'password':'text') + '" ' + (isReadOnly?'readonly class="readonly"':'') + ' value="' + escapeForHtmlAttributes(JSON.stringify(obj)) + '">';
     } else if (obj.constructor === Array) {
         var out = '';
-        $(obj).each(function(i, v) {
+        $(obj).each(function (i, v) {
             out += formatValueInputField(key, v, isPassword, isReadOnly) + '<br>';
         });
         return out;
         //return '<textarea name="' + key + '"' + (isReadOnly?'readonly class="readonly"':'') + '>' + out + '</textarea>';
     } else {
-        return '<input name="' + key + '" type="' + (isPassword?'password':'text') + '" ' + (isReadOnly?'readonly class="readonly"':'') + 'value="' + escapeForHtmlAttributes(obj) + '">';
+        return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + 'value="' + escapeForHtmlAttributes(obj) + '">';
     }
 }
 

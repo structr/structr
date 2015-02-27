@@ -32,7 +32,7 @@ import org.structr.core.converter.RelationshipEndNodeConverter;
  */
 public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 
-	public EndNodeProperty(String name) {
+	public EndNodeProperty(final String name) {
 
 		super(name);
 
@@ -41,28 +41,28 @@ public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
 
 		return databaseConverter(securityContext, null);
 
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 
 		return new RelationshipEndNodeConverter(securityContext, entity);
 
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
 
 		return null;
 
 	}
 
 	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public Object fixDatabaseProperty(final Object value) {
 
 		return null;
 
@@ -72,7 +72,11 @@ public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	public String typeName() {
 
 		return null;
+	}
 
+	@Override
+	public Class valueType() {
+		return null;
 	}
 
 	@Override

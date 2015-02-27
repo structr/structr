@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
@@ -26,6 +25,7 @@ import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.schema.parser.DatePropertyParser;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -33,21 +33,13 @@ import org.structr.core.converter.PropertyConverter;
  * A property that stores and retrieves a Date string in ISO8601 format. This property
  * uses a long value internally to provide millisecond precision.
  *
- * Note: Java's SimpleDateFormat doesn't accept 'Z' as indicator for general time zone (UTC),
- * which breaks ISO8601. This class replaces the 'Z' by '+0000' before parsing
- * as a workaround.
- *
  * @author Christian Morgner
  * @author Axel Morgner
  */
 public class ISO8601DateProperty extends DateProperty {
 	
-	public static final String PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
-
-	public ISO8601DateProperty(String name) {
-
-		super(name, PATTERN);
-
+	public ISO8601DateProperty(final String name) {
+		super(name);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -120,17 +112,13 @@ public class ISO8601DateProperty extends DateProperty {
 
 			if (StringUtils.isNotBlank(source)) {
 
-				try {
+				Date result = DatePropertyParser.parseISO8601DateString(source);
 
-					// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
-					if (StringUtils.contains(source, "Z")) {
+				if (result != null) {
 
-						source = StringUtils.replace(source, "Z", "+0000");
-					}
+					return result;
 
-					return new SimpleDateFormat(format).parse(source);
-					
-				} catch (Throwable t) {
+				} else {
 
 					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(ISO8601DateProperty.this));
 
@@ -144,14 +132,9 @@ public class ISO8601DateProperty extends DateProperty {
 
 		@Override
 		public String revert(Date source) throws FrameworkException {
-
-			if (source != null) {
-
-				return new SimpleDateFormat(format).format(source);
-			}
-
-			return null;
-
+			
+			return DatePropertyParser.format(source, null);
+			
 		}
 	}
 }

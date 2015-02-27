@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -50,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -63,9 +65,11 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.mail.EmailException;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -96,6 +100,7 @@ import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -123,7 +128,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
 	public static final String ERROR_MESSAGE_ABBR = "Usage: ${abbr(longString, maxLength)}. Example: ${abbr(this.title, 20)}";
 	public static final String ERROR_MESSAGE_CAPITALIZE = "Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}";
-	public static final String ERROR_MESSAGE_TITLEIZE = "Usage: ${titleize(string, separator}. Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
+	public static final String ERROR_MESSAGE_TITLEIZE = "Usage: ${titleize(string, separator}. (Default separator is \" \") Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
 	public static final String ERROR_MESSAGE_NUM = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_INT = "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_RANDOM = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
@@ -147,6 +152,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_EXTRACT = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 	public static final String ERROR_MESSAGE_FILTER = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
 	public static final String ERROR_MESSAGE_MERGE = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
+	public static final String ERROR_MESSAGE_COMPLEMENT = "Usage: ${complement(list1, list2, list3, ...)}. (The resulting list contains no duplicates) Example: ${merge(allUsers, me)} => List of all users except myself";
 	public static final String ERROR_MESSAGE_UNWIND = "Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}";
 	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
 	public static final String ERROR_MESSAGE_LT = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
@@ -159,11 +165,16 @@ public class Functions {
 	public static final String ERROR_MESSAGE_ROUND = "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
 	public static final String ERROR_MESSAGE_MAX = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
 	public static final String ERROR_MESSAGE_MIN = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
-	public static final String ERROR_MESSAGE_CONFIG = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
-	public static final String ERROR_MESSAGE_DATE_FORMAT = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
-	public static final String ERROR_MESSAGE_PARSE_DATE = "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
-	public static final String ERROR_MESSAGE_TEMPLATE = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
+	public static final String ERROR_MESSAGE_CONFIG    = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
+	public static final String ERROR_MESSAGE_CONFIG_JS = "Usage: ${{Structr.config(keyFromStructrConf)}}. Example: ${{Structr.config(\"base.path\")}}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT    = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT_JS = "Usage: ${{Structr.date_format(value, pattern)}}. Example: ${{Structr.date_format(Structr.get('this').creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_PARSE_DATE    = "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
+	public static final String ERROR_MESSAGE_PARSE_DATE_JS = "Usage: ${{Structr.parse_date(value, pattern)}}. Example: ${{Structr.parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT    = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT_JS = "Usage: ${{Structr.number_format(value, ISO639LangCode, pattern)}}. Example: ${{Structr.number_format(12345.6789, 'en', '#,##0.00')}}";
+	public static final String ERROR_MESSAGE_TEMPLATE    = "Usage: ${{Structr.template(name, locale, source)}}. Example: ${{Structr.template(\"TEXT_TEMPLATE_1\", \"en_EN\", Structr.get('this'))}}";
+	public static final String ERROR_MESSAGE_TEMPLATE_JS = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
 	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_AND = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_OR = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
@@ -179,9 +190,12 @@ public class Functions {
 	public static final String ERROR_MESSAGE_MERGE_PROPERTIES = "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
 	public static final String ERROR_MESSAGE_KEYS = "Usage: ${keys(entity, viewName)}. Example: ${keys(this, \"ui\")}";
 	public static final String ERROR_MESSAGE_EACH = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
-	public static final String ERROR_MESSAGE_STORE = "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
-	public static final String ERROR_MESSAGE_RETRIEVE = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
-	public static final String ERROR_MESSAGE_PRINT = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
+	public static final String ERROR_MESSAGE_STORE    = "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
+	public static final String ERROR_MESSAGE_STORE_JS = "Usage: ${{Structr.store(key, value)}}. Example: ${{Structr.store('tmpUser', Structr.get('this').owner)}}";
+	public static final String ERROR_MESSAGE_RETRIEVE    = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
+	public static final String ERROR_MESSAGE_RETRIEVE_JS = "Usage: ${{Structr.retrieve(key)}}. Example: ${{retrieve('tmpUser')}}";
+	public static final String ERROR_MESSAGE_PRINT    = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
+	public static final String ERROR_MESSAGE_PRINT_JS = "Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}";
 	public static final String ERROR_MESSAGE_READ = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
 	public static final String ERROR_MESSAGE_WRITE = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
 	public static final String ERROR_MESSAGE_APPEND = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
@@ -192,6 +206,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_SEND_HTML_MAIL = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 	public static final String ERROR_MESSAGE_GEOCODE = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
 	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
+	public static final String ERROR_MESSAGE_SEARCH = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\"}";
 	public static final String ERROR_MESSAGE_CREATE = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
 	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(entity)}. Example: ${delete(this)}";
 	public static final String ERROR_MESSAGE_CACHE = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
@@ -201,18 +216,24 @@ public class Functions {
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
-	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(from, to [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(from, to [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(entity1, entity2 [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')} (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP = "Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP = "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(entity1, entity2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS = "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP = "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
 	}
 
-	public static Object evaluate(final SecurityContext securityContext, final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
 
 		final String expressionWithoutNewlines = expression.replace('\n', ' ');
-		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
+		final StreamTokenizer tokenizer        = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
 		tokenizer.eolIsSignificant(true);
+		tokenizer.ordinaryChar('.');
 		tokenizer.wordChars('_', '_');
 		tokenizer.wordChars('.', '.');
 		tokenizer.wordChars('!', '!');
@@ -262,6 +283,7 @@ public class Functions {
 						next = new GroupExpression();
 						current.add(next);
 					}
+
 					current = next;
 					lastToken += "(";
 					level++;
@@ -276,6 +298,28 @@ public class Functions {
 						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
 					}
 					lastToken += ")";
+					level--;
+					break;
+
+				case '[':
+					// bind directly to the previous expression
+					next = new ArrayExpression();
+					current.add(next);
+					current = next;
+					lastToken += "[";
+					level++;
+					break;
+
+				case ']':
+
+					if (current == null) {
+						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket before " + lastToken);
+					}
+					current = current.getParent();
+					if (current == null) {
+						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
+					}
+					lastToken += "]";
 					level--;
 					break;
 
@@ -303,7 +347,7 @@ public class Functions {
 			throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
 		}
 
-		return root.evaluate(securityContext, actionContext, entity);
+		return root.evaluate(actionContext, entity);
 	}
 
 	private static Expression checkReservedWords(final String word) throws FrameworkException {
@@ -351,7 +395,7 @@ public class Functions {
 		}
 	}
 
-	private static int nextToken(final StreamTokenizer tokenizer) {
+	public static int nextToken(final StreamTokenizer tokenizer) {
 
 		try {
 
@@ -423,7 +467,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ERROR;
 			}
 		});
@@ -439,7 +483,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MD5;
 			}
 		});
@@ -455,7 +499,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_UPPER;
 			}
 
@@ -472,7 +516,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LOWER;
 			}
 
@@ -482,16 +526,24 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Collection) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					return StringUtils.join((Collection) sources[0], sources[1].toString());
+					if (sources[0] instanceof Collection) {
+
+						return StringUtils.join((Collection) sources[0], sources[1].toString());
+					}
+
+					if (sources[0].getClass().isArray()) {
+
+						return StringUtils.join((Object[]) sources[0], sources[1].toString());
+					}
 				}
 
 				return "";
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_JOIN;
 			}
 
@@ -504,13 +556,21 @@ public class Functions {
 				final List list = new ArrayList();
 				for (final Object source : sources) {
 
-					if (source instanceof Collection) {
+					// collection can contain nulls..
+					if (source != null) {
 
-						list.addAll((Collection) source);
+						if (source instanceof Collection) {
 
-					} else {
+							list.addAll((Collection) source);
 
-						list.add(source);
+						} else if (source.getClass().isArray()) {
+
+							list.addAll(Arrays.asList((Object[])source));
+
+						} else {
+
+							list.add(source);
+						}
 					}
 				}
 
@@ -518,7 +578,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CONCAT;
 			}
 
@@ -544,7 +604,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SPLIT;
 			}
 
@@ -581,7 +641,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ABBR;
 			}
 
@@ -598,7 +658,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CAPITALIZE;
 			}
 		});
@@ -607,7 +667,7 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (sources == null || sources.length < 2 || sources[0] == null) {
+				if (sources == null || sources[0] == null) {
 					return null;
 				}
 
@@ -615,11 +675,14 @@ public class Functions {
 					return "";
 				}
 
-				if (sources[1] == null) {
-					sources[1] = " ";
+				final String separator;
+				if (sources.length < 2) {
+					separator = " ";
+				} else {
+					separator = sources[1].toString();
 				}
 
-				String[] in = StringUtils.split(sources[0].toString(), sources[1].toString());
+				String[] in = StringUtils.split(sources[0].toString(), separator);
 				String[] out = new String[in.length];
 				for (int i = 0; i < in.length; i++) {
 					out[i] = StringUtils.capitalize(in[i]);
@@ -629,7 +692,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_TITLEIZE;
 			}
 
@@ -653,7 +716,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_NUM;
 			}
 		});
@@ -680,7 +743,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INT;
 			}
 		});
@@ -703,7 +766,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_RANDOM;
 			}
 		});
@@ -726,7 +789,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_RINT;
 			}
 		});
@@ -747,7 +810,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INDEX_OF;
 			}
 		});
@@ -771,6 +834,10 @@ public class Functions {
 						final GraphObject obj = (GraphObject) sources[1];
 
 						return collection.contains(obj);
+
+					} else if (sources[0].getClass().isArray()) {
+
+						return ArrayUtils.contains((Object[])sources[0], sources[1]);
 					}
 				}
 
@@ -778,7 +845,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CONTAINS;
 			}
 		});
@@ -805,7 +872,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SUBSTRING;
 			}
 		});
@@ -823,7 +890,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SUBSTRING;
 			}
 		});
@@ -853,18 +920,18 @@ public class Functions {
 					if (node != null) {
 
 						// recursive replacement call, be careful here
-						return node.replaceVariables(entity.getSecurityContext(), ctx, template);
+						return Scripting.replaceVariables(ctx, node, template);
 					}
 
 					return "";
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_REPLACE;
 			}
 		});
@@ -887,7 +954,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CLEAN;
 			}
 
@@ -904,7 +971,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_URLENCODE;
 			}
 
@@ -921,7 +988,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ESCAPE_JS;
 			}
 
@@ -948,7 +1015,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IF;
 			}
 
@@ -969,7 +1036,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_EMPTY;
 			}
 
@@ -1000,8 +1067,23 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_EQUAL;
+			}
+
+		});
+		functions.put("eq", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				return functions.get("equal").apply(ctx, entity, sources);
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+
+				return functions.get("equal").usage(inJavaScriptContext);
 			}
 
 		});
@@ -1041,7 +1123,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ADD;
 			}
 
@@ -1069,7 +1151,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_DOUBLE_SUM;
 			}
 
@@ -1097,7 +1179,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INT_SUM;
 			}
 
@@ -1116,7 +1198,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IS_COLLECTION;
 			}
 
@@ -1135,7 +1217,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IS_ENTITY;
 			}
 
@@ -1193,7 +1275,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_EXTRACT;
 			}
 
@@ -1210,6 +1292,7 @@ public class Functions {
 
 						// filter null objects
 						for (Object obj : (Collection) source) {
+
 							if (obj != null) {
 
 								list.add(obj);
@@ -1226,8 +1309,47 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MERGE;
+			}
+
+		});
+		functions.put("complement", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final Set sourceSet = new HashSet();
+
+				if (sources[0] instanceof Collection) {
+
+					sourceSet.addAll((Collection)sources[0]);
+
+					for (int cnt = 1; cnt < sources.length; cnt++) {
+
+						final Object source = sources[cnt];
+
+						if (source instanceof Collection) {
+
+							sourceSet.removeAll((Collection)source);
+
+						} else if (source != null) {
+
+							sourceSet.remove(source);
+						}
+					}
+
+				} else {
+
+					return "Argument 1 for complement must be a Collection";
+				}
+
+				return sourceSet;
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_COMPLEMENT;
 			}
 
 		});
@@ -1272,8 +1394,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_MERGE;
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_UNWIND;
 			}
 
 		});
@@ -1303,6 +1425,8 @@ public class Functions {
 
 									List<GraphObject> sortCollection = (List<GraphObject>) list;
 									Collections.sort(sortCollection, new GraphObjectComparator(key, descending));
+
+									return sortCollection;
 								}
 							}
 
@@ -1314,7 +1438,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SORT;
 			}
 
@@ -1339,7 +1463,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LT;
 			}
 		});
@@ -1363,7 +1487,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GT;
 			}
 		});
@@ -1387,7 +1511,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LTE;
 			}
 		});
@@ -1411,7 +1535,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GTE;
 			}
 		});
@@ -1446,7 +1570,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SUBT;
 			}
 		});
@@ -1479,7 +1603,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MULT;
 			}
 		});
@@ -1516,7 +1640,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_QUOT;
 			}
 		});
@@ -1552,7 +1676,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ROUND;
 			}
 		});
@@ -1585,7 +1709,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MAX;
 			}
 		});
@@ -1618,7 +1742,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MIN;
 			}
 		});
@@ -1639,8 +1763,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_CONFIG;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_CONFIG_JS : ERROR_MESSAGE_CONFIG);
 			}
 		});
 		functions.put("date_format", new Function<Object, Object>() {
@@ -1649,7 +1773,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 2) {
-					return ERROR_MESSAGE_DATE_FORMAT;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
@@ -1669,7 +1793,7 @@ public class Functions {
 						try {
 
 							// parse with format from IS
-							date = new SimpleDateFormat(ISO8601DateProperty.PATTERN).parse(sources[0].toString());
+							date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(sources[0].toString());
 
 						} catch (ParseException ex) {
 							ex.printStackTrace();
@@ -1685,8 +1809,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_DATE_FORMAT;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_DATE_FORMAT_JS : ERROR_MESSAGE_DATE_FORMAT);
 			}
 		});
 		functions.put("parse_date", new Function<Object, Object>() {
@@ -1695,7 +1819,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 2) {
-					return ERROR_MESSAGE_PARSE_DATE;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
@@ -1722,8 +1846,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_PARSE_DATE;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_DATE_JS : ERROR_MESSAGE_PARSE_DATE);
 			}
 		});
 		functions.put("number_format", new Function<Object, Object>() {
@@ -1732,7 +1856,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 3) {
-					return ERROR_MESSAGE_NUMBER_FORMAT;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
@@ -1757,8 +1881,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_NUMBER_FORMAT;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_NUMBER_FORMAT_JS : ERROR_MESSAGE_NUMBER_FORMAT);
 			}
 		});
 		functions.put("template", new Function<Object, Object>() {
@@ -1767,7 +1891,7 @@ public class Functions {
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 3) {
-					return ERROR_MESSAGE_TEMPLATE;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode) {
@@ -1784,7 +1908,7 @@ public class Functions {
 						if (text != null) {
 
 							// recursive replacement call, be careful here
-							return templateInstance.replaceVariables(entity.getSecurityContext(), ctx, text);
+							return Scripting.replaceVariables(ctx, templateInstance, text);
 						}
 					}
 				}
@@ -1793,8 +1917,8 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_TEMPLATE;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_TEMPLATE_JS : ERROR_MESSAGE_TEMPLATE);
 			}
 		});
 		functions.put("not", new Function<Object, Object>() {
@@ -1812,7 +1936,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_NOT;
 			}
 
@@ -1827,7 +1951,7 @@ public class Functions {
 				if (sources != null) {
 
 					if (sources.length < 2) {
-						return usage();
+						return usage(ctx.isJavaScriptContext());
 					}
 
 					for (Object i : sources) {
@@ -1857,7 +1981,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_AND;
 			}
 
@@ -1872,7 +1996,7 @@ public class Functions {
 				if (sources != null) {
 
 					if (sources.length < 2) {
-						return usage();
+						return usage(ctx.isJavaScriptContext());
 					}
 
 					for (Object i : sources) {
@@ -1902,7 +2026,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_OR;
 			}
 		});
@@ -1954,11 +2078,11 @@ public class Functions {
 					}
 				}
 
-				return usage();
+				return usage(ctx.isJavaScriptContext());
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET;
 			}
 		});
@@ -1970,29 +2094,36 @@ public class Functions {
 				final List list = new ArrayList();
 				for (final Object source : sources) {
 
-					if (source instanceof Collection) {
+					if (source != null) {
 
-						// filter null objects
-						for (Object obj : (Collection) source) {
-							if (obj != null && !NULL_STRING.equals(obj)) {
+						if (source instanceof Collection) {
 
-								list.add(obj);
+							// filter null objects
+							for (Object obj : (Collection) source) {
+								if (obj != null && !NULL_STRING.equals(obj)) {
+
+									list.add(obj);
+								}
 							}
+
+						} else if(source.getClass().isArray()) {
+
+							list.addAll(Arrays.asList((Object[])source));
+
+						} else if (source != null && !NULL_STRING.equals(source)) {
+
+							list.add(source);
 						}
 
-					} else if (source != null && !NULL_STRING.equals(source)) {
-
-						list.add(source);
+						return list.size();
 					}
-
-					return list.size();
 				}
 
-				return null;
+				return 0;
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SIZE;
 			}
 		});
@@ -2001,15 +2132,27 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
-					return ((List) sources[0]).get(0);
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+						return ((List) sources[0]).get(0);
+					}
+
+					if (sources[0].getClass().isArray()) {
+
+						final Object[] arr = (Object[])sources[0];
+						if (arr.length > 0) {
+
+							return arr[0];
+						}
+					}
 				}
 
 				return null;
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_FIRST;
 			}
 		});
@@ -2018,17 +2161,30 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-					final List list = (List) sources[0];
-					return list.get(list.size() - 1);
+					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+
+						final List list = (List) sources[0];
+						return list.get(list.size() - 1);
+					}
+
+					if (sources[0].getClass().isArray()) {
+
+						final Object[] arr = (Object[])sources[0];
+						if (arr.length > 0) {
+
+							return arr[arr.length - 1];
+						}
+					}
+
 				}
 
 				return null;
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LAST;
 			}
 		});
@@ -2037,26 +2193,39 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					final List list = (List) sources[0];
 					final int pos = Double.valueOf(sources[1].toString()).intValue();
-					final int size = list.size();
 
-					if (pos >= size) {
+					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
 
-						return null;
+						final List list = (List) sources[0];
+						final int size = list.size();
 
+						if (pos >= size) {
+
+							return null;
+
+						}
+
+						return list.get(Math.min(Math.max(0, pos), size - 1));
 					}
 
-					return list.get(Math.min(Math.max(0, pos), size - 1));
+					if (sources[0].getClass().isArray()) {
+
+						final Object[] arr = (Object[])sources[0];
+						if (pos <= arr.length) {
+
+							return arr[pos];
+						}
+					}
 				}
 
 				return null;
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_NTH;
 			}
 		});
@@ -2074,7 +2243,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET_COUNTER;
 			}
 		});
@@ -2103,7 +2272,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INC_COUNTER;
 			}
 		});
@@ -2121,7 +2290,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_RESET_COUNTER;
 			}
 		});
@@ -2161,7 +2330,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MERGE_PROPERTIES;
 			}
 		});
@@ -2180,13 +2349,23 @@ public class Functions {
 					}
 
 					return new LinkedList<>(keys);
+
+				} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof GraphObjectMap) {
+
+					return new LinkedList<>(((GraphObjectMap)sources[0]).keySet());
+
+				} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Map) {
+
+					return new LinkedList<>(((Map)sources[0]).keySet());
+
 				}
+
 
 				return "";
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_KEYS;
 			}
 		});
@@ -2203,13 +2382,13 @@ public class Functions {
 
 				} else {
 
-					return ERROR_MESSAGE_RETRIEVE;
+					return usage(ctx.isJavaScriptContext());
 				}
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_RETRIEVE;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_RETRIEVE_JS : ERROR_MESSAGE_RETRIEVE);
 			}
 		});
 		functions.put("store", new Function<Object, Object>() {
@@ -2223,15 +2402,15 @@ public class Functions {
 
 				} else {
 
-					return ERROR_MESSAGE_STORE;
+					return usage(ctx.isJavaScriptContext());
 				}
 
 				return "";
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_STORE;
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_STORE_JS : ERROR_MESSAGE_STORE);
 			}
 		});
 		functions.put("print", new Function<Object, Object>() {
@@ -2253,7 +2432,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_PRINT;
 			}
 		});
@@ -2287,7 +2466,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_READ;
 			}
 		});
@@ -2331,7 +2510,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_WRITE;
 			}
 		});
@@ -2367,7 +2546,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_APPEND;
 			}
 		});
@@ -2399,7 +2578,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_XML;
 			}
 		});
@@ -2424,7 +2603,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_XPATH;
 			}
 		});
@@ -2479,7 +2658,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SET;
 			}
 		});
@@ -2498,7 +2677,7 @@ public class Functions {
 					final String textContent = sources[5].toString();
 
 					try {
-						MailHelper.sendSimpleMail(from, fromName, to, toName, null, null, from, subject, textContent);
+						return MailHelper.sendSimpleMail(from, fromName, to, toName, null, null, from, subject, textContent);
 
 					} catch (EmailException eex) {
 						eex.printStackTrace();
@@ -2509,7 +2688,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SEND_PLAINTEXT_MAIL;
 			}
 		});
@@ -2533,7 +2712,7 @@ public class Functions {
 					}
 
 					try {
-						MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent);
+						return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent);
 
 					} catch (EmailException eex) {
 						eex.printStackTrace();
@@ -2544,7 +2723,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SEND_HTML_MAIL;
 			}
 		});
@@ -2577,7 +2756,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GEOCODE;
 			}
 		});
@@ -2588,9 +2767,9 @@ public class Functions {
 
 				if (sources != null) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
-					final ConfigurationProvider config = StructrApp.getConfiguration();
-					final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+					final SecurityContext securityContext = ctx.getSecurityContext();
+					final ConfigurationProvider config    = StructrApp.getConfiguration();
+					final Query query                     = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
 
 					// the type to query for
 					Class type = null;
@@ -2598,80 +2777,53 @@ public class Functions {
 					if (sources.length >= 1 && sources[0] != null) {
 
 						type = config.getNodeEntityClass(sources[0].toString());
+
 						if (type != null) {
 
 							query.andTypes(type);
 						}
 					}
 
-					switch (sources.length) {
+					// extension for native javascript objects
+					if (sources.length == 2 && sources[1] instanceof Map) {
 
-						case 7: // third (key,value) tuple
+						query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
 
-							final PropertyKey key3 = config.getPropertyKeyForJSONName(type, sources[5].toString());
-							if (key3 != null) {
+					} else {
+
+
+						final Integer parameter_count = sources.length;
+
+						if (parameter_count % 2 == 0) {
+
+							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
+						}
+
+						for (Integer c = 1; c < parameter_count; c+=2) {
+
+							final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+
+							if (key != null) {
 
 								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key3.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key3.jsonName() + " is not indexed.");
+								if (!key.isSearchable()) {
+
+									throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
 								}
 
-								final PropertyConverter inputConverter = key3.inputConverter(securityContext);
-								Object value = sources[6].toString();
+								final PropertyConverter inputConverter = key.inputConverter(securityContext);
+								Object value = sources[c+1];
 
 								if (inputConverter != null) {
 
 									value = inputConverter.convert(value);
 								}
 
-								query.and(key3, value);
+								query.and(key, value);
 							}
-
-						case 5: // second (key,value) tuple
-
-							final PropertyKey key2 = config.getPropertyKeyForJSONName(type, sources[3].toString());
-							if (key2 != null) {
-
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key2.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key2.jsonName() + " is not indexed.");
-								}
-
-								final PropertyConverter inputConverter = key2.inputConverter(securityContext);
-								Object value = sources[4].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								query.and(key2, value);
-							}
-
-						case 3: // (key,value) tuple
-
-							final PropertyKey key1 = config.getPropertyKeyForJSONName(type, sources[1].toString());
-							if (key1 != null) {
-
-								// throw exception if key is not indexed (otherwise the user will never know)
-								if (!key1.isSearchable()) {
-									throw new FrameworkException(400, "Search key " + key1.jsonName() + " is not indexed.");
-								}
-
-								final PropertyConverter inputConverter = key1.inputConverter(securityContext);
-								Object value = sources[2].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								query.and(key1, value);
-							}
-							break;
+						}
 					}
 
-					// return search results
 					return query.getAsList();
 				}
 
@@ -2679,7 +2831,87 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_FIND;
+			}
+		});
+		functions.put("search", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null) {
+
+					final SecurityContext securityContext = entity.getSecurityContext();
+					final ConfigurationProvider config    = StructrApp.getConfiguration();
+					final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
+					Class type                            = null;
+
+					if (sources.length >= 1 && sources[0] != null) {
+
+						type = config.getNodeEntityClass(sources[0].toString());
+
+						if (type != null) {
+
+							query.andTypes(type);
+						}
+					}
+
+					// extension for native javascript objects
+					if (sources.length == 2 && sources[1] instanceof Map) {
+
+						final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
+						for (final Entry<PropertyKey, Object> entry : map.entrySet()) {
+
+							query.and(entry.getKey(), entry.getValue(), false);
+						}
+
+					} else {
+
+						final Integer parameter_count = sources.length;
+
+						if (parameter_count % 2 == 0) {
+
+							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
+						}
+
+						for (Integer c = 1; c < parameter_count; c+=2) {
+
+							final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+
+							if (key != null) {
+
+								// throw exception if key is not indexed (otherwise the user will never know)
+								if (!key.isSearchable()) {
+
+									throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
+								}
+
+								final PropertyConverter inputConverter = key.inputConverter(securityContext);
+								Object value = sources[c+1];
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								query.and(key, value, false);
+							}
+
+						}
+					}
+
+					final Object x = query.getAsList();
+
+					// return search results
+					return x;
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_FIND;
 			}
 		});
@@ -2691,125 +2923,55 @@ public class Functions {
 				if (sources != null) {
 
 					final SecurityContext securityContext = entity.getSecurityContext();
-					final App app = StructrApp.getInstance(securityContext);
-					final ConfigurationProvider config = StructrApp.getConfiguration();
-					PropertyMap propertyMap = new PropertyMap();
-
-					// the type to query for
-					Class type = null;
+					final App app                         = StructrApp.getInstance(securityContext);
+					final ConfigurationProvider config    = StructrApp.getConfiguration();
+					PropertyMap propertyMap               = null;
+					Class type                            = null;
 
 					if (sources.length >= 1 && sources[0] != null) {
 
 						type = config.getNodeEntityClass(sources[0].toString());
 
 						if (type.equals(entity.getClass())) {
+
 							throw new FrameworkException(422, "Cannot create() entity of the same type in save action.");
 						}
 					}
 
-					switch (sources.length) {
+					// extension for native javascript objects
+					if (sources.length == 2 && sources[1] instanceof Map) {
 
-						case 13: // sixth (key,value) tuple
+						propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
 
-							final PropertyKey key6 = config.getPropertyKeyForJSONName(type, sources[11].toString());
-							if (key6 != null) {
+					} else {
 
-								final PropertyConverter inputConverter = key6.inputConverter(securityContext);
-								Object value = sources[12].toString();
+						propertyMap                   = new PropertyMap();
+						final Integer parameter_count = sources.length;
 
-								if (inputConverter != null) {
+						if (parameter_count % 2 == 0) {
 
-									value = inputConverter.convert(value);
-								}
+							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_CREATE);
+						}
 
-								propertyMap.put(key6, value);
+						for (Integer c = 1; c < parameter_count; c+=2) {
 
-							}
+							final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 
-						case 11: // fifth (key,value) tuple
+							if (key != null) {
 
-							final PropertyKey key5 = config.getPropertyKeyForJSONName(type, sources[9].toString());
-							if (key5 != null) {
-
-								final PropertyConverter inputConverter = key5.inputConverter(securityContext);
-								Object value = sources[10].toString();
+								final PropertyConverter inputConverter = key.inputConverter(securityContext);
+								Object value = sources[c+1];
 
 								if (inputConverter != null) {
 
 									value = inputConverter.convert(value);
 								}
 
-								propertyMap.put(key5, value);
+								propertyMap.put(key, value);
 
 							}
 
-						case 9: // fourth (key,value) tuple
-
-							final PropertyKey key4 = config.getPropertyKeyForJSONName(type, sources[7].toString());
-							if (key4 != null) {
-
-								final PropertyConverter inputConverter = key4.inputConverter(securityContext);
-								Object value = sources[8].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								propertyMap.put(key4, value);
-							}
-
-						case 7: // third (key,value) tuple
-
-							final PropertyKey key3 = config.getPropertyKeyForJSONName(type, sources[5].toString());
-							if (key3 != null) {
-
-								final PropertyConverter inputConverter = key3.inputConverter(securityContext);
-								Object value = sources[6].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								propertyMap.put(key3, value);
-							}
-
-						case 5: // second (key,value) tuple
-
-							final PropertyKey key2 = config.getPropertyKeyForJSONName(type, sources[3].toString());
-							if (key2 != null) {
-
-								final PropertyConverter inputConverter = key2.inputConverter(securityContext);
-								Object value = sources[4].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								propertyMap.put(key2, value);
-							}
-
-						case 3: // (key,value) tuple
-
-							final PropertyKey key1 = config.getPropertyKeyForJSONName(type, sources[1].toString());
-							if (key1 != null) {
-
-								final PropertyConverter inputConverter = key1.inputConverter(securityContext);
-								Object value = sources[2].toString();
-
-								if (inputConverter != null) {
-
-									value = inputConverter.convert(value);
-								}
-
-								propertyMap.put(key1, value);
-							}
-							break;
-
-						default:
-							return "Invalid number of parameters: " + sources.length + ", create() accepts 1-6 key-value pairs.";
+						}
 					}
 
 					if (type != null) {
@@ -2827,7 +2989,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CREATE;
 			}
 		});
@@ -2859,7 +3021,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_DELETE;
 			}
 		});
@@ -2899,7 +3061,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INCOMING;
 			}
 		});
@@ -2940,7 +3102,7 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_OUTGOING;
 			}
 		});
@@ -2969,49 +3131,42 @@ public class Functions {
 
 					if (sources.length == 2) {
 
-						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-							if (rel.getTargetNode().equals(targetNode)) {
+							if ( (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
 								return true;
 							}
 						}
 
 					} else if (sources.length == 3) {
-						
+
+
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 						final String relType = (String) sources[2];
-						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
-						
-						if (relClass == null) {
-							return false;
-						}
 
-						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-							if (rel.getProperty(AbstractRelationship.relType).equals(relType) && rel.getTargetNode().equals(targetNode)) {
+							if ( rel.getRelType().name().equals(relType) && ((rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode))) ) {
 								return true;
 							}
 						}
-						
-						return false;
 
 					}
 
 				}
-				
+
 				return false;
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_HAS_RELATIONSHIP;
 			}
 		});
-		functions.put("get_relationships", new Function<Object, Object>() {
+		functions.put("has_outgoing_relationship", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				final List list = new ArrayList();
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -3035,24 +3190,162 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-							if (rel.getTargetNode().equals(targetNode)) {
+							if (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+								return true;
+							}
+						}
+
+					} else if (sources.length == 3) {
+
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
+						final String relType = (String) sources[2];
+
+						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+
+							if (rel.getRelType().name().equals(relType) && rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+								return true;
+							}
+						}
+
+					}
+
+				}
+
+				return false;
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP;
+			}
+		});
+		functions.put("has_incoming_relationship", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					if (sources.length == 2) {
+
+						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+
+							if (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) {
+								return true;
+							}
+						}
+
+					} else if (sources.length == 3) {
+
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
+						final String relType = (String) sources[2];
+
+						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+
+							if (rel.getRelType().name().equals(relType) && (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
+								return true;
+							}
+						}
+
+					}
+
+				}
+
+				return false;
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP;
+			}
+		});
+		functions.put("get_relationships", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List<AbstractRelationship> list = new ArrayList<>();
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+
+					NodeInterface sourceNode = null;
+					NodeInterface targetNode = null;
+
+					if (source instanceof NodeInterface && target instanceof NodeInterface) {
+
+						sourceNode = (NodeInterface) source;
+						targetNode = (NodeInterface) target;
+
+					} else {
+
+						return "Error: Entities are not nodes.";
+					}
+
+					if (sources.length == 2) {
+
+						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
+
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (
+							       s != null
+							    && t != null
+							    && (
+								     (s.equals(sourceNode) && t.equals(targetNode))
+							          || (s.equals(targetNode) && t.equals(sourceNode))
+								)
+							   ) {
 								list.add(rel);
 							}
 						}
 
 					} else if (sources.length == 3) {
 
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 						final String relType = (String) sources[2];
-						final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
 
-						if (relClass != null) {
-							for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-								if (rel.getProperty(AbstractRelationship.relType).equals(relType) && rel.getTargetNode().equals(targetNode)) {
-									list.add(rel);
-								}
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (
+							       s != null
+							    && t != null
+							    && (
+								   rel.getRelType().name().equals(relType)
+								&& (
+								         (s.equals(sourceNode) && t.equals(targetNode))
+							              || (s.equals(targetNode) && t.equals(sourceNode))
+								   )
+							       )
+							   ) {
+								list.add(rel);
 							}
 						}
+
 					}
 				}
 
@@ -3060,8 +3353,167 @@ public class Functions {
 			}
 
 			@Override
-			public String usage() {
-				return ERROR_MESSAGE_HAS_RELATIONSHIP;
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_GET_RELATIONSHIPS;
+			}
+		});
+		functions.put("get_outgoing_relationships", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List<AbstractRelationship> list = new ArrayList<>();
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					if (sources.length == 2) {
+
+						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+
+							if (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+								list.add(rel);
+							}
+						}
+
+					} else if (sources.length == 3) {
+
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
+						final String relType = (String) sources[2];
+
+						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+
+							if (rel.getRelType().name().equals(relType) && rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+								list.add(rel);
+							}
+						}
+
+					}
+				}
+
+				return list;
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS;
+			}
+		});
+		functions.put("get_incoming_relationships", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final List<AbstractRelationship> list = new ArrayList<>();
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					if (sources.length == 2) {
+
+						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+
+							if (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) {
+								list.add(rel);
+							}
+						}
+
+					} else if (sources.length == 3) {
+
+						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
+						final String relType = (String) sources[2];
+
+						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+
+							if (rel.getRelType().name().equals(relType) && (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
+								list.add(rel);
+							}
+						}
+
+					}
+				}
+
+				return list;
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS;
+			}
+		});
+		functions.put("create_relationship", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+
+					final Object source = sources[0];
+					final Object target = sources[1];
+					final String relType = (String) sources[2];
+
+					AbstractNode sourceNode = null;
+					AbstractNode targetNode = null;
+
+					if (source instanceof AbstractNode && target instanceof AbstractNode) {
+
+						sourceNode = (AbstractNode) source;
+						targetNode = (AbstractNode) target;
+
+					} else {
+
+						return "Error: entities are not nodes.";
+					}
+
+					final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
+
+					if (relClass != null) {
+
+						StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relClass);
+
+					} else {
+
+						return "Error: Unknown relationship type";
+					}
+
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_CREATE_RELATIONSHIP;
 			}
 		});
 		functions.put("grant", new Function<Object, Object>() {
@@ -3118,12 +3570,12 @@ public class Functions {
 
 				} else {
 
-					return ERROR_MESSAGE_GRANT;
+					return usage(ctx.isJavaScriptContext());
 				}
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GRANT;
 			}
 		});
@@ -3181,12 +3633,12 @@ public class Functions {
 
 				} else {
 
-					return ERROR_MESSAGE_REVOKE;
+					return usage(ctx.isJavaScriptContext());
 				}
 			}
 
 			@Override
-			public String usage() {
+			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_REVOKE;
 			}
 		});
@@ -3426,7 +3878,7 @@ public class Functions {
 
 	}
 
-	public static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap target, final Map<String, Object> source, final int depth) {
+	public static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap destination, final Map<String, Object> source, final int depth) {
 
 		if (depth > 20) {
 			return;
@@ -3442,15 +3894,56 @@ public class Functions {
 				final Map<String, Object> map = (Map<String, Object>) value;
 				final GraphObjectMap obj = new GraphObjectMap();
 
-				target.put(new StringProperty(key), obj);
+				destination.put(new StringProperty(key), obj);
 
-				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
+				recursivelyConvertMapToGraphObjectMap(obj, map, depth+1);
+
+			} else if (value instanceof Collection) {
+
+				final List list              = new LinkedList();
+				final Collection collection  = (Collection)value;
+
+				for (final Object obj : collection) {
+
+					if (obj instanceof Map) {
+
+						final GraphObjectMap container = new GraphObjectMap();
+						list.add(container);
+
+						recursivelyConvertMapToGraphObjectMap(container, (Map<String, Object>)obj, depth+1);
+
+					} else {
+
+						list.add(obj);
+					}
+				}
+
+				destination.put(new StringProperty(key), list);
 
 			} else {
 
-				target.put(new StringProperty(key), value);
+				destination.put(new StringProperty(key), value);
+			}
+		}
+	}
+
+	public static Object numberOrString(final String value) {
+
+		if (value != null) {
+
+			if ("true".equals(value.toLowerCase())) {
+				return true;
+			}
+
+			if ("false".equals(value.toLowerCase())) {
+				return false;
+			}
+
+			if (NumberUtils.isNumber(value)) {
+				return NumberUtils.createNumber(value);
 			}
 		}
 
+		return value;
 	}
 }

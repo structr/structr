@@ -131,6 +131,11 @@ var _Schema = {
                 _Schema.syncSchemaDialog();
             });
 
+            schemaContainer.append('<button class="btn" id="save-layout"><img src="icon/database.png"> Save layout</button>');
+            $('#save-layout').on('click', function() {
+                Structr.saveLocalStorage();
+            });
+
             /*
              schemaContainer.append('<button class="btn" id="do-layout"><img src="icon/wrench.png"> Layout</button>');
              $('#do-layout').on('click', function() {
@@ -187,7 +192,7 @@ var _Schema = {
 
                 _Schema.loadSchema(function() {
                     instance.bind('connection', function(info) {
-                        _Schema.connect(getIdFromIdString(info.sourceId), getIdFromIdString(info.targetId));
+                        _Schema.connect(getIdFromPrefixIdString(info.sourceId, 'id_'), getIdFromPrefixIdString(info.targetId, 'id_'));
                     });
                     instance.bind('connectionDetached', function(info) {
                         Structr.confirmation('<h3>Delete schema relationship?</h3>',
@@ -525,21 +530,28 @@ var _Schema = {
         var classSelect = $('.extends-class-select', el);
         $.get(rootUrl + '_schema', function(data) {
             var result = data.result;
+            var classNames = [];
             $.each(result, function(t, cls) {
                 var type = cls.type;
                 var fqcn = cls.className;
-                if (!type || type.startsWith('_') || fqcn.startsWith('org.structr.web.entity.html')) {
+                if ( !type || type.startsWith('_') || fqcn.startsWith('org.structr.web.entity.html') || fqcn.endsWith('.' + entity.name) ) {
                     return;
                 }
-                classSelect.append('<option ' + (entity.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
+                classNames.push(fqcn);
             });
+
+            classNames.sort();
+
+            classNames.forEach( function (classname) {
+                classSelect.append('<option ' + (entity.extendsClass === classname ? 'selected="selected"' : '') + ' value="' + classname + '">' + classname + '</option>');
+            });
+
             classSelect.chosen({ search_contains: true });
         });
 
         classSelect.on('change', function() {
-            var value = $(this).val();
-            _Schema.putPropertyDefinition(entity, ' {"extendsClass":"' + value.escapeForJSON() + '"}');
-
+            var obj = {extendsClass: $(this).val()};
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj));
         });
 
         _Schema.appendLocalPropertiesAndActions(el, entity);
@@ -739,18 +751,17 @@ var _Schema = {
         var unique = $('.new .unique', el).is(':checked');
         var defaultValue = $('.new .property-default', el).val();
         if (name && name.length && type) {
-            var d = {};
+            var obj = {};
             var key = '_' + name;
             var val = ''
                     + (dbName ? dbName + '|' : '')
                     + (notNull ? '+' : '')
                     + (type ? type : '')
                     + (unique ? '!' : '')
-                    + (format ? '(' + format.escapeForJSON() + ')' : '')
-                    + (defaultValue ? ':' + defaultValue.escapeForJSON() : '');
-            d[key] = val;
-            //console.log(val, d)
-            _Schema.putPropertyDefinition(entity, JSON.stringify(d), function() {
+                    + (format ? '(' + format + ')' : '')
+                    + (defaultValue ? ':' + defaultValue : '');
+            obj[key] = val;
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj), function() {
 
                 var row = $('.new', el);
                 blinkGreen(row);
@@ -766,11 +777,13 @@ var _Schema = {
                     _Schema.removeLocalProperty(entity, key);
                 });
 
+                entity[key] = val;
+
                 _Schema.bindEvents(entity, type, key);
 
-                entity[key] = val;
             }, function() {
                 blinkRed($('.new', el));
+                _Schema.bindEvents(entity, type, key);
             });
         }
     },
@@ -887,12 +900,12 @@ var _Schema = {
         if (canvas) {
             canvas.css({
                 width: w + 'px',
-                height: h + 'px',
+                height: h + 'px'
             });
         }
 
         $('body').css({
-            position: 'relative',
+            position: 'relative'
 //            background: '#fff'
         });
 
@@ -909,96 +922,169 @@ var _Schema = {
 
         if (key.substring(0, 1) === '_') {
 
-            var name = key.substring(1);
-            var dbName = '';
-            var type;
-            if (res[key].indexOf('|') > -1) {
-                dbName = res[key].substring(0, res[key].indexOf('|'));
-                type = res[key].substring(res[key].indexOf('|') + 1);
-            } else {
-                type = res[key];
-            }
-
-            var notNull = (res[key].indexOf('+') > -1);
-            var unique = (res[key].indexOf('!') > -1);
-
-            type = type.replace('+', '').replace('!', '');
-
-            var defaultValue = '';
-            var format = '';
-
-            var defaultBegin = type.indexOf(':');
-            var formatBegin = type.indexOf('(');
-
-            if (formatBegin > -1 && defaultBegin > -1 && defaultBegin > formatBegin) {
-                // we have a format string => we need to find the location of the matching closing bracket for the bracket at pos formatBegin
-
-                var defaultBegin = type.indexOf('):');
-                if (defaultBegin > -1) {
-                    defaultBegin++;
-                }
-            }
-
-            if (defaultBegin > -1) {
-                defaultValue = (type.substring(defaultBegin + 1));
-                type = type.substring(0, defaultBegin);
-            }
-
-            if (formatBegin > -1) {
-                format = type.substring(formatBegin + 1, type.length - 1);
-                type = type.substring(0, formatBegin);
-            }
+            var property = _Schema.property(res, key);
 
             if (compact) {
 
-                el.append('<tr class="' + key + '"><td>' + name + '</td>'
-                        + '<td>' + type + '</td>'
-                        + '<td>' + (format ? escapeForHtmlAttributes(format) : '') + '</td></div>');
+                el.append('<tr class="' + key + '"><td>' + property.name + '</td>'
+                        + '<td>' + property.type + '</td>'
+                        + '<td>' + (property.format ? escapeForHtmlAttributes(property.format) : '') + '</td></div>');
 
             } else {
 
-                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(name) + '"></td><td>'
-                        + '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(dbName) + '"></td><td>'
+                el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(property.name) + '"></td><td>'
+                        + '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(property.dbName) + '"></td><td>'
                         + typeOptions + '</td><td><input size="15" type="text" class="property-format" value="'
-                        + (format ? escapeForHtmlAttributes(format) : '') + '"></td><td><input class="not-null" type="checkbox"'
-                        + (notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
-                        + (unique ? ' checked="checked"' : '') + '</td><td>'
-                        + '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(defaultValue) + '">' + '</td><td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"></td></div>');
+                        + (property.format ? escapeForHtmlAttributes(property.format) : '') + '"></td><td><input class="not-null" type="checkbox"'
+                        + (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
+                        + (property.unique ? ' checked="checked"' : '') + '</td><td>'
+                        + '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"></td></div>');
 
-                _Schema.bindEvents(res, type, key);
+                _Schema.bindEvents(res, property.type, key);
             }
         }
 
     },
+    property: function(res, key) {
+
+        var name = key.substring(1);
+        var unparsed = res[key];
+
+        // dbName
+        // NOTE: The format string can likely contain pipes when it is javascript...
+        // that's why we are ignoring the pipe if it is after the first plus, colon, bracket, bang, etc
+        var dbName = '';
+        var locFirstPipe = unparsed.indexOf('|');
+        if (locFirstPipe !== -1) {
+            dbName = unparsed.substring(0, locFirstPipe);
+
+            if (dbName.indexOf('+') !== -1 || dbName.indexOf('[') !== -1 || dbName.indexOf('!') !== -1 || dbName.indexOf('(') !== -1 || dbName.indexOf(':') !== -1) {
+                // ignore dbName
+                dbName = '';
+            } else {
+                unparsed = unparsed.substring(locFirstPipe + 1);
+            }
+        }
+
+
+        // notNull
+        var notNull = (unparsed[0] === '+');
+        if (notNull) {
+            unparsed = unparsed.substring(1);
+        }
+
+
+        // read the type (this works by finding the first of the known delimiters and cutting off at that point)
+        var type = '';
+        var firstDelimLoc = unparsed.length;
+        var delims = ['[', '!', '(', ':'];
+        delims.forEach(function (d) {
+            var loc = unparsed.indexOf(d);
+            if (loc !== -1 && firstDelimLoc > loc) {
+                firstDelimLoc = loc;
+            }
+        });
+        type = unparsed.substring(0, firstDelimLoc);
+        unparsed = unparsed.substring(firstDelimLoc);
+
+
+        // content-type
+        var contentType = '';
+        if (unparsed.length > 0 && unparsed[0] === '[') {
+
+            // NOTE: this can break if the content-type contains a ']' which is an allowed character
+            var contentTypeEnd = unparsed.indexOf(']');
+
+            contentType = unparsed.substring(1, contentTypeEnd);
+            unparsed = unparsed.substring(contentTypeEnd + 1);
+        }
+
+
+        // unique
+        var unique = (unparsed.length > 0 && unparsed[0] === '!');
+        if (unique) {
+            unparsed = unparsed.substring(1);
+        }
+
+
+        // format
+        var format = '';
+        if (unparsed.length > 0 && unparsed[0] === '(') {
+            // NOTE: this can break if the default value contains the string ')'
+            // but since format is way more likely to contain ')' we use lastIndexOf
+            var formatEnd = unparsed.lastIndexOf(')');
+
+            format = unparsed.substring(1, formatEnd);
+            unparsed = unparsed.substring(formatEnd + 1);
+        }
+
+
+        // defaultValue
+        var defaultValue = '';
+        if (unparsed.length > 0 && unparsed[0] === ':') {
+            defaultValue = unparsed.substring(1);
+        }
+
+        return { type: type, contentType: contentType, name: name, dbName: dbName, notNull: notNull, unique: unique, defaultValue: defaultValue, format: format };
+        
+    },
     bindEvents: function(entity, type, key) {
 
+        if (key.substring(0, 1) !== '_') {
+            return;
+        }
+        
+        var property = _Schema.property(entity, key);
+        
         var el = $('.local.schema-props');
 
         $('.' + key + ' .property-type option[value="' + type + '"]', el).attr('selected', true).prop('disabled', null);
+        
+        var typeField = $('.' + key + ' .property-type', el);
+        $('.' + key + ' .property-type option[value=""]', el).remove();
+        
+        if (type === 'String') {
+            if (!$('input.content-type', typeField.parent()).length) {
+                typeField.after('<input type="text" size="5" class="content-type">');
+            }
+            $('.' + key + ' .content-type', el).on('blur', function() {
+                _Schema.savePropertyDefinition(entity, key);
+            }).prop('disabled', null).val(property.contentType);
+        }
+        
+        if (type && type !== '') {
+            $('.' + key + ' .property-name', el).on('change', function() {
+                _Schema.savePropertyDefinition(entity, key);
+            }).prop('disabled', null).val(property.name);
+            $('.' + key + ' .property-dbname', el).on('change', function() {
+                _Schema.savePropertyDefinition(entity, key);
+            }).prop('disabled', null).val(property.dbName);
+        }
 
         $('.' + key + ' .property-type', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.type);
 
         $('.' + key + ' .property-format', el).on('blur', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.format);
 
         $('.' + key + ' .not-null', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.notNull);
 
         $('.' + key + ' .unique', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.unique);
 
         $('.' + key + ' .property-default', el).on('change', function() {
             _Schema.savePropertyDefinition(entity, key);
-        }).prop('disabled', null);
+        }).prop('disabled', null).val(property.defaultValue);
 
         $('.' + key + ' .remove-property', el).on('click', function() {
             _Schema.removeLocalProperty(entity, key);
         }).prop('disabled', null);
+        
 
     },
     unbindEvents: function(key) {
@@ -1006,6 +1092,8 @@ var _Schema = {
         var el = $('.local.schema-props');
 
         $('.' + key + ' .property-type', el).off('change').prop('disabled', 'disabled');
+        
+        $('.' + key + ' .content-type', el).off('change').prop('disabled', 'disabled');
 
         $('.' + key + ' .property-format', el).off('blur').prop('disabled', 'disabled');
 
@@ -1135,48 +1223,57 @@ var _Schema = {
     removePropertyDefinition: function(entity, key) {
         entity[key] = undefined;
         delete entity[key];
-        _Schema.putPropertyDefinition(entity, ' {"' + key + '":null}');
+        var obj = {};
+        obj[key] = null;
+        _Schema.putPropertyDefinition(entity, JSON.stringify(obj));
     },
     savePropertyDefinition: function(entity, key) {
         _Schema.unbindEvents(key);
         var name = $('.' + key + ' .property-name').val();
         var dbName = $('.' + key + ' .property-dbname').val();
         var type = $('.' + key + ' .property-type').val();
+        var contentType = $('.' + key + ' .content-type').val();
         var format = $('.' + key + ' .property-format').val();
         var notNull = $('.' + key + ' .not-null').is(':checked');
         var unique = $('.' + key + ' .unique').is(':checked');
         var defaultValue = $('.' + key + ' .property-default').val();
         if (name && name.length && type) {
-            var d = {};
+            var obj = {};
+            var key = '_' + name;
             var val = (dbName ? dbName + '|' : '')
                     + (notNull ? '+' : '')
                     + (type === 'del' ? null : type)
+                    + (contentType ? '[' + contentType + ']' : '')
                     + (unique ? '!' : '')
-                    + (format ? '(' + format.escapeForJSON() + ')' : '')
-                    + (defaultValue ? ':' + defaultValue.escapeForJSON() : '');
-            d['_' + name] = val;
-            _Schema.putPropertyDefinition(entity, JSON.stringify(d), function() {
+                    + (format ? '(' + format + ')' : '')
+                    + (defaultValue ? ':' + defaultValue : '');
+            obj[key] = val;
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj), function() {
                 blinkGreen($('.local .' + key));
-                _Schema.bindEvents(entity, type, key);
                 entity['_' + name] = val;
+                _Schema.bindEvents(entity, type, key);
             }, function() {
                 blinkRed($('.local .' + key));
+                 _Schema.bindEvents(entity, type, key);
             }, function() {
                 _Schema.bindEvents(entity, type, key);
             });
         }
     },
     removeActionDefinition: function(entity, name) {
-        _Schema.putPropertyDefinition(entity, ' {"' + name + '": null}');
+        var obj = {};
+        obj[name] = null;
+        _Schema.putPropertyDefinition(entity, JSON.stringify(obj));
     },
     saveActionDefinition: function(entity, key) {
         var name = $('.' + key + ' .action.property-name').val();
-        var func = $('.' + key + ' .action.property-code').val().replace(/\n/g, "\\n");
-        // var func = $('.' + key + ' .action.property-code').val();
+        var func = $('.' + key + ' .action.property-code').val();
         if (name && name.length) {
+            var obj = {};
             var k = '___' + name;
-            var v = (func ? func.escapeForJSON() : '');
-            _Schema.putPropertyDefinition(entity, ' {"' + k + '": "' + v + '"}',
+            var v = (func ? func : '');
+            obj[k] = v;
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj),
             function() {
                 blinkGreen($('.actions .' + key));
                 entity[k] = v;
@@ -1187,39 +1284,17 @@ var _Schema = {
         }
 
     },
-    removePropertyFromViewDefinitions: function(entity, key) {
-        _Schema.unbindEvents(key);
-        var keys = Object.keys(entity);
-        $('.view.property-name').closest('tr').each(function(v, row) {
-            var name = $('.view.property-name', row).val();
-            var attrs = $('.view.property-attrs', row).val();
-            if (name && name.length) {
-                attrs = normalizeAttrs(attrs.splice(attrs.indexOf(key)), keys.concat(remotePropertyKeys));
-                var k = '__' + name;
-                var v = (attrs ? attrs.escapeForJSON() : '');
-                _Schema.putPropertyDefinition(entity, ' {"' + k + '": "' + v + '"}',
-                function() {
-                    blinkGreen(row);
-                    entity[k] = v;
-                },
-                function() {
-                    blinkRed(row);
-                },
-                function() {
-                    _Schema.bindEvents(entity, type, key);
-                });
-            }
-        });
-    },
     saveViewDefinition: function(entity, key) {
         var keys = Object.keys(entity);
         var name = $('.' + key + ' .view.property-name').val();
         var attrs = $('.' + key + ' .view.property-attrs').val();
         if (name && name.length) {
             attrs = normalizeAttrs(attrs, keys.concat(remotePropertyKeys));
+            var obj = {};
             var k = '__' + name;
-            var v = (attrs ? attrs.escapeForJSON() : '');
-            _Schema.putPropertyDefinition(entity, ' {"' + k + '": "' + v + '"}',
+            var v = (attrs ? attrs : '');
+            obj[k] = v;
+            _Schema.putPropertyDefinition(entity, JSON.stringify(obj),
             function() {
                 blinkGreen($('.views .' + key));
                 entity[k] = v;
@@ -1285,7 +1360,7 @@ var _Schema = {
 
                     }
 
-                },
+                }
             }
         });
     },
@@ -1296,7 +1371,7 @@ var _Schema = {
             type: 'POST',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: '{ "name": "' + type + '"}',
+            data: JSON.stringify({name: type}),
             statusCode: {
                 201: function() {
                     _Schema.reload();
@@ -1327,16 +1402,21 @@ var _Schema = {
         });
     },
     createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
-        var data = '{"sourceId":"' + sourceId + '","targetId":"' + targetId + '"'
-                + (relationshipType && relationshipType.length ? ',"relationshipType":"' + relationshipType + '"' : '')
-                + ', "sourceMultiplicity" : "*", "targetMultiplicity" : "*"'
-                + '}';
+        var data = {
+            sourceId: sourceId,
+            targetId: targetId,
+            sourceMultiplicity: '*',
+            targetMultiplicity: '*'
+        };
+        if (relationshipType && relationshipType.length) {
+            data.relationshipType = relationshipType;
+        }
         $.ajax({
             url: rootUrl + 'schema_relationships',
             type: 'POST',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: data,
+            data: JSON.stringify(data),
             statusCode: {
                 201: function() {
                     _Schema.reload();
@@ -1542,7 +1622,7 @@ var _Schema = {
             Command.pushSchema(host, port, username, password, key, function() {
                 dialog.empty();
                 dialogCancelButton.click();
-            })
+            });
         });
 
         return false;
@@ -1789,7 +1869,7 @@ function denormalizeAttrs(attrs) {
     }).join(', ');
 }
 
-var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
+var typeOptions = '<select class="property-type"><option value="">--Select--</option>'
         + '<option value="String">String</option>'
         + '<option value="Integer">Integer</option>'
         + '<option value="Long">Long</option>'

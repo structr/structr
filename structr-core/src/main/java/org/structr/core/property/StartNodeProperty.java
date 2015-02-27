@@ -27,7 +27,7 @@ import org.structr.core.converter.RelationshipStartNodeConverter;
 
 /**
  * A property that returns the start node of a relationship.
- * 
+ *
  * @author Axel Morgner
  */
 public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
@@ -73,6 +73,11 @@ public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 
 		return null;
 
+	}
+
+	@Override
+	public Class valueType() {
+		return null;
 	}
 
 	@Override

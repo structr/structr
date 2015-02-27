@@ -26,8 +26,10 @@ import java.util.List;
 import java.util.Locale;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
@@ -36,7 +38,7 @@ import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.graph.Tx;
 import org.structr.core.parser.Functions;
-import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.script.Scripting;
 
 /**
  *
@@ -51,7 +53,7 @@ public class ActionContextTest extends StructrTest {
 		final Date now                    = new Date();
 		final SimpleDateFormat format1    = new SimpleDateFormat("dd.MM.yyyy");
 		final SimpleDateFormat format2    = new SimpleDateFormat("HH:mm:ss");
-		final SimpleDateFormat format3    = new SimpleDateFormat(ISO8601DateProperty.PATTERN);
+		final SimpleDateFormat format3    = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 		final String nowString1           = format1.format(now);
 		final String nowString2           = format2.format(now);
 		final String nowString3           = format3.format(now);
@@ -62,7 +64,7 @@ public class ActionContextTest extends StructrTest {
 		final String numberString2        = numberFormat2.format(2.234);
 		final String numberString3        = numberFormat3.format(2.234);
 		MailTemplate template             = null;
-		MailTemplate template2             = null;
+		MailTemplate template2            = null;
 		TestOne testOne                   = null;
 		TestTwo testTwo                   = null;
 		TestThree testThree               = null;
@@ -78,8 +80,15 @@ public class ActionContextTest extends StructrTest {
 			testFour       = createTestNode(TestFour.class);
 			testSixs       = createTestNodes(TestSix.class, 20);
 
+			// set string array on test four
+			testFour.setProperty(TestFour.stringArrayProperty, new String[] { "one", "two", "three", "four" } );
+
 			for (final TestSix testSix : testSixs) {
-				testSix.setProperty(TestSix.index, index++);
+
+				testSix.setProperty(TestSix.name, "TestSix" + StringUtils.leftPad(Integer.toString(index), 2, "0"));
+				testSix.setProperty(TestSix.index, index);
+
+				index++;
 			}
 
 			// create mail template
@@ -116,7 +125,7 @@ public class ActionContextTest extends StructrTest {
 
 			testTwo.setProperty(TestTwo.name, "testTwo_name");
 			testThree.setProperty(TestThree.name, "testThree_name");
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -128,666 +137,737 @@ public class ActionContextTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final ActionContext ctx = new ActionContext(testOne, null);
+			final ActionContext ctx = new ActionContext(securityContext, null);
+
+			// test quotes etc.
+			assertEquals("Invalid result for quoted template expression", "''", Scripting.replaceVariables(ctx, testOne, "'${err}'"));
+			assertEquals("Invalid result for quoted template expression", " '' ", Scripting.replaceVariables(ctx, testOne, " '${err}' "));
+			assertEquals("Invalid result for quoted template expression", "\"\"", Scripting.replaceVariables(ctx, testOne, "\"${this.error}\""));
+			assertEquals("Invalid result for quoted template expression", "''''''", Scripting.replaceVariables(ctx, testOne, "'''${this.this.this.error}'''"));
+			assertEquals("Invalid result for quoted template expression", "''", Scripting.replaceVariables(ctx, testOne, "'${parent.error}'"));
+			assertEquals("Invalid result for quoted template expression", "''", Scripting.replaceVariables(ctx, testOne, "'${this.owner}'"));
+			assertEquals("Invalid result for quoted template expression", "''", Scripting.replaceVariables(ctx, testOne, "'${this.alwaysNull}'"));
+			assertEquals("Invalid result for quoted template expression", "''", Scripting.replaceVariables(ctx, testOne, "'${parent.owner}'"));
 
 			// test for "empty" return value
-			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${err}"));
-			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.error}"));
-			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.this.this.error}"));
-			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.error}"));
-			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.owner}"));
-			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${this.alwaysNull}"));
-			assertEquals("Invalid expressions should yield an empty result", "", testOne.replaceVariables(securityContext, ctx, "${parent.owner}"));
+			assertEquals("Invalid expressions should yield an empty result", "", Scripting.replaceVariables(ctx, testOne, "${err}"));
+			assertEquals("Invalid expressions should yield an empty result", "", Scripting.replaceVariables(ctx, testOne, "${this.error}"));
+			assertEquals("Invalid expressions should yield an empty result", "", Scripting.replaceVariables(ctx, testOne, "${this.this.this.error}"));
+			assertEquals("Invalid expressions should yield an empty result", "", Scripting.replaceVariables(ctx, testOne, "${parent.error}"));
+			assertEquals("Invalid expressions should yield an empty result", "", Scripting.replaceVariables(ctx, testOne, "${this.owner}"));
+			assertEquals("Invalid expressions should yield an empty result", "", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull}"));
+			assertEquals("Invalid expressions should yield an empty result", "", Scripting.replaceVariables(ctx, testOne, "${parent.owner}"));
 
-			assertEquals("${this} should evaluate to the current node", testOne.toString(), testOne.replaceVariables(securityContext, ctx, "${this}"));
-			assertEquals("${parent} should evaluate to the context parent node", testOne.toString(), testOne.replaceVariables(securityContext, ctx, "${parent}"));
+			assertEquals("${this} should evaluate to the current node", testOne.toString(), Scripting.replaceVariables(ctx, testOne, "${this}"));
+			//assertEquals("${parent} should evaluate to the context parent node", testOne.toString(), Scripting.replaceVariables(ctx, testOne, "${parent}"));
 
-			assertEquals("${this} should evaluate to the current node", testTwo.toString(), testTwo.replaceVariables(securityContext, ctx, "${this}"));
-			assertEquals("${parent} should evaluate to the context parent node", testOne.toString(), testTwo.replaceVariables(securityContext, ctx, "${parent}"));
+			assertEquals("${this} should evaluate to the current node", testTwo.toString(), Scripting.replaceVariables(ctx, testTwo, "${this}"));
+			//assertEquals("${parent} should evaluate to the context parent node", testOne.toString(), Scripting.replaceVariables(ctx, testOne, "${parent}"));
 
-			assertEquals("Invalid variable reference", testTwo.toString(),   testOne.replaceVariables(securityContext, ctx, "${this.testTwo}"));
-			assertEquals("Invalid variable reference", testThree.toString(), testOne.replaceVariables(securityContext, ctx, "${this.testThree}"));
-			assertEquals("Invalid variable reference", testFour.toString(),  testOne.replaceVariables(securityContext, ctx, "${this.testFour}"));
+			assertEquals("Invalid variable reference", testTwo.toString(),   Scripting.replaceVariables(ctx, testOne, "${this.testTwo}"));
+			assertEquals("Invalid variable reference", testThree.toString(), Scripting.replaceVariables(ctx, testOne, "${this.testThree}"));
+			assertEquals("Invalid variable reference", testFour.toString(),  Scripting.replaceVariables(ctx, testOne, "${this.testFour}"));
 
-			assertEquals("Invalid variable reference", testTwo.getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.testTwo.id}"));
-			assertEquals("Invalid variable reference", testThree.getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.testThree.id}"));
-			assertEquals("Invalid variable reference", testFour.getUuid(), testOne.replaceVariables(securityContext, ctx, "${this.testFour.id}"));
+			assertEquals("Invalid variable reference", testTwo.getUuid(), Scripting.replaceVariables(ctx, testOne, "${this.testTwo.id}"));
+			assertEquals("Invalid variable reference", testThree.getUuid(), Scripting.replaceVariables(ctx, testOne, "${this.testThree.id}"));
+			assertEquals("Invalid variable reference", testFour.getUuid(), Scripting.replaceVariables(ctx, testOne, "${this.testFour.id}"));
 
-			assertEquals("Invalid size result", "20", testOne.replaceVariables(securityContext, ctx, "${this.manyToManyTestSixs.size}"));
+			assertEquals("Invalid size result", "20", Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs.size}"));
 
 			try {
 
-				testOne.replaceVariables(securityContext, ctx, "${(this.alwaysNull.size}");
+				Scripting.replaceVariables(ctx, testOne, "${(this.alwaysNull.size}");
 				fail("A mismatched opening bracket should throw an exception.");
 
 			} catch (FrameworkException fex) {
 				assertEquals("Invalid expression: mismatched closing bracket after this.alwaysNull.size", fex.getMessage());
 			}
 
-			assertEquals("Invalid size result", "", testOne.replaceVariables(securityContext, ctx, "${this.alwaysNull.size}"));
+			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull.size}"));
 
-			assertEquals("Invalid variable reference", "1",            testOne.replaceVariables(securityContext, ctx, "${this.anInt}"));
-			assertEquals("Invalid variable reference", "String",       testOne.replaceVariables(securityContext, ctx, "${this.aString}"));
-			assertEquals("Invalid variable reference", "235242522552", testOne.replaceVariables(securityContext, ctx, "${this.aLong}"));
-			assertEquals("Invalid variable reference", "2.234",        testOne.replaceVariables(securityContext, ctx, "${this.aDouble}"));
+			assertEquals("Invalid variable reference", "1",            Scripting.replaceVariables(ctx, testOne, "${this.anInt}"));
+			assertEquals("Invalid variable reference", "String",       Scripting.replaceVariables(ctx, testOne, "${this.aString}"));
+			assertEquals("Invalid variable reference", "235242522552", Scripting.replaceVariables(ctx, testOne, "${this.aLong}"));
+			assertEquals("Invalid variable reference", "2.234",        Scripting.replaceVariables(ctx, testOne, "${this.aDouble}"));
 
 			// test with property
-			assertEquals("Invalid md5() result", "27118326006d3829667a400ad23d5d98",  testOne.replaceVariables(securityContext, ctx, "${md5(this.aString)}"));
-			assertEquals("Invalid usage message for md5()", Functions.ERROR_MESSAGE_MD5, testOne.replaceVariables(securityContext, ctx, "${md5()}"));
-			assertEquals("Invalid upper() result", "27118326006D3829667A400AD23D5D98",  testOne.replaceVariables(securityContext, ctx, "${upper(md5(this.aString))}"));
-			assertEquals("Invalid usage message for upper()", Functions.ERROR_MESSAGE_UPPER, testOne.replaceVariables(securityContext, ctx, "${upper()}"));
-			assertEquals("Invalid upper(lower() result", "27118326006D3829667A400AD23D5D98",  testOne.replaceVariables(securityContext, ctx, "${upper(lower(upper(md5(this.aString))))}"));
-			assertEquals("Invalid usage message for lower()", Functions.ERROR_MESSAGE_LOWER, testOne.replaceVariables(securityContext, ctx, "${lower()}"));
+			assertEquals("Invalid md5() result", "27118326006d3829667a400ad23d5d98",  Scripting.replaceVariables(ctx, testOne, "${md5(this.aString)}"));
+			assertEquals("Invalid usage message for md5()", Functions.ERROR_MESSAGE_MD5, Scripting.replaceVariables(ctx, testOne, "${md5()}"));
+			assertEquals("Invalid upper() result", "27118326006D3829667A400AD23D5D98",  Scripting.replaceVariables(ctx, testOne, "${upper(md5(this.aString))}"));
+			assertEquals("Invalid usage message for upper()", Functions.ERROR_MESSAGE_UPPER, Scripting.replaceVariables(ctx, testOne, "${upper()}"));
+			assertEquals("Invalid upper(lower() result", "27118326006D3829667A400AD23D5D98",  Scripting.replaceVariables(ctx, testOne, "${upper(lower(upper(md5(this.aString))))}"));
+			assertEquals("Invalid usage message for lower()", Functions.ERROR_MESSAGE_LOWER, Scripting.replaceVariables(ctx, testOne, "${lower()}"));
 
-			assertEquals("Invalid md5() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${md5(this.alwaysNull)}"));
-			assertEquals("Invalid upper() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${upper(this.alwaysNull)}"));
-			assertEquals("Invalid lower() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${lower(this.alwaysNull)}"));
+			assertEquals("Invalid md5() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${md5(this.alwaysNull)}"));
+			assertEquals("Invalid upper() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${upper(this.alwaysNull)}"));
+			assertEquals("Invalid lower() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lower(this.alwaysNull)}"));
 
 			// test literal value as well
-			assertEquals("Invalid md5() result", "cc03e747a6afbbcbf8be7668acfebee5",  testOne.replaceVariables(securityContext, ctx, "${md5(\"test123\")}"));
+			assertEquals("Invalid md5() result", "cc03e747a6afbbcbf8be7668acfebee5",  Scripting.replaceVariables(ctx, testOne, "${md5(\"test123\")}"));
 
-			assertEquals("Invalid lower() result", "string",       testOne.replaceVariables(securityContext, ctx, "${lower(this.aString)}"));
-			assertEquals("Invalid upper() result", "STRING",       testOne.replaceVariables(securityContext, ctx, "${upper(this.aString)}"));
+			assertEquals("Invalid lower() result", "string",       Scripting.replaceVariables(ctx, testOne, "${lower(this.aString)}"));
+			assertEquals("Invalid upper() result", "STRING",       Scripting.replaceVariables(ctx, testOne, "${upper(this.aString)}"));
+
+			// merge
+			assertEquals("Invalid merge() result", "[one, two, three]", Scripting.replaceVariables(ctx, testOne, "${merge('one', 'two', 'three')}"));
+			assertEquals("Invalid merge() result", "[one, two, three, two, one, two, three]", Scripting.replaceVariables(ctx, testOne, "${merge(merge('one', 'two', 'three'), 'two', merge('one', 'two', 'three'))}"));
+			assertEquals("Invalid merge() result", "[1, 2, 3, 4, 5, 6, 7, 8]", Scripting.replaceVariables(ctx, testOne, "${merge(merge('1', '2', '3'), merge('4', '5', merge('6', '7', '8')))}"));
+			assertEquals("Invalid merge() result", "[1, 2, 3, 4, 5, 6, 1, 2, 3, 8]", Scripting.replaceVariables(ctx, testOne, "${ ( store('list', merge('1', '2', '3')), merge(retrieve('list'), merge('4', '5', merge('6', retrieve('list'), '8'))) )}"));
+
+			// complement
+			assertEquals("Invalid complement() result", "[]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three'), 'one', merge('two', 'three', 'four'))}"));
+			assertEquals("Invalid complement() result", "[two]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three'), merge('one', 'four', 'three'))}"));
 
 			// join
-			assertEquals("Invalid join() result", "one,two,three", testOne.replaceVariables(securityContext, ctx, "${join(merge(\"one\", \"two\", \"three\"), \",\")}"));
+			assertEquals("Invalid join() result", "one,two,three", Scripting.replaceVariables(ctx, testOne, "${join(merge(\"one\", \"two\", \"three\"), \",\")}"));
 
 			// concat
-			assertEquals("Invalid concat() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${concat(\"one\", \"two\", \"three\")}"));
-			assertEquals("Invalid concat() result", "oneStringthree", testOne.replaceVariables(securityContext, ctx, "${concat(\"one\", this.aString, \"three\")}"));
-			assertEquals("Invalid concat() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${concat(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for concat()", Functions.ERROR_MESSAGE_CONCAT, testOne.replaceVariables(securityContext, ctx, "${concat()}"));
+			assertEquals("Invalid concat() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(\"one\", \"two\", \"three\")}"));
+			assertEquals("Invalid concat() result", "oneStringthree", Scripting.replaceVariables(ctx, testOne, "${concat(\"one\", this.aString, \"three\")}"));
+			assertEquals("Invalid concat() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${concat(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for concat()", Functions.ERROR_MESSAGE_CONCAT, Scripting.replaceVariables(ctx, testOne, "${concat()}"));
 
 			// split
-			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${concat(split(\"one,two,three\"))}"));
-			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${concat(split(\"one;two;three\"))}"));
-			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${concat(split(\"one;two;three\", \";\"))}"));
-			assertEquals("Invalid split() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${split(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for split()", Functions.ERROR_MESSAGE_SPLIT, testOne.replaceVariables(securityContext, ctx, "${split()}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\", \";\"))}"));
+			assertEquals("Invalid split() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${split(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for split()", Functions.ERROR_MESSAGE_SPLIT, Scripting.replaceVariables(ctx, testOne, "${split()}"));
 
 			// abbr
-			assertEquals("Invalid abbr() result", "oneStringt…", testOne.replaceVariables(securityContext, ctx, "${abbr(concat(\"one\", this.aString, \"three\"), 10)}"));
-			assertEquals("Invalid abbr() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${abbr(this.alwaysNull, 10)}"));
-			assertEquals("Invalid usage message for abbr()", Functions.ERROR_MESSAGE_ABBR, testOne.replaceVariables(securityContext, ctx, "${abbr()}"));
+			assertEquals("Invalid abbr() result", "oneStringt…", Scripting.replaceVariables(ctx, testOne, "${abbr(concat(\"one\", this.aString, \"three\"), 10)}"));
+			assertEquals("Invalid abbr() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${abbr(this.alwaysNull, 10)}"));
+			assertEquals("Invalid usage message for abbr()", Functions.ERROR_MESSAGE_ABBR, Scripting.replaceVariables(ctx, testOne, "${abbr()}"));
 
 			// capitalize..
-			assertEquals("Invalid capitalize() result", "One_two_three", testOne.replaceVariables(securityContext, ctx, "${capitalize(concat(\"one_\", \"two_\", \"three\"))}"));
-			assertEquals("Invalid capitalize() result", "One_Stringthree", testOne.replaceVariables(securityContext, ctx, "${capitalize(concat(\"one_\", this.aString, \"three\"))}"));
-			assertEquals("Invalid capitalize() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${capitalize(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for capitalize()", Functions.ERROR_MESSAGE_CAPITALIZE, testOne.replaceVariables(securityContext, ctx, "${capitalize()}"));
+			assertEquals("Invalid capitalize() result", "One_two_three", Scripting.replaceVariables(ctx, testOne, "${capitalize(concat(\"one_\", \"two_\", \"three\"))}"));
+			assertEquals("Invalid capitalize() result", "One_Stringthree", Scripting.replaceVariables(ctx, testOne, "${capitalize(concat(\"one_\", this.aString, \"three\"))}"));
+			assertEquals("Invalid capitalize() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${capitalize(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for capitalize()", Functions.ERROR_MESSAGE_CAPITALIZE, Scripting.replaceVariables(ctx, testOne, "${capitalize()}"));
 
 			// titleize
-			assertEquals("Invalid titleize() result", "One Two Three", testOne.replaceVariables(securityContext, ctx, "${titleize(concat(\"one_\", \"two_\", \"three\"), \"_\")}"));
-			assertEquals("Invalid titleize() result", "One Stringthree", testOne.replaceVariables(securityContext, ctx, "${titleize(concat(\"one_\", this.aString, \"three\"), \"_\")}"));
-			assertEquals("Invalid titleize() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${titleize(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for titleize()", Functions.ERROR_MESSAGE_TITLEIZE, testOne.replaceVariables(securityContext, ctx, "${titleize()}"));
+			assertEquals("Invalid titleize() result", "One Two Three", Scripting.replaceVariables(ctx, testOne, "${titleize(concat(\"one_\", \"two_\", \"three\"), \"_\")}"));
+			assertEquals("Invalid titleize() result", "One Stringthree", Scripting.replaceVariables(ctx, testOne, "${titleize(concat(\"one_\", this.aString, \"three\"), \"_\")}"));
+			assertEquals("Invalid titleize() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${titleize(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for titleize()", Functions.ERROR_MESSAGE_TITLEIZE, Scripting.replaceVariables(ctx, testOne, "${titleize()}"));
 
 			// num (explicit number conversion)
-			assertEquals("Invalid num() result", "2.234", testOne.replaceVariables(securityContext, ctx, "${num(2.234)}"));
-			assertEquals("Invalid num() result", "2.234", testOne.replaceVariables(securityContext, ctx, "${num(this.aDouble)}"));
-			assertEquals("Invalid num() result", "1.0", testOne.replaceVariables(securityContext, ctx, "${num(this.anInt)}"));
-			assertEquals("Invalid num() result", "", testOne.replaceVariables(securityContext, ctx, "${num(\"abc\")}"));
-			assertEquals("Invalid num() result", "", testOne.replaceVariables(securityContext, ctx, "${num(this.aString)}"));
-			assertEquals("Invalid num() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${num(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for num()", Functions.ERROR_MESSAGE_NUM, testOne.replaceVariables(securityContext, ctx, "${num()}"));
+			assertEquals("Invalid num() result", "2.234", Scripting.replaceVariables(ctx, testOne, "${num(2.234)}"));
+			assertEquals("Invalid num() result", "2.234", Scripting.replaceVariables(ctx, testOne, "${num(this.aDouble)}"));
+			assertEquals("Invalid num() result", "1.0", Scripting.replaceVariables(ctx, testOne, "${num(this.anInt)}"));
+			assertEquals("Invalid num() result", "", Scripting.replaceVariables(ctx, testOne, "${num(\"abc\")}"));
+			assertEquals("Invalid num() result", "", Scripting.replaceVariables(ctx, testOne, "${num(this.aString)}"));
+			assertEquals("Invalid num() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${num(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for num()", Functions.ERROR_MESSAGE_NUM, Scripting.replaceVariables(ctx, testOne, "${num()}"));
 
 			// index_of
-			assertEquals("Invalid index_of() result", "19", testOne.replaceVariables(securityContext, ctx, "${index_of(this.name, 'for')}"));
-			assertEquals("Invalid index_of() result", "-1", testOne.replaceVariables(securityContext, ctx, "${index_of(this.name, 'entity')}"));
-			assertEquals("Invalid index_of() result", "19", testOne.replaceVariables(securityContext, ctx, "${index_of('a-nice-little-name-for-my-test-object', 'for')}"));
-			assertEquals("Invalid index_of() result", "-1", testOne.replaceVariables(securityContext, ctx, "${index_of('a-nice-little-name-for-my-test-object', 'entity')}"));
+			assertEquals("Invalid index_of() result", "19", Scripting.replaceVariables(ctx, testOne, "${index_of(this.name, 'for')}"));
+			assertEquals("Invalid index_of() result", "-1", Scripting.replaceVariables(ctx, testOne, "${index_of(this.name, 'entity')}"));
+			assertEquals("Invalid index_of() result", "19", Scripting.replaceVariables(ctx, testOne, "${index_of('a-nice-little-name-for-my-test-object', 'for')}"));
+			assertEquals("Invalid index_of() result", "-1", Scripting.replaceVariables(ctx, testOne, "${index_of('a-nice-little-name-for-my-test-object', 'entity')}"));
 
 			// contains
-			assertEquals("Invalid contains() result", "true", testOne.replaceVariables(securityContext, ctx, "${contains(this.name, 'for')}"));
-			assertEquals("Invalid contains() result", "false", testOne.replaceVariables(securityContext, ctx, "${contains(this.name, 'entity')}"));
-			assertEquals("Invalid contains() result", "true", testOne.replaceVariables(securityContext, ctx, "${contains('a-nice-little-name-for-my-test-object', 'for')}"));
-			assertEquals("Invalid contains() result", "false", testOne.replaceVariables(securityContext, ctx, "${contains('a-nice-little-name-for-my-test-object', 'entity')}"));
+			assertEquals("Invalid contains() result", "true", Scripting.replaceVariables(ctx, testOne, "${contains(this.name, 'for')}"));
+			assertEquals("Invalid contains() result", "false", Scripting.replaceVariables(ctx, testOne, "${contains(this.name, 'entity')}"));
+			assertEquals("Invalid contains() result", "true", Scripting.replaceVariables(ctx, testOne, "${contains('a-nice-little-name-for-my-test-object', 'for')}"));
+			assertEquals("Invalid contains() result", "false", Scripting.replaceVariables(ctx, testOne, "${contains('a-nice-little-name-for-my-test-object', 'entity')}"));
 
 			// contains with collection / entity
-			assertEquals("Invalid contains() result", "true", testOne.replaceVariables(securityContext, ctx, "${contains(this.manyToManyTestSixs, first(find('TestSix')))}"));
-			assertEquals("Invalid contains() result", "false", testOne.replaceVariables(securityContext, ctx, "${contains(this.manyToManyTestSixs, first(find('TestFive')))}"));
+			assertEquals("Invalid contains() result", "true", Scripting.replaceVariables(ctx, testOne, "${contains(this.manyToManyTestSixs, first(find('TestSix')))}"));
+			assertEquals("Invalid contains() result", "false", Scripting.replaceVariables(ctx, testOne, "${contains(this.manyToManyTestSixs, first(find('TestFive')))}"));
 
 			// substring
-			assertEquals("Invalid substring() result", "for", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 19, 3)}"));
-			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, -1, -1)}"));
-			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 100, -1)}"));
-			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 5, -2)}"));
-			assertEquals("Invalid substring() result", "for", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 19, 3)}"));
-			assertEquals("Invalid substring() result", "ice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 3)}"));
-			assertEquals("Invalid substring() result", "ice", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 3, 3)}"));
-			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', -1, -1)}"));
-			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 100, -1)}"));
-			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 5, -2)}"));
+			assertEquals("Invalid substring() result", "for", Scripting.replaceVariables(ctx, testOne, "${substring(this.name, 19, 3)}"));
+			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring(this.name, -1, -1)}"));
+			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring(this.name, 100, -1)}"));
+			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring(this.name, 5, -2)}"));
+			assertEquals("Invalid substring() result", "for", Scripting.replaceVariables(ctx, testOne, "${substring('a-nice-little-name-for-my-test-object', 19, 3)}"));
+			assertEquals("Invalid substring() result", "ice-little-name-for-my-test-object", Scripting.replaceVariables(ctx, testOne, "${substring('a-nice-little-name-for-my-test-object', 3)}"));
+			assertEquals("Invalid substring() result", "ice", Scripting.replaceVariables(ctx, testOne, "${substring('a-nice-little-name-for-my-test-object', 3, 3)}"));
+			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring('a-nice-little-name-for-my-test-object', -1, -1)}"));
+			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring('a-nice-little-name-for-my-test-object', 100, -1)}"));
+			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring('a-nice-little-name-for-my-test-object', 5, -2)}"));
 
 			// length
-			assertEquals("Invalid length() result", "37", testOne.replaceVariables(securityContext, ctx, "${length(this.name)}"));
-			assertEquals("Invalid length() result", "37", testOne.replaceVariables(securityContext, ctx, "${length('a-nice-little-name-for-my-test-object')}"));
-			assertEquals("Invalid length() result", "4", testOne.replaceVariables(securityContext, ctx, "${length('test')}"));
-			assertEquals("Invalid length() result", "", testOne.replaceVariables(securityContext, ctx, "${length(this.alwaysNull)}"));
+			assertEquals("Invalid length() result", "37", Scripting.replaceVariables(ctx, testOne, "${length(this.name)}"));
+			assertEquals("Invalid length() result", "37", Scripting.replaceVariables(ctx, testOne, "${length('a-nice-little-name-for-my-test-object')}"));
+			assertEquals("Invalid length() result", "4", Scripting.replaceVariables(ctx, testOne, "${length('test')}"));
+			assertEquals("Invalid length() result", "", Scripting.replaceVariables(ctx, testOne, "${length(this.alwaysNull)}"));
 
 			// clean
-			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", testOne.replaceVariables(securityContext, ctx, "${clean(this.cleanTestString)}"));
-			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", testOne.replaceVariables(securityContext, ctx, "${clean(get(this, \"cleanTestString\"))}"));
-			assertEquals("Invalid clean() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${clean(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for clean()", Functions.ERROR_MESSAGE_CLEAN, testOne.replaceVariables(securityContext, ctx, "${clean()}"));
+			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(this.cleanTestString)}"));
+			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(get(this, \"cleanTestString\"))}"));
+			assertEquals("Invalid clean() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${clean(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for clean()", Functions.ERROR_MESSAGE_CLEAN, Scripting.replaceVariables(ctx, testOne, "${clean()}"));
 
 			// urlencode
-			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", testOne.replaceVariables(securityContext, ctx, "${urlencode(this.cleanTestString)}"));
-			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", testOne.replaceVariables(securityContext, ctx, "${urlencode(get(this, \"cleanTestString\"))}"));
-			assertEquals("Invalid urlencode() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${urlencode(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for urlencode()", Functions.ERROR_MESSAGE_URLENCODE, testOne.replaceVariables(securityContext, ctx, "${urlencode()}"));
+			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", Scripting.replaceVariables(ctx, testOne, "${urlencode(this.cleanTestString)}"));
+			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", Scripting.replaceVariables(ctx, testOne, "${urlencode(get(this, \"cleanTestString\"))}"));
+			assertEquals("Invalid urlencode() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${urlencode(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for urlencode()", Functions.ERROR_MESSAGE_URLENCODE, Scripting.replaceVariables(ctx, testOne, "${urlencode()}"));
 
 			// escape_javascript
-			assertEquals("Invalid escape_javascript() result", "A\\'B\\\"C", testOne.replaceVariables(securityContext, ctx, "${escape_javascript(this.stringWithQuotes)}"));
-			assertEquals("Invalid escape_javascript() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${escape_javascript(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for escape_javascript()", Functions.ERROR_MESSAGE_ESCAPE_JS, testOne.replaceVariables(securityContext, ctx, "${escape_javascript()}"));
+			assertEquals("Invalid escape_javascript() result", "A\\'B\\\"C", Scripting.replaceVariables(ctx, testOne, "${escape_javascript(this.stringWithQuotes)}"));
+			assertEquals("Invalid escape_javascript() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${escape_javascript(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for escape_javascript()", Functions.ERROR_MESSAGE_ESCAPE_JS, Scripting.replaceVariables(ctx, testOne, "${escape_javascript()}"));
 
 			// if etc.
-			assertEquals("Invalid if() result", "true",  testOne.replaceVariables(securityContext, ctx,  "${if(\"true\", \"true\", \"false\")}"));
-			assertEquals("Invalid if() result", "false", testOne.replaceVariables(securityContext, ctx,  "${if(\"false\", \"true\", \"false\")}"));
-			assertEquals("Invalid usage message for if()", Functions.ERROR_MESSAGE_IF, testOne.replaceVariables(securityContext, ctx, "${if()}"));
+			assertEquals("Invalid if() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${if(\"true\", \"true\", \"false\")}"));
+			assertEquals("Invalid if() result", "false", Scripting.replaceVariables(ctx, testOne,  "${if(\"false\", \"true\", \"false\")}"));
+			assertEquals("Invalid usage message for if()", Functions.ERROR_MESSAGE_IF, Scripting.replaceVariables(ctx, testOne, "${if()}"));
 
 			// empty
-			assertEquals("Invalid empty() result", "true",  testOne.replaceVariables(securityContext, ctx,  "${empty(\"\")}"));
-			assertEquals("Invalid empty() result", "false",  testOne.replaceVariables(securityContext, ctx, "${empty(\" \")}"));
-			assertEquals("Invalid empty() result", "false",  testOne.replaceVariables(securityContext, ctx, "${empty(\"   \")}"));
-			assertEquals("Invalid empty() result", "false",  testOne.replaceVariables(securityContext, ctx, "${empty(\"xyz\")}"));
-			assertEquals("Invalid empty() result with null value", "true", testOne.replaceVariables(securityContext, ctx, "${empty(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for empty()", Functions.ERROR_MESSAGE_EMPTY, testOne.replaceVariables(securityContext, ctx, "${empty()}"));
+			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${empty(\"\")}"));
+			assertEquals("Invalid empty() result", "false",  Scripting.replaceVariables(ctx, testOne, "${empty(\" \")}"));
+			assertEquals("Invalid empty() result", "false",  Scripting.replaceVariables(ctx, testOne, "${empty(\"   \")}"));
+			assertEquals("Invalid empty() result", "false",  Scripting.replaceVariables(ctx, testOne, "${empty(\"xyz\")}"));
+			assertEquals("Invalid empty() result with null value", "true", Scripting.replaceVariables(ctx, testOne, "${empty(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for empty()", Functions.ERROR_MESSAGE_EMPTY, Scripting.replaceVariables(ctx, testOne, "${empty()}"));
 
-			assertEquals("Invalid if(empty()) result", "false",  testOne.replaceVariables(securityContext, ctx,  "${if(empty(\"test\"), true, false)}"));
-			assertEquals("Invalid if(empty()) result", "false",  testOne.replaceVariables(securityContext, ctx,  "${if(empty(\"test\n\"), true, false)}"));
+			assertEquals("Invalid if(empty()) result", "false",  Scripting.replaceVariables(ctx, testOne,  "${if(empty(\"test\"), true, false)}"));
+			assertEquals("Invalid if(empty()) result", "false",  Scripting.replaceVariables(ctx, testOne,  "${if(empty(\"test\n\"), true, false)}"));
 
 			// functions can NOT handle literal strings containing newlines  (disabled for now, because literal strings pose problems in the matching process)
-			assertEquals("Invalid if(empty()) result", "false",  testOne.replaceVariables(securityContext, ctx,  "${if(empty(\"\n\"), true, false)}"));
-			assertEquals("Invalid if(empty()) result", "false",  testOne.replaceVariables(securityContext, ctx,  "${if(empty(\"\n\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(empty()) result", "false",  Scripting.replaceVariables(ctx, testOne,  "${if(empty(\"\n\"), true, false)}"));
+			assertEquals("Invalid if(empty()) result", "false",  Scripting.replaceVariables(ctx, testOne,  "${if(empty(\"\n\"), \"true\", \"false\")}"));
 
 			// functions CAN handle variable values with newlines!
-			assertEquals("Invalid if(empty()) result", "false",  testOne.replaceVariables(securityContext, ctx,  "${if(empty(this.anotherString), \"true\", \"false\")}"));
+			assertEquals("Invalid if(empty()) result", "false",  Scripting.replaceVariables(ctx, testOne,  "${if(empty(this.anotherString), \"true\", \"false\")}"));
 
 			// equal
-			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.id, this.id)}"));
-			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(\"1\", this.anInt)}"));
-			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(1, this.anInt)}"));
-			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(1.0, this.anInt)}"));
-			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.anInt, \"1\")}"));
-			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.anInt, 1)}"));
-			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.anInt, 1.0)}"));
-			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, \"true\")}"));
-			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, true)}"));
-			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, false)}"));
-			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.anEnum, 'One')}"));
+			assertEquals("Invalid equal() result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.id, this.id)}"));
+			assertEquals("Invalid equal() result", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(\"1\", this.anInt)}"));
+			assertEquals("Invalid equal() result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(1, this.anInt)}"));
+			assertEquals("Invalid equal() result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(1.0, this.anInt)}"));
+			assertEquals("Invalid equal() result", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(this.anInt, \"1\")}"));
+			assertEquals("Invalid equal() result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.anInt, 1)}"));
+			assertEquals("Invalid equal() result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.anInt, 1.0)}"));
+			assertEquals("Invalid equal() result", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(this.aBoolean, \"true\")}"));
+			assertEquals("Invalid equal() result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.aBoolean, true)}"));
+			assertEquals("Invalid equal() result", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(this.aBoolean, false)}"));
+			assertEquals("Invalid equal() result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.anEnum, 'One')}"));
 
 			// if + equal
-			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(this.id, this.id), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(\"abc\", \"abc\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(3, 3), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(\"3\", \"3\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(3.1414, 3.1414), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(\"3.1414\", \"3.1414\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(23.44242222243633337234623462, 23.44242222243633337234623462), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(\"23.44242222243633337234623462\", \"23.44242222243633337234623462\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(13, 013), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(13, \"013\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(\"13\", \"013\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal()) result", "false",  testOne.replaceVariables(securityContext, ctx, "${if(equal(\"13\", \"00013\"), \"true\", \"false\")}"));
-			assertEquals("Invalid usage message for equal()", Functions.ERROR_MESSAGE_EQUAL, testOne.replaceVariables(securityContext, ctx, "${equal()}"));
+			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(this.id, this.id), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"abc\", \"abc\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(3, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"3\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(3.1414, 3.1414), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"3.1414\", \"3.1414\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(23.44242222243633337234623462, 23.44242222243633337234623462), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"23.44242222243633337234623462\", \"23.44242222243633337234623462\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(13, 013), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(13, \"013\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"13\", \"013\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal()) result", "false",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"13\", \"00013\"), \"true\", \"false\")}"));
+			assertEquals("Invalid usage message for equal()", Functions.ERROR_MESSAGE_EQUAL, Scripting.replaceVariables(ctx, testOne, "${equal()}"));
 
 			// disabled: java StreamTokenizer can NOT handle scientific notation
-//			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(23.4462, 2.34462e1)}"));
-//			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(0.00234462, 2.34462e-3)}"));
-//			assertEquals("Invalid if(equal()) result with null value", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.alwaysNull, 2.34462e-3)}"));
-			assertEquals("Invalid if(equal()) result with null value", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(0.00234462, this.alwaysNull)}"));
-			assertEquals("Invalid if(equal()) result with null value", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.alwaysNull, this.alwaysNull)}"));
+//			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(23.4462, 2.34462e1)}"));
+//			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, 2.34462e-3)}"));
+//			assertEquals("Invalid if(equal()) result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(this.alwaysNull, 2.34462e-3)}"));
+			assertEquals("Invalid if(equal()) result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, this.alwaysNull)}"));
+			assertEquals("Invalid if(equal()) result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.alwaysNull, this.alwaysNull)}"));
 
 			// if + equal + add
-			assertEquals("Invalid if(equal(add())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(\"2\", add(\"1\", \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, add(\"1\", \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, add(1, 1)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, add(\"1\", 1)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, add(1, \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, add(1, 1.0)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, add(\"1\", \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, add(1, 1)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, add(\"1\", 1)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, add(1, \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, add(1, 1.0)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(20, add(\"10\", \"10\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(add())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(20, add(\"10\", \"010\")), \"true\", \"false\")}"));
-			assertEquals("Invalid usage message for add()", Functions.ERROR_MESSAGE_ADD, testOne.replaceVariables(securityContext, ctx, "${add()}"));
+			assertEquals("Invalid if(equal(add())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", add(\"1\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, add(\"1\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, add(1, 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, add(\"1\", 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, add(1, \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, add(1, 1.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, add(\"1\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, add(1, 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, add(\"1\", 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, add(1, \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, add(1, 1.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(20, add(\"10\", \"10\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(20, add(\"10\", \"010\")), \"true\", \"false\")}"));
+			assertEquals("Invalid usage message for add()", Functions.ERROR_MESSAGE_ADD, Scripting.replaceVariables(ctx, testOne, "${add()}"));
+
+			// eq
+			assertEquals("Invalideq) result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.id, this.id)}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(\"1\", this.anInt)}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(1, this.anInt)}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(1.0, this.anInt)}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(this.anInt, \"1\")}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.anInt, 1)}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.anInt, 1.0)}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(this.aBoolean, \"true\")}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.aBoolean, true)}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(this.aBoolean, false)}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.anEnum, 'One')}"));
+
+			// if + eq
+			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(this.id, this.id), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(\"abc\", \"abc\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(3, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(\"3\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(3.1414, 3.1414), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(\"3.1414\", \"3.1414\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(23.44242222243633337234623462, 23.44242222243633337234623462), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(\"23.44242222243633337234623462\", \"23.44242222243633337234623462\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(13, 013), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(eq(13, \"013\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(eq(\"13\", \"013\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq()) result", "false",  Scripting.replaceVariables(ctx, testOne, "${if(eq(\"13\", \"00013\"), \"true\", \"false\")}"));
+			assertEquals("Invalid usage message for eq()", Functions.ERROR_MESSAGE_EQUAL, Scripting.replaceVariables(ctx, testOne, "${eq()}"));
+
+			// disabled: java StreamTokenizer can NOT handle scientific notation
+//			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(23.4462, 2.34462e1)}"));
+//			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(0.00234462, 2.34462e-3)}"));
+//			assertEquals("Invalid if(eq()) result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(this.alwaysNull, 2.34462e-3)}"));
+			assertEquals("Invalid if(eq()) result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(0.00234462, this.alwaysNull)}"));
+			assertEquals("Invalid if(eq()) result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.alwaysNull, this.alwaysNull)}"));
+
+			// if + eq + add
+			assertEquals("Invalid if(eq(add())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(eq(\"2\", add(\"1\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2, add(\"1\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2, add(1, 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2, add(\"1\", 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2, add(1, \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2, add(1, 1.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2.0, add(\"1\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2.0, add(1, 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2.0, add(\"1\", 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2.0, add(1, \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(2.0, add(1, 1.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(20, add(\"10\", \"10\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(eq(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(20, add(\"10\", \"010\")), \"true\", \"false\")}"));
+
 
 			// add with null
-			assertEquals("Invalid add() result with null value", "10.0",  testOne.replaceVariables(securityContext, ctx, "${add(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid add() result with null value", "11.0",  testOne.replaceVariables(securityContext, ctx, "${add(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid add() result with null value", "0.0",  testOne.replaceVariables(securityContext, ctx, "${add(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid add() result with null value", "10.0",  Scripting.replaceVariables(ctx, testOne, "${add(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid add() result with null value", "11.0",  Scripting.replaceVariables(ctx, testOne, "${add(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid add() result with null value", "0.0",  Scripting.replaceVariables(ctx, testOne, "${add(this.alwaysNull, this.alwaysNull)}"));
 
 			// if + lt
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(\"2\", \"2\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lt(\"2\", \"3\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lt(\"2000000\", \"3000000\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lt(\"2.0\", \"3.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lt(\"2000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(\"12\", \"3\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(\"12000000\", \"3000000\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(\"12.0\", \"3.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(\"12000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(\"2\", \"2\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lt(\"2\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lt(\"2000000\", \"3000000\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lt(\"2.0\", \"3.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lt(\"2000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(\"12\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(\"12000000\", \"3000000\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(\"12.0\", \"3.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(\"12000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
 
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(2, 2), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lt(2, 3), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lt(2000000, 3000000), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lt(2.0, 3.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lt(2000000.0, 3000000.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(12, 3), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(12000000, 3000000), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(12.0, 3.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lt(12000000.0, 3000000.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(2, 2), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lt(2, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lt(2000000, 3000000), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lt(2.0, 3.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lt(2000000.0, 3000000.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(12, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(12000000, 3000000), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(12.0, 3.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(12000000.0, 3000000.0), \"true\", \"false\")}"));
 
 			// lt with null
-			assertEquals("Invalid lt() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${lt(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid lt() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${lt(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid lt() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${lt(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for lt()", Functions.ERROR_MESSAGE_LT, testOne.replaceVariables(securityContext, ctx, "${lt()}"));
+			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for lt()", Functions.ERROR_MESSAGE_LT, Scripting.replaceVariables(ctx, testOne, "${lt()}"));
 
 			// if + gt
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(\"2\", \"2\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(\"2\", \"3\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(\"2000000\", \"3000000\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(\"2.0\", \"3.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(\"2000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gt(\"12\", \"3\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gt(\"12000000\", \"3000000\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gt(\"12.0\", \"3.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gt(\"12000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(\"2\", \"2\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(\"2\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(\"2000000\", \"3000000\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(\"2.0\", \"3.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(\"2000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gt(\"12\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gt(\"12000000\", \"3000000\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gt(\"12.0\", \"3.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gt(\"12000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
 
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(2, 2), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(2, 3), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(2000000, 3000000), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(2.0, 3.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gt(2000000.0, 3000000.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gt(12, 3), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gt(12000000, 3000000), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gt(12.0, 3.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gt()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gt(12000000.0, 3000000.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(2, 2), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(2, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(2000000, 3000000), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(2.0, 3.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(2000000.0, 3000000.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gt(12, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gt(12000000, 3000000), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gt(12.0, 3.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gt(12000000.0, 3000000.0), \"true\", \"false\")}"));
 
 			// gt with null
-			assertEquals("Invalid gt() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${gt(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid gt() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${gt(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid gt() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${gt(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for gt()", Functions.ERROR_MESSAGE_GT, testOne.replaceVariables(securityContext, ctx, "${gt()}"));
+			assertEquals("Invalid gt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gt(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid gt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gt(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid gt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gt(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for gt()", Functions.ERROR_MESSAGE_GT, Scripting.replaceVariables(ctx, testOne, "${gt()}"));
 
 			// if + lte
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(\"2\", \"2\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(\"2\", \"3\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(\"2000000\", \"3000000\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(\"2.0\", \"3.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(\"2000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lte(\"12\", \"3\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lte(\"12000000\", \"3000000\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lte(\"12.0\", \"3.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lte(\"12000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(\"2\", \"2\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(\"2\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(\"2000000\", \"3000000\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(\"2.0\", \"3.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(\"2000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lte(\"12\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lte(\"12000000\", \"3000000\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lte(\"12.0\", \"3.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lte(\"12000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
 
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(2, 2), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(2, 3), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(2000000, 3000000), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(2.0, 3.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(lte(2000000.0, 3000000.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lte(12, 3), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lte(12000000, 3000000), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lte(12.0, 3.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(lte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(lte(12000000.0, 3000000.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(2, 2), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(2, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(2000000, 3000000), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(2.0, 3.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(2000000.0, 3000000.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lte(12, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lte(12000000, 3000000), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lte(12.0, 3.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(lte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lte(12000000.0, 3000000.0), \"true\", \"false\")}"));
 
 			// lte with null
-			assertEquals("Invalid lte() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${lte(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid lte() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${lte(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid lte() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${lte(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for lte()", Functions.ERROR_MESSAGE_LTE, testOne.replaceVariables(securityContext, ctx, "${lte()}"));
+			assertEquals("Invalid lte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lte(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid lte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lte(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid lte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lte(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for lte()", Functions.ERROR_MESSAGE_LTE, Scripting.replaceVariables(ctx, testOne, "${lte()}"));
 
 			// if + gte
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(\"2\", \"2\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gte(\"2\", \"3\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gte(\"2000000\", \"3000000\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gte(\"2.0\", \"3.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gte(\"2000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(\"12\", \"3\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(\"12000000\", \"3000000\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(\"12.0\", \"3.0\"), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(\"12000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(\"2\", \"2\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gte(\"2\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gte(\"2000000\", \"3000000\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gte(\"2.0\", \"3.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gte(\"2000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(\"12\", \"3\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(\"12000000\", \"3000000\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(\"12.0\", \"3.0\"), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(\"12000000.0\", \"3000000.0\"), \"true\", \"false\")}"));
 
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(2, 2), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gte(2, 3), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gte(2000000, 3000000), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gte(2.0, 3.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(gte(2000000.0, 3000000.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(12, 3), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(12000000, 3000000), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(12.0, 3.0), \"true\", \"false\")}"));
-			assertEquals("Invalid if(gte()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(gte(12000000.0, 3000000.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(2, 2), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gte(2, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gte(2000000, 3000000), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gte(2.0, 3.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gte(2000000.0, 3000000.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(12, 3), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(12000000, 3000000), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(12.0, 3.0), \"true\", \"false\")}"));
+			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(12000000.0, 3000000.0), \"true\", \"false\")}"));
 
 			// gte with null
-			assertEquals("Invalid gte() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${gte(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid gte() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${gte(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid gte() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${gte(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for gte()", Functions.ERROR_MESSAGE_GTE, testOne.replaceVariables(securityContext, ctx, "${gte()}"));
+			assertEquals("Invalid gte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gte(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid gte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gte(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid gte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gte(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for gte()", Functions.ERROR_MESSAGE_GTE, Scripting.replaceVariables(ctx, testOne, "${gte()}"));
 
 			// if + equal + subt
-			assertEquals("Invalid if(equal(subt())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(\"2\", subt(\"3\", \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, subt(\"3\", \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, subt(3, 1)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, subt(\"3\", 1)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, subt(3, \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, subt(3, 1.0)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, subt(\"3\", \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, subt(3, 1)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, subt(\"3\", 1)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, subt(3, \"1\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, subt(3, 1.0)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(20, subt(\"30\", \"10\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(subt())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(20, subt(\"30\", \"010\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", subt(\"3\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, subt(\"3\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, subt(3, 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, subt(\"3\", 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, subt(3, \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, subt(3, 1.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, subt(\"3\", \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, subt(3, 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, subt(\"3\", 1)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, subt(3, \"1\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, subt(3, 1.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(20, subt(\"30\", \"10\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(subt())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(20, subt(\"30\", \"010\")), \"true\", \"false\")}"));
 
 			// subt with null
-			assertEquals("Invalid subt() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${subt(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid subt() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${subt(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid subt() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${subt(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for subt()", Functions.ERROR_MESSAGE_SUBT, testOne.replaceVariables(securityContext, ctx, "${subt()}"));
+			assertEquals("Invalid subt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${subt(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid subt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${subt(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid subt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${subt(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for subt()", Functions.ERROR_MESSAGE_SUBT, Scripting.replaceVariables(ctx, testOne, "${subt()}"));
 
 			// if + equal + mult
-			assertEquals("Invalid if(equal(mult())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(\"6\", mult(\"3\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6, mult(\"3\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6, mult(3, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6, mult(\"3\", 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6, mult(3, \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6, mult(3, 2.0)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6.0, mult(\"3\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6.0, mult(3, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6.0, mult(\"3\", 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6.0, mult(3, \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(6.0, mult(3, 2.0)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(600, mult(\"30\", \"20\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(mult())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(600, mult(\"30\", \"020\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"6\", mult(\"3\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6, mult(\"3\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6, mult(3, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6, mult(\"3\", 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6, mult(3, \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6, mult(3, 2.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6.0, mult(\"3\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6.0, mult(3, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6.0, mult(\"3\", 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6.0, mult(3, \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(6.0, mult(3, 2.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(600, mult(\"30\", \"20\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(mult())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(600, mult(\"30\", \"020\")), \"true\", \"false\")}"));
 
 			// mult with null
-			assertEquals("Invalid mult() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${mult(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid mult() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${mult(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid mult() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${mult(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for mult()", Functions.ERROR_MESSAGE_MULT, testOne.replaceVariables(securityContext, ctx, "${mult()}"));
+			assertEquals("Invalid mult() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${mult(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid mult() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${mult(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid mult() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${mult(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for mult()", Functions.ERROR_MESSAGE_MULT, Scripting.replaceVariables(ctx, testOne, "${mult()}"));
 
 			// if + equal + quot
-			assertEquals("Invalid if(equal(quot())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(\"1.5\", quot(\"3\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(quot())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(1.5, quot(\"3\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(quot())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(1.5, quot(3, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(quot())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(1.5, quot(\"3\", 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(quot())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(1.5, quot(3, \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(quot())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(1.5, quot(3, 2.0)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(quot())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(15, quot(\"30\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(quot())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(15, quot(\"30\", \"02\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(quot())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"1.5\", quot(\"3\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(quot())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(1.5, quot(\"3\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(quot())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(1.5, quot(3, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(quot())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(1.5, quot(\"3\", 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(quot())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(1.5, quot(3, \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(quot())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(1.5, quot(3, 2.0)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(quot())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(15, quot(\"30\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(quot())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(15, quot(\"30\", \"02\")), \"true\", \"false\")}"));
 
 			// quot with null
-			assertEquals("Invalid quot() result with null value", "10.0",  testOne.replaceVariables(securityContext, ctx, "${quot(10, this.alwaysNull)}"));
-			assertEquals("Invalid quot() result with null value", "10.0",  testOne.replaceVariables(securityContext, ctx, "${quot(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid quot() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${quot(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid quot() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${quot(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for quot()", Functions.ERROR_MESSAGE_QUOT, testOne.replaceVariables(securityContext, ctx, "${quot()}"));
+			assertEquals("Invalid quot() result with null value", "10.0",  Scripting.replaceVariables(ctx, testOne, "${quot(10, this.alwaysNull)}"));
+			assertEquals("Invalid quot() result with null value", "10.0",  Scripting.replaceVariables(ctx, testOne, "${quot(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid quot() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${quot(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid quot() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${quot(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for quot()", Functions.ERROR_MESSAGE_QUOT, Scripting.replaceVariables(ctx, testOne, "${quot()}"));
 
 			// if + equal + round
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(\"2\", round(\"1.9\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(\"2\", round(\"2.5\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(\"2\", round(\"1.999999\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(\"2\", round(\"2.499999\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(1.9, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(2.5, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(1.999999, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(2.499999, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(2, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.4, round(2.4, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.23, round(2.225234, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(1.9, 8)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(2.5, 8)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(1.999999, 8)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "false", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(2.499999, 8)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(1.999999, round(1.999999, 8)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.499999, round(2.499999, 8)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(1.999999999, 8)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, round(2, 8)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.4, round(2.4, 8)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.225234, round(2.225234, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", round(\"1.9\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", round(\"2.5\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", round(\"1.999999\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", round(\"2.499999\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(1.9, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(2.5, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(1.999999, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(2.499999, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(2, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.4, round(2.4, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.23, round(2.225234, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(1.9, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(2.5, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(1.999999, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(2.499999, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(1.999999, round(1.999999, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.499999, round(2.499999, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(1.999999999, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, round(2, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.4, round(2.4, 8)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.225234, round(2.225234, 8)), \"true\", \"false\")}"));
 
 			// disabled because scientific notation is not supported :(
-			//assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(0.00245, round(2.45e-3, 8)), \"true\", \"false\")}"));
-			//assertEquals("Invalid if(equal(round())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(245, round(2.45e2, 8)), \"true\", \"false\")}"));
+			//assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(0.00245, round(2.45e-3, 8)), \"true\", \"false\")}"));
+			//assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(245, round(2.45e2, 8)), \"true\", \"false\")}"));
 
 			// round with null
-			assertEquals("Invalid round() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${round(\"10\")}"));
-			assertEquals("Invalid round() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${round(this.alwaysNull)}"));
-			assertEquals("Invalid round() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${round(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for round()", Functions.ERROR_MESSAGE_ROUND, testOne.replaceVariables(securityContext, ctx, "${round()}"));
+			assertEquals("Invalid round() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${round(\"10\")}"));
+			assertEquals("Invalid round() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull)}"));
+			assertEquals("Invalid round() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for round()", Functions.ERROR_MESSAGE_ROUND, Scripting.replaceVariables(ctx, testOne, "${round()}"));
 
 			// if + equal + max
-			assertEquals("Invalid if(equal(max())) result", "false",  testOne.replaceVariables(securityContext, ctx, "${if(equal(\"2\", max(\"1.9\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(max())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2, max(1.9, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(max())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(2.0, max(1.9, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(max())) result", "false",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", max(\"1.9\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(max())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2, max(1.9, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(max())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, max(1.9, 2)), \"true\", \"false\")}"));
 
 			// max with null
-			assertEquals("Invalid max() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${max(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid max() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${max(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid max() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${max(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for max()", Functions.ERROR_MESSAGE_MAX, testOne.replaceVariables(securityContext, ctx, "${max()}"));
+			assertEquals("Invalid max() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${max(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid max() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${max(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid max() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${max(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for max()", Functions.ERROR_MESSAGE_MAX, Scripting.replaceVariables(ctx, testOne, "${max()}"));
 
 			// if + equal + min
-			assertEquals("Invalid if(equal(min())) result", "false",  testOne.replaceVariables(securityContext, ctx, "${if(equal(\"1.9\", min(\"1.9\", \"2\")), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(min())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(1.9, min(1.9, 2)), \"true\", \"false\")}"));
-			assertEquals("Invalid if(equal(min())) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(1, min(1, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(min())) result", "false",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"1.9\", min(\"1.9\", \"2\")), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(min())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(1.9, min(1.9, 2)), \"true\", \"false\")}"));
+			assertEquals("Invalid if(equal(min())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(1, min(1, 2)), \"true\", \"false\")}"));
 
 			// min with null
-			assertEquals("Invalid min() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${min(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid min() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${min(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid min() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${min(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for min()", Functions.ERROR_MESSAGE_MIN, testOne.replaceVariables(securityContext, ctx, "${min()}"));
+			assertEquals("Invalid min() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${min(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid min() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${min(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid min() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${min(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for min()", Functions.ERROR_MESSAGE_MIN, Scripting.replaceVariables(ctx, testOne, "${min()}"));
 
 			// date_format
-			assertEquals("Invalid date_format() result", nowString1, testOne.replaceVariables(securityContext, ctx, "${date_format(this.aDate, \"" + format1.toPattern() + "\")}"));
-			assertEquals("Invalid date_format() result", nowString2, testOne.replaceVariables(securityContext, ctx, "${date_format(this.aDate, \"" + format2.toPattern() + "\")}"));
-			assertEquals("Invalid date_format() result", nowString3, testOne.replaceVariables(securityContext, ctx, "${date_format(this.aDate, \"" + format3.toPattern() + "\")}"));
+			assertEquals("Invalid date_format() result", nowString1, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDate, \"" + format1.toPattern() + "\")}"));
+			assertEquals("Invalid date_format() result", nowString2, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDate, \"" + format2.toPattern() + "\")}"));
+			assertEquals("Invalid date_format() result", nowString3, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDate, \"" + format3.toPattern() + "\")}"));
 
 			// date_format with null
-			assertEquals("Invalid date_format() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${date_format(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid date_format() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${date_format(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for date_format()", Functions.ERROR_MESSAGE_DATE_FORMAT, testOne.replaceVariables(securityContext, ctx, "${date_format()}"));
+			assertEquals("Invalid date_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${date_format(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid date_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${date_format(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for date_format()", Functions.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
 
 			// date_format error messages
-			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_DATE_FORMAT, testOne.replaceVariables(securityContext, ctx, "${date_format()}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_DATE_FORMAT,  testOne.replaceVariables(securityContext, ctx, "${date_format(this.aDouble)}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_DATE_FORMAT, testOne.replaceVariables(securityContext, ctx, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_DATE_FORMAT,  Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
 
 			// number_format error messages
-			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, testOne.replaceVariables(securityContext, ctx, "${number_format()}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, testOne.replaceVariables(securityContext, ctx, "${number_format(this.aDouble)}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, testOne.replaceVariables(securityContext, ctx, "${number_format(this.aDouble, this.aDouble)}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, testOne.replaceVariables(securityContext, ctx, "${number_format(this.aDouble, this.aDouble, \"\", \"\")}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, testOne.replaceVariables(securityContext, ctx, "${number_format(this.aDouble, this.aDouble, \"\", \"\", \"\")}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, Scripting.replaceVariables(ctx, testOne, "${number_format()}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, Scripting.replaceVariables(ctx, testOne, "${number_format(this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, Scripting.replaceVariables(ctx, testOne, "${number_format(this.aDouble, this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, Scripting.replaceVariables(ctx, testOne, "${number_format(this.aDouble, this.aDouble, \"\", \"\")}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_NUMBER_FORMAT, Scripting.replaceVariables(ctx, testOne, "${number_format(this.aDouble, this.aDouble, \"\", \"\", \"\")}"));
 
-			assertEquals("Invalid date_format() result", numberString1, testOne.replaceVariables(securityContext, ctx, "${number_format(this.aDouble, \"en\", \"" + numberFormat1.toPattern() + "\")}"));
-			assertEquals("Invalid date_format() result", numberString2, testOne.replaceVariables(securityContext, ctx, "${number_format(this.aDouble, \"de\", \"" + numberFormat2.toPattern() + "\")}"));
-			assertEquals("Invalid date_format() result", numberString3, testOne.replaceVariables(securityContext, ctx, "${number_format(this.aDouble, \"zh\", \"" + numberFormat3.toPattern() + "\")}"));
-			assertEquals("Invalid date_format() result",   "123456.79", testOne.replaceVariables(securityContext, ctx, "${number_format(123456.789012, \"en\", \"0.00\")}"));
-			assertEquals("Invalid date_format() result", "123456.7890", testOne.replaceVariables(securityContext, ctx, "${number_format(123456.789012, \"en\", \"0.0000\")}"));
-			assertEquals("Invalid date_format() result",   "123456,79", testOne.replaceVariables(securityContext, ctx, "${number_format(123456.789012, \"de\", \"0.00\")}"));
-			assertEquals("Invalid date_format() result", "123456,7890", testOne.replaceVariables(securityContext, ctx, "${number_format(123456.789012, \"de\", \"0.0000\")}"));
-			assertEquals("Invalid date_format() result",   "123456.79", testOne.replaceVariables(securityContext, ctx, "${number_format(123456.789012, \"zh\", \"0.00\")}"));
-			assertEquals("Invalid date_format() result", "123456.7890", testOne.replaceVariables(securityContext, ctx, "${number_format(123456.789012, \"zh\", \"0.0000\")}"));
+			assertEquals("Invalid date_format() result", numberString1, Scripting.replaceVariables(ctx, testOne, "${number_format(this.aDouble, \"en\", \"" + numberFormat1.toPattern() + "\")}"));
+			assertEquals("Invalid date_format() result", numberString2, Scripting.replaceVariables(ctx, testOne, "${number_format(this.aDouble, \"de\", \"" + numberFormat2.toPattern() + "\")}"));
+			assertEquals("Invalid date_format() result", numberString3, Scripting.replaceVariables(ctx, testOne, "${number_format(this.aDouble, \"zh\", \"" + numberFormat3.toPattern() + "\")}"));
+			assertEquals("Invalid date_format() result",   "123456.79", Scripting.replaceVariables(ctx, testOne, "${number_format(123456.789012, \"en\", \"0.00\")}"));
+			assertEquals("Invalid date_format() result", "123456.7890", Scripting.replaceVariables(ctx, testOne, "${number_format(123456.789012, \"en\", \"0.0000\")}"));
+			assertEquals("Invalid date_format() result",   "123456,79", Scripting.replaceVariables(ctx, testOne, "${number_format(123456.789012, \"de\", \"0.00\")}"));
+			assertEquals("Invalid date_format() result", "123456,7890", Scripting.replaceVariables(ctx, testOne, "${number_format(123456.789012, \"de\", \"0.0000\")}"));
+			assertEquals("Invalid date_format() result",   "123456.79", Scripting.replaceVariables(ctx, testOne, "${number_format(123456.789012, \"zh\", \"0.00\")}"));
+			assertEquals("Invalid date_format() result", "123456.7890", Scripting.replaceVariables(ctx, testOne, "${number_format(123456.789012, \"zh\", \"0.0000\")}"));
 
 			// number_format with null
-			assertEquals("Invalid number_format() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${number_format(this.alwaysNull, this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid number_format() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${number_format(\"10\", this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid number_format() result with null value", "",  testOne.replaceVariables(securityContext, ctx, "${number_format(\"10\", \"de\", this.alwaysNull)}"));
-			assertEquals("Invalid usage message for number_format()", Functions.ERROR_MESSAGE_NUMBER_FORMAT, testOne.replaceVariables(securityContext, ctx, "${number_format()}"));
+			assertEquals("Invalid number_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${number_format(this.alwaysNull, this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid number_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${number_format(\"10\", this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid number_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${number_format(\"10\", \"de\", this.alwaysNull)}"));
+			assertEquals("Invalid usage message for number_format()", Functions.ERROR_MESSAGE_NUMBER_FORMAT, Scripting.replaceVariables(ctx, testOne, "${number_format()}"));
 
 			// not
-			assertEquals("Invalid not() result", "true",  testOne.replaceVariables(securityContext, ctx, "${not(false)}"));
-			assertEquals("Invalid not() result", "false", testOne.replaceVariables(securityContext, ctx, "${not(true)}"));
-			assertEquals("Invalid not() result", "true",  testOne.replaceVariables(securityContext, ctx, "${not(\"false\")}"));
-			assertEquals("Invalid not() result", "false", testOne.replaceVariables(securityContext, ctx, "${not(\"true\")}"));
+			assertEquals("Invalid not() result", "true",  Scripting.replaceVariables(ctx, testOne, "${not(false)}"));
+			assertEquals("Invalid not() result", "false", Scripting.replaceVariables(ctx, testOne, "${not(true)}"));
+			assertEquals("Invalid not() result", "true",  Scripting.replaceVariables(ctx, testOne, "${not(\"false\")}"));
+			assertEquals("Invalid not() result", "false", Scripting.replaceVariables(ctx, testOne, "${not(\"true\")}"));
 
 			// not with null
-			assertEquals("Invalid not() result with null value", "true", testOne.replaceVariables(securityContext, ctx, "${not(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for not()", Functions.ERROR_MESSAGE_NOT, testOne.replaceVariables(securityContext, ctx, "${not()}"));
+			assertEquals("Invalid not() result with null value", "true", Scripting.replaceVariables(ctx, testOne, "${not(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for not()", Functions.ERROR_MESSAGE_NOT, Scripting.replaceVariables(ctx, testOne, "${not()}"));
 
 			// and
-			assertEquals("Invalid and() result", "true",  testOne.replaceVariables(securityContext, ctx, "${and(true, true)}"));
-			assertEquals("Invalid and() result", "false", testOne.replaceVariables(securityContext, ctx, "${and(true, false)}"));
-			assertEquals("Invalid and() result", "false", testOne.replaceVariables(securityContext, ctx, "${and(false, true)}"));
-			assertEquals("Invalid and() result", "false", testOne.replaceVariables(securityContext, ctx, "${and(false, false)}"));
+			assertEquals("Invalid and() result", "true",  Scripting.replaceVariables(ctx, testOne, "${and(true, true)}"));
+			assertEquals("Invalid and() result", "false", Scripting.replaceVariables(ctx, testOne, "${and(true, false)}"));
+			assertEquals("Invalid and() result", "false", Scripting.replaceVariables(ctx, testOne, "${and(false, true)}"));
+			assertEquals("Invalid and() result", "false", Scripting.replaceVariables(ctx, testOne, "${and(false, false)}"));
 
 			// and with null
-			assertEquals("Invalid and() result with null value", "false", testOne.replaceVariables(securityContext, ctx, "${and(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for and()", Functions.ERROR_MESSAGE_AND, testOne.replaceVariables(securityContext, ctx, "${and(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for and()", Functions.ERROR_MESSAGE_AND, testOne.replaceVariables(securityContext, ctx, "${and()}"));
+			assertEquals("Invalid and() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${and(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for and()", Functions.ERROR_MESSAGE_AND, Scripting.replaceVariables(ctx, testOne, "${and(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for and()", Functions.ERROR_MESSAGE_AND, Scripting.replaceVariables(ctx, testOne, "${and()}"));
 
 			// or
-			assertEquals("Invalid or() result", "true",  testOne.replaceVariables(securityContext, ctx, "${or(true, true)}"));
-			assertEquals("Invalid or() result", "true", testOne.replaceVariables(securityContext, ctx, "${or(true, false)}"));
-			assertEquals("Invalid or() result", "true", testOne.replaceVariables(securityContext, ctx, "${or(false, true)}"));
-			assertEquals("Invalid or() result", "false", testOne.replaceVariables(securityContext, ctx, "${and(false, false)}"));
+			assertEquals("Invalid or() result", "true",  Scripting.replaceVariables(ctx, testOne, "${or(true, true)}"));
+			assertEquals("Invalid or() result", "true", Scripting.replaceVariables(ctx, testOne, "${or(true, false)}"));
+			assertEquals("Invalid or() result", "true", Scripting.replaceVariables(ctx, testOne, "${or(false, true)}"));
+			assertEquals("Invalid or() result", "false", Scripting.replaceVariables(ctx, testOne, "${and(false, false)}"));
 
 			// or with null
-			assertEquals("Invalid or() result with null value", "false", testOne.replaceVariables(securityContext, ctx, "${or(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for or()", Functions.ERROR_MESSAGE_OR, testOne.replaceVariables(securityContext, ctx, "${or(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for or()", Functions.ERROR_MESSAGE_OR, testOne.replaceVariables(securityContext, ctx, "${or()}"));
+			assertEquals("Invalid or() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${or(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid usage message for or()", Functions.ERROR_MESSAGE_OR, Scripting.replaceVariables(ctx, testOne, "${or(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for or()", Functions.ERROR_MESSAGE_OR, Scripting.replaceVariables(ctx, testOne, "${or()}"));
 
 			// get
-			assertEquals("Invalid get() result", "1",  testOne.replaceVariables(securityContext, ctx, "${get(this, \"anInt\")}"));
-			assertEquals("Invalid get() result", "String",  testOne.replaceVariables(securityContext, ctx, "${get(this, \"aString\")}"));
-			assertEquals("Invalid get() result", "2.234",  testOne.replaceVariables(securityContext, ctx, "${get(this, \"aDouble\")}"));
-			assertEquals("Invalid get() result", testTwo.toString(),  testOne.replaceVariables(securityContext, ctx, "${get(this, \"testTwo\")}"));
-			assertEquals("Invalid get() result", testTwo.getUuid(),  testOne.replaceVariables(securityContext, ctx, "${get(get(this, \"testTwo\"), \"id\")}"));
-			assertEquals("Invalid get() result", testSixs.get(0).getUuid(),  testOne.replaceVariables(securityContext, ctx, "${get(first(get(this, \"manyToManyTestSixs\")), \"id\")}"));
-			assertEquals("Invalid usage message for get()", Functions.ERROR_MESSAGE_GET, testOne.replaceVariables(securityContext, ctx, "${get()}"));
+			assertEquals("Invalid get() result", "1",  Scripting.replaceVariables(ctx, testOne, "${get(this, \"anInt\")}"));
+			assertEquals("Invalid get() result", "String",  Scripting.replaceVariables(ctx, testOne, "${get(this, \"aString\")}"));
+			assertEquals("Invalid get() result", "2.234",  Scripting.replaceVariables(ctx, testOne, "${get(this, \"aDouble\")}"));
+			assertEquals("Invalid get() result", testTwo.toString(),  Scripting.replaceVariables(ctx, testOne, "${get(this, \"testTwo\")}"));
+			assertEquals("Invalid get() result", testTwo.getUuid(),  Scripting.replaceVariables(ctx, testOne, "${get(get(this, \"testTwo\"), \"id\")}"));
+			assertEquals("Invalid get() result", testSixs.get(0).getUuid(),  Scripting.replaceVariables(ctx, testOne, "${get(first(get(this, \"manyToManyTestSixs\")), \"id\")}"));
+			assertEquals("Invalid usage message for get()", Functions.ERROR_MESSAGE_GET, Scripting.replaceVariables(ctx, testOne, "${get()}"));
 
 			// size
-			assertEquals("Invalid size() result", "20", testOne.replaceVariables(securityContext, ctx, "${size(this.manyToManyTestSixs)}"));
-			assertEquals("Invalid size() result", "0", testOne.replaceVariables(securityContext, ctx, "${size(null)}"));
-			assertEquals("Invalid size() result", "0", testOne.replaceVariables(securityContext, ctx, "${size(xyz)}"));
+			assertEquals("Invalid size() result", "20", Scripting.replaceVariables(ctx, testOne, "${size(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid size() result", "0", Scripting.replaceVariables(ctx, testOne, "${size(null)}"));
+			assertEquals("Invalid size() result", "0", Scripting.replaceVariables(ctx, testOne, "${size(xyz)}"));
 
 			// is_collection
-			assertEquals("Invalid is_collection() result", "true", testOne.replaceVariables(securityContext, ctx, "${is_collection(this.manyToManyTestSixs)}"));
-			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(this.name)}"));
-			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(null)}"));
-			assertEquals("Invalid is_collection() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_collection(xyz)}"));
+			assertEquals("Invalid is_collection() result", "true", Scripting.replaceVariables(ctx, testOne, "${is_collection(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid is_collection() result", "false", Scripting.replaceVariables(ctx, testOne, "${is_collection(this.name)}"));
+			assertEquals("Invalid is_collection() result", "false", Scripting.replaceVariables(ctx, testOne, "${is_collection(null)}"));
+			assertEquals("Invalid is_collection() result", "false", Scripting.replaceVariables(ctx, testOne, "${is_collection(xyz)}"));
 
 			// is_entity
-			assertEquals("Invalid is_entity() result", "true", testOne.replaceVariables(securityContext, ctx, "${is_entity(this.testFour)}"));
-			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(this.manyToManyTestSixs)}"));
-			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(this.name)}"));
-			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(null)}"));
-			assertEquals("Invalid is_entity() result", "false", testOne.replaceVariables(securityContext, ctx, "${is_entity(xyz)}"));
+			assertEquals("Invalid is_entity() result", "true", Scripting.replaceVariables(ctx, testOne, "${is_entity(this.testFour)}"));
+			assertEquals("Invalid is_entity() result", "false", Scripting.replaceVariables(ctx, testOne, "${is_entity(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid is_entity() result", "false", Scripting.replaceVariables(ctx, testOne, "${is_entity(this.name)}"));
+			assertEquals("Invalid is_entity() result", "false", Scripting.replaceVariables(ctx, testOne, "${is_entity(null)}"));
+			assertEquals("Invalid is_entity() result", "false", Scripting.replaceVariables(ctx, testOne, "${is_entity(xyz)}"));
 
 			// first / last / nth
-			assertEquals("Invalid first() result", testSixs.get( 0).toString(), testOne.replaceVariables(securityContext, ctx, "${first(this.manyToManyTestSixs)}"));
-			assertEquals("Invalid last() result",  testSixs.get(19).toString(), testOne.replaceVariables(securityContext, ctx, "${last(this.manyToManyTestSixs)}"));
-			assertEquals("Invalid nth() result",   testSixs.get( 2).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  2)}"));
-			assertEquals("Invalid nth() result",   testSixs.get( 7).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  7)}"));
-			assertEquals("Invalid nth() result",   testSixs.get( 9).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  9)}"));
-			assertEquals("Invalid nth() result",  testSixs.get(12).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 12)}"));
-			assertEquals("Invalid nth() result",  "", testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 21)}"));
+			assertEquals("Invalid first() result", testSixs.get( 0).toString(), Scripting.replaceVariables(ctx, testOne, "${first(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid last() result",  testSixs.get(19).toString(), Scripting.replaceVariables(ctx, testOne, "${last(this.manyToManyTestSixs)}"));
+			assertEquals("Invalid nth() result",   testSixs.get( 2).toString(), Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs,  2)}"));
+			assertEquals("Invalid nth() result",   testSixs.get( 7).toString(), Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs,  7)}"));
+			assertEquals("Invalid nth() result",   testSixs.get( 9).toString(), Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs,  9)}"));
+			assertEquals("Invalid nth() result",  testSixs.get(12).toString(), Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs, 12)}"));
+			assertEquals("Invalid nth() result",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs, 21)}"));
 
 			// first / last / nth with null
-			assertEquals("Invalid first() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${first(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for first()", Functions.ERROR_MESSAGE_FIRST, testOne.replaceVariables(securityContext, ctx, "${first()}"));
-			assertEquals("Invalid last() result with null value",  "", testOne.replaceVariables(securityContext, ctx, "${last(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for last()", Functions.ERROR_MESSAGE_LAST, testOne.replaceVariables(securityContext, ctx, "${last()}"));
-			assertEquals("Invalid nth() result with null value",   "", testOne.replaceVariables(securityContext, ctx, "${nth(this.alwaysNull,  2)}"));
-			assertEquals("Invalid nth() result with null value",   "", testOne.replaceVariables(securityContext, ctx, "${nth(this.alwaysNull,  7)}"));
-			assertEquals("Invalid nth() result with null value",   "", testOne.replaceVariables(securityContext, ctx, "${nth(this.alwaysNull,  9)}"));
-			assertEquals("Invalid nth() result with null value",  "", testOne.replaceVariables(securityContext, ctx, "${nth(this.alwaysNull, 12)}"));
-			assertEquals("Invalid nth() result with null value",  "", testOne.replaceVariables(securityContext, ctx, "${nth(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid nth() result with null value",  "", testOne.replaceVariables(securityContext, ctx, "${nth(this.alwaysNull, blah)}"));
-			assertEquals("Invalid usage message for nth()", Functions.ERROR_MESSAGE_NTH, testOne.replaceVariables(securityContext, ctx, "${nth()}"));
+			assertEquals("Invalid first() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${first(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for first()", Functions.ERROR_MESSAGE_FIRST, Scripting.replaceVariables(ctx, testOne, "${first()}"));
+			assertEquals("Invalid last() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${last(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for last()", Functions.ERROR_MESSAGE_LAST, Scripting.replaceVariables(ctx, testOne, "${last()}"));
+			assertEquals("Invalid nth() result with null value",   "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull,  2)}"));
+			assertEquals("Invalid nth() result with null value",   "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull,  7)}"));
+			assertEquals("Invalid nth() result with null value",   "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull,  9)}"));
+			assertEquals("Invalid nth() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull, 12)}"));
+			assertEquals("Invalid nth() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid nth() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull, blah)}"));
+			assertEquals("Invalid usage message for nth()", Functions.ERROR_MESSAGE_NTH, Scripting.replaceVariables(ctx, testOne, "${nth()}"));
 
 			// each with null
-			assertEquals("Invalid usage message for each()", Functions.ERROR_MESSAGE_EACH, testOne.replaceVariables(securityContext, ctx, "${each()}"));
+			assertEquals("Invalid usage message for each()", Functions.ERROR_MESSAGE_EACH, Scripting.replaceVariables(ctx, testOne, "${each()}"));
 
 			// get with null
-			assertEquals("Invalid usage message for get()", Functions.ERROR_MESSAGE_GET, testOne.replaceVariables(securityContext, ctx, "${get()}"));
+			assertEquals("Invalid usage message for get()", Functions.ERROR_MESSAGE_GET, Scripting.replaceVariables(ctx, testOne, "${get()}"));
 
 			// set with null
-			assertEquals("Invalid usage message for set()", Functions.ERROR_MESSAGE_SET, testOne.replaceVariables(securityContext, ctx, "${set()}"));
+			assertEquals("Invalid usage message for set()", Functions.ERROR_MESSAGE_SET, Scripting.replaceVariables(ctx, testOne, "${set()}"));
 
 			// geocode with null
-			assertEquals("Invalid usage message for geocode()", Functions.ERROR_MESSAGE_GEOCODE, testOne.replaceVariables(securityContext, ctx, "${geocode()}"));
+			assertEquals("Invalid usage message for geocode()", Functions.ERROR_MESSAGE_GEOCODE, Scripting.replaceVariables(ctx, testOne, "${geocode()}"));
 
 			// send_plaintex_mail with null
-			assertEquals("Invalid usage message for send_plaintext_mail()", Functions.ERROR_MESSAGE_SEND_PLAINTEXT_MAIL, testOne.replaceVariables(securityContext, ctx, "${send_plaintext_mail()}"));
+			assertEquals("Invalid usage message for send_plaintext_mail()", Functions.ERROR_MESSAGE_SEND_PLAINTEXT_MAIL, Scripting.replaceVariables(ctx, testOne, "${send_plaintext_mail()}"));
 
 			// send_html_mail with null
-			assertEquals("Invalid usage message for send_html_mail()", Functions.ERROR_MESSAGE_SEND_HTML_MAIL, testOne.replaceVariables(securityContext, ctx, "${send_html_mail()}"));
+			assertEquals("Invalid usage message for send_html_mail()", Functions.ERROR_MESSAGE_SEND_HTML_MAIL, Scripting.replaceVariables(ctx, testOne, "${send_html_mail()}"));
 
 			// read with null
-			assertEquals("Invalid usage message for each()", Functions.ERROR_MESSAGE_EACH, testOne.replaceVariables(securityContext, ctx, "${each()}"));
+			assertEquals("Invalid usage message for each()", Functions.ERROR_MESSAGE_EACH, Scripting.replaceVariables(ctx, testOne, "${each()}"));
 
 			// write with null
-			assertEquals("Invalid usage message for write()", Functions.ERROR_MESSAGE_WRITE, testOne.replaceVariables(securityContext, ctx, "${write()}"));
+			assertEquals("Invalid usage message for write()", Functions.ERROR_MESSAGE_WRITE, Scripting.replaceVariables(ctx, testOne, "${write()}"));
 
 			// append with null
-			assertEquals("Invalid usage message for append()", Functions.ERROR_MESSAGE_APPEND, testOne.replaceVariables(securityContext, ctx, "${append()}"));
+			assertEquals("Invalid usage message for append()", Functions.ERROR_MESSAGE_APPEND, Scripting.replaceVariables(ctx, testOne, "${append()}"));
 
 			// xml with null
-			assertEquals("Invalid usage message for xml()", Functions.ERROR_MESSAGE_XML, testOne.replaceVariables(securityContext, ctx, "${xml()}"));
+			assertEquals("Invalid usage message for xml()", Functions.ERROR_MESSAGE_XML, Scripting.replaceVariables(ctx, testOne, "${xml()}"));
 
 			// xpath with null
-			assertEquals("Invalid usage message for xpath()", Functions.ERROR_MESSAGE_XPATH, testOne.replaceVariables(securityContext, ctx, "${xpath()}"));
+			assertEquals("Invalid usage message for xpath()", Functions.ERROR_MESSAGE_XPATH, Scripting.replaceVariables(ctx, testOne, "${xpath()}"));
 
 			// find with null
-			assertEquals("Invalid usage message for find()", Functions.ERROR_MESSAGE_FIND, testOne.replaceVariables(securityContext, ctx, "${find()}"));
+			assertEquals("Invalid usage message for find()", Functions.ERROR_MESSAGE_FIND, Scripting.replaceVariables(ctx, testOne, "${find()}"));
 
 			// do
-			testOne.replaceVariables(securityContext, ctx, "${if(empty(this.alwaysNull), set(this, \"doResult\", true), set(this, \"doResult\", false))}");
-			assertEquals("Invalid do() result", "true", testOne.replaceVariables(securityContext, ctx, "${this.doResult}"));
+			Scripting.replaceVariables(ctx, testOne, "${if(empty(this.alwaysNull), set(this, \"doResult\", true), set(this, \"doResult\", false))}");
+			assertEquals("Invalid do() result", "true", Scripting.replaceVariables(ctx, testOne, "${this.doResult}"));
 
-			testOne.replaceVariables(securityContext, ctx, "${if(empty(this.name), set(this, \"doResult\", true), set(this, \"doResult\", false))}");
-			assertEquals("Invalid do() result", "false", testOne.replaceVariables(securityContext, ctx, "${this.doResult}"));
+			Scripting.replaceVariables(ctx, testOne, "${if(empty(this.name), set(this, \"doResult\", true), set(this, \"doResult\", false))}");
+			assertEquals("Invalid do() result", "false", Scripting.replaceVariables(ctx, testOne, "${this.doResult}"));
 
 			// template method
-			assertEquals("Invalid template() result", "This is a template for A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${template(\"TEST\", \"en_EN\", this)}"));
+			assertEquals("Invalid template() result", "This is a template for A-nice-little-name-for-my-test-object", Scripting.replaceVariables(ctx, testOne, "${template(\"TEST\", \"en_EN\", this)}"));
 
 			// more complex tests
-			testOne.replaceVariables(securityContext, ctx, "${each(split(\"setTestInteger1,setTestInteger2,setTestInteger3\"), set(this, data, 1))}");
-			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"setTestInteger1\")}"));
-			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"setTestInteger2\")}"));
-			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"setTestInteger3\")}"));
+			Scripting.replaceVariables(ctx, testOne, "${each(split(\"setTestInteger1,setTestInteger2,setTestInteger3\"), set(this, data, 1))}");
+			assertEquals("Invalid each() result", "1", Scripting.replaceVariables(ctx, testOne, "${get(this, \"setTestInteger1\")}"));
+			assertEquals("Invalid each() result", "1", Scripting.replaceVariables(ctx, testOne, "${get(this, \"setTestInteger2\")}"));
+			assertEquals("Invalid each() result", "1", Scripting.replaceVariables(ctx, testOne, "${get(this, \"setTestInteger3\")}"));
 
 			// complex each expression, sets the value of "testString" to the concatenated IDs of all testSixs that are linked to "this"
-			testOne.replaceVariables(securityContext, ctx, "${each(this.manyToManyTestSixs, set(this, \"testString\", concat(get(this, \"testString\"), data.id)))}");
-			assertEquals("Invalid each() result", "640", testOne.replaceVariables(securityContext, ctx, "${length(this.testString)}"));
+			Scripting.replaceVariables(ctx, testOne, "${each(this.manyToManyTestSixs, set(this, \"testString\", concat(get(this, \"testString\"), data.id)))}");
+			assertEquals("Invalid each() result", "640", Scripting.replaceVariables(ctx, testOne, "${length(this.testString)}"));
 
-			assertEquals("Invalid if(equal()) result", "String",  testOne.replaceVariables(securityContext, ctx, "${if(empty(this.alwaysNull), titleize(this.aString, '-'), this.alwaysNull)}"));
-			assertEquals("Invalid if(equal()) result", "String",  testOne.replaceVariables(securityContext, ctx, "${if(empty(this.aString), titleize(this.alwaysNull, '-'), this.aString)}"));
+			assertEquals("Invalid if(equal()) result", "String",  Scripting.replaceVariables(ctx, testOne, "${if(empty(this.alwaysNull), titleize(this.aString, '-'), this.alwaysNull)}"));
+			assertEquals("Invalid if(equal()) result", "String",  Scripting.replaceVariables(ctx, testOne, "${if(empty(this.aString), titleize(this.alwaysNull, '-'), this.aString)}"));
 
-			assertNull("Invalid result for special null value", testOne.replaceVariables(securityContext, ctx, "${null}"));
-			assertNull("Invalid result for special null value", testOne.replaceVariables(securityContext, ctx, "${if(equal(this.anInt, 15), \"selected\", null)}"));
+			assertNull("Invalid result for special null value", Scripting.replaceVariables(ctx, testOne, "${null}"));
+			assertNull("Invalid result for special null value", Scripting.replaceVariables(ctx, testOne, "${if(equal(this.anInt, 15), \"selected\", null)}"));
 
 			// tests from real-life examples
-			assertEquals("Invalid replacement result", "tile plan ", testOne.replaceVariables(securityContext, ctx, "tile plan ${plan.bannerTag}"));
+			assertEquals("Invalid replacement result", "tile plan ", Scripting.replaceVariables(ctx, testOne, "tile plan ${plan.bannerTag}"));
 
 			// more tests with pre- and postfixes
-			assertEquals("Invalid replacement result", "abcdefghijklmnop", testOne.replaceVariables(securityContext, ctx, "abcdefgh${blah}ijklmnop"));
-			assertEquals("Invalid replacement result", "abcdefghStringijklmnop", testOne.replaceVariables(securityContext, ctx, "abcdefgh${this.aString}ijklmnop"));
-			assertEquals("Invalid replacement result", "#String", testOne.replaceVariables(securityContext, ctx, "#${this.aString}"));
-			assertEquals("Invalid replacement result", "doc_sections/"+ testOne.getUuid() + "/childSections?sort=pos", testOne.replaceVariables(securityContext, ctx, "doc_sections/${this.id}/childSections?sort=pos"));
-			assertEquals("Invalid replacement result", "A Nice Little Name For My Test Object", testOne.replaceVariables(securityContext, ctx, "${titleize(this.name, '-')}"));
-			assertEquals("Invalid replacement result", "STRINGtrueFALSE", testOne.replaceVariables(securityContext, ctx, "${upper(this.aString)}${lower(true)}${upper(false)}"));
+			assertEquals("Invalid replacement result", "abcdefghijklmnop", Scripting.replaceVariables(ctx, testOne, "abcdefgh${blah}ijklmnop"));
+			assertEquals("Invalid replacement result", "abcdefghStringijklmnop", Scripting.replaceVariables(ctx, testOne, "abcdefgh${this.aString}ijklmnop"));
+			assertEquals("Invalid replacement result", "#String", Scripting.replaceVariables(ctx, testOne, "#${this.aString}"));
+			assertEquals("Invalid replacement result", "doc_sections/"+ testOne.getUuid() + "/childSections?sort=pos", Scripting.replaceVariables(ctx, testOne, "doc_sections/${this.id}/childSections?sort=pos"));
+			assertEquals("Invalid replacement result", "A Nice Little Name For My Test Object", Scripting.replaceVariables(ctx, testOne, "${titleize(this.name, '-')}"));
+			assertEquals("Invalid replacement result", "STRINGtrueFALSE", Scripting.replaceVariables(ctx, testOne, "${upper(this.aString)}${lower(true)}${upper(false)}"));
 
 			// test store and retrieve
-			assertEquals("Invalid store() result", "", testOne.replaceVariables(securityContext, ctx, "${store('tmp', this.name)}"));
+			assertEquals("Invalid store() result", "", Scripting.replaceVariables(ctx, testOne, "${store('tmp', this.name)}"));
 			assertEquals("Invalid stored value", "A-nice-little-name-for-my-test-object", ctx.retrieve("tmp"));
-			assertEquals("Invalid retrieve() result", "A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${retrieve('tmp')}"));
-			assertEquals("Invalid retrieve() result", "", testOne.replaceVariables(securityContext, new ActionContext(), "${retrieve('tmp')}"));
+			assertEquals("Invalid retrieve() result", "A-nice-little-name-for-my-test-object", Scripting.replaceVariables(ctx, testOne, "${retrieve('tmp')}"));
+			assertEquals("Invalid retrieve() result", "", Scripting.replaceVariables(new ActionContext(securityContext), testOne, "${retrieve('tmp')}"));
 
 			// test store and retrieve within filter expression
-			assertEquals("Invalid store() result", "", testOne.replaceVariables(securityContext, ctx, "${store('tmp', 10)}"));
-			assertEquals("Invalid retrieve() result in filter expression", "9",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gt(data.index, 10)))}"));
-			assertEquals("Invalid retrieve() result in filter expression", "9",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gt(data.index, retrieve('tmp'))))}"));
+			assertEquals("Invalid store() result", "", Scripting.replaceVariables(ctx, testOne, "${store('tmp', 10)}"));
+			assertEquals("Invalid retrieve() result in filter expression", "9",  Scripting.replaceVariables(ctx, testOne, "${size(filter(this.manyToManyTestSixs, gt(data.index, 10)))}"));
+			assertEquals("Invalid retrieve() result in filter expression", "9",  Scripting.replaceVariables(ctx, testOne, "${size(filter(this.manyToManyTestSixs, gt(data.index, retrieve('tmp'))))}"));
 
 			// test replace() method
-			assertEquals("Invalid replace() result", "A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${replace(this.replaceString, this)}"));
+			assertEquals("Invalid replace() result", "A-nice-little-name-for-my-test-object", Scripting.replaceVariables(ctx, testOne, "${replace(this.replaceString, this)}"));
 
 			// test error method
 			try {
@@ -803,35 +883,35 @@ public class ActionContextTest extends StructrTest {
 			} catch (FrameworkException fex) { }
 
 			// test multiline statements
-			assertEquals("Invalid replace() result", "equal", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, 2),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
-			assertEquals("Invalid replace() result", "not equal", testOne.replaceVariables(securityContext, ctx, "${if(equal(2, 3),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
+			assertEquals("Invalid replace() result", "equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 2),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
+			assertEquals("Invalid replace() result", "not equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 3),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 
-			assertEquals("Invalid keys() / join() result", "id,name,owner,type,createdBy,deleted,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,visibilityStartDate,visibilityEndDate", testOne.replaceVariables(securityContext, ctx, "${join(keys(this, 'ui'), ',')}"));
+			assertEquals("Invalid keys() / join() result", "id,name,owner,type,createdBy,deleted,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,visibilityStartDate,visibilityEndDate", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
 
 			// test default values
-			assertEquals("Invalid string default value", "blah", testOne.replaceVariables(securityContext, ctx, "${this.alwaysNull!blah}"));
-			assertEquals("Invalid numeric default value", "12", testOne.replaceVariables(securityContext, ctx, "${this.alwaysNull!12}"));
+			assertEquals("Invalid string default value", "blah", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull!blah}"));
+			assertEquals("Invalid numeric default value", "12", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull!12}"));
 
 			// Number default value
-			assertEquals("true", testOne.replaceVariables(securityContext, ctx, "${equal(42, this.alwaysNull!42)}"));
+			assertEquals("true", Scripting.replaceVariables(ctx, testOne, "${equal(42, this.alwaysNull!42)}"));
 
 			// complex multi-statement tests
-			testOne.replaceVariables(securityContext, ctx, "${(set(this, \"isValid\", true), each(this.manyToManyTestSixs, set(this, \"isValid\", and(this.isValid, equal(length(data.id, 32))))))}");
-			assertEquals("Invalid multiline statement test result", "true", testOne.replaceVariables(securityContext, ctx, "${this.isValid}"));
+			Scripting.replaceVariables(ctx, testOne, "${(set(this, \"isValid\", true), each(this.manyToManyTestSixs, set(this, \"isValid\", and(this.isValid, equal(length(data.id, 32))))))}");
+			assertEquals("Invalid multiline statement test result", "true", Scripting.replaceVariables(ctx, testOne, "${this.isValid}"));
 
-			testOne.replaceVariables(securityContext, ctx, "${(set(this, \"isValid\", true), each(this.manyToManyTestSixs, set(this, \"isValid\", and(this.isValid, gte(now, data.createdDate)))))}");
-			assertEquals("Invalid multiline statement test result", "true", testOne.replaceVariables(securityContext, ctx, "${this.isValid}"));
+			Scripting.replaceVariables(ctx, testOne, "${(set(this, \"isValid\", true), each(this.manyToManyTestSixs, set(this, \"isValid\", and(this.isValid, gte(now, data.createdDate)))))}");
+			assertEquals("Invalid multiline statement test result", "true", Scripting.replaceVariables(ctx, testOne, "${this.isValid}"));
 
-			testOne.replaceVariables(securityContext, ctx, "${(set(this, \"isValid\", false), each(this.manyToManyTestSixs, set(this, \"isValid\", and(this.isValid, gte(now, data.createdDate)))))}");
-			assertEquals("Invalid multiline statement test result", "false", testOne.replaceVariables(securityContext, ctx, "${this.isValid}"));
+			Scripting.replaceVariables(ctx, testOne, "${(set(this, \"isValid\", false), each(this.manyToManyTestSixs, set(this, \"isValid\", and(this.isValid, gte(now, data.createdDate)))))}");
+			assertEquals("Invalid multiline statement test result", "false", Scripting.replaceVariables(ctx, testOne, "${this.isValid}"));
 
 			// test multiple nested dot-separated properties (this.parent.parent.parent)
-			assertEquals("Invalid multilevel property expression result", "false", testOne.replaceVariables(securityContext, ctx, "${empty(this.testThree.testOne.testThree)}"));
+			assertEquals("Invalid multilevel property expression result", "false", Scripting.replaceVariables(ctx, testOne, "${empty(this.testThree.testOne.testThree)}"));
 
 			// test extract() with additional evaluation function
-			assertEquals("Invalid filter() result", "1",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, equal(data.index, 4)))}"));
-			assertEquals("Invalid filter() result", "9",  testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gt(data.index, 10)))}"));
-			assertEquals("Invalid filter() result", "10", testOne.replaceVariables(securityContext, ctx, "${size(filter(this.manyToManyTestSixs, gte(data.index, 10)))}"));
+			assertEquals("Invalid filter() result", "1",  Scripting.replaceVariables(ctx, testOne, "${size(filter(this.manyToManyTestSixs, equal(data.index, 4)))}"));
+			assertEquals("Invalid filter() result", "9",  Scripting.replaceVariables(ctx, testOne, "${size(filter(this.manyToManyTestSixs, gt(data.index, 10)))}"));
+			assertEquals("Invalid filter() result", "10", Scripting.replaceVariables(ctx, testOne, "${size(filter(this.manyToManyTestSixs, gte(data.index, 10)))}"));
 
 			// test complex multiline statement replacement
 			final String test =
@@ -839,33 +919,238 @@ public class ActionContextTest extends StructrTest {
 				"${if(lte(template('TEST2', 'en_EN', this), 3), '<3', '>3')}"			// second expression should evaluate to "<3"
 			;
 
-			final String result = testOne.replaceVariables(securityContext, ctx, test);
+			final String result = Scripting.replaceVariables(ctx, testOne, test);
 
 			assertEquals("Invalid multiline and template() result", ">2\n<3", result);
 
 			// incoming
-			assertEquals("Invalid number of incoming relationships", "20",  testOne.replaceVariables(securityContext, ctx, "${size(incoming(this))}"));
-			assertEquals("Invalid number of incoming relationships", "20",  testOne.replaceVariables(securityContext, ctx, "${size(incoming(this, 'MANY_TO_MANY'))}"));
-			assertEquals("Invalid number of incoming relationships", "1",   testTwo.replaceVariables(securityContext, ctx, "${size(incoming(this))}"));
-			assertEquals("Invalid number of incoming relationships", "1",   testThree.replaceVariables(securityContext, ctx, "${size(incoming(this))}"));
-			assertEquals("Invalid relationship type", "IS_AT",              testTwo.replaceVariables(securityContext, ctx, "${get(incoming(this), 'relType')}"));
-			assertEquals("Invalid relationship type", "OWNS",               testThree.replaceVariables(securityContext, ctx, "${get(incoming(this), 'relType')}"));
+			assertEquals("Invalid number of incoming relationships", "20",  Scripting.replaceVariables(ctx, testOne, "${size(incoming(this))}"));
+			assertEquals("Invalid number of incoming relationships", "20",  Scripting.replaceVariables(ctx, testOne, "${size(incoming(this, 'MANY_TO_MANY'))}"));
+			assertEquals("Invalid number of incoming relationships", "1",   Scripting.replaceVariables(ctx, testTwo, "${size(incoming(this))}"));
+			assertEquals("Invalid number of incoming relationships", "1",   Scripting.replaceVariables(ctx, testThree, "${size(incoming(this))}"));
+			assertEquals("Invalid relationship type", "IS_AT",              Scripting.replaceVariables(ctx, testTwo, "${get(incoming(this), 'relType')}"));
+			assertEquals("Invalid relationship type", "OWNS",               Scripting.replaceVariables(ctx, testThree, "${get(incoming(this), 'relType')}"));
 
 			// outgoing
-			assertEquals("Invalid number of outgoing relationships", "3",  testOne.replaceVariables(securityContext, ctx, "${size(outgoing(this))}"));
-			assertEquals("Invalid number of outgoing relationships", "2",  testOne.replaceVariables(securityContext, ctx, "${size(outgoing(this, 'IS_AT'))}"));
-			assertEquals("Invalid number of outgoing relationships", "1",  testOne.replaceVariables(securityContext, ctx, "${size(outgoing(this, 'OWNS' ))}"));
-			assertEquals("Invalid relationship type", "IS_AT",             testOne.replaceVariables(securityContext, ctx, "${get(first(outgoing(this, 'IS_AT')), 'relType')}"));
-			assertEquals("Invalid relationship type", "OWNS",              testOne.replaceVariables(securityContext, ctx, "${get(outgoing(this, 'OWNS'), 'relType')}"));
+			assertEquals("Invalid number of outgoing relationships", "3",  Scripting.replaceVariables(ctx, testOne, "${size(outgoing(this))}"));
+			assertEquals("Invalid number of outgoing relationships", "2",  Scripting.replaceVariables(ctx, testOne, "${size(outgoing(this, 'IS_AT'))}"));
+			assertEquals("Invalid number of outgoing relationships", "1",  Scripting.replaceVariables(ctx, testOne, "${size(outgoing(this, 'OWNS' ))}"));
+			assertEquals("Invalid relationship type", "IS_AT",             Scripting.replaceVariables(ctx, testOne, "${get(first(outgoing(this, 'IS_AT')), 'relType')}"));
+			assertEquals("Invalid relationship type", "OWNS",              Scripting.replaceVariables(ctx, testOne, "${get(outgoing(this, 'OWNS'), 'relType')}"));
 
-			// has_relationships	y
-			assertEquals("Invalid result of has_relationship", "true",  testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
-			assertEquals("Invalid result of has_relationship", "false", testTwo.replaceVariables(securityContext, ctx, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'vg6hj36tfvgth4r')}"));
-			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')))}"));
-			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
-			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT')}"));
-			assertEquals("Invalid result of has_relationship", "false",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'uzlasdfh')}"));
-			assertEquals("Invalid result of has_relationship", "true",  testOne.replaceVariables(securityContext, ctx, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
+			// has_relationships
+			assertEquals("Invalid result of has_relationship", "false",  Scripting.replaceVariables(ctx, testOne, "${has_relationship(this, this)}"));
+
+			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')))}"));
+			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT')}"));
+			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_relationship", "false",  Scripting.replaceVariables(ctx, testOne, "${has_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(ctx, testTwo, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
+			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(ctx, testTwo, "${has_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
+
+			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
+			assertEquals("Invalid result of has_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
+
+			assertEquals("Invalid result of has_relationship", "false", Scripting.replaceVariables(ctx, testTwo, "${has_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_relationship", "false",  Scripting.replaceVariables(ctx, testOne, "${has_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
+
+			// has_incoming_relationship
+			assertEquals("Invalid result of has_incoming_relationship", "false",  Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(this, this)}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this)}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')))}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT')}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false",  Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false",  Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "true",  Scripting.replaceVariables(ctx, testTwo, "${has_incoming_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testTwo, "${has_incoming_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
+			assertEquals("Invalid result of has_incoming_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(first(find('TestThree', 'name', 'testThree_name')), this)}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'OWNS')}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testTwo, "${has_incoming_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testTwo, "${has_incoming_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_incoming_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_incoming_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			// has_outgoing_relationship (since has_outgoing_relationship is just the inverse method to has_outgoing_relationship we can basically reuse the tests and just invert the result - except for the always-false or always-true tests)
+			assertEquals("Invalid result of has_outgoing_relationship", "false",  Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, this)}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this)}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')))}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT')}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, first(find('TestTwo', 'name', 'testTwo_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testTwo, "${has_outgoing_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  Scripting.replaceVariables(ctx, testTwo, "${has_outgoing_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')))}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this)}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "true",  Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'OWNS')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'OWNS')}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testTwo, "${has_outgoing_relationship(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testTwo, "${has_outgoing_relationship(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
+			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
+
+			// get_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
+			assertEquals("Invalid number of relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_relationships(this, this))}"));
+
+			// non-existent relType between nodes which have a relationship
+			assertEquals("Invalid number of relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this, 'THIS_DOES_NOT_EXIST'))}"));
+			// non-existent relType between a node and itself
+			assertEquals("Invalid number of relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST'))}"));
+
+			// identical result test (from and to are just switched around)
+			assertEquals("Invalid number of relationships", "1",  Scripting.replaceVariables(ctx, testTwo, "${size(get_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'IS_AT'))}"));
+			assertEquals("Invalid number of relationships", "1",  Scripting.replaceVariables(ctx, testTwo, "${size(get_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), 'IS_AT'))}"));
+
+
+			// get_incoming_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
+			assertEquals("Invalid number of incoming relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_incoming_relationships(this, this))}"));
+
+			assertEquals("Invalid number of incoming relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_incoming_relationships(this, first(find('TestTwo', 'name', 'testTwo_name'))))}"));
+			assertEquals("Invalid number of incoming relationships", "1",  Scripting.replaceVariables(ctx, testOne, "${size(get_incoming_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this))}"));
+			assertEquals("Invalid number of incoming relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_incoming_relationships(this, first(find('TestTwo', 'name', 'testTwo_name')), 'IS_AT'))}"));
+			assertEquals("Invalid number of incoming relationships", "1",  Scripting.replaceVariables(ctx, testOne, "${size(get_incoming_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT'))}"));
+
+			assertEquals("Invalid number of incoming relationships", "1",  Scripting.replaceVariables(ctx, testTwo, "${size(get_incoming_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))))}"));
+			assertEquals("Invalid number of incoming relationships", "1",Scripting.replaceVariables(ctx, testThree, "${size(get_incoming_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))))}"));
+			assertEquals("Invalid relationship type", "IS_AT",             Scripting.replaceVariables(ctx, testTwo, "${get(first(get_incoming_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))), 'relType')}"));
+
+			assertEquals("Invalid relationship type", "OWNS",            Scripting.replaceVariables(ctx, testThree, "${get(first(get_incoming_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')))), 'relType')}"));
+
+
+			// get_outgoing_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
+			assertEquals("Invalid number of outgoing relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this))}"));
+
+			assertEquals("Invalid number of outgoing relationships", "0",  Scripting.replaceVariables(ctx, testTwo, "${size(get_outgoing_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))))}"));
+
+			assertEquals("Invalid number of outgoing relationships", "1",  Scripting.replaceVariables(ctx, testTwo, "${size(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this))}"));
+			assertEquals("Invalid number of outgoing relationships", "0",  Scripting.replaceVariables(ctx, testTwo, "${size(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this, 'THIS_DOES_NOT_EXIST'))}"));
+
+			assertEquals("Invalid number of outgoing relationships", "1",Scripting.replaceVariables(ctx, testThree, "${size(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this))}"));
+			assertEquals("Invalid relationship type", "IS_AT",             Scripting.replaceVariables(ctx, testTwo, "${get(first(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)), 'relType')}"));
+
+			assertEquals("Invalid relationship type", "OWNS",            Scripting.replaceVariables(ctx, testThree, "${get(first(get_outgoing_relationships(first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), this)), 'relType')}"));
+
+			// create_relationship
+			// lifecycle for relationship t1-[:NEW_RELATIONSHIP_NAME]->t1
+			assertEquals("Invalid number of relationships", "0", Scripting.replaceVariables(ctx, testOne, "${size(get_outgoing_relationships(this, this, 'IS_AT'))}"));
+			assertEquals("unexpected result of create_relationship", "",  Scripting.replaceVariables(ctx, testOne, "${create_relationship(this, this, 'IS_AT')}"));
+			assertEquals("Invalid number of relationships", "1", Scripting.replaceVariables(ctx, testOne, "${size(get_outgoing_relationships(this, this, 'IS_AT'))}"));
+			assertEquals("unexpected result of delete", "",  Scripting.replaceVariables(ctx, testOne, "${delete(first(get_outgoing_relationships(this, this, 'IS_AT')))}"));
+			assertEquals("Invalid number of relationships", "0", Scripting.replaceVariables(ctx, testOne, "${size(get_outgoing_relationships(this, this, 'IS_AT'))}"));
+
+			// lifecycle for relationship t2-[:NEW_RELATIONSHIP_NAME]->t1
+			assertEquals("Invalid number of relationships", "0", Scripting.replaceVariables(ctx, testOne, "${size(get_outgoing_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT'))}"));
+			assertEquals("unexpected result of create_relationship", "",  Scripting.replaceVariables(ctx, testOne, "${create_relationship(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')}"));
+			assertEquals("Invalid number of relationships", "1", Scripting.replaceVariables(ctx, testOne, "${size(get_outgoing_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT'))}"));
+			assertEquals("unexpected result of delete", "",  Scripting.replaceVariables(ctx, testOne, "${delete(first(get_outgoing_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT')))}"));
+			assertEquals("Invalid number of relationships", "0", Scripting.replaceVariables(ctx, testOne, "${size(get_outgoing_relationships(first(find('TestTwo', 'name', 'testTwo_name')), this, 'IS_AT'))}"));
+
+			// array index access
+			assertEquals("Invalid array index accessor result", testSixs.get(0).getUuid(), Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs[0]}"));
+			assertEquals("Invalid array index accessor result", testSixs.get(2).getUuid(), Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs[2]}"));
+			assertEquals("Invalid array index accessor result", testSixs.get(4).getUuid(), Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs[4]}"));
+
+			// test new dot notation
+			assertEquals("Invalid dot notation result", testSixs.get(0).getProperty(AbstractNode.name), Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs[0].name}"));
+			assertEquals("Invalid dot notation result", testSixs.get(0).getProperty(AbstractNode.name), Scripting.replaceVariables(ctx, testOne, "${sort(find('TestSix'), 'name')[0].name}"));
+			assertEquals("Invalid dot notation result", testSixs.get(15).getProperty(AbstractNode.name), Scripting.replaceVariables(ctx, testOne, "${sort(find('TestSix'), 'name')[15].name}"));
+			assertEquals("Invalid dot notation result", "20", Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs.size}"));
+
+			// test array property access
+			assertEquals("Invalid string array access result", "one", Scripting.replaceVariables(ctx, testFour, "${this.stringArrayProperty[0]}"));
+			assertEquals("Invalid string array access result", "two", Scripting.replaceVariables(ctx, testFour, "${this.stringArrayProperty[1]}"));
+			assertEquals("Invalid string array access result", "three", Scripting.replaceVariables(ctx, testFour, "${this.stringArrayProperty[2]}"));
+			assertEquals("Invalid string array access result", "four", Scripting.replaceVariables(ctx, testFour, "${this.stringArrayProperty[3]}"));
+
+			// test string array property support in collection access methods
+			assertEquals("Invalid string array access result with join()", "one,two,three,four", Scripting.replaceVariables(ctx, testFour, "${join(this.stringArrayProperty, ',')}"));
+			assertEquals("Invalid string array access result with concat()", "onetwothreefour", Scripting.replaceVariables(ctx, testFour, "${concat(this.stringArrayProperty)}"));
+			assertEquals("Invalid string array access result with first()", "one", Scripting.replaceVariables(ctx, testFour, "${first(this.stringArrayProperty)}"));
+			assertEquals("Invalid string array access result with last()", "four", Scripting.replaceVariables(ctx, testFour, "${last(this.stringArrayProperty)}"));
+			assertEquals("Invalid string array access result with size()", "4", Scripting.replaceVariables(ctx, testFour, "${size(this.stringArrayProperty)}"));
+			assertEquals("Invalid string array access result with .size", "4", Scripting.replaceVariables(ctx, testFour, "${this.stringArrayProperty.size}"));
+			assertEquals("Invalid string array access result with nth", "one", Scripting.replaceVariables(ctx, testFour, "${nth(this.stringArrayProperty, 0)}"));
+			assertEquals("Invalid string array access result with nth", "two", Scripting.replaceVariables(ctx, testFour, "${nth(this.stringArrayProperty, 1)}"));
+			assertEquals("Invalid string array access result with nth", "three", Scripting.replaceVariables(ctx, testFour, "${nth(this.stringArrayProperty, 2)}"));
+			assertEquals("Invalid string array access result with nth", "four", Scripting.replaceVariables(ctx, testFour, "${nth(this.stringArrayProperty, 3)}"));
+			assertEquals("Invalid string array access result with contains()", "true", Scripting.replaceVariables(ctx, testFour, "${contains(this.stringArrayProperty, 'two')}"));
+			assertEquals("Invalid string array access result with contains()", "false", Scripting.replaceVariables(ctx, testFour, "${contains(this.stringArrayProperty, 'five')}"));
+
+
+			// find
+			assertEquals("Invalid find() result for empty values", testThree.getUuid(), Scripting.replaceVariables(ctx, testOne, "${first(find('TestThree', 'oneToOneTestSix', null))}"));
+			assertEquals("Invalid find() result for empty values", testThree.getUuid(), Scripting.replaceVariables(ctx, testOne, "${first(find('TestThree', 'oneToManyTestSix', null))}"));
+
+			// search
+			assertEquals("Invalid search() result", testOne.getUuid(), Scripting.replaceVariables(ctx, testTwo, "${first(search('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))}"));
+			assertEquals("Invalid search() result", testOne.getUuid(), Scripting.replaceVariables(ctx, testTwo, "${first(search('TestOne', 'name', '*little-name-for-my-test-object'))}"));
+			assertEquals("Invalid search() result", testOne.getUuid(), Scripting.replaceVariables(ctx, testTwo, "${first(search('TestOne', 'name', 'A-nice-little-name-for*'))}"));
+
+			// negative test for find()
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testTwo, "${first(find('TestOne', 'name', '*little-name-for-my-test-object'))}"));
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testTwo, "${first(find('TestOne', 'name', 'A-nice-little-name-for*'))}"));
+
+			// create
+			Integer noOfOnes = 1;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne'))}"));
+
+			// currently the creation of nodes must take place in a node of another type
+			Scripting.replaceVariables(ctx, testFour, "${create('TestOne', 'name', 'createTestOne1')}");
+			noOfOnes++;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne'))}"));
+			assertEquals("Invalid number of TestOne's", "1", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne1'))}"));
+
+			Scripting.replaceVariables(ctx, testFour, "${create('TestOne', 'name', 'createTestOne1')}");
+			noOfOnes++;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne'))}"));
+			assertEquals("Invalid number of TestOne's", "2", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne1'))}"));
+
+
+			// currently this must be executed on another node type
+			Scripting.replaceVariables(ctx, testFour, "${create('TestOne', 'name', 'createTestOne2', 'aCreateString', 'newCreateString1')}");
+			noOfOnes++;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne'))}"));
+			assertEquals("Invalid number of TestOne's", "1", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne2'))}"));
+			assertEquals("Invalid number of TestOne's", "0", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'aCreateString', 'DOES_NOT_EXIST'))}"));
+			assertEquals("Invalid number of TestOne's", "1", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'aCreateString', 'newCreateString1'))}"));
+			assertEquals("Invalid number of TestOne's", "0", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateString', 'NOT_newCreateString1'))}"));
+			assertEquals("Invalid number of TestOne's", "1", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateString', 'newCreateString1'))}"));
+
+
+			// currently this must be executed on another node type
+			Scripting.replaceVariables(ctx, testFour, "${create('TestOne', 'name', 'createTestOne2', 'aCreateInt', '256')}");
+			noOfOnes++;
+			assertEquals("Invalid number of TestOne's", ""+noOfOnes, Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne'))}"));
+			assertEquals("Invalid number of TestOne's", "2", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne2'))}"));
+			assertEquals("Invalid number of TestOne's", "1", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'aCreateInt', '256'))}"));
+			assertEquals("Invalid number of TestOne's", "0", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateInt', '255'))}"));
+			assertEquals("Invalid number of TestOne's", "1", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateInt', '256'))}"));
 
 			tx.success();
 

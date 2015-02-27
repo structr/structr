@@ -19,7 +19,6 @@
 package org.structr.web.datasource;
 
 import java.util.List;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -36,14 +35,14 @@ import org.structr.web.entity.dom.DOMNode;
 public class CypherGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
+	public List<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
-		final String cypherQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMNode.cypherQuery);
+		final String cypherQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, DOMNode.cypherQuery);
 		if (cypherQuery == null || cypherQuery.isEmpty()) {
 
 			return null;
 		}
 
-		return StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(cypherQuery);
+		return StructrApp.getInstance(renderContext.getSecurityContext()).command(CypherQueryCommand.class).execute(cypherQuery);
 	}
 }

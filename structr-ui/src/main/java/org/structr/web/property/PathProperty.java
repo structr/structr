@@ -30,7 +30,7 @@ import org.structr.web.entity.Linkable;
  * A property which returns the complete folder path of a {@link Linkable}
  * including name. The path consists of the names of the parent elements,
  * concatenated by "/" as path separator.
- * 
+ *
  * @author Axel Morgner
  */
 public class PathProperty extends AbstractReadOnlyProperty<String> {
@@ -42,6 +42,11 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	@Override
 	public Class relatedType() {
 		return null;
+	}
+
+	@Override
+	public Class valueType() {
+		return String.class;
 	}
 
 	@Override

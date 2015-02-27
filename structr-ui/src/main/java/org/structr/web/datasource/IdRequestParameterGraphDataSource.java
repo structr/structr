@@ -41,8 +41,9 @@ public class IdRequestParameterGraphDataSource implements GraphDataSource<List<G
 	}
 
 	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
+	public List<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
+		final SecurityContext securityContext = renderContext.getSecurityContext();
 		if (securityContext != null && securityContext.getRequest() != null) {
 
 			String nodeId = securityContext.getRequest().getParameter(parameterName);

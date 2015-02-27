@@ -86,7 +86,7 @@ var _Crud = {
     pageSize: [],
     init: function() {
 
-        main.append('<div class="searchBox"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+        main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
 
         Structr.ensureIsAdmin($('#resourceTabs'), function() {
@@ -264,6 +264,8 @@ var _Crud = {
                     _Crud.types.push(typeObj.type);
                 });
 
+                _Crud.types.sort();
+
                 if (callback) {
                     callback();
                 }
@@ -310,7 +312,7 @@ var _Crud = {
                             _Crud.determinePagerData(type);
 
                             _Crud.schema[type] = res;
-                            //console.log('Type definition for ' + type + ' loaded');
+                            //console.log('Type definition for ' + type + ' loaded', _Crud.schema[type]);
                             //console.log('schema loaded?', _Crud.isSchemaLoaded());
 
                             if (_Crud.isSchemaLoaded()) {
@@ -1182,16 +1184,19 @@ var _Crud = {
     },
     crudUpdate: function(id, key, newValue, oldValue, onSuccess, onError) {
         var url = rootUrl + id;
-        var json;
-        if (!newValue || newValue === '') {
-            json = '{"' + key + '":null}';
+        
+        var obj = {};
+        if (newValue && newValue !== '') {
+            obj[key] = newValue;
         } else {
-            json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
+            obj[key] = null;
         }
-        //console.log('crudUpdate', url, json);
+        
+        //console.log('crudUpdate          ', url, json);
+        
         $.ajax({
             url: url,
-            data: json,
+            data: JSON.stringify(obj),
             type: 'PUT',
             contentType: 'application/json; charset=utf-8',
             statusCode: {
@@ -1256,10 +1261,11 @@ var _Crud = {
     },
     crudRemoveProperty: function(id, key, onSuccess, onError) {
         var url = rootUrl + id;
-        var json = '{"' + key + '":null}';
+        var obj = {};
+        obj[key] = null;
         $.ajax({
             url: url,
-            data: json,
+            data: JSON.stringify(obj),
             type: 'PUT',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -1470,7 +1476,7 @@ var _Crud = {
                     _Crud.populateCell(id, key, type, item[key], cell);
                 });
             });
-            row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button></td>');
+            row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button><button class="security"><img src="icon/key.png"> Access Control</button></td>');
             _Crud.resize();
 
             $('.actions .edit', row).on('mouseup', function(event) {
@@ -1485,6 +1491,7 @@ var _Crud = {
                     _Crud.crudDelete(id);
                 }
             });
+            _Entities.bindAccessControl($('.actions .security', row), id);
         }
     },
     populateCell: function(id, key, type, value, cell) {
@@ -1493,12 +1500,13 @@ var _Crud = {
         var relatedType = _Crud.relatedType(key, type);
         var readOnly = _Crud.readOnly(key, type);
         var simpleType;
+        var isSourceOrTarget = _Crud.schema[type].isRel && (key === 'sourceId' || key === 'targetId');
 
         if (readOnly) {
             cell.addClass('readonly');
         }
 
-        if (!relatedType) {
+        if (!isSourceOrTarget && !relatedType) {
 
             var propertyType = _Crud.getPropertyType(type, key);
 
@@ -1515,8 +1523,7 @@ var _Crud = {
             } else if (propertyType === 'Date') {
                 cell.html(nvl(formatValue(value), '<img alt="Show calendar" title="Show calendar" src="icon/calendar.png">'));
                 if (!readOnly) {
-                    var dateTimeFormat = _Crud.getFormat(key, type).split('\'T\'');
-                    var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+                    var dateTimePickerFormat = getDateTimePickerFormat(_Crud.getFormat(key, type));
                     cell.on('mouseup', function(event) {
                         event.preventDefault();
                         var self = $(this);
@@ -1525,31 +1532,32 @@ var _Crud = {
                         var input = $('input', self);
                         input.val(oldValue);
 
-                        if (timeFormat) {
+                        if (dateTimePickerFormat.timeFormat) {
                             input.datetimepicker({
-                                // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                                dateFormat: 'yy-mm-dd',
-                                timeFormat: 'HH:mm:ssz',
-                                separator: 'T',
+                                parse: 'loose',
+                                dateFormat: dateTimePickerFormat.dateFormat,
+                                timeFormat: dateTimePickerFormat.timeFormat,
+                                separator: dateTimePickerFormat.separator,
                                 onClose: function() {
                                     var newValue = input.val();
-                                    var formattedValue = (newValue && newValue !== '') ? moment(newValue).formatWithJDF(_Crud.getFormat(key, type).replace(/'T'/,'T')) : '';
-                                    input.val(formattedValue);
-                                    if (id) {
-                                        _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
+                                    if (id && newValue !== oldValue) {
+                                        _Crud.crudUpdate(id, key, newValue);
+                                    } else {
+                                        _Crud.resetCell(id, key, oldValue);
                                     }
                                 }
                             });
                             input.datetimepicker('show');
                         } else {
                             input.datepicker({
-                                dateFormat: 'yy-mm-dd',
+                                parse: 'loose',
+                                dateFormat: dateTimePickerFormat.dateFormat,
                                 onClose: function() {
                                     var newValue = input.val();
-                                    var formattedValue = (newValue && newValue !== '') ? moment(newValue).formatWithJDF(dateFormat) : '';
-                                    input.val(formattedValue);
-                                    if (id) {
-                                        _Crud.crudUpdate(id, key, newValue !== oldValue ? formattedValue : oldValue);
+                                    if (id && newValue !== oldValue) {
+                                        _Crud.crudUpdate(id, key, newValue);
+                                    } else {
+                                        _Crud.resetCell(id, key, oldValue);
                                     }
                                 }
                             });
@@ -1623,7 +1631,7 @@ var _Crud = {
 
         }
 
-        if (!readOnly && propertyType !== 'Boolean' && !relatedType) {
+        if (!isSourceOrTarget && !readOnly && propertyType !== 'Boolean' && !relatedType) {
             cell.append('<img class="crud-clear-value" alt="Clear value" title="Clear value" src="icon/cross_small_grey.png">');
             $('.crud-clear-value', cell).on('mouseup', function(e) {
                 e.preventDefault();
@@ -1645,7 +1653,10 @@ var _Crud = {
         var values = format.split(',');
         input.append('<option></option>');
         values.forEach(function(value) {
-           input.append('<option ' + (value === oldValue ? 'selected="selected"' : '') + 'value="' + value + '">' + value + '</option>');
+            value = value.trim();
+            if (value.length > 0) {
+                input.append('<option ' + (value === oldValue ? 'selected="selected"' : '') + 'value="' + value + '">' + value + '</option>');
+            }
         });
         input.on('change', function() {
             var newValue = input.val();
@@ -1685,8 +1696,13 @@ var _Crud = {
 
                 var displayName = _Crud.displayName(node);
 
-                cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+                cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
                 var nodeEl = $('#_' + node.id, cell);
+                var isSourceOrTarget = _Crud.schema[parentType].isRel && (key === 'sourceId' || key === 'targetId');
+                if (!isSourceOrTarget) {
+                    nodeEl.append('<img class="remove" src="icon/cross_small_grey.png"></div>');
+                }
+                
                 //console.log(node);
                 if (node.isImage) {
 
@@ -1721,6 +1737,7 @@ var _Crud = {
                         });
                     }
                 }
+
                 $('.remove', nodeEl).on('click', function(e) {
                     e.preventDefault();
                     _Crud.removeRelatedObject(parentType, parentId, key, obj);
@@ -1767,29 +1784,45 @@ var _Crud = {
         var searchResults = $('.searchResults', el);
 
         _Crud.resize();
-
         //$('.search').select();
-
         var view = _Crud.view[_Crud.type];
 
         //var types = type ? [ type ] : _Crud.types;
         var types;
+        var attr = 'name';
         var posOfColon = searchString.indexOf(':');
         if (posOfColon > -1) {
-            var type = searchString.substring(0, posOfColon);
-            if (!type.endsWith('s')) {
-                type = type + 's';
+            var typeAndValue = searchString.split(':');
+            var type = typeAndValue[0];
+            var posOfDot = type.indexOf('.');
+            if (posOfDot > -1) {
+                var typeAndAttr = type.split('.');
+                type = typeAndAttr[0];
+                attr = typeAndAttr[1];
             }
             types = [type.capitalize()];
-            searchString = searchString.substring(posOfColon + 1, searchString.length);
-            //console.log('filter search type', types, searchString);
+            searchString = typeAndValue[1];
+            //console.log('filter search type', types, attr, searchString);
         } else {
             types = type ? [type] : _Crud.types;
+            if (searchString.match(/[0-9a-f]{32}/)) {
+                attr = 'uuid'; // UUID
+                //types = ['']; // will be ignored anyway
+                //console.log('UUID detected', searchString);
+            }
         }
 
+
+
         $.each(types, function(t, type) {
-            var searchPart = searchString === '*' || searchString === '' ? '' : '&name=' + encodeURIComponent(searchString) + '&loose=1';
-            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + searchPart;
+            var url, searchPart;
+            if (attr === 'uuid') {
+                url = rootUrl + _Crud.restType(type) + '/' + searchString;
+            } else {
+                searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&loose=1';
+                url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + searchPart;
+            }
+            
             searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="img/ajax-loader.gif">Searching for "' + searchString + '" in ' + type + '</div>');
 
             //console.log('Search URL', url)
@@ -1801,36 +1834,29 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 statusCode: {
                     200: function(data) {
-                        if (!data)
+                        if (!data || !data.result) {
                             return;
-
+                        }
+                        var result = data.result;
+                        //console.log(result);
                         $('#placeholderFor' + type + '').remove();
-                        if (data.result.length) {
-                            searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
+
+                        if (result) {
+                            if (Array.isArray(result)) {
+                                if (result.length) {
+                                    $.each(result, function(i, node) {
+                                        _Crud.searchResult(searchResults, type, node, onClickCallback);
+                                    });
+                                } else {
+                                    _Crud.noResults(searchResults, type);
+                                }
+                            } else if (result.id) {
+                                _Crud.searchResult(searchResults, type, result, onClickCallback);
+                            }
                         } else {
-                            searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox">No results for ' + type.capitalize() + '</div>');
-                            window.setTimeout(function() {
-                                $('#resultsFor' + type).fadeOut('fast')
-                            }, 1000);
+                            _Crud.noResults(searchResults, type);
                         }
 
-                        $.each(data.result, function(i, node) {
-
-                            //console.log('node', node);
-                            var displayName = _Crud.displayName(node);
-                            $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" " class="_' + node.id + ' node">' + fitStringToWidth(displayName, 120) + '</div>');
-
-                            var nodeEl = $('#resultsFor' + type + ' ._' + node.id, searchResults);
-                            //console.log(node);
-                            if (node.isImage) {
-                                nodeEl.append('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
-                            }
-
-                            nodeEl.on('click', function(e) {
-                                onClickCallback(e, node);
-                            });
-
-                        });
                     },
                     400: function() {
                         $('#placeholderFor' + type + '').remove();
@@ -1839,6 +1865,9 @@ var _Crud = {
                         $('#placeholderFor' + type + '').remove();
                     },
                     403: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
+                    404: function() {
                         $('#placeholderFor' + type + '').remove();
                     },
                     422: function() {
@@ -1854,8 +1883,30 @@ var _Crud = {
             });
 
         });
+    },
+    noResults: function(searchResults, type) {
+        searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox">No results for ' + type.capitalize() + '</div>');
+        //console.log('noResults', 'resultsFor' + type, searchResults, $('#resultsFor' + type));
+        window.setTimeout(function() {
+            $('#resultsFor' + type).fadeOut('fast')
+        }, 1000);
+    },
+    searchResult: function(searchResults, type, node, onClickCallback) {
+        if (!$('#resultsFor' + type).length) {
+            searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
+        }
+        var displayName = _Crud.displayName(node);
+        $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" " class="_' + node.id + ' node">' + fitStringToWidth(displayName, 120) + '</div>');
 
+        var nodeEl = $('#resultsFor' + type + ' ._' + node.id, searchResults);
+        //console.log(node);
+        if (node.isImage) {
+            nodeEl.append('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
+        }
 
+        nodeEl.on('click', function(e) {
+            onClickCallback(e, node);
+        });
     },
     displayName: function(node) {
         var displayName;
@@ -1874,14 +1925,6 @@ var _Crud = {
         window.setTimeout(function() {
             search.focus();
         }, 250);
-
-        //        //_Crud.addPager(type, el, 50, 1);
-        //        el.append('<div id="relatedNodesList"></div>');
-        //        var relatedNodesList = $('#relatedNodesList', el);
-        //        var pagerNode = _Crud.addPager(type, relatedNodesList);
-        //        _Crud.getAndAppendNodes(parentType, id, key, type, relatedNodesList, 100, false);
-        //        _Crud.activatePagerElements(type, pagerNode);
-
         search.keyup(function(e) {
             e.preventDefault();
 
@@ -2338,8 +2381,15 @@ var _Crud = {
         var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
         var filteredKeys = {};
         if (filterSource) {
-
             filteredKeys = JSON.parse(filterSource);
+        } else {
+            // default
+            filteredKeys = { createdBy: 0, deleted: 0, hidden: 0, visibilityStartDate: 0, visibilityEndDate: 0};
+            if (type === 'User') {
+                filteredKeys.password = 0;
+                filteredKeys.sessionIds = 0;
+            }
+            localStorage.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
         }
 
         return $.grep(sourceArray, function(key) {

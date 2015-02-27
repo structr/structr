@@ -40,7 +40,9 @@ var pagerDataKey = 'structrPagerData_' + port + '_';
 var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
-var pushConfigKey = 'structrpushConfigKey_' + port;
+var pushConfigKey = 'structrPushConfigKey_' + port;
+var scrollInfoKey = 'structrScrollInfoKey_' + port;
+
 
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
@@ -90,82 +92,49 @@ $(function() {
     });
 
     $('#dashboard_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('dashboard');
-        Structr.modules['dashboard'].onload();
+        Structr.activateModule(e, 'dashboard');
     });
 
     $('#pages_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('pages');
-        Structr.modules['pages'].onload();
+        Structr.activateModule(e, 'pages');
         _Pages.resize();
     });
 
     $('#widgets_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('widgets');
-        Structr.modules['widgets'].onload();
+        Structr.activateModule(e, 'widgets');
         Structr.resize();
     });
 
     $('#types_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('types');
-        Structr.modules['types'].onload();
+        Structr.activateModule(e, 'types');
     });
 
     $('#schema_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('schema');
-        Structr.modules['schema'].onload();
+        Structr.activateModule(e, 'schema');
     });
 
     $('#elements_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('elements');
-        Structr.modules['elements'].onload();
+        Structr.activateModule(e, 'elements');
     });
 
     $('#contents_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('contents');
-        Structr.modules['contents'].onload();
+        Structr.activateModule(e, 'contents');
     });
 
     $('#crud_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('crud');
-        Structr.modules['crud'].onload();
+        Structr.activateModule(e, 'crud');
     });
 
     $('#files_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('files');
-        Structr.modules['files'].onload();
+        Structr.activateModule(e, 'files');
     });
 
     $('#images_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('images');
-        Structr.modules['images'].onload();
+        Structr.activateModule(e, 'images');
     });
 
     $('#security_').on('click', function(e) {
-        e.stopPropagation();
-        Structr.clearMain();
-        Structr.activateMenuEntry('security');
-        Structr.modules['security'].onload();
+        Structr.activateModule(e, 'security');
     });
 
     $('#usernameField').keypress(function(e) {
@@ -180,6 +149,7 @@ $(function() {
     });
 
     Structr.connect();
+    Structr.updateVersionInfo();
 
     // Reset keys in case of window switching
     
@@ -366,11 +336,13 @@ var Structr = {
         obj.data = data;
         if (sendObj(obj)) {
             user = username;
+            Structr.restoreLocalStorage();
             return true;
         }
         return false;
     },
     doLogout: function(text) {
+        Structr.saveLocalStorage();
         log('doLogout ' + user);
         var obj = {};
         obj.command = 'LOGOUT';
@@ -409,6 +381,7 @@ var Structr = {
                     module.resize();
             }
         }
+        Structr.updateVersionInfo();
     },
     clearMain: function() {
         $.ui.ddmanager.droppables.default = [];
@@ -442,6 +415,12 @@ var Structr = {
             }
         });
 
+    },
+    saveLocalStorage: function() {
+        Command.saveLocalStorage();
+    },
+    restoreLocalStorage: function() {
+        Command.getLocalStorage();
     },
     restoreDialog: function(dialogData) {
         log('restoreDialog', dialogData);
@@ -610,7 +589,7 @@ var Structr = {
         });
         
     },
-    resize: function() {
+    resize: function(callback) {
 
         // Calculate dimensions of dialog
         Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
@@ -627,6 +606,9 @@ var Structr = {
             Structr.maximize();
         }
 
+        if (callback) {
+            callback();
+        }
 
     },
     maximize: function() {
@@ -751,6 +733,15 @@ var Structr = {
                 backgroundColor: 'transparent'
             }
         });
+    },
+    activateModule: function (event, name) {
+        event.stopPropagation();
+
+        if (localStorage.getItem(lastMenuEntryKey) !== name) {
+            Structr.clearMain();
+            Structr.activateMenuEntry(name);
+            Structr.modules[name].onload();
+        }
     },
     activateMenuEntry: function(name) {
         lastMenuEntry = name;
@@ -1051,33 +1042,57 @@ var Structr = {
         if (wasOpen) {
             _Pages.resize(0, -rsw);
         }
-
         localStorage.removeItem(activeTabKey);
     },
     openLeftSlideOut: function(slideout, tab, activeTabKey, callback) {
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
-        s.animate({left: '+=' + lsw + 'px'}, {duration: 100}).zIndex(1);
+        var sw = slideout.width() + 12;
+        s.animate({left: '+=' + sw + 'px'}, {duration: 100}).zIndex(1);
         localStorage.setItem(activeTabKey, t.prop('id'));
         if (callback) {
             callback();
         }
-        _Pages.resize(lsw, 0);
+        _Pages.resize(sw, 0);
+        t.draggable({
+            axis: 'x',
+            start: function(e, ui) {
+                $(this).addClass('noclick');
+            },
+            drag: function(e, ui) {
+                var w = ui.position.left - 12;
+                slideout.css({
+                    width: w + 'px',
+                });
+                ui.position.top += (ui.helper.width()/2-6);
+                ui.position.left -= (ui.helper.width()/2-6);
+                var oldLsw = sw;
+                sw = w + 12;
+                $('.node.page', slideout).width(w-13);
+                _Pages.resize(sw-oldLsw, 0);
+            },
+            stop: function(e, ui) {
+                localStorage.setItem(leftSlideoutWidthKey, slideout.width());
+            }
+        });       
     },
     closeLeftSlideOuts: function(slideouts, activeTabKey) {
         var wasOpen = false;
+        var osw;
         slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
+            var sw = s.width() + 12;
             if (Math.abs(l) <= 3) {
                 wasOpen = true;
-                s.animate({left: '-=' + lsw + 'px'}, {duration: 100}).zIndex(2);
-                $('.compTab.active', s).removeClass('active');
+                osw = sw;
+                s.animate({left: '-=' + sw + 'px'}, {duration: 100}).zIndex(2);
+                $('.compTab.active', s).removeClass('active').draggable("destroy");
             }
         });
         if (wasOpen) {
-            _Pages.resize(-lsw, 0);
+            _Pages.resize(-osw, 0);
         }
         localStorage.removeItem(activeTabKey);
     },
@@ -1213,6 +1228,19 @@ var Structr = {
 
             }
         });
+    },
+    updateVersionInfo: function () {
+        $.get(rootUrl + '_env', function (envInfo) {
+            var version = envInfo.result.modules[2].version;
+            var build = envInfo.result.modules[2].build;
+            var versionLink;
+            if (version.endsWith('SNAPSHOT')) {
+                versionLink = 'https://oss.sonatype.org/content/repositories/snapshots/org/structr/structr-ui/' + version;
+            } else {
+                versionLink = 'http://repo1.maven.org/maven2/org/structr/structr-ui/' + version;
+            }
+            $('.structr-version').html('<a target="_blank" href="' + versionLink + '">' + version + '</a> build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a>');
+        });
     }
 };
 
@@ -1296,6 +1324,10 @@ function getExpanded() {
 }
 
 function formatKey(text) {
+    // don't format custom 'data-*' attributes
+    if (text.startsWith('data-')) {
+        return text;
+    }
     var result = '';
     for (var i = 0; i < text.length; i++) {
         var c = text.charAt(i);
@@ -1335,14 +1367,15 @@ function enable(button, func) {
 }
 
 function setPosition(parentId, nodeUrl, pos) {
-    var toPut = '{ "' + parentId + '" : ' + pos + ' }';
+    var toPut = {};
+    toPut[parentId] = pos;
     $.ajax({
         url: nodeUrl + '/in',
         type: 'PUT',
         async: false,
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        data: toPut,
+        data: JSON.stringify(toPut),
         success: function(data) {
             //appendElement(parentId, elementId, data);
         }
@@ -1352,14 +1385,8 @@ function setPosition(parentId, nodeUrl, pos) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-function getIdFromIdString(idString) {
-    if (!idString || !idString.startsWith('id_'))
-        return false;
-    return idString.substring(3);
-}
-
 function getId(element) {
-    return getIdFromIdString($(element).prop('id')) || undefined;
+    return getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;
 }
 
 function getIdFromPrefixIdString(idString, prefix) {

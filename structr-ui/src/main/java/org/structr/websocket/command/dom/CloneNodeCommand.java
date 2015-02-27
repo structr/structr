@@ -30,7 +30,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 
 /**
- * Clone a DOMNode to an arbitrary location in another document (page).
+ * Clone a DOMNode to an arbitrary location in the same or another document (page).
  *
  * @author Axel Morgner
  */
@@ -44,10 +44,11 @@ public class CloneNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		String id                             = webSocketData.getId();
-		Map<String, Object> nodeData          = webSocketData.getNodeData();
-		String parentId                       = (String) nodeData.get("parentId");
+		final String id                             = webSocketData.getId();
+		final Map<String, Object> nodeData          = webSocketData.getNodeData();
+		final String parentId                       = (String) nodeData.get("parentId");
+		final boolean deep                          = (Boolean) nodeData.get("deep");
+		
 
 		if (id != null) {
 
@@ -73,7 +74,7 @@ public class CloneNodeCommand extends AbstractCommand {
 			}
 
 			try {
-				DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+				DOMNode clonedNode = (DOMNode) node.cloneNode(deep);
 				parent.appendChild(clonedNode);
 				clonedNode.setProperty(DOMNode.ownerDocument, parent.getProperty(DOMNode.ownerDocument));
 

@@ -20,6 +20,7 @@ package org.structr.cloud.transmission;
 
 import java.io.IOException;
 import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudTransmission;
 import org.structr.cloud.message.PullNodeRequestContainer;
 import org.structr.common.error.FrameworkException;
 
@@ -27,22 +28,15 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class PullTransmission extends AbstractTransmission<Boolean> {
+public class PullTransmission implements CloudTransmission<Boolean> {
 
 	private boolean recursive  = false;
 	private String rootNodeId  = null;
 
-	public PullTransmission(final String rootNodeId, final boolean recursive, final String userName, final String password, final String remoteHost, final int port) {
-
-		super(userName, password, remoteHost, port);
+	public PullTransmission(final String rootNodeId, final boolean recursive) {
 
 		this.rootNodeId = rootNodeId;
 		this.recursive  = recursive;
-	}
-
-	@Override
-	public int getTotalSize() {
-		return 1;
 	}
 
 	@Override

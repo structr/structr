@@ -18,7 +18,9 @@
  */
 package org.structr.common;
 
+import java.util.Iterator;
 import java.util.Properties;
+import org.apache.commons.configuration.PropertiesConfiguration;
 
 /**
  *
@@ -34,5 +36,15 @@ public class StructrConf extends Properties {
 		super();
 	}
 	
+	public void load(final PropertiesConfiguration config) {
+		
+		final Iterator<String> keys = config.getKeys();
+		
+		while (keys.hasNext()) {
+			final String key = keys.next();
+			this.setProperty(key, config.getString(key));
+		}
+	}
+
 	// TODO: implement addValue() and removeValue() methods
 }

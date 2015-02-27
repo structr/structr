@@ -20,6 +20,7 @@ package org.structr.core.graph;
 
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -27,9 +28,12 @@ import org.neo4j.graphdb.GraphDatabaseService;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
+import org.structr.core.TransactionSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 
@@ -39,16 +43,16 @@ import org.structr.core.property.PropertyKey;
  * Graph service command for database operations that need to be wrapped in
  * a transaction. All operations that modify the database need to be executed
  * in a transaction, which can be achieved using the following code:
- * 
+ *
  * <pre>
  * StructrApp.getInstance(securityContext).command(TransactionCommand.class).execute(new StructrTransaction() {
- * 
+ *
  *	public Object execute() throws FrameworkException {
  *		// do stuff here
  *	}
  * });
  * </pre>
- * 
+ *
  * @author Christian Morgner
  */
 public class TransactionCommand extends NodeServiceCommand implements AutoCloseable {
@@ -62,35 +66,40 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 	private static final MultiSemaphore                    semaphore    = new MultiSemaphore();
 
 	public TransactionCommand beginTx() {
-		
+
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		TransactionReference tx            = transactions.get();
-		
+
 		if (tx == null) {
-		
+
 			// start new transaction
 			tx = new TransactionReference(graphDb.beginTx());
-			
+
 			queues.set(new ModificationQueue());
 			buffers.set(new ErrorBuffer());
 			transactions.set(tx);
 			currentCommand.set(this);
 		}
-		
+
 		// increase depth
 		tx.begin();
-		
+
 		return this;
 	}
-	
+
 	public void commitTx(final boolean doValidation) throws FrameworkException {
-	
+
 		final TransactionReference tx = transactions.get();
 		if (tx != null && tx.isToplevel()) {
 
 			final ModificationQueue modificationQueue = queues.get();
 			final ErrorBuffer errorBuffer             = buffers.get();
-			
+
+			// 0.5: let transaction listeners examine (and prevent?) commit
+			for (final StructrTransactionListener listener : listeners) {
+				listener.beforeCommit(securityContext, modificationQueue.getModificationEvents(), tx.getSource());
+			}
+
 			// 1. do inner callbacks (may cause transaction to fail)
 			if (doValidation && !modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
@@ -102,7 +111,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 					throw new FrameworkException(422, errorBuffer);
 				}
 			}
-			
+
 			// 1.5: execute validatable post-transaction action
 			if (doValidation && !modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
 
@@ -142,18 +151,18 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			semaphore.release(synchronizationKeys);	// careful: this can be null
 		}
 	}
-	
+
 	public ModificationQueue finishTx() {
-		
+
 		final TransactionReference tx       = transactions.get();
 		ModificationQueue modificationQueue = null;
-		
+
 		if (tx != null) {
-			
+
 			if (tx.isToplevel()) {
 
 				modificationQueue = queues.get();
-				
+
 				// cleanup
 				queues.remove();
 				buffers.remove();
@@ -162,189 +171,248 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 				try {
 					tx.close();
-					
+
 				} catch (Throwable t) {
 					t.printStackTrace();
 				}
-				
+
 			} else {
-				
+
 				tx.end();
 			}
 		}
 
 		return modificationQueue;
 	}
-	
+
 	@Override
 	public void close() throws FrameworkException {
 		finishTx();
 	}
-	
+
+	public List<ModificationEvent> getModificationEvents() {
+
+		ModificationQueue modificationQueue = queues.get();
+		if (modificationQueue != null) {
+
+			return modificationQueue.getModificationEvents();
+		}
+
+		return null;
+	}
+
+	public void setSource(final TransactionSource source) {
+
+		TransactionReference tx = transactions.get();
+		if (tx != null) {
+			tx.setSource(source);
+		}
+	}
+
+	public TransactionSource getSource() {
+
+		TransactionReference tx = transactions.get();
+		if (tx != null) {
+
+			return tx.getSource();
+		}
+
+		return null;
+	}
+
 	public static void postProcess(final String key, final TransactionPostProcess process) {
-		
+
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
-			
+
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
-				
+
 				modificationQueue.postProcess(key, process);
-				
+
 			} else {
-				
+
 				logger.log(Level.SEVERE, "Got empty changeSet from command!");
 			}
-			
+
 		} else {
-			
+
 			logger.log(Level.SEVERE, "Trying to register transaction post processing while outside of transaction!");
 		}
-		
+
 	}
-	
+
 	public static void nodeCreated(NodeInterface node) {
-		
+
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
-			
+
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
-				
+
 				modificationQueue.create(node);
-				
+
 			} else {
-				
+
 				logger.log(Level.SEVERE, "Got empty changeSet from command!");
 			}
-			
+
 		} else {
-			
+
 			logger.log(Level.SEVERE, "Node created while outside of transaction!");
 		}
 	}
-	
+
 	public static void nodeModified(AbstractNode node, PropertyKey key, Object previousValue, Object newValue) {
-		
+
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
-			
+
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
-				
+
 				modificationQueue.modify(node, key, previousValue, newValue);
-				
+
 			} else {
-				
+
 				logger.log(Level.SEVERE, "Got empty changeSet from command!");
 			}
-			
+
 		} else {
-			
+
 			logger.log(Level.SEVERE, "Node deleted while outside of transaction!");
 		}
 	}
-	
+
 	public static void nodeDeleted(NodeInterface node) {
-		
+
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
-			
+
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
-				
+
 				modificationQueue.delete(node);
-				
+
 			} else {
-				
+
 				logger.log(Level.SEVERE, "Got empty changeSet from command!");
 			}
-			
+
 		} else {
-			
+
 			logger.log(Level.SEVERE, "Node deleted while outside of transaction!");
 		}
 	}
-	
+
 	public static void relationshipCreated(RelationshipInterface relationship) {
-		
+
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
-			
+
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
-				
+
 				modificationQueue.create(relationship);
-				
+
 			} else {
-				
+
 				logger.log(Level.SEVERE, "Got empty changeSet from command!");
 			}
-			
+
 		} else {
-			
+
 			logger.log(Level.SEVERE, "Relationships created while outside of transaction!");
 		}
 	}
-	
+
 	public static void relationshipModified(RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
-		
+
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
-			
+
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
-				
+
 				modificationQueue.modify(relationship, key, previousValue, newValue);
-				
+
 			} else {
-				
+
 				logger.log(Level.SEVERE, "Got empty changeSet from command!");
 			}
-			
+
 		} else {
-			
+
 			logger.log(Level.SEVERE, "Relationship deleted while outside of transaction!");
 		}
 	}
-	
+
 	public static void relationshipDeleted(RelationshipInterface relationship, boolean passive) {
-		
+
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
-			
+
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
-				
+
 				modificationQueue.delete(relationship, passive);
-				
+
 			} else {
-				
+
 				logger.log(Level.SEVERE, "Got empty changeSet from command!");
 			}
-			
+
 		} else {
-			
+
 			logger.log(Level.SEVERE, "Relationship deleted while outside of transaction!");
 		}
 	}
-	
+
 	public static void registerTransactionListener(final StructrTransactionListener listener) {
 		listeners.add(listener);
 	}
-	
+
 	public static void removeTransactionListener(final StructrTransactionListener listener) {
 		listeners.remove(listener);
 	}
-	
+
 	public static Set<StructrTransactionListener> getTransactionListeners() {
 		return listeners;
 	}
-	
+
 	public static boolean inTransaction() {
 		return currentCommand.get() != null;
 	}
 
+	public static boolean isDeleted(final Node node) {
+
+		if (!inTransaction()) {
+			throw new IllegalStateException("Not in transaction.");
+		}
+
+		final ModificationQueue queue = queues.get();
+		if (queue != null) {
+			return queue.isDeleted(node);
+		}
+
+		return false;
+	}
+
+	public static boolean isDeleted(final Relationship rel) {
+
+		if (!inTransaction()) {
+			throw new IllegalStateException("Not in transaction.");
+		}
+
+		final ModificationQueue queue = queues.get();
+		if (queue != null) {
+			return queue.isDeleted(rel);
+		}
+
+		return false;
+	}
+
+	// ----- private methods -----
 	private ModificationQueue getModificationQueue() {
 		return queues.get();
 	}

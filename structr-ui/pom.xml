@@ -56,6 +56,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-rest</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -134,6 +140,12 @@
             <groupId>org.apache.oltu.oauth2</groupId>
             <artifactId>org.apache.oltu.oauth2.client</artifactId>
             <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.twitter4j</groupId>
@@ -166,6 +178,22 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.10</version>
+        </dependency>
     </dependencies>
     <build>
         <resources>
@@ -192,7 +220,7 @@
                         <argument>-Xms1g</argument>
                         <argument>-Xmx1g</argument>
                         <argument>-classpath</argument>
-                        <argument>target/lib/*${path.separator}target/${project.artifactId}-${project.version}.jar</argument>
+                        <argument>target/lib/*${path.separator}target/${project.build.finalName}.jar</argument>
                         <argument>org.structr.Server</argument>
                     </arguments>
                 </configuration>
@@ -202,14 +230,11 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.16</version>
                 <configuration>
-                    <!--                    <forkCount>1</forkCount>-->
-                    <reuseForks>false</reuseForks>
                     <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
-                    <parallel>classes</parallel>
-                    <threadCount>8</threadCount>
                     <systemPropertyVariables>
                         <user.timezone>UTC</user.timezone>
                     </systemPropertyVariables>
+                    <reuseForks>false</reuseForks>
                 </configuration>
             </plugin>
             <plugin>
@@ -271,6 +296,29 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>maven-replacer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <file>src/main/deb/bin/config</file>
+                    <outputFile>target/deb/config</outputFile>
+                    <replacements>
+                        <replacement>
+                            <token>FINAL_NAME</token>
+                            <value>${project.build.finalName}</value>
+                        </replacement>
+                    </replacements>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
                 <version>1.3</version>
@@ -281,6 +329,7 @@
                             <goal>jdeb</goal>
                         </goals>
                         <configuration>
+                            <deb>${project.build.directory}/${project.build.finalName}.deb</deb>
                             <skip>${skipDeb}</skip>
                             <timestamped>true</timestamped>
                             <controlDir>${basedir}/src/main/deb/control</controlDir>
@@ -288,7 +337,7 @@
                                 <data>
                                     <src>${project.build.directory}/${project.build.finalName}.jar</src>
                                     <type>file</type>
-                                    <dst>structr-ui.jar</dst>
+                                    <dst>${project.build.finalName}.jar</dst>
                                     <mapper>
                                         <type>perm</type>
                                         <prefix>/usr/lib/${project.artifactId}/</prefix>
@@ -326,11 +375,31 @@
                                 </data>
 
                                 <data>
-                                    <src>${basedir}/src/main/deb/bin</src>
-                                    <type>directory</type>
+                                    <src>${basedir}/target/deb/config</src>
+                                    <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.artifactId}/bin</prefix>
+                                        <prefix>/usr/lib/${project.artifactId}/bin/</prefix>
+                                        <filemode>644</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/deb/bin/start</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/${project.artifactId}/bin/</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/deb/bin/stop</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/${project.artifactId}/bin/</prefix>
                                         <filemode>755</filemode>
                                     </mapper>
                                 </data>
@@ -412,8 +481,26 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <shortRevisionLength>5</shortRevisionLength>
+                    <!--                    <doCheck>true</doCheck>
+                    <doUpdate>true</doUpdate>-->
+                </configuration>
+            </plugin>
         </plugins>
-        <finalName>${project.artifactId}-${project.version}</finalName>
+        <finalName>${project.artifactId}-${project.version}-${buildNumber}</finalName>
         <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
         <pluginManagement>
             <plugins>
@@ -502,7 +589,8 @@
 
     <scm>
         <url>https://github.com/structr/structr</url>
-        <connection>scm:git:git@github.com:structr/structr.git</connection>
+        <connection>scm:git:https://github.com:structr/structr.git</connection>
+        <developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
     </scm>
 
     <distributionManagement>

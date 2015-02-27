@@ -317,12 +317,16 @@ public class PropertyMap {
 					if (converter != null) {
 
 						try {
+
+							// test
+							converter.setContext(source);
+
 							Object propertyValue = converter.convert(value);
 							resultMap.put(propertyKey, propertyValue);
 
 						} catch(ClassCastException cce) {
 
-					throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
+							throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 						}
 
 					} else {

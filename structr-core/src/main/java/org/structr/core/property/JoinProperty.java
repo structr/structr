@@ -44,8 +44,9 @@ public class JoinProperty extends StringProperty {
 	}
 
 	public JoinProperty(final String jsonName, final String dbName, final String messageFormat, final PropertyKey... keys) {
-		super(jsonName, dbName);
+		super(jsonName);
 
+		this.dbName = dbName;
 		this.format = messageFormat;
 		this.keys.addAll(Arrays.asList(keys));
 

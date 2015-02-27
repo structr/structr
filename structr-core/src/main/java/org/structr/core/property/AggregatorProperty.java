@@ -36,12 +36,12 @@ import org.structr.core.notion.Notion;
  * @author Christian Morgner
  */
 public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T> {
-	
+
 	private Aggregation aggregation = null;
-	
+
 	public AggregatorProperty(String name, Aggregation aggregator) {
 		super(name);
-		
+
 		this.aggregation = aggregator;
 	}
 
@@ -52,18 +52,18 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		if(currentObject != null && currentObject instanceof AbstractNode) {
-			
+
 			NodeInterface sourceNode  = (NodeInterface)currentObject;
 			List<NodeInterface> nodes = new LinkedList<>();
 
 			// 1. step: add all nodes
 			for(Property property : aggregation.getAggregationProperties()) {
-				
+
 				Object obj = sourceNode.getProperty(property);
 				if (obj != null && obj instanceof Collection) {
-				
+
 					nodes.addAll((Collection)obj);
 				}
 			}
@@ -97,15 +97,20 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 
 			return results;
 		}
-		
+
 		return Collections.emptyList();
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return AbstractNode.class;
 	}
-	
+
+	@Override
+	public Class valueType() {
+		return relatedType();
+	}
+
 	@Override
 	public boolean isCollection() {
 		return true;

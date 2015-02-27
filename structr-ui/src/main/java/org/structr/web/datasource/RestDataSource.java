@@ -43,6 +43,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
+import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
@@ -63,22 +65,23 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 	private static final Logger logger = Logger.getLogger(RestDataSource.class.getName());
 
 	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
+	public List<GraphObject> getData(final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
 
-		final String restQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMNode.restQuery);
+		final String restQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, DOMNode.restQuery);
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
 		}
 
-		return getData(securityContext, renderContext, restQuery);
+		return getData(renderContext, restQuery);
 	}
 
 	// FIXME: this method is needed by the websocket search command because there is no reference node for the above method
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final String restQuery) throws FrameworkException {
+	public List<GraphObject> getData(final RenderContext renderContext, final String restQuery) throws FrameworkException {
 
-		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
+		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
+		final SecurityContext securityContext                     = renderContext.getSecurityContext();
 
-		ResourceProvider resourceProvider = renderContext == null ? null : renderContext.getResourceProvider();
+		ResourceProvider resourceProvider = renderContext.getResourceProvider();
 		if (resourceProvider == null) {
 			try {
 				resourceProvider = UiResourceProvider.class.newInstance();
@@ -94,9 +97,14 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		Value<String> propertyView = new ThreadLocalPropertyView();
 		propertyView.set(securityContext, PropertyView.Ui);
 
+		HttpServletRequest request = securityContext.getRequest();
+		if (request == null) {
+			request = renderContext.getRequest();
+		}
+		
 		// initialize variables
 		// mimic HTTP request
-		HttpServletRequest request = new HttpServletRequestWrapper(renderContext == null ? securityContext.getRequest() : renderContext.getRequest()) {
+		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
 
 			@Override
 			public Enumeration<String> getParameterNames() {
@@ -138,20 +146,41 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 			}
 		};
 
+		// store original request
+		final HttpServletRequest origRequest = securityContext.getRequest();
+
 		// update request in security context
-		securityContext.setRequest(request);
+		securityContext.setRequest(wrappedRequest);
 
 		//HttpServletResponse response = renderContext.getResponse();
-		Resource resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, GraphObject.id), GraphObject.id), propertyView);
+		Resource resource = null;
+		try {
+
+			resource = ResourceHelper.applyViewTransformation(wrappedRequest, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, wrappedRequest, resourceMap, propertyView)), propertyView);
+
+		} catch (IllegalPathException ipe) {
+
+			logger.log(Level.WARNING, "Illegal path for REST query: {0}", restQuery);
+
+		}
+
+		// reset request to old context
+		securityContext.setRequest(origRequest);
+
+		if (resource == null) {
+
+			return Collections.EMPTY_LIST;
+
+		}
 
 		// TODO: decide if we need to rest the REST request here
 		//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 		// add sorting & paging
-		String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-		String pageParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-		String offsetId = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
-		String sortOrder = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-		String sortKeyName = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+		String pageSizeParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+		String pageParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
+		String offsetId = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
+		String sortOrder = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+		String sortKeyName = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 		boolean sortDescending = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
 		int pageSize = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 		int page = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
@@ -172,7 +201,16 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		}
 
 		// do action
-		Result result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+		Result result = Result.EMPTY_RESULT;
+
+		try {
+			result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+
+		} catch (NotFoundException nfe) {
+			logger.log(Level.WARNING, "No result from internal REST query: {0}", restQuery);
+		}
+
+
 		result.setIsCollection(resource.isCollectionResource());
 		result.setIsPrimitiveArray(resource.isPrimitiveArray());
 

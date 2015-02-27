@@ -65,9 +65,9 @@ public class RemoveCommand extends AbstractCommand {
 					// Use new DOM interface
 					DOMNode domNode = (DOMNode) node;
 
-					domNode.getParentNode().removeChild(domNode);
-
 					try {
+	
+						domNode.getParentNode().removeChild(domNode);
 
 						// Remove node from page
 						domNode.setProperty(DOMNode.syncedNodes, Collections.EMPTY_LIST);

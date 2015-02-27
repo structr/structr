@@ -19,7 +19,6 @@
 package org.structr.core.parser;
 
 import java.util.List;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -36,6 +35,21 @@ public class EachExpression extends Expression {
 
 	public EachExpression() {
 		super("each");
+	}
+
+	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("each(");
+
+		for (final Expression expr : expressions) {
+			buf.append(expr.toString());
+		}
+		buf.append(")");
+
+		return buf.toString();
 	}
 
 	@Override
@@ -60,23 +74,28 @@ public class EachExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 		if (listExpression == null) {
 			return Functions.ERROR_MESSAGE_EACH;
 		}
 
-		final Object listSource = listExpression.evaluate(securityContext, ctx, entity);
+		final Object listSource = listExpression.evaluate(ctx, entity);
 		if (listSource != null && listSource instanceof List) {
 
 			final List source = (List)listSource;
 
 			for (Object obj : source) {
 
-				eachExpression.evaluate(securityContext, new ActionContext(ctx, entity, obj), entity);
+				eachExpression.evaluate(new ActionContext(ctx, obj), entity);
 			}
 		}
 
 		return null;
+	}
+
+	@Override
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
 	}
 }

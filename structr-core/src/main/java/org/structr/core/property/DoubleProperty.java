@@ -41,7 +41,7 @@ import org.structr.core.graph.search.SearchAttribute;
  *
  * @author Christian Morgner
  */
-public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
+public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements NumericalPropertyKey<Double> {
 
 	private static final Logger logger = Logger.getLogger(DoubleProperty.class.getName());
 
@@ -53,12 +53,12 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 		this(jsonName, dbName, null);
 	}
 
-	public DoubleProperty(final String name, final Double defaultValue) {
-		this(name, name, defaultValue);
-	}
-
 	public DoubleProperty(final String name, final PropertyValidator<Double>... validators) {
 		this(name, name, null, validators);
+	}
+
+	public DoubleProperty(final String name, final Double defaultValue, final PropertyValidator<Double>... validators) {
+		this(name, name, defaultValue, validators);
 	}
 
 	public DoubleProperty(final String jsonName, final String dbName, final Double defaultValue, final PropertyValidator<Double>... validators) {
@@ -86,6 +86,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	}
 
 	@Override
+	public Class valueType() {
+		return Double.class;
+	}
+
+	@Override
 	public Integer getSortType() {
 		return SortField.DOUBLE;
 	}
@@ -103,6 +108,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	@Override
 	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
+	}
+
+	@Override
+	public Double convertToNumber(Double source) {
+		return source;
 	}
 
 	protected class InputConverter extends PropertyConverter<Object, Double> {
@@ -200,4 +210,5 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	public void index(GraphObject entity, Object value) {
 		super.index(entity, value != null ? ValueContext.numeric((Number) fixDatabaseProperty(value)) : value);
 	}
+
 }

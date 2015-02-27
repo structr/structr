@@ -148,7 +148,7 @@ public class UiAuthenticator implements Authenticator {
 
 		securityContext.setAuthenticator(this);
 
-		// test for cross site resource sharing
+		// Check CORS settings (Cross-origin resource sharing, see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 		String origin = request.getHeader("Origin");
 		if (!StringUtils.isBlank(origin)) {
 
@@ -210,10 +210,10 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void checkResourceAccess(final HttpServletRequest request, final String rawResourceSignature, final String propertyView)
+	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String rawResourceSignature, final String propertyView)
 		throws FrameworkException {
 
-		final ResourceAccess resourceAccess = ResourceAccess.findGrant(rawResourceSignature);
+		final ResourceAccess resourceAccess = ResourceAccess.findGrant(securityContext, rawResourceSignature);
 		final Method method                 = methods.get(request.getMethod());
 		final Principal user                = getUser(request, true);
 		final boolean validUser             = (user != null);

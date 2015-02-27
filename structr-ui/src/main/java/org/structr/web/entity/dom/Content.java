@@ -31,6 +31,7 @@ import net.java.textilej.parser.markup.trac.TracWikiDialect;
 import org.apache.commons.lang3.StringUtils;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Asciidoctor.Factory;
+import org.pegdown.Parser;
 import org.pegdown.PegDownProcessor;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
@@ -42,7 +43,6 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -70,7 +70,7 @@ public class Content extends DOMNode implements Text {
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
-	public static final Property<Boolean> isContent                                      = new BooleanProperty("isContent", true).readOnly();
+	public static final Property<Boolean> isContent                                      = new BooleanProperty("isContent").defaultValue(true).readOnly();
 
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<>();
 
@@ -259,22 +259,22 @@ public class Content extends DOMNode implements Text {
 
 		if (newNode instanceof Content) {
 
-			final PropertyMap properties = new PropertyMap();
-			properties.put(Content.content, newNode.getProperty(Content.content));
+			final Map<String, Object> properties = new HashMap<>();
+			properties.put("content", newNode.getProperty(Content.content));
 
 			updateFromPropertyMap(properties);
 		}
 	}
 
-	@Override
-	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-
-		this.setProperty(Content.content, properties.get(Content.content));
-
-		// update visibility as well
-		this.setProperty(Content.visibleToPublicUsers, properties.get(Content.visibleToPublicUsers));
-		this.setProperty(Content.visibleToAuthenticatedUsers, properties.get(Content.visibleToAuthenticatedUsers));
-	}
+//	@Override
+//	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
+//
+//		this.setProperty(Content.content, properties.get(Content.content));
+//
+//		// update visibility as well
+//		this.setProperty(Content.visibleToPublicUsers, properties.get(Content.visibleToPublicUsers));
+//		this.setProperty(Content.visibleToAuthenticatedUsers, properties.get(Content.visibleToAuthenticatedUsers));
+//	}
 
 	@Override
 	public String getIdHash() {
@@ -311,9 +311,9 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void renderContent(final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
+		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
 			return;
 		}
 
@@ -325,7 +325,7 @@ public class Content extends DOMNode implements Text {
 		String _contentType = getProperty(contentType);
 
 		// fetch content with variable replacement
-		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
+		String _content = getPropertyWithVariableReplacement(renderContext, Content.content);
 
 		if (!(EditMode.RAW.equals(edit) || EditMode.WIDGET.equals(edit)) && (_contentType == null || ("text/plain".equals(_contentType)))) {
 
@@ -349,21 +349,10 @@ public class Content extends DOMNode implements Text {
 
 			} else {
 
-//				// In edit mode, add an artificial 'span' tag around content nodes within body to make them editable
-//				buffer.append("<span data-structr-raw-value=\"").append(getProperty(Content.content))
-//					//.append("\" data-structr-content-type=\"").append(StringUtils.defaultString(getProperty(Content.contentType), ""))
-//					.append("\" data-structr-type=\"").append(getType())
-//					.append("\" data-structr-id=\"").append(id).append("\">");
-
-//				int l = buffer.length();
-//				buffer.replace(l-1, l, " data-structr-raw-value=\""
-//					.concat(getProperty(Content.content))
-//					.concat("\" data-structr-type=\"").concat(getType())
-//					.concat("\" data-structr-id=\"").concat(id).concat("\">"));
-				String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
+//				// In edit mode, add an artificial comment tag around content nodes within body to make them editable
+				final String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
 				out.append("<!--data-structr-id=\"".concat(id)
 					.concat("\" data-structr-raw-value=\"").concat(escapeForHtmlAttributes(cleanedContent)).concat("\"-->"));
-					//.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content)).concat("\"-->"));
 
 			}
 
@@ -772,7 +761,7 @@ public class Content extends DOMNode implements Text {
 		@Override
 		protected PegDownProcessor initialValue() {
 
-			return new PegDownProcessor();
+			return new PegDownProcessor(Parser.ALL);
 
 		}
 

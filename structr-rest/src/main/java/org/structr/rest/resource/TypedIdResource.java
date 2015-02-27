@@ -88,9 +88,7 @@ public class TypedIdResource extends FilterableResource {
 			// next constraint is a type constraint
 			// => follow predefined statc relationship
 			//    between the two types
-			StaticRelationshipResource resource = new StaticRelationshipResource(securityContext, this, (TypeResource)next);
-			resource.configureIdProperty(idProperty);
-			return resource;
+			return new StaticRelationshipResource(securityContext, this, (TypeResource)next);
 
 		} else if (next instanceof RelationshipResource) {
 

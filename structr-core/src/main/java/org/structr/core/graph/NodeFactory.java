@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 
 
 import java.util.*;
+import java.util.logging.Logger;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.index.IndexHits;
 import org.structr.common.AccessControllable;
@@ -41,6 +42,8 @@ import org.structr.core.entity.relationship.NodeHasLocation;
  * @author Axel Morgner
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
+
+	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
 
 	public NodeFactory(final SecurityContext securityContext) {
 		super(securityContext);
@@ -66,6 +69,10 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	@Override
 	public T instantiateWithType(final Node node, final Class<T> nodeClass, boolean isCreation) throws FrameworkException {
 
+		// cannot instantiate node without type
+		if (nodeClass == null) {
+			return null;
+		}
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newNode                       = null;

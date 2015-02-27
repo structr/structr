@@ -229,6 +229,7 @@ public class TypeResource extends SortableResource {
 				if (newRelationship != null) {
 
 					result.addHeader("Location", buildLocationHeader(newRelationship));
+					result.addContent(newRelationship);
 				}
 
 				result.serializeAsPrimitiveArray(true);
@@ -265,11 +266,7 @@ public class TypeResource extends SortableResource {
 
 		if (next instanceof UuidResource) {
 
-			TypedIdResource constraint = new TypedIdResource(securityContext, (UuidResource) next, this);
-
-			constraint.configureIdProperty(idProperty);
-
-			return constraint;
+			return new TypedIdResource(securityContext, (UuidResource) next, this);
 
 		} else if (next instanceof TypeResource) {
 

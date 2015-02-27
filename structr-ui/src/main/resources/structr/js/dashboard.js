@@ -196,7 +196,7 @@ var _Dashboard = {
 
         searchField = $('.search', queriesSlideout);
         searchField.focus();
-        searchField.keyup(function(e) {
+        searchField.keydown(function(e) {
             var rawSearchString = $(this).val();
             var searchString = rawSearchString;
 
@@ -217,10 +217,16 @@ var _Dashboard = {
             } else {
                 _Dashboard.clearSearch(type);
             }
-
+            
+            
             if (searchString && searchString.length && e.which === 13) {
                 //console.log('Search executed', searchString, type);
-                _Dashboard.execQuery(searchString, type);
+                
+                if (!shiftKey) {
+                    _Dashboard.execQuery(searchString, type);
+                    return false;
+                }
+                
             } else if (e.which === 27 || rawSearchString === '') {
                 _Dashboard.clearSearch(type);
             }
@@ -237,15 +243,15 @@ var _Dashboard = {
     },
     execQuery: function(query, type, params) {
 
-        console.log('exec', type, 'query: ', query, ', with parameters.', params);
+        //console.log('exec', type, 'query: ', query, ', with parameters.', params);
 
         if (query && query.length) {
 
             if (type === 'cypher') {
-                Command.cypher(query, params);
+                Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params);
                 _Dashboard.saveQuery(query, 'cypher', params);
             } else {
-                Command.rest(query);
+                Command.rest(query.replace(/(\r\n|\n|\r)/gm, ''));
                 _Dashboard.saveQuery(query, 'rest');
             }
 

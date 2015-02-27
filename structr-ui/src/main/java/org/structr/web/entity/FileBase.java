@@ -24,7 +24,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,22 +31,20 @@ import org.apache.commons.io.FileUtils;
 import org.parboiled.common.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.Syncable;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import static org.structr.core.GraphObject.type;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -71,7 +68,7 @@ public class FileBase extends AbstractFile implements Linkable {
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
 	public static final Property<String> path = new PathProperty("path").indexed().readOnly();
-	public static final Property<Boolean> isFile = new BooleanProperty("isFile", true).readOnly();
+	public static final Property<Boolean> isFile = new BooleanProperty("isFile").defaultValue(true).readOnly();
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile);
@@ -145,7 +142,7 @@ public class FileBase extends AbstractFile implements Linkable {
 
 			unlockReadOnlyPropertiesOnce();
 			setProperty(checksum, FileHelper.getChecksum(FileBase.this));
-			
+
 			unlockReadOnlyPropertiesOnce();
 			setProperty(version, 0);
 
@@ -215,7 +212,7 @@ public class FileBase extends AbstractFile implements Linkable {
 	public void increaseVersion() throws FrameworkException {
 
 		final Integer _version = getProperty(FileBase.version);
-		
+
 		unlockReadOnlyPropertiesOnce();
 		if (_version == null) {
 
@@ -278,12 +275,12 @@ public class FileBase extends AbstractFile implements Linkable {
 
 				// Return file output stream and save checksum and size after closing
 				FileOutputStream fos = new FileOutputStream(fileOnDisk) {
-					
+
 					private boolean closed = false;
 
 					@Override
 					public void close() throws IOException {
-						
+
 						if (closed) {
 							return;
 						}
@@ -296,7 +293,7 @@ public class FileBase extends AbstractFile implements Linkable {
 
 							unlockReadOnlyPropertiesOnce();
 							setProperty(checksum, FileHelper.getChecksum(FileBase.this));
-							
+
 							unlockReadOnlyPropertiesOnce();
 							setProperty(size, FileHelper.getSize(FileBase.this));
 							setProperty(contentType, _contentType);
@@ -304,9 +301,9 @@ public class FileBase extends AbstractFile implements Linkable {
 							if (StringUtils.startsWith(_contentType, "image") || ImageHelper.isImageType(getProperty(name))) {
 								setProperty(NodeInterface.type, Image.class.getSimpleName());
 							}
-							
+
 							increaseVersion();
-							
+
 
 							tx.success();
 
@@ -345,38 +342,14 @@ public class FileBase extends AbstractFile implements Linkable {
 
 	// ----- interface Syncable -----
 	@Override
-	public List<Syncable> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
-		final List<Syncable> data = new LinkedList<>();
+		final List<GraphObject> data = super.getSyncData();
 
 		// nodes
 		data.add(getProperty(parent));
 		data.add(getIncomingRelationship(Folders.class));
 
 		return data;
-	}
-
-	@Override
-	public boolean isNode() {
-		return true;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return false;
-	}
-
-	@Override
-	public NodeInterface getSyncNode() {
-		return this;
-	}
-
-	@Override
-	public RelationshipInterface getSyncRelationship() {
-		return null;
-	}
-
-	@Override
-	public void updateFromPropertyMap(PropertyMap properties) throws FrameworkException {
 	}
 }

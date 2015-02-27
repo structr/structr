@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 //~--- classes ----------------------------------------------------------------
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.parser.Functions;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -123,7 +125,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	/**
-	 * Called when a relationship of this combinedType is instatiated. Please note that
+	 * Called when a relationship of this combinedType is instantiated. Please note that
 	 * a relationship can (and will) be instantiated several times during a
 	 * normal rendering turn.
 	 */
@@ -692,13 +694,36 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return SchemaHelper.getPropertyWithVariableReplacement(securityContext, this, renderContext, key);
+	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+		return SchemaHelper.getPropertyWithVariableReplacement(renderContext, this, key);
 	}
 
 	@Override
-	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
-		return SchemaHelper.replaceVariables(securityContext, this, actionContext, rawValue);
+	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+
+		switch (key) {
+
+			case "_source":
+				return getSourceNode();
+
+			case "_target":
+				return getTargetNode();
+
+			default:
+
+				// evaluate object value or return default
+				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
+				if (value == null) {
+
+					return Functions.numberOrString(defaultValue);
+				}
+				return value;
+		}
+	}
+
+	@Override
+	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwException) throws FrameworkException {
+		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");
 	}
 
 	// ----- protected methods -----
@@ -725,5 +750,40 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		}
 
 		return Direction.BOTH;
+	}
+
+	// ----- Cloud synchronization and replication -----
+	@Override
+	public List<GraphObject> getSyncData() {
+		return new ArrayList<>(); // provide a basis for super.getSyncData() calls
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return true;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		throw new ClassCastException(this.getClass() + " cannot be cast to org.structr.core.graph.NodeInterface");
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return this;
+	}
+
+	@Override
+	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
+
+		// update all properties that exist in the source map
+		for (final Entry<String, Object> entry : properties.entrySet()) {
+			getRelationship().setProperty(entry.getKey(), entry.getValue());
+		}
 	}
 }

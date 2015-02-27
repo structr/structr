@@ -47,8 +47,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.log.ReadLogCommand;
-import org.structr.core.log.WriteLogCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.JarConfigurationProvider;
 
@@ -67,8 +65,6 @@ public class StructrTest extends TestCase {
 	//~--- fields ---------------------------------------------------------
 	protected GraphDatabaseCommand graphDbCommand = null;
 	protected SecurityContext securityContext = null;
-	protected ReadLogCommand readLogCommand = null;
-	protected WriteLogCommand writeLogCommand = null;
 	protected String basePath = null;
 	protected App app = null;
 
@@ -193,6 +189,15 @@ public class StructrTest extends TestCase {
 
 	protected <T extends AbstractNode> T createTestNode(final Class<T> type) throws FrameworkException {
 		return (T) createTestNode(type, new PropertyMap());
+	}
+
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final String name) throws FrameworkException {
+
+		final PropertyMap map = new PropertyMap();
+
+		map.put(AbstractNode.name, name);
+
+		return (T) createTestNode(type, map);
 	}
 
 	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
@@ -325,6 +330,10 @@ public class StructrTest extends TestCase {
 
 	@Override
 	protected void setUp() throws Exception {
+		setUp(null);
+	}
+
+	protected void setUp(final Map<String, Object> additionalConfig) {
 
 		System.out.println("\n######################################################################################");
 		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
@@ -348,14 +357,16 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 
+		if (additionalConfig != null) {
+			config.putAll(additionalConfig);
+		}
+
 		final Services services = Services.getInstance(config);
 
 		securityContext = SecurityContext.getSuperUserInstance();
 		app = StructrApp.getInstance(securityContext);
 
 		graphDbCommand = app.command(GraphDatabaseCommand.class);
-		writeLogCommand = app.command(WriteLogCommand.class);
-		readLogCommand = app.command(ReadLogCommand.class);
 
 		// wait for service layer to be initialized
 		do {

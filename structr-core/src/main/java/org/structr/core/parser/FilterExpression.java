@@ -20,7 +20,6 @@ package org.structr.core.parser;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -61,13 +60,13 @@ public class FilterExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 		if (listExpression == null) {
 			return Functions.ERROR_MESSAGE_FILTER;
 		}
 
-		final Object listSource = listExpression.evaluate(securityContext, ctx, entity);
+		final Object listSource = listExpression.evaluate(ctx, entity);
 		final List target       = new LinkedList<>();
 
 		if (listSource != null && listSource instanceof List) {
@@ -76,7 +75,7 @@ public class FilterExpression extends Expression {
 
 			for (Object obj : source) {
 
-				final Object result = filterExpression.evaluate(securityContext, new ActionContext(ctx, entity, obj), entity);
+				final Object result = filterExpression.evaluate(new ActionContext(ctx, obj), entity);
 				if (result instanceof Boolean) {
 
 					if ((Boolean)result) {
@@ -88,5 +87,10 @@ public class FilterExpression extends Expression {
 		}
 
 		return target;
+	}
+
+	@Override
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+		return source;
 	}
 }

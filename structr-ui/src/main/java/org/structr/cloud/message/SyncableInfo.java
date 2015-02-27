@@ -22,7 +22,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Date;
-import org.structr.common.Syncable;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
@@ -45,7 +45,7 @@ public class SyncableInfo {
 
 	public SyncableInfo() {}
 
-	public SyncableInfo(final Syncable syncable) {
+	public SyncableInfo(final GraphObject syncable) {
 
 		if (syncable != null) {
 

@@ -22,15 +22,16 @@ import java.io.IOException;
 import java.util.Set;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.CloudTransmission;
 import org.structr.cloud.ExportSet;
+import org.structr.cloud.message.End;
 import org.structr.cloud.message.FileNodeChunk;
 import org.structr.cloud.message.FileNodeDataContainer;
 import org.structr.cloud.message.FileNodeEndChunk;
 import org.structr.cloud.message.NodeDataContainer;
-import org.structr.cloud.message.PushNodeRequestContainer;
 import org.structr.cloud.message.RelationshipDataContainer;
-import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.dynamic.File;
@@ -39,23 +40,19 @@ import org.structr.dynamic.File;
  *
  * @author Christian Morgner
  */
-public class PushTransmission extends AbstractTransmission<Boolean> {
+public class PushTransmission implements CloudTransmission {
 
 	private ExportSet exportSet = null;
 	private int sequenceNumber  = 0;
 
-	public PushTransmission(final Syncable sourceNode, final boolean recursive, final String userName, final String password, final String remoteHost, final int port) {
-
-		super(userName, password, remoteHost, port);
+	public PushTransmission(final GraphObject source, final boolean recursive) throws FrameworkException {
 
 		// create export set before first progress callback is called
 		// so the client gets the correct total from the beginning
-		exportSet = ExportSet.getInstance(sourceNode, recursive);
+		exportSet = ExportSet.getInstance(source, recursive);
 	}
 
-	public PushTransmission(final String userName, final String password, final String remoteHost, final int port) {
-
-		super(userName, password, remoteHost, port);
+	public PushTransmission() {
 
 		exportSet = ExportSet.getInstance();
 	}
@@ -65,15 +62,7 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 	}
 
 	@Override
-	public int getTotalSize() {
-		return exportSet.getTotalSize() + 1;
-	}
-
-	@Override
 	public Boolean doRemote(final CloudConnection client) throws IOException, FrameworkException {
-
-		// send type of request
-		client.send(new PushNodeRequestContainer());
 
 		// reset sequence number
 		sequenceNumber = 0;
@@ -97,8 +86,12 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 
 			if (nodes.contains(r.getSourceNode()) && nodes.contains(r.getTargetNode())) {
 				client.send(new RelationshipDataContainer(r, sequenceNumber++));
+			} else {
+				System.out.println("NOT sending relationship data container " + r + " because source or target node are not in the export set.");
 			}
 		}
+
+		client.send(new End());
 
 		// wait for end of transmission
 		client.waitForTransmission();

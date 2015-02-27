@@ -24,10 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.property.Property;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.compiler.NodeExtender;
 
@@ -39,7 +37,6 @@ public class StructrHttpServiceConfig {
 
 	private static final Logger logger            = Logger.getLogger(StructrHttpServiceConfig.class.getName());
 
-	private final Property<String> defaultIdProperty  = GraphObject.id;
 	private String defaultPropertyView                = PropertyView.Public;
 	private ResourceProvider resourceProvider         = null;
 	private Class authenticatorClass                  = null;
@@ -47,10 +44,6 @@ public class StructrHttpServiceConfig {
 	private boolean userAutoCreate                    = false;
 	private boolean userAutoLogin                     = false;
 	private int outputNestingDepth                    = 3;
-
-	public Property<String> getDefaultIdProperty() {
-		return defaultIdProperty;
-	}
 
 	public ResourceProvider getResourceProvider() {
 		return resourceProvider;
@@ -68,7 +61,7 @@ public class StructrHttpServiceConfig {
 		return outputNestingDepth;
 	}
 
-	public void initializeFromProperties(final Properties properties, final String servletName, final Set<ResourceProvider> resourceProviders) {
+	public void initializeFromProperties(final Properties properties, final String servletName, final Set<ResourceProvider> resourceProviders) throws InstantiationException, IllegalAccessException {
 
 		final String resourceProviderKeyName = servletName.concat(".resourceprovider");
 		final String authenticatorKeyName    = servletName.concat(".authenticator");
@@ -90,17 +83,22 @@ public class StructrHttpServiceConfig {
 
 			logger.log(Level.SEVERE, "Missing resource provider key {0}.resourceprovider in configuration file.", servletName);
 
+			throw new IllegalStateException("No resource provider set for servlet " + servletName);
+
 		} else {
 
-			try {
-				resourceProvider = (ResourceProvider)loadClass(resourceProviderValue).newInstance();
+			final Class<ResourceProvider> providerClass = loadClass(resourceProviderValue);
+			if (providerClass != null) {
+
+				resourceProvider = providerClass.newInstance();
 				resourceProviders.add(resourceProvider);
 
-			} catch (Throwable t) {
+			} else {
 
-				logger.log(Level.SEVERE, "Unable to instantiate resource provider {0}: {1}", new Object[] { resourceProviderValue, t.getMessage() } );
+				logger.log(Level.SEVERE, "Unable to initialize resource provider for servlet {0}, no resource provider found. Please check structr.conf for a valid resource provider class.", servletName);
+
+				throw new IllegalStateException("No resource provider available for servlet " + servletName);
 			}
-
 		}
 
 		if (StringUtils.isBlank(authenticatorValue)) {
@@ -152,7 +150,7 @@ public class StructrHttpServiceConfig {
 			authenticator.setUserAutoCreate(userAutoCreate, userClass);
 			authenticator.setUserAutoLogin(userAutoLogin, userClass);
 
-		} catch (Throwable t) {
+		} catch (InstantiationException | IllegalAccessException t) {
 
 			logger.log(Level.SEVERE, "Unable to instantiate authenticator {0}: {1}", new Object[] { authenticatorClass, t.getMessage() } );
 		}

@@ -37,7 +37,7 @@ import org.structr.core.Services;
 
 /**
  * Helper class for sending simple or HTML e-mails.
- * 
+ *
  * @author Axel Morgner
  */
 public abstract class MailHelper {
@@ -50,7 +50,7 @@ public abstract class MailHelper {
 
 	//~--- methods --------------------------------------------------------
 
-	public static void sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
+	public static String sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
 					final String htmlContent, final String textContent)
 		throws EmailException {
 
@@ -59,11 +59,11 @@ public abstract class MailHelper {
 		setup(mail, to, toName, from, fromName, cc, bcc, bounce, subject);
 		mail.setHtmlMsg(htmlContent);
 		mail.setTextMsg(textContent);
-		mail.send();
 
+		return mail.send();
 	}
 
-	public static void sendSimpleMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
+	public static String sendSimpleMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
 					  final String textContent)
 		throws EmailException {
 
@@ -71,35 +71,38 @@ public abstract class MailHelper {
 
 		setup(mail, to, toName, from, fromName, cc, bcc, bounce, subject);
 		mail.setMsg(textContent);
-		mail.send();
 
+		return mail.send();
 	}
 
 	private static void setup(final Email mail, final String to, final String toName, final String from, final String fromName, final String cc, final String bcc, final String bounce, final String subject)
 		throws EmailException {
 
 		// FIXME: this might be slow if the config file is read each time
-		final Properties config   = Services.getInstance().getCurrentConfig();
-		final String smtpHost     = config.getProperty(Services.SMTP_HOST);
-		final String smtpPort     = config.getProperty(Services.SMTP_PORT);
-		final String smtpUser     = config.getProperty(Services.SMTP_USER);
-		final String smtpPassword = config.getProperty(Services.SMTP_PASSWORD);
-		
+		final Properties config     = Services.getInstance().getCurrentConfig();
+		final String smtpHost       = config.getProperty(Services.SMTP_HOST, "localhost");
+		final String smtpPort       = config.getProperty(Services.SMTP_PORT, "25");
+		final String smtpUser       = config.getProperty(Services.SMTP_USER);
+		final String smtpPassword   = config.getProperty(Services.SMTP_PASSWORD);
+		final String smtpUseTLS     = config.getProperty(Services.SMTP_USE_TLS, "true");
+		final String smtpRequireTLS = config.getProperty(Services.SMTP_REQUIRE_TLS, "false");
+
 		mail.setCharset(charset);
 		mail.setHostName(smtpHost);
 		mail.setSmtpPort(Integer.parseInt(smtpPort));
-		mail.setTLS(true);
+		mail.setStartTLSEnabled(Boolean.parseBoolean(smtpUseTLS));
+		mail.setStartTLSRequired(Boolean.parseBoolean(smtpRequireTLS));
 		mail.setCharset(charset);
 		mail.setHostName(smtpHost);
 		mail.setSmtpPort(Integer.parseInt(smtpPort));
-		
+
 		if (StringUtils.isNotBlank(smtpUser) && StringUtils.isNotBlank(smtpPassword)) {
 			mail.setAuthentication(smtpUser, smtpPassword);
 		}
-		
+
 		mail.addTo(to, toName);
 		mail.setFrom(from, fromName);
-		
+
 		if (StringUtils.isNotBlank(cc)) {
 			mail.addCc(cc);
 		}
@@ -107,37 +110,37 @@ public abstract class MailHelper {
 		if (StringUtils.isNotBlank(bcc)) {
 			mail.addBcc(bcc);
 		}
-		
+
 		if (StringUtils.isNotBlank(bounce)) {
 			mail.setBounceAddress(bounce);
 		}
-		
+
 		mail.setSubject(subject);
 
 	}
-	
+
 	/**
 	 * Parse the template and replace any of the keys in the replacement map by
 	 * the given values
-	 * 
+	 *
 	 * @param template
 	 * @param replacementMap
 	 * @return template string with included replacements
 	 */
 	public static String replacePlaceHoldersInTemplate(final String template, final Map<String, String> replacementMap) {
-		
+
 		List<String> toReplace = new ArrayList<>();
 		List<String> replaceBy = new ArrayList<>();
-		
+
 		for (Entry<String, String> property : replacementMap.entrySet()) {
-			
+
 			toReplace.add(property.getKey());
 			replaceBy.add(property.getValue());
-			
+
 		}
-		
+
 		return StringUtils.replaceEachRepeatedly(template, toReplace.toArray(new String[toReplace.size()]), replaceBy.toArray(new String[replaceBy.size()]));
-		
+
 	}
 
 }

@@ -49,10 +49,16 @@ import org.structr.core.entity.TestOne;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.TestUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
@@ -91,9 +97,9 @@ public class AdvancedPagingTest extends PagingTest {
 			int number                      = 20;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 10;
-			
+
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
-			
+
 			try (final Tx tx = app.tx()) {
 
 				int i = offset;
@@ -150,7 +156,7 @@ public class AdvancedPagingTest extends PagingTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 				for (NodeInterface node : nodes) {
 
@@ -231,7 +237,7 @@ public class AdvancedPagingTest extends PagingTest {
 				assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
 				assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
 			}
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
@@ -240,7 +246,7 @@ public class AdvancedPagingTest extends PagingTest {
 		}
 
 	}
-	
+
 	public void test04OffsetPagingWithLargePageSize() {
 
 		try {
@@ -290,11 +296,11 @@ public class AdvancedPagingTest extends PagingTest {
 				assertEquals("TestOne-8", result.get(5).getProperty(AbstractNode.name));
 				assertEquals("TestOne-9", result.get(6).getProperty(AbstractNode.name));
 			}
-			
+
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -358,7 +364,7 @@ public class AdvancedPagingTest extends PagingTest {
 				}
 			}
 
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
@@ -368,4 +374,104 @@ public class AdvancedPagingTest extends PagingTest {
 
 	}
 
+	public void test06PagingVisibility() {
+
+		Principal user = null;
+
+		try (final Tx tx = app.tx()) {
+
+			// create non-admin user
+			user = app.create(TestUser.class, "tester");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try {
+
+			final SecurityContext userContext   = SecurityContext.getInstance(user, AccessMode.Backend);
+			final App userApp                   = StructrApp.getInstance(userContext);
+			final Class type                    = TestOne.class;
+			final int number                    = 1000;
+			final List<NodeInterface> allNodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> userNodes = new LinkedList<>();
+			final int offset                    = 0;
+
+			try (final Tx tx = app.tx()) {
+
+				int i = offset;
+				for (NodeInterface node : allNodes) {
+
+					// System.out.println("Node ID: " + node.getNodeId());
+					String _name = "TestOne-" + StringUtils.leftPad(Integer.toString(i), 5, "0");
+
+					if (Math.random() < 0.5) {
+
+						node.setProperty(NodeInterface.owner, user);
+						userNodes.add(node);
+					}
+
+					i++;
+
+					node.setProperty(AbstractNode.name, _name);
+				}
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final PropertyKey sortKey = AbstractNode.name;
+				final boolean sortDesc    = false;
+				final int pageSize        = 10;
+				final int page            = 22;
+				final Result result       = userApp.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResult();
+
+				assertEquals("Invalid paging result count with non-superuser security context", userNodes.size(), (int)result.getRawResultCount());
+
+				for (int i=0; i<pageSize; i++) {
+
+					final NodeInterface expected = userNodes.get((pageSize * (page-1))+i);
+					final NodeInterface actual   = (NodeInterface)result.get(i);
+
+					assertEquals("Invalid paging result with non-superuser security context", expected, actual);
+				}
+
+				tx.success();
+			}
+
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+	}
+
+	public void test07PagingOverflow() {
+
+		try {
+
+			final Class type = TestOne.class;
+
+			// create 20 nodes
+			createTestNodes(type, 20);
+
+			try (final Tx tx = app.tx()) {
+
+				// request a page beyond the number of existing elements
+				app.nodeQuery(type).pageSize(10).page(100).getAsList();
+
+				tx.success();
+			}
+
+		} catch (Throwable t) {
+			fail("Requesting a page beyond the number of existing elements should not throw an exception.");
+		}
+	}
 }

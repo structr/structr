@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
-import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -36,7 +35,7 @@ public class PullChunk extends FileNodeChunk {
 	}
 
 	@Override
-	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 
 		final Iterator<FileNodeChunk> chunkIterator = (Iterator<FileNodeChunk>)serverConnection.getValue(containerId);
 		if (chunkIterator != null) {
@@ -58,7 +57,7 @@ public class PullChunk extends FileNodeChunk {
 	}
 
 	@Override
-	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+	public void onResponse(CloudConnection clientConnection) throws IOException, FrameworkException {
 	}
 
 	@Override

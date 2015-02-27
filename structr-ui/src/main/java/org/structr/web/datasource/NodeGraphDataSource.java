@@ -20,7 +20,6 @@ package org.structr.web.datasource;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -35,7 +34,7 @@ import org.structr.web.entity.relation.RenderNode;
 public class NodeGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 	@Override
-	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
+	public List<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
 		List<GraphObject> data = new LinkedList<>();
 

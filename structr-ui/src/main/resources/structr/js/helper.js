@@ -81,7 +81,9 @@ function unescapeTags(str) {
             .replace(/&nbsp;/g, ' ')
             .replace(/&amp;/g, '&')
             .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>');
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, '\'');
 }
 
 $.fn.reverse = [].reverse;
@@ -102,13 +104,6 @@ if (typeof String.prototype.startsWith !== 'function') {
 if (typeof String.prototype.capitalize !== 'function') {
     String.prototype.capitalize = function() {
         return this.charAt(0).toUpperCase() + this.slice(1);
-    };
-}
-
-if (typeof String.prototype.escapeForJSON !== 'function') {
-    String.prototype.escapeForJSON = function() {
-        return this
-                .replace(/"/g, '\\"');
     };
 }
 
@@ -159,10 +154,12 @@ function cleanText(input) {
     }
     //console.log(input);
     var output = input
-            .replace(/<br><\/div>/ig, '\n')
-            .replace(/<div>/ig, '\n')
+            .replace(/<div><br><\/div>/ig, '\n')
+            .replace(/<div><\/div>/g, '\n')
             .replace(/<br(\s*)\/*>/ig, '\n')
-            .replace(/(<([^>]+)>)/ig, "");
+            .replace(/(<([^>]+)>)/ig, "")
+            .replace(/\u00A0/ig, String.fromCharCode(32))
+    ;
 
     //console.log(output);
     return output;
@@ -440,14 +437,11 @@ function getComments(el) {
             var id = f.nodeValue.extractVal('data-structr-id');
             var raw = f.nodeValue.extractVal('data-structr-raw-value');
             if (id) {
-                f = f.nextSibling;
-                if (f && f.nodeType === 3) {
-                    var comment = {};
-                    comment.id = id;
-                    comment.textNode = f;
-                    comment.rawContent = raw;
-                    comments.push(comment);
-                }
+                var comment = {};
+                comment.id = id;
+                comment.node = f;
+                comment.rawContent = raw;
+                comments.push(comment);
             }
         }
         f = f ? f.nextSibling : f;
@@ -469,4 +463,21 @@ function getNonCommentSiblings(el) {
 
 function pluralize(name) {
     return name.endsWith('y') ? name.substring(0, name.length - 1) + 'ies' : (name.endsWith('s') ? name : name + 's');
+}
+
+function getDateTimePickerFormat(rawFormat) {
+    var dateTimeFormat, obj = {};
+    if (rawFormat.indexOf('T') > 0) {
+        dateTimeFormat = rawFormat.split('\'T\'');
+    } else {
+        dateTimeFormat = rawFormat.split(' ');
+    }
+    var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+    obj.dateFormat = DateFormatConverter.convert(moment().toMomentFormatString(dateFormat), DateFormatConverter.momentJs, DateFormatConverter.datepicker);
+    var timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+    if (timeFormat) {
+        obj.timeFormat = DateFormatConverter.convert(moment().toMomentFormatString(timeFormat), DateFormatConverter.momentJs, DateFormatConverter.timepicker);
+    }
+    obj.separator = (rawFormat.indexOf('T') > 0) ? 'T' : ' ';
+    return obj;
 }
