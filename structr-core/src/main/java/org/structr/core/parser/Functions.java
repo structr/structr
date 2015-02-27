@@ -2349,7 +2349,17 @@ public class Functions {
 					}
 
 					return new LinkedList<>(keys);
+
+				} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof GraphObjectMap) {
+
+					return new LinkedList<>(((GraphObjectMap)sources[0]).keySet());
+
+				} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Map) {
+
+					return new LinkedList<>(((Map)sources[0]).keySet());
+
 				}
+
 
 				return "";
 			}
