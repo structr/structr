@@ -566,4 +566,281 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	}
 	
+	public void testCustomSchema18() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType18\", \"_foo\": \"Foo|+Date!\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("Foo"))
+				.body("result[-1].type", equalTo("Date"))
+				.body("result[-1].notNull", equalTo(true))
+
+			.when()
+				.get("/_schema/TestType18/ui");
+
+	}
+
+	public void testCustomSchema19() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType19\", \"_foo\": \"Foo|+Date!(yyyy-MM-dd)\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("Foo"))
+				.body("result[-1].type", equalTo("Date"))
+				.body("result[-1].notNull", equalTo(true))
+				.body("result[-1].format", equalTo("yyyy-MM-dd"))
+
+			.when()
+				.get("/_schema/TestType19/ui");
+
+	}
+
+	public void testCustomSchema20() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType20\", \"_foo\": \"Foo|+Boolean!\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("Foo"))
+				.body("result[-1].type", equalTo("Boolean"))
+				.body("result[-1].notNull", equalTo(true))
+
+			.when()
+				.get("/_schema/TestType20/ui");
+
+	}
+
+	public void testCustomSchema21() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType21\", \"_foo\": \"Foo|+Double!\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("Foo"))
+				.body("result[-1].type", equalTo("Double"))
+				.body("result[-1].notNull", equalTo(true))
+
+			.when()
+				.get("/_schema/TestType21/ui");
+
+	}
+	
+	public void testCustomSchema22() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType22\", \"_foo\": \"+Enum(a,b,c)!\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("foo"))
+				.body("result[-1].type", equalTo("Enum"))
+				.body("result[-1].format", equalTo("a,b,c"))
+				.body("result[-1].notNull", equalTo(true))
+
+			.when()
+				.get("/_schema/TestType22/ui");
+
+	}
+	
+	public void testCustomSchema23() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType23\", \"_foo\": \"Foo|+Enum(a,b,c)!\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("Foo"))
+				.body("result[-1].type", equalTo("Enum"))
+				.body("result[-1].format", equalTo("a,b,c"))
+				.body("result[-1].notNull", equalTo(true))
+
+			.when()
+				.get("/_schema/TestType23/ui");
+
+	}
+
+	public void testCustomSchema24() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType24\", \"_foo\": \"Foo|+Enum!(a,b,c):b\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("Foo"))
+				.body("result[-1].type", equalTo("Enum"))
+				.body("result[-1].format", equalTo("a,b,c"))
+				.body("result[-1].defaultValue", equalTo("b"))
+				.body("result[-1].notNull", equalTo(true))
+
+			.when()
+				.get("/_schema/TestType24/ui");
+
+	}
+
+	public void testCustomSchema25() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType25\", \"_foo\": \"Foo|+Boolean!:true\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("Foo"))
+				.body("result[-1].type", equalTo("Boolean"))
+				.body("result[-1].defaultValue", equalTo(true))
+				.body("result[-1].notNull", equalTo(true))
+
+			.when()
+				.get("/_schema/TestType25/ui");
+
+	}
+
+	public void testCustomSchema26() {
+		
+		createEntity("/schema_node", "{ \"name\": \"TestType26\", \"_foo\": \"Foo|+Double!:12.34\" }");
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(14))
+				.body("result_count", equalTo(14))
+				.body("result[-1].jsonName", equalTo("foo"))
+				.body("result[-1].dbName", equalTo("Foo"))
+				.body("result[-1].type", equalTo("Double"))
+				.body("result[-1].defaultValue", equalTo(12.34f)) // The restassured lib parses floating-point numbers to Float
+				.body("result[-1].notNull", equalTo(true))
+
+			.when()
+				.get("/_schema/TestType26/ui");
+
+	}
+
 }
