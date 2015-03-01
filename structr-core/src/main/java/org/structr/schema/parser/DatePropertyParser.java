@@ -39,7 +39,6 @@ import org.structr.schema.SchemaHelper.Type;
 public class DatePropertyParser extends PropertyParser {
 
 	private String pattern = null;
-	private String auxType = ", null";
 
 	public DatePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
 		super(errorBuffer, className, propertyName, params);
@@ -62,7 +61,7 @@ public class DatePropertyParser extends PropertyParser {
 
 	@Override
 	public String getPropertyParameters() {
-		return auxType;
+		return "";
 	}
 
 	@Override
@@ -81,7 +80,6 @@ public class DatePropertyParser extends PropertyParser {
 			}
 
 			pattern = expression;
-			auxType = ", \"" + expression +"\"";
 		}
 	}
 
