@@ -19,6 +19,7 @@
 var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
 var radius = 20, stub = 30, offset = 0, maxZ = 0, reload = false;
 var connectorStyle = localStorage.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
+var zoomLevel = parseFloat(localStorage.getItem(localStorageSuffix + 'zoomLevel')) || 1.0;
 var remotePropertyKeys = [];
 
 $(document).ready(function() {
@@ -45,8 +46,9 @@ var _Schema = {
         $.each($('#schema-graph .node'), function(i, n) {
             var node = $(n);
             var id = node.attr('id');
-            var obj = JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position')) || {};
-            obj.position = node.position();
+            var obj = {position: node.position()};
+            obj.position.left /= zoomLevel;
+            obj.position.top = (obj.position.top - $('#schema-graph').offset().top) / zoomLevel;
             localStorage.setItem(id + localStorageSuffix + 'node-position', JSON.stringify(obj));
         });
     },
@@ -121,6 +123,21 @@ var _Schema = {
                 instance.repaintEverything();
             });
 
+            schemaContainer.append('Zoom: <div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
+            $( "#zoom-slider" ).slider({
+                min:0.25,
+                max:1,
+                step:0.05,
+                value:zoomLevel,
+                slide: function( event, ui ) {
+                    var newZoomLevel = ui.value;
+                    zoomLevel = newZoomLevel;
+                    localStorage.setItem(localStorageSuffix + 'zoomLevel', newZoomLevel);
+                    _Schema.setZoom(newZoomLevel, instance, [0,0], $('#schema-graph')[0]);
+                    _Schema.resize();
+                }
+            });
+
             schemaContainer.append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Tools</button>');
             $('#admin-tools').on('click', function() {
                 _Schema.openAdminTools();
@@ -167,7 +184,6 @@ var _Schema = {
                 main.append('<div class="canvas" id="schema-graph"></div>');
 
                 canvas = $('#schema-graph');
-                _Schema.resize();
 
                 instance = jsPlumb.getInstance({
                     //Connector: "StateMachine",
@@ -190,6 +206,7 @@ var _Schema = {
                     ]
                 });
 
+
                 _Schema.loadSchema(function() {
                     instance.bind('connection', function(info) {
                         _Schema.connect(getIdFromPrefixIdString(info.sourceId, 'id_'), getIdFromPrefixIdString(info.targetId, 'id_'));
@@ -205,8 +222,10 @@ var _Schema = {
                                 });
                         _Schema.reload();
                     });
-
                     reload = false;
+
+                    _Schema.setZoom(zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+                    _Schema.resize();
                 });
 
             });
@@ -344,10 +363,12 @@ var _Schema = {
                                 //isTarget: true
                     });
 
-                    instance.draggable(id, {containment: '#schema-graph', stop: function() {
+                    instance.draggable(id, {
+                        containment: '#schema-graph',
+                        stop: function() {
                             _Schema.storePositions();
-                        }});
-
+                        }
+                    });
                 });
 
                 if (callback) {
@@ -370,7 +391,7 @@ var _Schema = {
 
                     if (sId === res.sourceId && tId === res.targetId) {
                         radius += 10;
-                        stub += 30;
+                        stub += 80;
                         offset += .1;
                     } else {
                         radius = 20;
@@ -387,7 +408,7 @@ var _Schema = {
                         deleteEndpointsOnDetach: false,
                         scope: res.id,
                         //parameters: {'id': res.id},
-                        connector: [connectorStyle, {curviness: 200, cornerRadius: radius, stub: stub, gap: 6, alwaysRespectStubs: true}],
+                        connector: [connectorStyle, {curviness: 200, cornerRadius: radius, stub: [stub, 30], gap: 6, alwaysRespectStubs: true}],
                         overlays: [
                             ["Label", {
                                     cssClass: "label multiplicity",
@@ -893,16 +914,28 @@ var _Schema = {
 
     },
     resize: function() {
+        var zoom = (instance ? instance.getZoom() : 1);
 
-        var w = $(window).width() - 24;
-        var h = $(window).height() - 140;
+        var canvasSize = {
+            w: ($(window).width() - 20) / zoom,
+            h: ($(window).height() - 140) / zoom
+        };
+        $('.node').each(function(i, elem) {
+            $elem = $(elem);
+            canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width() - 20) / zoom));
+            canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - 140) / zoom));
+        });
 
         if (canvas) {
             canvas.css({
-                width: w + 'px',
-                height: h + 'px'
+                width: canvasSize.w + 'px',
+                height: canvasSize.h + 'px'
             });
         }
+
+        $('#main').css({
+            height: ($(window).height() - $('#main').offset().top)
+        });
 
         $('body').css({
             position: 'relative'
@@ -1845,7 +1878,25 @@ var _Schema = {
         });
 
         _Layout.doLayout(nodesToLayout, relsToLayout);
-    }
+    },
+    setZoom: function(zoom, instance, transformOrigin, el) {
+        transformOrigin = transformOrigin || [ 0.5, 0.5 ];
+        instance = instance || jsPlumb;
+        el = el || instance.getContainer();
+        var p = [ "webkit", "moz", "ms", "o" ],
+            s = "scale(" + zoom + ")",
+            oString = (transformOrigin[0] * 100) + "% " + (transformOrigin[1] * 100) + "%";
+
+        for (var i = 0; i < p.length; i++) {
+            el.style[p[i] + "Transform"] = s;
+            el.style[p[i] + "TransformOrigin"] = oString;
+        }
+
+        el.style["transform"] = s;
+        el.style["transformOrigin"] = oString;
+
+        instance.setZoom(zoom);
+      }
 };
 
 function normalizeAttr(attr) {
