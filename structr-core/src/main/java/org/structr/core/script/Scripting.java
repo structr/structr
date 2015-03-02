@@ -1,5 +1,6 @@
 package org.structr.core.script;
 
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,7 +12,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.parser.Functions;
+import org.structr.core.property.DateProperty;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.parser.DatePropertyParser;
 
 /**
  *
@@ -39,7 +42,7 @@ public class Scripting {
 				for (final String expression : extractScripts(value)) {
 
 					final Object extractedValue = evaluate(actionContext, entity, expression);
-					String partValue            = extractedValue != null ? extractedValue.toString() : "";
+					String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 					if (partValue != null) {
 
@@ -256,4 +259,19 @@ public class Scripting {
 
 		return expressions;
 	}
+	
+	private static String formatToDefaultDateOrString(final Object value) {
+		
+		if (value instanceof Date) {
+			
+			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			
+		} else {
+			
+			return value.toString();
+			
+		}
+		
+	}
+	
 }
