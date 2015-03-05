@@ -28,6 +28,7 @@ import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Image;
@@ -92,6 +93,11 @@ public class ListCommand extends AbstractCommand {
 		if (type.equals(Image.class)) {
 
 			query.and(Image.isThumbnail, false);
+		}
+
+		if (type.equals(File.class)) {
+
+			query.not().and(File.name, "_thumb_", false);
 		}
 
 		try {

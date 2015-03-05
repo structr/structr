@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.IdFunctionCall;
 import org.mozilla.javascript.IdFunctionObject;
@@ -195,6 +196,10 @@ public class StructrScriptable extends ScriptableObject {
 
 		if (value instanceof GraphObject) {
 			return new GraphObjectWrapper(scope, (GraphObject)value);
+		}
+
+		if (value instanceof HttpServletRequest) {
+			return new HttpServletRequestWrapper((HttpServletRequest)value);
 		}
 
 		return value;
@@ -609,5 +614,38 @@ public class StructrScriptable extends ScriptableObject {
 
 			return null;
 		}
+	}
+
+	public class HttpServletRequestWrapper extends ScriptableObject {
+
+		private HttpServletRequest request = null;
+
+		public HttpServletRequestWrapper(final HttpServletRequest request) {
+			this.request = request;
+		}
+
+		@Override
+		public String getClassName() {
+			return "HttpServletRequest";
+		}
+
+		@Override
+		public Object get(String name, Scriptable start) {
+			return request.getParameter(name);
+		}
+
+		@Override
+		public Object[] getIds() {
+			return request.getParameterMap().values().toArray();
+		}
+
+		@Override
+		public Object getDefaultValue(Class<?> hint) {
+
+			logger.log(Level.WARNING, "getDefaultValue() of HttpServletRequestWrapper called, don't know what to return here.. Please report to team@structr.com what you were trying to do with this object when you encountered this error message.");
+
+			return null;
+		}
+
 	}
 }

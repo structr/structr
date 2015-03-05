@@ -83,13 +83,13 @@ https://structr.com
 - [Neo4j](http://neo4j.com)
 - [@structr](https://twitter.com/structr)
 
-## Authors
+## Initial Authors
 
-- Axel Morgner (axel@morgner.de, @amorgner)
-- Christian Morgner (christian@morgner.de, @cmor_)
+- Axel Morgner (axel.morgner@structr.com, @amorgner)
+- Christian Morgner (christian.morgner@structr.com, @cmor_)
 
 ## Copyright and License
 
-Copyright 2010-2014 Axel Morgner
+Copyright 2010-2015 Morgner UG (haftungsbeschränkt)
 
-Structr is licensed under the GPLv3 and AGPLv3 (structr UI).
+Structr is licensed under the GPLv3 and AGPLv3 (Structr UI).

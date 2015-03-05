@@ -737,7 +737,7 @@ var Structr = {
     activateModule: function (event, name) {
         event.stopPropagation();
 
-        if (localStorage.getItem(lastMenuEntryKey) !== name) {
+        if (localStorage.getItem(lastMenuEntryKey) !== name || main.children().length === 0) {
             Structr.clearMain();
             Structr.activateMenuEntry(name);
             Structr.modules[name].onload();

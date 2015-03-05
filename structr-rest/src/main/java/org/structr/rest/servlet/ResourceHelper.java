@@ -71,7 +71,7 @@ public class ResourceHelper {
 		final String path = request.getPathInfo();
 
 		// intercept empty path and send 204 No Content
-		if (!StringUtils.isNotBlank(path)) {
+		if (StringUtils.isBlank(path)) {
 
 			throw new NoResultsException();
 		}
