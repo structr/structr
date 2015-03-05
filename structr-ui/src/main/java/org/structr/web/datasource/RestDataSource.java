@@ -158,7 +158,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
 			resource = ResourceHelper.applyViewTransformation(wrappedRequest, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, wrappedRequest, resourceMap, propertyView)), propertyView);
 
-		} catch (IllegalPathException ipe) {
+		} catch (IllegalPathException | NotFoundException e) {
 
 			logger.log(Level.WARNING, "Illegal path for REST query: {0}", restQuery);
 
