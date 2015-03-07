@@ -350,23 +350,4 @@ public class StaticRelationshipResource extends SortableResource {
 	public String getResourceSignature() {
 		return typedIdResource.getResourceSignature().concat("/").concat(typeResource.getResourceSignature());
 	}
-
-	// ----- private methods -----
-	private <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
-
-		try {
-
-			return type.newInstance();
-
-		} catch (Throwable t) {
-
-			// TODO: throw meaningful exception here,
-			// should be a RuntimeException that indicates
-			// wrong use of Relationships etc.
-			t.printStackTrace();
-		}
-
-		return null;
-	}
-
 }
