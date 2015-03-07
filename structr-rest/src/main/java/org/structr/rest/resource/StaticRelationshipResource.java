@@ -152,6 +152,15 @@ public class StaticRelationshipResource extends SortableResource {
 
 						// return result
 						return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+
+					} else if (value instanceof GraphObject) {
+
+						return new Result((GraphObject)value, isPrimitiveArray());
+
+					} else {
+
+						logger.log(Level.INFO, "Found object {0}, but will not return as it is no graph object or iterable", value);
+
 					}
 				}
 
