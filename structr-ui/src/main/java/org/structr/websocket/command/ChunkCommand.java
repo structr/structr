@@ -84,7 +84,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			final File file = (File) getNode(uuid);
 
-			if (!securityContext.isAllowed(file, Permission.write)) {
+			if (!file.isGranted(Permission.write, securityContext)) {
 
 				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);

@@ -21,9 +21,8 @@ package org.structr.core.entity;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.neo4j.graphdb.Relationship;
@@ -133,7 +132,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	}
 
-	public void setAllowed(final List<String> allowed) {
+	public void setAllowed(final Set<String> allowed) {
 
 		String[] allowedActions = (String[]) allowed.toArray(new String[allowed.size()]);
 
@@ -143,7 +142,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	public void setAllowed(final Permission[] allowed) {
 
-		List<String> allowedActions = new ArrayList<>();
+		Set<String> allowedActions = new HashSet<>();
 
 		for (Permission permission : allowed) {
 

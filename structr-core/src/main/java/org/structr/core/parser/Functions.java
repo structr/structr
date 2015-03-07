@@ -76,6 +76,7 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.MailHelper;
 import org.structr.common.Permission;
+import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -96,7 +97,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -3539,12 +3539,12 @@ public class Functions {
 									final String trimmedPart = part.trim();
 									if (trimmedPart.length() > 0) {
 
-										try {
+										final Permission permission = Permissions.valueOf(trimmedPart);
+										if (permission != null) {
 
-											final Permission permission = Permission.valueOf(trimmedPart);
-											principal.grant(permission, node);
+											node.grant(permission, principal);
 
-										} catch (IllegalArgumentException iex) {
+										} else {
 
 											return "Error: unknown permission " + trimmedPart;
 										}
@@ -3602,12 +3602,12 @@ public class Functions {
 									final String trimmedPart = part.trim();
 									if (trimmedPart.length() > 0) {
 
-										try {
+										final Permission permission = Permissions.valueOf(trimmedPart);
+										if (permission != null) {
 
-											final Permission permission = Permission.valueOf(trimmedPart);
-											principal.revoke(permission, node);
+											node.revoke(permission, principal);
 
-										} catch (IllegalArgumentException iex) {
+										} else {
 
 											return "Error: unknown permission " + trimmedPart;
 										}

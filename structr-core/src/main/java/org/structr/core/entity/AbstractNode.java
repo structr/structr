@@ -210,6 +210,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void removeProperty(final PropertyKey key) throws FrameworkException {
 
+		if (!isGranted(Permission.write, securityContext)) {
+			throw new FrameworkException(403, "Modification not permitted.");
+		}
+
 		if (this.dbNode != null) {
 
 			if (key == null) {
@@ -743,46 +747,66 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	// ----- interface AccessControllable -----
 	@Override
-	public boolean isGranted(final Permission permission, final Principal principal) {
+	public boolean isGranted(final Permission permission, final SecurityContext context) {
 
-		if (principal == null) {
+		Principal accessingUser = null;
+		if (context != null) {
 
-			return false;
+			accessingUser = context.getUser(false);
+		}
+
+		return isGranted(permission, accessingUser);
+	}
+
+	private boolean isGranted(final Permission permission, final Principal accessingUser) {
+
+		// check superuser first
+		if (accessingUser != null && accessingUser instanceof SuperUser) {
+			return true;
 		}
 
 		// just in case ...
 		if (permission == null) {
-
 			return false;
 		}
 
-		// superuser
-		if (principal instanceof SuperUser) {
+		// obtain owner
+		final Principal owner  = getOwnerNode();
+		final boolean hasOwner = (owner != null);
 
+		if (hasOwner && accessingUser == null) {
+			return false;
+		}
+
+		// no owner, unauthenticated request => public node
+		if (!hasOwner && accessingUser == null) {
+
+			// 
 			return true;
 		}
 
-		// user has full control over his/her own user node
-		if (this.equals(principal)) {
+		if (accessingUser != null) {
 
-			return true;
-		}
+			// owner is always allowed to do anything with its nodes
+			if (hasOwner && accessingUser.equals(owner)) {
+				return true;
+			}
 
-		Security r = getSecurityRelationship(principal);
-
-		if ((r != null) && r.isAllowed(permission)) {
-
-			return true;
-		}
-
-		// Now check possible parent principals
-		for (Principal parent : principal.getParents()) {
-
-			if (isGranted(permission, parent)) {
+			Security r = getSecurityRelationship(accessingUser);
+			if ((r != null) && r.isAllowed(permission)) {
 
 				return true;
 			}
 
+			// Now check possible parent principals
+			for (Principal parent : accessingUser.getParents()) {
+
+				if (isGranted(permission, parent)) {
+
+					return true;
+				}
+
+			}
 		}
 
 		return false;
@@ -934,6 +958,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
+
+		if (!isGranted(Permission.write, securityContext)) {
+			throw new FrameworkException(403, "Modification not permitted.");
+		}
+
 
 		T oldValue = getProperty(key);
 
@@ -1227,6 +1256,51 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return convertedObject;
 	}
+
+	@Override
+	public void grant(Permission permission, Principal principal) throws FrameworkException {
+
+		if (!isGranted(Permission.accessControl, securityContext)) {
+			throw new FrameworkException(403, "Access control not permitted");
+		}
+
+		Security secRel = getSecurityRelationship(principal);
+		if (secRel == null) {
+
+			try {
+
+				secRel = StructrApp.getInstance().create(principal, (NodeInterface)this, Security.class);
+
+			} catch (FrameworkException ex) {
+
+				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
+
+			}
+
+		}
+
+		secRel.addPermission(permission);
+
+	}
+
+	@Override
+	public void revoke(Permission permission, Principal principal) throws FrameworkException {
+
+		if (!isGranted(Permission.accessControl, securityContext)) {
+			throw new FrameworkException(403, "Access control not permitted");
+		}
+
+		Security secRel = getSecurityRelationship(principal);
+		if (secRel == null) {
+
+			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
+
+		} else {
+
+			secRel.removePermission(permission);
+		}
+	}
+
 
 	// ----- Cloud synchronization and replication -----
 	@Override

@@ -333,7 +333,7 @@ public class Content extends DOMNode implements Text {
 
 		}
 
-		if (EditMode.CONTENT.equals(edit) && inBody && securityContext.isAllowed(this, Permission.write)) {
+		if (EditMode.CONTENT.equals(edit) && inBody && this.isGranted(Permission.write, securityContext)) {
 
 			if ("text/javascript".equals(_contentType)) {
 

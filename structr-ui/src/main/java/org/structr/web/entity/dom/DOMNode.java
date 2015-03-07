@@ -42,7 +42,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -100,7 +99,6 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
-import org.structr.websocket.command.AbstractCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -1211,7 +1209,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected void checkWriteAccess() throws DOMException {
 
-		if (!securityContext.isAllowed(this, Permission.write)) {
+
+		if (!isGranted(Permission.write, securityContext)) {
 
 			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
 		}
@@ -1219,7 +1218,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected void checkReadAccess() throws DOMException {
 
-		if (securityContext.isVisible(this) || securityContext.isAllowed(this, Permission.read)) {
+		if (securityContext.isVisible(this) || isGranted(Permission.read, securityContext)) {
 			return;
 		}
 

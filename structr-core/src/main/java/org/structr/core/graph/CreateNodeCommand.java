@@ -99,6 +99,24 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				TransactionCommand.nodeCreated(node);
 
+				// first: create security relationship
+				if ((user != null) && user instanceof AbstractNode) {
+
+					// Create new relationship to user and grant permissions to user or group
+					Principal owner = (Principal)user;
+
+					App app = StructrApp.getInstance(securityContext);
+
+					app.create(owner, (NodeInterface)node, PrincipalOwnsNode.class);
+
+					Security securityRel = app.create(owner, (NodeInterface)node, Security.class);
+					securityRel.setAllowed(Permission.allPermissions);
+
+					node.unlockReadOnlyPropertiesOnce();
+					node.setProperty(AbstractNode.createdBy, user.getProperty(GraphObject.id));
+				}
+
+
 				// set type
 				if (nodeType != null) {
 
@@ -117,24 +135,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				// set last modified date
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.lastModifiedDate, now);
-
-				// properties.remove(AbstractNode.type);
-
-				if ((user != null) && user instanceof AbstractNode) {
-
-					// Create new relationship to user and grant permissions to user or group
-					Principal owner = (Principal)user;
-
-					App app = StructrApp.getInstance(securityContext);
-
-					app.create(owner, (NodeInterface)node, PrincipalOwnsNode.class);
-
-					Security securityRel = app.create(owner, (NodeInterface)node, Security.class);
-					securityRel.setAllowed(Permission.values());
-
-					node.unlockReadOnlyPropertiesOnce();
-					node.setProperty(AbstractNode.createdBy, user.getProperty(GraphObject.id));
-				}
 
 				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
 

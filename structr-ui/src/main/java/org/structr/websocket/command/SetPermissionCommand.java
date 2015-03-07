@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
+import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -86,7 +87,7 @@ public class SetPermissionCommand extends AbstractCommand {
 			final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
 			try (final Tx tx = app.tx()) {
 
-				if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.accessControl)) {
+				if (!((AbstractNode)obj).isGranted(Permission.accessControl, getWebSocket().getSecurityContext())) {
 
 					logger.log(Level.WARNING, "No access control permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
 					getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
@@ -104,7 +105,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			try {
 
-				setPermission(app, obj, principal, action, Permission.valueOf(permission), rec);
+				setPermission(app, obj, principal, action, Permissions.valueOf(permission), rec);
 
 				// commit and close transaction
 				tx.success();
@@ -154,11 +155,11 @@ public class SetPermissionCommand extends AbstractCommand {
 		switch (action) {
 
 			case "grant":
-				principal.grant(permission, obj);
+				obj.grant(permission, principal);
 				break;
 
 			case "revoke":
-				principal.revoke(permission, obj);
+				obj.revoke(permission, principal);
 				break;
 		}
 

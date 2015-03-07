@@ -187,7 +187,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						if (params.containsKey(NodeInterface.type.jsonName())) {
 							type = (String) params.get(NodeInterface.type.jsonName());
 						}
-						
+
 						final Class cls = type != null
 							? SchemaHelper.getEntityClassForRawType(type)
 							: (isImage
@@ -202,13 +202,13 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
 						newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
 						newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-						
+
 						PropertyMap additionalProperties = PropertyMap.inputTypeToJavaType(securityContext, cls, params);
-						
+
 						for (PropertyKey key : additionalProperties.keySet()) {
-							
+
 							newFile.setProperty(key, additionalProperties.get(key));
-							
+
 						}
 
 						// Just write out the uuids of the new files
@@ -293,8 +293,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 					if (node instanceof org.structr.web.entity.AbstractFile) {
 
 						final org.structr.dynamic.File file = (org.structr.dynamic.File) node;
-
-						if (securityContext.isAllowed(file, Permission.write)) {
+						if (file.isGranted(Permission.write, securityContext)) {
 
 							FileHelper.writeToFile(file, fileItem.getInputStream());
 							file.increaseVersion();

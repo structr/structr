@@ -121,15 +121,16 @@ public abstract class Resource {
 
 				} else if (obj instanceof AbstractNode) {
 
-					if (!securityContext.isAllowed((AbstractNode)obj, Permission.delete)) {
+					final AbstractNode node = (AbstractNode)obj;
+
+					if (!node.isGranted(Permission.delete, securityContext)) {
 
 						logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
 						throw new NotAllowedException();
-
 					}
 
 					// delete cascading
-					app.delete((AbstractNode)obj);
+					app.delete(node);
 				}
 
 			}

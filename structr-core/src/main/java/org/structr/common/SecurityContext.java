@@ -218,7 +218,7 @@ public class SecurityContext {
 
 				AbstractNode n = (AbstractNode) obj;
 
-				readableByUser = isAllowed(n, Permission.read);
+				readableByUser = n.isGranted(Permission.read, this);
 
 				if (!(readableByUser && (includeDeletedAndHidden || !n.isDeleted()) && (n.isVisibleToPublicUsers() || !publicOnly))) {
 
@@ -370,37 +370,6 @@ public class SecurityContext {
 
 	}
 
-	public boolean isAllowed(AccessControllable node, Permission permission) {
-
-		if (node == null) {
-
-			return false;
-		}
-
-		if (isSuperUser()) {
-
-			return true;
-		}
-
-		Principal user = getUser(false);
-
-		if (user == null) {
-
-			return false;
-		}
-
-		Principal owner = node.getOwnerNode();
-
-		// owner is always allowed to do anything with its nodes
-		if (user.equals(node) || user.equals(owner) || user.getParents().contains(owner)) {
-
-			return true;
-		}
-
-		return node.isGranted(permission, user);
-
-	}
-
 	public boolean isVisible(AccessControllable node) {
 
 		switch (accessMode) {
@@ -451,7 +420,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		return isAllowed(node, Permission.read);
+		return node.isGranted(Permission.read, this);
 	}
 
 	// ----- private methods -----
@@ -484,7 +453,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		return isAllowed(node, Permission.read);
+		return node.isGranted(Permission.read, this);
 	}
 
 	/**
@@ -545,7 +514,7 @@ public class SecurityContext {
 			}
 		}
 
-		return isAllowed(node, Permission.read);
+		return node.isGranted(Permission.read, this);
 
 	}
 
@@ -657,13 +626,6 @@ public class SecurityContext {
 		public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
 
 			return true;
-		}
-
-		@Override
-		public boolean isAllowed(AccessControllable node, Permission permission) {
-
-			return true;
-
 		}
 
 		@Override
