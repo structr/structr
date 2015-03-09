@@ -324,7 +324,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// resource access explicetly set to FORBIDDEN => forbidden
+			// resource access explicitly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
