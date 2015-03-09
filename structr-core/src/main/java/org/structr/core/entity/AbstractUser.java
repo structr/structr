@@ -39,6 +39,7 @@ import org.structr.core.property.PropertyKey;
 public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	private static final Logger logger = Logger.getLogger(AbstractUser.class.getName());
+	private Boolean cachedIsAdminFlag  = null;
 
 	@Override
 	public void addSessionId(final String sessionId) {
@@ -93,7 +94,20 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
+	@Override
+	public boolean isAdmin() {
+
+		if (cachedIsAdminFlag == null) {
+
+			cachedIsAdminFlag = getProperty(Principal.isAdmin);
+			if (cachedIsAdminFlag == null) {
+				
+				cachedIsAdminFlag = false;
+			}
+		}
+
+		return cachedIsAdminFlag;
+	}
 
 	@Override
 	public List<Principal> getParents() {

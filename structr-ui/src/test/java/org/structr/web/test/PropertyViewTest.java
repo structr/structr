@@ -321,6 +321,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.header("X-User", username)
 				.header("X-Password", password)
 				.header("Accept", "application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))

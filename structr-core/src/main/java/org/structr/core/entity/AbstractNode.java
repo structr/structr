@@ -25,7 +25,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,19 +86,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	);
 
 	private boolean readOnlyPropertiesUnlocked = false;
+	private boolean isCreation                 = false;
 
-	protected Class entityType = null;
-	protected Principal cachedOwnerNode = null;
 	protected SecurityContext securityContext = null;
-	protected String cachedUuid = null;
-	protected Node dbNode = null;
+	protected Principal cachedOwnerNode       = null;
+	protected String cachedUuid               = null;
+	protected Class entityType                = null;
+	protected Node dbNode                     = null;
 
 	//~--- constructors ---------------------------------------------------
 	public AbstractNode() {
 	}
 
 	public AbstractNode(SecurityContext securityContext, final Node dbNode, final Class entityType) {
-		init(securityContext, dbNode, entityType);
+		init(securityContext, dbNode, entityType, false);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -116,10 +116,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType) {
+	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType, final boolean isCreation) {
 
-		this.dbNode = dbNode;
-		this.entityType = entityType;
+		this.isCreation      = isCreation;
+		this.dbNode          = dbNode;
+		this.entityType      = entityType;
 		this.securityContext = securityContext;
 	}
 
@@ -662,11 +663,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (cachedOwnerNode == null) {
 
-			final Ownership ownership = getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
-			if (ownership != null) {
+			if (this instanceof Principal) {
 
-				Principal principal = ownership.getSourceNode();
-				cachedOwnerNode = (Principal) principal;
+				// a user is its own owner
+				cachedOwnerNode = (Principal)this;
+
+			} else {
+
+				final Ownership ownership = getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
+				if (ownership != null) {
+
+					Principal principal = ownership.getSourceNode();
+					cachedOwnerNode = (Principal) principal;
+				}
 			}
 		}
 
@@ -684,36 +693,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	}
 
-	/**
-	 * Return a list with the connected principals (user, group, role)
-	 *
-	 * @return list with principals
-	 */
-	public List<Principal> getSecurityPrincipals() {
-
-		List<Principal> principalList = new LinkedList<>();
-
-		// check any security relationships
-		for (Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
-
-			if (r != null) {
-
-				// check security properties
-				Principal principalNode = r.getSourceNode();
-
-				principalList.add(principalNode);
-			}
-		}
-
-		return principalList;
-
-	}
-
 	private <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-		final R template = getRelationshipForType(type);
-		final Relationship relationship = template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -760,29 +744,45 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	private boolean isGranted(final Permission permission, final Principal accessingUser) {
 
-		// check superuser first
-		if (accessingUser != null && accessingUser instanceof SuperUser) {
+		// use quick checks for maximum performance
+		if (isCreation) {
+			
 			return true;
 		}
 
-		// just in case ...
-		if (permission == null) {
-			return false;
+		// this includes SuperUser
+		if (accessingUser != null && accessingUser.isAdmin()) {
+			return true;
 		}
 
-		// obtain owner
+		// allow accessingUser to access itself
+		if (this.equals(accessingUser)) {
+			return true;
+		}
+
+		// check owner
 		final Principal owner  = getOwnerNode();
 		final boolean hasOwner = (owner != null);
 
-		if (hasOwner && accessingUser == null) {
-			return false;
+		// allow full access for nodes without owner
+		// (covered by ResourceAccess objects)
+		if (!hasOwner) {
+
+			if (Permission.read.equals(permission)) {
+
+				if (accessingUser != null && isVisibleToAuthenticatedUsers()) {
+					return true;
+				}
+
+				if (accessingUser == null && isVisibleToPublicUsers()) {
+					return true;
+				}
+			}
 		}
 
-		// no owner, unauthenticated request => public node
-		if (!hasOwner && accessingUser == null) {
-
-			// 
-			return true;
+		// node has an owner, deny anonymous access
+		if (hasOwner && accessingUser == null) {
+			return false;
 		}
 
 		if (accessingUser != null) {
@@ -792,8 +792,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return true;
 			}
 
-			Security r = getSecurityRelationship(accessingUser);
-			if ((r != null) && r.isAllowed(permission)) {
+			final Security security = getSecurityRelationship(accessingUser);
+			if (security != null && security.isAllowed(permission)) {
 
 				return true;
 			}
@@ -805,12 +805,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					return true;
 				}
-
 			}
 		}
 
 		return false;
-
 	}
 
 	@Override

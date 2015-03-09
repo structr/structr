@@ -53,4 +53,6 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public void removeSessionId(final String sessionId);
 
+	public boolean isAdmin();
+
 }

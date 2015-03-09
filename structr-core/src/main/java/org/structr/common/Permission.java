@@ -29,6 +29,7 @@ public interface Permission {
 	public static final Permission write            = new PermissionImpl("write");
 	public static final Permission delete           = new PermissionImpl("delete");
 	public static final Permission accessControl    = new PermissionImpl("accessControl");
+
 	public static final Permission[] allPermissions = { read, write, delete, accessControl };
 
 	public String name();
@@ -38,8 +39,9 @@ public interface Permission {
 		private String name = null;
 
 		private PermissionImpl(final String name) {
+
 			this.name = name;
-		}
+                }
 
 		@Override
 		public String name() {

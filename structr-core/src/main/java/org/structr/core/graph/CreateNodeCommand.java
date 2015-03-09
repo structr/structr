@@ -37,6 +37,7 @@ import org.structr.common.Permission;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Security;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -78,20 +79,18 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 	public T execute(PropertyMap attributes) throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Principal user               = securityContext.getUser(false);
-		T node	                     = null;
+		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		final Principal user               = securityContext.getUser(false);
+		T node	                           = null;
 
 		if (graphDb != null) {
 
-			Date now                            = new Date();
-
-			// Determine node type
-			PropertyMap properties     = new PropertyMap(attributes);
-			Object typeObject          = properties.get(AbstractNode.type);
-			Class nodeType             = typeObject != null ? SchemaHelper.getEntityClassForRawType(typeObject.toString()) : StructrApp.getConfiguration().getFactoryDefinition().getGenericNodeType();
-			NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
-			boolean isCreation         = true;
+			final PropertyMap properties     = new PropertyMap(attributes);
+			final Object typeObject          = properties.get(AbstractNode.type);
+			final Class nodeType             = typeObject != null ? SchemaHelper.getEntityClassForRawType(typeObject.toString()) : StructrApp.getConfiguration().getFactoryDefinition().getGenericNodeType();
+			final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
+			final Date now                   = new Date();
+			final boolean isCreation         = true;
 
 			// Create node with type
 			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
@@ -99,23 +98,19 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				TransactionCommand.nodeCreated(node);
 
-				// first: create security relationship
-				if ((user != null) && user instanceof AbstractNode) {
+				// first: create security relationship, but only for non-Principal node types
+				if (user != null && !(user instanceof SuperUser) && !Principal.class.isAssignableFrom(nodeType)) {
 
-					// Create new relationship to user and grant permissions to user or group
-					Principal owner = (Principal)user;
+					final App app = StructrApp.getInstance(securityContext);
 
-					App app = StructrApp.getInstance(securityContext);
+					app.create(user, (NodeInterface)node, PrincipalOwnsNode.class);
 
-					app.create(owner, (NodeInterface)node, PrincipalOwnsNode.class);
-
-					Security securityRel = app.create(owner, (NodeInterface)node, Security.class);
+					Security securityRel = app.create(user, (NodeInterface)node, Security.class);
 					securityRel.setAllowed(Permission.allPermissions);
 
 					node.unlockReadOnlyPropertiesOnce();
 					node.setProperty(AbstractNode.createdBy, user.getProperty(GraphObject.id));
 				}
-
 
 				// set type
 				if (nodeType != null) {

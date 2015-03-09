@@ -143,7 +143,6 @@ public abstract class Resource {
 
 		final Result<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null);
 		final List<GraphObject> results  = result.getResults();
-		final App app                    = StructrApp.getInstance(securityContext);
 
 		if (results != null && !results.isEmpty()) {
 
@@ -152,6 +151,10 @@ public abstract class Resource {
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
 			for (final GraphObject obj : results) {
+
+				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
+					throw new FrameworkException(403, "Modification not permitted.");
+				}
 
 				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
 

@@ -95,17 +95,18 @@ public class UpdateCommand extends AbstractCommand {
 		if (obj != null) {
 
 			final Set<GraphObject> entities = new LinkedHashSet<>();
+			PropertyMap properties          = null;
+
 			try (final Tx tx = app.tx()) {
 
 				collectEntities(entities, obj, null, rec);
 
-				// commit and close transaction
+				properties = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData());
+
 				tx.success();
 			}
 
-			final PropertyMap properties         = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData());
 			final Iterator<GraphObject> iterator = entities.iterator();
-
 			while (iterator.hasNext()) {
 
 				count = 0;
