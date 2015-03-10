@@ -26,6 +26,10 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
  		this.rawSource    = rawSource;
  		this.source       = rawSource;
 
+		if (this.propertyName.startsWith("_")) {
+			this.propertyName = this.propertyName.substring(1);
+		}
+
 		// detect and remove format: <type>(...)
 		if (StringUtils.isNotBlank(source)) {
 
@@ -65,6 +69,11 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 			defaultValue = source.substring(firstIndex + 1);
 			source       = source.substring(0, firstIndex);
 
+		}
+
+		if (source.endsWith("!")) {
+			unique = true;
+			source = source.substring(0, source.length() - 1);
 		}
 
 		propertyType = Type.valueOf(source);

@@ -6,6 +6,7 @@ import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.action.ActionEntry;
 
 /**
  *
@@ -23,4 +24,8 @@ public class SchemaMethod extends AbstractNode {
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
 		name, schemaNode
 	);
+
+	public ActionEntry getActionEntry() {
+		return new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source));
+	}
 }

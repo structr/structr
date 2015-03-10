@@ -75,7 +75,7 @@ public class DatePropertyParser extends PropertySourceGenerator {
 		if (expression != null) {
 
 			if (expression.isEmpty()) {
-				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_date_pattern", "Empty date pattern."));
+				reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_date_pattern", "Empty date pattern."));
 				return;
 			}
 
@@ -84,8 +84,8 @@ public class DatePropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getDefaultValueSource() {
-		return "DatePropertyParser.parse(\"" + defaultValue + "\", " + (pattern != null ? "\"" + pattern + "\"" : "null") + ")";
+	public String getDefaultValue() {
+		return "DatePropertyParser.parse(\"" + getSourceDefaultValue() + "\", " + (pattern != null ? "\"" + pattern + "\"" : "null") + ")";
 	}
 
 	/**

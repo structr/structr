@@ -63,14 +63,14 @@ public class DoublePropertyParser extends NumericalPropertyParser {
 
 		} catch (Throwable t) {
 
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
+			reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
 		}
 
 		return null;
 	}
 
 	@Override
-	public String getDefaultValueSource() {
-		return defaultValue.concat("d");
+	public String getDefaultValue() {
+		return getSourceDefaultValue().concat("d");
 	}
 }

@@ -70,7 +70,7 @@ public class LongPropertyParser extends NumericalPropertyParser {
 	}
 
 	@Override
-	public String getDefaultValueSource() {
-		return defaultValue.concat("L");
+	public String getDefaultValue() {
+		return getSourceDefaultValue().concat("L");
 	}
 }

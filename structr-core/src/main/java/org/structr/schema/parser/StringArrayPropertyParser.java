@@ -65,15 +65,15 @@ public class StringArrayPropertyParser extends PropertySourceGenerator {
 	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
 		if ("[]".equals(expression)) {
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_validation_expression", "Empty validation expression."));
+			reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_validation_expression", "Empty validation expression."));
 			return;
 		}
 
-		localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
+		setLocalValidator(", new SimpleRegexValidator(\""  + expression + "\")");
 	}
 
 	@Override
-	public String getDefaultValueSource() {
-		return "\"".concat(defaultValue).concat("\"");
+	public String getDefaultValue() {
+		return "\"".concat(getSourceDefaultValue()).concat("\"");
 	}
 }

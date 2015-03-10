@@ -57,8 +57,8 @@ public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 
 				if (parts.length == 2) {
 
-					Number lowerBound = parseNumber(errorBuffer, parts[0].trim(), "lower");
-					Number upperBound = parseNumber(errorBuffer, parts[1].trim(), "upper");
+					Number lowerBound = parseNumber(getErrorBuffer(), parts[0].trim(), "lower");
+					Number upperBound = parseNumber(getErrorBuffer(), parts[1].trim(), "upper");
 
 					if (lowerBound == null || upperBound == null) {
 						error = true;
@@ -69,7 +69,8 @@ public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 				}
 
 				if (!error) {
-					globalValidators.add(new Validator("check" + getUnqualifiedValueType() + "InRangeError", className, propertyName, expression));
+
+					addGlobalValidator(new Validator("check" + getUnqualifiedValueType() + "InRangeError", getClassName(), getSourcePropertyName(), expression));
 				}
 
 			} else {
@@ -79,7 +80,7 @@ public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 		}
 
 		if (error) {
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", rangeFormatErrorMessage));
+			reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", rangeFormatErrorMessage));
 		}
 	}
 }

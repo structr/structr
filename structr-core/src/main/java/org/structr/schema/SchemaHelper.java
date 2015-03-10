@@ -42,6 +42,7 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
@@ -51,6 +52,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.parser.BooleanPropertyParser;
@@ -346,8 +348,9 @@ public class SchemaHelper {
 
 	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 
+		final boolean migrate                     = "true".equals(StructrApp.getConfigurationValue("SchemaService.migrate", "false"));
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
-		final StringBuilder src = new StringBuilder();
+		final StringBuilder src                   = new StringBuilder();
 
 		// output property source code and collect views
 		for (String propertyName : SchemaHelper.getProperties(propertyContainer)) {
@@ -359,19 +362,27 @@ public class SchemaHelper {
 				PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), new StringBasedPropertyDefinition(propertyName, rawType));
 				if (parser != null) {
 
-					// add property name to set for later use
-					propertyNames.add(parser.getPropertyName());
+					// migrate properties
+					if (migrate && entity instanceof SchemaNode) {
 
-					// append created source from parser
-					src.append(parser.getPropertySource(entity));
+						parser.createSchemaPropertyNode((SchemaNode)entity, propertyName);
 
-					// register global elements created by parser
-					validators.addAll(parser.getGlobalValidators());
-					enums.addAll(parser.getEnumDefinitions());
+					} else {
 
-					// register property in default view
-					//addPropertyToView(PropertyView.Public, propertyName.substring(1), views);
-					addPropertyToView(PropertyView.Ui, propertyName.substring(1), views);
+						// add property name to set for later use
+						propertyNames.add(parser.getPropertyName());
+
+						// append created source from parser
+						parser.getPropertySource(src, entity);
+
+						// register global elements created by parser
+						validators.addAll(parser.getGlobalValidators());
+						enums.addAll(parser.getEnumDefinitions());
+
+						// register property in default view
+						//addPropertyToView(PropertyView.Public, propertyName.substring(1), views);
+						addPropertyToView(PropertyView.Ui, propertyName.substring(1), views);
+					}
 				}
 			}
 		}
@@ -390,7 +401,7 @@ public class SchemaHelper {
 					propertyNames.add(propertyName);
 
 					// append created source from parser
-					src.append(parser.getPropertySource(entity));
+					parser.getPropertySource(src, entity);
 
 					// register global elements created by parser
 					validators.addAll(parser.getGlobalValidators());
@@ -407,8 +418,9 @@ public class SchemaHelper {
 
 	public static String extractViews(final Schema entity, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 
+		final boolean migrate                     = "true".equals(StructrApp.getConfigurationValue("SchemaService.migrate", "false"));
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
-		final StringBuilder src = new StringBuilder();
+		final StringBuilder src                   = new StringBuilder();
 
 		for (final String rawViewName : getViews(propertyContainer)) {
 
@@ -430,9 +442,41 @@ public class SchemaHelper {
 					view.clear();
 				}
 
-				// add parts to view, overrides defaults (because of clear() above)
-				for (int i = 0; i < parts.length; i++) {
-					view.add(parts[i].trim());
+				if (migrate && entity instanceof SchemaNode) {
+
+					final List<SchemaProperty> properties = new LinkedList<>();
+					final SchemaNode schemaNode           = (SchemaNode)entity;
+					final App app                         = StructrApp.getInstance();
+
+					if (app.nodeQuery(SchemaView.class).and(SchemaView.schemaNode, schemaNode).and(AbstractNode.name, viewName).getFirst() == null) {
+
+						// add parts to view, overrides defaults (because of clear() above)
+						for (int i = 0; i < parts.length; i++) {
+
+							final String propertyName         = parts[i].trim();
+							final SchemaProperty propertyNode = app.nodeQuery(SchemaProperty.class).andName(propertyName).getFirst();
+
+							if (propertyNode != null) {
+								properties.add(propertyNode);
+							}
+						}
+
+						app.create(SchemaView.class,
+							new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
+							new NodeAttribute<>(SchemaView.schemaProperties, properties),
+							new NodeAttribute<>(SchemaView.name, viewName)
+						);
+
+						schemaNode.removeProperty(new StringProperty(rawViewName));
+					}
+
+
+				} else {
+
+					// add parts to view, overrides defaults (because of clear() above)
+					for (int i = 0; i < parts.length; i++) {
+						view.add(parts[i].trim());
+					}
 				}
 			}
 		}
@@ -442,7 +486,23 @@ public class SchemaHelper {
 
 			for (final SchemaView schemaView : schemaViews) {
 
+				final String viewName = schemaView.getName();
 
+				// clear view before filling it again
+				Set<String> view = views.get(viewName);
+				if (view == null) {
+
+					view = new LinkedHashSet<>();
+					views.put(viewName, view);
+
+				} else {
+
+					view.clear();
+				}
+
+				for (final SchemaProperty property : schemaView.getProperty(SchemaView.schemaProperties)) {
+					view.add(property.getPropertyName() + "Property");
+				}
 			}
 		}
 
@@ -451,15 +511,58 @@ public class SchemaHelper {
 
 	public static String extractMethods(final Schema entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
 
+		final boolean migrate                     = "true".equals(StructrApp.getConfigurationValue("SchemaService.migrate", "false"));
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
-		final StringBuilder src = new StringBuilder();
+		final StringBuilder src                   = new StringBuilder();
 
 		for (final String rawActionName : getActions(propertyContainer)) {
 
 			if (propertyContainer.hasProperty(rawActionName)) {
 
-				final String value           = propertyContainer.getProperty(rawActionName).toString();
-				final ActionEntry entry      = new ActionEntry(rawActionName, value);
+				final String value = propertyContainer.getProperty(rawActionName).toString();
+
+				if (migrate && entity instanceof SchemaNode) {
+
+					final SchemaNode schemaNode = (SchemaNode)entity;
+					final App app               = StructrApp.getInstance();
+					final String methodName     = rawActionName.substring(3);
+
+					if (app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, schemaNode).and(AbstractNode.name, methodName).getFirst() == null) {
+
+						app.create(SchemaMethod.class,
+							new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
+							new NodeAttribute<>(SchemaMethod.name, methodName),
+							new NodeAttribute<>(SchemaMethod.source, value)
+						);
+
+						schemaNode.removeProperty(new StringProperty(rawActionName));
+					}
+
+				} else {
+
+
+					final ActionEntry entry      = new ActionEntry(rawActionName, value);
+					List<ActionEntry> actionList = actions.get(entry.getType());
+
+					if (actionList == null) {
+
+						actionList = new LinkedList<>();
+						actions.put(entry.getType(), actionList);
+					}
+
+					actionList.add(entry);
+
+					Collections.sort(actionList);
+				}
+			}
+		}
+
+		final List<SchemaMethod> schemaMethods = entity.getSchemaMethods();
+		if (schemaMethods != null) {
+
+			for (final SchemaMethod schemaMethod : schemaMethods) {
+
+				final ActionEntry entry      = schemaMethod.getActionEntry();
 				List<ActionEntry> actionList = actions.get(entry.getType());
 
 				if (actionList == null) {
@@ -471,14 +574,6 @@ public class SchemaHelper {
 				actionList.add(entry);
 
 				Collections.sort(actionList);
-			}
-		}
-
-		final List<SchemaMethod> schemaMethods = entity.getSchemaMethods();
-		if (schemaMethods != null) {
-
-			for (final SchemaMethod schemaMethod : schemaMethods) {
-
 
 			}
 		}

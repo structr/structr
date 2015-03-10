@@ -23,8 +23,15 @@ import java.util.LinkedHashSet;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
@@ -35,21 +42,13 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public abstract class PropertySourceGenerator {
 
-	protected Set<Validator> globalValidators = new LinkedHashSet<>();
-	protected Set<String> enumDefinitions     = new LinkedHashSet<>();
-	protected PropertyKey realInstance        = null;
-	protected ErrorBuffer errorBuffer         = null;
-	protected String propertyName             = "";
-	protected String dbName                   = "";
-	protected String localValidator           = "";
-	protected String className                = "";
-	protected String rawSource                = "";
-	protected String source                   = "";
-	protected String format                   = "";
-	protected String defaultValue             = "";
-	protected String contentType              = "";
-	protected boolean notNull                 = false;
-	protected boolean unique                  = false;
+	private final Set<Validator> globalValidators = new LinkedHashSet<>();
+	private final Set<String> enumDefinitions     = new LinkedHashSet<>();
+	private ErrorBuffer errorBuffer               = null;
+	private PropertyDefinition source             = null;
+	private String localValidator                 = "";
+	private String className                      = "";
+
 
 	public abstract Type getKey();
 	public abstract String getPropertyType();
@@ -58,75 +57,108 @@ public abstract class PropertySourceGenerator {
 	public abstract String getPropertyParameters();
 	public abstract void parseFormatString(final Schema entity, final String expression) throws FrameworkException;
 
-	public PropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
-
+	public PropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) {
 		this.errorBuffer  = errorBuffer;
 		this.className    = className;
-		this.rawSource    = params.getRawSource();
-		this.source       = params.getSource();
-		this.format       = params.getFormat();
-		this.notNull      = params.isNotNull();
-		this.dbName       = params.getDbName();
-		this.defaultValue = params.getDefaultValue();
-		this.contentType  = params.getContentType();
-
-		if (this.propertyName.startsWith("_")) {
-			this.propertyName = this.propertyName.substring(1);
-		}
+		this.source       = propertyDefinition;
 	}
 
-	public String getPropertySource(final Schema entity) throws FrameworkException {
+	public void getPropertySource(final StringBuilder buf, final Schema entity) throws FrameworkException {
 
-		final String keyName = getKey().name();
-		source               = source.substring(keyName.length());
+		if (source.isNotNull()) {
 
-		if (notNull) {
-
-			globalValidators.add(new Validator("checkPropertyNotNull", className, propertyName));
+			globalValidators.add(new Validator("checkPropertyNotNull", className, source.getPropertyName()));
 		}
 
+		if (source.isUnique()) {
 
-		if (source.startsWith("!")) {
-
-			globalValidators.add(new Validator("checkPropertyUniquenessError", className, propertyName));
-
-			source = source.substring(1);
-			unique = true;
+			globalValidators.add(new Validator("checkPropertyUniquenessError", className, source.getPropertyName()));
 		}
 
-		parseFormatString(entity, format);
+		parseFormatString(entity, source.getFormat());
 
-		return getPropertySource();
+		getPropertySource(buf);
+	}
+
+	public String getClassName() {
+		return className;
 	}
 
 	public Set<Validator> getGlobalValidators() {
 		return globalValidators;
 	}
 
+	public void addGlobalValidator(final Validator validator) {
+		globalValidators.add(validator);
+	}
+
 	public Set<String> getEnumDefinitions() {
 		return enumDefinitions;
 	}
 
-	public PropertyKey getRealInstance() {
-		return realInstance;
+	public String getPropertyName() {
+		return SchemaHelper.cleanPropertyName(source.getPropertyName()) + "Property";
 	}
 
-	public String getPropertyName() {
-		return SchemaHelper.cleanPropertyName(propertyName) + "Property";
+	public String getSourcePropertyName() {
+		return source.getPropertyName();
+	}
+
+	public void reportError(final String type, final ErrorToken error) {
+		errorBuffer.add(type, error);
+	}
+
+	public ErrorBuffer getErrorBuffer() {
+		return errorBuffer;
+	}
+
+	public void setLocalValidator(final String localValidator) {
+		this.localValidator = localValidator;
+	}
+
+	public void addEnumDefinition(final String item) {
+		enumDefinitions.add(item);
+	}
+
+	public String getSourceDefaultValue() {
+		return source.getDefaultValue();
+	}
+
+	public String getDefaultValue() {
+		return getSourceDefaultValue();
+	}
+
+	public void createSchemaPropertyNode(final SchemaNode schemaNode, final String underscorePropertyName) throws FrameworkException {
+
+		final App app             = StructrApp.getInstance();
+		final String propertyName = getSourcePropertyName();
+
+		if (app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).and(AbstractNode.name, propertyName).getFirst() == null) {
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(AbstractNode.name, propertyName),
+				new NodeAttribute<>(SchemaProperty.schemaNode, schemaNode),
+				new NodeAttribute<>(SchemaProperty.propertyType, getKey().name()),
+				new NodeAttribute<>(SchemaProperty.contentType, source.getContentType()),
+				new NodeAttribute<>(SchemaProperty.dbName, source.getDbName()),
+				new NodeAttribute<>(SchemaProperty.defaultValue, source.getDefaultValue()),
+				new NodeAttribute<>(SchemaProperty.format, source.getFormat()),
+				new NodeAttribute<>(SchemaProperty.unique, source.isUnique()),
+				new NodeAttribute<>(SchemaProperty.notNull, source.isNotNull())
+			);
+
+			schemaNode.removeProperty(new StringProperty(underscorePropertyName));
+		}
 	}
 
 	// ----- protected methods -----
-	protected String getPropertySource() {
+	protected void getPropertySource(final StringBuilder buf) {
 
-		final StringBuilder buf = new StringBuilder();
+		buf.append("\tpublic static final Property<").append(getValueType()).append("> ").append(SchemaHelper.cleanPropertyName(source.getPropertyName())).append("Property");
+		buf.append(" = new ").append(getPropertyType()).append("(\"").append(source.getPropertyName()).append("\"");
 
-		final String valueType     = getValueType();
-
-		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
-
-		if (StringUtils.isNotBlank(dbName)) {
-			buf.append(", \"").append(dbName).append("\"");
+		if (StringUtils.isNotBlank(source.getDbName())) {
+			buf.append(", \"").append(source.getDbName()).append("\"");
 		}
 
 		buf.append(getPropertyParameters());
@@ -135,54 +167,32 @@ public abstract class PropertySourceGenerator {
 
 		buf.append(")");
 
-		if (StringUtils.isNotBlank(contentType)) {
-			buf.append(".contentType(\"").append(contentType).append("\")");
+		if (StringUtils.isNotBlank(source.getContentType())) {
+			buf.append(".contentType(\"").append(source.getContentType()).append("\")");
 		}
 
-		if (defaultValue != null) {
-			buf.append(".defaultValue(").append(getDefaultValueSource()).append(")");
+		if (source.getDefaultValue() != null) {
+			buf.append(".defaultValue(").append(getDefaultValue()).append(")");
 		}
 
-		if (StringUtils.isNotBlank(format)) {
-			buf.append(".format(\"").append(StringEscapeUtils.escapeJava(format)).append("\")");
+		if (StringUtils.isNotBlank(source.getFormat())) {
+			buf.append(".format(\"").append(StringEscapeUtils.escapeJava(source.getFormat())).append("\")");
 		}
 
-		if (unique) {
+		if (source.isUnique()) {
 			buf.append(".unique()");
 		}
 
-		if (notNull) {
+		if (source.isNotNull()) {
 			buf.append(".notNull()");
 		}
 
-		if (defaultValue != null) {
+		if (StringUtils.isNotBlank(source.getDefaultValue())) {
 			buf.append(".indexedWhenEmpty()");
 		} else {
 			buf.append(".indexed()");
 		}
 
 		buf.append(";\n");
-
-
-		System.out.println("##############################################");
-		System.out.println("propertyName:      " + propertyName);
-		System.out.println("dbName:            " + dbName);
-		System.out.println("localValidator:    " + localValidator);
-		System.out.println("className:         " + className);
-		System.out.println("rawSource:         " + rawSource);
-		System.out.println("source:            " + source);
-		System.out.println("format:            " + format);
-		System.out.println("defaultValue:      " + defaultValue);
-		System.out.println("contentType:       " + contentType);
-		System.out.println("notNull:           " + notNull);
-		System.out.println("unique:            " + unique);
-
-
-		return buf.toString();
-	}
-
-
-	public String getDefaultValueSource() {
-		return defaultValue;
 	}
 }
