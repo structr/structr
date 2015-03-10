@@ -44,12 +44,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.SchemaMethod;
+import static org.structr.core.entity.SchemaMethod.source;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.parser.BooleanPropertyParser;
@@ -63,10 +64,11 @@ import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.JoinPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
-import org.structr.schema.parser.PropertyParameters;
-import org.structr.schema.parser.PropertyParser;
+import org.structr.schema.parser.PropertyDefinition;
+import org.structr.schema.parser.PropertySourceGenerator;
 import org.structr.schema.parser.StringArrayPropertyParser;
-import org.structr.schema.parser.StringPropertyParser;
+import org.structr.schema.parser.StringBasedPropertyDefinition;
+import org.structr.schema.parser.StringPropertySourceGenerator;
 import org.structr.schema.parser.Validator;
 
 /**
@@ -83,7 +85,7 @@ public class SchemaHelper {
 	}
 
 	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
-	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new LinkedHashMap<>();
+	private static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new LinkedHashMap<>();
 
 	static {
 
@@ -93,7 +95,7 @@ public class SchemaHelper {
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
 		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
 		parserMap.put(Type.Integer, IntPropertyParser.class);
-		parserMap.put(Type.String, StringPropertyParser.class);
+		parserMap.put(Type.String, StringPropertySourceGenerator.class);
 		parserMap.put(Type.Double, DoublePropertyParser.class);
 		parserMap.put(Type.Notion, NotionPropertyParser.class);
 		parserMap.put(Type.Cypher, CypherPropertyParser.class);
@@ -342,7 +344,7 @@ public class SchemaHelper {
 
 	}
 
-	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final StringBuilder src = new StringBuilder();
@@ -354,14 +356,14 @@ public class SchemaHelper {
 
 				String rawType = propertyContainer.getProperty(propertyName).toString();
 
-				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, rawType);
+				PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), new StringBasedPropertyDefinition(propertyName, rawType));
 				if (parser != null) {
 
 					// add property name to set for later use
 					propertyNames.add(parser.getPropertyName());
 
 					// append created source from parser
-					src.append(parser.getPropertySource(entity, errorBuffer));
+					src.append(parser.getPropertySource(entity));
 
 					// register global elements created by parser
 					validators.addAll(parser.getGlobalValidators());
@@ -373,6 +375,40 @@ public class SchemaHelper {
 				}
 			}
 		}
+
+		final List<SchemaProperty> schemaProperties = entity.getSchemaProperties();
+		if (schemaProperties != null) {
+
+			for (final SchemaProperty schemaProperty : schemaProperties) {
+
+				final PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), schemaProperty);
+				if (parser != null) {
+
+					final String propertyName = schemaProperty.getPropertyName();
+
+					// add property name to set for later use
+					propertyNames.add(propertyName);
+
+					// append created source from parser
+					src.append(parser.getPropertySource(entity));
+
+					// register global elements created by parser
+					validators.addAll(parser.getGlobalValidators());
+					enums.addAll(parser.getEnumDefinitions());
+
+					// register property in default view
+					addPropertyToView(PropertyView.Ui, propertyName, views);
+				}
+			}
+		}
+
+		return src.toString();
+	}
+
+	public static String extractViews(final Schema entity, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		final PropertyContainer propertyContainer = entity.getPropertyContainer();
+		final StringBuilder src = new StringBuilder();
 
 		for (final String rawViewName : getViews(propertyContainer)) {
 
@@ -401,6 +437,23 @@ public class SchemaHelper {
 			}
 		}
 
+		final List<SchemaView> schemaViews = entity.getSchemaViews();
+		if (schemaViews != null) {
+
+			for (final SchemaView schemaView : schemaViews) {
+
+
+			}
+		}
+
+		return src.toString();
+	}
+
+	public static String extractMethods(final Schema entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
+
+		final PropertyContainer propertyContainer = entity.getPropertyContainer();
+		final StringBuilder src = new StringBuilder();
+
 		for (final String rawActionName : getActions(propertyContainer)) {
 
 			if (propertyContainer.hasProperty(rawActionName)) {
@@ -418,6 +471,15 @@ public class SchemaHelper {
 				actionList.add(entry);
 
 				Collections.sort(actionList);
+			}
+		}
+
+		final List<SchemaMethod> schemaMethods = entity.getSchemaMethods();
+		if (schemaMethods != null) {
+
+			for (final SchemaMethod schemaMethod : schemaMethods) {
+
+
 			}
 		}
 
@@ -714,34 +776,22 @@ public class SchemaHelper {
 
 	}
 
-	public static String getPropertyWithVariableReplacement(ActionContext renderContext, final GraphObject entity, PropertyKey<String> key) throws FrameworkException {
-
-		return Scripting.replaceVariables(renderContext, entity, entity.getProperty(key));
-
-	}
-
 	// ----- private methods -----
-	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String source) throws FrameworkException {
+	private static PropertySourceGenerator getSourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) throws FrameworkException {
 
-		final PropertyParameters params = PropertyParser.detectDbNameNotNullAndDefaultValue(source);
+		final String propertyName                                  = propertyDefinition.getPropertyName();
+		final Type propertyType                                    = propertyDefinition.getPropertyType();
+		final Class<? extends PropertySourceGenerator> parserClass = parserMap.get(propertyType);
 
-		for (final Map.Entry<Type, Class<? extends PropertyParser>> entry : parserMap.entrySet()) {
+		try {
 
-			if (params.source.startsWith(entry.getKey().name())) {
+			return parserClass.getConstructor(ErrorBuffer.class, String.class, PropertyDefinition.class).newInstance(errorBuffer, className, propertyDefinition);
 
-				try {
-
-					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, PropertyParameters.class).newInstance(errorBuffer, className, propertyName, params);
-
-					return parser;
-
-				} catch (Throwable t) {
-					t.printStackTrace();
-				}
-			}
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 
-		errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
+		errorBuffer.add(SchemaProperty.class.getSimpleName(), new InvalidPropertySchemaToken(propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
 		throw new FrameworkException(422, errorBuffer);
 	}
 

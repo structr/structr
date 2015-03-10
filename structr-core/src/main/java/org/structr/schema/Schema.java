@@ -18,10 +18,14 @@
  */
 package org.structr.schema;
 
+import java.util.List;
 import java.util.Set;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
 
 /**
  *
@@ -37,4 +41,8 @@ public interface Schema {
 	public PropertyContainer getPropertyContainer();
 	public Set<String> getViews();
 	public String getClassName();
+
+	public List<SchemaProperty> getSchemaProperties();
+	public List<SchemaView> getSchemaViews();
+	public List<SchemaMethod> getSchemaMethods();
 }

@@ -29,14 +29,14 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public class NotionPropertyParser extends PropertyParser {
+public class NotionPropertyParser extends PropertySourceGenerator {
 
 	private String parameters   = "";
 	private String propertyType = null;
 	private String relatedType  = null;
 
-	public NotionPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public NotionPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override

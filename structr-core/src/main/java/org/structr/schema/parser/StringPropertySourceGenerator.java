@@ -25,67 +25,16 @@ import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.Schema;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  * @author Christian Morgner
  */
-public class StringPropertyParser extends PropertyParser {
+public class StringPropertySourceGenerator extends PropertySourceGenerator {
 
-	public StringPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
-	}
-	// ----- protected methods -----
-	@Override
-	protected String getPropertySource() {
-
-		final StringBuilder buf = new StringBuilder();
-
-		final String valueType     = getValueType();
-
-		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
-		
-		if (StringUtils.isNotBlank(dbName)) {
-			buf.append(", \"").append(dbName).append("\"");
-		}
-		
-		buf.append(localValidator);
-		
-		buf.append(")");
-
-		if (StringUtils.isNotBlank(contentType)) {
-			buf.append(".contentType(\"").append(contentType).append("\")");
-		}
-
-		if (defaultValue != null) {
-			buf.append(".defaultValue(").append(getDefaultValueSource()).append(")");
-		}
-
-		if (StringUtils.isNotBlank(format)) {
-			buf.append(".format(\"").append(format).append("\")");
-		}
-
-		if (unique) {
-			buf.append(".unique()");
-		}
-
-		if (notNull) {
-			buf.append(".notNull()");
-		}
-
-
-		if (defaultValue != null) {
-			buf.append(".indexedWhenEmpty()");
-		} else {
-			buf.append(".indexed()");
-		}
-
-		buf.append(";\n");
-
-		return buf.toString();
+	public StringPropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override
@@ -124,7 +73,7 @@ public class StringPropertyParser extends PropertyParser {
 		if (StringUtils.isNotBlank(expression) && !("multi-line".equals(expression))) {
 
 			localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
-			
+
 		}
 	}
 

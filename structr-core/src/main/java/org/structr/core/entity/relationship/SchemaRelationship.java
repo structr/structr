@@ -44,7 +44,10 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
@@ -424,7 +427,9 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		src.append(" {\n\n");
 
-		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, actions, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractViews(this, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractMethods(this, actions));
 
 		// source and target id properties
 		src.append("\tpublic static final Property<String> sourceIdProperty = new SourceId(\"sourceId\");\n");
@@ -556,6 +561,21 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		final String _targetType = getSchemaNodeTargetType();
 
 		return _targetType + "/" + _sourceType;
+	}
+
+	@Override
+	public List<SchemaProperty> getSchemaProperties() {
+		return null;
+	}
+
+	@Override
+	public List<SchemaView> getSchemaViews() {
+		return null;
+	}
+
+	@Override
+	public List<SchemaMethod> getSchemaMethods() {
+		return null;
 	}
 
 	// ----- private methods -----

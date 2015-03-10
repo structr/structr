@@ -33,7 +33,7 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public abstract class PropertyParser {
+public abstract class PropertySourceGenerator {
 
 	protected Set<Validator> globalValidators = new LinkedHashSet<>();
 	protected Set<String> enumDefinitions     = new LinkedHashSet<>();
@@ -50,7 +50,6 @@ public abstract class PropertyParser {
 	protected String contentType              = "";
 	protected boolean notNull                 = false;
 	protected boolean unique                  = false;
-	protected PropertyParameters params;
 
 	public abstract Type getKey();
 	public abstract String getPropertyType();
@@ -59,35 +58,43 @@ public abstract class PropertyParser {
 	public abstract String getPropertyParameters();
 	public abstract void parseFormatString(final Schema entity, final String expression) throws FrameworkException;
 
-	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
+	public PropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 
 		this.errorBuffer  = errorBuffer;
 		this.className    = className;
-		this.propertyName = propertyName;
-		this.rawSource    = params.rawSource;
-		this.source       = params.source;
-		this.format       = params.format;
-		this.notNull      = Boolean.TRUE.equals(params.notNull);
-		this.dbName       = params.dbName;
-		this.defaultValue = params.defaultValue;
-		this.contentType  = params.contentType;
+		this.rawSource    = params.getRawSource();
+		this.source       = params.getSource();
+		this.format       = params.getFormat();
+		this.notNull      = params.isNotNull();
+		this.dbName       = params.getDbName();
+		this.defaultValue = params.getDefaultValue();
+		this.contentType  = params.getContentType();
 
 		if (this.propertyName.startsWith("_")) {
 			this.propertyName = this.propertyName.substring(1);
 		}
 	}
 
-	public String getPropertySource(final Schema entity, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public String getPropertySource(final Schema entity) throws FrameworkException {
 
 		final String keyName = getKey().name();
 		source               = source.substring(keyName.length());
 
-		setNotNull(notNull);
+		if (notNull) {
 
-		// second: uniqueness and/or non-null, check until the two methods to not change the length of the string any more
-		extractUniqueness();
+			globalValidators.add(new Validator("checkPropertyNotNull", className, propertyName));
+		}
 
-		extractComplexValidation(entity);
+
+		if (source.startsWith("!")) {
+
+			globalValidators.add(new Validator("checkPropertyUniquenessError", className, propertyName));
+
+			source = source.substring(1);
+			unique = true;
+		}
+
+		parseFormatString(entity, format);
 
 		return getPropertySource();
 	}
@@ -118,7 +125,7 @@ public abstract class PropertyParser {
 		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
 
-		if (dbName != null) {
+		if (StringUtils.isNotBlank(dbName)) {
 			buf.append(", \"").append(dbName).append("\"");
 		}
 
@@ -128,11 +135,15 @@ public abstract class PropertyParser {
 
 		buf.append(")");
 
+		if (StringUtils.isNotBlank(contentType)) {
+			buf.append(".contentType(\"").append(contentType).append("\")");
+		}
+
 		if (defaultValue != null) {
 			buf.append(".defaultValue(").append(getDefaultValueSource()).append(")");
 		}
 
-		if (format != null) {
+		if (StringUtils.isNotBlank(format)) {
 			buf.append(".format(\"").append(StringEscapeUtils.escapeJava(format)).append("\")");
 		}
 
@@ -152,97 +163,26 @@ public abstract class PropertyParser {
 
 		buf.append(";\n");
 
+
+		System.out.println("##############################################");
+		System.out.println("propertyName:      " + propertyName);
+		System.out.println("dbName:            " + dbName);
+		System.out.println("localValidator:    " + localValidator);
+		System.out.println("className:         " + className);
+		System.out.println("rawSource:         " + rawSource);
+		System.out.println("source:            " + source);
+		System.out.println("format:            " + format);
+		System.out.println("defaultValue:      " + defaultValue);
+		System.out.println("contentType:       " + contentType);
+		System.out.println("notNull:           " + notNull);
+		System.out.println("unique:            " + unique);
+
+
 		return buf.toString();
 	}
 
-	private void extractUniqueness() {
-
-		if (source.startsWith("!")) {
-
-			globalValidators.add(new Validator("checkPropertyUniquenessError", className, propertyName));
-
-			source = source.substring(1);
-			unique = true;
-		}
-
-	}
-
-	private void setNotNull(final boolean notNull) {
-
-		if (notNull) {
-
-			globalValidators.add(new Validator("checkPropertyNotNull", className, propertyName));
-		}
-	}
-
-	private void extractComplexValidation(final Schema entity) throws FrameworkException {
-
-		parseFormatString(entity, format);
-	}
 
 	public String getDefaultValueSource() {
 		return defaultValue;
-	}
-
-	public static PropertyParameters detectDbNameNotNullAndDefaultValue(final String rawSource) {
-
-		final PropertyParameters params = new PropertyParameters(rawSource);
-
-		// detect and remove format: <type>(...)
-		if (StringUtils.isNotBlank(params.source)) {
-
-			params.format = substringBetween(params.source, "(", ")");
-			params.source = params.source.replaceFirst("\\(.*\\)", "");
-
-		}
-
-		// detect optional db name
-		if (params.source.contains("|")) {
-
-			params.dbName = params.source.substring(0, params.source.indexOf("|"));
-			params.source = params.source.substring(params.source.indexOf("|")+1);
-
-		}
-		
-		// detect and remove not-null constraint
-		if (params.source.startsWith("+")) {
-			params.source = params.source.substring(1);
-			params.notNull = true;
-		}
-
-		// detect and remove content-type: <type>[...]
-		if (StringUtils.isNotBlank(params.source)) {
-
-			params.contentType = substringBetween(params.source, "[", "]");
-			params.source = params.source.replaceFirst("\\[.*\\]", "");
-
-		}
-
-		// detect and remove default value
-		if (params.source.contains(":")) {
-
-			// default value is everything after the first :
-			// this is possible because we stripped off the format (...) above
-			int firstIndex      = params.source.indexOf(":");
-			params.defaultValue = params.source.substring(firstIndex + 1);
-			params.source       = params.source.substring(0, firstIndex);
-
-		}
-
-		return params;
-
-	}
-
-	public static String substringBetween(final String source, final String prefix, final String suffix) {
-
-		final int pos1 = source.indexOf(prefix);
-		final int pos2 = source.lastIndexOf(suffix);
-
-		if (pos1 < pos2 && pos2 > 0) {
-
-			return source.substring(pos1 + 1, pos2);
-		}
-
-		return null;
 	}
 }

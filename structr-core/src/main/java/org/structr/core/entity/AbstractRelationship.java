@@ -61,7 +61,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationshipTypeProperty;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.TargetId;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
 
@@ -695,7 +695,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return SchemaHelper.getPropertyWithVariableReplacement(renderContext, this, key);
+		return Scripting.replaceVariables(renderContext, this, getProperty(key));
 	}
 
 	@Override

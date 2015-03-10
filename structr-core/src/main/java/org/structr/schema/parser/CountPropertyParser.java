@@ -30,12 +30,12 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public class CountPropertyParser extends PropertyParser {
+public class CountPropertyParser extends PropertySourceGenerator {
 
 	private String auxType = "";
 
-	public CountPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public CountPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override

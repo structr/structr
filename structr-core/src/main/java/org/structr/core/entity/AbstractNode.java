@@ -64,7 +64,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -746,7 +746,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		// use quick checks for maximum performance
 		if (isCreation) {
-			
+
 			return true;
 		}
 
@@ -1094,7 +1094,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return SchemaHelper.getPropertyWithVariableReplacement(renderContext, this, key);
+		return Scripting.replaceVariables(renderContext, this, getProperty(key));
 	}
 
 	@Override

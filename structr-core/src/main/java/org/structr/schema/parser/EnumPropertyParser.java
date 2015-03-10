@@ -31,13 +31,13 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public class EnumPropertyParser extends PropertyParser {
+public class EnumPropertyParser extends PropertySourceGenerator {
 
 	private String enumTypeName = "";
 	private String enumType     = "";
 
-	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override

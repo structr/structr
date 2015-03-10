@@ -29,10 +29,10 @@ import org.structr.schema.Schema;
  *
  * @author Christian Morgner
  */
-public abstract class NumericalPropertyParser extends PropertyParser {
+public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 
-	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	public abstract Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which);

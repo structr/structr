@@ -32,12 +32,12 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public class JoinPropertyParser extends PropertyParser {
+public class JoinPropertyParser extends PropertySourceGenerator {
 
 	private String parameters   = "";
 
-	public JoinPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public JoinPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override

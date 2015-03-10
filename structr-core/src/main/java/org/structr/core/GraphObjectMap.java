@@ -27,7 +27,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -212,7 +212,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return SchemaHelper.getPropertyWithVariableReplacement(renderContext, this, key);
+		return Scripting.replaceVariables(renderContext, this, getProperty(key));
 	}
 
 	@Override

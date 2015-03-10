@@ -31,8 +31,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class DoublePropertyParser extends NumericalPropertyParser {
 
-	public DoublePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public DoublePropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override

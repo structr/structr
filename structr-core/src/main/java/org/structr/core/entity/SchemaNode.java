@@ -89,6 +89,8 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
 
+
+
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 
@@ -163,7 +165,9 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		// extract properties from node
-		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, saveActions, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractViews(this, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractMethods(this, saveActions));
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -316,7 +320,9 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		final ErrorBuffer dummyErrorBuffer                     = new ErrorBuffer();
 
 		// extract properties
-		final String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, saveActions, dummyErrorBuffer);
+		final String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, dummyErrorBuffer);
+		final String viewDefinitions     = SchemaHelper.extractViews(this, viewProperties, dummyErrorBuffer);
+		final String methodDefinitions   = SchemaHelper.extractMethods(this, saveActions);
 
 		if (!propertyNames.isEmpty() || validators.isEmpty() || !saveActions.isEmpty()) {
 
@@ -342,8 +348,9 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 				src.append("\n");
 
-				// extract properties from node
 				src.append(propertyDefinitions);
+				src.append(viewDefinitions);
+				src.append(methodDefinitions);
 
 				src.append("\n\tstatic {\n\n");
 
@@ -367,6 +374,21 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		return null;
+	}
+
+	@Override
+	public List<SchemaProperty> getSchemaProperties() {
+		return getProperty(SchemaNode.schemaProperties);
+	}
+
+	@Override
+	public List<SchemaView> getSchemaViews() {
+		return getProperty(SchemaNode.schemaViews);
+	}
+
+	@Override
+	public List<SchemaMethod> getSchemaMethods() {
+		return getProperty(SchemaNode.schemaMethods);
 	}
 
 	// ----- private methods -----

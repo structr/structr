@@ -36,12 +36,12 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public class DatePropertyParser extends PropertyParser {
+public class DatePropertyParser extends PropertySourceGenerator {
 
 	private String pattern = null;
 
-	public DatePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public DatePropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override
@@ -96,9 +96,9 @@ public class DatePropertyParser extends PropertyParser {
 	 * @return
 	 */
 	public static Date parse(String source, final String pattern) {
-		
+
 		if (StringUtils.isBlank(pattern)) {
-		
+
 			return parseISO8601DateString(source);
 
 		} else {
@@ -115,24 +115,24 @@ public class DatePropertyParser extends PropertyParser {
 			} catch (ParseException ex) {
 				Logger.getLogger(DatePropertyParser.class.getName()).log(Level.WARNING, "Unable to parse " + source + " with primary pattern " + pattern, ex.getMessage());
 			}
-	
+
 			// try to parse as ISO8601 date (supports multiple formats)
 			return parseISO8601DateString(source);
-			
+
 		}
 
 	}
 
 	/**
 	 * Try to parse source string as a ISO8601 date.
-	 * 
+	 *
 	 * @param source
 	 * @return null if unable to parse
 	 */
 	public static Date parseISO8601DateString(String source) {
-		
+
 		final String[] supportedFormats = new String[] { "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss.SSSZ" };
-			
+
 		// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
 		if (StringUtils.contains(source, "Z")) {
 
@@ -145,7 +145,7 @@ public class DatePropertyParser extends PropertyParser {
 
 			try {
 
-				parsedDate = new SimpleDateFormat(format).parse(source);					
+				parsedDate = new SimpleDateFormat(format).parse(source);
 
 			} catch (ParseException pe) {
 			}
@@ -156,33 +156,33 @@ public class DatePropertyParser extends PropertyParser {
 		}
 
 		return null;
-		
+
 	}
-	
+
 	/**
 	 * Central method to format a date into a string.
-	 * 
+	 *
 	 * If no format is given, use the (old) default format.
-	 * 
+	 *
 	 * @param date
 	 * @param format optional SimpleDateFormat pattern
-	 * @return 
+	 * @return
 	 */
 	public static String format(final Date date, String format) {
-		
+
 		if (date != null) {
-			
+
 			if (StringUtils.isBlank(format)) {
-			
+
 				format = DateProperty.getDefaultFormat();
-				
+
 			}
-			
+
 			return new SimpleDateFormat(format).format(date);
 		}
-		
+
 		return null;
-		
+
 	}
 
 }
