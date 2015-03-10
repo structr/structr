@@ -70,7 +70,9 @@ public class UpdateCommand extends AbstractCommand {
 
 			try (final Tx tx = app.tx()) {
 
-				if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.write)) {
+				final AbstractNode node = (AbstractNode)obj;
+
+				if (!node.isGranted(Permission.write, getWebSocket().getSecurityContext())) {
 
 					getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
 					logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
@@ -93,17 +95,18 @@ public class UpdateCommand extends AbstractCommand {
 		if (obj != null) {
 
 			final Set<GraphObject> entities = new LinkedHashSet<>();
+			PropertyMap properties          = null;
+
 			try (final Tx tx = app.tx()) {
 
 				collectEntities(entities, obj, null, rec);
 
-				// commit and close transaction
+				properties = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData());
+
 				tx.success();
 			}
 
-			final PropertyMap properties         = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData());
 			final Iterator<GraphObject> iterator = entities.iterator();
-
 			while (iterator.hasNext()) {
 
 				count = 0;

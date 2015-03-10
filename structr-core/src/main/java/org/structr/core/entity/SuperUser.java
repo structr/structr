@@ -52,10 +52,10 @@ public class SuperUser implements Principal, AccessControllable {
 	public void removeProperty(PropertyKey key) throws FrameworkException {}
 
 	@Override
-	public void grant(Permission permission, AbstractNode obj) {}
+	public void grant(Permission permission, Principal obj) {}
 
 	@Override
-	public void revoke(Permission permission, AbstractNode obj) {}
+	public void revoke(Permission permission, Principal obj) {}
 
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {}
@@ -102,7 +102,10 @@ public class SuperUser implements Principal, AccessControllable {
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {}
 
-	//~--- get methods ----------------------------------------------------
+	@Override
+	public boolean isAdmin() {
+		return true;
+	}
 
 	@Override
 	public long getId() {
@@ -277,7 +280,7 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, final Class entityType) {
+	public void init(SecurityContext securityContext, Node dbNode, final Class entityType, final boolean isCreation) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -367,8 +370,8 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public boolean isGranted(Permission permission, Principal principal) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	public boolean isGranted(Permission permission, SecurityContext context) {
+		return true;
 	}
 
 	@Override

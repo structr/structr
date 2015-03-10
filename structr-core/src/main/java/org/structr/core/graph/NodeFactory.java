@@ -88,7 +88,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			newNode = (T)factoryDefinition.createGenericNode();
 		}
 
-		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass);
+		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, isCreation);
 		newNode.onNodeInstantiation();
 
 		// check access
@@ -131,7 +131,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			try {
 
 				newNode = nodeClass.newInstance();
-				newNode.init(factoryProfile.getSecurityContext(), entity, nodeClass);
+				newNode.init(factoryProfile.getSecurityContext(), entity, nodeClass, false);
 
 			} catch (InstantiationException|IllegalAccessException itex) { itex.printStackTrace(); }
 

@@ -43,6 +43,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
@@ -246,6 +247,23 @@ public class StructrTest extends TestCase {
 			tx.success();
 
 			return rel;
+		}
+	}
+
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final Principal owner) throws FrameworkException {
+		return (T)createTestNode(type, new PropertyMap(), owner);
+	}
+
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final Principal owner) throws FrameworkException {
+
+		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(owner, AccessMode.Backend));
+
+		try (final Tx tx = backendApp.tx()) {
+
+			final T result = backendApp.create(type, props);
+			tx.success();
+
+			return result;
 		}
 	}
 

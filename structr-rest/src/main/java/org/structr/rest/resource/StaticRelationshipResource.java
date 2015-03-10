@@ -152,6 +152,15 @@ public class StaticRelationshipResource extends SortableResource {
 
 						// return result
 						return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+
+					} else if (value instanceof GraphObject) {
+
+						return new Result((GraphObject)value, isPrimitiveArray());
+
+					} else {
+
+						logger.log(Level.INFO, "Found object {0}, but will not return as it is no graph object or iterable", value);
+
 					}
 				}
 
@@ -341,23 +350,4 @@ public class StaticRelationshipResource extends SortableResource {
 	public String getResourceSignature() {
 		return typedIdResource.getResourceSignature().concat("/").concat(typeResource.getResourceSignature());
 	}
-
-	// ----- private methods -----
-	private <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
-
-		try {
-
-			return type.newInstance();
-
-		} catch (Throwable t) {
-
-			// TODO: throw meaningful exception here,
-			// should be a RuntimeException that indicates
-			// wrong use of Relationships etc.
-			t.printStackTrace();
-		}
-
-		return null;
-	}
-
 }

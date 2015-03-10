@@ -23,19 +23,29 @@ package org.structr.common;
  *
  * @author Christian Morgner
  */
-public enum Permission {
+public interface Permission {
 
-	//backendAccess, frontendAccess,
-	
-	//showTree,
+	public static final Permission read             = new PermissionImpl("read");
+	public static final Permission write            = new PermissionImpl("write");
+	public static final Permission delete           = new PermissionImpl("delete");
+	public static final Permission accessControl    = new PermissionImpl("accessControl");
 
-	read, write, delete, //execute,
+	public static final Permission[] allPermissions = { read, write, delete, accessControl };
 
-	//createNode, deleteNode,
+	public String name();
 
-	//editProperty,
+	static class PermissionImpl implements Permission {
 
-	//createRelationship, deleteRelationship,
+		private String name = null;
 
-	accessControl;
+		private PermissionImpl(final String name) {
+
+			this.name = name;
+                }
+
+		@Override
+		public String name() {
+			return name;
+		}
+	}
 }

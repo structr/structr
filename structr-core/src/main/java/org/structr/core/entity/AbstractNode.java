@@ -25,7 +25,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,19 +86,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	);
 
 	private boolean readOnlyPropertiesUnlocked = false;
+	private boolean isCreation                 = false;
 
-	protected Class entityType = null;
-	protected Principal cachedOwnerNode = null;
 	protected SecurityContext securityContext = null;
-	protected String cachedUuid = null;
-	protected Node dbNode = null;
+	protected Principal cachedOwnerNode       = null;
+	protected String cachedUuid               = null;
+	protected Class entityType                = null;
+	protected Node dbNode                     = null;
 
 	//~--- constructors ---------------------------------------------------
 	public AbstractNode() {
 	}
 
 	public AbstractNode(SecurityContext securityContext, final Node dbNode, final Class entityType) {
-		init(securityContext, dbNode, entityType);
+		init(securityContext, dbNode, entityType, false);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -116,10 +116,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType) {
+	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType, final boolean isCreation) {
 
-		this.dbNode = dbNode;
-		this.entityType = entityType;
+		this.isCreation      = isCreation;
+		this.dbNode          = dbNode;
+		this.entityType      = entityType;
 		this.securityContext = securityContext;
 	}
 
@@ -209,6 +210,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public void removeProperty(final PropertyKey key) throws FrameworkException {
+
+		if (!isGranted(Permission.write, securityContext)) {
+			throw new FrameworkException(403, "Modification not permitted.");
+		}
 
 		if (this.dbNode != null) {
 
@@ -658,11 +663,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (cachedOwnerNode == null) {
 
-			final Ownership ownership = getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
-			if (ownership != null) {
+			if (this instanceof Principal) {
 
-				Principal principal = ownership.getSourceNode();
-				cachedOwnerNode = (Principal) principal;
+				// a user is its own owner
+				cachedOwnerNode = (Principal)this;
+
+			} else {
+
+				final Ownership ownership = getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
+				if (ownership != null) {
+
+					Principal principal = ownership.getSourceNode();
+					cachedOwnerNode = (Principal) principal;
+				}
 			}
 		}
 
@@ -680,36 +693,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	}
 
-	/**
-	 * Return a list with the connected principals (user, group, role)
-	 *
-	 * @return list with principals
-	 */
-	public List<Principal> getSecurityPrincipals() {
-
-		List<Principal> principalList = new LinkedList<>();
-
-		// check any security relationships
-		for (Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
-
-			if (r != null) {
-
-				// check security properties
-				Principal principalNode = r.getSourceNode();
-
-				principalList.add(principalNode);
-			}
-		}
-
-		return principalList;
-
-	}
-
 	private <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-		final R template = getRelationshipForType(type);
-		final Relationship relationship = template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -743,50 +731,84 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	// ----- interface AccessControllable -----
 	@Override
-	public boolean isGranted(final Permission permission, final Principal principal) {
+	public boolean isGranted(final Permission permission, final SecurityContext context) {
 
-		if (principal == null) {
+		Principal accessingUser = null;
+		if (context != null) {
 
+			accessingUser = context.getUser(false);
+		}
+
+		return isGranted(permission, accessingUser);
+	}
+
+	private boolean isGranted(final Permission permission, final Principal accessingUser) {
+
+		// use quick checks for maximum performance
+		if (isCreation) {
+			
+			return true;
+		}
+
+		// this includes SuperUser
+		if (accessingUser != null && accessingUser.isAdmin()) {
+			return true;
+		}
+
+		// allow accessingUser to access itself
+		if (this.equals(accessingUser)) {
+			return true;
+		}
+
+		// check owner
+		final Principal owner  = getOwnerNode();
+		final boolean hasOwner = (owner != null);
+
+		// allow full access for nodes without owner
+		// (covered by ResourceAccess objects)
+		if (!hasOwner) {
+
+			if (Permission.read.equals(permission)) {
+
+				if (accessingUser != null && isVisibleToAuthenticatedUsers()) {
+					return true;
+				}
+
+				if (accessingUser == null && isVisibleToPublicUsers()) {
+					return true;
+				}
+			}
+		}
+
+		// node has an owner, deny anonymous access
+		if (hasOwner && accessingUser == null) {
 			return false;
 		}
 
-		// just in case ...
-		if (permission == null) {
+		if (accessingUser != null) {
 
-			return false;
-		}
+			// owner is always allowed to do anything with its nodes
+			if (hasOwner && accessingUser.equals(owner)) {
+				return true;
+			}
 
-		// superuser
-		if (principal instanceof SuperUser) {
-
-			return true;
-		}
-
-		// user has full control over his/her own user node
-		if (this.equals(principal)) {
-
-			return true;
-		}
-
-		Security r = getSecurityRelationship(principal);
-
-		if ((r != null) && r.isAllowed(permission)) {
-
-			return true;
-		}
-
-		// Now check possible parent principals
-		for (Principal parent : principal.getParents()) {
-
-			if (isGranted(permission, parent)) {
+			final Security security = getSecurityRelationship(accessingUser);
+			if (security != null && security.isAllowed(permission)) {
 
 				return true;
 			}
 
+			// Now check possible parent principals
+			for (Principal parent : accessingUser.getParents()) {
+
+				if (isGranted(permission, parent)) {
+
+					return true;
+				}
+			}
 		}
 
 		return false;
-
 	}
 
 	@Override
@@ -934,6 +956,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
+
+		if (!isGranted(Permission.write, securityContext)) {
+			throw new FrameworkException(403, "Modification not permitted.");
+		}
+
 
 		T oldValue = getProperty(key);
 
@@ -1227,6 +1254,51 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return convertedObject;
 	}
+
+	@Override
+	public void grant(Permission permission, Principal principal) throws FrameworkException {
+
+		if (!isGranted(Permission.accessControl, securityContext)) {
+			throw new FrameworkException(403, "Access control not permitted");
+		}
+
+		Security secRel = getSecurityRelationship(principal);
+		if (secRel == null) {
+
+			try {
+
+				secRel = StructrApp.getInstance().create(principal, (NodeInterface)this, Security.class);
+
+			} catch (FrameworkException ex) {
+
+				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
+
+			}
+
+		}
+
+		secRel.addPermission(permission);
+
+	}
+
+	@Override
+	public void revoke(Permission permission, Principal principal) throws FrameworkException {
+
+		if (!isGranted(Permission.accessControl, securityContext)) {
+			throw new FrameworkException(403, "Access control not permitted");
+		}
+
+		Security secRel = getSecurityRelationship(principal);
+		if (secRel == null) {
+
+			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
+
+		} else {
+
+			secRel.removePermission(permission);
+		}
+	}
+
 
 	// ----- Cloud synchronization and replication -----
 	@Override

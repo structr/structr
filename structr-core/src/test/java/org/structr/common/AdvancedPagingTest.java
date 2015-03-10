@@ -376,12 +376,14 @@ public class AdvancedPagingTest extends PagingTest {
 
 	public void test06PagingVisibility() {
 
-		Principal user = null;
+		Principal tester1 = null;
+		Principal tester2 = null;
 
 		try (final Tx tx = app.tx()) {
 
 			// create non-admin user
-			user = app.create(TestUser.class, "tester");
+			tester1 = app.create(TestUser.class, "tester1");
+			tester2 = app.create(TestUser.class, "tester2");
 
 			tx.success();
 
@@ -393,13 +395,16 @@ public class AdvancedPagingTest extends PagingTest {
 
 		try {
 
-			final SecurityContext userContext   = SecurityContext.getInstance(user, AccessMode.Backend);
-			final App userApp                   = StructrApp.getInstance(userContext);
-			final Class type                    = TestOne.class;
-			final int number                    = 1000;
-			final List<NodeInterface> allNodes  = this.createTestNodes(type, number);
-			final List<NodeInterface> userNodes = new LinkedList<>();
-			final int offset                    = 0;
+			final SecurityContext tester1Context     = SecurityContext.getInstance(tester1, AccessMode.Backend);
+			final SecurityContext tester2Context     = SecurityContext.getInstance(tester2, AccessMode.Backend);
+			final App tester1App                     = StructrApp.getInstance(tester1Context);
+			final App tester2App                     = StructrApp.getInstance(tester2Context);
+			final Class type                         = TestOne.class;
+			final int number                         = 1000;
+			final List<NodeInterface> allNodes       = this.createTestNodes(type, number);
+			final List<NodeInterface> tester1Nodes   = new LinkedList<>();
+			final List<NodeInterface> tester2Nodes   = new LinkedList<>();
+			final int offset                         = 0;
 
 			try (final Tx tx = app.tx()) {
 
@@ -409,10 +414,17 @@ public class AdvancedPagingTest extends PagingTest {
 					// System.out.println("Node ID: " + node.getNodeId());
 					String _name = "TestOne-" + StringUtils.leftPad(Integer.toString(i), 5, "0");
 
-					if (Math.random() < 0.5) {
+					final double rand = Math.random();
 
-						node.setProperty(NodeInterface.owner, user);
-						userNodes.add(node);
+					if (rand < 0.3) {
+
+						node.setProperty(NodeInterface.owner, tester1);
+						tester1Nodes.add(node);
+
+					} else if (rand < 0.6) {
+
+						node.setProperty(NodeInterface.owner, tester2);
+						tester2Nodes.add(node);
 					}
 
 					i++;
@@ -423,23 +435,31 @@ public class AdvancedPagingTest extends PagingTest {
 				tx.success();
 			}
 
+			final int tester1NodeCount   = tester1Nodes.size();
+			final int tester2NodeCount   = tester2Nodes.size();
+
 			try (final Tx tx = app.tx()) {
 
 				final PropertyKey sortKey = AbstractNode.name;
 				final boolean sortDesc    = false;
 				final int pageSize        = 10;
 				final int page            = 22;
-				final Result result       = userApp.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResult();
+				final Result result       = tester1App.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResult();
 
-				assertEquals("Invalid paging result count with non-superuser security context", userNodes.size(), (int)result.getRawResultCount());
+				assertEquals("Invalid paging result count with non-superuser security context", tester1NodeCount, (int)result.getRawResultCount());
 
-				for (int i=0; i<pageSize; i++) {
+				tx.success();
+			}
 
-					final NodeInterface expected = userNodes.get((pageSize * (page-1))+i);
-					final NodeInterface actual   = (NodeInterface)result.get(i);
+			try (final Tx tx = app.tx()) {
 
-					assertEquals("Invalid paging result with non-superuser security context", expected, actual);
-				}
+				final PropertyKey sortKey = AbstractNode.name;
+				final boolean sortDesc    = false;
+				final int pageSize        = 10;
+				final int page            = 22;
+				final Result result       = tester2App.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResult();
+
+				assertEquals("Invalid paging result count with non-superuser security context", tester2NodeCount, (int)result.getRawResultCount());
 
 				tx.success();
 			}

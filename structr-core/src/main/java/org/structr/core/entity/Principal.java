@@ -20,7 +20,6 @@ package org.structr.core.entity;
 
 import java.util.List;
 import org.structr.common.AccessControllable;
-import org.structr.common.Permission;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
@@ -46,10 +45,6 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final Property<Boolean> isAdmin = new BooleanProperty("isAdmin").indexed().readOnly();
 	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
 
-	public void grant(final Permission permission, final AbstractNode obj);
-
-	public void revoke(final Permission permission, final AbstractNode obj);
-
 	public List<Principal> getParents();
 
 	public String getEncryptedPassword();
@@ -57,5 +52,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public void addSessionId(final String sessionId);
 
 	public void removeSessionId(final String sessionId);
+
+	public boolean isAdmin();
 
 }
