@@ -69,7 +69,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	public static final Property<String>               defaultSortKey   = new StringProperty("defaultSortKey");
 	public static final Property<String>               defaultSortOrder = new StringProperty("defaultSortOrder");
 	public static final Property<Boolean>              isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
-	
+
 	public static final Property<List<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
 	public static final Property<List<SchemaMethod>>   schemaMethods    = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
 	public static final Property<List<SchemaView>>     schemaViews      = new EndNodes<>("schemaViews", SchemaNodeView.class);

@@ -5,6 +5,7 @@ import org.structr.common.View;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 
 /**
  *
@@ -13,6 +14,7 @@ import org.structr.core.property.StartNode;
 public class SchemaMethod extends AbstractNode {
 
 	public static final Property<SchemaNode> schemaNode  = new StartNode<>("schemaNode", SchemaNodeMethod.class);
+	public static final Property<String> source          = new StringProperty("source");
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
 		name, schemaNode
