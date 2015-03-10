@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
@@ -101,7 +102,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 			cachedIsAdminFlag = getProperty(Principal.isAdmin);
 			if (cachedIsAdminFlag == null) {
-				
+
 				cachedIsAdminFlag = false;
 			}
 		}
@@ -174,4 +175,13 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	}
 
+	@Override
+	public Set<String> getAllowedPermissions() {
+		return null;
+	}
+
+	@Override
+	public Set<String> getDeniedPermissions() {
+		return null;
+	}
 }

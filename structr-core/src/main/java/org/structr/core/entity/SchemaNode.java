@@ -36,6 +36,9 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.relationship.SchemaNodeMethod;
+import org.structr.core.entity.relationship.SchemaNodeProperty;
+import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
@@ -60,12 +63,16 @@ import org.structr.schema.parser.Validator;
  */
 public class SchemaNode extends AbstractSchemaNode implements Schema {
 
-	public static final Property<List<SchemaNode>>  relatedTo        = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<List<SchemaNode>>  relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<String>            extendsClass     = new StringProperty("extendsClass").indexed();
-	public static final Property<String>            defaultSortKey   = new StringProperty("defaultSortKey");
-	public static final Property<String>            defaultSortOrder = new StringProperty("defaultSortOrder");
-	public static final Property<Boolean>           isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
+	public static final Property<List<SchemaNode>>     relatedTo        = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<List<SchemaNode>>     relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<String>               extendsClass     = new StringProperty("extendsClass").indexed();
+	public static final Property<String>               defaultSortKey   = new StringProperty("defaultSortKey");
+	public static final Property<String>               defaultSortOrder = new StringProperty("defaultSortOrder");
+	public static final Property<Boolean>              isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
+	
+	public static final Property<List<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
+	public static final Property<List<SchemaMethod>>   schemaMethods    = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
+	public static final Property<List<SchemaView>>     schemaViews      = new EndNodes<>("schemaViews", SchemaNodeView.class);
 
 	static {
 

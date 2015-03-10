@@ -25,8 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
 import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
@@ -36,9 +34,6 @@ import org.structr.schema.SchemaHelper;
  * @author Christian Morgner
  */
 public abstract class AbstractSchemaNode extends AbstractNode {
-
-	public static final Property<Long> accessFlags                      = new LongProperty("accessFlags").indexed();
-
 
 	static {
 

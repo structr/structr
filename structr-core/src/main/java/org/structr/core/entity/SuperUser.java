@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.AccessControllable;
@@ -481,5 +482,15 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
+	}
+
+	@Override
+	public Set<String> getAllowedPermissions() {
+		return null;
+	}
+
+	@Override
+	public Set<String> getDeniedPermissions() {
+		return null;
 	}
 }
