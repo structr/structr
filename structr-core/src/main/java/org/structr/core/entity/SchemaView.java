@@ -6,9 +6,11 @@ import org.structr.common.View;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import static org.structr.core.graph.NodeInterface.name;
+import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 
 /**
  *
@@ -16,15 +18,16 @@ import org.structr.core.property.StartNode;
  */
 public class SchemaView extends AbstractNode {
 
-	public static final Property<SchemaNode>           schemaNode       = new StartNode<>("schemaNode", SchemaNodeView.class);
-	public static final Property<List<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaViewProperty.class);
+	public static final Property<SchemaNode>           schemaNode         = new StartNode<>("schemaNode", SchemaNodeView.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<List<SchemaProperty>> schemaProperties   = new EndNodes<>("schemaProperties", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<String>               nonGraphProperties = new StringProperty("nonGraphProperties");
 
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, schemaNode, schemaProperties
+		name, schemaNode, schemaProperties, nonGraphProperties
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, schemaNode, schemaProperties
+		name, schemaNode, schemaProperties, nonGraphProperties
 	);
 }

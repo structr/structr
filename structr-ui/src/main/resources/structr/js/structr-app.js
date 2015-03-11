@@ -102,11 +102,11 @@ function StructrApp(baseUrl) {
             var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
                 return s.trim();
             });
-            
+
             var id = btn.attr('data-structr-id');
             var container = $('[data-structr-id="' + id + '"]');
             var data = s.collectData(btn, id, attrs, type, suffix);
-            
+
             if (action === 'create') {
                 s.create(btn, type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
@@ -128,7 +128,7 @@ function StructrApp(baseUrl) {
 
             } else if (action === 'registration') {
                 s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
-            
+
             } else {
                 s.customAction(btn, id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
             }
@@ -228,7 +228,7 @@ function StructrApp(baseUrl) {
                     }
                 }
             } else if (f.type === 'Enum') {
-                
+
                 el.html(enumSelect(f));
                 var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
                 sel.append('<option></option>');
@@ -237,7 +237,7 @@ function StructrApp(baseUrl) {
                 });
                 sel.addClass(f.class);
                 sel.chosen({allow_single_deselect: true});
-                
+
             } else {
                 if (f.type.endsWith('[]')) {
                     el.html(multiSelect(f));
@@ -271,7 +271,7 @@ function StructrApp(baseUrl) {
                 //console.log(dateTimeFormat);
                 var dateFormat = dateTimeFormat ? dateTimeFormat[0] : 'yyyy-MM-dd',
                     timeFormat = (dateTimeFormat && dateTimeFormat.length > 1) ? dateTimeFormat[1] : undefined;
-                
+
                 inp.on('mouseup', function(event) {
                     event.preventDefault();
                     var input = $(this);
@@ -496,9 +496,9 @@ function StructrApp(baseUrl) {
         var btnText = btn.text();
 
         disableButton(btn, 'Processing...');
-        
+
         var successText = 'Thanks! Please check your inbox.';
-        
+
         $.ajax({
             type: 'POST',
             method: 'POST',
@@ -595,7 +595,7 @@ function StructrApp(baseUrl) {
                 //val = rawVal || el.text();
             }
         }
-        var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz}; 
+        var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz};
         //console.log(f);
         return f;
     };
@@ -693,7 +693,7 @@ function StructrApp(baseUrl) {
         var el = $('[data-structr-dialog="' + type + '"]');
         el.addClass(type).html(msg).show().delay(2000).fadeOut(200);
     };
-    
+
     this.showFormErrors = function(btn, msg) {
         var a = btn.attr('data-structr-action').split(':');
         var suffix = a[2];
@@ -860,7 +860,7 @@ function StructrApp(baseUrl) {
         } else {
             //console.log('checkInput', f.type, f.format);
         }
-        
+
         if (isTextarea(inp[0])) {
 
             if (inp.val().indexOf('\n') === -1) {
@@ -889,7 +889,7 @@ function StructrApp(baseUrl) {
 
             inp.replaceWith(textarea(f));
             inp = s.input(parent);
-            
+
             inp.on('keyup', function(e) {
                 s.checkInput(e, f, $(this));
             });

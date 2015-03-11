@@ -444,6 +444,7 @@ public class SchemaHelper {
 
 				if (migrate && entity instanceof SchemaNode) {
 
+					final List<String> nonGraphProperties  = new LinkedList<>();
 					final List<SchemaProperty> properties = new LinkedList<>();
 					final SchemaNode schemaNode           = (SchemaNode)entity;
 					final App app                         = StructrApp.getInstance();
@@ -454,17 +455,23 @@ public class SchemaHelper {
 						for (int i = 0; i < parts.length; i++) {
 
 							final String propertyName         = parts[i].trim();
-							final SchemaProperty propertyNode = app.nodeQuery(SchemaProperty.class).andName(propertyName).getFirst();
+							final SchemaProperty propertyNode = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
 
 							if (propertyNode != null) {
+
 								properties.add(propertyNode);
+
+							} else {
+
+								nonGraphProperties.add(propertyName);
 							}
 						}
 
 						app.create(SchemaView.class,
 							new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
 							new NodeAttribute<>(SchemaView.schemaProperties, properties),
-							new NodeAttribute<>(SchemaView.name, viewName)
+							new NodeAttribute<>(SchemaView.name, viewName),
+							new NodeAttribute<>(SchemaView.nonGraphProperties, StringUtils.join(nonGraphProperties, ","))
 						);
 
 						schemaNode.removeProperty(new StringProperty(rawViewName));
@@ -486,7 +493,8 @@ public class SchemaHelper {
 
 			for (final SchemaView schemaView : schemaViews) {
 
-				final String viewName = schemaView.getName();
+				final String nonGraphProperties = schemaView.getProperty(SchemaView.nonGraphProperties);
+				final String viewName           = schemaView.getName();
 
 				// clear view before filling it again
 				Set<String> view = views.get(viewName);
@@ -502,6 +510,14 @@ public class SchemaHelper {
 
 				for (final SchemaProperty property : schemaView.getProperty(SchemaView.schemaProperties)) {
 					view.add(property.getPropertyName() + "Property");
+				}
+
+				// add properties that are not part of the graph
+				if (StringUtils.isNotBlank(nonGraphProperties)) {
+					for (final String propertyName : nonGraphProperties.split("[, ]+")) {
+
+						view.add(propertyName);
+					}
 				}
 			}
 		}

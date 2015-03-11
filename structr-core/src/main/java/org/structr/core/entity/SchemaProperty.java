@@ -5,6 +5,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
+import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
@@ -19,8 +20,8 @@ import org.structr.schema.parser.PropertyDefinition;
  */
 public class SchemaProperty extends AbstractNode implements PropertyDefinition {
 
-	public static final Property<SchemaNode>       schemaNode   = new StartNode<>("schemaNode", SchemaNodeProperty.class);
-	public static final Property<List<SchemaView>> schemaViews  = new StartNodes<>("schemaViews", SchemaViewProperty.class);
+	public static final Property<SchemaNode>       schemaNode   = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<List<SchemaView>> schemaViews  = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
 	public static final Property<String>           defaultValue = new StringProperty("defaultValue");
 	public static final Property<String>           propertyType = new StringProperty("propertyType");
@@ -31,11 +32,11 @@ public class SchemaProperty extends AbstractNode implements PropertyDefinition {
 	public static final Property<Boolean>          unique       = new BooleanProperty("unique");
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique
+		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique
+		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue
 	);
 
 	@Override
@@ -43,6 +44,7 @@ public class SchemaProperty extends AbstractNode implements PropertyDefinition {
 		return getProperty(name);
 	}
 
+	@Override
 	public Type getPropertyType() {
 		return Type.valueOf(getProperty(propertyType));
 	}

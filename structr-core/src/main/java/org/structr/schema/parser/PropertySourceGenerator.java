@@ -171,7 +171,7 @@ public abstract class PropertySourceGenerator {
 			buf.append(".contentType(\"").append(source.getContentType()).append("\")");
 		}
 
-		if (source.getDefaultValue() != null) {
+		if (StringUtils.isNotBlank(source.getDefaultValue())) {
 			buf.append(".defaultValue(").append(getDefaultValue()).append(")");
 		}
 

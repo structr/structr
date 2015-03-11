@@ -32,7 +32,7 @@ var editorCursor;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
-var page = {}, pageSize = {}, sortKey = {}, sortOrder = {}; 
+var page = {}, pageSize = {}, sortKey = {}, sortOrder = {};
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
@@ -152,7 +152,7 @@ $(function() {
     Structr.updateVersionInfo();
 
     // Reset keys in case of window switching
-    
+
     $(window).blur(function(e) {
         altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
     });
@@ -388,13 +388,13 @@ var Structr = {
         $('iframe').unload();
         main.empty();
     },
-    confirmation: function(text, callback) {
+    confirmation: function(text, yesCallback, noCallback) {
         if (text)
             $('#confirmation .confirmationText').html(text);
-        if (callback)
+        if (yesCallback)
             $('#confirmation .yesButton').on('click', function(e) {
                 e.stopPropagation();
-                callback();
+                yesCallback();
                 $(this).off('click');
             });
         $('#confirmation .noButton').on('click', function(e) {
@@ -402,6 +402,7 @@ var Structr = {
             $.unblockUI({
                 fadeOut: 25
             });
+            noCallback();
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -587,7 +588,7 @@ var Structr = {
         $('.fit-to-height').css({
             height: h - 74 + 'px'
         });
-        
+
     },
     resize: function(callback) {
 
@@ -598,7 +599,7 @@ var Structr = {
         $('#maximizeDialog').show().on('click', function() {
             Structr.maximize();
         });
-        
+
         //localStorage.removeItem(dialogMaximizedKey);
         isMax = localStorage.getItem(dialogMaximizedKey);
 
@@ -623,7 +624,7 @@ var Structr = {
             localStorage.removeItem(dialogMaximizedKey);
             Structr.resize();
         });
-        
+
         localStorage.setItem(dialogMaximizedKey, '1');
 
     },
@@ -1075,7 +1076,7 @@ var Structr = {
             stop: function(e, ui) {
                 localStorage.setItem(leftSlideoutWidthKey, slideout.width());
             }
-        });       
+        });
     },
     closeLeftSlideOuts: function(slideouts, activeTabKey) {
         var wasOpen = false;
@@ -1211,7 +1212,7 @@ var Structr = {
         return false;
     },
     ensureIsAdmin: function(el, callback) {
-        
+
         Structr.ping(function() {
 
             if (!isAdmin) {
@@ -1221,9 +1222,9 @@ var Structr = {
                 });
 
                 el.append('<div class="errorText"><img src="icon/error.png"> You do not have sufficient permissions to access this function.</div>');
-            
+
             } else {
-            
+
                 if (callback) callback();
 
             }
