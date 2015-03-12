@@ -539,7 +539,7 @@ ul#previewTabs {
     margin: 0;
 }
 
-#previewTabs li, #tabs li, .compTab, .data-tabs li, .files-tabs li {
+#previewTabs > li, #tabs > ul > li, .compTab, .data-tabs > ul > li, .files-tabs > ul > li {
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -562,7 +562,7 @@ ul#previewTabs {
     height: 22px;
 }
 
-#previewTabs li, #tabs li, .data-tabs li, .files-tabs li {
+#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li {
     position: relative;
     z-index: 1;
 }
@@ -571,7 +571,7 @@ ul#previewTabs {
     margin-top: 20px;
 }
 
-.data-tabs ul, .files-tabs ul {
+.data-tabs > ul, .files-tabs > ul {
     overflow: hidden;
 }
 
@@ -585,7 +585,7 @@ ul#previewTabs {
     margin: 6px 0 0 0;
 }
 
-.data-tabs li, #tabs li, .files-tabs li {
+.data-tabs > ul > li, #tabs > ul > li, .files-tabs > ul > li {
     font-size: 1em;
 }
 
@@ -1790,6 +1790,10 @@ button.add_property {
     float: none ! important;
     width: 160px;
     text-align: center;
+}
+
+.save_dataKey {
+    margin-left: 6px;
 }
 
 .query-text {
