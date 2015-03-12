@@ -688,6 +688,7 @@ var _Schema = {
         el.append('<img alt="Add view" class="add-icon add-view" src="icon/add.png">');
 
         var viewsTable = $('.views.schema-props', el);
+        var selectId   = 'select-view-attrs-new';
 
         $.each(entity.schemaViews, function(i, view) {
             _Schema.appendView(viewsTable, view);
@@ -695,7 +696,7 @@ var _Schema = {
 
         $('.add-view', el).on('click', function() {
             viewsTable.append('<tr class="new"><td><input size="15" type="text" class="view property-name" placeholder="Enter view name"></td>'
-                    + '<td><input size="15" type="text" class="view property-attrs" placeholder="Enter view attributes"></td><td><img alt="Remove" class="remove-icon remove-view" src="icon/delete.png"></td>'
+                    + '<td id="' + selectId + '"></td><td><img alt="Remove" class="remove-icon remove-view" src="icon/delete.png"></td>'
                     + '</div');
 
             $('.new .property-attrs.view', el).on('blur', function() {
@@ -707,6 +708,8 @@ var _Schema = {
                 self.closest('tr').remove();
             });
         });
+
+        _Schema.appendViewSelectionElement(selectId);
     },
     appendMethods: function(el, entity) {
 
@@ -1051,12 +1054,11 @@ var _Schema = {
     },
     appendView: function(el, view) {
 
-        var key = view.name;
-        var value = "";
+        var key      = view.name;
+        var selectId = 'select-' + key;
 
-        el.append('<tr class="' + view.name + '"><td><input size="15" type="text" class="property-name view" value="'
-                + escapeForHtmlAttributes(view.name) + '"></td><td><input size="30" type="text" class="property-attrs view" value="'
-                + escapeForHtmlAttributes(denormalizeAttrs(value)) + '"></td><td><img alt="Remove" class="remove-icon remove-view" src="icon/delete.png"></td></tr>');
+        el.append('<tr class="' + view.name + '"><td><input size="15" type="text" class="property-name view" value="' + escapeForHtmlAttributes(view.name) + '">'
+                + '</td><td id="' + selectId + '"></td><td><img alt="Remove" class="remove-icon remove-view" src="icon/delete.png"></td></tr>');
 
         $('.' + key + ' .property-attrs.view').on('blur', function() {
             _Schema.saveView(view);
@@ -1069,6 +1071,16 @@ var _Schema = {
         $('.' + key + ' .remove-view').on('click', function() {
             _Schema.confirmRemoveSchemaEntity(view, 'view', 'views');
         });
+
+        _Schema.appendViewSelectionElement(selectId);
+    },
+    appendViewSelectionElement: function(id) {
+
+        var elem    = $('#' + id);
+        var options = '<option>test1</option><option>test2</option><option>test3</option>'
+
+        elem.append('<select class="property-attrs view" multiple="multiple">' + options + '</select>');
+        elem.chosen();
     },
     savePropertyDefinition: function(property) {
 

@@ -1824,7 +1824,7 @@ button.add_property {
 }
 
 .endtag {
-    margin-top:  -4px;    
+    margin-top:  -4px;
 }
 
 #queries > div, #filters > div {
@@ -1955,7 +1955,7 @@ table.push {
     color: #9f6000;
     border: 1px solid #9f6000;
     font-size: 10pt;
-    
+
 }
 
 .tooltip img {
