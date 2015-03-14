@@ -100,7 +100,12 @@ var _Elements = {
     ],
     mostUsedAttrs: [
         {
-            'elements': ['input', 'button', 'select', 'option'],
+            'elements': ['input'],
+            'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder'],
+            'focus': 'type'
+        },
+        {
+            'elements': ['button', 'select', 'option'],
             'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder']
         },
         {
@@ -109,15 +114,34 @@ var _Elements = {
         },
         {
             'elements': ['img'],
-            'attrs': ['alt', 'title', 'src']
+            'attrs': ['alt', 'title', 'src'],
+            'focus': 'src'
         },
         {
-            'elements': ['script', 'link', 'a', 'img', 'object'],
-            'attrs': ['type', 'rel', 'href', 'media', 'src']
+            'elements': ['script', 'img', 'object'],
+            'attrs': ['type', 'rel', 'href', 'media', 'src'],
+            'focus': 'src'
+        },
+        {
+            'elements': ['link', 'a'],
+            'attrs': ['type', 'rel', 'href'],
+            'focus': 'href'
         },
         {
             'elements': ['td', 'th'],
             'attrs': ['colspan', 'rowspan']
+        },
+        {
+            'elements': ['label'],
+            'attrs': ['for', 'form'],
+            'focus' : 'for'
+            
+        },
+        {
+            'elements': ['style'],
+            'attrs': ['type', 'media', 'scoped'],
+            'focus' : 'type'
+            
         },
     ],
     /**

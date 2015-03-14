@@ -463,19 +463,22 @@ var _Entities = {
                     tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
 
                     var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
-
+                    var focusAttr = 'class';
+                    
                     $(keys).each(function (i, key) {
-
+                        
                         if (view === '_html_') {
+
                             var display = false;
                             _Elements.mostUsedAttrs.forEach(function (mostUsed) {
                                 if (isIn(entity.tag, mostUsed.elements) && isIn(key.substring(6), mostUsed.attrs)) {
                                     display = true;
+                                    focusAttr = mostUsed.focus ? mostUsed.focus : focusAttr;
                                 }
                             });
 
-                            // Always show non-empty attributes
-                            if (res[key] !== null) {
+                            // Always show non-empty, non 'data-' attributes
+                            if (res[key] !== null && key.substring(0, 5) !== 'data-') {
                                 display = true;
                             }
 
@@ -616,7 +619,7 @@ var _Entities = {
 
 
                     if (view === '_html_') {
-                        $('input[name="_html_class"]', props).focus();
+                        $('input[name="_html_' + focusAttr + '"]', props).focus();
 
                         tabView.append('<button class="show-all">Show all attributes</button>');
                         $('.show-all', tabView).on('click', function () {
