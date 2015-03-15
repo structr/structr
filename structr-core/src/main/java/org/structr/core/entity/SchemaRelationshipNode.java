@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity.relationship;
+package org.structr.core.entity;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -39,20 +39,17 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.ManyToMany;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaView;
+import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
+import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.Schema;
@@ -65,73 +62,42 @@ import org.structr.schema.parser.Validator;
  *
  * @author Christian Morgner
  */
-public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> implements Schema {
+public class SchemaRelationshipNode extends AbstractSchemaNode implements Schema {
 
-	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
-	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
+	private static final Logger logger                           = Logger.getLogger(SchemaRelationshipNode.class.getName());
+	private static final Pattern ValidKeyPattern                 = Pattern.compile("[a-zA-Z_]+");
 
-	public static final Property<String>  name                = new StringProperty("name").indexed();
-	public static final Property<String>  relationshipType    = new StringProperty("relationshipType");
-	public static final Property<String>  sourceMultiplicity  = new StringProperty("sourceMultiplicity");
-	public static final Property<String>  targetMultiplicity  = new StringProperty("targetMultiplicity");
-	public static final Property<String>  sourceNotion        = new StringProperty("sourceNotion");
-	public static final Property<String>  targetNotion        = new StringProperty("targetNotion");
-	public static final Property<String>  sourceJsonName      = new StringProperty("sourceJsonName");
-	public static final Property<String>  targetJsonName      = new StringProperty("targetJsonName");
-	public static final Property<String>  extendsClass        = new StringProperty("extendsClass").indexed();
-	public static final Property<Long>    cascadingDeleteFlag = new LongProperty("cascadingDeleteFlag");
-	public static final Property<Long>    autocreationFlag    = new LongProperty("autocreationFlag");
+	public static final Property<SchemaNode> sourceNode          = new StartNode<>("sourceNode", SchemaRelationshipSourceNode.class);
+	public static final Property<SchemaNode> targetNode          = new EndNode<>("targetNode", SchemaRelationshipTargetNode.class);
+	public static final Property<String>     sourceId            = new EntityNotionProperty<>("sourceId", sourceNode, new PropertyNotion(GraphObject.id));
+	public static final Property<String>     targetId            = new EntityNotionProperty<>("targetId", targetNode, new PropertyNotion(GraphObject.id));
+	public static final Property<String>     name                = new StringProperty("name").indexed();
+	public static final Property<String>     relationshipType    = new StringProperty("relationshipType");
+	public static final Property<String>     sourceMultiplicity  = new StringProperty("sourceMultiplicity");
+	public static final Property<String>     targetMultiplicity  = new StringProperty("targetMultiplicity");
+	public static final Property<String>     sourceNotion        = new StringProperty("sourceNotion");
+	public static final Property<String>     targetNotion        = new StringProperty("targetNotion");
+	public static final Property<String>     sourceJsonName      = new StringProperty("sourceJsonName");
+	public static final Property<String>     targetJsonName      = new StringProperty("targetJsonName");
+	public static final Property<String>     extendsClass        = new StringProperty("extendsClass").indexed();
+	public static final Property<Long>       cascadingDeleteFlag = new LongProperty("cascadingDeleteFlag");
+	public static final Property<Long>       autocreationFlag    = new LongProperty("autocreationFlag");
 
 	// internal, do not use externally
 	public static final Property<String>  sourceTypeName      = new StringProperty("__internal_Structr_sourceTypeName");
 
 
-	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
+	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag
 	);
 
-	public static final View uiView = new View(SchemaRelationship.class, PropertyView.Ui,
+	public static final View uiView = new View(SchemaRelationshipNode.class, PropertyView.Ui,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag
 	);
 
-	private final Set<String> dynamicViews = new LinkedHashSet<>();
-
-	@Override
-	public Class<SchemaNode> getSourceType() {
-		return SchemaNode.class;
-	}
-
-	@Override
-	public Class<SchemaNode> getTargetType() {
-		return SchemaNode.class;
-	}
-
-	@Override
-	public Property<String> getSourceIdProperty() {
-		return sourceId;
-	}
-
-	@Override
-	public Property<String> getTargetIdProperty() {
-		return targetId;
-	}
-
-	@Override
-	public String name() {
-		return "IS_RELATED_TO";
-	}
-
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.SOURCE_TO_TARGET;
-	}
+	private Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
@@ -139,7 +105,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Iterables.toList(super.getPropertyKeys(propertyView)));
 
 		// add "custom" property keys as String properties
-		for (final String key : SchemaHelper.getProperties(getRelationship())) {
+		for (final String key : SchemaHelper.getProperties(getNode())) {
 
 			final PropertyKey newKey = new StringProperty(key);
 			newKey.setDeclaringClass(getClass());
@@ -204,21 +170,12 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 	}
 
+	public SchemaNode getSourceNode() {
+		return getProperty(sourceNode);
+	}
 
-
-	@Override
-	public void onRelationshipDeletion() {
-
-		Services.getInstance().getConfigurationProvider().unregisterEntityType(getClassName());
-
-		final String signature = getResourceSignature();
-		final String inverseSignature = getInverseResourceSignature();
-
-		if (StringUtils.isNotBlank(signature) && StringUtils.isNotBlank(inverseSignature)) {
-
-			SchemaHelper.removeDynamicGrants(signature);
-			SchemaHelper.removeDynamicGrants(inverseSignature);
-		}
+	public SchemaNode getTargetNode() {
+		return getProperty(targetNode);
 	}
 
 	// ----- interface Schema -----
@@ -255,8 +212,6 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public String getPropertySource(final String propertyName, final boolean outgoing, final boolean newStatementOnly) {
 
 		final StringBuilder buf          = new StringBuilder();
-		//final String _sourceJsonName     = getProperty(sourceJsonName);
-		//final String _targetJsonName     = getProperty(targetJsonName);
 		final String _sourceMultiplicity = getProperty(sourceMultiplicity);
 		final String _targetMultiplicity = getProperty(targetMultiplicity);
 		final String _sourceNotion       = getProperty(sourceNotion);
@@ -335,7 +290,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		String propertyName = "";
 
-		final String relationshipTypeName = getProperty(SchemaRelationship.relationshipType).toLowerCase();
+		final String relationshipTypeName = getProperty(SchemaRelationshipNode.relationshipType).toLowerCase();
 		final String _sourceType          = getSchemaNodeSourceType();
 		final String _targetType          = getSchemaNodeTargetType();
 
@@ -547,6 +502,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return getTargetNode().getProperty(SchemaNode.name);
 	}
 
+	@Override
 	public String getResourceSignature() {
 
 		final String _sourceType = getSchemaNodeSourceType();
@@ -690,7 +646,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 	// ----- interface Syncable -----
 	@Override
-	public List<GraphObject> getSyncData() {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 
 		final List<GraphObject> syncables = super.getSyncData();
 

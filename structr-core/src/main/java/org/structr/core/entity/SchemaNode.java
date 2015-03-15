@@ -36,9 +36,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.SchemaNodeMethod;
-import org.structr.core.entity.relationship.SchemaNodeProperty;
-import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
@@ -70,26 +67,20 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	public static final Property<String>               defaultSortOrder = new StringProperty("defaultSortOrder");
 	public static final Property<Boolean>              isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
 
-	public static final Property<List<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
-	public static final Property<List<SchemaMethod>>   schemaMethods    = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
-	public static final Property<List<SchemaView>>     schemaViews      = new EndNodes<>("schemaViews", SchemaNodeView.class);
-
 	static {
 
 		name.addValidator(new TypeUniquenessValidator<String>(SchemaNode.class));
 	}
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
+		extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, schemaProperties, schemaViews, schemaMethods
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
 	);
 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
-
-
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {

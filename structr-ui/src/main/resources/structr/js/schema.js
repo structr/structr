@@ -344,7 +344,7 @@ var _Schema = {
 
     },
     loadRels: function(callback) {
-        var url = rootUrl + 'schema_relationships';
+        var url = rootUrl + 'schema_relationship_nodes';
         $.ajax({
             url: url,
             dataType: 'json',
@@ -465,7 +465,7 @@ var _Schema = {
                         //console.log($(this).parent().prop('id'));
                         var id = getIdFromPrefixIdString($(this).parent().prop('id'), 'rel_');
                         //console.log('Editing relationship', id);
-                        Command.getRelationship(id, function(entity) {
+                        Command.get(id, function(entity) {
                             _Schema.loadRelationship(entity, dialogText);
                         });
 
@@ -741,7 +741,7 @@ var _Schema = {
 
         el.append('<table class="related-attrs schema-props"><th>JSON Name</th><th>Type and Direction</th></table>');
 
-        var url = rootUrl + 'schema_relationships?sourceId=' + entity.id;
+        var url = rootUrl + 'schema_relationship_nodes?sourceId=' + entity.id;
         $.ajax({
             url: url,
             dataType: 'json',
@@ -763,7 +763,7 @@ var _Schema = {
             }
         });
 
-        url = rootUrl + 'schema_relationships?targetId=' + entity.id;
+        url = rootUrl + 'schema_relationship_nodes?targetId=' + entity.id;
         $.ajax({
             url: url,
             dataType: 'json',
@@ -1500,7 +1500,7 @@ var _Schema = {
             data.relationshipType = relationshipType;
         }
         $.ajax({
-            url: rootUrl + 'schema_relationships',
+            url: rootUrl + 'schema_relationship_nodes',
             type: 'POST',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -1517,7 +1517,7 @@ var _Schema = {
     },
     removeRelationshipDefinition: function(id) {
         $.ajax({
-            url: rootUrl + 'schema_relationships/' + id,
+            url: rootUrl + 'schema_relationship_nodes/' + id,
             type: 'DELETE',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -1535,7 +1535,7 @@ var _Schema = {
         var data = {};
         data[key] = cleanText(value);
         $.ajax({
-            url: rootUrl + 'schema_relationships/' + entity.id,
+            url: rootUrl + 'schema_relationship_nodes/' + entity.id,
             type: 'GET',
             contentType: 'application/json; charset=utf-8',
             statusCode: {
@@ -1544,7 +1544,7 @@ var _Schema = {
                     if (existingData.result[key] !== value) {
 
                         $.ajax({
-                            url: rootUrl + 'schema_relationships/' + entity.id,
+                            url: rootUrl + 'schema_relationship_nodes/' + entity.id,
                             type: 'PUT',
                             dataType: 'json',
                             contentType: 'application/json; charset=utf-8',
@@ -1602,15 +1602,9 @@ var _Schema = {
             if (!id) {
                 return false;
             }
-            if (isRel) {
-                Command.getRelationship(id, function(entity) {
-                    _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
-                });
-            } else {
-                Command.get(id, function(entity) {
-                    _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
-                });
-            }
+            Command.get(id, function(entity) {
+                _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
+            });
             return false;
         });
 
@@ -1620,15 +1614,8 @@ var _Schema = {
                 if (!id) {
                     return false;
                 }
-                if (isRel) {
-                    Command.getRelationship(id, function(entity) {
-                        _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
-                    });
-                } else {
-                    Command.get(id, function(entity) {
-                        _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
-                    });
-                }
+                _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
+
                 return false;
             }
         });
@@ -1641,12 +1628,7 @@ var _Schema = {
         if (oldVal !== newVal) {
             var obj = {};
             obj[key] = newVal;
-            if (isRel) {
-                _Schema.setRelationshipProperty(entity, key, newVal);
-            } else {
-                _Schema.storeSchemaEntity(entity, JSON.stringify(obj));
-            }
-
+            _Schema.storeSchemaEntity(entity, JSON.stringify(obj));
         }
     },
     importGraphGist: function(graphGistUrl, text) {
@@ -1764,7 +1746,7 @@ var _Schema = {
                         btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
                         e.preventDefault();
                         $.ajax({
-                            url: rootUrl + 'schema_relationships',
+                            url: rootUrl + 'schema_relationship_nodes',
                             type: 'DELETE',
                             data: {},
                             contentType: 'application/json',

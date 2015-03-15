@@ -18,13 +18,21 @@
  */
 package org.structr.core.entity;
 
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.entity.relationship.SchemaNodeMethod;
+import org.structr.core.entity.relationship.SchemaNodeProperty;
+import org.structr.core.entity.relationship.SchemaNodeView;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
 import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
@@ -34,6 +42,18 @@ import org.structr.schema.SchemaHelper;
  * @author Christian Morgner
  */
 public abstract class AbstractSchemaNode extends AbstractNode {
+
+	public static final Property<List<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
+	public static final Property<List<SchemaMethod>>   schemaMethods    = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
+	public static final Property<List<SchemaView>>     schemaViews      = new EndNodes<>("schemaViews", SchemaNodeView.class);
+
+	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
+		name
+	);
+
+	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
+		name, schemaProperties, schemaViews, schemaMethods
+	);
 
 	static {
 
