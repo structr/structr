@@ -961,7 +961,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			throw new FrameworkException(403, "Modification not permitted.");
 		}
 
-
 		T oldValue = getProperty(key);
 
 		// check null cases

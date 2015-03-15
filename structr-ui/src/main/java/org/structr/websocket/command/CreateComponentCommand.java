@@ -26,6 +26,7 @@ import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.w3c.dom.DOMException;
 
 
 /**
@@ -72,7 +73,7 @@ public class CreateComponentCommand extends AbstractCommand {
 
 				node.setProperty(DOMNode.sharedComponent, clonedNode);
 				
-			} catch (FrameworkException ex) {
+			} catch (DOMException | FrameworkException ex) {
 
 				// send DOM exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);

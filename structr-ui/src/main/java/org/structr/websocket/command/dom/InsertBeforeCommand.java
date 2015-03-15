@@ -42,10 +42,10 @@ public class InsertBeforeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String id                    = webSocketData.getId();
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String refId                 = (String) nodeData.get("refId");
-		String parentId              = (String) nodeData.get("parentId");
+		final String id                    = webSocketData.getId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String refId                 = (String) nodeData.get("refId");
+		final String parentId              = (String) nodeData.get("parentId");
 
 		// check node to append
 		if (id == null) {
@@ -65,10 +65,10 @@ public class InsertBeforeCommand extends AbstractCommand {
 
 		}
 
-		DOMNode refNode = getDOMNode(refId );
+		final DOMNode refNode = getDOMNode(refId );
 
 		// check if parent node with given ID exists
-		DOMNode parentNode = getDOMNode(parentId);
+		final DOMNode parentNode = getDOMNode(parentId);
 
 		if (parentNode == null) {
 
@@ -78,7 +78,7 @@ public class InsertBeforeCommand extends AbstractCommand {
 
 		}
 
-		DOMNode node = getDOMNode(id);
+		final DOMNode node = getDOMNode(id);
 
 		try {
 

@@ -39,15 +39,15 @@ public class CreateDOMNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		Map<String, Object> nodeData = webSocketData.getNodeData();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
 
 		String pageId                = webSocketData.getPageId();
 		if (pageId != null) {
 			
-			Document document = getPage(pageId);
+			final Document document = getPage(pageId);
 			if (document != null) {
 
-				String tagName    = (String) nodeData.get("tagName");
+				final String tagName    = (String) nodeData.get("tagName");
 				if (tagName != null && !tagName.isEmpty()) {
 
 					document.createElement(tagName);

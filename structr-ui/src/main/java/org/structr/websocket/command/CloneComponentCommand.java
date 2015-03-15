@@ -26,6 +26,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.w3c.dom.DOMException;
 
 
 /**
@@ -88,7 +89,7 @@ public class CloneComponentCommand extends AbstractCommand {
 			clonedNode.setProperty(DOMNode.sharedComponent, node);
 			clonedNode.setProperty(DOMNode.ownerDocument, (parentNode instanceof Page ? (Page) parentNode : parentNode.getProperty(DOMNode.ownerDocument)));
 			
-		} catch (FrameworkException ex) {
+		} catch (DOMException | FrameworkException ex) {
 
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);

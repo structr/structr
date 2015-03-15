@@ -127,8 +127,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 						for (Entry entry : nodeData.entrySet()) {
 
-							String key = (String) entry.getKey();
-							Object val = entry.getValue();
+							final String key = (String) entry.getKey();
+							final Object val = entry.getValue();
 
 							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(newNode.getClass(), key);
 							if (propertyKey != null) {
@@ -157,7 +157,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						// create a child text node if content is given
 						if (StringUtils.isNotBlank(childContent)) {
 
-							DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+							final DOMNode childNode = (DOMNode)document.createTextNode(childContent);
 
 							newNode.appendChild(childNode);
 
