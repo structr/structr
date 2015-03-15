@@ -47,14 +47,14 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		DOMNode node = getDOMNode(webSocketData.getId());
+		final DOMNode node = getDOMNode(webSocketData.getId());
 
 		if (node == null) {
 
 			return;
 		}
 
-		List<GraphObject> result = new LinkedList<>();
+		final List<GraphObject> result = new LinkedList<>();
 		DOMNode currentNode      = (DOMNode) node.getFirstChild();
 
 		while (currentNode != null) {

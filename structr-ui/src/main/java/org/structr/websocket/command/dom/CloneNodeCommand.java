@@ -20,13 +20,13 @@ package org.structr.websocket.command.dom;
 
 import java.util.Map;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.w3c.dom.DOMException;
 
 
 /**
@@ -78,9 +78,8 @@ public class CloneNodeCommand extends AbstractCommand {
 				parent.appendChild(clonedNode);
 				clonedNode.setProperty(DOMNode.ownerDocument, parent.getProperty(DOMNode.ownerDocument));
 
-			} catch (FrameworkException ex) {
+			} catch (DOMException | FrameworkException ex) {
 
-				// send DOM exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 
 			}
