@@ -691,7 +691,7 @@ var _Schema = {
         var selectId   = 'select-view-attrs-new';
 
         $.each(entity.schemaViews, function(i, view) {
-            _Schema.appendView(viewsTable, view);
+            _Schema.appendView(viewsTable, view, entity);
         });
 
         $('.add-view', el).on('click', function() {
@@ -709,7 +709,7 @@ var _Schema = {
             });
         });
 
-        _Schema.appendViewSelectionElement(selectId);
+        _Schema.appendViewSelectionElement(selectId, entity);
     },
     appendMethods: function(el, entity) {
 
@@ -1052,7 +1052,7 @@ var _Schema = {
             _Schema.confirmRemoveSchemaEntity(method, 'method', 'methods');
         });
     },
-    appendView: function(el, view) {
+    appendView: function(el, view, entity) {
 
         var key      = view.name;
         var selectId = 'select-' + key;
@@ -1072,15 +1072,37 @@ var _Schema = {
             _Schema.confirmRemoveSchemaEntity(view, 'view', 'views');
         });
 
-        _Schema.appendViewSelectionElement(selectId);
+        _Schema.appendViewSelectionElement(selectId, view, entity);
     },
-    appendViewSelectionElement: function(id) {
+    appendViewSelectionElement: function(id, view, schemaNode) {
 
-        var elem    = $('#' + id);
-        var options = '<option>test1</option><option>test2</option><option>test3</option>'
+        var el = $('#' + id);
+        el.append('<select class="property-attrs view" multiple="multiple"></select>');
+        var viewSelectElem = $('.property-attrs', el);
+ 
+        viewSelectElem.on('change', function() {
+            var attrs = $(this).val();
+            console.log('attrs', attrs);
+            _Schema.saveView(view);
+            //_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj));
+        });
 
-        elem.append('<select class="property-attrs view" multiple="multiple">' + options + '</select>');
-        elem.chosen();
+        $.get(rootUrl + 'schema_nodes/' + schemaNode.id + '/ui', function(data) {
+            var result = data.result;
+            console.log(result);
+            var attrNames = result.schemaProperties.map(function(prop) {
+                return prop.name;
+            });
+
+            attrNames.sort();
+
+            attrNames.forEach( function (name) {
+                viewSelectElem.append('<option value="' + name + '">' + name + '</option>');
+            });
+
+            viewSelectElem.chosen({ search_contains: true });
+        });
+
     },
     savePropertyDefinition: function(property) {
 
