@@ -162,7 +162,11 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 
 				// create "virtual" property nodes for builtin types
 				for (final PropertyKey key : config.getPropertySet(builtinClass, PropertyView.Ui)) {
-					createBuiltInSchemaProperty(config, builtinClass, propertyNames, key);
+
+					if (key.getDeclaringClass().equals(builtinClass)) {
+						
+						createBuiltInSchemaProperty(config, builtinClass, propertyNames, key);
+					}
 				}
 			}
 		}
