@@ -688,7 +688,7 @@ var _Schema = {
         el.append('<img alt="Add view" class="add-icon add-view" src="icon/add.png">');
 
         var viewsTable = $('.views.schema-props', el);
-        var selectId   = 'select-view-attrs-new';
+        var newSelectClass   = 'select-view-attrs-new';
 
         _Schema.sortByBuiltinFlagAndName(entity.schemaViews, 'isBuiltinView');
 
@@ -698,10 +698,10 @@ var _Schema = {
 
         $('.add-view', el).on('click', function() {
             viewsTable.append('<tr class="new"><td style="width:20%;"><input size="15" type="text" class="view property-name" placeholder="Enter view name"></td>'
-                    + '<td id="' + selectId + '"></td><td>' + ('<img alt="Remove" class="remove-icon remove-view" src="icon/delete.png">') + '</td>'
+                    + '<td class="' + newSelectClass + '"></td><td>' + ('<img alt="Remove" class="remove-icon remove-view" src="icon/delete.png">') + '</td>'
                     + '</div');
 
-            _Schema.appendViewSelectionElement(selectId, {name: 'new'}, resource, entity);
+            _Schema.appendViewSelectionElement('.' + newSelectClass, {name: 'new'}, resource, entity);
 
             $('.new .property-attrs.view', el).on('change', function() {
                 _Schema.createView(el, entity);
@@ -1095,7 +1095,7 @@ var _Schema = {
                 + (view.isBuiltinView ? '<img alt="Reset" title="Reset view" class="remove-icon reset-view" src="icon/arrow_undo.png">' : '<img alt="Remove" class="remove-icon remove-view" src="icon/delete.png">')
                 + '</td></tr>');
 
-        _Schema.appendViewSelectionElement(selectId, view, resource, entity);
+        _Schema.appendViewSelectionElement('#' + selectId, view, resource, entity);
 
         $('.' + key + ' .property-attrs.view').on('blur', function() {
             _Schema.saveView(view, entity);
@@ -1113,10 +1113,10 @@ var _Schema = {
             _Schema.confirmRemoveSchemaEntity(view, 'Reset view', 'views');
         });
     },
-    appendViewSelectionElement: function(id, view, resource, schemaEntity) {
+    appendViewSelectionElement: function(selector, view, resource, schemaEntity) {
 
         var selected = {};
-        var el       = $('#' + id);
+        var el       = $(selector).last();
 
         el.append('<select class="property-attrs view" multiple="multiple"></select>');
         var viewSelectElem = $('.property-attrs', el);
