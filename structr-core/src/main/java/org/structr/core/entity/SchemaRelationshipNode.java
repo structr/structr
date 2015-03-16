@@ -52,7 +52,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ReloadSchema;
-import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
@@ -62,7 +61,7 @@ import org.structr.schema.parser.Validator;
  *
  * @author Christian Morgner
  */
-public class SchemaRelationshipNode extends AbstractSchemaNode implements Schema {
+public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	private static final Logger logger                           = Logger.getLogger(SchemaRelationshipNode.class.getName());
 	private static final Pattern ValidKeyPattern                 = Pattern.compile("[a-zA-Z_]+");
@@ -495,11 +494,25 @@ public class SchemaRelationshipNode extends AbstractSchemaNode implements Schema
 
 	// ----- public methods -----
 	public String getSchemaNodeSourceType() {
-		return getSourceNode().getProperty(SchemaNode.name);
+
+		final SchemaNode sourceNode = getSourceNode();
+		if (sourceNode != null) {
+
+			return sourceNode.getProperty(SchemaNode.name);
+		}
+
+		return null;
 	}
 
 	public String getSchemaNodeTargetType() {
-		return getTargetNode().getProperty(SchemaNode.name);
+
+		final SchemaNode targetNode = getTargetNode();
+		if (targetNode != null) {
+
+			return targetNode.getProperty(SchemaNode.name);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -517,21 +530,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode implements Schema
 		final String _targetType = getSchemaNodeTargetType();
 
 		return _targetType + "/" + _sourceType;
-	}
-
-	@Override
-	public List<SchemaProperty> getSchemaProperties() {
-		return null;
-	}
-
-	@Override
-	public List<SchemaView> getSchemaViews() {
-		return null;
-	}
-
-	@Override
-	public List<SchemaMethod> getSchemaMethods() {
-		return null;
 	}
 
 	// ----- private methods -----

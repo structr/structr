@@ -805,7 +805,7 @@ public class DocumentTest extends StructrRestTest {
 	private String createSchemaRelationships(final String sourceId, final String targetId, final String relationshipType, final String sourceMultiplicity, final String targetMultiplicity, final String sourceJsonName, final String targetJsonName, final int autocreate, final int cascadingDelete) {
 
 		return createEntity(
-			"/schema_relationships",
+			"/schema_relationship_nodes",
 			"{ \"sourceId\": \"" + sourceId + "\"" +
 			", \"targetId\": \"" + targetId + "\"" +
 			", \"relationshipType\": \"" + relationshipType + "\"" +

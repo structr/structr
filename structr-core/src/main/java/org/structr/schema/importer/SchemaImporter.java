@@ -45,7 +45,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
@@ -341,11 +341,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				final String relationshipType = template.getRelType();
 				final PropertyMap propertyMap = new PropertyMap();
 
-				propertyMap.put(SchemaRelationship.sourceId, startNode.getUuid());
-				propertyMap.put(SchemaRelationship.targetId, endNode.getUuid());
-				propertyMap.put(SchemaRelationship.relationshipType, relationshipType);
+				propertyMap.put(SchemaRelationshipNode.sourceId, startNode.getUuid());
+				propertyMap.put(SchemaRelationshipNode.targetId, endNode.getUuid());
+				propertyMap.put(SchemaRelationshipNode.relationshipType, relationshipType);
 
-				app.create(startNode, endNode, SchemaRelationship.class, propertyMap);
+				app.create(SchemaRelationshipNode.class, propertyMap);
 			}
 
 

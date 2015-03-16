@@ -15,6 +15,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestOne.Status;
@@ -22,7 +23,6 @@ import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.TestUser;
-import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
@@ -85,13 +85,15 @@ public class StructrScriptableTest extends StructrTest {
 
 			final PropertyMap properties = new PropertyMap();
 
-			properties.put(SchemaRelationship.sourceJsonName, "source");
-			properties.put(SchemaRelationship.targetJsonName, "targets");
-			properties.put(SchemaRelationship.sourceMultiplicity, "*");
-			properties.put(SchemaRelationship.targetMultiplicity, "*");
-			properties.put(SchemaRelationship.relationshipType, "HAS");
+			properties.put(SchemaRelationshipNode.sourceId,       sourceNode.getUuid());
+			properties.put(SchemaRelationshipNode.targetId,       targetNode.getUuid());
+			properties.put(SchemaRelationshipNode.sourceJsonName, "source");
+			properties.put(SchemaRelationshipNode.targetJsonName, "targets");
+			properties.put(SchemaRelationshipNode.sourceMultiplicity, "*");
+			properties.put(SchemaRelationshipNode.targetMultiplicity, "*");
+			properties.put(SchemaRelationshipNode.relationshipType, "HAS");
 
-			app.create(sourceNode, targetNode, SchemaRelationship.class, properties);
+			app.create(SchemaRelationshipNode.class, properties);
 
 			tx.success();
 

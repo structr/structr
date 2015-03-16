@@ -1,6 +1,7 @@
 package org.structr.core.entity.relationship;
 
-import org.structr.core.entity.OneToOne;
+import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 
@@ -8,7 +9,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
  *
  * @author Christian Morgner
  */
-public class SchemaRelationshipTargetNode extends OneToOne<SchemaRelationshipNode, SchemaNode> {
+public class SchemaRelationshipTargetNode extends ManyToOne<SchemaRelationshipNode, SchemaNode> {
 
 	@Override
 	public Class<SchemaRelationshipNode> getSourceType() {
@@ -23,5 +24,10 @@ public class SchemaRelationshipTargetNode extends OneToOne<SchemaRelationshipNod
 	@Override
 	public String name() {
 		return "IS_RELATED_TO";
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.TARGET_TO_SOURCE;
 	}
 }

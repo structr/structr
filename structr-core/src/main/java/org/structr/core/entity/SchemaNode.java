@@ -36,7 +36,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
+import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
@@ -47,9 +48,7 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.TypeUniquenessValidator;
-import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.SchemaNotion;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.parser.Validator;
@@ -58,14 +57,14 @@ import org.structr.schema.parser.Validator;
  *
  * @author Christian Morgner
  */
-public class SchemaNode extends AbstractSchemaNode implements Schema {
+public class SchemaNode extends AbstractSchemaNode {
 
-	public static final Property<List<SchemaNode>>     relatedTo        = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<List<SchemaNode>>     relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<String>               extendsClass     = new StringProperty("extendsClass").indexed();
-	public static final Property<String>               defaultSortKey   = new StringProperty("defaultSortKey");
-	public static final Property<String>               defaultSortOrder = new StringProperty("defaultSortOrder");
-	public static final Property<Boolean>              isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
+	public static final Property<List<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
+	public static final Property<List<SchemaRelationshipNode>> relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
+	public static final Property<String>                       extendsClass     = new StringProperty("extendsClass").indexed();
+	public static final Property<String>                       defaultSortKey   = new StringProperty("defaultSortKey");
+	public static final Property<String>                       defaultSortOrder = new StringProperty("defaultSortOrder");
+	public static final Property<Boolean>                      isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
 
 	static {
 
@@ -130,7 +129,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		src.append("public class ").append(_className).append(" extends ").append(superClass).append(" {\n\n");
 
 		// output related node definitions, collect property views
-		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+		for (final SchemaRelationshipNode outRel : getProperty(SchemaNode.relatedTo)) {
 
 			final String propertyName = outRel.getPropertyName(_className, existingPropertyNames, true);
 
@@ -143,7 +142,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		// output related node definitions, collect property views
-		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+		for (final SchemaRelationshipNode inRel : getProperty(SchemaNode.relatedFrom)) {
 
 			final String propertyName = inRel.getPropertyName(_className, existingPropertyNames, false);
 
@@ -222,7 +221,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		final Set<String> existingPropertyNames = new LinkedHashSet<>();
 		final String _className                 = getProperty(name);
 
-		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+		for (final SchemaRelationshipNode outRel : getProperty(SchemaNode.relatedTo)) {
 
 			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
 				return outRel.getMultiplicity(true);
@@ -230,7 +229,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		// output related node definitions, collect property views
-		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+		for (final SchemaRelationshipNode inRel : getProperty(SchemaNode.relatedFrom)) {
 
 			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
 				return inRel.getMultiplicity(false);
@@ -265,7 +264,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		final Set<String> existingPropertyNames = new LinkedHashSet<>();
 		final String _className                 = getProperty(name);
 
-		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+		for (final SchemaRelationshipNode outRel : getProperty(SchemaNode.relatedTo)) {
 
 			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
 				return outRel.getSchemaNodeTargetType();
@@ -273,7 +272,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		// output related node definitions, collect property views
-		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+		for (final SchemaRelationshipNode inRel : getProperty(SchemaNode.relatedFrom)) {
 
 			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
 				return inRel.getSchemaNodeSourceType();
@@ -345,7 +344,9 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 				src.append("\n\tstatic {\n\n");
 
-				for (final String propertyName : propertyNames) {
+				for (final String name : propertyNames) {
+
+					final String propertyName = name + "Property";
 
 					src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
 					src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
@@ -365,21 +366,6 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		return null;
-	}
-
-	@Override
-	public List<SchemaProperty> getSchemaProperties() {
-		return getProperty(SchemaNode.schemaProperties);
-	}
-
-	@Override
-	public List<SchemaView> getSchemaViews() {
-		return getProperty(SchemaNode.schemaViews);
-	}
-
-	@Override
-	public List<SchemaMethod> getSchemaMethods() {
-		return getProperty(SchemaNode.schemaMethods);
 	}
 
 	// ----- private methods -----
@@ -402,12 +388,12 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		data.addAll(StructrApp.getInstance(securityContext).nodeQuery(SchemaNode.class).getAsList());
 
 		// outgoing relationships
-		for (final SchemaRelationship rel : getOutgoingRelationships(SchemaRelationship.class)) {
+		for (final SchemaRelationshipNode rel : getProperty(SchemaNode.relatedTo)) {
 			data.add(rel);
 		}
 
 		// incoming relationships
-		for (final SchemaRelationship rel : getIncomingRelationships(SchemaRelationship.class)) {
+		for (final SchemaRelationshipNode rel : getProperty(SchemaNode.relatedFrom)) {
 			data.add(rel);
 		}
 

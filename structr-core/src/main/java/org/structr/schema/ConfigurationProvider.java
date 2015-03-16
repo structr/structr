@@ -75,6 +75,7 @@ public interface ConfigurationProvider {
 	public ViewTransformation getViewTransformation(final Class type, final String view);
 
 	public Set<String> getPropertyViews();
+	public Set<String> getPropertyViewsForType(final Class type);
 	public void registerDynamicViews(final Set<String> dynamicViews);
 
 	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertyKey);

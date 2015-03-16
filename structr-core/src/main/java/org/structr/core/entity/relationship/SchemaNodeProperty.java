@@ -18,19 +18,20 @@
  */
 package org.structr.core.entity.relationship;
 
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SchemaNodeProperty extends OneToMany<SchemaNode, SchemaProperty> {
+public class SchemaNodeProperty extends OneToMany<AbstractSchemaNode, SchemaProperty> {
 
 	@Override
-	public Class<SchemaNode> getSourceType() {
-		return SchemaNode.class;
+	public Class<AbstractSchemaNode> getSourceType() {
+		return AbstractSchemaNode.class;
 	}
 
 	@Override
@@ -41,5 +42,10 @@ public class SchemaNodeProperty extends OneToMany<SchemaNode, SchemaProperty> {
 	@Override
 	public String name() {
 		return "HAS_PROPERTY";
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.SOURCE_TO_TARGET;
 	}
 }

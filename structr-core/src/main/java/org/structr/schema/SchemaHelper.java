@@ -49,8 +49,8 @@ import org.structr.core.entity.SchemaMethod;
 import static org.structr.core.entity.SchemaMethod.source;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
-import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionEntry;
@@ -243,7 +243,7 @@ public class SchemaHelper {
 
 			}
 
-			for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
+			for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
 				createDynamicGrants(schemaRelationship.getResourceSignature());
 				createDynamicGrants(schemaRelationship.getInverseResourceSignature());
@@ -392,23 +392,26 @@ public class SchemaHelper {
 
 			for (final SchemaProperty schemaProperty : schemaProperties) {
 
-				final PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), schemaProperty);
-				if (parser != null) {
+				if (!schemaProperty.getProperty(SchemaProperty.isBuiltinProperty)) {
 
-					final String propertyName = schemaProperty.getPropertyName();
+					final PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), schemaProperty);
+					if (parser != null) {
 
-					// add property name to set for later use
-					propertyNames.add(propertyName);
+						final String propertyName = schemaProperty.getPropertyName();
 
-					// append created source from parser
-					parser.getPropertySource(src, entity);
+						// add property name to set for later use
+						propertyNames.add(propertyName);
 
-					// register global elements created by parser
-					validators.addAll(parser.getGlobalValidators());
-					enums.addAll(parser.getEnumDefinitions());
+						// append created source from parser
+						parser.getPropertySource(src, entity);
 
-					// register property in default view
-					addPropertyToView(PropertyView.Ui, propertyName, views);
+						// register global elements created by parser
+						validators.addAll(parser.getGlobalValidators());
+						enums.addAll(parser.getEnumDefinitions());
+
+						// register property in default view
+						addPropertyToView(PropertyView.Ui, propertyName, views);
+					}
 				}
 			}
 		}
@@ -509,7 +512,15 @@ public class SchemaHelper {
 				}
 
 				for (final SchemaProperty property : schemaView.getProperty(SchemaView.schemaProperties)) {
-					view.add(property.getPropertyName() + "Property");
+
+					if (property.getProperty(SchemaProperty.isBuiltinProperty)) {
+
+						view.add(property.getPropertyName());
+
+					} else {
+
+						view.add(property.getPropertyName() + "Property");
+					}
 				}
 
 				// add properties that are not part of the graph

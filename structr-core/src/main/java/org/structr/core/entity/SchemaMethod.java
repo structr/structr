@@ -13,10 +13,10 @@ import org.structr.schema.action.ActionEntry;
  *
  * @author Christian Morgner
  */
-public class SchemaMethod extends AbstractNode {
+public class SchemaMethod extends SchemaReloadingNode {
 
-	public static final Property<SchemaNode> schemaNode  = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<String> source          = new StringProperty("source");
+	public static final Property<AbstractSchemaNode> schemaNode  = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<String>             source      = new StringProperty("source");
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
 		name, schemaNode, source

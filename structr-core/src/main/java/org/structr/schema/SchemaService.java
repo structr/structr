@@ -39,7 +39,7 @@ import org.structr.core.Service;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.Tx;
 import org.structr.schema.compiler.NodeExtender;
 
@@ -99,7 +99,7 @@ public class SchemaService implements Service {
 					}
 
 					// collect relationship classes
-					for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
+					for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
 						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
 
@@ -116,12 +116,21 @@ public class SchemaService implements Service {
 					Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
 					for (final Class newType : newTypes.values()) {
 
+						// do full reload
+						config.unregisterEntityType(newType.getName());
 						config.registerEntityType(newType);
 
 						// instantiate classes to execute
 						// static initializer of helpers
 						try { newType.newInstance(); } catch (Throwable t) {}
 					}
+
+
+					// create properties and views etc.
+					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+						schemaNode.createBuiltInSchemaEntities(errorBuffer);
+					}
+
 
 					success = !errorBuffer.hasError();
 

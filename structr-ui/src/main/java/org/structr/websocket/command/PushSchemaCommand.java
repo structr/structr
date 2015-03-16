@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.Tx;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -71,7 +71,7 @@ public class PushSchemaCommand extends AbstractCommand {
 					}
 				}
 
-				for (final SchemaRelationship rel : app.relationshipQuery(SchemaRelationship.class).getAsList()) {
+				for (final SchemaRelationshipNode rel : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 					tms.getExportSet().add(rel);
 				}
 
