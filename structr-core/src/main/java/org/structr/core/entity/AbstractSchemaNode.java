@@ -242,7 +242,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 					new NodeAttribute(SchemaProperty.notNull, template.isNotNull()),
 					new NodeAttribute(SchemaProperty.format, template.format()),
 					new NodeAttribute(SchemaProperty.unique, template.isUnique()),
-					new NodeAttribute(SchemaProperty.isBuiltinProperty, true),
+					new NodeAttribute(SchemaProperty.isBuiltinProperty, isInUi || isInPublic),
 					new NodeAttribute(SchemaProperty.isDefaultInUi, isInUi),
 					new NodeAttribute(SchemaProperty.isDefaultInPublic, isInPublic)
 				);
