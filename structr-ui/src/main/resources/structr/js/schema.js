@@ -1388,7 +1388,6 @@ var _Schema = {
                 _Schema.bindEvents({name: key});
             });
         }
-
     },
     saveView: function(view, entity) {
 
