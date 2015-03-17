@@ -1115,8 +1115,7 @@ var _Schema = {
     },
     appendViewSelectionElement: function(selector, view, resource, schemaEntity) {
 
-        var selected = {};
-        var el       = $(selector).last();
+        var el = $(selector).last();
 
         el.append('<select class="property-attrs view" multiple="multiple"></select>');
         var viewSelectElem = $('.property-attrs', el);
@@ -1127,32 +1126,8 @@ var _Schema = {
                 _Schema.saveView(view, schemaEntity);
             });
 
-            $.get(rootUrl + 'schema_views/' + view.id + '/schema', function(data) {
-
-                // collect selected elements
-                data.result.schemaProperties.forEach(function(prop) {
-                    selected[prop.name] = true;
-                });
-
-                $.get(rootUrl + resource + '/' + schemaEntity.id + '/schema', function(data) {
-
-                    var result = data.result;
-
-                    // sort by builtin type and name
-                    _Schema.sortByBuiltinFlagAndName(result.schemaProperties, 'isBuiltinProperty');
-
-                    result.schemaProperties.forEach(function (prop) {
-
-                        var name       = prop.name;
-                        var isSelected = selected[name] ? ' selected="selected"' : '';
-                        var isDisabled = (view.name === 'ui' && prop.isDefaultInUi) || (view.name === 'public' && prop.isDefaultInPublic) ? ' disabled="disabled"' : '';
-
-                        viewSelectElem.append('<option value="' + name + '"' + isSelected + isDisabled + '>' + name + '</option>');
-                    });
-
-                    viewSelectElem.chosen({ search_contains: true, width: '100%' });
-                });
-
+            Command.listSchemaProperties(schemaEntity.id, view.name, function(data) {
+                _Schema.appendViewOptions(viewSelectElem, data);
             });
 
         } else {
@@ -1175,6 +1150,20 @@ var _Schema = {
             });
 
         }
+    },
+    appendViewOptions: function(viewSelectElem, properties) {
+
+        properties.forEach(function(prop) {
+
+            var name       = prop.name;
+            var isSelected = prop.isSelected ? ' selected="selected"' : '';
+            var isDisabled = prop.isDisabled ? ' disabled="disabled"' : '';
+
+            viewSelectElem.append('<option value="' + name + '"' + isSelected + isDisabled + '>' + name + '</option>');
+        });
+
+        viewSelectElem.chosen({ search_contains: true, width: '100%' });
+
     },
     savePropertyDefinition: function(property) {
 
@@ -1432,10 +1421,11 @@ var _Schema = {
 
         if (name && name.length) {
 
-            var obj              = {};
-            obj.schemaNode       = { id: entity.id }
-            obj.schemaProperties = _Schema.findSchemaPropertiesByNodeAndName(view, entity, attrs);
-            obj.name             = name;
+            var obj                = {};
+            obj.schemaNode         = { id: entity.id }
+            obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(entity, attrs);
+            obj.nonGraphProperties = _Schema.findNonGraphProperties(entity, attrs);
+            obj.name               = name;
 
             _Schema.storeSchemaEntity('schema_views', view, JSON.stringify(obj), function() {
 
@@ -1458,7 +1448,7 @@ var _Schema = {
             });
         }
     },
-    findSchemaPropertiesByNodeAndName: function(view, entity, names) {
+    findSchemaPropertiesByNodeAndName: function(entity, names) {
 
         var result = [];
         var props  = entity['schemaProperties'];
@@ -1477,6 +1467,37 @@ var _Schema = {
         }
 
         return result;
+    },
+    findNonGraphProperties: function(entity, names) {
+
+        var result = [];
+        var props  = entity['schemaProperties'];
+
+        if (names && names.length && props && props.length) {
+
+            $.each(names, function(i, name) {
+
+                var found = false;
+
+                $.each(props, function(i, prop) {
+
+                    if (prop.name === name) {
+                        found = true;
+                        return;
+                    }
+                });
+
+                if (!found) {
+                    result.push(name);
+                }
+            });
+
+        } else if (names) {
+
+            result = names;
+        }
+
+        return result.join(', ');
     },
     removeSchemaEntity: function(entity, onSuccess, onError) {
 

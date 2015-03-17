@@ -163,8 +163,8 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 				// create "virtual" property nodes for builtin types
 				for (final PropertyKey key : config.getPropertySet(builtinClass, PropertyView.Ui)) {
 
-					if (key.getDeclaringClass().equals(builtinClass)) {
-						
+					if (builtinClass.equals(key.getDeclaringClass())) {
+
 						createBuiltInSchemaProperty(config, builtinClass, propertyNames, key);
 					}
 				}
@@ -238,6 +238,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 
 				final SchemaProperty property = StructrApp.getInstance(node.getSecurityContext()).create(SchemaProperty.class,
 					new NodeAttribute(SchemaProperty.schemaNode, node),
+					new NodeAttribute(SchemaProperty.declaringClass, template.getDeclaringClass().getSimpleName()),
 					new NodeAttribute(SchemaProperty.propertyType, template.typeName()),
 					new NodeAttribute(SchemaProperty.defaultValue, template.defaultValue()),
 					new NodeAttribute(SchemaProperty.name, template.jsonName()),
@@ -248,7 +249,8 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 					new NodeAttribute(SchemaProperty.unique, template.isUnique()),
 					new NodeAttribute(SchemaProperty.isBuiltinProperty, isInUi || isInPublic),
 					new NodeAttribute(SchemaProperty.isDefaultInUi, isInUi),
-					new NodeAttribute(SchemaProperty.isDefaultInPublic, isInPublic)
+					new NodeAttribute(SchemaProperty.isDefaultInPublic, isInPublic),
+					new NodeAttribute(SchemaProperty.isDynamic, template.isDynamic())
 				);
 
 				// store content hash

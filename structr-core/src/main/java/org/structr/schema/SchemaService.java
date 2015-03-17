@@ -114,6 +114,7 @@ public class SchemaService implements Service {
 
 					// compile all classes at once and register
 					Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
+
 					for (final Class newType : newTypes.values()) {
 
 						// do full reload
@@ -124,7 +125,6 @@ public class SchemaService implements Service {
 						// static initializer of helpers
 						try { newType.newInstance(); } catch (Throwable t) {}
 					}
-
 
 					// create properties and views etc.
 					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {

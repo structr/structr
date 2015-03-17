@@ -50,6 +50,11 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
+	public String typeName() {
+		return "String";
+	}
+
+	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}

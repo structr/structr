@@ -28,6 +28,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<AbstractSchemaNode> schemaNode        = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 	public static final Property<List<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
+	public static final Property<String>             declaringClass    = new StringProperty("declaringClass");
 	public static final Property<String>             defaultValue      = new StringProperty("defaultValue");
 	public static final Property<String>             propertyType      = new StringProperty("propertyType");
 	public static final Property<String>             contentType       = new StringProperty("contentType");
@@ -35,21 +36,22 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             format            = new StringProperty("format");
 	public static final Property<Boolean>            notNull           = new BooleanProperty("notNull");
 	public static final Property<Boolean>            unique            = new BooleanProperty("unique");
+	public static final Property<Boolean>            isDynamic         = new BooleanProperty("isDynamic");
 	public static final Property<Boolean>            isBuiltinProperty = new BooleanProperty("isBuiltinProperty");
 	public static final Property<Boolean>            isDefaultInUi     = new BooleanProperty("isDefaultInUi");
 	public static final Property<Boolean>            isDefaultInPublic = new BooleanProperty("isDefaultInPublic");
 	public static final Property<String>             contentHash       = new StringProperty("contentHash");
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty
+		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty
+		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic
+		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
 	);
 
 	@Override
@@ -138,6 +140,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(format,            _contentHash);
 		_contentHash = addContentHash(notNull,           _contentHash);
 		_contentHash = addContentHash(unique,            _contentHash);
+		_contentHash = addContentHash(isDynamic,         _contentHash);
 		_contentHash = addContentHash(isBuiltinProperty, _contentHash);
 		_contentHash = addContentHash(isDefaultInUi,     _contentHash);
 		_contentHash = addContentHash(isDefaultInPublic, _contentHash);

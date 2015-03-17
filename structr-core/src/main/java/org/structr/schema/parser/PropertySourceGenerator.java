@@ -193,6 +193,8 @@ public abstract class PropertySourceGenerator {
 			buf.append(".indexed()");
 		}
 
+		buf.append(".dynamic()");
+
 		buf.append(";\n");
 	}
 }

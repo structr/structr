@@ -197,7 +197,7 @@ public class SchemaTypeResource extends Resource {
 
 			final Class declaringClass = property.getDeclaringClass();
 
-			propProperties.put("declaringClass", declaringClass);
+			propProperties.put("declaringClass", declaringClass.getSimpleName());
 			propProperties.put("defaultValue", property.defaultValue());
 			if (property instanceof StringProperty) {
 				propProperties.put("contentType", ((StringProperty) property).contentType());
@@ -209,6 +209,7 @@ public class SchemaTypeResource extends Resource {
 			propProperties.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
 			propProperties.put("unique", property.isUnique());
 			propProperties.put("notNull", property.isNotNull());
+			propProperties.put("dynamic", property.isDynamic());
 
 			final Class<? extends GraphObject> relatedType = property.relatedType();
 			if (relatedType != null) {

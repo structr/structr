@@ -314,6 +314,14 @@ function wsConnect() {
 
                 StructrModel.clearCallback(data.callback);
 
+            } else if (command.startsWith('LIST_SCHEMA_PROPERTIES')) { /*********************** LIST_SCHEMA_PROPERTIES ************************/
+
+                log('LIST_SCHEMA_PROPERTIES', result, data);
+
+                // send full result in a single callback
+                StructrModel.callCallback(data.callback, result);
+                StructrModel.clearCallback(data.callback);
+
             } else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
 
                 log('LIST_COMPONENTS', result, data);

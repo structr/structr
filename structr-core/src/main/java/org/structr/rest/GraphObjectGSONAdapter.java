@@ -251,7 +251,7 @@ public class GraphObjectGSONAdapter {
 
 			} else {
 
-				logger.log(Level.WARNING, "Found object without UUID: {0}", source);
+				logger.log(Level.FINE, "Found object without UUID: {0}", source);
 			}
 
 			// prevent endless recursion by pruning at depth n

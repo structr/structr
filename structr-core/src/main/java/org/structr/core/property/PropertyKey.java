@@ -174,7 +174,7 @@ public interface PropertyKey<T> {
 	public T defaultValue();
 
 	/**
-	 * Returns the format value for this properUniquty.
+	 * Returns the format value for this property.
 	 *
 	 * @return format
 	 */
@@ -287,6 +287,13 @@ public interface PropertyKey<T> {
 	public boolean isNotNull();
 
 	/**
+	 * Indicates whether this property is created from a database node.
+	 *
+	 * @return whether this property is dynamic
+	 */
+	public boolean isDynamic();
+
+	/**
 	 * Returns the lucene sort type of this property.
 	 * @return sortType
 	 */
@@ -309,4 +316,5 @@ public interface PropertyKey<T> {
 	public PropertyKey<T> notNull(final boolean notNull);
 	public PropertyKey<T> unique(final boolean unique);
 	public PropertyKey<T> format(final String format);
+	public PropertyKey<T> dynamic();
 }

@@ -1012,5 +1012,21 @@ var Command = {
         obj.command = 'DELETE_UNATTACHED_NODES';
         log('deleteUnattachedNodes()', obj);
         return sendObj(obj);
+    },
+    /**
+     * Send a DELETE_UNATTACHED_NODES command to the server.
+     *
+     * The server will delete all DOM nodes
+     * which are not connected to a parent node.
+     *
+     * No broadcast.
+     */
+    listSchemaProperties: function(id, view, callback) {
+        var obj  = {};
+        obj.command = 'LIST_SCHEMA_PROPERTIES';
+        obj.id      = id;
+        obj.data    = { view: view };
+        log('listSchemaProperties()', obj, callback);
+        return sendObj(obj, callback);
     }
 }

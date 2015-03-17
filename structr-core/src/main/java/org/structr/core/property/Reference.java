@@ -331,4 +331,14 @@ public class Reference<T> implements PropertyKey<T> {
 		return null;
 	}
 
+	@Override
+	public boolean isDynamic() {
+		return propertyKey.isDynamic();
+	}
+
+	@Override
+	public PropertyKey<T> dynamic() {
+		return propertyKey.dynamic();
+	}
+
 }

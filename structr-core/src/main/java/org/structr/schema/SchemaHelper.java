@@ -366,22 +366,6 @@ public class SchemaHelper {
 					if (migrate && entity instanceof SchemaNode) {
 
 						parser.createSchemaPropertyNode((SchemaNode)entity, propertyName);
-//
-//					} else {
-//
-//						// add property name to set for later use
-//						propertyNames.add(parser.getPropertyName());
-//
-//						// append created source from parser
-//						parser.getPropertySource(src, entity);
-//
-//						// register global elements created by parser
-//						validators.addAll(parser.getGlobalValidators());
-//						enums.addAll(parser.getEnumDefinitions());
-//
-//						// register property in default view
-//						//addPropertyToView(PropertyView.Public, propertyName.substring(1), views);
-//						addPropertyToView(PropertyView.Ui, propertyName.substring(1), views);
 					}
 				}
 			}
@@ -479,13 +463,6 @@ public class SchemaHelper {
 
 						schemaNode.removeProperty(new StringProperty(rawViewName));
 					}
-//
-//				} else {
-//
-//					// add parts to view, overrides defaults (because of clear() above)
-//					for (int i = 0; i < parts.length; i++) {
-//						view.add(parts[i].trim());
-//					}
 				}
 			}
 		}
@@ -512,7 +489,7 @@ public class SchemaHelper {
 
 				for (final SchemaProperty property : schemaView.getProperty(SchemaView.schemaProperties)) {
 
-					if (property.getProperty(SchemaProperty.isBuiltinProperty)) {
+					if (property.getProperty(SchemaProperty.isBuiltinProperty) && !property.getProperty(SchemaProperty.isDynamic)) {
 
 						view.add(property.getPropertyName());
 
