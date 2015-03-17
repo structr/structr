@@ -128,6 +128,17 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		src.append("public class ").append(_className).append(" extends ").append(superClass).append(" {\n\n");
 
+		// migrate schema relationships
+		if ("true".equals(StructrApp.getConfigurationValue("SchemaService.migrate", "false"))) {
+
+
+			
+
+		}
+
+
+
+
 		// output related node definitions, collect property views
 		for (final SchemaRelationshipNode outRel : getProperty(SchemaNode.relatedTo)) {
 
