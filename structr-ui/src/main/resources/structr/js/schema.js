@@ -1132,23 +1132,9 @@ var _Schema = {
 
         } else {
 
-            $.get(rootUrl + resource + '/' + schemaEntity.id + '/ui', function(data) {
-
-                var result = data.result;
-                var attrNames = result.schemaProperties.map(function(prop) {
-                    return prop.name;
-                });
-
-                attrNames.sort();
-
-                attrNames.forEach( function (name) {
-                    var isSelected = selected[name] ? ' selected="selected"' : '';
-                    viewSelectElem.append('<option value="' + name + '"' + isSelected + '>' + name + '</option>');
-                });
-
-                viewSelectElem.chosen({ search_contains: true, width: '100%' });
+            Command.listSchemaProperties(schemaEntity.id, view.name, function(data) {
+                _Schema.appendViewOptions(viewSelectElem, data);
             });
-
         }
     },
     appendViewOptions: function(viewSelectElem, properties) {
@@ -1343,9 +1329,10 @@ var _Schema = {
         if (name && name.length) {
 
             var obj = {};
-            obj.schemaNode       = { id: entity.id };
-            obj.schemaProperties = _Schema.findSchemaPropertiesByNodeAndName({}, entity, attrs);
-            obj.name             = name;
+            obj.schemaNode         = { id: entity.id };
+            obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName({}, entity, attrs);
+            obj.nonGraphProperties = _Schema.findNonGraphProperties(entity, attrs);
+            obj.name               = name;
 
             _Schema.storeSchemaEntity('schema_views', {}, JSON.stringify(obj), function(result) {
 

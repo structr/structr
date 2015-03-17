@@ -52,6 +52,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
@@ -407,7 +408,14 @@ public class SchemaHelper {
 
 		final boolean migrate                     = "true".equals(StructrApp.getConfigurationValue("SchemaService.migrate", "false"));
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
+		final ConfigurationProvider config        = StructrApp.getConfiguration();
 		final StringBuilder src                   = new StringBuilder();
+
+		Class type = config.getNodeEntityClass(entity.getClassName());
+		if (type == null) {
+
+			type = config.getRelationshipEntityClass(entity.getClassName());
+		}
 
 		for (final String rawViewName : getViews(propertyContainer)) {
 
@@ -503,7 +511,17 @@ public class SchemaHelper {
 				if (StringUtils.isNotBlank(nonGraphProperties)) {
 					for (final String propertyName : nonGraphProperties.split("[, ]+")) {
 
-						view.add(propertyName);
+						String extendedPropertyName = propertyName;
+						if (type != null) {
+
+							final PropertyKey property = config.getPropertyKeyForJSONName(type, propertyName);
+							if (property != null && property.isDynamic()) {
+
+								extendedPropertyName = extendedPropertyName + "Property";
+							}
+						}
+
+						view.add(extendedPropertyName);
 					}
 				}
 			}
