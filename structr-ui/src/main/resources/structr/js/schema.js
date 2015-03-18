@@ -1755,8 +1755,9 @@ var _Schema = {
                 if (!id) {
                     return false;
                 }
-                _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
-
+                Command.get(id, function(entity) {
+                    _Schema.changeAttr(entity, element, input, key, oldVal, isRel);
+                });
                 return false;
             }
         });
@@ -1769,7 +1770,7 @@ var _Schema = {
         if (oldVal !== newVal) {
             var obj = {};
             obj[key] = newVal;
-            _Schema.storeSchemaEntity(entity, JSON.stringify(obj));
+            _Schema.storeSchemaEntity('', entity, JSON.stringify(obj));
         }
     },
     importGraphGist: function(graphGistUrl, text) {
