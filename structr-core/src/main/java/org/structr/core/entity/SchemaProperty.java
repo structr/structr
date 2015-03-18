@@ -46,15 +46,15 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             contentHash       = new StringProperty("contentHash");
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		name, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
 	);
 
 	@Override

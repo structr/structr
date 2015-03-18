@@ -529,21 +529,15 @@ public class SchemaHelper {
 								if (property.isDynamic()) {
 
 									extendedPropertyName = extendedPropertyName + "Property";
-
-								} else {
-
-									System.out.println("        property " + property.jsonName() + " is not dynamic: " + property.getClass().getSimpleName() + ", declared by " + property.getDeclaringClass());
 								}
 
 							} else {
 
-								System.out.println("        property not found for " + propertyName + ", assuming dynamic");
 								extendedPropertyName = extendedPropertyName + "Property";
 							}
 
 						} else {
 
-							System.out.println("        type " + entity.getSuperclassName() + " not found for " + propertyName + ", assuming dynamic");
 							extendedPropertyName = extendedPropertyName + "Property";
 
 						}
