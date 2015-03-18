@@ -41,6 +41,7 @@ public interface Schema {
 	public PropertyContainer getPropertyContainer();
 	public Set<String> getViews();
 	public String getClassName();
+	public String getSuperclassName();
 
 	public List<SchemaProperty> getSchemaProperties();
 	public List<SchemaView> getSchemaViews();

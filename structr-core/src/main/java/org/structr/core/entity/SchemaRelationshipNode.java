@@ -230,7 +230,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
-				buf.append(newStatementOnly ? ")" : ");\n");
+				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
 
 			} else {
 
@@ -241,7 +241,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
-				buf.append(newStatementOnly ? ")" : ");\n");
+				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
 			}
 
 		} else {
@@ -255,7 +255,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
-				buf.append(newStatementOnly ? ")" : ");\n");
+				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
 
 			} else {
 
@@ -266,7 +266,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
-				buf.append(newStatementOnly ? ")" : ");\n");
+				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
 			}
 		}
 

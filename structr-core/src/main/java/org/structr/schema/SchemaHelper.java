@@ -365,7 +365,6 @@ public class SchemaHelper {
 
 					// migrate properties
 					if (migrate && entity instanceof SchemaNode) {
-
 						parser.createSchemaPropertyNode((SchemaNode)entity, propertyName);
 					}
 				}
@@ -411,11 +410,16 @@ public class SchemaHelper {
 		final ConfigurationProvider config        = StructrApp.getConfiguration();
 		final StringBuilder src                   = new StringBuilder();
 
-		Class type = config.getNodeEntityClass(entity.getClassName());
-		if (type == null) {
+		Class superClass = config.getNodeEntityClass(entity.getSuperclassName());
+		if (superClass == null) {
 
-			type = config.getRelationshipEntityClass(entity.getClassName());
+			superClass = config.getRelationshipEntityClass(entity.getSuperclassName());
 		}
+
+		if (superClass == null) {
+			superClass = AbstractNode.class;
+		}
+
 
 		for (final String rawViewName : getViews(propertyContainer)) {
 
@@ -449,9 +453,13 @@ public class SchemaHelper {
 						// add parts to view, overrides defaults (because of clear() above)
 						for (int i = 0; i < parts.length; i++) {
 
-							final String propertyName         = parts[i].trim();
-							final SchemaProperty propertyNode = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
+							String propertyName = parts[i].trim();
 
+							while (propertyName.startsWith("_")) {
+								propertyName = propertyName.substring(1);
+							}
+
+							final SchemaProperty propertyNode = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
 							if (propertyNode != null) {
 
 								properties.add(propertyNode);
@@ -509,16 +517,36 @@ public class SchemaHelper {
 
 				// add properties that are not part of the graph
 				if (StringUtils.isNotBlank(nonGraphProperties)) {
+
 					for (final String propertyName : nonGraphProperties.split("[, ]+")) {
 
 						String extendedPropertyName = propertyName;
-						if (type != null) {
+						if (superClass != null) {
 
-							final PropertyKey property = config.getPropertyKeyForJSONName(type, propertyName);
-							if (property != null && property.isDynamic()) {
+							final PropertyKey property = config.getPropertyKeyForJSONName(superClass, propertyName, false);
+							if (property != null) {
 
+								// property exists in superclass
+								if (property.isDynamic()) {
+
+									extendedPropertyName = extendedPropertyName + "Property";
+
+								} else {
+
+									System.out.println("        property " + property.jsonName() + " is not dynamic: " + property.getClass().getSimpleName() + ", declared by " + property.getDeclaringClass());
+								}
+
+							} else {
+
+								System.out.println("        property not found for " + propertyName + ", assuming dynamic");
 								extendedPropertyName = extendedPropertyName + "Property";
 							}
+
+						} else {
+
+							System.out.println("        type " + entity.getSuperclassName() + " not found for " + propertyName + ", assuming dynamic");
+							extendedPropertyName = extendedPropertyName + "Property";
+
 						}
 
 						view.add(extendedPropertyName);

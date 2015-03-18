@@ -135,44 +135,6 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 		@Override
 		public boolean execute(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-			createBuiltInPropertyNodes();
-			createBuiltInViewNodes();
-
-			return true;
-		}
-
-		private void createBuiltInPropertyNodes() throws FrameworkException {
-
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Set<String> propertyNames    = new HashSet<>();
-
-			// create set of existing properties
-			for (final SchemaProperty prop : node.getProperty(schemaProperties)) {
-				propertyNames.add(prop.getProperty(AbstractNode.name));
-			}
-			// determine runtime type
-			Class builtinClass = config.getNodeEntityClass(node.getClassName());
-			if (builtinClass == null) {
-
-				// second try: relationship class name
-				builtinClass = config.getRelationshipEntityClass(node.getClassName());
-			}
-
-			if (builtinClass != null) {
-
-				// create "virtual" property nodes for builtin types
-				for (final PropertyKey key : config.getPropertySet(builtinClass, PropertyView.Ui)) {
-
-					if (builtinClass.equals(key.getDeclaringClass())) {
-
-						createBuiltInSchemaProperty(config, builtinClass, propertyNames, key);
-					}
-				}
-			}
-		}
-
-		private void createBuiltInViewNodes() throws FrameworkException {
-
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final Set<String> viewNames        = new HashSet<>();
 
@@ -225,37 +187,8 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 					}
 				}
 			}
-		}
 
-		private void createBuiltInSchemaProperty(final ConfigurationProvider config, final Class builtinClass, final Set<String> propertyNames, final PropertyKey template) throws FrameworkException {
-
-			final String jsonName = template.jsonName();
-
-			if (!propertyNames.contains(jsonName) && !hiddenPropertyNames.contains(jsonName)) {
-
-				final boolean isInPublic = config.getPropertySet(builtinClass, PropertyView.Public).contains(template);
-				final boolean isInUi     = config.getPropertySet(builtinClass, PropertyView.Ui).contains(template);
-
-				final SchemaProperty property = StructrApp.getInstance(node.getSecurityContext()).create(SchemaProperty.class,
-					new NodeAttribute(SchemaProperty.schemaNode, node),
-					new NodeAttribute(SchemaProperty.declaringClass, template.getDeclaringClass().getSimpleName()),
-					new NodeAttribute(SchemaProperty.propertyType, template.typeName()),
-					new NodeAttribute(SchemaProperty.defaultValue, template.defaultValue()),
-					new NodeAttribute(SchemaProperty.name, template.jsonName()),
-					new NodeAttribute(SchemaProperty.dbName, template.dbName()),
-					new NodeAttribute(SchemaProperty.unique, template.isUnique()),
-					new NodeAttribute(SchemaProperty.notNull, template.isNotNull()),
-					new NodeAttribute(SchemaProperty.format, template.format()),
-					new NodeAttribute(SchemaProperty.unique, template.isUnique()),
-					new NodeAttribute(SchemaProperty.isBuiltinProperty, isInUi || isInPublic),
-					new NodeAttribute(SchemaProperty.isDefaultInUi, isInUi),
-					new NodeAttribute(SchemaProperty.isDefaultInPublic, isInPublic),
-					new NodeAttribute(SchemaProperty.isDynamic, template.isDynamic())
-				);
-
-				// store content hash
-				property.setProperty(SchemaProperty.contentHash, property.getContentHash());
-			}
+			return true;
 		}
 	}
 }

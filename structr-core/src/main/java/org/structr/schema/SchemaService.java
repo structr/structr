@@ -131,7 +131,6 @@ public class SchemaService implements Service {
 						schemaNode.createBuiltInSchemaEntities(errorBuffer);
 					}
 
-
 					success = !errorBuffer.hasError();
 
 					// inject views in configuration provider

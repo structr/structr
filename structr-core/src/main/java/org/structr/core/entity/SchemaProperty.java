@@ -1,6 +1,9 @@
 package org.structr.core.entity;
 
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -116,6 +119,31 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	@Override
 	public String getDefaultValue() {
 		return getProperty(defaultValue);
+	}
+
+	@Override
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		// automatically add new property to the ui view..
+		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
+		if (parent != null) {
+
+			for (final SchemaView view : parent.getProperty(AbstractSchemaNode.schemaViews)) {
+
+				if (PropertyView.Ui.equals(view.getName())) {
+
+					final Set<SchemaProperty> properties = new LinkedHashSet<>(view.getProperty(SchemaView.schemaProperties));
+
+					properties.add(this);
+
+					view.setProperty(SchemaView.schemaProperties, new LinkedList<>(properties));
+
+					break;
+				}
+			}
+		}
+
+		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override

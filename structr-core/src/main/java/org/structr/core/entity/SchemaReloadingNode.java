@@ -85,4 +85,15 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 	public String getClassName() {
 		return getProperty(name);
 	}
+
+	public String getSuperclassName() {
+
+		final String superclassName = getProperty(SchemaNode.extendsClass);
+		if (superclassName == null) {
+
+			return AbstractNode.class.getSimpleName();
+		}
+
+		return superclassName.substring(superclassName.lastIndexOf(".")+1);
+	}
 }

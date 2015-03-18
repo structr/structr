@@ -310,7 +310,7 @@ public abstract class Resource {
 
 			for (final String name : request.getParameterMap().keySet()) {
 
-				final PropertyKey key = conf.getPropertyKeyForJSONName(type, getFirstPartOfString(name));
+				final PropertyKey key = conf.getPropertyKeyForJSONName(type, getFirstPartOfString(name), false);
 				if (key != null) {
 
 					if (key.isSearchable()) {
