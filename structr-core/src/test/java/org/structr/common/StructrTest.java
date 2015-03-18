@@ -46,6 +46,7 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.GraphDatabaseCommand;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -208,6 +209,19 @@ public class StructrTest extends TestCase {
 		try (final Tx tx = app.tx()) {
 
 			final T newNode = app.create(type, props);
+
+			tx.success();
+
+			return newNode;
+		}
+
+	}
+
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final NodeAttribute... attributes) throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final T newNode = app.create(type, attributes);
 
 			tx.success();
 

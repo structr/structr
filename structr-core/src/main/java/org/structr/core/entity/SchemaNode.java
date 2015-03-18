@@ -133,51 +133,48 @@ public class SchemaNode extends AbstractSchemaNode {
 		src.append("public class ").append(_className).append(" extends ").append(superClass).append(" {\n\n");
 
 		// migrate schema relationships
-		if ("true".equals(StructrApp.getConfigurationValue("SchemaService.migrate", "false"))) {
+		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
 
-			for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+			final PropertyMap relNodeProperties = new PropertyMap();
 
-				final PropertyMap relNodeProperties = new PropertyMap();
+			relNodeProperties.put(SchemaRelationshipNode.sourceNode, outRel.getSourceNode());
+			relNodeProperties.put(SchemaRelationshipNode.targetNode, outRel.getTargetNode());
+			relNodeProperties.put(SchemaRelationshipNode.name, outRel.getProperty(SchemaRelationship.name));
+			relNodeProperties.put(SchemaRelationshipNode.sourceNotion, outRel.getProperty(SchemaRelationship.sourceNotion));
+			relNodeProperties.put(SchemaRelationshipNode.targetNotion, outRel.getProperty(SchemaRelationship.targetNotion));
+			relNodeProperties.put(SchemaRelationshipNode.extendsClass, outRel.getProperty(SchemaRelationship.extendsClass));
+			relNodeProperties.put(SchemaRelationshipNode.cascadingDeleteFlag, outRel.getProperty(SchemaRelationship.cascadingDeleteFlag));
+			relNodeProperties.put(SchemaRelationshipNode.autocreationFlag, outRel.getProperty(SchemaRelationship.autocreationFlag));
+			relNodeProperties.put(SchemaRelationshipNode.relationshipType, outRel.getProperty(SchemaRelationship.relationshipType));
+			relNodeProperties.put(SchemaRelationshipNode.sourceMultiplicity, outRel.getProperty(SchemaRelationship.sourceMultiplicity));
+			relNodeProperties.put(SchemaRelationshipNode.targetMultiplicity, outRel.getProperty(SchemaRelationship.targetMultiplicity));
+			relNodeProperties.put(SchemaRelationshipNode.sourceJsonName, outRel.getProperty(SchemaRelationship.sourceJsonName));
+			relNodeProperties.put(SchemaRelationshipNode.targetJsonName, outRel.getProperty(SchemaRelationship.targetJsonName));
 
-				relNodeProperties.put(SchemaRelationshipNode.sourceNode, outRel.getSourceNode());
-				relNodeProperties.put(SchemaRelationshipNode.targetNode, outRel.getTargetNode());
-				relNodeProperties.put(SchemaRelationshipNode.name, outRel.getProperty(SchemaRelationship.name));
-				relNodeProperties.put(SchemaRelationshipNode.sourceNotion, outRel.getProperty(SchemaRelationship.sourceNotion));
-				relNodeProperties.put(SchemaRelationshipNode.targetNotion, outRel.getProperty(SchemaRelationship.targetNotion));
-				relNodeProperties.put(SchemaRelationshipNode.extendsClass, outRel.getProperty(SchemaRelationship.extendsClass));
-				relNodeProperties.put(SchemaRelationshipNode.cascadingDeleteFlag, outRel.getProperty(SchemaRelationship.cascadingDeleteFlag));
-				relNodeProperties.put(SchemaRelationshipNode.autocreationFlag, outRel.getProperty(SchemaRelationship.autocreationFlag));
-				relNodeProperties.put(SchemaRelationshipNode.relationshipType, outRel.getProperty(SchemaRelationship.relationshipType));
-				relNodeProperties.put(SchemaRelationshipNode.sourceMultiplicity, outRel.getProperty(SchemaRelationship.sourceMultiplicity));
-				relNodeProperties.put(SchemaRelationshipNode.targetMultiplicity, outRel.getProperty(SchemaRelationship.targetMultiplicity));
-				relNodeProperties.put(SchemaRelationshipNode.sourceJsonName, outRel.getProperty(SchemaRelationship.sourceJsonName));
-				relNodeProperties.put(SchemaRelationshipNode.targetJsonName, outRel.getProperty(SchemaRelationship.targetJsonName));
+			app.create(SchemaRelationshipNode.class, relNodeProperties);
+			app.delete(outRel);
+		}
 
-				app.create(SchemaRelationshipNode.class, relNodeProperties);
-				app.delete(outRel);
-			}
+		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
 
-			for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+			final PropertyMap relNodeProperties = new PropertyMap();
 
-				final PropertyMap relNodeProperties = new PropertyMap();
+			relNodeProperties.put(SchemaRelationshipNode.sourceNode, inRel.getSourceNode());
+			relNodeProperties.put(SchemaRelationshipNode.targetNode, inRel.getTargetNode());
+			relNodeProperties.put(SchemaRelationshipNode.name, inRel.getProperty(SchemaRelationship.name));
+			relNodeProperties.put(SchemaRelationshipNode.sourceNotion, inRel.getProperty(SchemaRelationship.sourceNotion));
+			relNodeProperties.put(SchemaRelationshipNode.targetNotion, inRel.getProperty(SchemaRelationship.targetNotion));
+			relNodeProperties.put(SchemaRelationshipNode.extendsClass, inRel.getProperty(SchemaRelationship.extendsClass));
+			relNodeProperties.put(SchemaRelationshipNode.cascadingDeleteFlag, inRel.getProperty(SchemaRelationship.cascadingDeleteFlag));
+			relNodeProperties.put(SchemaRelationshipNode.autocreationFlag, inRel.getProperty(SchemaRelationship.autocreationFlag));
+			relNodeProperties.put(SchemaRelationshipNode.relationshipType, inRel.getProperty(SchemaRelationship.relationshipType));
+			relNodeProperties.put(SchemaRelationshipNode.sourceMultiplicity, inRel.getProperty(SchemaRelationship.sourceMultiplicity));
+			relNodeProperties.put(SchemaRelationshipNode.targetMultiplicity, inRel.getProperty(SchemaRelationship.targetMultiplicity));
+			relNodeProperties.put(SchemaRelationshipNode.sourceJsonName, inRel.getProperty(SchemaRelationship.sourceJsonName));
+			relNodeProperties.put(SchemaRelationshipNode.targetJsonName, inRel.getProperty(SchemaRelationship.targetJsonName));
 
-				relNodeProperties.put(SchemaRelationshipNode.sourceNode, inRel.getSourceNode());
-				relNodeProperties.put(SchemaRelationshipNode.targetNode, inRel.getTargetNode());
-				relNodeProperties.put(SchemaRelationshipNode.name, inRel.getProperty(SchemaRelationship.name));
-				relNodeProperties.put(SchemaRelationshipNode.sourceNotion, inRel.getProperty(SchemaRelationship.sourceNotion));
-				relNodeProperties.put(SchemaRelationshipNode.targetNotion, inRel.getProperty(SchemaRelationship.targetNotion));
-				relNodeProperties.put(SchemaRelationshipNode.extendsClass, inRel.getProperty(SchemaRelationship.extendsClass));
-				relNodeProperties.put(SchemaRelationshipNode.cascadingDeleteFlag, inRel.getProperty(SchemaRelationship.cascadingDeleteFlag));
-				relNodeProperties.put(SchemaRelationshipNode.autocreationFlag, inRel.getProperty(SchemaRelationship.autocreationFlag));
-				relNodeProperties.put(SchemaRelationshipNode.relationshipType, inRel.getProperty(SchemaRelationship.relationshipType));
-				relNodeProperties.put(SchemaRelationshipNode.sourceMultiplicity, inRel.getProperty(SchemaRelationship.sourceMultiplicity));
-				relNodeProperties.put(SchemaRelationshipNode.targetMultiplicity, inRel.getProperty(SchemaRelationship.targetMultiplicity));
-				relNodeProperties.put(SchemaRelationshipNode.sourceJsonName, inRel.getProperty(SchemaRelationship.sourceJsonName));
-				relNodeProperties.put(SchemaRelationshipNode.targetJsonName, inRel.getProperty(SchemaRelationship.targetJsonName));
-
-				app.create(SchemaRelationshipNode.class, relNodeProperties);
-				app.delete(inRel);
-			}
+			app.create(SchemaRelationshipNode.class, relNodeProperties);
+			app.delete(inRel);
 		}
 
 		// output related node definitions, collect property views

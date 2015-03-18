@@ -47,7 +47,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.BulkRebuildIndexCommand;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
@@ -154,7 +153,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 		final App app                                     = StructrApp.getInstance();
 		final GraphDatabaseService graphDb                = app.command(GraphDatabaseCommand.class).execute();
-		final NodeServiceCommand nodeServiceCommand       = app.command(CreateNodeCommand.class);
 		final ConfigurationProvider configuration         = Services.getInstance().getConfigurationProvider();
 		final Set<NodeInfo> nodeTypes                     = new LinkedHashSet<>();
 		final Map<Long, TypeInfo> nodeTypeInfoMap         = new LinkedHashMap<>();
@@ -252,7 +250,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					}
 
 					// create ID on imported relationship
-					rel.setProperty(GraphObject.id.dbName(), nodeServiceCommand.getNextUuid());
+					rel.setProperty(GraphObject.id.dbName(), NodeServiceCommand.getNextUuid());
 				}
 			}
 

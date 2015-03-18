@@ -43,6 +43,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
@@ -349,7 +350,6 @@ public class SchemaHelper {
 
 	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final boolean migrate                     = "true".equals(StructrApp.getConfigurationValue("SchemaService.migrate", "false"));
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final StringBuilder src                   = new StringBuilder();
 
@@ -364,8 +364,8 @@ public class SchemaHelper {
 				if (parser != null) {
 
 					// migrate properties
-					if (migrate && entity instanceof SchemaNode) {
-						parser.createSchemaPropertyNode((SchemaNode)entity, propertyName);
+					if (entity instanceof AbstractSchemaNode) {
+						parser.createSchemaPropertyNode((AbstractSchemaNode)entity, propertyName);
 					}
 				}
 			}
@@ -405,7 +405,6 @@ public class SchemaHelper {
 
 	public static String extractViews(final Schema entity, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final boolean migrate                     = "true".equals(StructrApp.getConfigurationValue("SchemaService.migrate", "false"));
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final ConfigurationProvider config        = StructrApp.getConfiguration();
 		final StringBuilder src                   = new StringBuilder();
@@ -441,11 +440,11 @@ public class SchemaHelper {
 					view.clear();
 				}
 
-				if (migrate && entity instanceof SchemaNode) {
+				if (entity instanceof AbstractSchemaNode) {
 
-					final List<String> nonGraphProperties  = new LinkedList<>();
+					final List<String> nonGraphProperties = new LinkedList<>();
 					final List<SchemaProperty> properties = new LinkedList<>();
-					final SchemaNode schemaNode           = (SchemaNode)entity;
+					final AbstractSchemaNode schemaNode   = (AbstractSchemaNode)entity;
 					final App app                         = StructrApp.getInstance();
 
 					if (app.nodeQuery(SchemaView.class).and(SchemaView.schemaNode, schemaNode).and(AbstractNode.name, viewName).getFirst() == null) {
@@ -560,7 +559,6 @@ public class SchemaHelper {
 
 	public static String extractMethods(final Schema entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
 
-		final boolean migrate                     = "true".equals(StructrApp.getConfigurationValue("SchemaService.migrate", "false"));
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final StringBuilder src                   = new StringBuilder();
 
@@ -570,11 +568,11 @@ public class SchemaHelper {
 
 				final String value = propertyContainer.getProperty(rawActionName).toString();
 
-				if (migrate && entity instanceof SchemaNode) {
+				if (entity instanceof AbstractSchemaNode) {
 
-					final SchemaNode schemaNode = (SchemaNode)entity;
-					final App app               = StructrApp.getInstance();
-					final String methodName     = rawActionName.substring(3);
+					final AbstractSchemaNode schemaNode = (AbstractSchemaNode)entity;
+					final App app                       = StructrApp.getInstance();
+					final String methodName             = rawActionName.substring(3);
 
 					if (app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, schemaNode).and(AbstractNode.name, methodName).getFirst() == null) {
 
@@ -587,21 +585,21 @@ public class SchemaHelper {
 						schemaNode.removeProperty(new StringProperty(rawActionName));
 					}
 
-				} else {
-
-
-					final ActionEntry entry      = new ActionEntry(rawActionName, value);
-					List<ActionEntry> actionList = actions.get(entry.getType());
-
-					if (actionList == null) {
-
-						actionList = new LinkedList<>();
-						actions.put(entry.getType(), actionList);
-					}
-
-					actionList.add(entry);
-
-					Collections.sort(actionList);
+//				} else {
+//
+//
+//					final ActionEntry entry      = new ActionEntry(rawActionName, value);
+//					List<ActionEntry> actionList = actions.get(entry.getType());
+//
+//					if (actionList == null) {
+//
+//						actionList = new LinkedList<>();
+//						actions.put(entry.getType(), actionList);
+//					}
+//
+//					actionList.add(entry);
+//
+//					Collections.sort(actionList);
 				}
 			}
 		}

@@ -3,6 +3,7 @@ package org.structr.core.script;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import org.structr.common.AccessMode;
@@ -12,9 +13,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
@@ -28,7 +32,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -67,33 +70,35 @@ public class StructrScriptableTest extends StructrTest {
 			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "Source");
 			final SchemaNode targetNode  = createTestNode(SchemaNode.class, "Target");
 
-			// properties
-			sourceNode.setProperty(new StringProperty("_testBoolean"), "Boolean");
-			sourceNode.setProperty(new StringProperty("_testInteger"), "Integer");
-			sourceNode.setProperty(new StringProperty("_testString"),  "String");
-			sourceNode.setProperty(new StringProperty("_testDouble"),  "Double");
-			sourceNode.setProperty(new StringProperty("_testEnum"),    "Enum(OPEN,CLOSED,TEST)");
-			sourceNode.setProperty(new StringProperty("_testDate"),    "Date");
+			final List<SchemaProperty> properties = new LinkedList<>();
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testBoolean"), new NodeAttribute(SchemaProperty.propertyType, "Boolean")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testInteger"), new NodeAttribute(SchemaProperty.propertyType, "Integer")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testString"), new NodeAttribute(SchemaProperty.propertyType, "String")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testDouble"), new NodeAttribute(SchemaProperty.propertyType, "Double")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testEnum"), new NodeAttribute(SchemaProperty.propertyType, "Enum"), new NodeAttribute(SchemaProperty.format, "OPEN, CLOSED, TEST")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testDate"), new NodeAttribute(SchemaProperty.propertyType, "Date")));
+			sourceNode.setProperty(SchemaNode.schemaProperties, properties);
 
-			// methods
-			sourceNode.setProperty(new StringProperty("___onCreate"), "{ var e = Structr.get('this'); e.targets = Structr.find('Target'); }");
-			sourceNode.setProperty(new StringProperty("___doTest01"), "{ var e = Structr.get('this'); e.testEnum = 'OPEN'; }");
-			sourceNode.setProperty(new StringProperty("___doTest02"), "{ var e = Structr.get('this'); e.testEnum = 'CLOSED'; }");
-			sourceNode.setProperty(new StringProperty("___doTest03"), "{ var e = Structr.get('this'); e.testEnum = 'TEST'; }");
-			sourceNode.setProperty(new StringProperty("___doTest04"), "{ var e = Structr.get('this'); e.testEnum = 'INVALID'; }");
-			sourceNode.setProperty(new StringProperty("___doTest05"), "{ var e = Structr.get('this'); e.testBoolean = true; e.testInteger = 123; e.testString = 'testing..'; e.testDouble = 1.2345; e.testDate = new Date(" + currentTimeMillis + "); }");
+			final List<SchemaMethod> methods = new LinkedList<>();
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "onCreate"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.targets = Structr.find('Target'); }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest01"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'OPEN'; }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest02"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'CLOSED'; }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest03"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'TEST'; }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest04"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'INVALID'; }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest05"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testBoolean = true; e.testInteger = 123; e.testString = 'testing..'; e.testDouble = 1.2345; e.testDate = new Date(" + currentTimeMillis + "); }")));
+			sourceNode.setProperty(SchemaNode.schemaMethods, methods);
 
-			final PropertyMap properties = new PropertyMap();
+			final PropertyMap propertyMap = new PropertyMap();
 
-			properties.put(SchemaRelationshipNode.sourceId,       sourceNode.getUuid());
-			properties.put(SchemaRelationshipNode.targetId,       targetNode.getUuid());
-			properties.put(SchemaRelationshipNode.sourceJsonName, "source");
-			properties.put(SchemaRelationshipNode.targetJsonName, "targets");
-			properties.put(SchemaRelationshipNode.sourceMultiplicity, "*");
-			properties.put(SchemaRelationshipNode.targetMultiplicity, "*");
-			properties.put(SchemaRelationshipNode.relationshipType, "HAS");
+			propertyMap.put(SchemaRelationshipNode.sourceId,       sourceNode.getUuid());
+			propertyMap.put(SchemaRelationshipNode.targetId,       targetNode.getUuid());
+			propertyMap.put(SchemaRelationshipNode.sourceJsonName, "source");
+			propertyMap.put(SchemaRelationshipNode.targetJsonName, "targets");
+			propertyMap.put(SchemaRelationshipNode.sourceMultiplicity, "*");
+			propertyMap.put(SchemaRelationshipNode.targetMultiplicity, "*");
+			propertyMap.put(SchemaRelationshipNode.relationshipType, "HAS");
 
-			app.create(SchemaRelationshipNode.class, properties);
+			app.create(SchemaRelationshipNode.class, propertyMap);
 
 			tx.success();
 
@@ -202,8 +207,9 @@ public class StructrScriptableTest extends StructrTest {
 
 			// create two nodes and associate them with each other
 			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "Source");
+			final SchemaMethod method    = createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest01"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.grant(Structr.find('TestUser')[0], 'read', 'write'); }"));
 
-			sourceNode.setProperty(new StringProperty("___doTest01"), "{ var e = Structr.get('this'); e.grant(Structr.find('TestUser')[0], 'read', 'write'); }");
+			sourceNode.setProperty(SchemaNode.schemaMethods, Arrays.asList(new SchemaMethod[] { method } ));
 
 			tx.success();
 
