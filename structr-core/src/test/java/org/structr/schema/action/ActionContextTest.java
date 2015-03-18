@@ -791,6 +791,18 @@ public class ActionContextTest extends StructrTest {
 			// set with null
 			assertEquals("Invalid usage message for set()", Functions.ERROR_MESSAGE_SET, Scripting.replaceVariables(ctx, testOne, "${set()}"));
 
+			// set date (JS scripting)
+			assertEquals("Setting the current date/time should not produce output (JS)", "", Scripting.replaceVariables(ctx, testOne, "${{var t = Structr.get('this'); t.aDate = new Date();}}"));
+
+			try {
+
+				// set date (old scripting)
+				Scripting.replaceVariables(ctx, testOne, "${set(this, 'aDate', now)}");
+
+			} catch (FrameworkException fex) {
+				fail("Setting the current date/time should not cause an Exception (StructrScript)");
+			}
+
 			// geocode with null
 			assertEquals("Invalid usage message for geocode()", Functions.ERROR_MESSAGE_GEOCODE, Scripting.replaceVariables(ctx, testOne, "${geocode()}"));
 
