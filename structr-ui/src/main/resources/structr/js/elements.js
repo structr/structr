@@ -105,7 +105,11 @@ var _Elements = {
             'focus': 'type'
         },
         {
-            'elements': ['button', 'select', 'option'],
+            'elements': ['button'],
+            'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick']
+        },
+        {
+            'elements': ['select', 'option'],
             'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder']
         },
         {
