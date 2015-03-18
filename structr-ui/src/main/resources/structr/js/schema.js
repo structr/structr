@@ -388,8 +388,15 @@ var _Schema = {
                                                 overlay.setLabel('<input class="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
                                                 $('.source-mult-label').focus().on('blur', function() {
                                                     var label = ($(this).val() || '').trim();
-                                                    _Schema.setRelationshipProperty(res, 'sourceMultiplicity', label);
-                                                    overlay.setLabel(label);
+                                                    if (label === '*' || label === '1') {
+                                                        _Schema.setRelationshipProperty(res, 'sourceMultiplicity', label, function () {
+                                                            overlay.setLabel(label);
+                                                        }, function (data) {
+                                                            Structr.errorFromResponse(data.responseJSON);
+                                                        });
+                                                    } else {
+                                                        Structr.error('Multiplicity can only be 1 or *.', function () {});
+                                                    }
                                                 });
                                             }
                                         }
@@ -412,8 +419,12 @@ var _Schema = {
                                                 overlay.setLabel('<input class="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + l + '">');
                                                 $('.relationship-label').focus().on('blur', function() {
                                                     var label = ($(this).val() || '').trim();
-                                                    _Schema.setRelationshipProperty(res, 'relationshipType', label);
-                                                    overlay.setLabel(label);
+                                                    _Schema.setRelationshipProperty(res, 'relationshipType', label, function () {
+                                                        overlay.setLabel(label);
+                                                    }, function (data) {
+                                                        Structr.errorFromResponse(data.responseJSON);
+                                                        _Schema.reload();
+                                                    });
                                                 });
                                             }
                                         }
@@ -433,8 +444,15 @@ var _Schema = {
                                                 overlay.setLabel('<input class="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
                                                 $('.target-mult-label').focus().on('blur', function() {
                                                     var label = ($(this).val() || '').trim();
-                                                    _Schema.setRelationshipProperty(res, 'targetMultiplicity', label);
-                                                    overlay.setLabel(label);
+                                                    if (label === '*' || label === '1') {
+                                                        _Schema.setRelationshipProperty(res, 'targetMultiplicity', label, function () {
+                                                            overlay.setLabel(label);
+                                                        }, function (data) {
+                                                            Structr.errorFromResponse(data.responseJSON);
+                                                        });
+                                                    } else {
+                                                        Structr.error('Multiplicity can only be 1 or *.', function () {});
+                                                    }
                                                 });
                                             }
                                         }
@@ -1503,7 +1521,7 @@ var _Schema = {
                     422: function(data) {
                         //Structr.errorFromResponse(data.responseJSON);
                         if (onError) {
-                            onError();
+                            onError(data);
                         }
                     }
                 }
@@ -1552,7 +1570,7 @@ var _Schema = {
                                     422: function(data) {
                                         //Structr.errorFromResponse(data.responseJSON);
                                         if (onError) {
-                                            onError();
+                                            onError(data);
                                         }
                                     }
                                 }
@@ -1586,7 +1604,7 @@ var _Schema = {
                     },
                     422: function(data) {
                         if (onError) {
-                            onError();
+                            onError(data);
                         }
                     }
                 }
@@ -1700,7 +1718,7 @@ var _Schema = {
                                 422: function(data) {
                                     //Structr.errorFromResponse(data.responseJSON);
                                     if (onError) {
-                                        onError();
+                                        onError(data);
                                     }
                                 }
                             }
@@ -1770,7 +1788,11 @@ var _Schema = {
         if (oldVal !== newVal) {
             var obj = {};
             obj[key] = newVal;
-            _Schema.storeSchemaEntity('', entity, JSON.stringify(obj));
+            _Schema.storeSchemaEntity('', entity, JSON.stringify(obj), null, function(data) {
+                Structr.errorFromResponse(data.responseJSON);
+                element.children('b').text(oldVal).show();
+                element.children('input').val(oldVal);
+            });
         }
     },
     importGraphGist: function(graphGistUrl, text) {
