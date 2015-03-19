@@ -127,8 +127,13 @@ var _Elements = {
             'focus': 'src'
         },
         {
-            'elements': ['link', 'a'],
+            'elements': ['link'],
             'attrs': ['type', 'rel', 'href'],
+            'focus': 'href'
+        },
+        {
+            'elements': ['a'],
+            'attrs': ['type', 'rel', 'href', 'target'],
             'focus': 'href'
         },
         {
