@@ -27,8 +27,12 @@ import java.util.Locale;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.TestFour;
@@ -36,6 +40,7 @@ import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
+import org.structr.core.entity.TestUser;
 import org.structr.core.graph.Tx;
 import org.structr.core.parser.Functions;
 import org.structr.core.script.Scripting;
@@ -1172,6 +1177,46 @@ public class ActionContextTest extends StructrTest {
 			fex.printStackTrace();
 
 			fail(fex.getMessage());
+		}
+	}
+
+	public void testReadOnlyProperties () {
+		try {
+
+			final TestUser user  = createTestNode(TestUser.class);
+
+			// create new node
+			TestOne t1 = createTestNode(TestOne.class, user);
+
+			final SecurityContext userContext     = SecurityContext.getInstance(user, AccessMode.Frontend);
+			final App userApp                     = StructrApp.getInstance(userContext);
+			final ActionContext userActionContext = new ActionContext(userContext, null);
+
+			try (final Tx tx = userApp.tx()) {
+
+				assertEquals("node should be of type TestOne", "TestOne", Scripting.replaceVariables(userActionContext, t1, "${(get(this, 'type'))}"));
+
+				// THIS TEST NEEDS TO BE REMOVED AFTER THE CREATE-COMMAND HAS BEEN FIXED (OR setProperty sets readOnlyPropertiesUnlocked to false after each run)
+				// for the time being we need this "test" to reset the flag
+				assertEquals("initially setting the type should work (may be a bug)", "TestTwo", Scripting.replaceVariables(userActionContext, t1, "${(set(this, 'type', 'TestTwo'), get(this, 'type'))}"));
+
+				try {
+
+					assertEquals("setting the type should fail", "TestTwo", Scripting.replaceVariables(userActionContext, t1, "${(set(this, 'type', 'TestThree'), get(this, 'type'))}"));
+					fail("setting the a readonly property should fail");
+
+				} catch (FrameworkException fx) { }
+
+				assertEquals("setting the type should work after setting it with unlock_readonly_properties_once", "TestFour", Scripting.replaceVariables(userActionContext, t1, "${(unlock_readonly_properties_once(this), set(this, 'type', 'TestFour'), get(this, 'type'))}"));
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
 		}
 	}
 }
