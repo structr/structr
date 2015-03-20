@@ -97,6 +97,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -104,6 +105,7 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.schema.parser.DatePropertyParser;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -1452,10 +1454,7 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					double value1 = getDoubleForComparison(sources[0]);
-					double value2 = getDoubleForComparison(sources[1]);
-
-					return value1 < value2;
+					return lt(sources[0], sources[1]);
 				}
 
 				return result;
@@ -1476,10 +1475,7 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					double value1 = getDoubleForComparison(sources[0]);
-					double value2 = getDoubleForComparison(sources[1]);
-
-					return value1 > value2;
+					return gt(sources[0], sources[1]);
 				}
 
 				return result;
@@ -1500,10 +1496,7 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					double value1 = getDoubleForComparison(sources[0]);
-					double value2 = getDoubleForComparison(sources[1]);
-
-					return value1 <= value2;
+					return lte(sources[0], sources[1]);
 				}
 
 				return result;
@@ -1524,10 +1517,8 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					double value1 = getDoubleForComparison(sources[0]);
-					double value2 = getDoubleForComparison(sources[1]);
+					return gte(sources[0], sources[1]);
 
-					return value1 >= value2;
 				}
 
 				return result;
@@ -3742,11 +3733,7 @@ public class Functions {
 
 	protected static double getDoubleForComparison(final Object obj) {
 
-		if (obj instanceof Date) {
-
-			return ((Date) obj).getTime();
-
-		} else if (obj instanceof Number) {
+		if (obj instanceof Number) {
 
 			return ((Number) obj).doubleValue();
 
@@ -3796,12 +3783,7 @@ public class Functions {
 
 		}
 
-		if (obj1 instanceof Number && obj2 instanceof Number) {
-
-			return ((Number) obj1).doubleValue() == ((Number) obj2).doubleValue();
-		}
-
-		return obj1.equals(obj2);
+		return eq(obj1, obj2);
 	}
 
 	protected static String getSandboxFileName(final String source) throws IOException {
@@ -3946,4 +3928,222 @@ public class Functions {
 
 		return value;
 	}
+	
+	private static int compareBooleanBoolean(final Object o1, final Object o2) {
+		
+		final Boolean value1 = (Boolean) o1;
+		final Boolean value2 = (Boolean) o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareNumberNumber(final Object o1, final Object o2) {
+		
+		final Double value1 = getDoubleForComparison(o1);
+		final Double value2 = getDoubleForComparison(o2);
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareStringString(final Object o1, final Object o2) {
+		
+		final String value1 = (String) o1;
+		final String value2 = (String) o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareDateDate(final Object o1, final Object o2) {
+		
+		final Date value1 = (Date) o1;
+		final Date value2 = (Date) o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareDateString(final Object o1, final Object o2) {
+		
+		final String value1 = DatePropertyParser.format((Date) o1, DateProperty.DEFAULT_FORMAT);
+		final String value2 = (String) o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareStringDate(final Object o1, final Object o2) {
+		
+		final String value1 = (String) o1;
+		final String value2 = DatePropertyParser.format((Date) o2, DateProperty.DEFAULT_FORMAT);
+
+		return value1.compareTo(value2);
+	}
+	
+	private static int compareBooleanString(final Object o1, final Object o2) {
+		
+		return -1;
+	}
+
+	private static int compareStringBoolean(final Object o1, final Object o2) {
+		
+		return -1;
+	}
+
+	private static int compareNumberString(final Object o1, final Object o2) {
+		
+		final Double value1 = getDoubleForComparison(o1);
+		final Double value2 = Double.parseDouble((String) o2);
+
+		return (value1.compareTo(value2) == 0 ? -1 : value1.compareTo(value2));
+	}
+
+	private static int compareStringNumber(final Object o1, final Object o2) {
+		
+		final Double value1 = Double.parseDouble((String) o1);
+		final Double value2 = getDoubleForComparison(o2);
+
+		return (value1.compareTo(value2) == 0 ? -1 : value1.compareTo(value2));
+	}
+
+	private static boolean gt(final Object o1, final Object o2) {
+		
+		if (o1 instanceof Number && o2 instanceof Number) {
+
+			return compareNumberNumber(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof String) {
+
+			return compareStringString(o1, o2) > 0;
+
+		} else if (o1 instanceof Date && o2 instanceof Date) {
+
+			return compareDateDate(o1, o2) > 0;
+
+		} else if (o1 instanceof Date && o2 instanceof String) {
+
+			return compareDateString(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof Date) {
+
+			return compareStringDate(o1, o2) > 0;
+
+		} else if (o1 instanceof Boolean && o2 instanceof String) {
+
+			return compareBooleanString(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof Boolean) {
+
+			return compareStringBoolean(o1, o2) > 0;
+
+		} else if (o1 instanceof Number && o2 instanceof String) {
+
+			return compareNumberString(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof Number) {
+
+			return compareStringNumber(o1, o2) > 0;
+
+		} else {
+
+			return compareStringString(o1.toString(), o2.toString()) > 0;
+
+		}
+	}
+
+	private static boolean lt(final Object o1, final Object o2) {
+		
+		if (o1 instanceof Number && o2 instanceof Number) {
+
+			return compareNumberNumber(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof String) {
+
+			return compareStringString(o1, o2) < 0;
+
+		} else if (o1 instanceof Date && o2 instanceof Date) {
+
+			return compareDateDate(o1, o2) < 0;
+
+		} else if (o1 instanceof Date && o2 instanceof String) {
+
+			return compareDateString(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof Date) {
+
+			return compareStringDate(o1, o2) < 0;
+
+		} else if (o1 instanceof Boolean && o2 instanceof String) {
+
+			return compareBooleanString(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof Boolean) {
+
+			return compareStringBoolean(o1, o2) < 0;
+
+		} else if (o1 instanceof Number && o2 instanceof String) {
+
+			return compareNumberString(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof Number) {
+
+			return compareStringNumber(o1, o2) < 0;
+
+		} else {
+
+			return compareStringString(o1.toString(), o2.toString()) < 0;
+
+		}
+	}
+
+	private static boolean eq(final Object o1, final Object o2) {
+		
+		if (o1 instanceof Number && o2 instanceof Number) {
+
+			return compareNumberNumber(o1, o2) == 0;
+
+		} else if (o1 instanceof String && o2 instanceof String) {
+
+			return compareStringString(o1, o2) == 0;
+
+		} else if (o1 instanceof Date && o2 instanceof Date) {
+
+			return compareDateDate(o1, o2) == 0;
+
+		} else if (o1 instanceof Date && o2 instanceof String) {
+
+			return compareDateString(o1, o2) == 0;
+
+		} else if (o1 instanceof String && o2 instanceof Date) {
+
+			return compareStringDate(o1, o2) == 0;
+
+		} else if (o1 instanceof Boolean && o2 instanceof String) {
+
+			return compareBooleanString(o1, o2) == 0;
+
+		} else if (o1 instanceof String && o2 instanceof Boolean) {
+
+			return compareStringBoolean(o1, o2) == 0;
+
+		} else if (o1 instanceof Number && o2 instanceof String) {
+
+			return compareNumberString(o1, o2) == 0;
+
+		} else if (o1 instanceof String && o2 instanceof Number) {
+
+			return compareStringNumber(o1, o2) == 0;
+
+		} else {
+
+			return compareStringString(o1.toString(), o2.toString()) == 0;
+
+		}
+	}
+
+	private static boolean gte(final Object o1, final Object o2) {
+		return eq(o1, o2) || gt(o1, o2);
+	}
+
+	private static boolean lte(final Object o1, final Object o2) {
+		return eq(o1, o2) || lt(o1, o2);
+	}
+
 }
