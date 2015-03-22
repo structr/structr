@@ -4,6 +4,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -20,6 +21,7 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.PropertyDefinition;
 
 /**
@@ -57,6 +59,12 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
 	);
 
+	public static final View exportView = new View(SchemaMethod.class, "export",
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
+	);
+
+	private NotionPropertyParser notionPropertyParser = null;
+
 	@Override
 	public String getPropertyName() {
 		return getProperty(name);
@@ -70,11 +78,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	@Override
 	public String getContentType() {
 		return getProperty(contentType);
-	}
-
-	@Override
-	public String getFormat() {
-		return getProperty(format);
 	}
 
 	@Override
@@ -176,6 +179,60 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return Integer.toHexString(_contentHash);
 	}
 
+	@Override
+	public String getFormat() {
+
+		String _format = getProperty(SchemaProperty.format);
+		if (_format != null) {
+
+			_format = _format.trim();
+		}
+
+		return _format;
+	}
+
+	public boolean isRequired() {
+		return getProperty(SchemaProperty.notNull);
+	}
+
+	public String getSourceContentType() {
+
+		final String source = getFormat();
+		if (source != null) {
+
+			if (source.startsWith("{") && source.endsWith("}")) {
+
+				return "text/javascript";
+
+			} else {
+
+				return "text/structrscript";
+			}
+		}
+
+		return "";
+	}
+
+	public Set<String> getEnumDefinitions() {
+
+		final String _format    = getProperty(SchemaProperty.format);
+		final Set<String> enums = new LinkedHashSet<>();
+
+		if (_format != null) {
+
+			for (final String source : _format.split("[, ]+")) {
+
+				final String trimmed = source.trim();
+				if (StringUtils.isNotBlank(trimmed)) {
+
+					enums.add(trimmed);
+				}
+			}
+		}
+
+		return enums;
+	}
+
 	// ----- private methods -----
 	private int addContentHash(final PropertyKey key, final int contentHash) {
 
@@ -186,5 +243,67 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return contentHash;
+	}
+
+	private NotionPropertyParser getNotionPropertyParser() {
+
+		if (notionPropertyParser == null) {
+
+			try {
+				notionPropertyParser = new NotionPropertyParser(new ErrorBuffer(), getName(), this);
+				notionPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+			}
+		}
+
+		return notionPropertyParser;
+	}
+
+	private boolean isPropertySetNotion() {
+		return getNotionPropertyParser().isPropertySet();
+	}
+
+	private String getTypeReferenceForNotionProperty() {
+		return "#/definitions/" + getNotionPropertyParser().getValueType();
+
+	}
+
+	private String getPropertyReferenceForNotionProperty() {
+
+		final NotionPropertyParser parser = getNotionPropertyParser();
+		final Set<String> properties      = getPropertiesForNotionProperty();
+		final String firstProperty        = properties.iterator().next();
+
+		return "#/definitions/" + parser.getValueType() + "/properties/" + firstProperty;
+
+	}
+
+	private Set<String> getPropertiesForNotionProperty() {
+
+		final Set<String> properties = new LinkedHashSet<>();
+
+		for (final String property : getNotionPropertyParser().getProperties()) {
+
+			if (property.contains(".")) {
+
+				final String[] parts = property.split("[.]+");
+				if (parts.length > 1) {
+
+					final String type = parts[0];
+					final String name = parts[1];
+
+					properties.add(name);
+				}
+
+			} else {
+
+				properties.add(property);
+			}
+		}
+
+		return properties;
 	}
 }

@@ -63,5 +63,4 @@ public class FunctionPropertyParser extends PropertySourceGenerator {
 	public void parseFormatString(Schema entity, String expression) throws FrameworkException {
 
 	}
-
 }

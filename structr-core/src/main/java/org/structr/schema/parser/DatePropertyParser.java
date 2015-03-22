@@ -184,5 +184,4 @@ public class DatePropertyParser extends PropertySourceGenerator {
 		return null;
 
 	}
-
 }

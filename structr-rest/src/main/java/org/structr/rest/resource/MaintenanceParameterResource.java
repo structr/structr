@@ -45,6 +45,7 @@ import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.schema.SchemaHelper;
+import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.RDFImporter;
 
@@ -76,6 +77,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("deleteSoftDeletedNodes", BulkDeleteSoftDeletedNodesCommand.class);
 		maintenanceCommandMap.put("setUuid", BulkSetUuidCommand.class);
 		maintenanceCommandMap.put("sync", SyncCommand.class);
+		maintenanceCommandMap.put("snapshot", SnapshotCommand.class);
 
 	}
 

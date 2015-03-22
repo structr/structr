@@ -5,6 +5,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.entity.relationship.SchemaViewProperty;
+import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
@@ -33,5 +34,9 @@ public class SchemaView extends SchemaReloadingNode {
 
 	public static final View schemaView = new View(SchemaView.class, "schema",
 		name, schemaNode, schemaProperties, nonGraphProperties, isBuiltinView
+	);
+
+	public static final View exportView = new View(SchemaMethod.class, "export",
+		id, type, name, schemaNode, nonGraphProperties, isBuiltinView
 	);
 }

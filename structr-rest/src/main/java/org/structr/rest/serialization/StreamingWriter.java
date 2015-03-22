@@ -66,6 +66,9 @@ public abstract class StreamingWriter {
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
 	private final Set<String> visitedObjects             = new ConcurrentHashSet<>();
 	private final DecimalFormat decimalFormat            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private String resultKeyName                         = "result";
+	private boolean renderSerializationTime              = true;
+	private boolean renderResultCount                    = true;
 	private boolean reduceRedundancy                     = false;
 	private int outputNestingDepth                       = 3;
 	private Value<String> propertyView                   = null;
@@ -164,7 +167,7 @@ public abstract class StreamingWriter {
 			writer.name("query_time").value(queryTime);
 		}
 
-		if (resultCount != null) {
+		if (resultCount != null && renderResultCount) {
 			writer.name("result_count").value(resultCount);
 		}
 
@@ -172,11 +175,11 @@ public abstract class StreamingWriter {
 
 			if (results.isEmpty()) {
 
-				writer.name("result").beginArray().endArray();
+				writer.name(resultKeyName).beginArray().endArray();
 
 			} else if (result.isPrimitiveArray()) {
 
-				writer.name("result").beginArray();
+				writer.name(resultKeyName).beginArray();
 
 				for (GraphObject graphObject : results) {
 
@@ -202,7 +205,7 @@ public abstract class StreamingWriter {
 
 				if (result.isCollection()) {
 
-					writer.name("result").beginArray();
+					writer.name(resultKeyName).beginArray();
 
 					// serialize list of results
 					for (GraphObject graphObject : results) {
@@ -223,7 +226,7 @@ public abstract class StreamingWriter {
 
 				} else {
 
-					writer.name("result");
+					writer.name(resultKeyName);
 					root.serialize(writer, results.get(0), localPropertyView, 0);
 				}
 			}
@@ -249,11 +252,25 @@ public abstract class StreamingWriter {
 			root.serialize(writer, metaData, localPropertyView, 0);
 		}
 
-		writer.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+		if (renderSerializationTime) {
+			writer.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+		}
 
 		// finished
 		writer.endObject();
 		writer.endDocument();
+	}
+
+	public void setResultKeyName(final String resultKeyName) {
+		this.resultKeyName = resultKeyName;
+	}
+
+	public void setRenderSerializationTime(final boolean doRender) {
+		this.renderSerializationTime = doRender;
+	}
+
+	public void setRenderResultCount(final boolean doRender) {
+		this.renderResultCount = doRender;
 	}
 
 	private Serializer getSerializerForType(Class type) {

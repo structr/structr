@@ -66,6 +66,10 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 		name, schemaProperties, schemaViews, schemaMethods
 	);
 
+	public static final View exportView = new View(SchemaMethod.class, "export",
+		id, type, name
+	);
+
 	static {
 
 		AbstractNode.name.addValidator(new TypeUniquenessValidator<String>(AbstractSchemaNode.class));

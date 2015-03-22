@@ -96,6 +96,11 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag
 	);
 
+	public static final View exportView = new View(SchemaMethod.class, "export",
+		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag
+	);
+
 	private Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
@@ -718,6 +723,15 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 			src.append("\t}\n\n");
 		}
+	}
+
+	// ----- public static methods -----
+	public static String getDefaultRelationshipType(final SchemaRelationshipNode rel) {
+		return getDefaultRelationshipType(rel.getSourceNode(), rel.getTargetNode());
+	}
+
+	public static String getDefaultRelationshipType(final SchemaNode sourceNode, final SchemaNode targetNode) {
+		return sourceNode.getName() + "_" + targetNode.getName();
 	}
 
 	// ----- nested classes -----

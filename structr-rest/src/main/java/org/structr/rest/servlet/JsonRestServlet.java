@@ -940,7 +940,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
-	private class ThreadLocalGson extends ThreadLocal<Gson> {
+	public class ThreadLocalGson extends ThreadLocal<Gson> {
 
 		private int outputNestingDepth = 3;
 

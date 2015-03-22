@@ -26,6 +26,10 @@ public class SchemaMethod extends SchemaReloadingNode {
 		name, schemaNode, source
 	);
 
+	public static final View exportView = new View(SchemaMethod.class, "export",
+		id, type, schemaNode, name, source
+	);
+
 	public ActionEntry getActionEntry() {
 		return new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source));
 	}
