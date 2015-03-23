@@ -214,6 +214,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_CACHE = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
 	public static final String ERROR_MESSAGE_GRANT = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
 	public static final String ERROR_MESSAGE_REVOKE = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
+	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once, this}";
+	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS = "Usage: ${Structr.unlock_readonly_properties_once(node)}. Example ${Structr.unlock_readonly_properties_once, Structr.get('this')}";
 
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
@@ -3631,6 +3633,32 @@ public class Functions {
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_REVOKE;
+			}
+		});
+		functions.put("unlock_readonly_properties_once", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof AbstractNode) {
+
+						((AbstractNode)sources[0]).unlockReadOnlyPropertiesOnce();
+
+					} else {
+
+						return ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE;
+
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
 			}
 		});
 	}
