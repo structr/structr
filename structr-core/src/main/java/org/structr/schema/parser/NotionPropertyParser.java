@@ -33,12 +33,14 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class NotionPropertyParser extends PropertySourceGenerator {
 
-	private Set<String> properties = new LinkedHashSet<>();
+	private final Set<String> properties = new LinkedHashSet<>();
 	private boolean isPropertySet  = false;
 	private boolean isAutocreate   = false;
 	private String parameters      = "";
 	private String propertyType    = null;
 	private String relatedType     = null;
+	private String baseProperty    = null;
+	private String multiplicity    = null;
 
 	public NotionPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
@@ -77,9 +79,9 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 		if (parts.length > 0) {
 
-			final String baseProperty = parts[0];
-			final String multiplicity = entity.getMultiplicity(baseProperty);
 			boolean isBuiltinProperty = false;
+			baseProperty              = parts[0];
+			multiplicity              = entity.getMultiplicity(baseProperty);
 
 			if (multiplicity != null) {
 
@@ -195,5 +197,13 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 	public boolean isAutocreate() {
 		return isAutocreate;
+	}
+
+	public String getBaseProperty() {
+		return baseProperty;
+	}
+
+	public String getMultiplicity() {
+		return multiplicity;
 	}
 }

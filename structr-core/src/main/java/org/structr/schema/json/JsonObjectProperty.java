@@ -1,5 +1,7 @@
 package org.structr.schema.json;
 
+import java.util.Set;
+
 /**
  *
  * @author Christian Morgner
@@ -14,4 +16,8 @@ public interface JsonObjectProperty extends JsonProperty {
 
 	public String getRelationship();
 	public JsonObjectProperty setRelationship(final String relationship);
+
+	public Set<String> getProperties();
+	public JsonObjectProperty setProperties(final String... properties);
+
 }

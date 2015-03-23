@@ -9,7 +9,11 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeAttribute;
 
 /**
  *
@@ -202,13 +206,13 @@ public abstract class StructrDefinition extends TreeMap<String, Object> {
 				return (StructrDefinition)current;
 			}
 
-			throw new IllegalStateException("Invalid JSON pointer " + reference + ", expected schema definition.");
-
 		} else {
 
 			// what now?! This is an absolute pointer that we can not currently reference..
 			throw new IllegalStateException("Unsupported JSON pointer " + reference);
 		}
+
+		return null;
 	}
 
 	protected SchemaNode getSchemaNode() {
@@ -219,5 +223,24 @@ public abstract class StructrDefinition extends TreeMap<String, Object> {
 		this.schemaNode = schemaNode;
 	}
 
-	// ----- private methods -----
+	// ----- public static methods -----
+	public static SchemaRelationshipNode getRelationship(final App app, final SchemaNode sourceNode, final SchemaNode targetNode, final String relationshipType) throws FrameworkException {
+
+		SchemaRelationshipNode node = app.nodeQuery(SchemaRelationshipNode.class)
+			.and(SchemaRelationshipNode.sourceId, sourceNode.getUuid())
+			.and(SchemaRelationshipNode.targetId, targetNode.getUuid())
+			.and(SchemaRelationshipNode.relationshipType, relationshipType)
+			.getFirst();
+
+		if (node == null) {
+
+			node = app.create(SchemaRelationshipNode.class,
+				new NodeAttribute(SchemaRelationshipNode.sourceNode, sourceNode),
+				new NodeAttribute(SchemaRelationshipNode.targetNode, targetNode),
+				new NodeAttribute(SchemaRelationshipNode.relationshipType, relationshipType)
+			);
+		}
+
+		return node;
+	}
 }

@@ -233,6 +233,49 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return enums;
 	}
 
+	public boolean isPropertySetNotion() {
+		return getNotionPropertyParser().isPropertySet();
+	}
+
+	public String getTypeReferenceForNotionProperty() {
+		return getNotionPropertyParser().getValueType();
+
+	}
+
+	public Set<String> getPropertiesForNotionProperty() {
+
+		final Set<String> properties = new LinkedHashSet<>();
+
+		for (final String property : getNotionPropertyParser().getProperties()) {
+
+			if (property.contains(".")) {
+
+				final String[] parts = property.split("[.]+");
+				if (parts.length > 1) {
+
+					final String type = parts[0];
+					final String name = parts[1];
+
+					properties.add(name);
+				}
+
+			} else {
+
+				properties.add(property);
+			}
+		}
+
+		return properties;
+	}
+
+	public String getNotionBaseProperty() {
+		return getNotionPropertyParser().getBaseProperty();
+	}
+
+	public String getNotionMultiplicity() {
+		return getNotionPropertyParser().getMultiplicity();
+	}
+
 	// ----- private methods -----
 	private int addContentHash(final PropertyKey key, final int contentHash) {
 
@@ -260,50 +303,5 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return notionPropertyParser;
-	}
-
-	private boolean isPropertySetNotion() {
-		return getNotionPropertyParser().isPropertySet();
-	}
-
-	private String getTypeReferenceForNotionProperty() {
-		return "#/definitions/" + getNotionPropertyParser().getValueType();
-
-	}
-
-	private String getPropertyReferenceForNotionProperty() {
-
-		final NotionPropertyParser parser = getNotionPropertyParser();
-		final Set<String> properties      = getPropertiesForNotionProperty();
-		final String firstProperty        = properties.iterator().next();
-
-		return "#/definitions/" + parser.getValueType() + "/properties/" + firstProperty;
-
-	}
-
-	private Set<String> getPropertiesForNotionProperty() {
-
-		final Set<String> properties = new LinkedHashSet<>();
-
-		for (final String property : getNotionPropertyParser().getProperties()) {
-
-			if (property.contains(".")) {
-
-				final String[] parts = property.split("[.]+");
-				if (parts.length > 1) {
-
-					final String type = parts[0];
-					final String name = parts[1];
-
-					properties.add(name);
-				}
-
-			} else {
-
-				properties.add(property);
-			}
-		}
-
-		return properties;
 	}
 }

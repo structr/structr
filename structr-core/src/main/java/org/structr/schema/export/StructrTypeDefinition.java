@@ -1,5 +1,6 @@
 package org.structr.schema.export;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -133,6 +134,18 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 	}
 
 	@Override
+	public JsonObjectProperty addReference(final String name, final JsonObjectProperty otherProperty, final String... views) throws URISyntaxException {
+
+		final StructrObjectProperty objectProperty = new StructrObjectProperty(this, name);
+		addProperty(objectProperty, name, views);
+
+		URI reference = getParent().getId().relativize(otherProperty.getId());
+		objectProperty.put(JsonSchema.KEY_REFERENCE, "#" + reference.getPath());
+
+		return objectProperty;
+	}
+
+	@Override
 	public JsonArrayProperty addArrayReference(final String name, final JsonType otherType, final String... views) throws URISyntaxException {
 
 		final StructrArrayProperty arrayProperty = new StructrArrayProperty(this, name);
@@ -142,6 +155,22 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 		arrayProperty.put(JsonSchema.KEY_ITEMS, items);
 
 		items.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + otherType.getName());
+
+		return arrayProperty;
+	}
+
+	@Override
+	public JsonArrayProperty addArrayReference(final String name, final JsonArrayProperty otherProperty, final String... views) throws URISyntaxException {
+
+		final StructrArrayProperty arrayProperty = new StructrArrayProperty(this, name);
+		addProperty(arrayProperty, name, views);
+
+		final Map<String, Object> items = new TreeMap<>();
+		arrayProperty.put(JsonSchema.KEY_ITEMS, items);
+
+		URI reference = getParent().getId().relativize(otherProperty.getId());
+
+		items.put(JsonSchema.KEY_REFERENCE, "#" + reference.getPath());
 
 		return arrayProperty;
 	}

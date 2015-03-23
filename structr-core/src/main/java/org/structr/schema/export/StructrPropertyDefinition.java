@@ -41,7 +41,7 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 	abstract void initializeFromProperty(final JsonProperty property);
 
 	@Override
-	public StructrDefinition getParent() {
+	public StructrTypeDefinition getParent() {
 		return parent;
 	}
 
@@ -194,24 +194,40 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 
 
 			case Notion:
-//				if (isPropertySetNotion()) {
-//
-//					jsonSchemaDefinition.put(JsonSchema.KEY_TYPE, "object");
-//					jsonSchemaDefinition.put(JsonSchema.KEY_MAP, getTypeReferenceForNotionProperty());
-//					jsonSchemaDefinition.put(JsonSchema.KEY_PROPERTIES, getPropertiesForNotionProperty());
-//
-//				} else {
-//
-//					jsonSchemaDefinition.put(JsonSchema.KEY_REFERENCE, getPropertyReferenceForNotionProperty());
-//				}
-				break;
+				final String reference             = "#/definitions/" + parentName + "/properties/" + property.getNotionBaseProperty();
+				final Set<String> notionProperties = property.getPropertiesForNotionProperty();
+				final StructrPropertyDefinition notionProperty;
+
+				if (property.getNotionMultiplicity().startsWith("*")) {
+
+					notionProperty = new StructrArrayProperty(parent, name);
+					final Map<String, Object> items = new TreeMap<>();
+
+					items.put(JsonSchema.KEY_REFERENCE, reference);
+					if (!notionProperties.isEmpty()) {
+
+						items.put(JsonSchema.KEY_PROPERTIES, notionProperties);
+					}
+					notionProperty.put(JsonSchema.KEY_ITEMS, items);
+
+				} else {
+
+					notionProperty = new StructrObjectProperty(parent, name);
+					notionProperty.put(JsonSchema.KEY_REFERENCE, reference);
+					if (!notionProperties.isEmpty()) {
+
+						notionProperty.put(JsonSchema.KEY_PROPERTIES, notionProperties);
+					}
+				}
+
+				return notionProperty;
 
 			case StringArray:
 				final StructrArrayProperty arr = new StructrArrayProperty(parent, name);
-//				final Map<String, Object> items = new LinkedHashMap<>();
-//				items.put(JsonSchema.KEY_TYPE, "string");
-//				jsonSchemaDefinition.put(JsonSchema.KEY_TYPE, "array");
-//				jsonSchemaDefinition.put(JsonSchema.KEY_ITEMS, items);
+				final Map<String, Object> items = new TreeMap<>();
+				items.put(JsonSchema.KEY_TYPE, "string");
+				arr.put(JsonSchema.KEY_TYPE, "array");
+				arr.put(JsonSchema.KEY_ITEMS, items);
 				return arr;
 
 			case String:
@@ -232,7 +248,7 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 				count.setRequired(property.isRequired());
 				count.setUnique(property.isUnique());
 				count.setDefaultValue(property.getDefaultValue());
-//				jsonSchemaDefinition.put(JsonSchema.KEY_SIZE_OF, "#/definitions/" + getName() + "/properties/" + _format);
+				count.put(JsonSchema.KEY_SIZE_OF, "#/definitions/" + name + "/properties/" + _format);
 				return count;
 
 			case Integer:
