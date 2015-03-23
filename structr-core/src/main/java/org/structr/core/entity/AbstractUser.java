@@ -117,12 +117,14 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 		for (Groups rel : getIncomingRelationships(Groups.class)) {
 
-			parents.add(rel.getSourceNode());
+			if (rel != null && rel.getSourceNode() != null) {
 
+				parents.add(rel.getSourceNode());
+
+			}
 		}
 
 		return parents;
-
 	}
 
 	@Override

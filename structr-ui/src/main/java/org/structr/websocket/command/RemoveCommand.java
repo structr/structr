@@ -32,6 +32,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.w3c.dom.DOMException;
 
 /**
  *
@@ -73,9 +74,10 @@ public class RemoveCommand extends AbstractCommand {
 						domNode.setProperty(DOMNode.syncedNodes, Collections.EMPTY_LIST);
 						domNode.setProperty(DOMNode.pageId, null);
 
-					} catch (FrameworkException ex) {
+					} catch (DOMException | FrameworkException ex) {
 
 						logger.log(Level.SEVERE, "Could not remove node from page " + domNode, ex);
+						getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 
 					}
 
@@ -98,6 +100,7 @@ public class RemoveCommand extends AbstractCommand {
 
 					} catch (Throwable t) {
 
+						logger.log(Level.SEVERE, "Could not delete relationship", t);
 						getWebSocket().send(MessageBuilder.status().code(400).message("Error in RemoveCommand: " + t.getMessage()).build(), true);
 
 					}

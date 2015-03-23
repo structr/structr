@@ -174,7 +174,12 @@ function StructrApp(baseUrl) {
         var container = $('[data-structr-id="' + id + '"]');
         $.each(attrs, function(i, key) {
             var field = s.getPossibleFields(form, container, suffix, type, key);
-            var val = field.val();
+            var val;
+            if (field.attr('type') === 'checkbox') {
+                val = field.prop('checked');
+            } else {
+                val = field.val();
+            }
             // treat empty string as null
             val = (val === '') ? undefined : val;
             val = ((val && typeof val === 'string') ? val.parseIfJSON() : val);

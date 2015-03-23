@@ -29,6 +29,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.w3c.dom.DOMException;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -92,6 +93,11 @@ public class ClonePageCommand extends AbstractCommand {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
+			} catch (DOMException dex) {
+
+				logger.log(Level.WARNING, "Could not create node.", dex);
+				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
 
 			}
 

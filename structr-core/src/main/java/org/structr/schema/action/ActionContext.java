@@ -30,7 +30,10 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.DateConverter;
 import org.structr.core.parser.Functions;
+import org.structr.core.property.DateProperty;
+import org.structr.schema.parser.DatePropertyParser;
 
 /**
  *
@@ -231,7 +234,7 @@ public class ActionContext {
 						return securityContext.getRequest();
 
 					case "now":
-						return new Date();
+						return DatePropertyParser.format(new Date(), DateProperty.DEFAULT_FORMAT);
 
 					case "me":
 						return securityContext.getUser(false);

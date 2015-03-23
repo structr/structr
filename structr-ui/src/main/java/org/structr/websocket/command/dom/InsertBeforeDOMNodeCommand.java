@@ -40,11 +40,11 @@ public class InsertBeforeDOMNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String parentId              = (String) nodeData.get("parentId");
-		String newId                 = (String) nodeData.get("newId");
-		String refId                 = (String) nodeData.get("refId");
-		String pageId                = webSocketData.getPageId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String parentId              = (String) nodeData.get("parentId");
+		final String newId                 = (String) nodeData.get("newId");
+		final String refId                 = (String) nodeData.get("refId");
+		final String pageId                = webSocketData.getPageId();
 		
 		if (pageId != null) {
 
@@ -56,7 +56,7 @@ public class InsertBeforeDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if parent node with given ID exists
-			DOMNode parentNode = getDOMNode(parentId);
+			final DOMNode parentNode = getDOMNode(parentId);
 			if (parentNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);		
@@ -71,7 +71,7 @@ public class InsertBeforeDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if old node with given ID exists
-			DOMNode refNode = getDOMNode(refId);
+			final DOMNode refNode = getDOMNode(refId);
 			if (refNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("Reference node not found").build(), true);		
@@ -86,7 +86,7 @@ public class InsertBeforeDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if new node with given ID exists
-			DOMNode newNode = getDOMNode(newId);
+			final DOMNode newNode = getDOMNode(newId);
 			if (newNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("New node not found").build(), true);		

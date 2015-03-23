@@ -40,11 +40,11 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String parentId              = (String) nodeData.get("parentId");
-		String newId                 = (String) nodeData.get("newId");
-		String oldId                 = (String) nodeData.get("oldId");
-		String pageId                = webSocketData.getPageId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String parentId              = (String) nodeData.get("parentId");
+		final String newId                 = (String) nodeData.get("newId");
+		final String oldId                 = (String) nodeData.get("oldId");
+		final String pageId                = webSocketData.getPageId();
 		
 		if (pageId != null) {
 
@@ -56,7 +56,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if parent node with given ID exists
-			DOMNode parentNode = getDOMNode(parentId);
+			final DOMNode parentNode = getDOMNode(parentId);
 			if (parentNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);		
@@ -71,7 +71,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if old node with given ID exists
-			DOMNode oldNode = getDOMNode(oldId);
+			final DOMNode oldNode = getDOMNode(oldId);
 			if (oldNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("Old node not found").build(), true);		
@@ -86,7 +86,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if new node with given ID exists
-			DOMNode newNode = getDOMNode(newId);
+			final DOMNode newNode = getDOMNode(newId);
 			if (newNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("New node not found").build(), true);		

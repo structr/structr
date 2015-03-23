@@ -759,7 +759,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	/**
 	 * Render the node including data binding (outer rendering).
 	 *
-	 * @param securityContext
 	 * @param renderContext
 	 * @param depth
 	 * @throws FrameworkException
@@ -903,14 +902,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				if (doc != null && (page == null || doc.equals(page))) {
 
-					try {
-						template.setProperty(DOMNode.ownerDocument, (Page) doc);
+//					try {
+//						template.setProperty(DOMNode.ownerDocument, (Page) doc);
+//
+//					} catch (FrameworkException ex) {
+//						ex.printStackTrace();
+//					}
 
-						return template;
-
-					} catch (FrameworkException ex) {
-						ex.printStackTrace();
-					}
+					return template;
 
 				}
 
