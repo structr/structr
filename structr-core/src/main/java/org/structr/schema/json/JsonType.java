@@ -21,6 +21,7 @@ public interface JsonType extends Comparable<JsonType> {
 	public Set<String> getRequiredProperties();
 
 	public JsonStringProperty addStringProperty(final String name, final String... views) throws URISyntaxException;
+	public JsonStringProperty addDateProperty(final String name, final String... views) throws URISyntaxException;
 	public JsonNumberProperty addNumberProperty(final String name, final String... views) throws URISyntaxException;
 	public JsonBooleanProperty addBooleanProperty(final String name, final String... views) throws URISyntaxException;
 	public JsonScriptProperty addScriptProperty(final String name, final String...views) throws URISyntaxException;

@@ -59,7 +59,8 @@ public class StructrSchemaTest extends StructrTest {
 			task.addReference("workerNotion", workerProperty, "public", "ui");
 
 
-			
+			// test date properties..
+			project.addDateProperty("startDate", "public", "ui");
 
 
 			// test URIs

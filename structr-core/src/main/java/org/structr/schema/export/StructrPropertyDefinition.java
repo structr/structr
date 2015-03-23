@@ -265,8 +265,7 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 				date.setRequired(property.isRequired());
 				date.setUnique(property.isUnique());
 				date.setDefaultValue(property.getDefaultValue());
-				date.setFormat(_format);
-//				jsonSchemaDefinition.put(JsonSchema.KEY_FORMAT, "date-time");
+				date.setFormat(JsonSchema.FORMAT_DATE_TIME);
 				return date;
 
 			case Enum:

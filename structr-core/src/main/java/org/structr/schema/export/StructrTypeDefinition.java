@@ -105,6 +105,18 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 	}
 
 	@Override
+	public JsonStringProperty addDateProperty(String name, String... views) throws URISyntaxException {
+
+		final StructrStringProperty stringProperty = new StructrStringProperty(this, name);
+
+		stringProperty.setFormat(JsonSchema.FORMAT_DATE_TIME);
+
+		addProperty(stringProperty, name, views);
+
+		return stringProperty;
+	}
+
+	@Override
 	public JsonNumberProperty addNumberProperty(String name, String... views) throws URISyntaxException {
 
 		final StructrNumberProperty numberProperty = new StructrNumberProperty(this, name);

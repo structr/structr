@@ -37,6 +37,8 @@ public interface JsonSchema {
 	public static final String KEY_UNIQUE       = "unique";
 	public static final String KEY_DEFAULT      = "default";
 
+	public static final String FORMAT_DATE_TIME = "date-time";
+
 	public URI getId();
 
 	public Set<JsonType> getTypes();

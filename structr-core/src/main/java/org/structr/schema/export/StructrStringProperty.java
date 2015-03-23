@@ -9,6 +9,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.json.JsonProperty;
+import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonStringProperty;
 
 /**
@@ -35,8 +36,15 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 
 		setDefaultProperties(schemaProperty);
 
-		schemaProperty.setProperty(SchemaProperty.propertyType, Type.String.name());
-		schemaProperty.setProperty(SchemaProperty.format, getFormat());
+		if (JsonSchema.FORMAT_DATE_TIME.equals(getFormat())) {
+
+			schemaProperty.setProperty(SchemaProperty.propertyType, Type.Date.name());
+
+		} else {
+
+			schemaProperty.setProperty(SchemaProperty.propertyType, Type.String.name());
+			schemaProperty.setProperty(SchemaProperty.format, getFormat());
+		}
 
 		return schemaProperty;
 	}
