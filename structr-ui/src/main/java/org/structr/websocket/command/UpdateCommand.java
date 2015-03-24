@@ -114,7 +114,7 @@ public class UpdateCommand extends AbstractCommand {
 
 					while (iterator.hasNext() && count++ < 100) {
 
-						setProperties(app, iterator.next(), properties, true);
+						setProperties(iterator.next(), properties, true);
 					}
 
 					// commit and close transaction
@@ -145,7 +145,7 @@ public class UpdateCommand extends AbstractCommand {
 	}
 
 	//~--- set methods ----------------------------------------------------
-	private void setProperties(final App app, final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
+	private void setProperties(final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
 		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 

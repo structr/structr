@@ -1241,7 +1241,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * Decide whether this node should be displayed for the given conditions
 	 * string.
 	 *
-	 * @param securityContext
 	 * @param renderContext
 	 * @return true if node should be displayed
 	 */
