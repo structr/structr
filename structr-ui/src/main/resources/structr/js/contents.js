@@ -46,6 +46,7 @@ var _Contents = {
         var isTemplate = (entity.type === 'Template');
 
         var name = entity.name;
+        var displayName = getElementDisplayName(entity);
 
         var isComment = (entity.type === 'Comment');
         var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
@@ -54,7 +55,7 @@ var _Contents = {
         
         var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
                 + '<img class="typeIcon" src="' + icon + '">'
-                + (name ? ('<b title="' + name + '" class="tag_ name_">' + name + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
+                + (name ? ('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
                 + '<span class="id">' + entity.id + '</span>'
                 + '</div>';
 

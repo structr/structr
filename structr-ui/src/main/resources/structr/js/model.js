@@ -388,13 +388,18 @@ var StructrModel = {
                 keyIcon.removeClass('donthide');
             }
 
+            var displayName = getElementDisplayName(obj);
+
             // Did name change from null?
             if ((obj.type === 'Template' || obj.isContent)) {
                 if (obj.name) {
-                    $(element).children('.content_').replaceWith('<b title="' + obj.name + '" class="tag_ name_">' + obj.name + '</b>');
+                    $(element).children('.content_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+                    $(element).children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
                 } else {
                     $(element).children('.name_').replaceWith('<div class="content_">' + escapeTags(obj.content) + '</div>');
                 }
+            } else {
+                $(element).children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
             }
 
         }
