@@ -25,6 +25,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -55,6 +56,8 @@ import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.schema.parser.Validator;
 
 /**
@@ -292,15 +295,23 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	public String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing) {
 
-		String propertyName = "";
-
 		final String relationshipTypeName = getProperty(SchemaRelationshipNode.relationshipType).toLowerCase();
 		final String _sourceType          = getSchemaNodeSourceType();
 		final String _targetType          = getSchemaNodeTargetType();
+		final String _targetJsonName = getProperty(targetJsonName);
+		final String _targetMultiplicity = getProperty(targetMultiplicity);
+		final String _sourceJsonName = getProperty(sourceJsonName);
+		final String _sourceMultiplicity = getProperty(sourceMultiplicity);
+
+		return SchemaRelationshipNode.getPropertyName(relatedClassName, existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
+	}
+
+	public static String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
+
+		String propertyName = "";
 
 		if (outgoing) {
 
-			final String _targetJsonName     = getProperty(targetJsonName);
 
 			if (_targetJsonName != null) {
 
@@ -308,8 +319,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				propertyName = _targetJsonName;
 
 			} else {
-
-				final String _targetMultiplicity = getProperty(targetMultiplicity);
 
 				if ("1".equals(_targetMultiplicity)) {
 
@@ -323,13 +332,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		} else {
 
-			final String _sourceJsonName     = getProperty(sourceJsonName);
 
 			if (_sourceJsonName != null) {
 				propertyName = _sourceJsonName;
 			} else {
-
-				final String _sourceMultiplicity = getProperty(sourceMultiplicity);
 
 				if ("1".equals(_sourceMultiplicity)) {
 
@@ -647,6 +653,107 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return buf.toString();
 	}
 
+	public void resolveCascadingEnums(final Cascade delete, final Cascade autoCreate) throws FrameworkException {
+
+		if (delete != null) {
+
+			switch (delete) {
+
+				case sourceToTarget:
+					setProperty(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.SOURCE_TO_TARGET));
+					break;
+
+				case targetToSource:
+					setProperty(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.TARGET_TO_SOURCE));
+					break;
+
+				case always:
+					setProperty(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.ALWAYS));
+					break;
+
+				case constraintBased:
+					setProperty(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.CONSTRAINT_BASED));
+					break;
+			}
+		}
+
+		if (autoCreate != null) {
+
+			switch (autoCreate) {
+
+				case sourceToTarget:
+					setProperty(SchemaRelationshipNode.autocreationFlag, Long.valueOf(Relation.SOURCE_TO_TARGET));
+					break;
+
+				case targetToSource:
+					setProperty(SchemaRelationshipNode.autocreationFlag, Long.valueOf(Relation.TARGET_TO_SOURCE));
+					break;
+
+				case always:
+					setProperty(SchemaRelationshipNode.autocreationFlag, Long.valueOf(Relation.ALWAYS));
+					break;
+
+				case constraintBased:
+					setProperty(SchemaRelationshipNode.autocreationFlag, Long.valueOf(Relation.CONSTRAINT_BASED));
+					break;
+			}
+		}
+
+	}
+
+	public Map<String, Object> resolveCascadingFlags() {
+
+		final Long cascadingDelete        = getProperty(SchemaRelationshipNode.cascadingDeleteFlag);
+		final Long autoCreate             = getProperty(SchemaRelationshipNode.autocreationFlag);
+		final Map<String, Object> cascade = new TreeMap<>();
+
+		if (cascadingDelete != null) {
+
+			switch (cascadingDelete.intValue()) {
+
+				case Relation.SOURCE_TO_TARGET:
+					cascade.put(JsonSchema.KEY_DELETE, JsonSchema.Cascade.sourceToTarget.name());
+					break;
+
+				case Relation.TARGET_TO_SOURCE:
+					cascade.put(JsonSchema.KEY_DELETE, JsonSchema.Cascade.targetToSource.name());
+					break;
+
+				case Relation.ALWAYS:
+					cascade.put(JsonSchema.KEY_DELETE, JsonSchema.Cascade.always.name());
+					break;
+
+				case Relation.CONSTRAINT_BASED:
+					cascade.put(JsonSchema.KEY_DELETE, JsonSchema.Cascade.constraintBased.name());
+					break;
+			}
+		}
+
+		if (autoCreate != null) {
+
+			switch (autoCreate.intValue()) {
+
+				case Relation.SOURCE_TO_TARGET:
+					cascade.put(JsonSchema.KEY_CREATE, JsonSchema.Cascade.sourceToTarget.name());
+					break;
+
+				case Relation.TARGET_TO_SOURCE:
+					cascade.put(JsonSchema.KEY_CREATE, JsonSchema.Cascade.targetToSource.name());
+					break;
+
+				case Relation.ALWAYS:
+					cascade.put(JsonSchema.KEY_CREATE, JsonSchema.Cascade.always.name());
+					break;
+
+				case Relation.CONSTRAINT_BASED:
+					cascade.put(JsonSchema.KEY_CREATE, JsonSchema.Cascade.constraintBased.name());
+					break;
+			}
+		}
+
+		return cascade;
+	}
+
 	// ----- interface Syncable -----
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
@@ -731,7 +838,11 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	public static String getDefaultRelationshipType(final SchemaNode sourceNode, final SchemaNode targetNode) {
-		return sourceNode.getName() + "_" + targetNode.getName();
+		return getDefaultRelationshipType(sourceNode.getName(), targetNode.getName());
+	}
+
+	public static String getDefaultRelationshipType(final String sourceType, final String targetType) {
+		return sourceType + "_" + targetType;
 	}
 
 	// ----- nested classes -----

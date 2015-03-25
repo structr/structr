@@ -16,8 +16,14 @@ public interface JsonType extends Comparable<JsonType> {
 	public String getName();
 	public JsonType setName(final String name);
 
+	public JsonType addMethod(final String name, final String source);
+	public JsonType setExtends(final JsonType superType);
+	public JsonType setExtends(final URI externalReference);
+	public String getExtends();
+
 	public Set<JsonProperty> getProperties();
 	public Map<String, Set<String>> getViews();
+	public Map<String, String> getMethods();
 	public Set<String> getRequiredProperties();
 
 	public JsonStringProperty addStringProperty(final String name, final String... views) throws URISyntaxException;
@@ -27,9 +33,9 @@ public interface JsonType extends Comparable<JsonType> {
 	public JsonScriptProperty addScriptProperty(final String name, final String...views) throws URISyntaxException;
 	public JsonEnumProperty addEnumProperty(final String name, final String...views) throws URISyntaxException;
 
-	public JsonObjectProperty addReference(final String name, final JsonType otherType, final String... views) throws URISyntaxException;
-	public JsonObjectProperty addReference(final String name, final JsonObjectProperty otherProperty, final String... views) throws URISyntaxException;
+	public JsonReferenceProperty addReference(final String name, final String relationship, final JsonType otherType, final String... views) throws URISyntaxException;
+	public JsonReferenceProperty addReference(final String name, final JsonReferenceProperty otherProperty, final String... views) throws URISyntaxException;
 
-	public JsonArrayProperty addArrayReference(final String name, final JsonType otherType, final String... views) throws URISyntaxException;
-	public JsonArrayProperty addArrayReference(final String name, final JsonArrayProperty referencedProperty, final String... views) throws URISyntaxException;
+	public JsonReferenceProperty addArrayReference(final String name, final String relationship, final JsonType otherType, final String... views) throws URISyntaxException;
+	public JsonReferenceProperty addArrayReference(final String name, final JsonReferenceProperty referencedProperty, final String... views) throws URISyntaxException;
 }

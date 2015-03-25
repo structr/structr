@@ -171,6 +171,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
 								nodeEntityClassCache.put(name, nodeClass);
+								nodeEntityClass = nodeClass;
 
 								// first match wins
 								break;

@@ -3,7 +3,11 @@ package org.structr.schema.export;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.StringWriter;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,9 +15,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.schema.json.InvalidSchemaException;
+import org.structr.schema.json.JsonReferenceProperty;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 
@@ -23,6 +29,8 @@ import org.structr.schema.json.JsonType;
  * @author Christian Morgner
  */
 public class StructrSchemaDefinition extends StructrDefinition implements JsonSchema {
+
+	private final Map<String, SymmetricReference> referenceMapping = new LinkedHashMap<>();
 
 	StructrSchemaDefinition() throws URISyntaxException {
 		super(null, JsonSchema.SCHEMA_ID);
@@ -109,7 +117,7 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 
 	void createFromDatabase(final App app) throws FrameworkException, URISyntaxException {
 
-		final List<SchemaNode> types                             = app.nodeQuery(SchemaNode.class).sort(AbstractNode.name).getAsList();
+		final List<SchemaNode> types = app.nodeQuery(SchemaNode.class).sort(AbstractNode.name).getAsList();
 		final Map<String, StructrTypeDefinition> typeDefinitions = getTypeDefinitions();
 
 		for (final SchemaNode schemaNode : types) {
@@ -127,7 +135,40 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 		final Map<String, StructrTypeDefinition> typeDefinitions = getTypeDefinitions();
 		for (final StructrTypeDefinition type : typeDefinitions.values()) {
 
-			type.setSchemaNode(app.create(SchemaNode.class, type.getName()));
+			final SchemaNode schemaNode = app.create(SchemaNode.class, type.getName());
+			type.setSchemaNode(schemaNode);
+		}
+
+		// second pass, resolve inheritance
+		for (final StructrTypeDefinition type : typeDefinitions.values()) {
+
+			final String extendsReference = type.getExtends();
+			if (extendsReference != null) {
+
+				final StructrDefinition def = resolveJsonPointer(extendsReference);
+				final SchemaNode schemaNode = type.getSchemaNode();
+
+				if (def != null && def instanceof JsonType) {
+
+					final JsonType jsonType = (JsonType)def;
+					final String superclassName = "org.structr.dynamic." + jsonType.getName();
+
+					schemaNode.setProperty(SchemaNode.extendsClass, superclassName);
+
+				} else {
+
+					try {
+						final Class superclass = StructrApp.resolveSchemaId(new URI(extendsReference));
+						if (superclass != null) {
+
+							schemaNode.setProperty(SchemaNode.extendsClass, superclass.getName());
+						}
+
+					} catch (URISyntaxException uex) {
+						uex.printStackTrace();
+					}
+				}
+			}
 		}
 
 		// Create properties in a separate run because all SchemaNodes must exist
@@ -178,6 +219,30 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 		}
 	}
 
+	void notifyReferenceChange(final StructrTypeDefinition sourceType, final JsonReferenceProperty property) {
+
+		final String reference = property.getReference();
+		if (reference != null) {
+
+			final StructrTypeDefinition targetType = (StructrTypeDefinition)sourceType.resolveJsonPointer(reference);
+			if (targetType != null) {
+
+				// create a key that is independent of the direction of a relationship
+				final String directionIndependentKey = createDirectionIndependentKey(sourceType.getName(), targetType.getName(), property.getRelationship());
+
+				// use this key to obtain (or create) a symmetric reference instance
+				SymmetricReference symmetricReference = referenceMapping.get(directionIndependentKey);
+				if (symmetricReference == null) {
+
+					symmetricReference = new SymmetricReference();
+					referenceMapping.put(directionIndependentKey, symmetricReference);
+				}
+
+				symmetricReference.registerProperty(sourceType, property);
+			}
+		}
+	}
+
 	// ----- private methods -----
 	private void createFromSource(final JsonSchema source) throws URISyntaxException {
 
@@ -190,6 +255,141 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 
 			final String name = type.getName();
 			typeDefinitions.put(name, new StructrTypeDefinition(this, "definitions/" + name, type));
+		}
+	}
+
+	private String createDirectionIndependentKey(final String type1, final String type2, final String relationship) {
+
+		final List<Character> characters = new LinkedList<>();
+
+		// add characters from both strings to the list
+		for (final char c : type1.toLowerCase().toCharArray()) { characters.add(c); }
+		for (final char c : type2.toLowerCase().toCharArray()) { characters.add(c); }
+
+		if (relationship != null) {
+			for (final char c : relationship.toLowerCase().toCharArray()) { characters.add(c); }
+		}
+
+		// sort character list
+		Collections.sort(characters);
+
+		// assemble sorted character list into string
+		final StringBuilder buf = new StringBuilder();
+		for (final Character c : characters) {
+			buf.append(c);
+		}
+
+		return buf.toString();
+	}
+
+	// ----- nested classes -----
+	private class SymmetricReference {
+
+		private StructrTypeDefinition sourceType  = null;
+		private StructrTypeDefinition targetType  = null;
+		private JsonReferenceProperty outProperty = null;
+		private JsonReferenceProperty inProperty = null;
+		private Direction direction               = null;
+
+		public void registerProperty(final StructrTypeDefinition _sourceType, final JsonReferenceProperty _property) {
+
+			final StructrTypeDefinition _targetType = (StructrTypeDefinition)_sourceType.resolveJsonPointer(_property.getReference());
+			Direction directionFromProperty         = _property.getDirection();
+			boolean directionChanged                = false;
+
+			// default direction: out, can be changed later
+			if (directionFromProperty == null) {
+
+				// property has no direction.. check if direction is already set on this
+				// relationship and modify direction accordingly
+
+				if (this.direction != null) {
+
+					switch (this.direction) {
+
+						case in:
+							directionFromProperty = Direction.out;
+							_property.setDirection(Direction.out);
+							break;
+
+						case out:
+							directionFromProperty = Direction.in;
+							_property.setDirection(Direction.in);
+							break;
+					}
+
+				} else {
+
+					// no direction was set => default to "out"
+					directionFromProperty = Direction.out;
+					_property.setDirection(directionFromProperty);
+				}
+
+				directionChanged = true;
+
+			} else {
+
+				if (this.direction == null) {
+
+					this.direction = directionFromProperty;
+					directionChanged = true;
+
+				} else if (!this.direction.equals(direction)) {
+
+
+					this.direction = directionFromProperty;
+					directionChanged = true;
+				}
+
+			}
+
+			if (directionChanged) {
+
+				switch (directionFromProperty) {
+
+					case out:
+						this.outProperty = _property;
+						this.sourceType  = _sourceType;
+						this.targetType  = _targetType;
+						break;
+
+					case in:
+						this.inProperty = _property;
+						this.sourceType = _targetType;
+						this.targetType = _sourceType;
+						break;
+				}
+			}
+
+			syncCascadingFlags(outProperty, inProperty);
+		}
+
+		private void syncCascadingFlags(JsonReferenceProperty source, final JsonReferenceProperty target) {
+
+			if (source != null && target != null) {
+
+				final Cascade sourceCreate = source.getCascadingCreate();
+				final Cascade targetCreate = target.getCascadingCreate();
+				final Cascade sourceDelete = source.getCascadingDelete();
+				final Cascade targetDelete = target.getCascadingDelete();
+
+				// sync
+				if (sourceCreate != null && targetCreate == null) {
+					target.setCascadingCreate(sourceCreate);
+				}
+
+				if (sourceCreate == null && targetCreate != null) {
+					source.setCascadingCreate(targetCreate);
+				}
+
+				if (sourceDelete != null && targetDelete == null) {
+					target.setCascadingDelete(sourceDelete);
+				}
+
+				if (sourceDelete == null && targetDelete != null) {
+					source.setCascadingDelete(targetDelete);
+				}
+			}
 		}
 	}
 }

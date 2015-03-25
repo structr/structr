@@ -18,7 +18,10 @@
  */
 package org.structr.core.app;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -333,5 +336,42 @@ public class StructrApp implements App {
 		return StringUtils.trim(Services.getInstance().getConfigurationValue(key, defaultValue));
 	}
 
+	public static URI getSchemaId(final Class<? extends GraphObject> type) {
+		initializeSchemaIds();
+		return typeIdMap.get(type);
+	}
 
+	public static Class resolveSchemaId(final URI uri) {
+		initializeSchemaIds();
+		return schemaIdMap.get(uri);
+	}
+
+	private static void initializeSchemaIds() {
+
+		if (schemaIdMap.isEmpty()) {
+
+			for (final Class type : StructrApp.getConfiguration().getNodeEntities().values()) {
+				registerType(type);
+			}
+
+			for (final Class type : StructrApp.getConfiguration().getRelationshipEntities().values()) {
+				registerType(type);
+			}
+		}
+	}
+
+	private static void registerType(final Class type) {
+
+		try {
+			final URI id = new URI("https://structr.org/definitions/" + type.getSimpleName());
+			schemaIdMap.put(id, type);
+			typeIdMap.put(type, id);
+
+		} catch (URISyntaxException uex) {
+			uex.printStackTrace();
+		}
+	}
+
+	private static final Map<URI, Class> schemaIdMap = new LinkedHashMap<>();
+	private static final Map<Class, URI> typeIdMap   = new LinkedHashMap<>();
 }

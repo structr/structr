@@ -200,7 +200,7 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 
 				if (property.getNotionMultiplicity().startsWith("*")) {
 
-					notionProperty = new StructrArrayProperty(parent, name);
+					notionProperty = new StructrArrayProperty(parent, name, null);
 					final Map<String, Object> items = new TreeMap<>();
 
 					items.put(JsonSchema.KEY_REFERENCE, reference);
@@ -212,7 +212,7 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 
 				} else {
 
-					notionProperty = new StructrObjectProperty(parent, name);
+					notionProperty = new StructrObjectProperty(parent, name, null);
 					notionProperty.put(JsonSchema.KEY_REFERENCE, reference);
 					if (!notionProperties.isEmpty()) {
 
@@ -223,7 +223,7 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 				return notionProperty;
 
 			case StringArray:
-				final StructrArrayProperty arr = new StructrArrayProperty(parent, name);
+				final StructrArrayProperty arr = new StructrArrayProperty(parent, name, null);
 				final Map<String, Object> items = new TreeMap<>();
 				items.put(JsonSchema.KEY_TYPE, "string");
 				arr.put(JsonSchema.KEY_TYPE, "array");
@@ -302,6 +302,13 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 				def.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + targetType);
 				def.put(JsonSchema.KEY_DIRECTION, "out");
 
+				// cascading delete and autocreation
+				final Map<String, Object> cascade = property.resolveCascadingFlags();
+				if (!cascade.isEmpty()) {
+
+					def.put(JsonSchema.KEY_CASCADE, cascade);
+				}
+
 			} else {
 
 				def = StructrPropertyDefinition.forStringType(parent, "array", name, false);
@@ -312,6 +319,13 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 				def.put(JsonSchema.KEY_TYPE, "array");
 				def.put(JsonSchema.KEY_ITEMS, items);
 				def.put(JsonSchema.KEY_DIRECTION, "out");
+
+				// cascading delete and autocreation
+				final Map<String, Object> cascade = property.resolveCascadingFlags();
+				if (!cascade.isEmpty()) {
+
+					def.put(JsonSchema.KEY_CASCADE, cascade);
+				}
 			}
 
 		} else {
@@ -331,6 +345,13 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 				def.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + sourceType);
 				def.put(JsonSchema.KEY_DIRECTION, "in");
 
+				// cascading delete and autocreation
+				final Map<String, Object> cascade = property.resolveCascadingFlags();
+				if (!cascade.isEmpty()) {
+
+					def.put(JsonSchema.KEY_CASCADE, cascade);
+				}
+
 			} else {
 
 				def = StructrPropertyDefinition.forStringType(parent, "array", name, false);
@@ -341,6 +362,13 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 				def.put(JsonSchema.KEY_TYPE, "array");
 				def.put(JsonSchema.KEY_ITEMS, items);
 				def.put(JsonSchema.KEY_DIRECTION, "in");
+
+				// cascading delete and autocreation
+				final Map<String, Object> cascade = property.resolveCascadingFlags();
+				if (!cascade.isEmpty()) {
+
+					def.put(JsonSchema.KEY_CASCADE, cascade);
+				}
 			}
 
 		}
@@ -368,13 +396,13 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 				return new StructrNumberProperty(parent, name);
 
 			case "object":
-				return new StructrObjectProperty(parent, name);
+				return new StructrObjectProperty(parent, name, null);
 
 			case "boolean":
 				return new StructrBooleanProperty(parent, name);
 
 			case "array":
-				return new StructrArrayProperty(parent, name);
+				return new StructrArrayProperty(parent, name, null);
 
 			case "script":
 				return new StructrScriptProperty(parent, name);

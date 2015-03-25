@@ -4,6 +4,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.parboiled.common.StringUtils;
@@ -15,23 +16,26 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.json.JsonObjectProperty;
 import org.structr.schema.json.JsonProperty;
+import org.structr.schema.json.JsonReferenceProperty;
 import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonSchema.Cascade;
+import org.structr.schema.json.JsonSchema.Direction;
 import org.structr.schema.json.JsonType;
 
 /**
  *
  * @author Christian Morgner
  */
-public class StructrObjectProperty extends StructrPropertyDefinition implements JsonObjectProperty {
+public class StructrObjectProperty extends StructrPropertyDefinition implements JsonReferenceProperty {
 
-	public StructrObjectProperty(final StructrTypeDefinition parent, final String name) throws URISyntaxException {
+	public StructrObjectProperty(final StructrTypeDefinition parent, final String name, final String relationship) throws URISyntaxException {
 
 		super(parent, "properties/" + name);
 
 		setType("object");
 		setName(name);
+		setRelationship(relationship);
 	}
 
 	@Override
@@ -40,21 +44,90 @@ public class StructrObjectProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public JsonObjectProperty setReference(String ref) {
+	public JsonReferenceProperty setReference(String ref) {
 
 		put(JsonSchema.KEY_REFERENCE, ref);
 		return this;
 	}
 
 	@Override
-	public String getDirection() {
-		return getString(this, JsonSchema.KEY_DIRECTION);
+	public Direction getDirection() {
+
+		final String value = getString(this, JsonSchema.KEY_DIRECTION);
+		if (value != null) {
+
+			return Direction.valueOf(value);
+		}
+
+		return null;
 	}
 
 	@Override
-	public JsonObjectProperty setDirection(String direction) {
+	public JsonReferenceProperty setDirection(Direction direction) {
 
-		put(JsonSchema.KEY_DIRECTION, direction);
+		put(JsonSchema.KEY_DIRECTION, direction.name());
+		return this;
+	}
+
+	@Override
+	public Cascade getCascadingDelete() {
+
+		final Map<String, Object> cascade = getMap(this, JsonSchema.KEY_CASCADE, false);
+		if (cascade != null) {
+
+			final Object value = getString(cascade, JsonSchema.KEY_DELETE);
+			if (value != null) {
+
+				return Cascade.valueOf(value.toString());
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public JsonReferenceProperty setCascadingDelete(final Cascade cascade) {
+
+		final Map<String, Object> cascadeMap = getMap(this, JsonSchema.KEY_CASCADE, true);
+		if (cascadeMap != null) {
+
+			cascadeMap.put(JsonSchema.KEY_DELETE, cascade.name());
+		}
+
+		// find reverse relation and add flag there as well
+		root.notifyReferenceChange(getParent(), this);
+
+		return this;
+	}
+
+	@Override
+	public Cascade getCascadingCreate() {
+
+		final Map<String, Object> cascade = getMap(this, JsonSchema.KEY_CASCADE, false);
+		if (cascade != null) {
+
+			final Object value = getString(cascade, JsonSchema.KEY_CREATE);
+			if (value != null) {
+
+				return Cascade.valueOf(value.toString());
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public JsonReferenceProperty setCascadingCreate(final Cascade cascade) {
+
+		final Map<String, Object> cascadeMap = getMap(this, JsonSchema.KEY_CASCADE, true);
+		if (cascadeMap != null) {
+
+			cascadeMap.put(JsonSchema.KEY_CREATE, cascade.name());
+		}
+
+		// find reverse relation and add flag there as well
+		root.notifyReferenceChange(getParent(), this);
+
 		return this;
 	}
 
@@ -64,14 +137,14 @@ public class StructrObjectProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public JsonObjectProperty setRelationship(String relationship) {
+	public JsonReferenceProperty setRelationship(String relationship) {
 
 		put(JsonSchema.KEY_RELATIONSHIP, relationship);
 		return this;
 	}
 
 	@Override
-	public JsonObjectProperty setProperties(final String... properties) {
+	public JsonReferenceProperty setProperties(final String... properties) {
 
 		final List<String> propertyList = getList(this, JsonSchema.KEY_PROPERTIES, true);
 		propertyList.addAll(Arrays.asList(properties));
@@ -103,7 +176,7 @@ public class StructrObjectProperty extends StructrPropertyDefinition implements 
 			if (def != null) {
 
 				final Set<String> properties = getProperties();
-				final String direction       = getDirection();
+				final Direction direction    = getDirection();
 
 				if (direction == null || (properties != null && !properties.isEmpty())) {
 
@@ -129,34 +202,39 @@ public class StructrObjectProperty extends StructrPropertyDefinition implements 
 
 				} else {
 
-					String relationship = getRelationship();
 
 					final SchemaNode otherNode = def.getSchemaNode();
+					String relationship        = getRelationship();
 
-					if ("out".equals(direction)) {
+					switch (direction) {
 
-						if (StringUtils.isEmpty(relationship)) {
-							relationship = schemaNode.getName()+ "_" + otherNode.getName();
-						}
+						case out:
 
-						final SchemaRelationshipNode rel = StructrDefinition.getRelationship(app, schemaNode, otherNode, relationship);
-						rel.setProperty(SchemaRelationshipNode.targetJsonName, getName());
-						rel.setProperty(SchemaRelationshipNode.targetMultiplicity, "1");
+							if (StringUtils.isEmpty(relationship)) {
+								relationship = schemaNode.getName()+ "_" + otherNode.getName();
+							}
 
+							final SchemaRelationshipNode outRel = StructrDefinition.getRelationship(app, schemaNode, otherNode, relationship);
+							outRel.resolveCascadingEnums(getCascadingDelete(), getCascadingCreate());
+							outRel.setProperty(SchemaRelationshipNode.targetJsonName, getName());
+							outRel.setProperty(SchemaRelationshipNode.targetMultiplicity, "1");
+							break;
 
-					} else if ("in".equals(direction)) {
+						case in:
 
-						if (StringUtils.isEmpty(relationship)) {
-							relationship = otherNode.getName()+ "_" + schemaNode.getName();
-						}
+							if (StringUtils.isEmpty(relationship)) {
+								relationship = otherNode.getName()+ "_" + schemaNode.getName();
+							}
 
-						final SchemaRelationshipNode rel = StructrDefinition.getRelationship(app, otherNode, schemaNode, relationship);
-						rel.setProperty(SchemaRelationshipNode.sourceJsonName, getName());
-						rel.setProperty(SchemaRelationshipNode.sourceMultiplicity, "1");
+							final SchemaRelationshipNode inRel = StructrDefinition.getRelationship(app, otherNode, schemaNode, relationship);
+							inRel.resolveCascadingEnums(getCascadingDelete(), getCascadingCreate());
+							inRel.setProperty(SchemaRelationshipNode.sourceJsonName, getName());
+							inRel.setProperty(SchemaRelationshipNode.sourceMultiplicity, "1");
+							break;
 
-					} else {
+						default:
+							throw new IllegalStateException("Invalid direction " + direction + " for property " + getName() + " in type " + getParent().getName());
 
-						throw new IllegalStateException("Invalid direction " + direction + " for property " + getName() + " in type " + getParent().getName());
 					}
 				}
 			}
@@ -168,11 +246,10 @@ public class StructrObjectProperty extends StructrPropertyDefinition implements 
 	@Override
 	void initializeFromProperty(final JsonProperty property) {
 
-		if (property instanceof JsonObjectProperty) {
+		if (property instanceof JsonReferenceProperty) {
 
-			final JsonObjectProperty obj = (JsonObjectProperty)property;
+			final JsonReferenceProperty obj = (JsonReferenceProperty)property;
 
-			setDirection(obj.getDirection());
 			setRelationship(obj.getRelationship());
 			setReference(obj.getReference());
 
@@ -180,6 +257,24 @@ public class StructrObjectProperty extends StructrPropertyDefinition implements 
 			if (properties != null && !properties.isEmpty()) {
 
 				setProperties(properties.toArray(new String[0]));
+			}
+
+			final Direction direction = obj.getDirection();
+			if (direction != null) {
+
+				setDirection(direction);
+			}
+
+			final Cascade delete = obj.getCascadingDelete();
+			if (delete != null) {
+
+				setCascadingDelete(delete);
+			}
+
+			final Cascade create = obj.getCascadingCreate();
+			if (create != null) {
+
+				setCascadingCreate(create);
 			}
 
 		} else {

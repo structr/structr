@@ -1,7 +1,9 @@
 package org.structr.rest.maintenance;
 
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -12,6 +14,7 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.InvalidSchemaException;
 import org.structr.schema.json.JsonSchema;
 
 /**
@@ -26,7 +29,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 		final String mode = (String)attributes.get("mode");
 		if (mode != null) {
 
-			if ("create".equals(mode)) {
+			if ("export".equals(mode)) {
 
 				createSnapshot(attributes);
 
@@ -72,11 +75,38 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 		} catch (IOException | URISyntaxException ioex) {
 			ioex.printStackTrace();
 		}
-
 	}
 
 	private void restoreSnapshot(final Map<String, Object> attributes) throws FrameworkException {
 
+		// we want to create a sorted, human-readble, diffable representation of the schema
+		final App app = StructrApp.getInstance();
 
+		// isolate write output
+		try (final Tx tx = app.tx()) {
+
+			final String fileName = (String)attributes.get("name");
+			if (fileName != null) {
+
+				try (final Reader reader = new FileReader(fileName)) {
+
+					final JsonSchema schema = StructrSchema.createFromSource(reader);
+					StructrSchema.replaceDatabaseSchema(app, schema);
+
+				} catch (InvalidSchemaException iex) {
+
+					throw new FrameworkException(422, iex.getMessage());
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Please supply schema name to import.");
+			}
+
+			tx.success();
+
+		} catch (IOException | URISyntaxException ioex) {
+			ioex.printStackTrace();
+		}
 	}
 }

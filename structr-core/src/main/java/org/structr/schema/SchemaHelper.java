@@ -527,7 +527,6 @@ public class SchemaHelper {
 
 								// property exists in superclass
 								if (property.isDynamic()) {
-
 									extendedPropertyName = extendedPropertyName + "Property";
 								}
 
@@ -537,7 +536,6 @@ public class SchemaHelper {
 							}
 
 						} else {
-
 							extendedPropertyName = extendedPropertyName + "Property";
 
 						}

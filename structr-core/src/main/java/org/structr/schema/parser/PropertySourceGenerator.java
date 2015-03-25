@@ -96,10 +96,6 @@ public abstract class PropertySourceGenerator {
 		return enumDefinitions;
 	}
 
-	public String getPropertyName() {
-		return SchemaHelper.cleanPropertyName(source.getPropertyName()) + "Property";
-	}
-
 	public String getSourcePropertyName() {
 		return source.getPropertyName();
 	}

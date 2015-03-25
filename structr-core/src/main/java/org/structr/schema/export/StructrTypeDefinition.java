@@ -16,19 +16,19 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.json.InvalidSchemaException;
-import org.structr.schema.json.JsonArrayProperty;
 import org.structr.schema.json.JsonBooleanProperty;
 import org.structr.schema.json.JsonEnumProperty;
 import org.structr.schema.json.JsonNumberProperty;
-import org.structr.schema.json.JsonObjectProperty;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonProperty;
+import org.structr.schema.json.JsonReferenceProperty;
 import org.structr.schema.json.JsonScriptProperty;
 import org.structr.schema.json.JsonStringProperty;
 import org.structr.schema.json.JsonType;
@@ -73,6 +73,30 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 	}
 
 	@Override
+	public JsonType setExtends(final JsonType superType) {
+
+		URI reference = getParent().getId().relativize(superType.getId());
+		put(JsonSchema.KEY_EXTENDS, "#" + reference.getPath());
+
+		return this;
+	}
+
+	@Override
+	public JsonType setExtends(final URI externalReference) {
+
+		if (externalReference != null) {
+			put(JsonSchema.KEY_EXTENDS, externalReference.toString());
+		}
+
+		return this;
+	}
+
+	@Override
+	public String getExtends() {
+		return getString(this, JsonSchema.KEY_EXTENDS);
+	}
+
+	@Override
 	public Set<JsonProperty> getProperties() {
 
 		final Map<String, StructrPropertyDefinition> properties = getPropertyDefinitions();
@@ -88,6 +112,11 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 	@Override
 	public Map<String, Set<String>> getViews() {
 		return getViewDefinitions();
+	}
+
+	@Override
+	public Map<String, String> getMethods() {
+		return getMethodDefinitions();
 	}
 
 	@Override
@@ -135,20 +164,22 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 	}
 
 	@Override
-	public JsonObjectProperty addReference(final String name, final JsonType otherType, final String... views) throws URISyntaxException {
+	public JsonReferenceProperty addReference(final String name, final String relationship, final JsonType otherType, final String... views) throws URISyntaxException {
 
-		final StructrObjectProperty objectProperty = new StructrObjectProperty(this, name);
+		final StructrObjectProperty objectProperty = new StructrObjectProperty(this, name, relationship);
 		addProperty(objectProperty, name, views);
 
 		objectProperty.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + otherType.getName());
+
+		root.notifyReferenceChange(this, objectProperty);
 
 		return objectProperty;
 	}
 
 	@Override
-	public JsonObjectProperty addReference(final String name, final JsonObjectProperty otherProperty, final String... views) throws URISyntaxException {
+	public JsonReferenceProperty addReference(final String name, final JsonReferenceProperty otherProperty, final String... views) throws URISyntaxException {
 
-		final StructrObjectProperty objectProperty = new StructrObjectProperty(this, name);
+		final StructrObjectProperty objectProperty = new StructrObjectProperty(this, name, null);
 		addProperty(objectProperty, name, views);
 
 		URI reference = getParent().getId().relativize(otherProperty.getId());
@@ -158,9 +189,9 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 	}
 
 	@Override
-	public JsonArrayProperty addArrayReference(final String name, final JsonType otherType, final String... views) throws URISyntaxException {
+	public JsonReferenceProperty addArrayReference(final String name, final String relationship, final JsonType otherType, final String... views) throws URISyntaxException {
 
-		final StructrArrayProperty arrayProperty = new StructrArrayProperty(this, name);
+		final StructrArrayProperty arrayProperty = new StructrArrayProperty(this, name, relationship);
 		addProperty(arrayProperty, name, views);
 
 		final Map<String, Object> items = new TreeMap<>();
@@ -168,13 +199,15 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 
 		items.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + otherType.getName());
 
+		root.notifyReferenceChange(this, arrayProperty);
+
 		return arrayProperty;
 	}
 
 	@Override
-	public JsonArrayProperty addArrayReference(final String name, final JsonArrayProperty otherProperty, final String... views) throws URISyntaxException {
+	public JsonReferenceProperty addArrayReference(final String name, final JsonReferenceProperty otherProperty, final String... views) throws URISyntaxException {
 
-		final StructrArrayProperty arrayProperty = new StructrArrayProperty(this, name);
+		final StructrArrayProperty arrayProperty = new StructrArrayProperty(this, name, null);
 		addProperty(arrayProperty, name, views);
 
 		final Map<String, Object> items = new TreeMap<>();
@@ -205,6 +238,13 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 		return enumProperty;
 	}
 
+	@Override
+	public JsonType addMethod(final String name, final String source) {
+
+		getMethodDefinitions().put(name, source);
+		return this;
+	}
+
 	// ----- interface Comparable<JsonSchemaType> -----
 	@Override
 	public int compareTo(JsonType other) {
@@ -228,6 +268,11 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 
 				propertySet.add(name);
 			}
+
+			// clear empty views
+			if (viewDefinitions.isEmpty()) {
+				remove(JsonSchema.KEY_VIEWS);
+			}
 		}
 
 		// store new property in this type
@@ -242,10 +287,26 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 		readLocalProperties(requiredProperties, schemaNode);
 		readRemoteProperties(requiredProperties, schemaNode);
 		readViews(schemaNode);
+		readMethods(schemaNode);
 
 		// "required"
 		if (!requiredProperties.isEmpty()) {
 			put(JsonSchema.KEY_REQUIRED, requiredProperties);
+		}
+
+		// $extends
+		final String extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		if (extendsClass != null) {
+
+			final String typeName = extendsClass.substring(extendsClass.lastIndexOf(".") + 1);
+			if (extendsClass.startsWith("org.structr.dynamic.")) {
+
+				put(JsonSchema.KEY_EXTENDS, "#/definitions/" + typeName);
+
+			} else {
+
+				put(JsonSchema.KEY_EXTENDS, JsonSchema.SCHEMA_BASE + "definitions/" + typeName);
+			}
 		}
 	}
 
@@ -253,6 +314,7 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 
 		final Map<String, StructrPropertyDefinition> propertyDefinitions = getPropertyDefinitions();
 		final Map<String, Set<String>> views                             = getViewDefinitions();
+		final Map<String, String> methods                                = getMethodDefinitions();
 		final Map<String, SchemaProperty> properties                     = new TreeMap<>();
 
 		// create properties and store them in a map for later use
@@ -292,12 +354,24 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 				new NodeAttribute(SchemaView.nonGraphProperties, StringUtils.join(nonGraphProperties, ", "))
 			);
 		}
+
+		// create methods
+		for (final Entry<String, String> method : methods.entrySet()) {
+
+			// create view node with parent and children
+			app.create(SchemaMethod.class,
+				new NodeAttribute(SchemaMethod.schemaNode, schemaNode),
+				new NodeAttribute(AbstractNode.name, method.getKey()),
+				new NodeAttribute(SchemaMethod.source, method.getValue())
+			);
+		}
 	}
 
 	void createFromSource(final Map<String, Object> source) throws InvalidSchemaException, URISyntaxException {
 
 		final Map<String, StructrPropertyDefinition> propertyDefinitions = getPropertyDefinitions();
 		final Map<String, Set<String>> viewDefinitions                   = getViewDefinitions();
+		final Map<String, String> methodDefinitions                      = getMethodDefinitions();
 		final String type                                                = getString(source, JsonSchema.KEY_TYPE);
 
 		if ("object".equals(type)) {
@@ -356,6 +430,25 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 				}
 			}
 
+			final Map<String, Object> methods = getMap(source, JsonSchema.KEY_METHODS, false);
+			if (methods != null) {
+
+				for (final Entry<String, Object> entry : methods.entrySet()) {
+
+					final String key   = entry.getKey();
+					final Object value = entry.getValue();
+
+					if (value instanceof String) {
+
+						methodDefinitions.put(key, (String)value);
+
+					} else {
+
+						throw new InvalidSchemaException("Invalid method " + key + ", expected string.");
+					}
+				}
+			}
+
 			final List<String> requiredProperties = getList(source, JsonSchema.KEY_REQUIRED, false);
 			if (requiredProperties != null) {
 
@@ -369,6 +462,14 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 				}
 			}
 
+			// base class reference ($extends)
+			final String extendsReference = getString(source, JsonSchema.KEY_EXTENDS);
+			if (extendsReference != null) {
+
+				put(JsonSchema.KEY_EXTENDS, extendsReference);
+			}
+
+
 		} else {
 
 			throw new InvalidSchemaException("Encountered invalid type " + type + ", expected object.");
@@ -381,15 +482,23 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 		if (viewDefinitions.isEmpty()) {
 			remove(JsonSchema.KEY_VIEWS);
 		}
+
+		if (methodDefinitions.isEmpty()) {
+			remove(JsonSchema.KEY_METHODS);
+		}
 	}
 
 	// ----- private methods -----
-	private Map<String, StructrPropertyDefinition> getPropertyDefinitions() {
+	public Map<String, StructrPropertyDefinition> getPropertyDefinitions() {
 		return (Map)getMap(this, StructrSchemaDefinition.KEY_PROPERTIES, true);
 	}
 
 	private Map<String, Set<String>> getViewDefinitions() {
 		return (Map)getMap(this, StructrSchemaDefinition.KEY_VIEWS, true);
+	}
+
+	private Map<String, String> getMethodDefinitions() {
+		return (Map)getMap(this, StructrSchemaDefinition.KEY_METHODS, true);
 	}
 
 	private void readLocalProperties(final Set<String> requiredProperties, final SchemaNode schemaNode) throws URISyntaxException {
@@ -482,6 +591,24 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 		}
 	}
 
+	private void readMethods(final SchemaNode schemaNode) {
+
+		final Map<String, String> methodDefinitions = getMethodDefinitions();
+
+		for (final SchemaMethod method : schemaNode.getProperty(AbstractSchemaNode.schemaMethods)) {
+
+			final String name   = method.getName();
+			final String source = method.getProperty(SchemaMethod.source);
+
+			methodDefinitions.put(name, source);
+		}
+
+		// remove empty view object
+		if (methodDefinitions.isEmpty()) {
+			remove(JsonSchema.KEY_METHODS);
+		}
+	}
+
 	// ----- private methods -----
 	private void initializeFrom(final JsonType source) throws URISyntaxException {
 
@@ -496,5 +623,13 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 
 		// copy views from source
 		getViewDefinitions().putAll(source.getViews());
+		getMethodDefinitions().putAll(source.getMethods());
+
+		// copy $extends
+		final String extendsUri = source.getExtends();
+		if (extendsUri != null) {
+
+			put(JsonSchema.KEY_EXTENDS, extendsUri);
+		}
 	}
 }

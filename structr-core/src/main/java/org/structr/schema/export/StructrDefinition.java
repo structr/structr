@@ -174,7 +174,7 @@ public abstract class StructrDefinition extends TreeMap<String, Object> {
 		if (reference.startsWith("#")) {
 
 			final String[] parts = reference.substring(1).split("[/]+");
-			Object current       = root;
+			Object current       = root != null? root : this;
 
 			for (int i=0; i<parts.length; i++) {
 
@@ -205,13 +205,9 @@ public abstract class StructrDefinition extends TreeMap<String, Object> {
 			if (current instanceof StructrDefinition) {
 				return (StructrDefinition)current;
 			}
-
-		} else {
-
-			// what now?! This is an absolute pointer that we can not currently reference..
-			throw new IllegalStateException("Unsupported JSON pointer " + reference);
 		}
 
+		// invalID JSON pointers return null
 		return null;
 	}
 

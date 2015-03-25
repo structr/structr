@@ -10,12 +10,21 @@ import java.util.Set;
  */
 public interface JsonSchema {
 
-	public static final String SCHEMA_ID       = "https://structr.org/schema#";
+	public static final String SCHEMA_BASE      = "https://structr.org/";
+	public static final String SCHEMA_ID       = SCHEMA_BASE + "schema#";
+
+	public enum Direction {
+		in, out
+	}
+
+	public enum Cascade {
+		sourceToTarget, targetToSource, always, constraintBased
+	}
 
 	public static final String KEY_SCHEMA       = "$schema";
 	public static final String KEY_SIZE_OF      = "$size";
 	public static final String KEY_REFERENCE    = "$ref";
-	public static final String KEY_MAP          = "$map";
+	public static final String KEY_EXTENDS      = "$extends";
 
 	public static final String KEY_TYPE         = "type";
 	public static final String KEY_TITLE        = "title";
@@ -36,6 +45,9 @@ public interface JsonSchema {
 	public static final String KEY_DIRECTION    = "direction";
 	public static final String KEY_UNIQUE       = "unique";
 	public static final String KEY_DEFAULT      = "default";
+	public static final String KEY_CASCADE      = "cascade";
+	public static final String KEY_CREATE       = "create";
+	public static final String KEY_DELETE       = "delete";
 
 	public static final String FORMAT_DATE_TIME = "date-time";
 
