@@ -600,6 +600,13 @@ var _Entities = {
                                     blinkGreen(cell);
                                     dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
                                     $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                                    if (key === 'name') {
+                                        var entity = StructrModel.objects[id];
+                                        if (entity.type !== 'Template' && entity.type !== 'Content') {
+                                            entity.name = entity.tag ? entity.tag : '[' + entity.type + ']';
+                                        }
+                                        StructrModel.refresh(id);
+                                    }
                                     if (isRelated) {
                                         cell.empty();
                                     }
