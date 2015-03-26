@@ -2,7 +2,7 @@ package org.structr.schema.json;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Set;
+import java.util.Map;
 
 /**
  *
@@ -53,7 +53,7 @@ public interface JsonSchema {
 
 	public URI getId();
 
-	public Set<JsonType> getTypes();
+	public Map<String, JsonType> getTypes();
 
 	public String getTitle();
 	public void setTitle(final String title);

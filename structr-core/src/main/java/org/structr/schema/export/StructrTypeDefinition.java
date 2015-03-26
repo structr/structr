@@ -97,16 +97,16 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 	}
 
 	@Override
-	public Set<JsonProperty> getProperties() {
+	public Map<String, JsonProperty> getProperties() {
 
 		final Map<String, StructrPropertyDefinition> properties = getPropertyDefinitions();
-		final Set<JsonProperty> propertySet               = new TreeSet<>();
+		final Map<String, JsonProperty> propertyMap             = new TreeMap<>();
 
 		for (final StructrPropertyDefinition prop : properties.values()) {
-			propertySet.add(prop);
+			propertyMap.put(prop.getName(), prop);
 		}
 
-		return propertySet;
+		return propertyMap;
 	}
 
 	@Override
@@ -615,7 +615,7 @@ public class StructrTypeDefinition extends StructrDefinition implements JsonType
 		setName(source.getName());
 
 		final Map<String, StructrPropertyDefinition> propertyDefinitions = getPropertyDefinitions();
-		for (final JsonProperty property : source.getProperties()) {
+		for (final JsonProperty property : source.getProperties().values()) {
 
 			final boolean isEnum = property instanceof JsonEnumProperty;
 			propertyDefinitions.put(property.getName(), StructrPropertyDefinition.forJsonType(this, property, isEnum));

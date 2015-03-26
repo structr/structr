@@ -11,8 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.TreeMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -51,16 +50,16 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 
 	// ----- interface JsonSchema -----
 	@Override
-	public Set<JsonType> getTypes() {
+	public Map<String, JsonType> getTypes() {
 
 		final Map<String, StructrTypeDefinition> types = getTypeDefinitions();
-		final Set<JsonType> typeSet              = new TreeSet<>();
+		final Map<String, JsonType> typeMap            = new TreeMap<>();
 
 		for (final StructrTypeDefinition type : types.values()) {
-			typeSet.add(type);
+			typeMap.put(type.getName(), type);
 		}
 
-		return typeSet;
+		return typeMap;
 	}
 
 	@Override
@@ -251,7 +250,7 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 
 		final Map<String, StructrTypeDefinition> typeDefinitions = getTypeDefinitions();
 
-		for (final JsonType type : source.getTypes()) {
+		for (final JsonType type : source.getTypes().values()) {
 
 			final String name = type.getName();
 			typeDefinitions.put(name, new StructrTypeDefinition(this, "definitions/" + name, type));

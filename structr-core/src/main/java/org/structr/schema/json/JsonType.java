@@ -21,7 +21,7 @@ public interface JsonType extends Comparable<JsonType> {
 	public JsonType setExtends(final URI externalReference);
 	public String getExtends();
 
-	public Set<JsonProperty> getProperties();
+	public Map<String, JsonProperty> getProperties();
 	public Map<String, Set<String>> getViews();
 	public Map<String, String> getMethods();
 	public Set<String> getRequiredProperties();
