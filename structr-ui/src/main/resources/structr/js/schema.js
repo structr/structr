@@ -132,6 +132,11 @@ var _Schema = {
                 Structr.saveLocalStorage();
             });
 
+            schemaContainer.append('<button class="btn" id="show-snapshots"><img src="icon/database.png"> Snapshots</button>');
+            $('#show-snapshots').on('click', function() {
+                _Schema.snapshotsDialog();
+            });
+
             $('#type-name').on('keyup', function(e) {
 
                 if (e.keyCode === 13) {
@@ -1816,10 +1821,7 @@ var _Schema = {
     },
     syncSchemaDialog: function() {
 
-        Structr.dialog('Sync schema to remote server', function() {
-        },
-                function() {
-                });
+        Structr.dialog('Sync schema to remote server', function() {},  function() {});
 
         var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
 
@@ -1858,6 +1860,88 @@ var _Schema = {
                 dialogCancelButton.click();
             });
         });
+
+        return false;
+    },
+    snapshotsDialog: function() {
+
+        Structr.dialog('Schema Snapshots', function() {}, function() {});
+
+        dialog.append('<h3>Create snapshot</h3>');
+        dialog.append('<p>Creates a new snapshot of the current schema configuration that can be restored later. You can enter an (optional) title for the snapshot.</p>');
+        dialog.append('<p><input type="text" name="title" id="snapshot-title" placeholder="Enter a title" length="20" /> <button id="create-snapshot">New snapshot</button></p>');
+
+        var refresh = function() {
+
+            table.empty();
+
+            Command.snapshots("list", "", function(data) {
+
+                var snapshots = data.snapshots;
+
+                snapshots.forEach(function(snapshot, i) {
+                    table.append('<tr><td>' + snapshot + '</td><td style="text-align:right;"><button id="delete-' + i + '">Delete</button><button id="restore-' + i + '">Restore</button></td></tr>');
+                    $('#restore-' + i).on('click', function() {
+
+                        Command.snapshots("restore", snapshot, function(data) {
+
+                            var status = data.status;
+
+                            if (status === "success") {
+                                window.location.reload();
+                            } else {
+
+                                if (dialogBox.is(':visible')) {
+
+                                    dialogMsg.html('<div class="infoBox error">' + status + '</div>');
+                                    $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                                }
+                            }
+                        });
+                    });
+                    $('#delete-' + i).on('click', function() {
+                        Command.snapshots("delete", snapshot, refresh);
+                    });
+                });
+            });
+        };
+
+        $('#create-snapshot').on('click', function() {
+
+            var title = $('#snapshot-title').val();
+            Command.snapshots("export", title, function(data) {
+
+                var status = data.status;
+                if (dialogBox.is(':visible')) {
+
+                    if (status === 'success') {
+
+                        dialogMsg.html('<div class="infoBox success">Snapshot successfully created</div>');
+                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+
+                    } else {
+
+                        dialogMsg.html('<div class="infoBox error">Snapshot creation failed.</div>');
+                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                    }
+                }
+
+                refresh();
+            });
+
+        });
+
+        dialog.append('<h3>Available snapshots to restore</h3>');
+
+        dialog.append('<table class="props" id="snapshots"></table>');
+
+        var table = $('#snapshots');
+
+        refresh();
+
+        // update button
+        dialog.append('<p style="text-align: right;"><button id="refresh-snapshots">Refresh</button></p>');
+        $('#refresh-snapshots').on('click', refresh);
 
         return false;
     },

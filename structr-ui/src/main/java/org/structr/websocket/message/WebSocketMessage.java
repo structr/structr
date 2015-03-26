@@ -92,7 +92,7 @@ public class WebSocketMessage {
 		newCopy.view               = this.view;
 		newCopy.chunkSize          = this.chunkSize;
 		newCopy.nodesWithChildren  = this.nodesWithChildren;
-		newCopy.jsonErrorObject              = this.jsonErrorObject;
+		newCopy.jsonErrorObject    = this.jsonErrorObject;
 
 		return newCopy;
 	}
@@ -201,7 +201,7 @@ public class WebSocketMessage {
 	public Set<String> getNodesWithChildren() {
 		return nodesWithChildren;
 	}
-	
+
 	public JsonElement getJsonErrorObject() {
 		return jsonErrorObject;
 	}
@@ -311,7 +311,7 @@ public class WebSocketMessage {
 	public void setNodesWithChildren(final Set<String> nodesWithChildren) {
 		this.nodesWithChildren = nodesWithChildren;
 	}
-	
+
 	public void setJsonErrorObject(final JsonElement jsonErrorObject) {
 		this.jsonErrorObject = jsonErrorObject;
 	}
