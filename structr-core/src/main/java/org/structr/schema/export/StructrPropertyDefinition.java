@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.schema.SchemaHelper.Type;
@@ -37,7 +37,7 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 		initializeFrom(source);
 	}
 
-	abstract SchemaProperty createDatabaseSchema(final App app, final SchemaNode schemaNode) throws FrameworkException;
+	abstract SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException;
 	abstract void initializeFromProperty(final JsonProperty property);
 
 	@Override

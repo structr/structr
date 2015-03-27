@@ -7,21 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import org.parboiled.common.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonReferenceProperty;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.schema.json.JsonSchema.Direction;
-import org.structr.schema.json.JsonType;
 
 /**
  *
@@ -167,8 +161,9 @@ public class StructrObjectProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	SchemaProperty createDatabaseSchema(final App app, final SchemaNode schemaNode) throws FrameworkException {
+	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
+		/*
 		final String reference = getReference();
 		if (reference != null) {
 
@@ -239,6 +234,7 @@ public class StructrObjectProperty extends StructrPropertyDefinition implements 
 				}
 			}
 		}
+		*/
 
 		return null;
 	}

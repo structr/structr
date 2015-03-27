@@ -4,7 +4,7 @@ import java.net.URISyntaxException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.SchemaHelper.Type;
@@ -27,7 +27,7 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	SchemaProperty createDatabaseSchema(final App app, final SchemaNode schemaNode) throws FrameworkException {
+	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty schemaProperty = app.create(SchemaProperty.class,
 			new NodeAttribute(SchemaProperty.schemaNode, schemaNode),

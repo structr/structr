@@ -25,6 +25,7 @@ public interface JsonSchema {
 	public static final String KEY_SIZE_OF      = "$size";
 	public static final String KEY_REFERENCE    = "$ref";
 	public static final String KEY_EXTENDS      = "$extends";
+	public static final String KEY_LINK         = "$link";
 
 	public static final String KEY_TYPE         = "type";
 	public static final String KEY_TITLE        = "title";

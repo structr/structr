@@ -21,7 +21,6 @@ import org.structr.core.graph.NodeAttribute;
  */
 public abstract class StructrDefinition extends TreeMap<String, Object> {
 
-	private SchemaNode schemaNode          = null;
 	protected StructrSchemaDefinition root = null;
 	protected URI id                       = null;
 
@@ -209,14 +208,6 @@ public abstract class StructrDefinition extends TreeMap<String, Object> {
 
 		// invalID JSON pointers return null
 		return null;
-	}
-
-	protected SchemaNode getSchemaNode() {
-		return schemaNode;
-	}
-
-	protected void setSchemaNode(final SchemaNode schemaNode) {
-		this.schemaNode = schemaNode;
 	}
 
 	// ----- public static methods -----

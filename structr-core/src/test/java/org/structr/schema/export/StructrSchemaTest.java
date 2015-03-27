@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractUser;
+import static org.structr.core.entity.Relation.Cardinality.OneToMany;
 import org.structr.schema.json.InvalidSchemaException;
+import org.structr.schema.json.JsonRelationship;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 
@@ -17,39 +17,17 @@ import org.structr.schema.json.JsonType;
  */
 public class StructrSchemaTest extends StructrTest {
 
-	public void testInheritance() {
-
-		try {
-
-			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
-
-			// a task
-			final JsonType contact  = sourceSchema.addType("Contact").setExtends(StructrApp.getSchemaId(AbstractUser.class));
-			final JsonType customer = sourceSchema.addType("Customer").setExtends(contact);
-
-			customer.addStringProperty("test");
-
-			compareSchemaRoundtrip(sourceSchema);
-
-		} catch (FrameworkException | InvalidSchemaException |URISyntaxException ex) {
-
-			ex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-	}
-
-//	public void testSimpleSymmetricReferences() {
+//	public void testInheritance() {
 //
 //		try {
 //
 //			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 //
 //			// a task
-//			final JsonType project = sourceSchema.addType("Project");
-//			final JsonType task    = sourceSchema.addType("Task");
+//			final JsonType contact  = sourceSchema.addType("Contact").setExtends(StructrApp.getSchemaId(AbstractUser.class));
+//			final JsonType customer = sourceSchema.addType("Customer").setExtends(contact);
 //
-//			project.addArrayReference("tasks", "HAS", task);
+//			customer.addStringProperty("test");
 //
 //			compareSchemaRoundtrip(sourceSchema);
 //
@@ -60,7 +38,32 @@ public class StructrSchemaTest extends StructrTest {
 //		}
 //
 //	}
-//
+
+	public void testSimpleSymmetricReferences() {
+
+		try {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+
+			// a task
+			final JsonType project = sourceSchema.addType("Project");
+			final JsonType task    = sourceSchema.addType("Task");
+
+			// create relation
+			final JsonRelationship rel = project.relate(task, "has", OneToMany);
+			rel.setName("ProjectTasks");
+
+			// test
+			compareSchemaRoundtrip(sourceSchema);
+
+		} catch (FrameworkException | InvalidSchemaException |URISyntaxException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+	}
+
 //	public void testSymmetricReferencesWithRelationTypes() {
 //
 //		try {
@@ -190,7 +193,7 @@ public class StructrSchemaTest extends StructrTest {
 
 		final Map<String, Object> config = new HashMap<>();
 
-		config.put("NodeExtender.log", "true");
+//		config.put("NodeExtender.log", "true");
 
 		super.setUp(config);
 	}

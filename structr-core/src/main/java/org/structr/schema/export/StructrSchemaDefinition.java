@@ -16,7 +16,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.schema.json.InvalidSchemaException;
 import org.structr.schema.json.JsonReferenceProperty;
 import org.structr.schema.json.JsonSchema;
@@ -65,7 +67,7 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 	@Override
 	public JsonType addType(final String name) throws URISyntaxException {
 
-		final StructrTypeDefinition newType = new StructrTypeDefinition(this, "definitions/" + name);
+		final StructrTypeDefinition newType = new StructrSchemaNodeDefinition(this, "definitions/" + name);
 		newType.setName(name);
 
 		if (getTypeDefinitions().containsKey(name)) {
@@ -122,8 +124,18 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 		for (final SchemaNode schemaNode : types) {
 
 			final String name = schemaNode.getName();
-			final StructrTypeDefinition type = new StructrTypeDefinition(this, "definitions/" + name);
+			final StructrTypeDefinition type = new StructrSchemaNodeDefinition(this, "definitions/" + name);
 			type.createFromDatabase(schemaNode);
+
+			typeDefinitions.put(name, type);
+		}
+
+		final List<SchemaRelationshipNode> relationships = app.nodeQuery(SchemaRelationshipNode.class).sort(AbstractNode.name).getAsList();
+		for (final SchemaRelationshipNode schemaRelationship : relationships) {
+
+			final String name = schemaRelationship.getName();
+			final StructrTypeDefinition type = new StructrSchemaRelationshipDefinition(this, "definitions/" + name);
+			type.createFromDatabase(schemaRelationship);
 
 			typeDefinitions.put(name, type);
 		}
@@ -134,8 +146,7 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 		final Map<String, StructrTypeDefinition> typeDefinitions = getTypeDefinitions();
 		for (final StructrTypeDefinition type : typeDefinitions.values()) {
 
-			final SchemaNode schemaNode = app.create(SchemaNode.class, type.getName());
-			type.setSchemaNode(schemaNode);
+			type.setSchemaNode(type.createDatabaseNode(app));
 		}
 
 		// second pass, resolve inheritance
@@ -144,8 +155,8 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 			final String extendsReference = type.getExtends();
 			if (extendsReference != null) {
 
-				final StructrDefinition def = resolveJsonPointer(extendsReference);
-				final SchemaNode schemaNode = type.getSchemaNode();
+				final StructrDefinition def         = resolveJsonPointer(extendsReference);
+				final AbstractSchemaNode schemaNode = type.getSchemaNode();
 
 				if (def != null && def instanceof JsonType) {
 
@@ -195,7 +206,7 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 				if (value instanceof Map) {
 
 					final Map<String, Object> map   = (Map<String, Object>)value;
-					final StructrTypeDefinition def = new StructrTypeDefinition(this, "definitions/" + key);
+					final StructrTypeDefinition def = new StructrSchemaNodeDefinition(this, "definitions/" + key);
 
 					def.setName(key);
 					def.createFromSource(map);
@@ -253,7 +264,7 @@ public class StructrSchemaDefinition extends StructrDefinition implements JsonSc
 		for (final JsonType type : source.getTypes().values()) {
 
 			final String name = type.getName();
-			typeDefinitions.put(name, new StructrTypeDefinition(this, "definitions/" + name, type));
+			typeDefinitions.put(name, new StructrSchemaNodeDefinition(this, "definitions/" + name, type));
 		}
 	}
 

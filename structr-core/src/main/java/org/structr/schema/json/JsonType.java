@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.entity.Relation.Cardinality;
 
 /**
  *
@@ -33,9 +34,5 @@ public interface JsonType extends Comparable<JsonType> {
 	public JsonScriptProperty addScriptProperty(final String name, final String...views) throws URISyntaxException;
 	public JsonEnumProperty addEnumProperty(final String name, final String...views) throws URISyntaxException;
 
-	public JsonReferenceProperty addReference(final String name, final String relationship, final JsonType otherType, final String... views) throws URISyntaxException;
-	public JsonReferenceProperty addReference(final String name, final JsonReferenceProperty otherProperty, final String... views) throws URISyntaxException;
-
-	public JsonReferenceProperty addArrayReference(final String name, final String relationship, final JsonType otherType, final String... views) throws URISyntaxException;
-	public JsonReferenceProperty addArrayReference(final String name, final JsonReferenceProperty referencedProperty, final String... views) throws URISyntaxException;
+	public JsonRelationship relate(final JsonType type, final String relationship, final Cardinality cardinality) throws URISyntaxException;
 }
