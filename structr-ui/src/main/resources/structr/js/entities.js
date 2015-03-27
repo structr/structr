@@ -600,6 +600,13 @@ var _Entities = {
                                     blinkGreen(cell);
                                     dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
                                     $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                                    if (key === 'name') {
+                                        var entity = StructrModel.objects[id];
+                                        if (entity.type !== 'Template' && entity.type !== 'Content') {
+                                            entity.name = entity.tag ? entity.tag : '[' + entity.type + ']';
+                                        }
+                                        StructrModel.refresh(id);
+                                    }
                                     if (isRelated) {
                                         cell.empty();
                                     }
@@ -755,7 +762,7 @@ var _Entities = {
 
                 //('<div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
 
-                if (entity.isFolder || (lastMenuEntry === 'pages' && !(entity.isContent))) {
+                if (entity.type === 'Template' || entity.isFolder || (lastMenuEntry === 'pages' && !(entity.isContent))) {
                     dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
                 }
 

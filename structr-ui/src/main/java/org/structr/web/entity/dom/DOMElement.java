@@ -320,7 +320,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	/**
 	 * Render (inner) content.
 	 *
-	 * @param securityContext
 	 * @param renderContext
 	 * @param depth
 	 * @throws FrameworkException
@@ -676,8 +675,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public void setIdAttribute(final String idString, boolean isId) throws DOMException {
 
 		checkWriteAccess();
-
-		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 			setProperty(DOMElement._id, idString);
