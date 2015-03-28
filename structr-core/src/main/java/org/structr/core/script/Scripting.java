@@ -168,32 +168,13 @@ public class Scripting {
 
 		} catch (final Throwable t) {
 
-//			t.printStackTrace();
-
-			actionContext.raiseError(entity.getType(), new ErrorToken(422, null) {
-
-				@Override
-				public String getKey() {
-					return "JavaScript error";
-				}
-
-				@Override
-				public JsonElement getContent() {
-					return new JsonPrimitive(getErrorToken());
-				}
-
-				@Override
-				public String getErrorToken() {
-					return t.getMessage();
-				}
-			});
+			throw new FrameworkException(422, t.getMessage());
 
 		} finally {
 
 			Context.exit();
 		}
 
-		return null;
 	}
 
 	private static String embedInFunction(final String source) {
