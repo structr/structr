@@ -364,9 +364,10 @@ var _Schema = {
                     });
 
                     instance.draggable(id, {
-                        containment: '#schema-graph',
+                        containment: true,
                         stop: function() {
                             _Schema.storePositions();
+                            _Schema.resize();
                         }
                     });
                 });
@@ -916,14 +917,16 @@ var _Schema = {
     resize: function() {
         var zoom = (instance ? instance.getZoom() : 1);
 
+        var headerHeight = $('#header').outerHeight() + $('.schema-input-container').outerHeight() + 25;
+
         var canvasSize = {
-            w: ($(window).width() - 20) / zoom,
-            h: ($(window).height() - 140) / zoom
+            w: ($(window).width()) / zoom,
+            h: ($(window).height() - headerHeight) / zoom
         };
         $('.node').each(function(i, elem) {
             $elem = $(elem);
-            canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width() - 20) / zoom));
-            canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - 140) / zoom));
+            canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width()) / zoom));
+            canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - headerHeight) / zoom));
         });
 
         if (canvas) {
@@ -1896,6 +1899,8 @@ var _Schema = {
         el.style["transformOrigin"] = oString;
 
         instance.setZoom(zoom);
+        
+        _Schema.resize();
       }
 };
 
