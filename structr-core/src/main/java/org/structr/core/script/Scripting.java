@@ -1,5 +1,7 @@
 package org.structr.core.script;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -8,6 +10,7 @@ import java.util.Map;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
@@ -163,9 +166,27 @@ public class Scripting {
 
 			return extractedValue;
 
-		} catch (Throwable t) {
+		} catch (final Throwable t) {
 
-			t.printStackTrace();
+//			t.printStackTrace();
+
+			actionContext.raiseError(entity.getType(), new ErrorToken(422, null) {
+
+				@Override
+				public String getKey() {
+					return "JavaScript error";
+				}
+
+				@Override
+				public JsonElement getContent() {
+					return new JsonPrimitive(getErrorToken());
+				}
+
+				@Override
+				public String getErrorToken() {
+					return t.getMessage();
+				}
+			});
 
 		} finally {
 
