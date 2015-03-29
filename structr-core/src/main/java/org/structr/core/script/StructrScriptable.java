@@ -486,7 +486,7 @@ public class StructrScriptable extends ScriptableObject {
 					obj.setProperty(key, value);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					exception = fex;
 				}
 			}
 		}
@@ -505,7 +505,7 @@ public class StructrScriptable extends ScriptableObject {
 					obj.setProperty(key, null);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					exception = fex;
 				}
 			}
 		}

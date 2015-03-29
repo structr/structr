@@ -166,8 +166,14 @@ public class Scripting {
 
 			return extractedValue;
 
+		} catch (final FrameworkException fex) {
+
+			// just throw the FrameworkException so we dont lose the information contained
+			throw fex;
+
 		} catch (final Throwable t) {
 
+			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
 			throw new FrameworkException(422, t.getMessage());
 
 		} finally {
