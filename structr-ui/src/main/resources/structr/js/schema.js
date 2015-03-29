@@ -78,9 +78,8 @@ var _Schema = {
 
         Structr.ensureIsAdmin(schemaContainer, function() {
 
-            schemaContainer.append('<input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button>');
-
-            schemaContainer.append('<input class="schema-input" id="ggist-url" type="text" size="30" placeholder="Enter a GraphGist raw URL"><button id="gg-import" class="btn">Start Import</button>');
+            schemaContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add</button></div>');
+            schemaContainer.append('<div class="input-and-button"><input class="schema-input" id="ggist-url" type="text" size="20" placeholder="Enter GraphGist URL"><button id="gg-import" class="btn">Start Import</button></div>');
             $('#gg-import').on('click', function(e) {
                 var btn = $(this);
                 var text = btn.text();
@@ -123,7 +122,17 @@ var _Schema = {
                 instance.repaintEverything();
             });
 
-            schemaContainer.append('Zoom: <div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
+            schemaContainer.append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Tools</button>');
+            $('#admin-tools').on('click', function() {
+                _Schema.openAdminTools();
+            });
+
+            schemaContainer.append('<button class="btn" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
+            $('#sync-schema').on('click', function() {
+                _Schema.syncSchemaDialog();
+            });
+
+            schemaContainer.append('<div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
             $( "#zoom-slider" ).slider({
                 min:0.25,
                 max:1,
@@ -136,21 +145,6 @@ var _Schema = {
                     _Schema.setZoom(newZoomLevel, instance, [0,0], $('#schema-graph')[0]);
                     _Schema.resize();
                 }
-            });
-
-            schemaContainer.append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Tools</button>');
-            $('#admin-tools').on('click', function() {
-                _Schema.openAdminTools();
-            });
-
-            schemaContainer.append('<button class="btn" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
-            $('#sync-schema').on('click', function() {
-                _Schema.syncSchemaDialog();
-            });
-
-            schemaContainer.append('<button class="btn" id="save-layout"><img src="icon/database.png"> Save layout</button>');
-            $('#save-layout').on('click', function() {
-                Structr.saveLocalStorage();
             });
 
             /*
@@ -917,7 +911,7 @@ var _Schema = {
     resize: function() {
         var zoom = (instance ? instance.getZoom() : 1);
 
-        var headerHeight = $('#header').outerHeight() + $('.schema-input-container').outerHeight() + 25;
+        var headerHeight = $('#header').outerHeight() + $('.schema-input-container').outerHeight() + 14;
 
         var canvasSize = {
             w: ($(window).width()) / zoom,
@@ -1668,11 +1662,16 @@ var _Schema = {
         }, function() {
         });
 
-        dialogText.append('<table id="admin-tools-table">');
-        $('#admin-tools-table').append('<tr><td><button id="rebuild-index">Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
-        $('#admin-tools-table').append('<tr><td><button id="clear-schema">Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
-        $('#admin-tools-table').append('<tr><td><select id="node-type-selector"><option value="">-- Select Node Type --</option></select><!--select id="rel-type-selector"><option>-- Select Relationship Type --</option></select--><button id="add-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
-        $('#admin-tools-table').append('</table>');
+        dialogText.append('<table id="admin-tools-table"></table>');
+        var toolsTable = $('#admin-tools-table');
+        toolsTable.append('<tr><td><button id="rebuild-index"><img src="icon/arrow_refresh.png"> Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
+        toolsTable.append('<tr><td><button id="clear-schema"><img src="icon/delete.png"> Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
+        toolsTable.append('<tr><td><button id="save-layout"><img src="icon/database.png"> Save Layout</button></td><td><label for"save-layout">Save current positions to backend.</label></td></tr>');
+        toolsTable.append('<tr><td><select id="node-type-selector"><option value="">-- Select Node Type --</option></select><!--select id="rel-type-selector"><option>-- Select Relationship Type --</option></select--><button id="add-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
+
+        $('#save-layout', toolsTable).on('click', function() {
+            Structr.saveLocalStorage();
+        });
 
         var nodeTypeSelector = $('#node-type-selector');
 
