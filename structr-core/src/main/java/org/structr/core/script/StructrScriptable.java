@@ -128,6 +128,12 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
+		if ("this".equals(name)) {
+
+			return wrap(start, null, entity);
+
+		}
+
 		if ("vars".equals(name)) {
 
 			NativeObject nobj = new NativeObject();
