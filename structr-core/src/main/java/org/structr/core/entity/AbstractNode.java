@@ -957,31 +957,26 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
-		if (!isGranted(Permission.write, securityContext)) {
-			throw new FrameworkException(403, "Modification not permitted.");
-		}
+		try {
+			if (!isGranted(Permission.write, securityContext)) {
+				throw new FrameworkException(403, "Modification not permitted.");
+			}
 
-		T oldValue = getProperty(key);
+			T oldValue = getProperty(key);
 
-		// check null cases
-		if ((oldValue == null) && (value == null)) {
+			// no old value exists  OR  old value exists and is NOT equal => set property
+			if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && !oldValue.equals(value)) ) {
 
-			return;
-		}
+				setPropertyInternal(key, value);
 
-		// no old value exists, set property
-		if ((oldValue == null) && (value != null)) {
+			}
 
-			setPropertyInternal(key, value);
+		} finally {
 
-			return;
+			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
+			// since we made "unlock_readonly_properties_once" available through scripting
+			this.readOnlyPropertiesUnlocked = false;
 
-		}
-
-		// old value exists and is NOT equal
-		if ((oldValue != null) && !oldValue.equals(value)) {
-
-			setPropertyInternal(key, value);
 		}
 
 	}
@@ -999,15 +994,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		// check for read-only properties
 		if (key.isReadOnly() || (key.isWriteOnce() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
 
-			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
-
-				// permit write operation once and
-				// lock read-only properties again
-				readOnlyPropertiesUnlocked = false;
-
-			} else {
+			if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
 				throw new FrameworkException(getClass().getSimpleName(), new ReadOnlyPropertyToken(key));
+
 			}
 
 		}

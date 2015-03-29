@@ -1196,10 +1196,6 @@ public class ActionContextTest extends StructrTest {
 
 				assertEquals("node should be of type TestOne", "TestOne", Scripting.replaceVariables(userActionContext, t1, "${(get(this, 'type'))}"));
 
-				// THIS TEST NEEDS TO BE REMOVED AFTER THE CREATE-COMMAND HAS BEEN FIXED (OR setProperty sets readOnlyPropertiesUnlocked to false after each run)
-				// for the time being we need this "test" to reset the flag
-				assertEquals("initially setting the type should work (may be a bug)", "TestTwo", Scripting.replaceVariables(userActionContext, t1, "${(set(this, 'type', 'TestTwo'), get(this, 'type'))}"));
-
 				try {
 
 					assertEquals("setting the type should fail", "TestTwo", Scripting.replaceVariables(userActionContext, t1, "${(set(this, 'type', 'TestThree'), get(this, 'type'))}"));
