@@ -173,8 +173,12 @@ public class StructrScriptableTest extends StructrTest {
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
-			sourceNode.invokeMethod("doTest04", Collections.EMPTY_MAP, true);
-			assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
+			try {
+				sourceNode.invokeMethod("doTest04", Collections.EMPTY_MAP, true);
+				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
+				fail("Setting EnumProperty to invalid value should result in an Exception!");
+
+			} catch (FrameworkException fx) {}
 
 			// test other property types
 			sourceNode.invokeMethod("doTest05", Collections.EMPTY_MAP, true);
