@@ -745,7 +745,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	private boolean isGranted(final Permission permission, final Principal accessingUser) {
 
 		// use quick checks for maximum performance
-		if (isCreation) {
+		if (isCreation && (accessingUser == null || accessingUser.equals(getOwnerNode()) ) ) {
 			
 			return true;
 		}

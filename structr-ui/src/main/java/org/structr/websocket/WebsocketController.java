@@ -102,20 +102,20 @@ public class WebsocketController implements StructrTransactionListener {
 
 			webSocketData.setCallback(socket.getCallback());
 
-			if ((session != null)) { //&& socket.isAuthenticated()) {
+			if (session != null && socket.isAuthenticated()) {
 
 				List<? extends GraphObject> result = webSocketData.getResult();
+				SecurityContext securityContext = socket.getSecurityContext();
+
+				// if the client has no access to the node then skip sending a message to it
+				if (!securityContext.isVisible((AbstractNode) webSocketData.getGraphObject())) {
+					continue;
+				}
 
 				if ((result != null) && (result.size() > 0)
 					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
 
 					WebSocketMessage clientData = webSocketData.copy();
-					SecurityContext securityContext = socket.getSecurityContext();
-
-					// For non-authenticated clients, construct a security context without user
-					if (securityContext == null) {
-						securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-					}
 
 					clientData.setResult(filter(securityContext, result));
 
