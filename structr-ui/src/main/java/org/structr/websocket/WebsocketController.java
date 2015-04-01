@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.Range;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
@@ -107,8 +108,14 @@ public class WebsocketController implements StructrTransactionListener {
 				List<? extends GraphObject> result = webSocketData.getResult();
 				SecurityContext securityContext = socket.getSecurityContext();
 
-				// if the client has no access to the node then skip sending a message to it
-				if (!securityContext.isVisible((AbstractNode) webSocketData.getGraphObject())) {
+				// if the object IS NOT of type AbstractNode AND the client is NOT priviledged
+				// OR
+				// if the object IS of type AbstractNode AND the client has no access to the node
+				// THEN skip sending a message
+				if (
+						( !(webSocketData.getGraphObject() instanceof AbstractNode) && !socket.isPriviledgedUser(socket.getCurrentUser()) )
+						|| (webSocketData.getGraphObject() instanceof AbstractNode && !securityContext.isVisible((AbstractNode) webSocketData.getGraphObject()))
+					) {
 					continue;
 				}
 

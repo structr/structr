@@ -453,8 +453,19 @@ public class StructrWebSocket implements WebSocketListener {
 	public boolean isAuthenticated() {
 
 		final Principal user = getCurrentUser();
-		final boolean allowWSInFrontend = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.WEBSOCKET_FRONTEND_ACCESS, "false"));
-		return (user != null && (allowWSInFrontend || user.getProperty(Principal.isAdmin) || user.getProperty(User.backendUser)));
+		return (user != null && (isPriviledgedUser(user) || isFrontendWebsocketAccessEnabled()));
+
+	}
+
+	public boolean isPriviledgedUser(Principal user) {
+
+		return (user != null && (user.getProperty(Principal.isAdmin) || user.getProperty(User.backendUser)));
+
+	}
+
+	public boolean isFrontendWebsocketAccessEnabled() {
+
+		return Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.WEBSOCKET_FRONTEND_ACCESS, "false"));
 
 	}
 
