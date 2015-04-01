@@ -250,7 +250,7 @@ public class WebsocketController implements StructrTransactionListener {
 			final RelationshipType relType = modificationEvent.getRelationshipType();
 
 			// only interested in CONTAINS relationships
-			if (!("CONTAINS".equals(relType.name()))) {
+			if ( ! (("CONTAINS".equals(relType.name()) && (relationship.getSourceNode() instanceof DOMNode) && (relationship.getTargetNode() instanceof DOMNode))) ) {
 				return null;
 			}
 
