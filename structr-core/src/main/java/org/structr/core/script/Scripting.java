@@ -259,19 +259,19 @@ public class Scripting {
 
 		return expressions;
 	}
-	
+
 	private static String formatToDefaultDateOrString(final Object value) {
-		
+
 		if (value instanceof Date) {
-			
+
 			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
-			
+
 		} else {
-			
+
 			return value.toString();
-			
+
 		}
-		
+
 	}
-	
+
 }

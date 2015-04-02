@@ -6,22 +6,22 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.json.JsonNumberProperty;
+import org.structr.schema.json.JsonLongProperty;
 import org.structr.schema.json.JsonSchema;
-import org.structr.schema.parser.DoublePropertyParser;
+import org.structr.schema.parser.LongPropertyParser;
 
 /**
  *
  * @author Christian Morgner
  */
-public class StructrNumberProperty extends StructrPropertyDefinition implements JsonNumberProperty {
+public class StructrLongProperty extends StructrPropertyDefinition implements JsonLongProperty {
 
 	private boolean exclusiveMinimum = false;
 	private boolean exclusiveMaximum = false;
-	private Double minimum          = null;
-	private Double maximum          = null;
+	private Long minimum          = null;
+	private Long maximum          = null;
 
-	public StructrNumberProperty(final StructrTypeDefinition parent, final String name) {
+	public StructrLongProperty(final StructrTypeDefinition parent, final String name) {
 		super(parent, name);
 	}
 
@@ -31,7 +31,7 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public JsonNumberProperty setExclusiveMinimum(final boolean exclusiveMinimum) {
+	public JsonLongProperty setExclusiveMinimum(final boolean exclusiveMinimum) {
 
 		this.exclusiveMinimum = exclusiveMinimum;
 		return this;
@@ -43,24 +43,24 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public JsonNumberProperty setExclusiveMaximum(final boolean exclusiveMaximum) {
+	public JsonLongProperty setExclusiveMaximum(final boolean exclusiveMaximum) {
 
 		this.exclusiveMaximum = exclusiveMaximum;
 		return this;
 	}
 
 	@Override
-	public Double getMinimum() {
+	public Long getMinimum() {
 		return minimum;
 	}
 
 	@Override
-	public JsonNumberProperty setMinimum(final double minimum) {
+	public JsonLongProperty setMinimum(final long minimum) {
 		return setMinimum(minimum, false);
 	}
 
 	@Override
-	public JsonNumberProperty setMinimum(final double minimum, final boolean exclusive) {
+	public JsonLongProperty setMinimum(final long minimum, final boolean exclusive) {
 
 		this.exclusiveMinimum = exclusive;
 		this.minimum          = minimum;
@@ -69,17 +69,17 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public Double getMaximum() {
+	public Long getMaximum() {
 		return maximum;
 	}
 
 	@Override
-	public JsonNumberProperty setMaximum(final double maximum) {
+	public JsonLongProperty setMaximum(final long maximum) {
 		return this.setMaximum(maximum, false);
 	}
 
 	@Override
-	public JsonNumberProperty setMaximum(final double maximum, final boolean exclusive) {
+	public JsonLongProperty setMaximum(final long maximum, final boolean exclusive) {
 
 		this.exclusiveMaximum = exclusive;
 		this.maximum          = maximum;
@@ -129,12 +129,12 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 
 		final Object _minimum = source.get(JsonSchema.KEY_MINIMUM);
 		if (_minimum != null && _minimum instanceof Number) {
-			this.minimum = ((Number)_minimum).doubleValue();
+			this.minimum = ((Number)_minimum).longValue();
 		}
 
 		final Object _maximum = source.get(JsonSchema.KEY_MAXIMUM);
 		if (_maximum != null && _maximum instanceof Number) {
-			this.maximum = ((Number)_maximum).doubleValue();
+			this.maximum = ((Number)_maximum).longValue();
 		}
 	}
 
@@ -143,20 +143,20 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 
 		super.deserialize(property);
 
-		final DoublePropertyParser doublePropertyParser = property.getDoublePropertyParser();
-		if (doublePropertyParser != null) {
+		final LongPropertyParser longPropertyParser = property.getLongPropertyParser();
+		if (longPropertyParser != null) {
 
-			this.exclusiveMinimum = doublePropertyParser.isLowerExclusive();
-			this.exclusiveMaximum = doublePropertyParser.isUpperExclusive();
+			this.exclusiveMinimum = longPropertyParser.isLowerExclusive();
+			this.exclusiveMaximum = longPropertyParser.isUpperExclusive();
 
-			final Number min = doublePropertyParser.getLowerBound();
+			final Number min = longPropertyParser.getLowerBound();
 			if (min != null) {
-				this.minimum = min.doubleValue();
+				this.minimum = min.longValue();
 			}
 
-			final Number max = doublePropertyParser.getUpperBound();
+			final Number max = longPropertyParser.getUpperBound();
 			if (max != null) {
-				this.maximum = max.doubleValue();
+				this.maximum = max.longValue();
 			}
 		}
 	}
@@ -166,7 +166,7 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 
-		property.setProperty(SchemaProperty.propertyType, Type.Double.name());
+		property.setProperty(SchemaProperty.propertyType, Type.Long.name());
 
 		if (minimum != null && maximum != null) {
 
@@ -196,6 +196,6 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 
 	@Override
 	public String getType() {
-		return "number";
+		return "long";
 	}
 }

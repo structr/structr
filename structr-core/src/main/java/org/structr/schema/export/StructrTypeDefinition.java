@@ -2,18 +2,17 @@ package org.structr.schema.export;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.TreeMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
@@ -22,44 +21,53 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.schema.json.InvalidSchemaException;
 import org.structr.schema.json.JsonBooleanProperty;
 import org.structr.schema.json.JsonEnumProperty;
+import org.structr.schema.json.JsonIntegerProperty;
+import org.structr.schema.json.JsonLongProperty;
 import org.structr.schema.json.JsonNumberProperty;
-import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonProperty;
+import org.structr.schema.json.JsonReferenceProperty;
+import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonScriptProperty;
 import org.structr.schema.json.JsonStringProperty;
 import org.structr.schema.json.JsonType;
 
 /**
  *
+ *
  * @author Christian Morgner
+ * @param <T>
  */
-public abstract class StructrTypeDefinition extends StructrDefinition implements JsonType {
+public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
 
-	private AbstractSchemaNode schemaNode = null;
-	private String name                   = null;
+	protected final Set<StructrPropertyDefinition> properties = new TreeSet<>();
+	protected final Map<String, Set<String>> views            = new TreeMap<>();
+	protected final Map<String, String> methods               = new TreeMap<>();
+	protected StructrSchemaDefinition root                    = null;
+	protected URI baseTypeReference                           = null;
+	protected String name                                     = null;
+	protected T schemaNode                                    = null;
 
-	StructrTypeDefinition(final StructrSchemaDefinition root, final String id) throws URISyntaxException {
+	StructrTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
-		super(root, id);
-		put(JsonSchema.KEY_TYPE, "object");
+		this.root = root;
+		this.name = name;
 	}
 
-	StructrTypeDefinition(final StructrSchemaDefinition root, final String id, final JsonType source) throws URISyntaxException {
-
-		super(root, id);
-
-		put(JsonSchema.KEY_TYPE, "object");
-		initializeFrom(source);
-	}
-
-	abstract AbstractSchemaNode createDatabaseNode(final App app) throws FrameworkException;
-	abstract void createFromDatabase(final AbstractSchemaNode schemaNode) throws URISyntaxException;
+	abstract T createSchemaNode(final App app) throws FrameworkException;
 
 	@Override
-	public StructrDefinition getParent() {
+	public URI getId() {
+
+		final URI id  = root.getId();
+		final URI uri = URI.create("definitions/" + getName());
+
+		return id.resolve(uri);
+	}
+
+	@Override
+	public JsonSchema getSchema() {
 		return root;
 	}
 
@@ -76,234 +84,350 @@ public abstract class StructrTypeDefinition extends StructrDefinition implements
 	}
 
 	@Override
+	public JsonType addMethod(final String name, final String source) {
+
+		methods.put(name, source);
+		return this;
+	}
+
+	@Override
 	public JsonType setExtends(final JsonType superType) {
 
-		URI reference = getParent().getId().relativize(superType.getId());
-		put(JsonSchema.KEY_EXTENDS, "#" + reference.getPath());
-
+		this.baseTypeReference = superType.getId();
 		return this;
+
 	}
 
 	@Override
 	public JsonType setExtends(final URI externalReference) {
 
-		if (externalReference != null) {
-			put(JsonSchema.KEY_EXTENDS, externalReference.toString());
-		}
-
+		this.baseTypeReference = externalReference;
 		return this;
 	}
 
 	@Override
-	public String getExtends() {
-		return getString(this, JsonSchema.KEY_EXTENDS);
+	public URI getExtends() {
+		return baseTypeReference;
 	}
 
 	@Override
-	public Map<String, JsonProperty> getProperties() {
-
-		final Map<String, StructrPropertyDefinition> properties = getPropertyDefinitions();
-		final Map<String, JsonProperty> propertyMap             = new TreeMap<>();
-
-		for (final StructrPropertyDefinition prop : properties.values()) {
-			propertyMap.put(prop.getName(), prop);
-		}
-
-		return propertyMap;
-	}
-
-	@Override
-	public Map<String, Set<String>> getViews() {
-		return getViewDefinitions();
+	public Set<JsonProperty> getProperties() {
+		return (Set)properties;
 	}
 
 	@Override
 	public Map<String, String> getMethods() {
-		return getMethodDefinitions();
+		return methods;
+	}
+
+	@Override
+	public Set<String> getViewNames() {
+		return views.keySet();
+	}
+
+	@Override
+	public Set<String> getViewPropertyNames(final String viewName) {
+		return views.get(viewName);
+	}
+
+	@Override
+	public JsonType addViewProperty(final String viewName, final String propertyName) {
+
+		addPropertyNameToViews(propertyName, viewName);
+		return this;
 	}
 
 	@Override
 	public Set<String> getRequiredProperties() {
-		return getSet(this, JsonSchema.KEY_REQUIRED, true);
+
+		final Set<String> requiredProperties = new TreeSet<>();
+
+		for (final StructrPropertyDefinition property : properties) {
+
+			if (property.isRequired()) {
+
+				requiredProperties.add(property.getName());
+			}
+		}
+
+		return requiredProperties;
 	}
 
 	@Override
-	public JsonStringProperty addStringProperty(String name, String... views) throws URISyntaxException {
+	public JsonStringProperty addStringProperty(final String name, final String... views) throws URISyntaxException {
 
 		final StructrStringProperty stringProperty = new StructrStringProperty(this, name);
-		addProperty(stringProperty, name, views);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(stringProperty);
 
 		return stringProperty;
 	}
 
 	@Override
-	public JsonStringProperty addDateProperty(String name, String... views) throws URISyntaxException {
+	public JsonStringProperty addDateProperty(final String name, final String... views) throws URISyntaxException {
 
-		final StructrStringProperty stringProperty = new StructrStringProperty(this, name);
+		final StructrDateProperty dateProperty = new StructrDateProperty(this, name);
 
-		stringProperty.setFormat(JsonSchema.FORMAT_DATE_TIME);
+		addPropertyNameToViews(name, views);
 
-		addProperty(stringProperty, name, views);
+		properties.add(dateProperty);
 
-		return stringProperty;
+		return dateProperty;
+
 	}
 
 	@Override
-	public JsonNumberProperty addNumberProperty(String name, String... views) throws URISyntaxException {
+	public JsonIntegerProperty addIntegerProperty(final String name, final String... views) throws URISyntaxException {
 
-		final StructrNumberProperty numberProperty = new StructrNumberProperty(this, name);
-		addProperty(numberProperty, name, views);
+		final StructrIntegerProperty numberProperty = new StructrIntegerProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(numberProperty);
 
 		return numberProperty;
 	}
 
 	@Override
-	public JsonBooleanProperty addBooleanProperty(String name, String... views) throws URISyntaxException {
+	public JsonLongProperty addLongProperty(final String name, final String... views) throws URISyntaxException {
+
+		final StructrLongProperty numberProperty = new StructrLongProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(numberProperty);
+
+		return numberProperty;
+	}
+
+	@Override
+	public JsonNumberProperty addNumberProperty(final String name, final String... views) throws URISyntaxException {
+
+		final StructrNumberProperty numberProperty = new StructrNumberProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(numberProperty);
+
+		return numberProperty;
+	}
+
+	@Override
+	public JsonBooleanProperty addBooleanProperty(final String name, final String... views) throws URISyntaxException {
 
 		final StructrBooleanProperty booleanProperty = new StructrBooleanProperty(this, name);
-		addProperty(booleanProperty, name, views);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(booleanProperty);
 
 		return booleanProperty;
 	}
 
-//	@Override
-//	public JsonReferenceProperty addReference(final String name, final String relationship, final JsonType otherType, final String... views) throws URISyntaxException {
-//
-//		final StructrObjectProperty objectProperty = new StructrObjectProperty(this, name, relationship);
-//		addProperty(objectProperty, name, views);
-//
-//		objectProperty.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + otherType.getName());
-//
-//		root.notifyReferenceChange(this, objectProperty);
-//
-//		return objectProperty;
-//	}
-//
-//	@Override
-//	public JsonReferenceProperty addReference(final String name, final JsonReferenceProperty otherProperty, final String... views) throws URISyntaxException {
-//
-//		final StructrObjectProperty objectProperty = new StructrObjectProperty(this, name, null);
-//		addProperty(objectProperty, name, views);
-//
-//		URI reference = getParent().getId().relativize(otherProperty.getId());
-//		objectProperty.put(JsonSchema.KEY_REFERENCE, "#" + reference.getPath());
-//
-//		return objectProperty;
-//	}
-//
-//	@Override
-//	public JsonReferenceProperty addArrayReference(final String name, final String relationship, final JsonType otherType, final String... views) throws URISyntaxException {
-//
-//		final StructrArrayProperty arrayProperty = new StructrArrayProperty(this, name, relationship);
-//		addProperty(arrayProperty, name, views);
-//
-//		final Map<String, Object> items = new TreeMap<>();
-//		arrayProperty.put(JsonSchema.KEY_ITEMS, items);
-//
-//		items.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + otherType.getName());
-//
-//		root.notifyReferenceChange(this, arrayProperty);
-//
-//		return arrayProperty;
-//	}
-//
-//	@Override
-//	public JsonReferenceProperty addArrayReference(final String name, final JsonReferenceProperty otherProperty, final String... views) throws URISyntaxException {
-//
-//		final StructrArrayProperty arrayProperty = new StructrArrayProperty(this, name, null);
-//		addProperty(arrayProperty, name, views);
-//
-//		final Map<String, Object> items = new TreeMap<>();
-//		arrayProperty.put(JsonSchema.KEY_ITEMS, items);
-//
-//		URI reference = getParent().getId().relativize(otherProperty.getId());
-//
-//		items.put(JsonSchema.KEY_REFERENCE, "#" + reference.getPath());
-//
-//		return arrayProperty;
-//	}
-
 	@Override
-	public JsonScriptProperty addScriptProperty(String name, String... views) throws URISyntaxException {
+	public JsonScriptProperty addScriptProperty(final String name, final String... views) throws URISyntaxException {
 
 		final StructrScriptProperty scriptProperty = new StructrScriptProperty(this, name);
-		addProperty(scriptProperty, name, views);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(scriptProperty);
 
 		return scriptProperty;
 	}
 
 	@Override
-	public JsonEnumProperty addEnumProperty(String name, String... views) throws URISyntaxException {
+	public JsonEnumProperty addEnumProperty(final String name, final String... views) throws URISyntaxException {
 
 		final StructrEnumProperty enumProperty = new StructrEnumProperty(this, name);
-		addProperty(enumProperty, name, views);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(enumProperty);
 
 		return enumProperty;
 	}
 
 	@Override
-	public JsonType addMethod(final String name, final String source) {
+	public JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views) {
 
-		getMethodDefinitions().put(name, source);
-		return this;
+		final String reference = root.toJsonPointer(referencedProperty.getId());
+		final String refType   = referencedProperty.getType();
+		final String refName   = referencedProperty.getName();
+
+		final StructrReferenceProperty ref = new NotionReferenceProperty(this, name, reference, refType, refName);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(ref);
+
+		return ref;
 	}
 
-	public AbstractSchemaNode getSchemaNode() {
-		return schemaNode;
-	}
-
-	public void setSchemaNode(final AbstractSchemaNode schemaNode) {
-		this.schemaNode = schemaNode;
-	}
-
-	// ----- interface Comparable<JsonSchemaType> -----
 	@Override
-	public int compareTo(JsonType other) {
-		return getName().compareTo(other.getName());
+	public int compareTo(final JsonType o) {
+		return getName().compareTo(o.getName());
+	}
+
+	@Override
+	public StructrDefinition resolveJsonPointerKey(final String key) {
+
+		switch (key) {
+
+			case "properties":
+				return new StructrDefinition() {
+
+					@Override
+					public StructrDefinition resolveJsonPointerKey(final String key) {
+
+						for (final StructrPropertyDefinition property : properties) {
+
+							if (key.equals(property.getName())) {
+
+								return property;
+							}
+						}
+
+						return null;
+					}
+				};
+
+			case "views":
+				return new StructrDefinition() {
+
+					@Override
+					public StructrDefinition resolveJsonPointerKey(final String key) {
+						return null;
+					}
+				};
+		}
+
+		return null;
 	}
 
 	// ----- package methods -----
-	void addProperty(final StructrPropertyDefinition newProperty, final String name, final String... views) throws URISyntaxException {
+	Map<String, Object> serialize() {
 
-		if (views != null) {
+		final Map<String, Object> serializedForm       = new TreeMap<>();
+		final Map<String, Object> serializedProperties = new TreeMap<>();
 
-			final Map<String, Set<String>> viewDefinitions = getViewDefinitions();
-			for (final String viewName : views) {
+		// populate properties
+		for (final StructrPropertyDefinition property : properties) {
+			serializedProperties.put(property.getName(), property.serialize());
+		}
 
-				Set<String> propertySet = viewDefinitions.get(viewName);
-				if (propertySet == null) {
+		serializedForm.put(JsonSchema.KEY_TYPE, "object");
 
-					propertySet = new TreeSet<>();
-					viewDefinitions.put(viewName, propertySet);
-				}
+		// properties
+		if (!serializedProperties.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_PROPERTIES, serializedProperties);
+		}
 
-				propertySet.add(name);
+		// required
+		final Set<String> requiredProperties = getRequiredProperties();
+		if (!requiredProperties.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_REQUIRED, requiredProperties);
+		}
+
+		// views
+		if (!views.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_VIEWS, views);
+		}
+
+		final URI ext = getExtends();
+		if (ext != null) {
+			serializedForm.put(JsonSchema.KEY_EXTENDS, root.toJsonPointer(ext));
+		}
+
+		return serializedForm;
+	}
+
+	void deserialize(final Map<String, Object> source) {
+
+		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
+
+			String jsonPointerFormat = (String)source.get(JsonSchema.KEY_EXTENDS);
+			if (jsonPointerFormat.startsWith("#")) {
+
+				jsonPointerFormat = jsonPointerFormat.substring(1);
 			}
 
-			// clear empty views
-			if (viewDefinitions.isEmpty()) {
-				remove(JsonSchema.KEY_VIEWS);
+			this.baseTypeReference = root.getId().relativize(URI.create(jsonPointerFormat));
+		}
+	}
+
+	void deserialize(final T schemaNode) {
+
+		for (final SchemaProperty property : schemaNode.getProperty(AbstractSchemaNode.schemaProperties)) {
+
+			final StructrPropertyDefinition propertyDefinition = StructrPropertyDefinition.deserialize(this, property);
+			if (propertyDefinition != null) {
+
+				properties.add(propertyDefinition);
 			}
 		}
 
-		// store new property in this type
-		getPropertyDefinitions().put(name, newProperty);
+		for (final SchemaView view : schemaNode.getProperty(AbstractSchemaNode.schemaViews)) {
+
+			final Set<String> propertySet = new TreeSet<>();
+			for (final SchemaProperty property : view.getProperty(SchemaView.schemaProperties)) {
+				propertySet.add(property.getName());
+			}
+
+			final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
+			if (nonGraphProperties != null) {
+
+				for (final String property : nonGraphProperties.split("[, ]+")) {
+					final String trimmed = property.trim();
+
+					if (StringUtils.isNotBlank(trimmed)) {
+						propertySet.add(trimmed);
+					}
+				}
+			}
+
+			if (!propertySet.isEmpty()) {
+				views.put(view.getName(), propertySet);
+			}
+		}
+
+		for (final SchemaMethod method : schemaNode.getProperty(AbstractSchemaNode.schemaMethods)) {
+
+			final String _name   = method.getName();
+			final String _source = method.getProperty(SchemaMethod.source);
+
+			methods.put(_name, _source);
+		}
+
+		// $extends
+		final String extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		if (extendsClass != null) {
+
+			final String typeName = extendsClass.substring(extendsClass.lastIndexOf(".") + 1);
+			if (extendsClass.startsWith("org.structr.dynamic.")) {
+
+				this.baseTypeReference = root.getId().resolve("definitions/" + typeName);
+
+			} else {
+
+				this.baseTypeReference = StructrApp.getSchemaBaseURI().resolve("definitions/" + typeName);
+			}
+		}
 	}
 
-	void createDatabaseSchemaProperties(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+	AbstractSchemaNode createDatabaseSchema(final App app) throws FrameworkException {
 
-		final Map<String, StructrPropertyDefinition> propertyDefinitions = getPropertyDefinitions();
-		final Map<String, Set<String>> views                             = getViewDefinitions();
-		final Map<String, String> methods                                = getMethodDefinitions();
-		final Map<String, SchemaProperty> properties                     = new TreeMap<>();
+		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
+		final T schemaNode                                 = createSchemaNode(app);
 
-		// create properties and store them in a map for later use
-		for (final Entry<String, StructrPropertyDefinition> entry : propertyDefinitions.entrySet()) {
+		for (final StructrPropertyDefinition property : properties) {
 
-			final SchemaProperty property = entry.getValue().createDatabaseSchema(app, schemaNode);
-			if (property != null) {
+			final SchemaProperty schemaProperty = property.createDatabaseSchema(app, schemaNode);
+			if (schemaProperty != null) {
 
-				properties.put(entry.getKey(), property);
+				schemaProperties.put(schemaProperty.getName(), schemaProperty);
 			}
 		}
 
@@ -311,11 +435,11 @@ public abstract class StructrTypeDefinition extends StructrDefinition implements
 		for (final Entry<String, Set<String>> view : views.entrySet()) {
 
 			final List<SchemaProperty> viewProperties = new LinkedList<>();
-			final List<String> nonGraphProperties     = new LinkedList<>();
+			final List<String> nonGraphProperties = new LinkedList<>();
 
 			for (final String propertyName : view.getValue()) {
 
-				final SchemaProperty property = properties.get(propertyName);
+				final SchemaProperty property = schemaProperties.get(propertyName);
 				if (property != null) {
 
 					viewProperties.add(property);
@@ -345,290 +469,197 @@ public abstract class StructrTypeDefinition extends StructrDefinition implements
 				new NodeAttribute(SchemaMethod.source, method.getValue())
 			);
 		}
-	}
 
-	void createFromSource(final Map<String, Object> source) throws InvalidSchemaException, URISyntaxException {
+		// extends
+		if (baseTypeReference != null) {
 
-		final Map<String, StructrPropertyDefinition> propertyDefinitions = getPropertyDefinitions();
-		final Map<String, Set<String>> viewDefinitions                   = getViewDefinitions();
-		final Map<String, String> methodDefinitions                      = getMethodDefinitions();
-		final String type                                                = getString(source, JsonSchema.KEY_TYPE);
+			final Object def = root.resolveURI(baseTypeReference);
 
-		if ("object".equals(type)) {
+			if (def != null && def instanceof JsonType) {
 
-			final Map<String, Object> properties = getMap(source, JsonSchema.KEY_PROPERTIES, false);
-			if (properties != null) {
+				final JsonType jsonType     = (JsonType)def;
+				final String superclassName = "org.structr.dynamic." + jsonType.getName();
 
-				for (final Entry<String, Object> entry : properties.entrySet()) {
-
-					final String key   = entry.getKey();
-					final Object value = entry.getValue();
-
-					if (value instanceof Map) {
-
-						final Map<String, Object> map       = (Map<String, Object>)value;
-						final String propertyType           = getString(map, JsonSchema.KEY_TYPE);
-						final boolean isEnum                = getList(map, JsonSchema.KEY_ENUM, false) != null;
-						final StructrPropertyDefinition def = StructrPropertyDefinition.forStringType(this, propertyType, key, isEnum);
-
-						def.createFromSource(map);
-
-						propertyDefinitions.put(key, def);
-
-					} else {
-
-						throw new InvalidSchemaException("Property definition " + key + " has wrong type, expecting object.");
-					}
-				}
-			}
-
-			final Map<String, Object> views = getMap(source, JsonSchema.KEY_VIEWS, false);
-			if (views != null) {
-
-				for (final Entry<String, Object> entry : views.entrySet()) {
-
-					final String key   = entry.getKey();
-					final Object value = entry.getValue();
-
-					Set<String> view = viewDefinitions.get(key);
-					if (view == null) {
-
-						view = new TreeSet<>();
-						viewDefinitions.put(key, view);
-					}
-
-					if (value instanceof Collection) {
-
-						for (final Object o : ((Collection)value)) {
-							view.add((String)o);
-						}
-
-					} else {
-
-						throw new InvalidSchemaException("Invalid view " + key + ", expected array.");
-					}
-				}
-			}
-
-			final Map<String, Object> methods = getMap(source, JsonSchema.KEY_METHODS, false);
-			if (methods != null) {
-
-				for (final Entry<String, Object> entry : methods.entrySet()) {
-
-					final String key   = entry.getKey();
-					final Object value = entry.getValue();
-
-					if (value instanceof String) {
-
-						methodDefinitions.put(key, (String)value);
-
-					} else {
-
-						throw new InvalidSchemaException("Invalid method " + key + ", expected string.");
-					}
-				}
-			}
-
-			final List<String> requiredProperties = getList(source, JsonSchema.KEY_REQUIRED, false);
-			if (requiredProperties != null) {
-
-				for (final String propertyName : requiredProperties) {
-
-					final StructrPropertyDefinition def = propertyDefinitions.get(propertyName);
-					if (def != null) {
-
-						def.setRequired(true);
-					}
-				}
-			}
-
-			// base class reference ($extends)
-			final String extendsReference = getString(source, JsonSchema.KEY_EXTENDS);
-			if (extendsReference != null) {
-
-				put(JsonSchema.KEY_EXTENDS, extendsReference);
-			}
-
-
-		} else {
-
-			throw new InvalidSchemaException("Encountered invalid type " + type + ", expected object.");
-		}
-
-		if (propertyDefinitions.isEmpty()) {
-			remove(JsonSchema.KEY_PROPERTIES);
-		}
-
-		if (viewDefinitions.isEmpty()) {
-			remove(JsonSchema.KEY_VIEWS);
-		}
-
-		if (methodDefinitions.isEmpty()) {
-			remove(JsonSchema.KEY_METHODS);
-		}
-	}
-
-	// ----- protected methods -----
-	protected void readLocalProperties(final Set<String> requiredProperties, final AbstractSchemaNode schemaNode) throws URISyntaxException {
-
-		final Map<String, StructrPropertyDefinition> propertyDefinitions = getPropertyDefinitions();
-
-		for (final SchemaProperty property : schemaNode.getProperty(AbstractSchemaNode.schemaProperties)) {
-
-			final StructrPropertyDefinition def = StructrPropertyDefinition.forStructrType(this, property);
-
-			if (def.isRequired()) {
-				requiredProperties.add(def.getName());
-			}
-
-			propertyDefinitions.put(def.getName(), def);
-		}
-
-		if (propertyDefinitions.isEmpty()) {
-			remove(JsonSchema.KEY_PROPERTIES);
-		}
-	}
-
-	protected void readRemoteProperties(final Set<String> requiredProperties, final AbstractSchemaNode schemaNode) throws URISyntaxException {
-
-		final Map<String, StructrPropertyDefinition> propertyDefinitions = getPropertyDefinitions();
-		final Set<String> existingPropertyNames                          = new HashSet<>();
-
-		for (final SchemaRelationshipNode relationship : schemaNode.getProperty(SchemaNode.relatedTo)) {
-
-			final StructrPropertyDefinition def = StructrPropertyDefinition.forStructrType(this, relationship, existingPropertyNames, true);
-
-			if (def.isRequired()) {
-				requiredProperties.add(def.getName());
-			}
-
-			propertyDefinitions.put(def.getName(), def);
-		}
-
-		for (final SchemaRelationshipNode relationship : schemaNode.getProperty(SchemaNode.relatedFrom)) {
-
-			final StructrPropertyDefinition def = StructrPropertyDefinition.forStructrType(this, relationship, existingPropertyNames, false);
-
-			if (def.isRequired()) {
-				requiredProperties.add(def.getName());
-			}
-
-			propertyDefinitions.put(def.getName(), def);
-		}
-
-		// remove empty properties objects
-		if (propertyDefinitions.isEmpty()) {
-			remove(JsonSchema.KEY_PROPERTIES);
-		}
-	}
-
-	protected void readViews(final AbstractSchemaNode schemaNode) {
-
-		final Map<String, Set<String>> viewDefinitions = getViewDefinitions();
-
-		for (final SchemaView view : schemaNode.getProperty(AbstractSchemaNode.schemaViews)) {
-
-			final Set<String> propertySet = new TreeSet<>();
-
-			for (final SchemaProperty property : view.getProperty(SchemaView.schemaProperties)) {
-				propertySet.add(property.getName());
-			}
-
-			final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
-			if (nonGraphProperties != null) {
-
-				for (final String property : nonGraphProperties.split("[, ]+")) {
-
-					final String trimmed = property.trim();
-					if (StringUtils.isNotBlank(trimmed)) {
-
-						propertySet.add(trimmed);
-					}
-				}
-			}
-
-			if (!propertySet.isEmpty()) {
-
-				viewDefinitions.put(view.getName(), propertySet);
-			}
-		}
-
-		// remove empty view object
-		if (viewDefinitions.isEmpty()) {
-			remove(JsonSchema.KEY_VIEWS);
-		}
-	}
-
-	protected void readMethods(final AbstractSchemaNode schemaNode) {
-
-		final Map<String, String> methodDefinitions = getMethodDefinitions();
-
-		for (final SchemaMethod method : schemaNode.getProperty(AbstractSchemaNode.schemaMethods)) {
-
-			final String name   = method.getName();
-			final String source = method.getProperty(SchemaMethod.source);
-
-			methodDefinitions.put(name, source);
-		}
-
-		// remove empty view object
-		if (methodDefinitions.isEmpty()) {
-			remove(JsonSchema.KEY_METHODS);
-		}
-	}
-
-	protected void readSuperclass(final AbstractSchemaNode schemaNode) {
-
-		// $extends
-		final String extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
-		if (extendsClass != null) {
-
-			final String typeName = extendsClass.substring(extendsClass.lastIndexOf(".") + 1);
-			if (extendsClass.startsWith("org.structr.dynamic.")) {
-
-				put(JsonSchema.KEY_EXTENDS, "#/definitions/" + typeName);
+				schemaNode.setProperty(SchemaNode.extendsClass, superclassName);
 
 			} else {
 
-				put(JsonSchema.KEY_EXTENDS, JsonSchema.SCHEMA_BASE + "definitions/" + typeName);
+				final Class superclass = StructrApp.resolveSchemaId(baseTypeReference);
+				if (superclass != null) {
+
+					schemaNode.setProperty(SchemaNode.extendsClass, superclass.getName());
+				}
 			}
 		}
+
+		return schemaNode;
+	}
+
+	T getSchemaNode() {
+		return schemaNode;
+	}
+
+	void setSchemaNode(final T schemaNode) {
+		this.schemaNode = schemaNode;
+	}
+
+	Map<String, Set<String>> getViews() {
+		return views;
+	}
+
+	void initializeReferenceProperties() {
+
+		for (final StructrPropertyDefinition property : properties) {
+			property.initializeReferences();
+		}
+	}
+
+	// ----- static methods -----
+	static StructrTypeDefinition deserialize(final StructrSchemaDefinition root, final String name, final Map<String, Object> source) {
+
+		final Map<String, StructrPropertyDefinition> deserializedProperties = new TreeMap<>();
+		final StructrTypeDefinition typeDefinition                          = StructrTypeDefinition.determineType(root, name, source);
+		final Map<String, Object> properties                                = (Map)source.get(JsonSchema.KEY_PROPERTIES);
+		final List<String> requiredPropertyNames                            = (List)source.get(JsonSchema.KEY_REQUIRED);
+		final Map<String, Object> views                                     = (Map)source.get(JsonSchema.KEY_VIEWS);
+
+		if (properties != null) {
+
+			for (final Entry<String, Object> entry : properties.entrySet()) {
+
+				final String propertyName = entry.getKey();
+				final Object value        = entry.getValue();
+
+				if (value instanceof Map) {
+
+					final StructrPropertyDefinition property = StructrPropertyDefinition.deserialize(typeDefinition, propertyName, (Map)value);
+					if (property != null) {
+
+						deserializedProperties.put(property.getName(), property);
+						typeDefinition.getProperties().add(property);
+					}
+
+				} else {
+
+					throw new IllegalStateException("Invalid JSON property definition for property " + propertyName + ", expected object.");
+				}
+			}
+		}
+
+		if (requiredPropertyNames != null) {
+
+			for (final String requiredPropertyName : requiredPropertyNames) {
+
+				// set required properties
+				final StructrPropertyDefinition property = deserializedProperties.get(requiredPropertyName);
+				if (property != null) {
+
+					property.setRequired(true);
+
+				} else {
+
+					throw new IllegalStateException("Required property " + requiredPropertyName + " not defined for type " + typeDefinition.getName() + ".");
+				}
+			}
+		}
+
+		if (views != null) {
+
+			for (final Entry<String, Object> entry : views.entrySet()) {
+
+				final String viewName = entry.getKey();
+				final Object value    = entry.getValue();
+
+				if (value instanceof List) {
+
+					final Set<String> viewProperties = new TreeSet<>((List)value);
+					typeDefinition.getViews().put(viewName, viewProperties);
+
+				} else {
+
+					throw new IllegalStateException("View definition " + viewName + " must be of type array.");
+				}
+			}
+		}
+
+		return typeDefinition;
+	}
+
+	static StructrTypeDefinition deserialize(final StructrSchemaDefinition root, final SchemaNode schemaNode) {
+
+		final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, schemaNode.getClassName());
+		def.deserialize(schemaNode);
+
+		return def;
+	}
+
+	static StructrTypeDefinition deserialize(final StructrSchemaDefinition root, final SchemaRelationshipNode schemaRelationship) {
+
+		final StructrRelationshipTypeDefinition def = new StructrRelationshipTypeDefinition(root, schemaRelationship.getClassName());
+		def.deserialize(schemaRelationship);
+
+		return def;
+	}
+
+	// ----- protected methods -----
+	protected SchemaNode resolveSchemaNode(final App app, final URI uri) throws FrameworkException {
+
+		// find schema nodes for the given source and target nodes
+		final Object source = root.resolveURI(uri);
+		if (source != null && source instanceof StructrTypeDefinition) {
+
+			return (SchemaNode)((StructrTypeDefinition)source).getSchemaNode();
+
+		} else {
+
+			final URI rel = StructrApp.getSchemaBaseURI().relativize(uri);
+			if (rel.isAbsolute()) {
+
+				final Class type = StructrApp.resolveSchemaId(uri);
+				if (type != null) {
+
+					return app.nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
+				}
+			}
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----
-	public Map<String, StructrPropertyDefinition> getPropertyDefinitions() {
-		return (Map)getMap(this, StructrSchemaDefinition.KEY_PROPERTIES, true);
-	}
+	private static StructrTypeDefinition determineType(final StructrSchemaDefinition root, final String name, final Map<String, Object> source) {
 
-	private Map<String, Set<String>> getViewDefinitions() {
-		return (Map)getMap(this, StructrSchemaDefinition.KEY_VIEWS, true);
-	}
+		if (source.containsKey(JsonSchema.KEY_RELATIONSHIP)) {
 
-	private Map<String, String> getMethodDefinitions() {
-		return (Map)getMap(this, StructrSchemaDefinition.KEY_METHODS, true);
-	}
+			final StructrRelationshipTypeDefinition def = new StructrRelationshipTypeDefinition(root, name);
+			def.deserialize(source);
 
-	// ----- private methods -----
-	private void initializeFrom(final JsonType source) throws URISyntaxException {
+			return def;
 
-		setName(source.getName());
+		} else {
 
-		final Map<String, StructrPropertyDefinition> propertyDefinitions = getPropertyDefinitions();
-		for (final JsonProperty property : source.getProperties().values()) {
+			final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, name);
+			def.deserialize(source);
 
-			final boolean isEnum = property instanceof JsonEnumProperty;
-			propertyDefinitions.put(property.getName(), StructrPropertyDefinition.forJsonType(this, property, isEnum));
-		}
-
-		// copy views from source
-		getViewDefinitions().putAll(source.getViews());
-		getMethodDefinitions().putAll(source.getMethods());
-
-		// copy $extends
-		final String extendsUri = source.getExtends();
-		if (extendsUri != null) {
-
-			put(JsonSchema.KEY_EXTENDS, extendsUri);
+			return def;
 		}
 	}
+
+	private void addPropertyNameToViews(final String name, final String... views) {
+
+		for (final String viewName : views) {
+
+			Set<String> view = this.views.get(viewName);
+			if (view == null) {
+
+				view = new TreeSet<>();
+				this.views.put(viewName, view);
+			}
+
+			// add property name to view
+			view.add(name);
+		}
+	}
+
+	// ----- nested classes -----
 }

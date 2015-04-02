@@ -21,6 +21,9 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.parser.DoublePropertyParser;
+import org.structr.schema.parser.IntPropertyParser;
+import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.PropertyDefinition;
 
@@ -64,6 +67,9 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	);
 
 	private NotionPropertyParser notionPropertyParser = null;
+	private DoublePropertyParser doublePropertyParser = null;
+	private LongPropertyParser longPropertyParser     = null;
+	private IntPropertyParser intPropertyParser       = null;
 
 	@Override
 	public String getPropertyName() {
@@ -72,7 +78,24 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	@Override
 	public Type getPropertyType() {
-		return Type.valueOf(getProperty(propertyType));
+
+		final String _type = getProperty(propertyType);
+		if (_type != null) {
+
+			try {
+
+				return Type.valueOf(_type);
+
+			} catch (IllegalArgumentException ex) {
+
+				throw new IllegalStateException("Invalid property type " + _type + " for property " + getPropertyName() + ".");
+
+			}
+
+		} else {
+
+			throw new IllegalStateException("Invalid property type null for property " + getPropertyName() + ".");
+		}
 	}
 
 	@Override
@@ -203,14 +226,10 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 			if (source.startsWith("{") && source.endsWith("}")) {
 
 				return "text/javascript";
-
-			} else {
-
-				return "text/structrscript";
 			}
 		}
 
-		return "";
+		return null;
 	}
 
 	public Set<String> getEnumDefinitions() {
@@ -288,7 +307,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return contentHash;
 	}
 
-	private NotionPropertyParser getNotionPropertyParser() {
+	public NotionPropertyParser getNotionPropertyParser() {
 
 		if (notionPropertyParser == null) {
 
@@ -303,5 +322,56 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return notionPropertyParser;
+	}
+
+	public IntPropertyParser getIntPropertyParser() {
+
+		if (intPropertyParser == null) {
+
+			try {
+				intPropertyParser = new IntPropertyParser(new ErrorBuffer(), getName(), this);
+				intPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+			}
+		}
+
+		return intPropertyParser;
+	}
+
+	public LongPropertyParser getLongPropertyParser() {
+
+		if (longPropertyParser == null) {
+
+			try {
+				longPropertyParser = new LongPropertyParser(new ErrorBuffer(), getName(), this);
+				longPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+			}
+		}
+
+		return longPropertyParser;
+	}
+
+	public DoublePropertyParser getDoublePropertyParser() {
+
+		if (doublePropertyParser == null) {
+
+			try {
+				doublePropertyParser = new DoublePropertyParser(new ErrorBuffer(), getName(), this);
+				doublePropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+			}
+		}
+
+		return doublePropertyParser;
 	}
 }

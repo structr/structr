@@ -1,5 +1,6 @@
 package org.structr.schema.export;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Set;
@@ -8,63 +9,69 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.json.JsonSchema;
+import static org.structr.schema.SchemaHelper.Type.Count;
+import static org.structr.schema.SchemaHelper.Type.Cypher;
+import static org.structr.schema.SchemaHelper.Type.Double;
 import org.structr.schema.json.JsonProperty;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
  *
  * @author Christian Morgner
  */
-public abstract class StructrPropertyDefinition extends StructrDefinition implements JsonProperty {
+public abstract class StructrPropertyDefinition implements JsonProperty, StructrDefinition {
 
-	private StructrTypeDefinition parent = null;
-	private String name                  = null;
-	private boolean required             = false;
+	protected JsonType parent     = null;
+	protected String format       = null;
+	protected String name         = null;
+	protected String defaultValue = null;
+	protected boolean required    = false;
+	protected boolean unique      = false;
 
-	StructrPropertyDefinition(final StructrTypeDefinition parent, final String id) throws URISyntaxException {
-
-		super(parent.root, id);
+	StructrPropertyDefinition(final JsonType parent, final String name) {
 		this.parent = parent;
+		this.name   = name;
 	}
-
-	StructrPropertyDefinition(final StructrTypeDefinition parent, final String id, final JsonProperty source) throws URISyntaxException {
-
-		super(parent.root, id);
-		this.parent = parent;
-
-		initializeFrom(source);
-	}
-
-	abstract SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException;
-	abstract void initializeFromProperty(final JsonProperty property);
 
 	@Override
-	public StructrTypeDefinition getParent() {
+	public URI getId() {
+
+		final URI parentId = parent.getId();
+		if (parentId != null) {
+
+			try {
+				final URI containerURI = new URI(parentId.toString() + "/");
+				return containerURI.resolve("properties/" + getName());
+
+			} catch (URISyntaxException urex) {
+				urex.printStackTrace();
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public JsonType getParent() {
 		return parent;
-	}
-
-	@Override
-	public String getType() {
-		return getString(this, JsonSchema.KEY_TYPE);
 	}
 
 	@Override
 	public String getName() {
 		return name;
 	}
+
 	@Override
 	public String getFormat() {
-		return getString(this, JsonSchema.KEY_FORMAT);
+		return format;
 	}
 
-
 	@Override
-	public JsonProperty setName(final String name) {
-
-		this.name = name;
-		return this;
+	public String getDefaultValue() {
+		return defaultValue;
 	}
 
 	@Override
@@ -73,355 +80,291 @@ public abstract class StructrPropertyDefinition extends StructrDefinition implem
 	}
 
 	@Override
-	public Object getDefaultValue() {
-		return get(JsonSchema.KEY_DEFAULT);
-	}
-
-	@Override
-	public JsonProperty setRequired(final boolean isRequired) {
-
-		this.required = isRequired;
-
-		if (isRequired) {
-
-			parent.getRequiredProperties().add(name);
-
-		} else {
-
-			parent.getRequiredProperties().remove(name);
-		}
-
-		return this;
-	}
-
-	@Override
 	public boolean isUnique() {
-		return getBoolean(this, JsonSchema.KEY_UNIQUE);
+		return unique;
 	}
 
 	@Override
-	public JsonProperty setUnique(final boolean isUnique) {
+	public JsonProperty setFormat(final String format) {
 
-		if (isUnique) {
-			put(JsonSchema.KEY_UNIQUE, isUnique);
-		}
-
+		this.format = format;
 		return this;
 	}
 
 	@Override
-	public JsonProperty setType(final String type) {
+	public JsonProperty setName(String name) {
 
-		put(JsonSchema.KEY_TYPE, type);
+		this.name = name;
 		return this;
 	}
 
 	@Override
-	public JsonProperty setFormat(String format) {
+	public JsonProperty setRequired(boolean required) {
 
-		put(JsonSchema.KEY_FORMAT, format);
+		this.required = required;
 		return this;
 	}
 
 	@Override
-	public JsonProperty setDefaultValue(final Object defaultValue) {
-		put(JsonSchema.KEY_DEFAULT, defaultValue);
+	public JsonProperty setUnique(boolean unique) {
+
+		this.unique = unique;
 		return this;
 	}
 
-	// ----- interface Comparable<JsonSchemaProperty> -----
 	@Override
-	public int compareTo(JsonProperty other) {
-		return getName().compareTo(other.getName());
+	public JsonProperty setDefaultValue(final String defaultValue) {
+
+		this.defaultValue = defaultValue;
+		return this;
+	}
+
+	@Override
+	public int compareTo(final JsonProperty o) {
+		return getName().compareTo(o.getName());
+	}
+
+	@Override
+	public StructrDefinition resolveJsonPointerKey(final String key) {
+		return null;
 	}
 
 	// ----- package methods -----
-	void createFromSource(final Map<String, Object> source) {
-		putAll(source);
+	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+
+		return app.create(SchemaProperty.class,
+			new NodeAttribute(SchemaProperty.name, getName()),
+			new NodeAttribute(SchemaProperty.schemaNode, schemaNode),
+			new NodeAttribute(SchemaProperty.unique, isUnique()),
+			new NodeAttribute(SchemaProperty.notNull, isRequired())
+		);
 	}
 
-	void setDefaultProperties(final SchemaProperty schemaProperty) throws FrameworkException {
 
-		final Object defaultValueObject = getDefaultValue();
-		if (defaultValueObject != null) {
+	void deserialize(final Map<String, Object> source) {
 
-			schemaProperty.setProperty(SchemaProperty.defaultValue, defaultValueObject.toString());
+		if (source.containsKey(JsonSchema.KEY_UNIQUE)) {
+			this.unique = (Boolean)source.get(JsonSchema.KEY_UNIQUE);
+		}
+	}
+
+	void deserialize(final SchemaProperty property) {
+
+		setDefaultValue(property.getDefaultValue());
+		setRequired(property.isRequired());
+		setUnique(property.isUnique());
+	}
+
+	Map<String, Object> serialize() {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put(JsonSchema.KEY_TYPE, getType());
+
+		if (unique) {
+			map.put(JsonSchema.KEY_UNIQUE, true);
 		}
 
-		schemaProperty.setProperty(SchemaProperty.notNull, isRequired());
-		schemaProperty.setProperty(SchemaProperty.unique, isUnique());
-		schemaProperty.setProperty(SchemaProperty.format, getFormat());
+		if (format != null) {
+			map.put(JsonSchema.KEY_FORMAT, format);
+		}
+
+		return map;
+	}
+
+	void initializeReferences() {
 	}
 
 	// ----- static methods -----
-	static StructrPropertyDefinition forJsonType(final StructrTypeDefinition parent, final JsonProperty property, final boolean isEnum) throws URISyntaxException {
+	static StructrPropertyDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
 
-		final String type                   = property.getType();
-		final String name                   = property.getName();
-		final StructrPropertyDefinition def = StructrPropertyDefinition.forStringType(parent, type, name, isEnum);
+		final String propertyType = (String)source.get(JsonSchema.KEY_TYPE);
+		StructrPropertyDefinition newProperty = null;
 
-		def.setUnique(property.isUnique());
-		def.setRequired(property.isRequired());
-		def.setDefaultValue(property.getDefaultValue());
+		if (propertyType != null) {
 
-		def.initializeFrom(property);
+			final boolean isDate   = source.containsKey(JsonSchema.KEY_FORMAT) && "date-time".equals(source.get(JsonSchema.KEY_FORMAT));
+			final boolean isEnum   = source.containsKey(JsonSchema.KEY_ENUM);
 
-		return def;
+			switch (propertyType) {
+
+				case "string":	// can be string, date, enum or script
+
+					if (isDate) {
+
+						newProperty = new StructrDateProperty(parent, name);
+
+					} else if (isEnum) {
+
+						newProperty = new StructrEnumProperty(parent, name);
+
+					} else {
+
+						newProperty = new StructrStringProperty(parent, name);
+					}
+					break;
+
+				case "script":
+					newProperty = new StructrScriptProperty(parent, name);
+					break;
+
+				case "boolean":
+					newProperty = new StructrBooleanProperty(parent, name);
+					break;
+
+				case "number":
+					newProperty = new StructrNumberProperty(parent, name);
+					break;
+
+				case "integer":
+					newProperty = new StructrIntegerProperty(parent, name);
+					break;
+
+				case "long":
+					newProperty = new StructrLongProperty(parent, name);
+					break;
+
+				case "object":
+
+					// notion properties don't contain $link
+					if (source.containsKey(JsonSchema.KEY_REFERENCE) && !source.containsKey(JsonSchema.KEY_LINK)) {
+
+						final Object reference = source.get(JsonSchema.KEY_REFERENCE);
+						if (reference != null && reference instanceof String) {
+
+							final String refName = StructrPropertyDefinition.getPropertyNameFromJsonPointer(reference.toString());
+							newProperty = new NotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "object", refName);
+						}
+					}
+					break;
+
+				case "array":
+
+					// notion properties don't contain $link
+					if (!source.containsKey(JsonSchema.KEY_LINK)) {
+
+						final Map<String, Object> items = (Map)source.get(JsonSchema.KEY_ITEMS);
+						if (items != null && items.containsKey(JsonSchema.KEY_REFERENCE)) {
+
+							final Object reference = items.get(JsonSchema.KEY_REFERENCE);
+							if (reference != null && reference instanceof String) {
+
+								final String refName = StructrPropertyDefinition.getPropertyNameFromJsonPointer(reference.toString());
+								newProperty = new NotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "array", refName);
+							}
+						}
+					}
+					break;
+			}
+
+		} else {
+
+			throw new IllegalStateException("Property " + name + " has no type.");
+		}
+
+		if (newProperty != null) {
+			newProperty.deserialize(source);
+		}
+
+		return newProperty;
 	}
 
-	static StructrPropertyDefinition forStructrType(final StructrTypeDefinition parent, final SchemaProperty property) throws URISyntaxException {
+	static StructrPropertyDefinition deserialize(final StructrTypeDefinition parent, final SchemaProperty property) {
 
 		final String parentName = parent.getName();
-		final String name       = property.getName();
 		final Type type         = property.getPropertyType();
-		final String _format    = property.getFormat();
+		final String name       = property.getName();
 
 		switch (type) {
 
 			case Function:
 				final StructrScriptProperty func = new StructrScriptProperty(parent, name);
-				func.setContentType(property.getSourceContentType());
-				func.setRequired(property.isRequired());
-				func.setUnique(property.isUnique());
-				func.setSource(_format);
+				func.deserialize(property);
 				return func;
 
 			case Cypher:
 				final StructrScriptProperty cypher = new StructrScriptProperty(parent, name);
-				cypher.setContentType(property.getSourceContentType());
-				cypher.setSource("text/cypher");
+				cypher.deserialize(property);
+				cypher.setContentType("text/cypher");
 				return cypher;
 
-
 			case Notion:
-				final String reference             = "#/definitions/" + parentName + "/properties/" + property.getNotionBaseProperty();
+				final String referenceName         = property.getNotionBaseProperty();;
+				final String reference             = "#/definitions/" + parentName + "/properties/" + referenceName;
 				final Set<String> notionProperties = property.getPropertiesForNotionProperty();
-				final StructrPropertyDefinition notionProperty;
+				final NotionReferenceProperty notionProperty;
 
 				if (property.getNotionMultiplicity().startsWith("*")) {
 
-					notionProperty = new StructrArrayProperty(parent, name, null);
-					final Map<String, Object> items = new TreeMap<>();
-
-					items.put(JsonSchema.KEY_REFERENCE, reference);
-					if (!notionProperties.isEmpty()) {
-
-						items.put(JsonSchema.KEY_PROPERTIES, notionProperties);
-					}
-					notionProperty.put(JsonSchema.KEY_ITEMS, items);
+					notionProperty = new NotionReferenceProperty(parent, name, reference, "array", referenceName);
+					notionProperty.setProperties(notionProperties.toArray(new String[0]));
 
 				} else {
 
-					notionProperty = new StructrObjectProperty(parent, name, null);
-					notionProperty.put(JsonSchema.KEY_REFERENCE, reference);
-					if (!notionProperties.isEmpty()) {
-
-						notionProperty.put(JsonSchema.KEY_PROPERTIES, notionProperties);
-					}
+					notionProperty = new NotionReferenceProperty(parent, name, reference, "object", referenceName);
+					notionProperty.setProperties(notionProperties.toArray(new String[0]));
 				}
 
 				return notionProperty;
 
-			case StringArray:
-				final StructrArrayProperty arr = new StructrArrayProperty(parent, name, null);
-				final Map<String, Object> items = new TreeMap<>();
-				items.put(JsonSchema.KEY_TYPE, "string");
-				arr.put(JsonSchema.KEY_TYPE, "array");
-				arr.put(JsonSchema.KEY_ITEMS, items);
-				return arr;
+//			case StringArray:
+//				final StructrArrayProperty arr = new StructrArrayProperty(parent, name, null);
+//				final Map<String, Object> items = new TreeMap<>();
+//				items.put(JsonSchema.KEY_TYPE, "string");
+//				arr.put(JsonSchema.KEY_TYPE, "array");
+//				arr.put(JsonSchema.KEY_ITEMS, items);
+//				return arr;
 
 			case String:
 				final StructrStringProperty str = new StructrStringProperty(parent, name);
-				str.setRequired(property.isRequired());
-				str.setUnique(property.isUnique());
+				str.deserialize(property);
 				str.setDefaultValue(property.getDefaultValue());
 				return str;
+
 			case Boolean:
-				final StructrBooleanProperty bool = new StructrBooleanProperty(parent,  name);
-				bool.setRequired(property.isRequired());
-				bool.setUnique(property.isUnique());
-				bool.setDefaultValue(property.getDefaultValue());
+				final StructrBooleanProperty bool = new StructrBooleanProperty(parent, name);
+				bool.deserialize(property);
 				return bool;
 
 			case Count:
-				final StructrNumberProperty count = new StructrNumberProperty(parent, name);
-				count.setRequired(property.isRequired());
-				count.setUnique(property.isUnique());
-				count.setDefaultValue(property.getDefaultValue());
-				count.put(JsonSchema.KEY_SIZE_OF, "#/definitions/" + name + "/properties/" + _format);
+				final StructrIntegerProperty count = new StructrIntegerProperty(parent, name);
+				count.deserialize(property);
+
+				//count.put(JsonSchema.KEY_SIZE_OF, "#/definitions/" + name + "/properties/" + _format);
 				return count;
 
 			case Integer:
+				final StructrIntegerProperty intProperty = new StructrIntegerProperty(parent, name);
+				intProperty.deserialize(property);
+				return intProperty;
+
 			case Long:
+				final StructrLongProperty longProperty = new StructrLongProperty(parent, name);
+				longProperty.deserialize(property);
+				return longProperty;
+
 			case Double:
-				final StructrNumberProperty num = new StructrNumberProperty(parent, name);
-				num.setRequired(property.isRequired());
-				num.setUnique(property.isUnique());
-				num.setDefaultValue(property.getDefaultValue());
-				return num;
+				final StructrNumberProperty doubleProperty = new StructrNumberProperty(parent, name);
+				doubleProperty.deserialize(property);
+				return doubleProperty;
 
 			case Date:
 				final StructrStringProperty date = new StructrStringProperty(parent, name);
-				date.setRequired(property.isRequired());
-				date.setUnique(property.isUnique());
-				date.setDefaultValue(property.getDefaultValue());
+				date.deserialize(property);
 				date.setFormat(JsonSchema.FORMAT_DATE_TIME);
 				return date;
 
 			case Enum:
 				final StructrEnumProperty enumProperty = new StructrEnumProperty(parent, name);
-				enumProperty.setRequired(property.isRequired());
-				enumProperty.setUnique(property.isUnique());
-				enumProperty.setDefaultValue(property.getDefaultValue());
-				enumProperty.setEnums(property.getEnumDefinitions().toArray(new String[0]));
+				enumProperty.deserialize(property);
 				return enumProperty;
 		}
 
 		throw new IllegalStateException("Unknown type " + type);
 	}
 
-	static StructrPropertyDefinition forStructrType(final StructrTypeDefinition parent, final SchemaRelationshipNode property, final Set<String> existingPropertyNames, final boolean outgoing) throws URISyntaxException {
-
-		final String relType = property.getProperty(SchemaRelationshipNode.relationshipType);
-		final StructrPropertyDefinition def;
-
-		if (outgoing) {
-
-			final String targetType = property.getTargetNode().getName();
-			String name             = property.getProperty(SchemaRelationshipNode.targetJsonName);
-
-			if (name == null) {
-				name = property.getPropertyName(targetType, existingPropertyNames, outgoing);
-			}
-
-			if ("1".equals(property.getProperty(SchemaRelationshipNode.targetMultiplicity))) {
-
-				def = StructrPropertyDefinition.forStringType(parent, "object", name, false);
-
-				// to-many relationship
-				def.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + targetType);
-				def.put(JsonSchema.KEY_DIRECTION, "out");
-
-				// cascading delete and autocreation
-				final Map<String, Object> cascade = property.resolveCascadingFlags();
-				if (!cascade.isEmpty()) {
-
-					def.put(JsonSchema.KEY_CASCADE, cascade);
-				}
-
-			} else {
-
-				def = StructrPropertyDefinition.forStringType(parent, "array", name, false);
-
-				// to-one relationship
-				final Map<String, Object> items = new TreeMap<>();
-				items.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + targetType);
-				def.put(JsonSchema.KEY_TYPE, "array");
-				def.put(JsonSchema.KEY_ITEMS, items);
-				def.put(JsonSchema.KEY_DIRECTION, "out");
-
-				// cascading delete and autocreation
-				final Map<String, Object> cascade = property.resolveCascadingFlags();
-				if (!cascade.isEmpty()) {
-
-					def.put(JsonSchema.KEY_CASCADE, cascade);
-				}
-			}
-
-		} else {
-
-			final String sourceType = property.getSourceNode().getName();
-			String name             = property.getProperty(SchemaRelationshipNode.sourceJsonName);
-
-			if (name == null) {
-				name = property.getPropertyName(sourceType, existingPropertyNames, outgoing);
-			}
-
-			if ("1".equals(property.getProperty(SchemaRelationshipNode.sourceMultiplicity))) {
-
-				def = StructrPropertyDefinition.forStringType(parent, "object", name, false);
-
-				// to-many relationship
-				def.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + sourceType);
-				def.put(JsonSchema.KEY_DIRECTION, "in");
-
-				// cascading delete and autocreation
-				final Map<String, Object> cascade = property.resolveCascadingFlags();
-				if (!cascade.isEmpty()) {
-
-					def.put(JsonSchema.KEY_CASCADE, cascade);
-				}
-
-			} else {
-
-				def = StructrPropertyDefinition.forStringType(parent, "array", name, false);
-
-				// to-one relationship
-				final Map<String, Object> items = new TreeMap<>();
-				items.put(JsonSchema.KEY_REFERENCE, "#/definitions/" + sourceType);
-				def.put(JsonSchema.KEY_TYPE, "array");
-				def.put(JsonSchema.KEY_ITEMS, items);
-				def.put(JsonSchema.KEY_DIRECTION, "in");
-
-				// cascading delete and autocreation
-				final Map<String, Object> cascade = property.resolveCascadingFlags();
-				if (!cascade.isEmpty()) {
-
-					def.put(JsonSchema.KEY_CASCADE, cascade);
-				}
-			}
-
-		}
-
-		// do not output the default relationship type
-		if (!SchemaRelationshipNode.getDefaultRelationshipType(property).equals(relType)) {
-			def.put(JsonSchema.KEY_RELATIONSHIP, relType);
-		}
-
-		return def;
-	}
-
-	static StructrPropertyDefinition forStringType(final StructrTypeDefinition parent, final String type, final String name, final boolean isEnum) throws URISyntaxException {
-
-		switch (type) {
-
-			case "string":
-				if (isEnum) {
-					return new StructrEnumProperty(parent, name);
-				} else {
-					return new StructrStringProperty(parent, name);
-				}
-
-			case "number":
-				return new StructrNumberProperty(parent, name);
-
-			case "object":
-				return new StructrObjectProperty(parent, name, null);
-
-			case "boolean":
-				return new StructrBooleanProperty(parent, name);
-
-			case "array":
-				return new StructrArrayProperty(parent, name, null);
-
-			case "script":
-				return new StructrScriptProperty(parent, name);
-
-		}
-
-		throw new IllegalStateException("Unknown type " + type);
-	}
-
 	// ----- private methods -----
-	private void initializeFrom(final JsonProperty source) {
-
-		setName(source.getName());
-		setType(source.getType());
-		setUnique(source.isUnique());
-		setRequired(source.isRequired());
-		setDefaultValue(source.getDefaultValue());
-		setFormat(source.getFormat());
-
-		initializeFromProperty(source);
+	private static String getPropertyNameFromJsonPointer(final String pointer) {
+		return pointer.substring(pointer.lastIndexOf("/") + 1);
 	}
 }

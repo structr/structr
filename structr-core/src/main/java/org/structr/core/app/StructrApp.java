@@ -19,7 +19,6 @@
 package org.structr.core.app;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -66,6 +65,7 @@ import org.structr.schema.ConfigurationProvider;
 public class StructrApp implements App {
 
 	private static final Logger logger           = Logger.getLogger(StructrApp.class.getName());
+	private static final URI schemaBaseURI       = URI.create("https://structr.org/v1.1/#");
 	private static final Object globalConfigLock = new Object();
 	private SecurityContext securityContext      = null;
 
@@ -346,6 +346,10 @@ public class StructrApp implements App {
 		return schemaIdMap.get(uri);
 	}
 
+	public static URI getSchemaBaseURI() {
+		return schemaBaseURI;
+	}
+
 	private static void initializeSchemaIds() {
 
 		if (schemaIdMap.isEmpty()) {
@@ -362,14 +366,10 @@ public class StructrApp implements App {
 
 	private static void registerType(final Class type) {
 
-		try {
-			final URI id = new URI("https://structr.org/definitions/" + type.getSimpleName());
-			schemaIdMap.put(id, type);
-			typeIdMap.put(type, id);
+		final URI id = schemaBaseURI.resolve(URI.create(("definitions/" + type.getSimpleName())));
 
-		} catch (URISyntaxException uex) {
-			uex.printStackTrace();
-		}
+		schemaIdMap.put(id, type);
+		typeIdMap.put(type, id);
 	}
 
 	private static final Map<URI, Class> schemaIdMap = new LinkedHashMap<>();

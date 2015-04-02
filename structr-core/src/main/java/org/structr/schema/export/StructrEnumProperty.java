@@ -1,21 +1,16 @@
 package org.structr.schema.export;
 
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.json.JsonEnumProperty;
-import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonSchema;
 
 /**
@@ -24,59 +19,77 @@ import org.structr.schema.json.JsonSchema;
  */
 public class StructrEnumProperty extends StructrStringProperty implements JsonEnumProperty {
 
-	public StructrEnumProperty(final StructrTypeDefinition parent, final String name) throws URISyntaxException {
+	protected Set<String> enums = new TreeSet<>();
 
-		super(parent, "properties/" + name);
+	public StructrEnumProperty(final StructrTypeDefinition parent, final String name) {
 
-		setType("string");
-		setName(name);
+		super(parent, name);
 	}
 
 	@Override
 	public JsonEnumProperty setEnums(String... values) {
 
-		final List<String> enums = getList(this, JsonSchema.KEY_ENUM, true);
-		enums.addAll(Arrays.asList(values));
-
-		Collections.sort(enums);
+		for (final String value : values) {
+			enums.add(value.trim());
+		}
 
 		return this;
 	}
 
 	@Override
 	public Set<String> getEnums() {
-		return new TreeSet<>(getList(this, JsonSchema.KEY_ENUM, false));
+		return enums;
+	}
+
+	@Override
+	Map<String, Object> serialize() {
+
+		final Map<String, Object> map = super.serialize();
+
+		map.put(JsonSchema.KEY_ENUM, enums);
+
+		return map;
+	}
+
+	@Override
+	void deserialize(final Map<String, Object> source) {
+
+		super.deserialize(source);
+
+		final Object enumValues = source.get(JsonSchema.KEY_ENUM);
+		if (enumValues != null) {
+
+			if (enumValues instanceof List) {
+
+				enums.addAll((List)enumValues);
+
+			} else {
+
+				throw new IllegalStateException("Invalid enum values for property " + name + ", expected array.");
+			}
+
+		} else {
+
+			throw new IllegalStateException("Missing enum values for property " + name);
+		}
+	}
+
+	@Override
+	void deserialize(final SchemaProperty schemaProperty) {
+
+		super.deserialize(schemaProperty);
+
+		setEnums(schemaProperty.getEnumDefinitions().toArray(new String[0]));
 	}
 
 	@Override
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final SchemaProperty schemaProperty = app.create(SchemaProperty.class,
-			new NodeAttribute(SchemaProperty.schemaNode, schemaNode),
-			new NodeAttribute(AbstractNode.name, getName())
-		);
+		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 
-		setDefaultProperties(schemaProperty);
+		property.setProperty(SchemaProperty.propertyType, Type.Enum.name());
+		property.setProperty(SchemaProperty.format, StringUtils.join(getEnums(), ", "));
 
-		schemaProperty.setProperty(SchemaProperty.propertyType, Type.Enum.name());
-		schemaProperty.setProperty(SchemaProperty.format, StringUtils.join(getEnums(), ","));
-
-		return schemaProperty;
-	}
-
-	@Override
-	void initializeFromProperty(final JsonProperty property) {
-
-		if (property instanceof JsonEnumProperty) {
-
-			final JsonEnumProperty str = (JsonEnumProperty)property;
-			final Set<String> enums    = str.getEnums();
-
-			setEnums(enums.toArray(new String[0]));
-
-		} else {
-
-			throw new IllegalStateException("Invalid property type " + property.getType());
-		}
+		return property;
 	}
 }

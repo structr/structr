@@ -6,21 +6,18 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.json.JsonBooleanProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class StructrBooleanProperty extends StructrPropertyDefinition implements JsonBooleanProperty {
+public class StructrDateProperty extends StructrStringProperty {
 
-	public StructrBooleanProperty(final StructrTypeDefinition parent, final String name) {
+	public StructrDateProperty(final StructrTypeDefinition parent, final String name) {
+
 		super(parent, name);
-	}
 
-	@Override
-	public String getType() {
-		return "boolean";
+		setFormat("date-time");
 	}
 
 	@Override
@@ -38,7 +35,7 @@ public class StructrBooleanProperty extends StructrPropertyDefinition implements
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 
-		property.setProperty(SchemaProperty.propertyType, Type.Boolean.name());
+		property.setProperty(SchemaProperty.propertyType, Type.Date.name());
 
 		return property;
 	}

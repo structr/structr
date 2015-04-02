@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
@@ -37,8 +38,7 @@ public class StructrSchema {
 
 		try (final Tx tx = app.tx()) {
 
-			final StructrSchemaDefinition schema = new StructrSchemaDefinition();
-			schema.createFromDatabase(app);
+			final JsonSchema schema = StructrSchemaDefinition.initializeFromDatabase(app);
 
 			tx.success();
 
@@ -72,13 +72,10 @@ public class StructrSchema {
 	 */
 	public static JsonSchema createFromSource(final Reader reader) throws InvalidSchemaException, URISyntaxException {
 
-		final StructrSchemaDefinition schema = new StructrSchemaDefinition();
 		final Gson gson                      = new GsonBuilder().create();
 		final Map<String, Object> rawData    = gson.fromJson(reader, Map.class);
 
-		schema.createFromSource(rawData);
-
-		return schema;
+		return StructrSchemaDefinition.initializeFromSource(rawData);
 	}
 
 	/**
@@ -86,18 +83,8 @@ public class StructrSchema {
 	 *
 	 * @return
 	 */
-	public static JsonSchema newInstance() {
-
-		try {
-			return new StructrSchemaDefinition();
-
-		} catch (URISyntaxException uex) {
-
-			// something is very wrong if this exception is thrown in the above code...
-			uex.printStackTrace();
-		}
-
-		return null;
+	public static JsonSchema newInstance(final URI id) {
+		return new StructrSchemaDefinition(id);
 	}
 
 	/**
@@ -130,9 +117,7 @@ public class StructrSchema {
 				app.delete(schemaView);
 			}
 
-			// construct a StructrSchemaDefinition around the given schema
-			// and create the corresponding Structr schema nodes
-			new StructrSchemaDefinition(newSchema).createDatabaseSchema(app);
+			newSchema.createDatabaseSchema(app);
 
 			tx.success();
 		}

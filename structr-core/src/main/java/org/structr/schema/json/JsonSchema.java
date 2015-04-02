@@ -2,16 +2,14 @@ package org.structr.schema.json;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 
 /**
  *
  * @author Christian Morgner
  */
 public interface JsonSchema {
-
-	public static final String SCHEMA_BASE      = "https://structr.org/";
-	public static final String SCHEMA_ID       = SCHEMA_BASE + "schema#";
 
 	public enum Direction {
 		in, out
@@ -21,40 +19,50 @@ public interface JsonSchema {
 		sourceToTarget, targetToSource, always, constraintBased
 	}
 
-	public static final String KEY_SCHEMA       = "$schema";
-	public static final String KEY_SIZE_OF      = "$size";
-	public static final String KEY_REFERENCE    = "$ref";
-	public static final String KEY_EXTENDS      = "$extends";
-	public static final String KEY_LINK         = "$link";
+	public static final String KEY_SCHEMA             = "$schema";
+	public static final String KEY_SIZE_OF            = "$size";
+	public static final String KEY_REFERENCE          = "$ref";
+	public static final String KEY_EXTENDS            = "$extends";
+	public static final String KEY_LINK               = "$link";
+	public static final String KEY_LINK_SOURCE        = "$source";
+	public static final String KEY_LINK_TARGET        = "$target";
 
-	public static final String KEY_TYPE         = "type";
-	public static final String KEY_TITLE        = "title";
-	public static final String KEY_DESCRIPTION  = "description";
-	public static final String KEY_ENUM         = "enum";
-	public static final String KEY_FORMAT       = "format";
-	public static final String KEY_ITEMS        = "items";
-	public static final String KEY_DEFINITIONS  = "definitions";
-	public static final String KEY_PROPERTIES   = "properties";
-	public static final String KEY_VIEWS        = "views";
-	public static final String KEY_METHODS      = "methods";
-	public static final String KEY_REQUIRED     = "required";
-	public static final String KEY_MIN_ITEMS    = "minItems";
-	public static final String KEY_MAX_ITEMS    = "maxItems";
-	public static final String KEY_SOURCE       = "source";
-	public static final String KEY_CONTENT_TYPE = "contentType";
-	public static final String KEY_RELATIONSHIP = "rel";
-	public static final String KEY_DIRECTION    = "direction";
-	public static final String KEY_UNIQUE       = "unique";
-	public static final String KEY_DEFAULT      = "default";
-	public static final String KEY_CASCADE      = "cascade";
-	public static final String KEY_CREATE       = "create";
-	public static final String KEY_DELETE       = "delete";
+	public static final String KEY_ID                 = "id";
+	public static final String KEY_TYPE               = "type";
+	public static final String KEY_TITLE              = "title";
+	public static final String KEY_DESCRIPTION        = "description";
+	public static final String KEY_ENUM               = "enum";
+	public static final String KEY_FORMAT             = "format";
+	public static final String KEY_ITEMS              = "items";
+	public static final String KEY_DEFINITIONS        = "definitions";
+	public static final String KEY_PROPERTIES         = "properties";
+	public static final String KEY_VIEWS              = "views";
+	public static final String KEY_METHODS            = "methods";
+	public static final String KEY_REQUIRED           = "required";
+	public static final String KEY_MIN_ITEMS          = "minItems";
+	public static final String KEY_MAX_ITEMS          = "maxItems";
+	public static final String KEY_SOURCE             = "source";
+	public static final String KEY_CONTENT_TYPE       = "contentType";
+	public static final String KEY_RELATIONSHIP       = "rel";
+	public static final String KEY_DIRECTION          = "direction";
+	public static final String KEY_UNIQUE             = "unique";
+	public static final String KEY_DEFAULT            = "default";
+	public static final String KEY_CASCADE            = "cascade";
+	public static final String KEY_CREATE             = "create";
+	public static final String KEY_DELETE             = "delete";
+	public static final String KEY_CARDINALITY        = "cardinality";
+	public static final String KEY_SOURCE_NAME        = "sourceName";
+	public static final String KEY_TARGET_NAME        = "targetName";
 
-	public static final String FORMAT_DATE_TIME = "date-time";
+	public static final String KEY_MINIMUM            = "minimum";
+	public static final String KEY_EXCLUSIVE_MINIMUM  = "exclusiveMinimum";
+	public static final String KEY_MAXIMUM            = "maximum";
+	public static final String KEY_EXCLUSIVE_MAXIMUM  = "exclusiveMaximum";
+	public static final String KEY_MULTIPLE_OF        = "multipleOf";
+
+	public static final String FORMAT_DATE_TIME       = "date-time";
 
 	public URI getId();
-
-	public Map<String, JsonType> getTypes();
 
 	public String getTitle();
 	public void setTitle(final String title);
@@ -62,5 +70,11 @@ public interface JsonSchema {
 	public String getDescription();
 	public void setDescription(final String description);
 
-	public JsonType addType(final String name) throws URISyntaxException;
+	public JsonObjectType addType(final String name) throws URISyntaxException;
+	public JsonType getType(final String name);
+
+	public void createDatabaseSchema(final App app) throws FrameworkException;
+
+	public Object resolveURI(final URI uri);
+	public String toJsonPointer(final URI uri);
 }

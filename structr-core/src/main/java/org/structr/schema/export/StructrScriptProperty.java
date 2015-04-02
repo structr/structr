@@ -1,14 +1,11 @@
 package org.structr.schema.export;
 
-import java.net.URISyntaxException;
+import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonScriptProperty;
 
@@ -16,84 +13,135 @@ import org.structr.schema.json.JsonScriptProperty;
  *
  * @author Christian Morgner
  */
-public class StructrScriptProperty extends StructrPropertyDefinition implements JsonScriptProperty {
+public class StructrScriptProperty extends StructrStringProperty implements JsonScriptProperty {
 
-	public StructrScriptProperty(final StructrTypeDefinition parent, final String name) throws URISyntaxException {
+	protected String contentType = null;
+	protected String source      = null;
 
-		super(parent, "properties/" + name);
+	public StructrScriptProperty(final StructrTypeDefinition parent, final String name) {
 
-		setType("script");
-		setName(name);
-	}
-
-	@Override
-	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
-
-		final SchemaProperty schemaProperty = app.create(SchemaProperty.class,
-			new NodeAttribute(SchemaProperty.schemaNode, schemaNode),
-			new NodeAttribute(AbstractNode.name, getName())
-		);
-
-		setDefaultProperties(schemaProperty);
-
-		final String contentType = getContentType();
-		if (contentType != null) {
-
-			switch (contentType) {
-
-				case "text/cypher":
-					schemaProperty.setProperty(SchemaProperty.propertyType, Type.Cypher.name());
-					break;
-
-				case "text/structrscript":
-				case "text/javascript":
-					schemaProperty.setProperty(SchemaProperty.propertyType, Type.Function.name());
-					break;
-			}
-		}
-
-		schemaProperty.setProperty(SchemaProperty.format, getSource());
-
-		return schemaProperty;
+		super(parent, name);
 	}
 
 	@Override
 	public JsonScriptProperty setSource(final String source) {
 
-		put(JsonSchema.KEY_SOURCE, source);
+		this.source = source;
 		return this;
 	}
 
 	@Override
-	public String getSource() {
-		return getString(this, JsonSchema.KEY_SOURCE);
+	public String getType() {
+		return "script";
 	}
 
 	@Override
-	public JsonScriptProperty setContentType(final String contentType) {
+	public String getSource() {
+		return source;
+	}
 
-		put(JsonSchema.KEY_CONTENT_TYPE, contentType);
+	@Override
+	public JsonScriptProperty setContentType(String contentType) {
+
+		this.contentType = contentType;
 		return this;
 	}
 
 	@Override
 	public String getContentType() {
-		return getString(this, JsonSchema.KEY_CONTENT_TYPE);
+		return contentType;
 	}
 
 	@Override
-	void initializeFromProperty(final JsonProperty property) {
+	Map<String, Object> serialize() {
 
-		if (property instanceof JsonScriptProperty) {
+		final Map<String, Object> map = super.serialize();
 
-			final JsonScriptProperty script = (JsonScriptProperty)property;
+		if (source != null) {
+			map.put(JsonSchema.KEY_SOURCE, source);
+		}
 
-			setContentType(script.getContentType());
-			setSource(script.getSource());
+		if (contentType != null) {
+			map.put(JsonSchema.KEY_CONTENT_TYPE, contentType);
+		}
+
+		return map;
+	}
+
+	@Override
+	void deserialize(final Map<String, Object> source) {
+
+		super.deserialize(source);
+
+		final Object sourceValue = source.get(JsonSchema.KEY_SOURCE);
+		if (sourceValue != null) {
+
+			if (sourceValue instanceof String) {
+
+				this.source = (String)sourceValue;
+
+			} else {
+
+				throw new IllegalStateException("Invalid source for property " + name + ", expected string.");
+			}
 
 		} else {
 
-			throw new IllegalStateException("Invalid property type " + property.getType());
+			throw new IllegalStateException("Missing source value for property " + name);
 		}
+
+		final Object contentTypeValue = source.get(JsonSchema.KEY_CONTENT_TYPE);
+		if (contentTypeValue != null) {
+
+			if (contentTypeValue instanceof String) {
+
+				this.contentType = (String)contentTypeValue;
+
+			} else {
+
+				throw new IllegalStateException("Invalid contentType for property " + name + ", expected string.");
+			}
+		}
+	}
+
+	@Override
+	void deserialize(final SchemaProperty property) {
+
+		super.deserialize(property);
+
+		setContentType(property.getSourceContentType());
+		setSource(property.getFormat());
+
+	}
+
+	@Override
+	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+
+		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final String contentType      = getContentType();
+
+		if (contentType != null) {
+
+			switch (contentType) {
+
+				case "text/javascript":
+				case "text/structrscript":
+					property.setProperty(SchemaProperty.propertyType, Type.Function.name());
+					break;
+
+				case "text/cypher":
+					property.setProperty(SchemaProperty.propertyType, Type.Cypher.name());
+
+			}
+
+		} else {
+
+			// default
+			property.setProperty(SchemaProperty.propertyType, Type.Function.name());
+		}
+
+		property.setProperty(SchemaProperty.format, source);
+
+		return property;
 	}
 }

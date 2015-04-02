@@ -31,6 +31,11 @@ import org.structr.schema.Schema;
  */
 public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 
+	private Number lowerBound = null;
+	private Number upperBound = null;
+	private boolean lowerExclusive = false;
+	private boolean upperExclusive = false;
+
 	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
@@ -57,12 +62,15 @@ public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 
 				if (parts.length == 2) {
 
-					Number lowerBound = parseNumber(getErrorBuffer(), parts[0].trim(), "lower");
-					Number upperBound = parseNumber(getErrorBuffer(), parts[1].trim(), "upper");
+					lowerBound = parseNumber(getErrorBuffer(), parts[0].trim(), "lower");
+					upperBound = parseNumber(getErrorBuffer(), parts[1].trim(), "upper");
 
 					if (lowerBound == null || upperBound == null) {
 						error = true;
 					}
+
+					lowerExclusive = expression.startsWith("]");
+					upperExclusive = expression.endsWith("[");
 
 				} else {
 					error = true;
@@ -82,5 +90,21 @@ public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 		if (error) {
 			reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", rangeFormatErrorMessage));
 		}
+	}
+
+	public Number getLowerBound() {
+		return lowerBound;
+	}
+
+	public Number getUpperBound() {
+		return upperBound;
+	}
+
+	public boolean isLowerExclusive() {
+		return lowerExclusive;
+	}
+
+	public boolean isUpperExclusive() {
+		return upperExclusive;
 	}
 }
