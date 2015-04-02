@@ -33,7 +33,6 @@ import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.StaticValue;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
@@ -62,20 +61,15 @@ public class WrappedRestCommand extends AbstractCommand {
 	static {
 		
 		StructrWebSocket.addCommand(WrappedRestCommand.class);
+
 	}
 	
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
 
 		final Map<String, Object> nodeData   = webSocketData.getNodeData();
-		final String url                     = (String) nodeData.get("url");
 		final String method                  = (String) nodeData.get("method");
-		final String data                    = (String) nodeData.get("data");
-		final Gson gson                      = new GsonBuilder().create();
-		final Map<String, Object> jsonData   = gson.fromJson(data, Map.class);
-		final StructrWebSocket socket        = this.getWebSocket();
 
-		
 		if (method == null || ! (method.equals("POST") || method.equals("PUT")) ) {
 
 			logger.log(Level.WARNING, "Method not supported: {0}", method);
@@ -87,18 +81,23 @@ public class WrappedRestCommand extends AbstractCommand {
 		
 		ResourceProvider resourceProvider;
 		try {
+
 			resourceProvider = UiResourceProvider.class.newInstance();
+
 		} catch (Throwable t) {
+
 			logger.log(Level.SEVERE, "Couldn't establish a resource provider", t);
 			getWebSocket().send(MessageBuilder.wrappedRest().code(422).message("Couldn't establish a resource provider").build(), true);
 			return;
+
 		}
 		
 		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 		resourceMap.putAll(resourceProvider.getResources());
 		
-		
-		// initialize variables
+		final StructrWebSocket socket        = this.getWebSocket();
+		final String url                     = (String) nodeData.get("url");
+
 		// mimic HTTP request
 		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(socket.getRequest()) {
 
@@ -156,7 +155,11 @@ public class WrappedRestCommand extends AbstractCommand {
 			return;
 			
 		}
-		
+
+		final String data                    = (String) nodeData.get("data");
+		final Gson gson                      = new GsonBuilder().create();
+		final Map<String, Object> jsonData   = gson.fromJson(data, Map.class);
+
 		RestMethodResult result = null;
 		
 		switch (method) {
