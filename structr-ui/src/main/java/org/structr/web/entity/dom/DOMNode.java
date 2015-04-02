@@ -91,6 +91,7 @@ import org.structr.web.datasource.NodeGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.FileBase;
+import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Renderable;
 import static org.structr.web.entity.dom.DOMNode.dataKey;
 import static org.structr.web.entity.dom.DOMNode.ownerDocument;
@@ -1241,7 +1242,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * Decide whether this node should be displayed for the given conditions
 	 * string.
 	 *
-	 * @param securityContext
 	 * @param renderContext
 	 * @return true if node should be displayed
 	 */
@@ -1439,7 +1439,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// the document fragment, so we must first remove
 			// the node from the document fragment and then
 			// add it to the new parent.
-			DocumentFragment fragment = (DocumentFragment) newChild;
+			final DocumentFragment fragment = (DocumentFragment) newChild;
 			Node currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
@@ -1459,7 +1459,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		} else {
 
-			Node _parent = newChild.getParentNode();
+			final Node _parent = newChild.getParentNode();
 			if (_parent != null) {
 
 				_parent.removeChild(newChild);
@@ -1509,13 +1509,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// the node from the document fragment and then
 			// add it to the new parent.
 			// replace indirectly using insertBefore and remove
-			DocumentFragment fragment = (DocumentFragment) newChild;
+			final DocumentFragment fragment = (DocumentFragment) newChild;
 			Node currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
 
 				// save next child in fragment list for later use
-				Node savedNextChild = currentChild.getNextSibling();
+				final Node savedNextChild = currentChild.getNextSibling();
 
 				// remove child from document fragment
 				fragment.removeChild(currentChild);
@@ -1598,13 +1598,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				// the node from the document fragment and then
 				// add it to the new parent.
 				// replace indirectly using insertBefore and remove
-				DocumentFragment fragment = (DocumentFragment) newChild;
+				final DocumentFragment fragment = (DocumentFragment) newChild;
 				Node currentChild = fragment.getFirstChild();
 
 				while (currentChild != null) {
 
 					// save next child in fragment list for later use
-					Node savedNextChild = currentChild.getNextSibling();
+					final Node savedNextChild = currentChild.getNextSibling();
 
 					// remove child from document fragment
 					fragment.removeChild(currentChild);
@@ -1618,7 +1618,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			} else {
 
-				Node _parent = newChild.getParentNode();
+				final Node _parent = newChild.getParentNode();
 
 				if (_parent != null && _parent instanceof DOMNode) {
 					_parent.removeChild(newChild);
@@ -1656,7 +1656,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			for (Iterator<PropertyKey> it = getPropertyKeys(uiView.name()).iterator(); it.hasNext();) {
 
-				PropertyKey key = it.next();
+				final PropertyKey key = it.next();
 
 				// omit system properties (except type), parent/children and page relationships
 				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
@@ -1673,7 +1673,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
 			for (Iterator<PropertyKey> it = getPropertyKeys(DOMElement.htmlView.name()).iterator(); it.hasNext();) {
 
-				PropertyKey key = it.next();
+				final PropertyKey key = it.next();
 
 				// omit system properties (except type), parent/children and page relationships
 				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
@@ -1687,10 +1687,18 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 			}
 
+			if (this instanceof LinkSource) {
+				
+				final LinkSource linkSourceElement = (LinkSource) this;
+				
+				properties.put(LinkSource.linkable, linkSourceElement.getProperty(LinkSource.linkable));
+				
+			}
+			
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
-				DOMNode node = app.create(getClass(), properties);
+				final DOMNode node = app.create(getClass(), properties);
 
 				return node;
 

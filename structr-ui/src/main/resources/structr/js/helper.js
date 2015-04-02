@@ -481,3 +481,21 @@ function getDateTimePickerFormat(rawFormat) {
     obj.separator = (rawFormat.indexOf('T') > 0) ? 'T' : ' ';
     return obj;
 }
+
+function getElementDisplayName(entity) {
+    if (!entity.name) {
+        return (entity.tag ? entity.tag : '[' + entity.type + ']');
+    }
+    if (entity.name && $.isBlank(entity.name)) {
+        return '(blank name)';
+    }
+    return entity.name;
+} 
+
+jQuery.isBlank = function (obj) {
+    if (!obj || $.trim(obj) === "") return true;
+    if (obj.length && obj.length > 0) return false;
+
+    for (var prop in obj) if (obj[prop]) return false;
+    return true;
+};

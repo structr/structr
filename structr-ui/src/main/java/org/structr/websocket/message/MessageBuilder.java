@@ -59,6 +59,10 @@ public class MessageBuilder {
 		return builder().command("UPDATE");
 	}
 
+	public static MessageBuilder wrappedRest() {
+		return builder().command("WRAPPED_REST");
+	}
+
 	public static MessageBuilder forName(final String command) {
 		return builder().command(command);
 	}

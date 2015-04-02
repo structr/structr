@@ -254,7 +254,7 @@ var _Types = {
         var typeNode = $('#' + type);
         typeNode.append('<div>Type: ' + res.type + '</div>');
         typeNode.append('<div>URL: <a target="_blank" href="' + rootUrl + res.url.substring(1) + '">' + res.url + '</a></div>');
-        typeNode.append('<table class="props"><thead><tr>\n\
+        typeNode.append('<table><thead><tr>\n\
 <th>Key</th>\n\
 <th>JSON name</th>\n\
 <th>DB name</th>\n\

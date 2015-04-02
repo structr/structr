@@ -393,8 +393,8 @@ var _Elements = {
         if (!div)
             return false;
 
-        var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
-
+        var displayName = getElementDisplayName(entity);
+        
         var icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
 
         div.append('<img class="typeIcon" src="' + icon + '">'

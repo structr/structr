@@ -1,5 +1,7 @@
 package org.structr.core.script;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -8,6 +10,7 @@ import java.util.Map;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
@@ -163,16 +166,21 @@ public class Scripting {
 
 			return extractedValue;
 
-		} catch (Throwable t) {
+		} catch (final FrameworkException fex) {
 
-			t.printStackTrace();
+			// just throw the FrameworkException so we dont lose the information contained
+			throw fex;
+
+		} catch (final Throwable t) {
+
+			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
+			throw new FrameworkException(422, t.getMessage());
 
 		} finally {
 
 			Context.exit();
 		}
 
-		return null;
 	}
 
 	private static String embedInFunction(final String source) {

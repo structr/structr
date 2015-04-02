@@ -41,8 +41,10 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
+import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
+import static org.structr.core.GraphObject.base;
 import static org.structr.core.GraphObject.id;
 import static org.structr.core.GraphObject.type;
 import org.structr.core.Services;
@@ -564,24 +566,38 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
-		// check for read-only properties
-		//if (StructrApp.getConfiguration().isReadOnlyProperty(type, key) || (StructrApp.getConfiguration().isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
-		if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
+		if (key == null) {
 
-			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
+			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
 
-				// permit write operation once and
-				// lock read-only properties again
-				readOnlyPropertiesUnlocked = false;
-
-			} else {
-
-				throw new FrameworkException(getClass().getSimpleName(), new ReadOnlyPropertyToken(key));
-			}
+			throw new FrameworkException(getClass().getSimpleName(), new NullArgumentToken(base));
 
 		}
 
-		key.setProperty(securityContext, this, value);
+		try {
+
+			// check for read-only properties
+			//if (StructrApp.getConfiguration().isReadOnlyProperty(type, key) || (StructrApp.getConfiguration().isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
+			if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
+
+				if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+
+					throw new FrameworkException(getClass().getSimpleName(), new ReadOnlyPropertyToken(key));
+
+				}
+
+			}
+
+			key.setProperty(securityContext, this, value);
+
+		} finally {
+
+			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
+			// since we made "unlock_readonly_properties_once" available through scripting
+			this.readOnlyPropertiesUnlocked = false;
+
+		}
+
 	}
 
 	@Override

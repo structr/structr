@@ -5,6 +5,7 @@
         <!-- structr UI is released under the <a href="agplv3.html">AGPLv3</a>-->
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
         <meta name="viewport" content="width=1024, user-scalable=yes" />
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet" type="text/css">
         <link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery-ui-1.10.3.custom.min.css" >
         <link rel="stylesheet" type="text/css" media="screen" href="css/lib/chosen.min.css" >
         <link rel="stylesheet" href="codemirror/lib/codemirror.css">
@@ -95,9 +96,10 @@
         </div>
 
         <div id="login" class="dialog">
+            <img alt="Structr Logo" class="logo-login" src="img/structr_gray_200x54.png">
             <table>
-                <tr><td><label for="username">Username:</label></td><td><input id="usernameField" type="text" name="username" autofocus required></td></tr>
-                <tr><td><label for="password">Password:</label></td><td><input id="passwordField" type="password" name="password" autofocus required></td></tr>
+                <tr><td><label for="usernameField">Username:</label></td><td><input id="usernameField" type="text" name="username" autofocus required></td></tr>
+                <tr><td><label for="passwordField">Password:</label></td><td><input id="passwordField" type="password" name="password" autofocus required></td></tr>
                 <tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
                 <tr><td colspan="2" class="btn"><button id="loginButton" name="login"><img src="icon/key.png"> Login</button></td></tr>
             </table>
