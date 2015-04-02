@@ -31,6 +31,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
@@ -452,7 +453,19 @@ public class StructrWebSocket implements WebSocketListener {
 	public boolean isAuthenticated() {
 
 		final Principal user = getCurrentUser();
+		return (user != null && (isPriviledgedUser(user) || isFrontendWebsocketAccessEnabled()));
+
+	}
+
+	public boolean isPriviledgedUser(Principal user) {
+
 		return (user != null && (user.getProperty(Principal.isAdmin) || user.getProperty(User.backendUser)));
+
+	}
+
+	public boolean isFrontendWebsocketAccessEnabled() {
+
+		return Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.WEBSOCKET_FRONTEND_ACCESS, "false"));
 
 	}
 

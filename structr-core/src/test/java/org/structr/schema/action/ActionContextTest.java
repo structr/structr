@@ -1196,10 +1196,6 @@ public class ActionContextTest extends StructrTest {
 
 				assertEquals("node should be of type TestOne", "TestOne", Scripting.replaceVariables(userActionContext, t1, "${(get(this, 'type'))}"));
 
-				// THIS TEST NEEDS TO BE REMOVED AFTER THE CREATE-COMMAND HAS BEEN FIXED (OR setProperty sets readOnlyPropertiesUnlocked to false after each run)
-				// for the time being we need this "test" to reset the flag
-				assertEquals("initially setting the type should work (may be a bug)", "TestTwo", Scripting.replaceVariables(userActionContext, t1, "${(set(this, 'type', 'TestTwo'), get(this, 'type'))}"));
-
 				try {
 
 					assertEquals("setting the type should fail", "TestTwo", Scripting.replaceVariables(userActionContext, t1, "${(set(this, 'type', 'TestThree'), get(this, 'type'))}"));
@@ -1219,5 +1215,58 @@ public class ActionContextTest extends StructrTest {
 
 		}
 	}
-}
 
+	public void testFunctionRollbackOnError () {
+
+		final ActionContext ctx = new ActionContext(securityContext, null);
+		TestOne t1              = null;
+
+		try (final Tx tx = app.tx()) {
+
+			t1 = createTestNode(TestOne.class);
+			t1.setProperty(TestOne.aString, "InitialString");
+			t1.setProperty(TestOne.anInt, 42);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			/**
+			 * first the old scripting style
+			 */
+			Scripting.replaceVariables(ctx, t1, "${ ( set(this, 'aString', 'NewString'), set(this, 'anInt', 'error') ) }");
+			fail("StructrScript: setting anInt to 'error' should cause an Exception");
+
+			tx.success();
+
+		} catch (FrameworkException expected) { }
+
+
+		try {
+
+			try (final Tx tx = app.tx()) {
+
+				/**
+				 * Test currently fails - I don't understand why "aString" equals "NewString" even though an exception was thrown before
+				 */
+				assertEquals("StructrScript: String should still have initial value!", "InitialString", Scripting.replaceVariables(ctx, t1, "${(get(this, 'aString'))}"));
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
+		}
+	}
+
+}

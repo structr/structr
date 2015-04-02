@@ -140,6 +140,9 @@ WebSocketServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 WebSocketServlet.user.autocreate = false
 WebSocketServlet.user.class = org.structr.web.entity.User
 
+# Uncomment this if you want to use WebSocket functionality for frontend users
+# WebSocketServlet.frontendAccess = true
+
 # CSV servlet
 CsvServlet.authenticator = org.structr.web.auth.UiAuthenticator
 CsvServlet.class = org.structr.rest.servlet.CsvServlet

@@ -1476,7 +1476,7 @@ var _Crud = {
                     _Crud.populateCell(id, key, type, item[key], cell);
                 });
             });
-            row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button><button class="security"><img src="icon/key.png"> Access Control</button></td>');
+            row.append('<td class="actions"><a title="Edit" class="edit"><img alt="Edit Icon" src="icon/pencil.png"></a><a title="Delete" class="delete"><img alt="Delete Icon" src="icon/cross.png"></a><a title="Access Control" class="security"><img alt="Access Control Icon" src="icon/key.png"></a></td>');
             _Crud.resize();
 
             $('.actions .edit', row).on('mouseup', function(event) {

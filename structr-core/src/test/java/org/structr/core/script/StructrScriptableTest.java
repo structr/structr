@@ -173,8 +173,12 @@ public class StructrScriptableTest extends StructrTest {
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
-			sourceNode.invokeMethod("doTest04", Collections.EMPTY_MAP, true);
-			assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
+			try {
+				sourceNode.invokeMethod("doTest04", Collections.EMPTY_MAP, true);
+				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
+				fail("Setting EnumProperty to invalid value should result in an Exception!");
+
+			} catch (FrameworkException fx) {}
 
 			// test other property types
 			sourceNode.invokeMethod("doTest05", Collections.EMPTY_MAP, true);
@@ -380,6 +384,29 @@ public class StructrScriptableTest extends StructrTest {
 
 			assertEquals("Invalid unwrapping result", 2, app.nodeQuery(Group.class).getAsList().size());
 
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	public void testEnumPropertyGet() {
+
+		// setup phase
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+			final TestOne context             = app.create(TestOne.class);
+
+			Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); e.anEnum = 'One'; }}");
+
+			assertEquals("Invalid enum get result", "One", Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum; }}"));
+
+			assertEquals("Invaliid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}"));
 
 			tx.success();
 
