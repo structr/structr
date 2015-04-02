@@ -208,6 +208,11 @@ public class StructrScriptable extends ScriptableObject {
 			return new HttpServletRequestWrapper((HttpServletRequest)value);
 		}
 
+		if (value != null && value.getClass().isEnum()) {
+
+			return ((Enum)value).name();
+		}
+
 		return value;
 	}
 

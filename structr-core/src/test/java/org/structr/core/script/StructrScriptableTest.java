@@ -394,6 +394,29 @@ public class StructrScriptableTest extends StructrTest {
 		}
 	}
 
+	public void testEnumPropertyGet() {
+
+		// setup phase
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+			final TestOne context             = app.create(TestOne.class);
+
+			Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); e.anEnum = 'One'; }}");
+
+			assertEquals("Invalid enum get result", "One", Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum; }}"));
+
+			assertEquals("Invaliid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}"));
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 	public void testCollectionOperations() {
 
 		Group group            = null;

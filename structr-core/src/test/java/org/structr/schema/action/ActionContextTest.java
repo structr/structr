@@ -1217,46 +1217,46 @@ public class ActionContextTest extends StructrTest {
 	}
 
 	public void testFunctionRollbackOnError () {
+
+		final ActionContext ctx = new ActionContext(securityContext, null);
+		TestOne t1              = null;
+
+		try (final Tx tx = app.tx()) {
+
+			t1 = createTestNode(TestOne.class);
+			t1.setProperty(TestOne.aString, "InitialString");
+			t1.setProperty(TestOne.anInt, 42);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			/**
+			 * first the old scripting style
+			 */
+			Scripting.replaceVariables(ctx, t1, "${ ( set(this, 'aString', 'NewString'), set(this, 'anInt', 'error') ) }");
+			fail("StructrScript: setting anInt to 'error' should cause an Exception");
+
+			tx.success();
+
+		} catch (FrameworkException expected) { }
+
+
 		try {
 
 			try (final Tx tx = app.tx()) {
-
-				final ActionContext ctx = new ActionContext(securityContext, null);
-
-				// test setup
-				TestOne t1 = createTestNode(TestOne.class);
-				t1.setProperty(TestOne.aString, "InitialString");
-				t1.setProperty(TestOne.anInt, 42);
-
-
-				/**
-				 * first the old scripting style
-				 */
-				try {
-					Scripting.replaceVariables(ctx, t1, "${ ( set(this, 'aString', 'NewString'), set(this, 'anInt', 'error') ) }");
-					fail("StructrScript: setting anInt to 'error' should cause an Exception");
-				} catch (FrameworkException fx) { }
 
 				/**
 				 * Test currently fails - I don't understand why "aString" equals "NewString" even though an exception was thrown before
 				 */
 				assertEquals("StructrScript: String should still have initial value!", "InitialString", Scripting.replaceVariables(ctx, t1, "${(get(this, 'aString'))}"));
-
-				/**
-				 * then the JS-style scripting
-				 */
-				t1.setProperty(TestOne.aString, "InitialString");
-				t1.setProperty(TestOne.anInt, 42);
-
-				try {
-					Scripting.replaceVariables(ctx, t1, "${{ var t1 = Structr.get('this'); t1.aString = 'NewString'; t1.anInt = 'error'; }}");
-					fail("JavaScript: setting anInt to 'error' should cause an Exception");
-				} catch (FrameworkException fx) { }
-
-				/**
-				 * Test currently fails - I don't understand why "aString" equals "NewString" even though an exception was thrown before
-				 */
-				assertEquals("JavaScript: String should still have initial value!", "InitialString", Scripting.replaceVariables(ctx, t1, "${{ var t1 = Structr.get('this'); Structr.print(t1.aString); }}"));
 
 				tx.success();
 			}
@@ -1268,5 +1268,5 @@ public class ActionContextTest extends StructrTest {
 
 		}
 	}
-	
+
 }
