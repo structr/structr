@@ -477,8 +477,8 @@ var _Entities = {
                                 }
                             });
 
-                            // Always show non-empty, non 'data-' attributes
-                            if (res[key] !== null && key.substring(0, 5) !== 'data-') {
+                            // Always show non-empty, non 'data-structr-' attributes
+                            if (res[key] !== null && key.indexOf('data-structr-') !== 0 ) {
                                 display = true;
                             }
 
