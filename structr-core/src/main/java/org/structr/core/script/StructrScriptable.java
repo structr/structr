@@ -134,6 +134,12 @@ public class StructrScriptable extends ScriptableObject {
 
 		}
 
+		if ("me".equals(name)) {
+
+			return wrap(start, null, actionContext.getSecurityContext().getUser(false));
+
+		}
+
 		if ("vars".equals(name)) {
 
 			NativeObject nobj = new NativeObject();
