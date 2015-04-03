@@ -213,20 +213,31 @@ public class Functions {
 	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(entity)}. Example: ${delete(this)}";
 	public static final String ERROR_MESSAGE_CACHE = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
 	public static final String ERROR_MESSAGE_GRANT = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
+	public static final String ERROR_MESSAGE_GRANT_JS = "Usage: ${Structr.grant(principal, node, permissions)}. Example: ${Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}";
 	public static final String ERROR_MESSAGE_REVOKE = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
+	public static final String ERROR_MESSAGE_REVOKE_JS = "Usage: ${Structr.revoke(principal, node, permissions)}. Example: ${Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}";
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once, this}";
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS = "Usage: ${Structr.unlock_readonly_properties_once(node)}. Example ${Structr.unlock_readonly_properties_once, Structr.get('this')}";
 
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
+	public static final String ERROR_MESSAGE_INCOMING_JS = "Usage: ${Structr.incoming(entity [, relType])}. Example: ${Structr.incoming(Structr.this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
+	public static final String ERROR_MESSAGE_OUTGOING_JS = "Usage: ${Structr.outgoing(entity [, relType])}. Example: ${outgoing(Structr.this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(entity1, entity2 [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')} (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP_JS = "Usage: ${Structr.has_relationship(entity1, entity2 [, relType])}. Example: ${Structr.has_relationship(Structr.get('me'), user, 'FOLLOWS')} (ignores direction of the relationship)";
 	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP = "Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP_JS = "Usage: ${Structr.has_outgoing_relationship(from, to [, relType])}. Example: ${Structr.has_outgoing_relationship(Structr.get('me'), user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP = "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS = "Usage: ${Structr.has_incoming_relationship(from, to [, relType])}. Example: ${Structr.has_incoming_relationship(Structr.get('me'), user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(entity1, entity2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS_JS = "Usage: ${Structr.get_relationships(entity1, entity2 [, relType])}. Example: ${Structr.get_relationships(Structr.get('me'), user, 'FOLLOWS')}  (ignores direction of the relationship)";
 	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS = "Usage: ${Structr.get_outgoing_relationships(from, to [, relType])}. Example: ${Structr.get_outgoing_relationships(Structr.get('me'), user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS = "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS = "Usage: ${Structr.get_incoming_relationships(from, to [, relType])}. Example: ${Structr.get_incoming_relationships(Structr.get('me'), user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP = "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
+	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP_JS = "Usage: ${Structr.create_relationship(from, to, relType)}. Example: ${Structr.create_relationship(Structr.get('me'), user, 'FOLLOWS')} (Relationshiptype has to exist)";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -2905,7 +2916,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_FIND;
+				return ERROR_MESSAGE_SEARCH;
 			}
 		});
 		functions.put("create", new Function<Object, Object>() {
@@ -3055,7 +3066,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_INCOMING;
+				return (inJavaScriptContext ? ERROR_MESSAGE_INCOMING_JS : ERROR_MESSAGE_INCOMING);
 			}
 		});
 		functions.put("outgoing", new Function<Object, Object>() {
@@ -3096,7 +3107,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_OUTGOING;
+				return (inJavaScriptContext ? ERROR_MESSAGE_OUTGOING_JS : ERROR_MESSAGE_OUTGOING);
 			}
 		});
 		functions.put("has_relationship", new Function<Object, Object>() {
@@ -3168,7 +3179,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_HAS_RELATIONSHIP;
+				return (inJavaScriptContext ? ERROR_MESSAGE_HAS_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_RELATIONSHIP);
 			}
 		});
 		functions.put("has_outgoing_relationship", new Function<Object, Object>() {
@@ -3239,7 +3250,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP;
+				return (inJavaScriptContext ? ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP);
 			}
 		});
 		functions.put("has_incoming_relationship", new Function<Object, Object>() {
@@ -3310,7 +3321,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP;
+				return (inJavaScriptContext ? ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP);
 			}
 		});
 		functions.put("get_relationships", new Function<Object, Object>() {
@@ -3382,7 +3393,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_GET_RELATIONSHIPS;
+				return (inJavaScriptContext ? ERROR_MESSAGE_GET_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_RELATIONSHIPS);
 			}
 		});
 		functions.put("get_outgoing_relationships", new Function<Object, Object>() {
@@ -3454,7 +3465,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS;
+				return (inJavaScriptContext ? ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS);
 			}
 		});
 		functions.put("get_incoming_relationships", new Function<Object, Object>() {
@@ -3526,7 +3537,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS;
+				return (inJavaScriptContext ? ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS);
 			}
 		});
 		functions.put("create_relationship", new Function<Object, Object>() {
@@ -3571,7 +3582,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_CREATE_RELATIONSHIP;
+				return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_RELATIONSHIP_JS : ERROR_MESSAGE_CREATE_RELATIONSHIP);
 			}
 		});
 		functions.put("grant", new Function<Object, Object>() {
@@ -3634,7 +3645,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_GRANT;
+				return (inJavaScriptContext ? ERROR_MESSAGE_GRANT_JS : ERROR_MESSAGE_GRANT);
 			}
 		});
 		functions.put("revoke", new Function<Object, Object>() {
@@ -3697,7 +3708,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_REVOKE;
+				return (inJavaScriptContext ? ERROR_MESSAGE_REVOKE_JS : ERROR_MESSAGE_REVOKE);
 			}
 		});
 		functions.put("unlock_readonly_properties_once", new Function<Object, Object>() {
@@ -3713,7 +3724,7 @@ public class Functions {
 
 					} else {
 
-						return ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE;
+						return usage(ctx.isJavaScriptContext());
 
 					}
 				}
