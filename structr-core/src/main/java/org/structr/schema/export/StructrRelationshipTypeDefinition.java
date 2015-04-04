@@ -266,6 +266,15 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		this.sourcePropertyName  = schemaNode.getProperty(SchemaRelationshipNode.sourceJsonName);
 		this.targetPropertyName  = schemaNode.getProperty(SchemaRelationshipNode.targetJsonName);
 
+		if (sourcePropertyName == null) {
+			sourcePropertyName = schemaNode.getPropertyName(sourceNodeType, root.getExistingPropertyNames(), true);
+		}
+
+		if (targetPropertyName == null) {
+			targetPropertyName = schemaNode.getPropertyName(targetNodeType, root.getExistingPropertyNames(), false);
+		}
+
+
 		final Long cascadingDeleteFlag = schemaNode.getProperty(SchemaRelationshipNode.cascadingDeleteFlag);
 		if (cascadingDeleteFlag != null) {
 

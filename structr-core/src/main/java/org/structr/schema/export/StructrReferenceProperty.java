@@ -2,6 +2,7 @@ package org.structr.schema.export;
 
 import java.util.Set;
 import java.util.TreeSet;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonReferenceProperty;
 import org.structr.schema.json.JsonType;
@@ -90,4 +91,11 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 	@Override
 	void initializeReferences() {
 	}
+
+
+	@Override
+	void deserialize(final SchemaProperty schemaProperty) {
+		super.deserialize(schemaProperty);
+	}
+
 }
