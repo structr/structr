@@ -45,25 +45,16 @@ var _Schema = {
     storePositions: function() {
         $.each($('#schema-graph .node'), function(i, n) {
             var node = $(n);
-            var id = node.attr('id');
+            var type = node.text();
             var obj = {position: node.position()};
             obj.position.left /= zoomLevel;
             obj.position.top = (obj.position.top - $('#schema-graph').offset().top) / zoomLevel;
-            localStorage.setItem(id + localStorageSuffix + 'node-position', JSON.stringify(obj));
+            localStorage.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
         });
     },
-    storeMode: function(id, mode) {
-        var obj = JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position')) || {};
-        obj.mode = mode;
-        localStorage.setItem(id + localStorageSuffix + 'node-position', JSON.stringify(obj));
-    },
-    getPosition: function(id) {
-        var n = JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position'));
+    getPosition: function(type) {
+        var n = JSON.parse(localStorage.getItem(type + localStorageSuffix + 'node-position'));
         return n ? n.position : undefined;
-    },
-    getMode: function(id) {
-        var n = JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position'));
-        return n ? n.mode : 'compact';
     },
     init: function() {
 
@@ -248,7 +239,6 @@ var _Schema = {
                     canvas.append('<div class="schema node compact'
                             + (isBuiltinType ? ' light' : '')
                             + '" id="' + id + '"><b>' + entity.name + '</b>'
-                            + '<img class="icon toggle-view" src="icon/arrow_out.png">'
                             + '<img class="icon delete" src="icon/delete' + (isBuiltinType ? '_gray' : '') + '.png">'
                             + '<img class="icon edit" src="icon/pencil.png">'
                             + '</div>');
@@ -278,7 +268,7 @@ var _Schema = {
                         });
                     }
 
-                    var storedPosition = _Schema.getPosition(id);
+                    var storedPosition = _Schema.getPosition(entity.name);
                     node.offset({
                         left: storedPosition ? storedPosition.left : i * 100 + 25,
                         top: storedPosition ? storedPosition.top : i * 40 + 131
