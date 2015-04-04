@@ -136,7 +136,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			new NodeAttribute(SchemaProperty.name, getName()),
 			new NodeAttribute(SchemaProperty.schemaNode, schemaNode),
 			new NodeAttribute(SchemaProperty.unique, isUnique()),
-			new NodeAttribute(SchemaProperty.notNull, isRequired())
+			new NodeAttribute(SchemaProperty.notNull, isRequired()),
+			new NodeAttribute(SchemaProperty.defaultValue, defaultValue)
 		);
 	}
 
@@ -145,6 +146,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (source.containsKey(JsonSchema.KEY_UNIQUE)) {
 			this.unique = (Boolean)source.get(JsonSchema.KEY_UNIQUE);
+		}
+
+		final Object _defaultValue = source.get(JsonSchema.KEY_DEFAULT);
+		if (_defaultValue != null) {
+
+			this.defaultValue = _defaultValue.toString();
 		}
 	}
 
@@ -167,6 +174,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (format != null) {
 			map.put(JsonSchema.KEY_FORMAT, format);
+		}
+
+		if (defaultValue != null) {
+			map.put(JsonSchema.KEY_DEFAULT, defaultValue);
 		}
 
 		return map;
