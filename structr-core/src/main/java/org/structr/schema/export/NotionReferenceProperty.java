@@ -84,7 +84,9 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 
 	@Override
 	void deserialize(final SchemaProperty schemaProperty) {
+
 		super.deserialize(schemaProperty);
+
 	}
 
 	@Override

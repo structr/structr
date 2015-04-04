@@ -305,6 +305,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 					notionProperty.setProperties(notionProperties.toArray(new String[0]));
 				}
 
+				notionProperty.deserialize(property);
+
 				return notionProperty;
 
 //			case StringArray:
