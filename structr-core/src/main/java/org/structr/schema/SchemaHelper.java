@@ -428,18 +428,6 @@ public class SchemaHelper {
 				final String[] parts = value.split("[,\\s]+");
 				final String viewName = rawViewName.substring(2);
 
-				// clear view before filling it again
-				Set<String> view = views.get(viewName);
-				if (view == null) {
-
-					view = new LinkedHashSet<>();
-					views.put(viewName, view);
-
-				} else {
-
-					view.clear();
-				}
-
 				if (entity instanceof AbstractSchemaNode) {
 
 					final List<String> nonGraphProperties = new LinkedList<>();
@@ -496,10 +484,6 @@ public class SchemaHelper {
 
 					view = new LinkedHashSet<>();
 					views.put(viewName, view);
-
-				} else {
-
-					view.clear();
 				}
 
 				for (final SchemaProperty property : schemaView.getProperty(SchemaView.schemaProperties)) {
