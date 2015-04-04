@@ -97,8 +97,10 @@ var _Crud = {
             _Crud.keys = [];
 
             _Crud.loadSchema(function() {
-                if (browser)
+                if (browser) {
                     _Crud.initTabs();
+                }
+                _Crud.resize();
             });
 
             searchField = $('.search', main);
@@ -2167,7 +2169,7 @@ var _Crud = {
         });
 
         $('#resourceTabs .resourceBox table').css({
-            height: h - ($('#resourceTabsMenu').height() + 191) + 'px',
+            height: h - ($('#resourceTabsMenu').height() + 196) + 'px',
             width:  w - 59 + 'px'
         });
 

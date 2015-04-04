@@ -919,9 +919,9 @@ var _Schema = {
             });
         }
 
-        $('#main').css({
-            height: ($(window).height() - $('#main').offset().top)
-        });
+//        $('#main').css({
+//            height: ($(window).height() - $('#main').offset().top)
+//        });
 
         $('body').css({
             position: 'relative'
