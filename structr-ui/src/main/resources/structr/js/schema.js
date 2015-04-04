@@ -101,7 +101,7 @@ var _Schema = {
                 _Schema.reload();
             });
 
-            schemaContainer.append('Zoom: <div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
+            schemaContainer.append('<div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
             $( "#zoom-slider" ).slider({
                 min:0.25,
                 max:1,
@@ -124,11 +124,6 @@ var _Schema = {
             schemaContainer.append('<button class="btn" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
             $('#sync-schema').on('click', function() {
                 _Schema.syncSchemaDialog();
-            });
-
-            schemaContainer.append('<button class="btn" id="save-layout"><img src="icon/database.png"> Save layout</button>');
-            $('#save-layout').on('click', function() {
-                Structr.saveLocalStorage();
             });
 
             schemaContainer.append('<button class="btn" id="show-snapshots"><img src="icon/database.png"> Snapshots</button>');

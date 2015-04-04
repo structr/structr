@@ -1615,7 +1615,7 @@ button.add_property {
     opacity: .7;
 }
 
-#admin-tools, #sync-schema {
+#admin-tools, #sync-schema, #show-snapshots {
     margin: 0 0 4px 12px;
 }
 
