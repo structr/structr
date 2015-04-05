@@ -18,6 +18,8 @@
  */
 package org.structr.schema.parser;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.CollectionNotionProperty;
@@ -29,14 +31,19 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public class NotionPropertyParser extends PropertyParser {
+public class NotionPropertyParser extends PropertySourceGenerator {
 
-	private String parameters   = "";
-	private String propertyType = null;
-	private String relatedType  = null;
+	private final Set<String> properties = new LinkedHashSet<>();
+	private boolean isPropertySet  = false;
+	private boolean isAutocreate   = false;
+	private String parameters      = "";
+	private String propertyType    = null;
+	private String relatedType     = null;
+	private String baseProperty    = null;
+	private String multiplicity    = null;
 
-	public NotionPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public NotionPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override
@@ -72,9 +79,9 @@ public class NotionPropertyParser extends PropertyParser {
 
 		if (parts.length > 0) {
 
-			final String baseProperty = parts[0];
-			final String multiplicity = entity.getMultiplicity(baseProperty);
 			boolean isBuiltinProperty = false;
+			baseProperty              = parts[0];
+			multiplicity              = entity.getMultiplicity(baseProperty);
 
 			if (multiplicity != null) {
 
@@ -120,26 +127,39 @@ public class NotionPropertyParser extends PropertyParser {
 				buf.append(",");
 
 				final boolean isBoolean = (parts.length == 3 && ("true".equals(parts[2].toLowerCase())));
+				isAutocreate            = isBoolean;
 
 				// use PropertyNotion when only a single element is given
 				if (parts.length == 2 || isBoolean) {
 
 					buf.append(" new PropertyNotion(");
+					isPropertySet = false;
 
 				} else {
 
 					buf.append(" new PropertySetNotion(");
+					isPropertySet = true;
 				}
 
 				for (int i=1; i<parts.length; i++) {
 
-					String propertyName = parts[i];
+					String propertyName     = parts[i];
+					String fullPropertyName = propertyName;
+
+					// remove prefix from full property name
+					if (fullPropertyName.startsWith("_")) {
+						fullPropertyName = fullPropertyName.substring(1);
+					}
 
 					if (!"true".equals(propertyName.toLowerCase()) && !propertyName.contains(".")) {
 
 						buf.append(relatedType);
 						buf.append(".");
+
+						fullPropertyName = relatedType + "." + fullPropertyName;
 					}
+
+					properties.add(fullPropertyName);
 
 					if (propertyName.startsWith("_")) {
 						propertyName = propertyName.substring(1) + "Property";
@@ -165,5 +185,25 @@ public class NotionPropertyParser extends PropertyParser {
 
 		//propertyType = CollectionNotionProperty.class.getSimpleName();
 		//propertyType = EntityNotionProperty.class.getSimpleName();
+	}
+
+	public boolean isPropertySet() {
+		return isPropertySet;
+	}
+
+	public Set<String> getProperties() {
+		return properties;
+	}
+
+	public boolean isAutocreate() {
+		return isAutocreate;
+	}
+
+	public String getBaseProperty() {
+		return baseProperty;
+	}
+
+	public String getMultiplicity() {
+		return multiplicity;
 	}
 }

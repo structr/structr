@@ -31,8 +31,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class LongPropertyParser extends NumericalPropertyParser {
 
-	public LongPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public LongPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class LongPropertyParser extends NumericalPropertyParser {
 	}
 
 	@Override
-	public String getDefaultValueSource() {
-		return defaultValue.concat("L");
+	public String getDefaultValue() {
+		return getSourceDefaultValue().concat("L");
 	}
 }

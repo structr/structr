@@ -61,7 +61,6 @@ var _Types = {
         $(window).on('resize', function() {
             _Types.resize();
         });
-        _Types.resize();
 
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
 
@@ -74,9 +73,11 @@ var _Types = {
 
             _Types.loadSchema(function() {
                 _Types.initTabs();
+                _Types.resize();
             });
 
         });
+
 
     },
     onload: function() {
@@ -356,7 +357,7 @@ var _Types = {
         });
 
         $('#resourceTabs .resourceBox table').css({
-            height: h - ($('#resourceTabsMenu').height() + 154) + 'px',
+            height: h - ($('#resourceTabsMenu').height() + 158) + 'px',
             width:  w - 59 + 'px'
         });
 

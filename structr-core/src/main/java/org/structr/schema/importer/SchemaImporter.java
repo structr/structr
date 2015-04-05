@@ -45,9 +45,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.BulkRebuildIndexCommand;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
@@ -154,7 +153,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 		final App app                                     = StructrApp.getInstance();
 		final GraphDatabaseService graphDb                = app.command(GraphDatabaseCommand.class).execute();
-		final NodeServiceCommand nodeServiceCommand       = app.command(CreateNodeCommand.class);
 		final ConfigurationProvider configuration         = Services.getInstance().getConfigurationProvider();
 		final Set<NodeInfo> nodeTypes                     = new LinkedHashSet<>();
 		final Map<Long, TypeInfo> nodeTypeInfoMap         = new LinkedHashMap<>();
@@ -252,7 +250,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					}
 
 					// create ID on imported relationship
-					rel.setProperty(GraphObject.id.dbName(), nodeServiceCommand.getNextUuid());
+					rel.setProperty(GraphObject.id.dbName(), NodeServiceCommand.getNextUuid());
 				}
 			}
 
@@ -341,11 +339,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				final String relationshipType = template.getRelType();
 				final PropertyMap propertyMap = new PropertyMap();
 
-				propertyMap.put(SchemaRelationship.sourceId, startNode.getUuid());
-				propertyMap.put(SchemaRelationship.targetId, endNode.getUuid());
-				propertyMap.put(SchemaRelationship.relationshipType, relationshipType);
+				propertyMap.put(SchemaRelationshipNode.sourceId, startNode.getUuid());
+				propertyMap.put(SchemaRelationshipNode.targetId, endNode.getUuid());
+				propertyMap.put(SchemaRelationshipNode.relationshipType, relationshipType);
 
-				app.create(startNode, endNode, SchemaRelationship.class, propertyMap);
+				app.create(SchemaRelationshipNode.class, propertyMap);
 			}
 
 

@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import java.util.List;
+import java.util.Set;
 import org.structr.common.AccessControllable;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
@@ -37,13 +38,14 @@ import org.structr.core.property.StringProperty;
  */
 public interface Principal extends NodeInterface, AccessControllable {
 
-	//public static final Property<String> sessionId = new StringProperty("sessionId").indexedWhenEmpty();
-	public static final Property<String[]> sessionIds = new ArrayProperty("sessionIds", String.class).indexedWhenEmpty();
-	public static final Property<Boolean> blocked = new BooleanProperty("blocked");
-	public static final Property<String> password = new PasswordProperty("password");
-	public static final Property<String> salt = new StringProperty("salt");
-	public static final Property<Boolean> isAdmin = new BooleanProperty("isAdmin").indexed().readOnly();
+	public static final Property<String[]> sessionIds            = new ArrayProperty("sessionIds", String.class).indexedWhenEmpty();
 	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
+	public static final Property<Boolean> blocked                = new BooleanProperty("blocked");
+	public static final Property<String> password                = new PasswordProperty("password");
+	public static final Property<String> salt                    = new StringProperty("salt");
+	public static final Property<Boolean> isAdmin                = new BooleanProperty("isAdmin").indexed().readOnly();
+	public static final Property<String[]> allowed               = new ArrayProperty("allowed", String.class);
+	public static final Property<String[]> denied                = new ArrayProperty("denied", String.class);
 
 	public List<Principal> getParents();
 
@@ -55,4 +57,6 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public boolean isAdmin();
 
+	public Set<String> getAllowedPermissions();
+	public Set<String> getDeniedPermissions();
 }

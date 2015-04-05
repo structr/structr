@@ -72,6 +72,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean indexedWhenEmpty                     = false;
 	protected boolean unique                               = false;
 	protected boolean notNull                              = false;
+	protected boolean dynamic                              = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -354,6 +355,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Property<T> dynamic() {
+		this.dynamic = true;
+		return this;
+	}
+
+	@Override
 	public int hashCode() {
 
 		// make hashCode funtion work for subtypes that override jsonName() etc. as well
@@ -427,6 +434,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isNotNull() {
 		return notNull;
+	}
+
+	@Override
+	public boolean isDynamic() {
+		return dynamic;
 	}
 
 	@Override

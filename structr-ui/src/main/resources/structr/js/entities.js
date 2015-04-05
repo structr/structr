@@ -209,9 +209,9 @@ var _Entities = {
                 var innerText = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
                 var endTag    = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$3').replace(/^\s+|\s+$/g, '');
                 text = innerText;
-                
+
                 dialog.append('<div class="editor"></div>');
-                
+
                 var contentBox = $('.editor', dialog);
                 var lineWrapping = localStorage.getItem(lineWrappingKey);
 
@@ -276,12 +276,12 @@ var _Entities = {
                                 text = unescapeTags(data).replace(/<!DOCTYPE[^>]*>/, '');
                                 text = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
                                 editor.setValue(text);
-                                
+
                                 dialogSaveButton.prop("disabled", true).addClass('disabled');
                                 saveAndClose.prop("disabled", true).addClass('disabled');
                                 dialogMsg.html('<div class="infoBox success">Node source saved and DOM tree rebuilt.</div>');
                                 $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-                                
+
                                 if (_Entities.isExpanded(Structr.node(entity.id))) {
                                     $('.expand_icon', Structr.node(entity.id)).click().click();
                                 }
@@ -315,7 +315,7 @@ var _Entities = {
                     }
                     editor.refresh();
                 });
-                
+
                 Structr.resize();
 
                 _Entities.hideDataHashAttribute(editor);
@@ -830,10 +830,10 @@ var _Entities = {
                     Command.get(pId, function (p) {
                         addPrincipal(entity, p, {'read': true});
                     });
-                });                
+                });
             });
 
-        });        
+        });
     },
     appendTextarea: function (el, entity, key, label, desc) {
         if (!el || !entity) {

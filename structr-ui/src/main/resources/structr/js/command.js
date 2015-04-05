@@ -1012,5 +1012,32 @@ var Command = {
         obj.command = 'DELETE_UNATTACHED_NODES';
         log('deleteUnattachedNodes()', obj);
         return sendObj(obj);
+    },
+    /**
+     * Send a LIST_SCHEMA_PROPERTIES command to the server.
+     *
+     * No broadcast.
+     */
+    listSchemaProperties: function(id, view, callback) {
+        var obj  = {};
+        obj.command = 'LIST_SCHEMA_PROPERTIES';
+        obj.id      = id;
+        obj.data    = { view: view };
+        log('listSchemaProperties()', obj, callback);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a LIST_SNAPSHOTS command to the server.
+     *
+     * The server will return a list of restorable
+     * snapshots from the snapshot location configured
+     * in the structr.conf.
+     */
+    snapshots: function(mode, name, callback) {
+        var obj  = {};
+        obj.data = { mode: mode, name: name };
+        obj.command = 'SNAPSHOTS';
+        log('snapshots()', obj, callback);
+        return sendObj(obj, callback);
     }
 }

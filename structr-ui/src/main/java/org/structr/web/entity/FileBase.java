@@ -60,15 +60,15 @@ public class FileBase extends AbstractFile implements Linkable {
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
-	public static final Property<String> contentType = new StringProperty("contentType").indexedWhenEmpty();
+	public static final Property<String> contentType      = new StringProperty("contentType").indexedWhenEmpty();
 	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath").readOnly();
-	public static final Property<Long> size = new LongProperty("size").indexed().readOnly();
-	public static final Property<String> url = new StringProperty("url");
-	public static final Property<Long> checksum = new LongProperty("checksum").unvalidated().readOnly();
+	public static final Property<Long> size               = new LongProperty("size").indexed().readOnly();
+	public static final Property<String> url              = new StringProperty("url");
+	public static final Property<Long> checksum           = new LongProperty("checksum").unvalidated().readOnly();
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
-	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
-	public static final Property<String> path = new PathProperty("path").indexed().readOnly();
-	public static final Property<Boolean> isFile = new BooleanProperty("isFile").defaultValue(true).readOnly();
+	public static final Property<Integer> version         = new IntProperty("version").indexed().readOnly();
+	public static final Property<String> path             = new PathProperty("path").indexed().readOnly();
+	public static final Property<Boolean> isFile          = new BooleanProperty("isFile").defaultValue(true).readOnly();
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile);

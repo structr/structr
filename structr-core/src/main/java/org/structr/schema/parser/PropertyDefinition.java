@@ -17,26 +17,22 @@
  */
 package org.structr.schema.parser;
 
+import org.structr.schema.SchemaHelper.Type;
+
 /**
  *
  * @author Axel Morgner
  */
-public class PropertyParameters {
-	
-	// Raw source from schema object
-	public String rawSource;
-	
-	// Modified source, stripped by +, | etc.
-	public String source;
-	public String dbName;
-	public Boolean notNull;
-	public String format;
-	public String defaultValue;
-	public String contentType;
+public interface PropertyDefinition {
 
-	public PropertyParameters(final String rawSource) {
-		this.rawSource = rawSource;
-		this.source    = rawSource;
-	}
-
+	public String getPropertyName();
+	public Type getPropertyType();
+	public String getRawSource();
+	public String getSource();
+	public String getDbName();
+	public String getFormat();
+	public boolean isNotNull();
+	public boolean isUnique();
+	public String getDefaultValue();
+	public String getContentType();
 }
