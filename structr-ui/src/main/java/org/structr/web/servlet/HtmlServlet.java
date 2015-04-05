@@ -71,6 +71,7 @@ import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
@@ -94,6 +95,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String POSSIBLE_ENTRY_POINTS_KEY = "possibleEntryPoints";
 	public static final String DOWNLOAD_AS_FILENAME_KEY = "filename";
+	public static final String DOWNLOAD_AS_DATA_URL_KEY = "as-data-url";
 	public static final String CONFIRM_KEY_KEY = "key";
 	public static final String TARGET_PAGE_KEY = "target";
 	public static final String ERROR_PAGE_KEY = "onerror";
@@ -1187,46 +1189,60 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		} else {
 
-			// 2b: stream file to response
-			final InputStream in = file.getInputStream();
-			final String contentType = file.getContentType();
+			final String downloadAsDataUrl = request.getParameter(DOWNLOAD_AS_DATA_URL_KEY);
+			if (downloadAsDataUrl != null) {
 
-			if (contentType != null) {
-
-				response.setContentType(contentType);
+				IOUtils.write(FileHelper.getBase64String(file), out);
+				response.setContentType("text/plain");
+				response.setStatus(HttpServletResponse.SC_OK);
+				
+				out.flush();
+				out.close();
 
 			} else {
 
-				// Default
-				response.setContentType("application/octet-stream");
-			}
 
-			response.setStatus(HttpServletResponse.SC_OK);
+				// 2b: stream file to response
+				final InputStream in = file.getInputStream();
+				final String contentType = file.getContentType();
 
-			try {
+				if (contentType != null) {
 
-				IOUtils.copy(in, out);
+					response.setContentType(contentType);
 
-			} catch (Throwable t) {
+				} else {
 
-			} finally {
-
-				if (out != null) {
-
-					try {
-						// 3: output content
-						out.flush();
-						out.close();
-
-					} catch (Throwable t) {
-					}
-				}
-
-				if (in != null) {
-					in.close();
+					// Default
+					response.setContentType("application/octet-stream");
 				}
 
 				response.setStatus(HttpServletResponse.SC_OK);
+
+				try {
+
+					IOUtils.copy(in, out);
+
+				} catch (Throwable t) {
+
+				} finally {
+
+					if (out != null) {
+
+						try {
+							// 3: output content
+							out.flush();
+							out.close();
+
+						} catch (Throwable t) {
+						}
+					}
+
+					if (in != null) {
+						in.close();
+					}
+
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
 			}
 		}
 	}
