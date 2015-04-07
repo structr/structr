@@ -1142,7 +1142,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					t.printStackTrace();
 
-					logger.log(Level.WARNING, "Unable to invoke method {0}: {1}", new Object[]{methodName, t.getMessage()});
+					logger.log(Level.FINE, "Unable to invoke method {0}: {1}", new Object[]{methodName, t.getMessage()});
 				}
 			}
 		}
