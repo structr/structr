@@ -655,6 +655,32 @@ var _Schema = {
             _Schema.appendLocalProperty(propertiesTable, prop);
         });
 
+        Command.listSchemaProperties(entity.id, 'ui', function(data) {
+
+            // sort by name
+            data.sort(function(a, b) {
+                return a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
+            });
+
+            $.each(data, function(i, prop) {
+
+                if (!prop.isDynamic) {
+
+                    var property = {
+                        name: prop.name,
+                        dbName: '',
+                        propertyType: prop.propertyType,
+                        isBuiltinProperty: true,
+                        notNull: prop.notNull,
+                        unique: prop.unique
+                    };
+
+                    _Schema.appendLocalProperty(propertiesTable, property);
+                }
+            });
+        });
+
+
         $('.add-local-attribute', el).on('click', function() {
             propertiesTable.append('<tr class="new"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name"></td>'
                     + '<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>'
@@ -1137,23 +1163,23 @@ var _Schema = {
             });
 
             Command.listSchemaProperties(schemaEntity.id, view.name, function(data) {
-                _Schema.appendViewOptions(viewSelectElem, data);
+                _Schema.appendViewOptions(viewSelectElem, view.name, data);
             });
 
         } else {
 
             Command.listSchemaProperties(schemaEntity.id, view.name, function(data) {
-                _Schema.appendViewOptions(viewSelectElem, data);
+                _Schema.appendViewOptions(viewSelectElem, view.name, data);
             });
         }
     },
-    appendViewOptions: function(viewSelectElem, properties) {
+    appendViewOptions: function(viewSelectElem, viewName, properties) {
 
         properties.forEach(function(prop) {
 
             var name       = prop.name;
             var isSelected = prop.isSelected ? ' selected="selected"' : '';
-            var isDisabled = prop.isDisabled ? ' disabled="disabled"' : '';
+            var isDisabled = (viewName === 'ui' || prop.isDisabled) ? ' disabled="disabled"' : '';
 
             viewSelectElem.append('<option value="' + name + '"' + isSelected + isDisabled + '>' + name + '</option>');
         });
