@@ -28,6 +28,7 @@ import java.util.*;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -46,6 +47,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 	private static final Property<Boolean> isSelected = new BooleanProperty("isSelected");
 	private static final Property<Boolean> isDisabled = new BooleanProperty("isDisabled");
+	private static final Property<Boolean> isDynamic  = new BooleanProperty("isDynamic");
 
 	static {
 
@@ -86,11 +88,13 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 							final String propertyName     = key.jsonName();
 							final GraphObjectMap property = new GraphObjectMap();
+							final Class valueType         = key.valueType();
+							String valueTypeName          = "Unknown";
+							boolean _isDisabled           = false;
 
-
-
-							boolean _isDisabled = false;
-
+							if (valueType != null) {
+								valueTypeName = valueType.getSimpleName();
+							}
 
 							// a property is disabled if it is already present in the view of a superclass
 							// (since it has to be configured there instead of locally)
@@ -101,6 +105,10 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 							property.put(AbstractNode.name, propertyName);
 							property.put(isSelected, viewProperties.contains(key));
 							property.put(isDisabled, _isDisabled);
+							property.put(SchemaProperty.propertyType, valueTypeName);
+							property.put(SchemaProperty.notNull, key.isNotNull());
+							property.put(SchemaProperty.unique, key.isUnique());
+							property.put(SchemaProperty.isDynamic, key.isDynamic());
 
 							// store in result
 							result.add(property);
