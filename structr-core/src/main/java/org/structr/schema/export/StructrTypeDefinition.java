@@ -336,6 +336,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			serializedForm.put(JsonSchema.KEY_VIEWS, views);
 		}
 
+		// methods
+		if (!methods.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_METHODS, methods);
+		}
+
 		final URI ext = getExtends();
 		if (ext != null) {
 			serializedForm.put(JsonSchema.KEY_EXTENDS, root.toJsonPointer(ext));
@@ -522,6 +527,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final Map<String, Object> properties                                = (Map)source.get(JsonSchema.KEY_PROPERTIES);
 		final List<String> requiredPropertyNames                            = (List)source.get(JsonSchema.KEY_REQUIRED);
 		final Map<String, Object> views                                     = (Map)source.get(JsonSchema.KEY_VIEWS);
+		final Map<String, Object> methods                                   = (Map)source.get(JsonSchema.KEY_METHODS);
 
 		if (properties != null) {
 
@@ -578,6 +584,24 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				} else {
 
 					throw new IllegalStateException("View definition " + viewName + " must be of type array.");
+				}
+			}
+		}
+
+		if (methods != null) {
+
+			for (final Entry<String, Object> entry : methods.entrySet()) {
+
+				final String methodName = entry.getKey();
+				final Object value      = entry.getValue();
+
+				if (value instanceof String) {
+
+					typeDefinition.getMethods().put(methodName, value.toString());
+
+				} else {
+
+					throw new IllegalStateException("Method definition " + methodName + " must be of type string.");
 				}
 			}
 		}
