@@ -59,6 +59,9 @@ var _Dragndrop = {
                 var sourceId = getId(ui.draggable) || getComponentId(ui.draggable);
 
                 if (!sourceId) {
+                    
+                    // palette element dragged
+                    
                     var d = $(ui.draggable);
                     tag = d.text();
                     if (d.attr('subkey')) {
@@ -104,6 +107,15 @@ var _Dragndrop = {
                 }
 
                 log(source, target, pageId, tag, related);
+                
+                if (target.isContent && target.type !== 'Template' && source) {
+                    return false;
+                }
+
+                if (target.isContent && target.type !== 'Template' && isIn(tag, _Elements.voidAttrs)) {
+                    return false;
+                }
+                
                 if (_Dragndrop.dropAction(source, target, pageId, tag, related)) {
                     $(ui.draggable).remove();
                     sortParent = undefined;

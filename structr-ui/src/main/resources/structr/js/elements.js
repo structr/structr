@@ -151,8 +151,9 @@ var _Elements = {
             'attrs': ['type', 'media', 'scoped'],
             'focus' : 'type'
             
-        },
+        }
     ],
+    voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'source', 'track', 'wbr'],    
     /**
      * Reload widgets
      */

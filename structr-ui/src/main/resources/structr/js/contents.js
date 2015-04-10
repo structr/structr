@@ -68,10 +68,7 @@ var _Contents = {
         var div = Structr.node(entity.id);
 
         _Dragndrop.makeSortable(div);
-
-        if (isTemplate || isComponent) {
-            _Dragndrop.makeDroppable(div);
-        }
+        _Dragndrop.makeDroppable(div);
 
         if (isTemplate) {
             var hasChildren = entity.childrenIds && entity.childrenIds.length;
