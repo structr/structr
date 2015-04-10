@@ -531,6 +531,7 @@ var _Entities = {
                                                             blinkGreen(cell);
                                                         }
                                                         checkbox.prop('checked', newVal);
+                                                        val = newVal;
                                                     });
                                                 });
                                             } else {

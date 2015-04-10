@@ -89,6 +89,10 @@ input[type="text"]:disabled, input.disabled {
     background-color: #f0f0f0;
 }
 
+input[type="checkbox"] {
+    vertical-align: middle;
+}
+
 .fit-to-height {
     overflow: auto;
 }
