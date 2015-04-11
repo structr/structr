@@ -18,6 +18,7 @@
  */
 package org.structr.core.app;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -211,6 +212,11 @@ public class StructrApp implements App {
 	@Override
 	public void shutdown() {
 		Services.getInstance().shutdown();
+	}
+
+	@Override
+	public void close() throws IOException {
+		shutdown();
 	}
 
 	@Override

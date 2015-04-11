@@ -18,6 +18,7 @@
  */
 package org.structr.core.app;
 
+import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -38,7 +39,7 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-public interface App  {
+public interface App extends Closeable {
 
 	public Tx tx();
 	public Tx tx(final boolean doValidation);

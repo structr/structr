@@ -201,6 +201,7 @@ public class StructrSchemaTest extends StructrTest {
 			final JsonObjectType task = sourceSchema.addType("Task");
 			final JsonProperty title  = task.addStringProperty("title", "public", "ui").setRequired(true);
 			final JsonProperty desc   = task.addStringProperty("description", "public", "ui").setRequired(true);
+			task.addDateProperty("description", "public", "ui").setDatePattern("dd.MM.yyyy").setRequired(true);
 
 			// test function property
 			task.addScriptProperty("displayName", "public", "ui").setSource("this.name");

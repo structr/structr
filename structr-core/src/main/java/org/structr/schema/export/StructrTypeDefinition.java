@@ -22,6 +22,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.json.JsonBooleanProperty;
+import org.structr.schema.json.JsonDateProperty;
 import org.structr.schema.json.JsonEnumProperty;
 import org.structr.schema.json.JsonIntegerProperty;
 import org.structr.schema.json.JsonLongProperty;
@@ -166,7 +167,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonStringProperty addDateProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonDateProperty addDateProperty(final String name, final String... views) throws URISyntaxException {
 
 		final StructrDateProperty dateProperty = new StructrDateProperty(this, name);
 

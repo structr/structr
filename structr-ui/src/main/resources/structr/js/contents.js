@@ -68,10 +68,7 @@ var _Contents = {
         var div = Structr.node(entity.id);
 
         _Dragndrop.makeSortable(div);
-
-        if (isTemplate || isComponent) {
-            _Dragndrop.makeDroppable(div);
-        }
+        _Dragndrop.makeDroppable(div);
 
         if (isTemplate) {
             var hasChildren = entity.childrenIds && entity.childrenIds.length;
@@ -309,11 +306,12 @@ var _Contents = {
         select.on('change', function() {
             contentType = select.val();
             entity.setProperty('contentType', contentType, false, function() {
+                blinkGreen(select);
                 _Pages.reloadPreviews();
             });
         });
 
-        dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+        dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
         $('#lineWrapping').on('change', function() {
             var inp = $(this);
             if  (inp.is(':checked')) {
@@ -323,6 +321,7 @@ var _Contents = {
                 localStorage.removeItem(lineWrappingKey);
                 editor.setOption('lineWrapping', false);
             }
+            blinkGreen(inp.parent());
             editor.refresh();
         });
 
