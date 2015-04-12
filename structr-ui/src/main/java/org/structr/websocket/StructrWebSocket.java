@@ -257,7 +257,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} else {
 
-			logger.log(Level.WARNING, "Unknow command {0}", command);
+			logger.log(Level.WARNING, "Unknown command {0}", command);
 
 			// send 400 Bad Request
 			send(MessageBuilder.status().code(400).message("Unknown command").build(), true);

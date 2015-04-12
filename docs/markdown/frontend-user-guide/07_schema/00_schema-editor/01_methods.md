@@ -12,7 +12,7 @@ There are three pre-defined methods which are called automatically on specifiy l
 You can of course declare more than one method of each type, suffixing the individual methods with a number (e.g. <code>onCreate01, onCreate02, ...</code>). This allows you to specify a series of functions that will be executed when a new entity is created.
 
 <h5>Custom Methods</h5>
-In addition to the predefined lifecycle methods, you can declare arbitrary methods that can later be executed using a REST call to a special URL. If you for example declare a method named <code>doSend</code> on an <code>Email</code> entity, you can execute this method using the UUID of the desired entity using <code>POST /emails/<uuid>/doSend</code>.
+In addition to the predefined lifecycle methods, you can declare arbitrary methods that can later be executed using a REST call to a special URL. If you for example declare a method named <code>doSend</code> on an <code>Email</code> entity, you can execute this method using the UUID of the desired entity using <code>POST /emails/&lt;uuid&gt;/doSend</code>.
 
 <h5>Examples</h5>
 <p>With the following <code>onCreate</code> expression, you can for example set the 'timestamp' property of a newly created entity to the current time and date, and trigger a geocoding. This example illustrates the syntax of the template expression used in callbacks:<br />
