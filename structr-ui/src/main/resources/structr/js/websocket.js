@@ -144,7 +144,9 @@ function wsConnect() {
                     Structr.login(msg);
                 } else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
                     loginBox.hide();
-                    Structr.refreshUi();
+                    Structr.restoreLocalStorage(function() {
+                        Structr.refreshUi();
+                    });
                 }
 
                 StructrModel.callCallback(data.callback, data.data[data.data['key']]);
@@ -162,6 +164,9 @@ function wsConnect() {
                 Object.keys(localStorageData).forEach(function(key) {
                     localStorage.setItem(key, localStorageData[key]);
                 });
+
+                StructrModel.callCallback(data.callback, data.data[data.data['key']]);
+                StructrModel.clearCallback(data.callback);
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
 

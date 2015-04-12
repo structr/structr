@@ -446,11 +446,11 @@ var Command = {
     /**
      * Send a GET_LOCAL_STORAGE command to the server.
      */
-    getLocalStorage: function() {
+    getLocalStorage: function(callback) {
         var obj = {};
         obj.command = 'GET_LOCAL_STORAGE';
         log('getLocalStorage()', obj);
-        return sendObj(obj);
+        return sendObj(obj, callback);
     },
     /**
      * Send a REPLACE_WIDGET command to the server.
