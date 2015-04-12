@@ -110,8 +110,11 @@ function StructrApp(baseUrl) {
             if (action === 'create') {
                 s.create(btn, type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
+            } else if (action === 'save') {
+                s.saveAction(btn, id, attrs, reload, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn)});
+
             } else if (action === 'edit') {
-                s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn);});
+                s.editAction(btn, id, attrs, returnUrl || reload);
 
             } else if (action === 'cancel-edit') {
                 s.cancelEditAction(btn, id, attrs, returnUrl || reload);
@@ -320,14 +323,19 @@ function StructrApp(baseUrl) {
         saveButton.addClass(clazz);
         enableButton(saveButton);
         saveButton.on('click', function() {
-            s.saveAction(btn, id, attrs, reload);
+            s.saveAction(btn, id, attrs, reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+                enableButton(btn);
+            }, function() {
+                s.cancelEditAction(btn, id, attrs, reload);
+            });
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
         enableButton(btn);
     },
 
-    this.saveAction = function(btn, id, attrs, reload) {
+    this.saveAction = function(btn, id, attrs, reload, successMsg, errorMsg, onSuccess, onError) {
         var container = $('[data-structr-id="' + id + '"]');
+        if (!s.data[id]) s.data[id] = {};
         $.each(attrs, function(i, key) {
 
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
@@ -389,10 +397,8 @@ function StructrApp(baseUrl) {
                 }
             }
         });
-        //console.log('PUT', structrRestUrl + id, s.data[id]);
-        s.request(btn, 'PUT', structrRestUrl + id, s.data[id], false, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
-            s.cancelEditAction(btn, id, attrs, reload);
-        });
+        console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
+        s.request(btn, 'PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
     },
 
     this.cancelEditAction = function(btn, id, attrs, reload) {
@@ -520,7 +526,7 @@ function StructrApp(baseUrl) {
                         $('#msg span').delay(5000).fadeOut(5000);
                     } else {
                         btn.text(successText);
-                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
                     }
                 },
                 201: function() {
@@ -529,7 +535,7 @@ function StructrApp(baseUrl) {
                         $('#msg span').delay(5000).fadeOut(5000);
                     } else {
                         btn.text(successText);
-                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
                     }
                 },
                 400: function() {
@@ -564,7 +570,7 @@ function StructrApp(baseUrl) {
 
         disableButton(btn, 'Processing...');
 
-        var successText = 'We sent you a link to reset your password. Please check your inbox or spam folder.';
+        var successText = 'Link to reset password sent. Please check your inbox or spam folder.';
 
         $.ajax({
             type: 'POST',
@@ -579,16 +585,7 @@ function StructrApp(baseUrl) {
                         $('#msg span').delay(5000).fadeOut(5000);
                     } else {
                         btn.text(successText);
-                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
-                    }
-                },
-                201: function() {
-                    if (msgBox && msgBox.length) {
-                        $('#msg').append('<span>' + successText + '</span>');
-                        $('#msg span').delay(5000).fadeOut(5000);
-                    } else {
-                        btn.text(successText);
-                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
                     }
                 },
                 400: function() {

@@ -85,6 +85,7 @@ $(function () {
         var username = $('#usernameField').val();
         var password = $('#passwordField').val();
         Structr.doLogin(username, password);
+        return false;
     });
     $('#logout_').on('click', function (e) {
         e.stopPropagation();
@@ -137,12 +138,12 @@ $(function () {
         Structr.activateModule(e, 'security');
     });
 
-    $('#usernameField').keypress(function (e) {
+    $('#usernameField').keyup(function (e) {
         if (e.which === 13) {
             loginButton.click();
         }
     });
-    $('#passwordField').keypress(function (e) {
+    $('#passwordField').keyup(function (e) {
         if (e.which === 13) {
             loginButton.click();
         }

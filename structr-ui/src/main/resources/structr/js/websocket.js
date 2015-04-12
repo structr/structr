@@ -132,6 +132,7 @@ function wsConnect() {
 
             if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
 
+                log('user, oldUser', user, oldUser);
                 user = data.data.username;
                 isAdmin = data.data.isAdmin;
                 var oldUser = localStorage.getItem(userKey);
@@ -145,7 +146,9 @@ function wsConnect() {
                 } else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
                     loginBox.hide();
                     Structr.restoreLocalStorage(function() {
-                        Structr.refreshUi();
+                        if (!lastMenuEntry || command === 'LOGIN') {
+                            Structr.refreshUi();
+                        }
                     });
                 }
 
