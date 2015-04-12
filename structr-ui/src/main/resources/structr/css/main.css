@@ -20,10 +20,10 @@
 @charset "UTF-8";
 /** Defaults */
 
-@font-face { font-family: 'Open Sans'; src: url('Open Sans-Light.ttf') format('truetype'); font-weight: 300;}
-@font-face { font-family: 'Open Sans'; src: url('Open Sans-Regular.ttf') format('truetype'); font-weight: 400;}
-@font-face { font-family: 'Open Sans'; src: url('Open Sans-Semibold.ttf') format('truetype'); font-weight: 600;}
-@font-face { font-family: 'Open Sans'; src: url('Open Sans-Bold.ttf') format('truetype'); font-weight: 700;}
+@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Light.ttf') format('truetype'); font-weight: 300;}
+@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Regular.ttf') format('truetype'); font-weight: 400;}
+@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Semibold.ttf') format('truetype'); font-weight: 600;}
+@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Bold.ttf') format('truetype'); font-weight: 700;}
 
 * {
     outline: none;
