@@ -519,13 +519,24 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		String searchValue = request.getParameter(jsonName());
 		if (searchValue != null) {
-
 			if (!query.isExactSearch()) {
-
 				// no quotes allowed in loose search queries!
 				searchValue = removeQuotes(searchValue);
-
-				query.and(this, convertSearchValue(securityContext, searchValue), false);
+				
+				boolean notQuery = searchValue.startsWith("^");
+				String usedParameter = notQuery?searchValue.substring(1):searchValue;
+				
+				Query rangeQuery = getRangeQueryIfPossible(securityContext, searchValue, query);
+				
+				if(rangeQuery != null){
+					return;
+				}
+				
+				if(notQuery){
+					query.not(this, convertSearchValue(securityContext, usedParameter), false);
+				} else {
+					query.and(this, convertSearchValue(securityContext, usedParameter), false);
+				}
 
 			} else {
 
@@ -579,36 +590,28 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		return resultStr;
 	}
+	
+	private Query getRangeQueryIfPossible(final SecurityContext securityContext, final String requestParameter, final Query query) throws FrameworkException{
+		// check for existance of range query string
+		Matcher matcher = rangeQueryPattern.matcher(requestParameter);
+		if (matcher.matches()) {
 
-	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final Query query) throws FrameworkException {
+			if (matcher.groupCount() == 2) {
 
-		if (StringUtils.startsWith(requestParameter, "[") && StringUtils.endsWith(requestParameter, "]")) {
+				String rangeStart = matcher.group(1);
+				String rangeEnd = matcher.group(2);
 
-			// check for existance of range query string
-			Matcher matcher = rangeQueryPattern.matcher(requestParameter);
-			if (matcher.matches()) {
+				PropertyConverter inputConverter = inputConverter(securityContext);
+				Object rangeStartConverted = rangeStart;
+				Object rangeEndConverted = rangeEnd;
 
-				if (matcher.groupCount() == 2) {
+				if (inputConverter != null) {
 
-					String rangeStart = matcher.group(1);
-					String rangeEnd = matcher.group(2);
-
-					PropertyConverter inputConverter = inputConverter(securityContext);
-					Object rangeStartConverted = rangeStart;
-					Object rangeEndConverted = rangeEnd;
-
-					if (inputConverter != null) {
-
-						rangeStartConverted = inputConverter.convert(rangeStartConverted);
-						rangeEndConverted = inputConverter.convert(rangeEndConverted);
-					}
-
-					query.andRange(this, rangeStartConverted, rangeEndConverted);
-
-					return;
+					rangeStartConverted = inputConverter.convert(rangeStartConverted);
+					rangeEndConverted = inputConverter.convert(rangeEndConverted);
 				}
 
-				logger.log(Level.WARNING, "Unable to determine range query bounds for {0}", requestParameter);
+				return query.andRange(this, rangeStartConverted, rangeEndConverted);
 
 			} else {
 
@@ -618,9 +621,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 						// requestParameter contains only [],
 						// which we use as a "not-blank" selector
-						query.notBlank(this);
+						return query.notBlank(this);
 
-						return;
 
 					} else {
 
@@ -631,9 +633,25 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 					throw new FrameworkException(422, "Invalid range pattern.");
 				}
-			}
- 		}
+			}		
+		
+		}
+		return null;
+	}
 
+	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final Query query) throws FrameworkException {
+
+		if (StringUtils.startsWith(requestParameter, "[") && StringUtils.endsWith(requestParameter, "]")) {
+
+			// check for existance of range query string
+				Query rangeQuery = getRangeQueryIfPossible(securityContext, requestParameter, query);
+				if(rangeQuery != null){
+					return;
+				}
+				logger.log(Level.WARNING, "Unable to determine range query bounds for {0}", requestParameter);
+
+
+		}
 		if (requestParameter.contains(",") && requestParameter.contains(";")) {
 			throw new FrameworkException(422, "Mixing of AND and OR not allowed in request parameters");
 		}
@@ -667,9 +685,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		} else {
 			if(notQuery){
-				query.not();
-			}
-			query.and(this, convertSearchValue(securityContext, usedParameter));
+				query.not(this, convertSearchValue(securityContext, usedParameter), true);
+			} else {
+				query.and(this, convertSearchValue(securityContext, usedParameter));
+			}	
 		}
 	}
 

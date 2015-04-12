@@ -86,4 +86,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 
 	public Predicate<GraphObject> toPredicate();
 	public SearchAttributeGroup getRootAttributeGroup();
+	
+	public <P> Query<T> in(PropertyKey<P> key, List<P> values, boolean exact);
+	public <P>Query<T> not(PropertyKey<P> key, P value, boolean exact);
 }

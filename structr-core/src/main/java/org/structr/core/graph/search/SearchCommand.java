@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
@@ -232,7 +233,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				allExactMatch &= attr.isExactMatch();
 			}
-
+			//logger.info("query = " + query.toString());
 			QueryContext queryContext = new QueryContext(query);
 
 			if (sortKey != null && !doNotSort) {
@@ -757,6 +758,32 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
 
+		return this;
+	}
+	@Override
+	public <P> org.structr.core.app.Query<T> not(final PropertyKey<P> key, final P value, final boolean exact){
+		
+		if (GraphObject.id.equals(key)) {
+
+			this.doNotSort = false;
+		}
+
+		exact(exact);
+		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, BooleanClause.Occur.MUST_NOT, value, exact, this));
+
+		return this;
+	}
+	
+	@Override
+	public <P> org.structr.core.app.Query<T> in(final PropertyKey<P> key, List<P> values, final boolean exact) {
+		
+		for (P value : values) {
+			
+//		exact(exact);
+//		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, BooleanClause.Occur.SHOULD, value, exact, this));
+			or(key, value);
+		}
+		
 		return this;
 	}
 
