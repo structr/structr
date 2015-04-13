@@ -259,20 +259,27 @@ public class StaticRelationshipResource extends SortableResource {
 
 			// look for methods that have an @Export annotation
 			final GraphObject entity = typedIdResource.getIdResource().getEntity();
-			final Class entityType = typedIdResource.getEntityClass();
-			final String methodName = typeResource.getRawType();
+			final Class entityType   = typedIdResource.getEntityClass();
+			final String methodName  = typeResource.getRawType();
 
 			if (entity != null && entityType != null && methodName != null) {
 
-				final Object obj              = entity.invokeMethod(methodName, propertySet, true);
-				final RestMethodResult result = new RestMethodResult(200);
+				final Object obj = entity.invokeMethod(methodName, propertySet, true);
 
-				// unwrap nested object(s)
-				unwrapTo(obj, result);
+				if (obj instanceof RestMethodResult) {
 
-				return result;
+					return (RestMethodResult)obj;
+
+				} else {
+
+					final RestMethodResult result = new RestMethodResult(200);
+
+					// unwrap nested object(s)
+					unwrapTo(obj, result);
+
+					return result;
+				}
 			}
-
 		}
 
 		throw new IllegalPathException();
