@@ -110,8 +110,11 @@ function StructrApp(baseUrl) {
             if (action === 'create') {
                 s.create(btn, type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
+            } else if (action === 'save') {
+                s.saveAction(btn, id, attrs, reload, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn)});
+
             } else if (action === 'edit') {
-                s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn);});
+                s.editAction(btn, id, attrs, returnUrl || reload);
 
             } else if (action === 'cancel-edit') {
                 s.cancelEditAction(btn, id, attrs, returnUrl || reload);
@@ -128,6 +131,9 @@ function StructrApp(baseUrl) {
 
             } else if (action === 'registration') {
                 s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
+
+            } else if (action === 'reset-password') {
+                s.resetPasswordAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
 
             } else {
                 s.customAction(btn, id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
@@ -317,14 +323,19 @@ function StructrApp(baseUrl) {
         saveButton.addClass(clazz);
         enableButton(saveButton);
         saveButton.on('click', function() {
-            s.saveAction(btn, id, attrs, reload);
+            s.saveAction(btn, id, attrs, reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+                enableButton(btn);
+            }, function() {
+                s.cancelEditAction(btn, id, attrs, reload);
+            });
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
         enableButton(btn);
     },
 
-    this.saveAction = function(btn, id, attrs, reload) {
+    this.saveAction = function(btn, id, attrs, reload, successMsg, errorMsg, onSuccess, onError) {
         var container = $('[data-structr-id="' + id + '"]');
+        if (!s.data[id]) s.data[id] = {};
         $.each(attrs, function(i, key) {
 
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
@@ -386,10 +397,8 @@ function StructrApp(baseUrl) {
                 }
             }
         });
-        //console.log('PUT', structrRestUrl + id, s.data[id]);
-        s.request(btn, 'PUT', structrRestUrl + id, s.data[id], false, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
-            s.cancelEditAction(btn, id, attrs, reload);
-        });
+        console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
+        s.request(btn, 'PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
     },
 
     this.cancelEditAction = function(btn, id, attrs, reload) {
@@ -517,7 +526,7 @@ function StructrApp(baseUrl) {
                         $('#msg span').delay(5000).fadeOut(5000);
                     } else {
                         btn.text(successText);
-                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
                     }
                 },
                 201: function() {
@@ -526,7 +535,57 @@ function StructrApp(baseUrl) {
                         $('#msg span').delay(5000).fadeOut(5000);
                     } else {
                         btn.text(successText);
-                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
+                    }
+                },
+                400: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>Please enter your e-mail address!</span>');
+                        $('#msg span').delay(1000).fadeOut(1000);
+                    } else {
+                        btn.text('Please enter your e-mail address!');
+                        window.setTimeout(function() { btn.text(btnText); }, 1000);
+                    }
+                    enableButton(btn);
+                }
+            }
+        });
+    },
+    this.resetPasswordAction = function(btn, id, attrs, reload) {
+
+        var data = {};
+
+        if (attrs && attrs.length) {
+            attrs.forEach(function(attr) {
+                data[attr] = $('[data-structr-name="' + attr + '"]').val();
+            });
+        }
+
+        var msgBox = $('#msg');
+        if (msgBox && msgBox.length) {
+            $('span', msgBox).remove();
+        }
+
+        var btnText = btn.text();
+
+        disableButton(btn, 'Processing...');
+
+        var successText = 'Link to reset password sent. Please check your inbox or spam folder.';
+
+        $.ajax({
+            type: 'POST',
+            method: 'POST',
+            contentType: 'application/json',
+            url: '/structr/rest/reset-password',
+            data: JSON.stringify(data),
+            statusCode: {
+                200: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>' + successText + '</span>');
+                        $('#msg span').delay(5000).fadeOut(5000);
+                    } else {
+                        btn.text(successText);
+                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
                     }
                 },
                 400: function() {

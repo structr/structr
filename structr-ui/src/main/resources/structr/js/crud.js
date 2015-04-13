@@ -205,7 +205,7 @@ var _Crud = {
             _Crud.storeType();
             _Crud.storePagerData();
             //window.history.pushState('', '', _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]) + '&view=' + _Crud.view[type] + '&type=' + type + '#crud');
-            window.location.hash = '#crud';
+            window.location.hash = 'crud';
         }
         searchField.focus();
 

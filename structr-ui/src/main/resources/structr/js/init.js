@@ -46,7 +46,7 @@ var scrollInfoKey = 'structrScrollInfoKey_' + port;
 
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
-$(function() {
+$(function () {
 
     if (urlParam('debug')) {
         debug = true;
@@ -72,77 +72,78 @@ $(function() {
     dialogSaveButton = $('.save', dialogBox);
     loginButton = $('#loginButton');
 
-    $('#import_json').on('click', function(e) {
+    $('#import_json').on('click', function (e) {
         e.stopPropagation();
         var jsonArray = $.parseJSON($('#json_input').val());
-        $(jsonArray).each(function(i, json) {
+        $(jsonArray).each(function (i, json) {
             createEntity(json);
         });
     });
 
-    loginButton.on('click', function(e) {
+    loginButton.on('click', function (e) {
         e.stopPropagation();
         var username = $('#usernameField').val();
         var password = $('#passwordField').val();
         Structr.doLogin(username, password);
+        return false;
     });
-    $('#logout_').on('click', function(e) {
+    $('#logout_').on('click', function (e) {
         e.stopPropagation();
         Structr.doLogout();
     });
 
-    $('#dashboard_').on('click', function(e) {
+    $('#dashboard_').on('click', function (e) {
         Structr.activateModule(e, 'dashboard');
     });
 
-    $('#pages_').on('click', function(e) {
+    $('#pages_').on('click', function (e) {
         Structr.activateModule(e, 'pages');
         _Pages.resize();
     });
 
-    $('#widgets_').on('click', function(e) {
+    $('#widgets_').on('click', function (e) {
         Structr.activateModule(e, 'widgets');
         Structr.resize();
     });
 
-    $('#types_').on('click', function(e) {
+    $('#types_').on('click', function (e) {
         Structr.activateModule(e, 'types');
     });
 
-    $('#schema_').on('click', function(e) {
+    $('#schema_').on('click', function (e) {
         Structr.activateModule(e, 'schema');
     });
 
-    $('#elements_').on('click', function(e) {
+    $('#elements_').on('click', function (e) {
         Structr.activateModule(e, 'elements');
     });
 
-    $('#contents_').on('click', function(e) {
+    $('#contents_').on('click', function (e) {
         Structr.activateModule(e, 'contents');
     });
 
-    $('#crud_').on('click', function(e) {
+    $('#crud_').on('click', function (e) {
         Structr.activateModule(e, 'crud');
     });
 
-    $('#files_').on('click', function(e) {
+    $('#files_').on('click', function (e) {
         Structr.activateModule(e, 'files');
     });
 
-    $('#images_').on('click', function(e) {
+    $('#images_').on('click', function (e) {
         Structr.activateModule(e, 'images');
     });
 
-    $('#security_').on('click', function(e) {
+    $('#security_').on('click', function (e) {
         Structr.activateModule(e, 'security');
     });
 
-    $('#usernameField').keypress(function(e) {
+    $('#usernameField').keyup(function (e) {
         if (e.which === 13) {
             loginButton.click();
         }
     });
-    $('#passwordField').keypress(function(e) {
+    $('#passwordField').keyup(function (e) {
         if (e.which === 13) {
             loginButton.click();
         }
@@ -153,15 +154,15 @@ $(function() {
 
     // Reset keys in case of window switching
 
-    $(window).blur(function(e) {
+    $(window).blur(function (e) {
         altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
     });
 
-    $(window).focus(function(e) {
+    $(window).focus(function (e) {
         altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
     });
 
-    $(window).keyup(function(e) {
+    $(window).keyup(function (e) {
         var k = e.which;
         if (k === 16)
             shiftKey = false;
@@ -179,7 +180,7 @@ $(function() {
                 var saveBeforeExit = confirm('Save changes?');
                 if (saveBeforeExit) {
                     dialogSaveButton.click();
-                    setTimeout(function() {
+                    setTimeout(function () {
                         if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
                             dialogSaveButton.remove();
                         }
@@ -200,7 +201,7 @@ $(function() {
         return false;
     });
 
-    $(window).on('keydown', function(e) {
+    $(window).on('keydown', function (e) {
         // This hack prevents FF from closing WS connections on ESC
         if (e.keyCode === 27) {
             e.preventDefault();
@@ -216,7 +217,7 @@ $(function() {
             eKey = true;
         if (navigator.platform === 'MacIntel' && k === 91)
             cmdKey = true;
-        if ( (e.ctrlKey && (e.which === 83)) ||  (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83)) ) {
+        if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
             e.preventDefault();
             if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
                 dialogSaveButton.click();
@@ -224,7 +225,7 @@ $(function() {
         }
     });
 
-    $(window).on('resize', function() {
+    $(window).on('resize', function () {
         Structr.resize();
     });
     dmp = new diff_match_patch();
@@ -241,15 +242,15 @@ var Structr = {
     expanded_icon: 'icon/tree_arrow_down.png',
     link_icon: 'icon/link.png',
     key_icon: 'icon/key.png',
-    reconnect: function() {
+    reconnect: function () {
         ws.close();
         log('activating reconnect loop');
-        reconn = window.setInterval(function() {
+        reconn = window.setInterval(function () {
             wsConnect();
         }, 1000);
         log('activated reconnect loop', reconn);
     },
-    init: function() {
+    init: function () {
         log('###################### Initialize UI ####################');
         $('#errorText').empty();
         log('user', user);
@@ -258,12 +259,12 @@ var Structr = {
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
     },
-    ping: function(callback) {
+    ping: function (callback) {
         if (sessionId) {
             sendObj({command: 'PING', sessionId: sessionId}, callback);
         }
     },
-    refreshUi: function() {
+    refreshUi: function () {
         localStorage.setItem(userKey, user);
         $.unblockUI({
             fadeOut: 25
@@ -278,19 +279,19 @@ var Structr = {
             Structr.restoreDialog(dialogData);
         }
     },
-    startPing: function() {
+    startPing: function () {
         log('Starting PING');
         if (!ping) {
-            ping = window.setInterval(function() {
+            ping = window.setInterval(function () {
                 sendObj({command: 'PING', sessionId: sessionId});
             }, 1000);
         }
     },
-    connect: function() {
+    connect: function () {
         log('connect')
         sessionId = $.cookie('JSESSIONID');
         if (!sessionId) {
-            $.get('/').always(function() {
+            $.get('/').always(function () {
                 sessionId = $.cookie('JSESSIONID');
                 wsConnect();
             });
@@ -298,7 +299,7 @@ var Structr = {
             wsConnect();
         }
     },
-    login: function(text) {
+    login: function (text) {
 
         if (!loginBox.is(':visible')) {
 
@@ -325,7 +326,7 @@ var Structr = {
 
         Structr.activateMenuEntry('logout');
     },
-    doLogin: function(username, password) {
+    doLogin: function (username, password) {
         log('doLogin ' + username + ' with ' + password);
         var obj = {};
         obj.command = 'LOGIN';
@@ -336,12 +337,11 @@ var Structr = {
         obj.data = data;
         if (sendObj(obj)) {
             user = username;
-            Structr.restoreLocalStorage();
             return true;
         }
         return false;
     },
-    doLogout: function(text) {
+    doLogout: function (text) {
         Structr.saveLocalStorage();
         log('doLogout ' + user);
         var obj = {};
@@ -361,43 +361,42 @@ var Structr = {
         ws.close();
         return false;
     },
-    loadInitialModule: function() {
+    loadInitialModule: function (isLogin) {
         var browserUrl = window.location.href;
         var anchor = getAnchorFromUrl(browserUrl);
-        log('anchor', anchor);
-
-        lastMenuEntry = ((anchor && anchor !== 'logout') ? anchor : localStorage.getItem(lastMenuEntryKey));
+        lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : localStorage.getItem(lastMenuEntryKey));
         if (!lastMenuEntry) {
-            lastMenuEntry = 'dashboard';
+            lastMenuEntry = localStorage.getItem(lastMenuEntryKey);
         } else {
             log('Last menu entry found: ' + lastMenuEntry);
-            Structr.activateMenuEntry(lastMenuEntry);
-            log(Structr.modules);
-            var module = Structr.modules[lastMenuEntry];
-            if (module) {
-                //module.init();
-                module.onload();
-                if (module.resize)
-                    module.resize();
-            }
+        }
+        log('lastMenuEntry', lastMenuEntry);
+        Structr.activateMenuEntry(lastMenuEntry);
+        log(Structr.modules);
+        var module = Structr.modules[lastMenuEntry];
+        if (module) {
+            //module.init();
+            module.onload();
+            if (module.resize)
+                module.resize();
         }
         Structr.updateVersionInfo();
     },
-    clearMain: function() {
+    clearMain: function () {
         $.ui.ddmanager.droppables.default = [];
         $('iframe').unload();
         main.empty();
     },
-    confirmation: function(text, yesCallback, noCallback) {
+    confirmation: function (text, yesCallback, noCallback) {
         if (text)
             $('#confirmation .confirmationText').html(text);
         if (yesCallback)
-            $('#confirmation .yesButton').on('click', function(e) {
+            $('#confirmation .yesButton').on('click', function (e) {
                 e.stopPropagation();
                 yesCallback();
                 $(this).off('click');
             });
-        $('#confirmation .noButton').on('click', function(e) {
+        $('#confirmation .noButton').on('click', function (e) {
             e.stopPropagation();
             $.unblockUI({
                 fadeOut: 25
@@ -417,13 +416,13 @@ var Structr = {
         });
 
     },
-    saveLocalStorage: function() {
+    saveLocalStorage: function () {
         Command.saveLocalStorage();
     },
-    restoreLocalStorage: function() {
-        Command.getLocalStorage();
+    restoreLocalStorage: function (callback) {
+        Command.getLocalStorage(callback);
     },
-    restoreDialog: function(dialogData) {
+    restoreDialog: function (dialogData) {
         log('restoreDialog', dialogData);
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -463,7 +462,7 @@ var Structr = {
         Structr.resize();
 
     },
-    dialog: function(text, callbackOk, callbackCancel) {
+    dialog: function (text, callbackOk, callbackCancel) {
 
         if (browser) {
 
@@ -479,7 +478,7 @@ var Structr = {
 
             if (callbackCancel) {
                 dialogCancelButton.off('click');
-                dialogCancelButton.on('click', function(e) {
+                dialogCancelButton.on('click', function (e) {
                     e.stopPropagation();
                     callbackCancel();
                     dialogText.empty();
@@ -549,7 +548,7 @@ var Structr = {
 
         }
     },
-    setSize: function(w, h, dw, dh) {
+    setSize: function (w, h, dw, dh) {
 
         var l = parseInt((w - dw) / 2);
         var t = parseInt((h - dh) / 2);
@@ -581,7 +580,7 @@ var Structr = {
             height: (dh - horizontalOffset - 24 - tabsHeight) + 'px'
         });
 
-        $('.CodeMirror').each(function(i, el) {
+        $('.CodeMirror').each(function (i, el) {
             el.CodeMirror.refresh();
         });
 
@@ -590,13 +589,13 @@ var Structr = {
         });
 
     },
-    resize: function(callback) {
+    resize: function (callback) {
 
         // Calculate dimensions of dialog
         Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
 
         $('#minimizeDialog').hide();
-        $('#maximizeDialog').show().on('click', function() {
+        $('#maximizeDialog').show().on('click', function () {
             Structr.maximize();
         });
 
@@ -612,14 +611,14 @@ var Structr = {
         }
 
     },
-    maximize: function() {
+    maximize: function () {
 
         // Calculate dimensions of dialog
         Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
 
         isMax = true;
         $('#maximizeDialog').hide();
-        $('#minimizeDialog').show().on('click', function() {
+        $('#minimizeDialog').show().on('click', function () {
             isMax = false;
             localStorage.removeItem(dialogMaximizedKey);
             Structr.resize();
@@ -628,11 +627,11 @@ var Structr = {
         localStorage.setItem(dialogMaximizedKey, '1');
 
     },
-    error: function(text, callback) {
+    error: function (text, callback) {
         if (text)
             $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
         if (callback)
-            $('#errorBox .closeButton').on('click', function(e) {
+            $('#errorBox .closeButton').on('click', function (e) {
                 e.stopPropagation();
 
                 $.unblockUI({
@@ -649,16 +648,16 @@ var Structr = {
             }
         });
     },
-    errorFromResponse: function(response, url, callback) {
+    errorFromResponse: function (response, url, callback) {
         var errorText = '';
         if (response.errors) {
-            $.each(Object.keys(response.errors), function(i, err) {
+            $.each(Object.keys(response.errors), function (i, err) {
                 errorText += err + ': ';
-                $.each(Object.keys(response.errors[err]), function(j, attr) {
+                $.each(Object.keys(response.errors[err]), function (j, attr) {
                     errorText += attr + ' ';
-                    $.each(response.errors[err][attr], function(k, cond) {
+                    $.each(response.errors[err][attr], function (k, cond) {
                         if (typeof cond === 'object') {
-                            $.each(Object.keys(cond), function(l, key) {
+                            $.each(Object.keys(cond), function (l, key) {
                                 errorText += key + ' ' + cond[key];
                             });
                         } else {
@@ -675,32 +674,32 @@ var Structr = {
         if (callback) {
             callback(errorText);
         } else {
-            Structr.error(errorText, function() {
-            }, function() {
+            Structr.error(errorText, function () {
+            }, function () {
             });
         }
     },
-    loaderIcon: function(element, css) {
-      element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="img/ajax-loader.gif">');
-      var li = $('.loader-icon', element);
-      if (css) {
-          li.css(css);
-      }
-      return li;
+    loaderIcon: function (element, css) {
+        element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="img/ajax-loader.gif">');
+        var li = $('.loader-icon', element);
+        if (css) {
+            li.css(css);
+        }
+        return li;
 
     },
-    tempInfo: function(text, autoclose) {
+    tempInfo: function (text, autoclose) {
         window.clearTimeout(dialogId);
         if (text)
             $('#tempInfoBox .infoHeading').html('<img src="icon/information.png"> ' + text);
         if (autoclose) {
-            dialogId = window.setTimeout(function() {
+            dialogId = window.setTimeout(function () {
                 $.unblockUI({
                     fadeOut: 25
                 });
             }, 3000);
         }
-        $('#tempInfoBox .closeButton').on('click', function(e) {
+        $('#tempInfoBox .closeButton').on('click', function (e) {
             e.stopPropagation();
             window.clearTimeout(dialogId);
             $.unblockUI({
@@ -720,7 +719,7 @@ var Structr = {
             }
         });
     },
-    reconnectDialog: function(text) {
+    reconnectDialog: function (text) {
         if (text) {
             $('#tempErrorBox .errorText').html('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIsSURBVDjLpVNLSJQBEP7+h6uu62vLVAJDW1KQTMrINQ1vPQzq1GOpa9EppGOHLh0kCEKL7JBEhVCHihAsESyJiE4FWShGRmauu7KYiv6Pma+DGoFrBQ7MzGFmPr5vmDFIYj1mr1WYfrHPovA9VVOqbC7e/1rS9ZlrAVDYHig5WB0oPtBI0TNrUiC5yhP9jeF4X8NPcWfopoY48XT39PjjXeF0vWkZqOjd7LJYrmGasHPCCJbHwhS9/F8M4s8baid764Xi0Ilfp5voorpJfn2wwx/r3l77TwZUvR+qajXVn8PnvocYfXYH6k2ioOaCpaIdf11ivDcayyiMVudsOYqFb60gARJYHG9DbqQFmSVNjaO3K2NpAeK90ZCqtgcrjkP9aUCXp0moetDFEeRXnYCKXhm+uTW0CkBFu4JlxzZkFlbASz4CQGQVBFeEwZm8geyiMuRVntzsL3oXV+YMkvjRsydC1U+lhwZsWXgHb+oWVAEzIwvzyVlk5igsi7DymmHlHsFQR50rjl+981Jy1Fw6Gu0ObTtnU+cgs28AKgDiy+Awpj5OACBAhZ/qh2HOo6i+NeA73jUAML4/qWux8mt6NjW1w599CS9xb0mSEqQBEDAtwqALUmBaG5FV3oYPnTHMjAwetlWksyByaukxQg2wQ9FlccaK/OXA3/uAEUDp3rNIDQ1ctSk6kHh1/jRFoaL4M4snEMeD73gQx4M4PsT1IZ5AfYH68tZY7zv/ApRMY9mnuVMvAAAAAElFTkSuQmCC"> ' + text);
         }
@@ -744,29 +743,28 @@ var Structr = {
             Structr.modules[name].onload();
         }
     },
-    activateMenuEntry: function(name) {
+    activateMenuEntry: function (name) {
         lastMenuEntry = name;
-        $('.menu a').each(function(i, v) {
+        $('.menu a').each(function (i, v) {
             $(this).removeClass('active').addClass('inactive');
         });
         var menuEntry = $('#' + name + '_');
         menuEntry.addClass('active').removeClass('inactive');
         $('#title').text('Structr ' + menuEntry.text());
-
+        window.location.hash = lastMenuEntry;
         if (lastMenuEntry && lastMenuEntry !== 'logout') {
-
             localStorage.setItem(lastMenuEntryKey, lastMenuEntry);
         }
     },
-    registerModule: function(name, module) {
+    registerModule: function (name, module) {
         Structr.modules[name] = module;
         log('Module ' + name + ' registered');
     },
-    containsNodes: function(element) {
+    containsNodes: function (element) {
         log(element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
         return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
     },
-    numberOfNodes: function(element, excludeId) {
+    numberOfNodes: function (element, excludeId) {
         var childNodes = $(element).children('.node');
         if (excludeId) {
             childNodes = childNodes.not('.' + excludeId + '_');
@@ -776,7 +774,7 @@ var Structr = {
         log('number of nodes in element', element, n);
         return n;
     },
-    findParent: function(parentId, componentId, pageId, defaultElement) {
+    findParent: function (parentId, componentId, pageId, defaultElement) {
         var parent = Structr.node(parentId, null, componentId, pageId);
         log('findParent', parentId, componentId, pageId, defaultElement, parent);
         log('findParent: parent element from Structr.node: ', parent);
@@ -785,23 +783,23 @@ var Structr = {
         log('findParent: final parent element: ', parent);
         return parent;
     },
-    parent: function(id) {
+    parent: function (id) {
         return Structr.node(id) && Structr.node(id).parent().closest('.node');
     },
-    node: function(id, prefix) {
+    node: function (id, prefix) {
         var p = prefix || '#id_';
         var node = $($(p + id)[0]);
         return node.length ? node : undefined;
     },
-    entity: function(id, parentId) {
+    entity: function (id, parentId) {
         var entityElement = Structr.node(id, parentId);
         var entity = Structr.entityFromElement(entityElement);
         return entity;
     },
-    getClass: function(el) {
+    getClass: function (el) {
         var c;
         log(Structr.classes);
-        $(Structr.classes).each(function(i, cls) {
+        $(Structr.classes).each(function (i, cls) {
             log('testing class', cls);
             if (el && el.hasClass(cls)) {
                 c = cls;
@@ -810,7 +808,7 @@ var Structr = {
         });
         return c;
     },
-    entityFromElement: function(element) {
+    entityFromElement: function (element) {
         log(element);
 
         var entity = {};
@@ -834,7 +832,7 @@ var Structr = {
 
         return entity;
     },
-    initPager: function(type, p, ps, sort, order) {
+    initPager: function (type, p, ps, sort, order) {
         var pagerData = localStorage.getItem(pagerDataKey + type);
         if (!pagerData) {
             page[type] = parseInt(p);
@@ -846,7 +844,7 @@ var Structr = {
             Structr.restorePagerData(type, p, ps, sort, order);
         }
     },
-    updatePager: function(type, el) {
+    updatePager: function (type, el) {
         if (!type)
             return;
 
@@ -878,12 +876,12 @@ var Structr = {
             Structr.storePagerData(type, page[type], pageSize[type], sortKey[type], sortOrder[type]);
         }
     },
-    storePagerData: function(type, page, pageSize, sort, order) {
+    storePagerData: function (type, page, pageSize, sort, order) {
         if (page && pageSize && sort && order) {
             localStorage.setItem(pagerDataKey + type, page + ',' + pageSize + ',' + sort + ',' + order);
         }
     },
-    restorePagerData: function(type) {
+    restorePagerData: function (type) {
         var pagerData = localStorage.getItem(pagerDataKey + type);
         if (pagerData) {
             var pagerData = pagerData.split(',');
@@ -905,10 +903,10 @@ var Structr = {
      * If the optional callback function is given, it will be executed
      * instead of the default action.
      */
-    addPager: function(el, rootOnly, type, callback) {
+    addPager: function (el, rootOnly, type, callback) {
         log('addPager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
         if (!callback) {
-            callback = function(entity) {
+            callback = function (entity) {
                 StructrModel.create(entity);
             }
         }
@@ -927,7 +925,7 @@ var Structr = {
         var pageForm = $('.page', pager);
         var pageSizeForm = $('.pageSize', pager);
 
-        pageSizeForm.on('keypress', function(e) {
+        pageSizeForm.on('keypress', function (e) {
             if (e.keyCode === 13) {
                 pageSize[type] = $(this).val();
                 pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
@@ -943,7 +941,7 @@ var Structr = {
             }
         });
 
-        pageForm.on('keypress', function(e) {
+        pageForm.on('keypress', function (e) {
             if (e.keyCode === 13) {
                 page[type] = $(this).val();
                 $('.page', pager).val(page[type]);
@@ -955,7 +953,7 @@ var Structr = {
             }
         });
 
-        pageLeft.on('click', function(e) {
+        pageLeft.on('click', function (e) {
             e.stopPropagation();
             pageRight.removeAttr('disabled').removeClass('disabled');
             page[type]--;
@@ -968,7 +966,7 @@ var Structr = {
             Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
         });
 
-        pageRight.on('click', function() {
+        pageRight.on('click', function () {
             pageLeft.removeAttr('disabled').removeClass('disabled');
             page[type]++;
             $('.page', pager).val(page[type]);
@@ -981,7 +979,7 @@ var Structr = {
         });
         return Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
     },
-    makePagesMenuDroppable: function() {
+    makePagesMenuDroppable: function () {
 
         try {
             $('#pages_').droppable('destroy');
@@ -994,7 +992,7 @@ var Structr = {
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
-            over: function(e, ui) {
+            over: function (e, ui) {
 
                 e.stopPropagation();
                 $('#pages_').droppable('disable');
@@ -1018,7 +1016,7 @@ var Structr = {
         });
         $('#pages_').removeClass('nodeHover').droppable('enable');
     },
-    openSlideOut: function(slideout, tab, activeTabKey, callback) {
+    openSlideOut: function (slideout, tab, activeTabKey, callback) {
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
@@ -1029,9 +1027,9 @@ var Structr = {
         }
         _Pages.resize(0, rsw);
     },
-    closeSlideOuts: function(slideouts, activeTabKey) {
+    closeSlideOuts: function (slideouts, activeTabKey) {
         var wasOpen = false;
-        slideouts.forEach(function(w) {
+        slideouts.forEach(function (w) {
             var s = $(w);
             var l = s.position().left;
             if (Math.abs(l - $(window).width()) >= 3) {
@@ -1045,7 +1043,7 @@ var Structr = {
         }
         localStorage.removeItem(activeTabKey);
     },
-    openLeftSlideOut: function(slideout, tab, activeTabKey, callback) {
+    openLeftSlideOut: function (slideout, tab, activeTabKey, callback) {
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
@@ -1058,30 +1056,30 @@ var Structr = {
         _Pages.resize(sw, 0);
         t.draggable({
             axis: 'x',
-            start: function(e, ui) {
+            start: function (e, ui) {
                 $(this).addClass('noclick');
             },
-            drag: function(e, ui) {
+            drag: function (e, ui) {
                 var w = ui.position.left - 12;
                 slideout.css({
                     width: w + 'px',
                 });
-                ui.position.top += (ui.helper.width()/2-6);
-                ui.position.left -= (ui.helper.width()/2-6);
+                ui.position.top += (ui.helper.width() / 2 - 6);
+                ui.position.left -= (ui.helper.width() / 2 - 6);
                 var oldLsw = sw;
                 sw = w + 12;
-                $('.node.page', slideout).width(w-13);
-                _Pages.resize(sw-oldLsw, 0);
+                $('.node.page', slideout).width(w - 13);
+                _Pages.resize(sw - oldLsw, 0);
             },
-            stop: function(e, ui) {
+            stop: function (e, ui) {
                 localStorage.setItem(leftSlideoutWidthKey, slideout.width());
             }
         });
     },
-    closeLeftSlideOuts: function(slideouts, activeTabKey) {
+    closeLeftSlideOuts: function (slideouts, activeTabKey) {
         var wasOpen = false;
         var osw;
-        slideouts.forEach(function(w) {
+        slideouts.forEach(function (w) {
             var s = $(w);
             var l = s.position().left;
             var sw = s.width() + 12;
@@ -1097,13 +1095,13 @@ var Structr = {
         }
         localStorage.removeItem(activeTabKey);
     },
-    pushDialog: function(id, recursive) {
+    pushDialog: function (id, recursive) {
 
         var obj = StructrModel.obj(id);
 
-        Structr.dialog('Push node to remote server', function() {
+        Structr.dialog('Push node to remote server', function () {
         },
-                function() {
+                function () {
                 });
 
         var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
@@ -1118,7 +1116,7 @@ var Structr = {
                 + '</table>'
                 + '<button id="start-push">Start</button>');
 
-        $('#start-push', dialog).on('click', function() {
+        $('#start-push', dialog).on('click', function () {
             var host = $('#push-host', dialog).val();
             var port = parseInt($('#push-port', dialog).val());
             var username = $('#push-username', dialog).val();
@@ -1128,7 +1126,7 @@ var Structr = {
             pushConf = {host: host, port: port, username: username, password: password};
             localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
 
-            Command.push(obj.id, host, port, username, password, key, recursive, function() {
+            Command.push(obj.id, host, port, username, password, key, recursive, function () {
                 dialog.empty();
                 dialogCancelButton.click();
             })
@@ -1136,11 +1134,11 @@ var Structr = {
 
         return false;
     },
-    pullDialog: function(type) {
+    pullDialog: function (type) {
 
-        Structr.dialog('Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server', function() {
+        Structr.dialog('Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server', function () {
         },
-                function() {
+                function () {
                 });
 
         var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
@@ -1154,9 +1152,9 @@ var Structr = {
                 + '<button id="show-syncables">Show available entities</button>'
                 + '<table id="syncables" class="props push"><tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>'
                 + '</table>'
-        );
+                );
 
-        $('#show-syncables', dialog).on('click', function() {
+        $('#show-syncables', dialog).on('click', function () {
 
             var syncables = $("#syncables");
             var host = $('#push-host', dialog).val();
@@ -1171,18 +1169,18 @@ var Structr = {
             syncables.empty();
             syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
 
-            Command.listSyncables(host, port, username, password, key, type, function(syncable) {
+            Command.listSyncables(host, port, username, password, key, type, function (syncable) {
 
                 syncables.append(
-                      '<tr>'
-                    + '<td>' + syncable.name + '</td>'
-                    + '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
-                    + '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
-                    + '<td>' + syncable.type + '</td>'
-                    + '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
-                    + '<td><button id="pull-' + syncable.id + '"></td>'
-                    + '</tr>'
-                );
+                        '<tr>'
+                        + '<td>' + syncable.name + '</td>'
+                        + '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
+                        + '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
+                        + '<td>' + syncable.type + '</td>'
+                        + '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
+                        + '<td><button id="pull-' + syncable.id + '"></td>'
+                        + '</tr>'
+                        );
 
                 var syncButton = $('#pull-' + syncable.id, dialog);
 
@@ -1194,13 +1192,13 @@ var Structr = {
                     syncButton.append('<img src="icon/page_white_put.png" title="Import" alt="Import"> Import');
                 }
 
-                syncButton.on('click', function() {
+                syncButton.on('click', function () {
 
                     syncButton.empty();
                     syncButton.append('Importing..');
 
                     var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
-                    Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
+                    Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function () {
                         // update table cell..
                         syncButton.empty();
                         syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
@@ -1211,13 +1209,13 @@ var Structr = {
 
         return false;
     },
-    ensureIsAdmin: function(el, callback) {
+    ensureIsAdmin: function (el, callback) {
 
-        Structr.ping(function() {
+        Structr.ping(function () {
 
             if (!isAdmin) {
 
-                Structr.error('You do not have sufficient permissions<br>to access this function.', function() {
+                Structr.error('You do not have sufficient permissions<br>to access this function.', function () {
                     return;
                 });
 
@@ -1225,7 +1223,8 @@ var Structr = {
 
             } else {
 
-                if (callback) callback();
+                if (callback)
+                    callback();
 
             }
         });
@@ -1247,7 +1246,7 @@ var Structr = {
 
 function getElementPath(element) {
     var i = -1;
-    return $(element).parents('.node').andSelf().map(function() {
+    return $(element).parents('.node').andSelf().map(function () {
         i++;
         var self = $(this);
         // id for top-level element
@@ -1377,7 +1376,7 @@ function setPosition(parentId, nodeUrl, pos) {
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
         data: JSON.stringify(toPut),
-        success: function(data) {
+        success: function (data) {
             //appendElement(parentId, elementId, data);
         }
     });
@@ -1404,7 +1403,7 @@ function getActiveElementId(element) {
     return getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 }
 
-$(window).unload(function() {
+$(window).unload(function () {
     log('########################################### unload #####################################################');
     // Remove dialog data in case of page reload
     localStorage.removeItem(dialogDataKey);

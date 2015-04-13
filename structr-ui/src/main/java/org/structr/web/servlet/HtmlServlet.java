@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -93,13 +93,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
+	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
 	public static final String POSSIBLE_ENTRY_POINTS_KEY = "possibleEntryPoints";
-	public static final String DOWNLOAD_AS_FILENAME_KEY = "filename";
-	public static final String DOWNLOAD_AS_DATA_URL_KEY = "as-data-url";
-	public static final String CONFIRM_KEY_KEY = "key";
-	public static final String TARGET_PAGE_KEY = "target";
-	public static final String ERROR_PAGE_KEY = "onerror";
-	public static final String LOCALE_KEY = "locale";
+	public static final String DOWNLOAD_AS_FILENAME_KEY  = "filename";
+	public static final String DOWNLOAD_AS_DATA_URL_KEY  = "as-data-url";
+	public static final String CONFIRM_KEY_KEY           = "key";
+	public static final String TARGET_PAGE_KEY           = "target";
+	public static final String ERROR_PAGE_KEY            = "onerror";
+	public static final String LOCALE_KEY                = "locale";
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
@@ -130,6 +131,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			// check for registration (has its own tx because of write access
 			if (checkRegistration(auth, request, response, path)) {
+
+				return;
+			}
+
+			// check for registration (has its own tx because of write access
+			if (checkResetPassword(auth, request, response, path)) {
 
 				return;
 			}
@@ -970,6 +977,67 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return false;
 	}
 
+	/**
+	 * This method checks if the current request to reset a user password
+	 *
+	 * @param request
+	 * @param response
+	 * @param path
+	 * @return true if the registration was successful
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	private boolean checkResetPassword(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
+
+		logger.log(Level.FINE, "Checking registration ...");
+
+		String key = request.getParameter(CONFIRM_KEY_KEY);
+
+		if (StringUtils.isEmpty(key)) {
+			return false;
+		}
+
+		final String targetPage = request.getParameter(TARGET_PAGE_KEY);
+
+		if (RESET_PASSWORD_PAGE.equals(path)) {
+
+			final App app = StructrApp.getInstance();
+
+			Result<Principal> results;
+			try (final Tx tx = app.tx()) {
+
+				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();
+			}
+
+			if (!results.isEmpty()) {
+
+				final Principal user = results.get(0);
+
+				try (final Tx tx = app.tx()) {
+
+					// Clear confirmation key and set session id
+					user.setProperty(User.confirmationKey, null);
+
+					if (auth.getUserAutoLogin()){
+
+						AuthHelper.doLogin(request, user);
+					}
+
+					tx.success();
+				}
+			}
+
+			// Redirect to target page
+			if (StringUtils.isNotBlank(targetPage)) {
+				response.sendRedirect(targetPage);
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+	
 	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, final HttpServletRequest request, final String uuid) throws FrameworkException {
 
 		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);

@@ -132,6 +132,7 @@ function wsConnect() {
 
             if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
 
+                log('user, oldUser', user, oldUser);
                 user = data.data.username;
                 isAdmin = data.data.isAdmin;
                 var oldUser = localStorage.getItem(userKey);
@@ -144,7 +145,11 @@ function wsConnect() {
                     Structr.login(msg);
                 } else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
                     loginBox.hide();
-                    Structr.refreshUi();
+                    Structr.restoreLocalStorage(function() {
+                        if (!lastMenuEntry || command === 'LOGIN') {
+                            Structr.refreshUi();
+                        }
+                    });
                 }
 
                 StructrModel.callCallback(data.callback, data.data[data.data['key']]);
@@ -162,6 +167,9 @@ function wsConnect() {
                 Object.keys(localStorageData).forEach(function(key) {
                     localStorage.setItem(key, localStorageData[key]);
                 });
+
+                StructrModel.callCallback(data.callback, data.data[data.data['key']]);
+                StructrModel.clearCallback(data.callback);
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
 
