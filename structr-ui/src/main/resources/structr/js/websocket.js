@@ -145,6 +145,9 @@ function wsConnect() {
                     Structr.login(msg);
                 } else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
                     loginBox.hide();
+                    loginBox.find('#usernameField').val('');
+                    loginBox.find('#passwordField').val('');
+                    loginBox.find('#errorText').empty();
                     Structr.restoreLocalStorage(function() {
                         if (!lastMenuEntry || command === 'LOGIN') {
                             Structr.refreshUi();
