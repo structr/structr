@@ -1649,7 +1649,7 @@ var _Crud = {
         cell.off('mouseup');
         var input;
         var oldValue = cell.text();
-        cell.empty().append('<select>');
+        cell.empty().append('<select name="' + key + '">');
         input = $('select', cell);
         input.focus();
         var values = format.split(',');
