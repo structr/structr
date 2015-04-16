@@ -17,12 +17,6 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**************** config parameter **********************************/
-var rootUrl = '/structr/rest/';
-var viewRootUrl = '/';
-var wsRoot = '/structr/ws';
-/********************************************************************/
-
 var header, main, footer;
 var debug = false;
 var sessionId, user;
@@ -94,6 +88,10 @@ $(function () {
 
     $('#dashboard_').on('click', function (e) {
         Structr.activateModule(e, 'dashboard');
+    });
+
+    $('#graph_').on('click', function (e) {
+        Structr.activateModule(e, 'graph');
     });
 
     $('#pages_').on('click', function (e) {
@@ -258,6 +256,9 @@ var Structr = {
         Structr.startPing();
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
+        window.onbeforeunload = function() {
+            Structr.saveLocalStorage();
+        }
     },
     ping: function (callback) {
         if (sessionId) {
@@ -265,7 +266,9 @@ var Structr = {
         }
     },
     refreshUi: function () {
-        localStorage.setItem(userKey, user);
+        if (user) {
+            localStorage.setItem(userKey, user);
+        }
         $.unblockUI({
             fadeOut: 25
         });
@@ -361,7 +364,7 @@ var Structr = {
         ws.close();
         return false;
     },
-    loadInitialModule: function (isLogin) {
+    loadInitialModule: function (isLogin) { 
         var browserUrl = window.location.href;
         var anchor = getAnchorFromUrl(browserUrl);
         lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : localStorage.getItem(lastMenuEntryKey));
@@ -736,7 +739,6 @@ var Structr = {
     },
     activateModule: function (event, name) {
         event.stopPropagation();
-
         if (localStorage.getItem(lastMenuEntryKey) !== name || main.children().length === 0) {
             Structr.clearMain();
             Structr.activateMenuEntry(name);

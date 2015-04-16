@@ -964,7 +964,7 @@ function StructrSearchResult(data) {
 //}
 //
 StructrSearchResult.prototype.append = function() {
-    _Dashboard.appendObj(this);
+    _Graph.appendObj(this);
 }
 
 
