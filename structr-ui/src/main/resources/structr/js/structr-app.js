@@ -244,6 +244,7 @@ function StructrApp(baseUrl) {
                 var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
                 sel.append('<option></option>');
                 $.each(f.format.split(','), function(i, o) {
+                    o = o.trim();
                     sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
                 });
                 sel.addClass(f.class);
