@@ -59,8 +59,9 @@ public class FrontendTest extends StructrUiTest {
 			// Workaround to remove local storage, as phantomjs is pretty buggy here.
 			// Currently, phantomjs doesn't allow localStorage to be modified remotely,
 			// and the --local-storage-path parameter is ignored.
-			String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
-			//String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --debug test " + testName + ".js"};
+			//String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
+			String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
+			//String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --debug test " + testName + ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);
 			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
@@ -95,10 +96,6 @@ public class FrontendTest extends StructrUiTest {
 
 	}
 
-	@Override
-	public void test00() {
-	}
-
 	private void makeVideo(final String testName) throws IOException {
 		String[] args = {"/bin/sh", "-c", "cd ../docs/screenshots &&  avconv -y -r 25 -i " + testName + "/%04d.png -qscale 1 " + testName + ".avi"};
 		Process proc = Runtime.getRuntime().exec(args);
@@ -116,6 +113,7 @@ public class FrontendTest extends StructrUiTest {
 		properties.put(User.name, "admin");
 		properties.put(User.password, "admin");
 		properties.put(User.isAdmin, true);
+		properties.put(User.backendUser, true);
 
 		try (final Tx tx = app.tx()) {
 

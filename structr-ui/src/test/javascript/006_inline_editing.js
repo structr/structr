@@ -46,7 +46,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.then(function() {
         s.moveMousePointer(casper, {left: 73, top: 78}, {left: 45, top: 185});
-        //s.moveMousePointerTo(this, 'body div:nth-child(2) span');
+        //s.moveMousePointerTo(this, 'body div:nth-child(2) div');
     });
 
 
@@ -55,16 +55,16 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.clickInIframe(this, 'body div:nth-child(2) span');
+        s.clickInIframe(this, 'body div:nth-child(2) div');
     });
 
-    casper.wait(2000);
+    casper.wait(1000);
 
     var text = 'Some more text';
     var result = text + 'Initial body text';
 
     casper.then(function() {
-        s.animatedType(this, 'body div:nth-child(2) span', true, text, true);
+        s.animatedType(this, 'body div:nth-child(2) div', true, text, true);
     });
 
     casper.then(function() {
@@ -75,13 +75,15 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('iframe');
     });
 
-    casper.wait(2000);
+    casper.wait(1000);
 
     casper.then(function() {
         test.assertEval(function(r) {
-            return ($('#pages .node.page .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(0) .content_').text() === r);
+            return ($('#pages .node.page .html_element > div.node:eq(1) > div.node:eq(1) > div:eq(0) .content_').text() === r);
         }, '', result);
     });
+
+    casper.wait(1000);
 
     casper.then(function() {
         s.animateHtml(testName, heading, sections);

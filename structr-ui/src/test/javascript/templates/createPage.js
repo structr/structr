@@ -22,6 +22,14 @@
     // TODO: make sure current active page is pages-tab
     //test.assertEval(function() { return ($('#pages').hasClass('active')); });
     sections.push('A new page has been created. The page is automatically loaded into the preview window.');
+
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#pages_');
+    });
+
+    casper.then(function() {
+        this.click('#pages_');
+    });
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
@@ -31,8 +39,7 @@
         this.click('#add_page');
     });
 
-    casper.wait(5000);
-    //casper.waitForSelector('#previewTabs li:nth-child(2)');
+    casper.wait(1000);
 
     if (name) {
 
@@ -44,11 +51,10 @@
             this.click('#previewTabs li:nth-child(3)');
         });
 
-        casper.wait(2000);
+        casper.wait(1000);
 
         casper.then(function() {
             s.animatedType(this, '#previewTabs li:nth-child(3) .new-name', false, name, true);
-            //s.animatedType(this, '#previewTabs .page .name_', false, name, true);
         });
 
         casper.wait(2000);

@@ -206,9 +206,6 @@ public class StructrUiTest extends TestCase {
 
 	}
 
-	public void test00() {
-	}
-
 	@Override
 	protected void tearDown() throws Exception {
 
