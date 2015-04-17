@@ -37,7 +37,7 @@ import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
  *
  * @author Axel Morgner
  */
-public class FrontendTest extends StructrUiTest {
+public abstract class FrontendTest extends StructrUiTest {
 
 	private static final Logger logger = Logger.getLogger(FrontendTest.class.getName());
 

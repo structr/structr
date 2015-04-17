@@ -45,7 +45,7 @@ import org.structr.web.entity.User;
  *
  * @author Axel Morgner
  */
-public class FtpTest extends StructrUiTest {
+public abstract class FtpTest extends StructrUiTest {
 
 	private static final Logger logger = Logger.getLogger(FtpTest.class.getName());
 
