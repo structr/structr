@@ -18,6 +18,7 @@
  */
 
 var dashboard;
+var aboutMe;
 
 $(document).ready(function() {
     Structr.registerModule('dashboard', _Dashboard);
@@ -37,11 +38,9 @@ var _Dashboard = {
         main.append('<div id="dashboard"></div>');
         dashboard = $('#dashboard', main);
         
-        var aboutMe = _Dashboard.appendBox('About Me', 'about-me');
+        aboutMe = _Dashboard.appendBox('About Me', 'about-me');
         aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
-        if (me.isAdmin) {
-            aboutMe.append('<div class="dashboard-info red">Your have admin rights.</div>');
-        }
+        this.checkAdmin();
         
         var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
         myPages.append('<div class="dashboard-info">You own the following <a href="/structr/#pages">pages</a>:</div>');
@@ -65,6 +64,10 @@ var _Dashboard = {
     appendBox: function(heading, id) {
         dashboard.append('<div id="' + id + '" class="dashboard-box"><div class="dashboard-header"><h2>' + heading + '</h2></div></div>');
         return $('#' + id, main);
+    },
+    checkAdmin: function() {
+        if (me.isAdmin && aboutMe.find('admin').length == 0) {
+            aboutMe.append('<div class="dashboard-info admin red">You have admin rights.</div>');
+        }
     }
 };
-

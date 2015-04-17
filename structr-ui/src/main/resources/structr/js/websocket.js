@@ -137,6 +137,7 @@ function wsConnect() {
 
                 log('user, oldUser', user, oldUser);
                 me = data.data;
+                _Dashboard.checkAdmin();
                 user = data.data.username;
                 isAdmin = data.data.isAdmin;
                 var oldUser = localStorage.getItem(userKey);
