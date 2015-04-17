@@ -69,7 +69,9 @@ public class StringArrayPropertyParser extends PropertySourceGenerator {
 			return;
 		}
 
-		setLocalValidator(", new SimpleRegexValidator(\""  + expression + "\")");
+		// ArrayProperty cannot have validator here because the validator
+		// doesn't support array types
+		// setLocalValidator(", new SimpleRegexValidator(\""  + expression + "\")");
 	}
 
 	@Override
