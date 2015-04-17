@@ -41,6 +41,14 @@ casper.test.begin(testName, numberOfTests, function(test) {
     login.init(test, 'admin', 'admin');
     
     casper.then(function() {
+        s.moveMousePointerTo(casper, '#security_');
+    });
+
+    casper.then(function() {
+        this.click('#security_');
+    });
+
+    casper.then(function() {
         s.moveMousePointerTo(casper, '#usersAndGroups_');
     });
 

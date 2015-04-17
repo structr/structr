@@ -17,6 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var dashboard;
 
 $(document).ready(function() {
     Structr.registerModule('dashboard', _Dashboard);
@@ -32,6 +33,9 @@ var _Dashboard = {
     onload: function() {
         _Dashboard.init();
         $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Dashboard');
+        
+        main.append('<div id="dashboard"></div>');
+        dashboard = $('#dashboard', main);
         
         var aboutMe = _Dashboard.appendBox('About Me', 'about-me');
         aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
@@ -59,7 +63,7 @@ var _Dashboard = {
 
     },
     appendBox: function(heading, id) {
-        main.append('<div id="' + id + '" class="dashboard-box"><div class="dashboard-header"><h2>' + heading + '</h2></div></div>');
+        dashboard.append('<div id="' + id + '" class="dashboard-box"><div class="dashboard-header"><h2>' + heading + '</h2></div></div>');
         return $('#' + id, main);
     }
 };

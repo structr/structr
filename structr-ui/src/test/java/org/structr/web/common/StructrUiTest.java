@@ -67,7 +67,7 @@ import org.structr.websocket.servlet.WebSocketServlet;
  *
  * @author Axel Morgner
  */
-public class StructrUiTest extends TestCase {
+public abstract class StructrUiTest extends TestCase {
 
 	private static final Logger logger = Logger.getLogger(StructrUiTest.class.getName());
 
@@ -204,9 +204,6 @@ public class StructrUiTest extends TestCase {
 
 		graphDbCommand = app.command(GraphDatabaseCommand.class);
 
-	}
-
-	public void test00() {
 	}
 
 	@Override

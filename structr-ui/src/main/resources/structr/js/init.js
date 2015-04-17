@@ -369,7 +369,7 @@ var Structr = {
         var anchor = getAnchorFromUrl(browserUrl);
         lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : localStorage.getItem(lastMenuEntryKey));
         if (!lastMenuEntry) {
-            lastMenuEntry = localStorage.getItem(lastMenuEntryKey);
+            lastMenuEntry = localStorage.getItem(lastMenuEntryKey) || 'dashboard';
         } else {
             log('Last menu entry found: ' + lastMenuEntry);
         }

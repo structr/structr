@@ -169,11 +169,15 @@ function wsConnect() {
                 Structr.login();
 
             } else if (command === 'GET_LOCAL_STORAGE') { /*********************** GET_LOCAL_STORAGE ************************/
+                
+                var localStorageString = data.data.localStorageString;
 
-                var localStorageData = JSON.parse(data.data.localStorageString);
-                Object.keys(localStorageData).forEach(function (key) {
-                    localStorage.setItem(key, localStorageData[key]);
-                });
+                if (localStorageString && localStorageString.length) {
+                    var localStorageData = JSON.parse(data.data.localStorageString);
+                    Object.keys(localStorageData).forEach(function (key) {
+                        localStorage.setItem(key, localStorageData[key]);
+                    });
+                }
 
                 StructrModel.callCallback(data.callback, data.data[data.data['key']]);
                 StructrModel.clearCallback(data.callback);

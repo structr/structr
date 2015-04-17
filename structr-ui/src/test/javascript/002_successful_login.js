@@ -53,12 +53,9 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#loginButton');
     });
 
-    casper.waitForSelector('#errorText', function() {
-
-        //test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
-
-        test.assertEval(function() { return $('#pages').is(':visible'); });
-
+    casper.waitForSelector('#dashboard', function() {
+        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
+        test.assertEval(function() { return $('#dashboard').is(':visible'); });
     });
 
     casper.then(function() {
