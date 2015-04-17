@@ -30,7 +30,7 @@ import org.w3c.dom.Node;
  * @author Christian Morgner
  */
 
-public class DOMTest extends StructrUiTest {
+public abstract class DOMTest extends StructrUiTest {
 	
 	protected Document getDocument() {
 		
