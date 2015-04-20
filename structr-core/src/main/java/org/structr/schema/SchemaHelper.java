@@ -447,6 +447,12 @@ public class SchemaHelper {
 								propertyName = propertyName.substring(1);
 							}
 
+							// remove "Property" suffix in views where people needed to
+							// append this as a workaround to include remote properties
+							if (propertyName.endsWith("Property")) {
+								propertyName = propertyName.substring(0, propertyName.length() - "Property".length());
+							}
+
 							final SchemaProperty propertyNode = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
 							if (propertyNode != null) {
 

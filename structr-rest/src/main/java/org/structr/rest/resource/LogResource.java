@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -467,8 +468,8 @@ public class LogResource extends Resource {
 
 			} else {
 
-				// action present or matching?
-				if (state.correlates(pathSubjectId, pathObjectId, entryMessage)) {
+				// passes filter? action present or matching?
+				if (state.passesFilter(entryMessage) && state.correlates(pathSubjectId, pathObjectId, entryMessage)) {
 
 					final Map<String, Object> map = new HashMap<>();
 
@@ -880,6 +881,7 @@ public class LogResource extends Resource {
 		private final List<Map<String, Object>> entries        = new LinkedList<>();
 		private final Map<String, LinkedList<LogEvent>> correlations         = new ConcurrentHashMap<>();
 		private final Map<String, Integer> actions             = new HashMap<>();
+		
 		private long beginTimestamp                            = Long.MAX_VALUE;
 		private long endTimestamp                              = 0L;
 		private String logAction                               = null;
@@ -890,6 +892,7 @@ public class LogResource extends Resource {
 		private String correlationAction                       = null;
 		private String correlationOp                           = null;
 		private Pattern correlationPattern                     = null;
+		private String[] filters                               = null;
 		private boolean inverse                                = false;
 		private boolean overview                               = false;
 		private Range range                                    = null;
@@ -899,12 +902,13 @@ public class LogResource extends Resource {
 		public LogState(final HttpServletRequest request) {
 
 			aggregationPatterns.putAll(getAggregationPatterns(request));
-
+			
 			this.logAction  = request.getParameter(actionProperty.jsonName());
 			this.aggregate  = request.getParameter("aggregate");
 			this.histogram  = request.getParameter("histogram");
 			this.correlate  = request.getParameter("correlate");
 			this.multiplier = request.getParameter("multiplier");
+			this.filters    = getFilterPatterns(request);
 			this.range      = getRange(request);
 
 			if (StringUtils.isNotBlank(correlate)) {
@@ -1038,6 +1042,24 @@ public class LogResource extends Resource {
 			return aggregate;
 		}
 
+		public boolean passesFilter(final String message) {
+			
+			if (filters == null) {
+				return true;
+			}
+			
+			boolean passes = true;
+			
+			for (final String filter : filters) {
+
+				passes &= Pattern.compile(filter).matcher(message).matches();
+				
+			}
+			
+			return passes;
+			
+		}
+		
 		public boolean correlates(final String pathSubjectId, final String pathObjectId, final String message) {
 
 			if (correlations.isEmpty()) {
@@ -1211,6 +1233,16 @@ public class LogResource extends Resource {
 			}
 
 			return patterns;
+		}
+
+		private String[] getFilterPatterns(final HttpServletRequest request) {
+			
+			final String filterString = request.getParameter("filters");
+			if (StringUtils.isNotBlank(filterString)) {
+				return filterString.split(CORRELATION_SEPARATOR);
+			}
+			
+			return null;
 		}
 	}
 

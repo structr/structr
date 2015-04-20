@@ -74,12 +74,12 @@ public class DatePropertyParser extends PropertySourceGenerator {
 
 		if (expression != null) {
 
-			if (expression.isEmpty()) {
-				reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_date_pattern", "Empty date pattern."));
-				return;
+			if (!expression.isEmpty()) {
+
+				pattern = expression;
+
 			}
 
-			pattern = expression;
 		}
 	}
 

@@ -28,7 +28,9 @@ import java.util.*;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -70,10 +72,14 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 				if (schemaObject != null) {
 
 					final ConfigurationProvider config = StructrApp.getConfiguration();
-					final String typeName              = schemaObject.getProperty(AbstractNode.name);
+					String typeName              = schemaObject.getProperty(AbstractNode.name);
+					
+					if (typeName == null && schemaObject instanceof SchemaRelationshipNode) {
+						typeName = ((SchemaRelationshipNode) schemaObject).getClassName();
+					}
 
 					Class type = config.getNodeEntityClass(typeName);
-					if (type == null) {
+					if (type == null || GenericNode.class.equals(type)) {
 
 						type = config.getRelationshipEntityClass(typeName);
 					}

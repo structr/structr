@@ -19,9 +19,8 @@
 
 var ws;
 var loggedIn = false, isAdmin = false;
-var user;
+var user, me;
 var reconn, ping;
-var port = document.location.port;
 
 var rawResultCount = [];
 var pageCount = [];
@@ -30,9 +29,13 @@ var pageSize = 25;
 var sort = 'name';
 var order = 'asc';
 
-var userKey = 'structrUser_' + port;
-
 var footer = $('#footer');
+
+var rootUrl = '/structr/rest/';
+var viewRootUrl = '/';
+var wsRoot = '/structr/ws';
+var port = document.location.port;
+var userKey = 'structrUser_' + port;
 
 function wsConnect() {
 
@@ -69,7 +72,7 @@ function wsConnect() {
 
         log('WebSocket.readyState: ' + ws.readyState, ws);
 
-        ws.onopen = function() {
+        ws.onopen = function () {
 
             log('############### WebSocket onopen ###############');
 
@@ -87,7 +90,7 @@ function wsConnect() {
 
         }
 
-        ws.onclose = function() {
+        ws.onclose = function () {
 
             log('############### WebSocket onclose ###############', reconn);
 
@@ -97,7 +100,7 @@ function wsConnect() {
             }
 
             // Delay reconnect dialog to prevent it popping up before page reload
-            window.setTimeout(function() {
+            window.setTimeout(function () {
 
                 main.empty();
                 //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
@@ -115,7 +118,7 @@ function wsConnect() {
 
         }
 
-        ws.onmessage = function(message) {
+        ws.onmessage = function (message) {
 
             var data = $.parseJSON(message.data);
             log('ws.onmessage:', data);
@@ -133,6 +136,8 @@ function wsConnect() {
             if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
 
                 log('user, oldUser', user, oldUser);
+                me = data.data;
+                _Dashboard.checkAdmin();
                 user = data.data.username;
                 isAdmin = data.data.isAdmin;
                 var oldUser = localStorage.getItem(userKey);
@@ -148,10 +153,8 @@ function wsConnect() {
                     loginBox.find('#usernameField').val('');
                     loginBox.find('#passwordField').val('');
                     loginBox.find('#errorText').empty();
-                    Structr.restoreLocalStorage(function() {
-                        if (!lastMenuEntry || command === 'LOGIN') {
-                            Structr.refreshUi();
-                        }
+                    Structr.restoreLocalStorage(function () {
+                        Structr.refreshUi();
                     });
                 }
 
@@ -165,11 +168,15 @@ function wsConnect() {
                 Structr.login();
 
             } else if (command === 'GET_LOCAL_STORAGE') { /*********************** GET_LOCAL_STORAGE ************************/
+                
+                var localStorageString = data.data.localStorageString;
 
-                var localStorageData = JSON.parse(data.data.localStorageString);
-                Object.keys(localStorageData).forEach(function(key) {
-                    localStorage.setItem(key, localStorageData[key]);
-                });
+                if (localStorageString && localStorageString.length) {
+                    var localStorageData = JSON.parse(data.data.localStorageString);
+                    Object.keys(localStorageData).forEach(function (key) {
+                        localStorage.setItem(key, localStorageData[key]);
+                    });
+                }
 
                 StructrModel.callCallback(data.callback, data.data[data.data['key']]);
                 StructrModel.clearCallback(data.callback);
@@ -229,7 +236,7 @@ function wsConnect() {
 
                                 if (part >= size) {
                                     blinkGreen(progr);
-                                    window.setTimeout(function() {
+                                    window.setTimeout(function () {
                                         progr.fadeOut('fast');
                                     }, 1000);
                                 }
@@ -275,7 +282,7 @@ function wsConnect() {
 
                 log(command, data);
 
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
 
                     // Don't append a DOM node
                     //var obj = StructrModel.create(entity, undefined, false);
@@ -291,10 +298,12 @@ function wsConnect() {
 
                 // sort the folders/files in the Files tab
                 if (command === 'CHILDREN' && result.length > 0 && result[0].name) {
-                    result.sort(function(a,b) { return a.name.localeCompare(b.name); } );
+                    result.sort(function (a, b) {
+                        return a.name.localeCompare(b.name);
+                    });
                 }
 
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
 
                     StructrModel.create(entity);
                     StructrModel.callCallback(data.callback, entity);
@@ -307,7 +316,7 @@ function wsConnect() {
 
                 $('.pageCount', $('.pager' + type)).val(pageCount[type]);
 
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
 
                     StructrModel.createSearchResult(entity);
 
@@ -317,7 +326,7 @@ function wsConnect() {
 
                 log('LIST_UNATTACHED_NODES', result, data);
 
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
 
                     StructrModel.callCallback(data.callback, entity);
 
@@ -337,7 +346,7 @@ function wsConnect() {
 
                 log('LIST_COMPONENTS', result, data);
 
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
 
                     StructrModel.callCallback(data.callback, entity);
 
@@ -351,7 +360,7 @@ function wsConnect() {
 
                 log('LIST_SYNCABLES', result, data);
 
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
 
                     StructrModel.callCallback(data.callback, entity);
 
@@ -363,7 +372,7 @@ function wsConnect() {
 
                 log('LIST_ACTIVE_ELEMENTS', result, data);
 
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
 
                     StructrModel.callCallback(data.callback, entity);
 
@@ -375,7 +384,7 @@ function wsConnect() {
 
                 log('SNAPSHOTS', result, data);
 
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
 
                     StructrModel.callCallback(data.callback, entity);
 
@@ -392,7 +401,7 @@ function wsConnect() {
                 Structr.updatePager(type, dialog.is(':visible') ? dialog : undefined);
 
                 $('.pageCount', $('.pager' + type)).val(pageCount[type]);
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
 
                     //var obj = StructrModel.create(entity);
                     StructrModel.callCallback(data.callback, entity, result.length);
@@ -422,7 +431,7 @@ function wsConnect() {
 
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 
-                $(result).each(function(i, entity) {
+                $(result).each(function (i, entity) {
                     if (command === 'CREATE' && (entity.isPage || entity.isFolder || entity.isFile || entity.isImage || entity.isVideo || entity.isUser || entity.isGroup || entity.isWidget || entity.isResourceAccess)) {
                         StructrModel.create(entity);
                     } else {
@@ -446,7 +455,7 @@ function wsConnect() {
                             if (synced && synced.length) {
 
                                 // Change icon
-                                $.each(entity.syncedNodes, function(i, id) {
+                                $.each(entity.syncedNodes, function (i, id) {
                                     var el = Structr.node(id);
                                     if (el && el.length) {
                                         el.children('img.typeIcon').attr('src', (entity.type === 'Template' ? _Elements.icon_shared_template : _Elements.icon_comp));
@@ -460,7 +469,7 @@ function wsConnect() {
 
                     if (command === 'CREATE' && entity.isPage) {
                         var tab = $('#show_' + entity.id, previews);
-                        setTimeout(function() {
+                        setTimeout(function () {
                             _Pages.activateTab(tab)
                         }, 2000);
                     } else if (command === 'CREATE' && (entity.isFile || entity.isImage || entity.isVideo)) {

@@ -26,13 +26,15 @@ import org.structr.web.common.StructrUiTest;
  */
 public class RelativeXPathTest extends StructrUiTest {
 
+	public void testNothing() {}
+	
 	// FIXME: this test fails because of bad programming in DOM2DTM
 	//        comparing object equality using ==. We cannot do anything
 	//        about that except from trying to serve the exact same
 	//        object to the xpath implementation, which is not going
 	//        to happen soon, so this test is disabled until the xpath
 	//        implementation is fixed.
-
+	
 	/*
 		public void testRelativeXPath() {
 

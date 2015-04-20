@@ -40,10 +40,6 @@ public class RelationClassAssignmentTest extends StructrUiTest {
 	
 	private static final Logger logger = Logger.getLogger(CreateSimplePageTest.class.getName());
 
-	@Override
-	public void test00() {
-	}
-	
 	public void test01DOMChildren() {
 
 		final String pageName	= "page-01";

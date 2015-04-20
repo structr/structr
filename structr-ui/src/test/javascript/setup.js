@@ -55,7 +55,7 @@ var filenameLength = 4;
 /**
  * Base URL for Structr UI tests
  */
-exports.url = 'http://localhost:8875/structr/#pages';
+exports.url = 'http://localhost:8875/structr/#logout';
 
 /**
  * Base URL for structr
@@ -77,7 +77,7 @@ exports.docsDir = '../../../../docs';
 /**
  * Set to true to enable debug logging
  */
-exports.debug = false;
+exports.debug = true;
 
 /**
  * The input field with the given selector will be filled
@@ -123,7 +123,7 @@ exports.animatedType = function(casper, selector, inIframe, text, blur, len) {
 
         if (inIframe) {
             casper.withFrame(0, function() {
-                casper.sendKeys('body div:nth-child(2) span', t, {keepFocus: true});
+                casper.sendKeys(selector, t, {keepFocus: true});
             });
         } else {
             casper.sendKeys(selector, t, {keepFocus: true});

@@ -77,9 +77,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.then(function() {
         s.moveMousePointerTo(casper, '#files .file .edit_file_icon');
     });
-
-    casper.wait(1000);
-    
+   
     casper.then(function() {
         this.click('#files .file .edit_file_icon');
     });
@@ -109,7 +107,23 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#saveAndClose');
     });
 
-    casper.wait(2000);
+    casper.wait(1000);
+
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#files .file .edit_file_icon');
+    });
+   
+    casper.then(function() {
+        this.click('#files .file .edit_file_icon');
+    });
+
+    casper.wait(1000);
+    
+    casper.then(function() {
+        test.assertEval(function() {
+            return $('.CodeMirror-code span').text() === 'Random text';
+        });
+    });
 
     casper.then(function() {
         s.animateHtml(testName, heading, sections);

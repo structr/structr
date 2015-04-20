@@ -38,11 +38,10 @@
         this.click('#loginButton');
     });
 
-    casper.waitForSelector('#errorText', function() {
+    casper.waitForSelector('#dashboard', function() {
 
         test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
-
-        test.assertEval(function() { return $('#pages').is(':visible'); });
+        test.assertEval(function() { return $('#dashboard').is(':visible'); });
 
     });
 

@@ -60,7 +60,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         });
         
         test.assertEval(function() {
-            return !$('#pages').is(':visible');
+            return !$('#dashboard').is(':visible');
         });
 
     });

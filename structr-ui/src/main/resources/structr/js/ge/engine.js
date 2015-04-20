@@ -133,7 +133,7 @@ function Engine(parent) {
 
         $('input#maxDepth').on('change', function() {
             var inp = $(this);
-            _Dashboard.maxDepth = inp.val();
+            _Graph.maxDepth = inp.val();
         });
 
         $('input#relLength').on('change', function() {
@@ -322,7 +322,7 @@ function Engine(parent) {
 
         $(canvas).on('dblclick', function() {
             if (hoverMass) {
-                _Dashboard.loadRelationships(hoverMass.nodeId, 0);
+                _Graph.loadRelationships(hoverMass.nodeId, 0);
             }
         });
 
