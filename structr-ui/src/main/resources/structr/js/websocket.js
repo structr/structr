@@ -154,9 +154,7 @@ function wsConnect() {
                     loginBox.find('#passwordField').val('');
                     loginBox.find('#errorText').empty();
                     Structr.restoreLocalStorage(function () {
-                        if (!lastMenuEntry || command === 'LOGIN') {
-                            Structr.refreshUi();
-                        }
+                        Structr.refreshUi();
                     });
                 }
 

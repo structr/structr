@@ -256,9 +256,6 @@ var Structr = {
         Structr.startPing();
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
-        window.onbeforeunload = function() {
-            Structr.saveLocalStorage();
-        }
     },
     ping: function (callback) {
         if (sessionId) {
@@ -276,8 +273,8 @@ var Structr = {
         $('#logout_').html('Logout <span class="username">' + user + '</span>');
         Structr.loadInitialModule();
         Structr.startPing();
-        var dialogData = JSON.parse(window.localStorage.getItem(dialogDataKey));
-        log('Dialog data after init', dialogData);
+        var dialogData = JSON.parse(localStorage.getItem(dialogDataKey));
+        console.log('Dialog data after init', dialogData);
         if (dialogData) {
             Structr.restoreDialog(dialogData);
         }
@@ -1409,4 +1406,5 @@ $(window).unload(function () {
     log('########################################### unload #####################################################');
     // Remove dialog data in case of page reload
     localStorage.removeItem(dialogDataKey);
+    Structr.saveLocalStorage();
 });
