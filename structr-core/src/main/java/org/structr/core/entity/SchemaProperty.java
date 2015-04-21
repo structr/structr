@@ -77,7 +77,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",

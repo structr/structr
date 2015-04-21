@@ -82,6 +82,10 @@ public class SchemaNode extends AbstractSchemaNode {
 		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
 	);
 
+	public static final View schemaView = new View(SchemaMethod.class, "schema",
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
+	);
+
 	public static final View exportView = new View(SchemaMethod.class, "export",
 		extendsClass, defaultSortKey, defaultSortOrder, isBuiltinType
 	);
