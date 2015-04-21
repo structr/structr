@@ -63,7 +63,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	);
 
 	public static final View schemaView = new View(AbstractSchemaNode.class, "schema",
-		name, schemaProperties, schemaViews, schemaMethods
+		id, type, name, schemaProperties, schemaViews, schemaMethods
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
