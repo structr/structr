@@ -198,7 +198,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public Class getRelationshipEntityClass(final String name) {
 
-		Class relationClass = AbstractNode.class;
+		Class relationClass = AbstractRelationship.class;
 
 		if ((name != null) && (name.length() > 0)) {
 
