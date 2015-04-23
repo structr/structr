@@ -53,32 +53,32 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 		return properties.keySet();
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey, org.neo4j.helpers.Predicate<GraphObject> filter) {
+	public <T> T getProperty(final PropertyKey<T> propertyKey, org.neo4j.helpers.Predicate<GraphObject> filter) {
 		return (T)properties.get(propertyKey);
 	}
 
 	@Override
-	public void setProperty(PropertyKey key, Object value) throws FrameworkException {
+	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
 		properties.put(key, value);
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey) {
+	public <T> T getProperty(final PropertyKey<T> propertyKey) {
 		return (T)properties.get(propertyKey);
 	}
 
 	@Override
-	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
+	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
 		return (Comparable)getProperty(key);
 	}
 
 	@Override
-	public void removeProperty(PropertyKey key) throws FrameworkException {
+	public void removeProperty(final PropertyKey key) throws FrameworkException {
 		properties.remove(key);
 	}
 
@@ -97,46 +97,51 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public boolean onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public void afterCreation(SecurityContext securityContext) {
+	public void afterCreation(final SecurityContext securityContext) {
 	}
 
 	@Override
-	public void afterModification(SecurityContext securityContext) {
+	public void afterModification(final SecurityContext securityContext) {
 	}
 
 	@Override
-	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+	public void afterDeletion(final SecurityContext securityContext, PropertyMap properties) {
 	}
 
 	@Override
-	public void ownerModified(SecurityContext securityContext) {
+	public void ownerModified(final SecurityContext securityContext) {
 	}
 
 	@Override
-	public void securityModified(SecurityContext securityContext) {
+	public void securityModified(final SecurityContext securityContext) {
 	}
 
 	@Override
-	public void locationModified(SecurityContext securityContext) {
+	public void locationModified(final SecurityContext securityContext) {
 	}
 
 	@Override
-	public void propagatedModification(SecurityContext securityContext) {
+	public void propagatedModification(final SecurityContext securityContext) {
+	}
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+		return true;
 	}
 
 	// ----- interface map -----

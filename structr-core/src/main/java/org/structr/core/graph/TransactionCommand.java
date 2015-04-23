@@ -101,23 +101,20 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			}
 
 			// 1. do inner callbacks (may cause transaction to fail)
-			if (doValidation && !modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
+			if (doValidation) {
 
-				// create error
-				if (doValidation) {
+				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
 					tx.failure();
-
 					throw new FrameworkException(422, errorBuffer);
 				}
-			}
 
-			// 1.5: execute validatable post-transaction action
-			if (doValidation && !modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
+				// 1.5: execute validatable post-transaction action
+				if (!modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
 
-				tx.failure();
-
-				throw new FrameworkException(422, errorBuffer);
+					tx.failure();
+					throw new FrameworkException(422, errorBuffer);
+				}
 			}
 
 			// 2. fetch all types of entities modified in this tx
