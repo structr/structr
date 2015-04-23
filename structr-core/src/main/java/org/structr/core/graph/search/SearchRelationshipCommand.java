@@ -36,7 +36,7 @@ public class SearchRelationshipCommand<T extends RelationshipInterface> extends 
 
 	@Override
 	public Factory<Relationship, T> getFactory(SecurityContext securityContext, boolean includeDeletedAndHidden, boolean publicOnly, int pageSize, int page, String offsetId) {
-		return new RelationshipFactory(securityContext);
+		return new RelationshipFactory(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 	}
 
 	@Override
