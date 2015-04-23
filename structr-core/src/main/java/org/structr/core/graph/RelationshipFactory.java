@@ -52,6 +52,18 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		super(securityContext);
 	}
 
+	public RelationshipFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+		super(securityContext, includeDeletedAndHidden, publicOnly);
+	}
+
+	public RelationshipFactory(final SecurityContext securityContext, final int pageSize, final int page, final String offsetId) {
+		super(securityContext, pageSize, page, offsetId);
+	}
+
+	public RelationshipFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId) {
+		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
+	}
+	
 	@Override
 	public T instantiate(final Relationship relationship) throws FrameworkException {
 		return (T) instantiateWithType(relationship, factoryDefinition.determineRelationshipType(relationship), false);
