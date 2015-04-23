@@ -814,12 +814,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return isValid(errorBuffer);
+		return true;
 	}
 
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return isValid(errorBuffer);
+		return true;
 	}
 
 	@Override

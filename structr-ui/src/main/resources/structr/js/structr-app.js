@@ -637,6 +637,7 @@ function StructrApp(baseUrl) {
         var clazz = el.attr('data-structr-edit-class');
         var query = el.attr('data-structr-custom-options-query');
         var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+        var placeholder = el.attr('data-structr-placeholder');
         var format =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
         //console.log('field', el, rawType, type, format, query, type, id, key, rawVal);
         var val;
@@ -660,7 +661,7 @@ function StructrApp(baseUrl) {
                 //val = rawVal || el.text();
             }
         }
-        var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz};
+        var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz, 'placeholder': placeholder};
         //console.log(f);
         return f;
     };
@@ -1149,9 +1150,9 @@ function textarea(f) {
 }
 
 function inputField(f) {
-    //console.log('rendering input field  ', f);
+     console.log('rendering input field  ', f);
     var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
-    return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.key ? f.key.capitalize() : '')
+    return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : (f.key ? f.key.capitalize() : ''))
             + '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
             + '" size="' + size + '">';
 }

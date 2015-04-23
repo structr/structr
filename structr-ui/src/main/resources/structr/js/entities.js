@@ -87,6 +87,7 @@ var _Entities = {
         _Entities.appendRowWithInputField(entity, t, 'data-structr-id', 'Element ID (set to ${this.id})');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-attr', 'Attribute Key (if set, render input field in edit mode)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-type', 'Data type (e.g. Date, Boolean; default: String)');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder', 'Placeholder text in edit mode');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query for value options');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value', 'Raw value (unformatted value for Date or Number fields)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-hide', 'Hide [edit|non-edit|edit,non-edit]');

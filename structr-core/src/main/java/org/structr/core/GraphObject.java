@@ -186,7 +186,10 @@ public interface GraphObject {
 	 */
 	public void unlockReadOnlyPropertiesOnce();
 
-	// ----- callback methods -----
+
+	public boolean isValid(ErrorBuffer errorBuffer);
+
+	
 	/**
 	 * Called when an entity of this type is created in the database. This method can cause
 	 * the underlying transaction to be rolled back in case of an error, either by throwing

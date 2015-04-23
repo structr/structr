@@ -21,7 +21,6 @@ package org.structr.core.graph;
 import org.neo4j.graphdb.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.ManyEndpoint;
@@ -64,7 +63,6 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface>, A
 
 	public String getName();
 
-	public boolean isValid(ErrorBuffer errorBuffer);
 	public boolean isDeleted();
 
 	public <R extends AbstractRelationship> Iterable<R> getRelationships();

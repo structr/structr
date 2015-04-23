@@ -283,19 +283,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		switch (status & 0x000f) {
 
 			case 6: // created, modified => only creation callback will be called
-				if (doValidation) {
-					valid &= validate(securityContext, errorBuffer);
-				}
-				object.indexPassiveProperties();
-				break;
-
 			case 4: // created => creation callback
-				if (doValidation) {
-					valid &= validate(securityContext, errorBuffer);
-				}
-				object.indexPassiveProperties();
-				break;
-
 			case 2: // modified => modification callback
 				if (doValidation) {
 					valid &= validate(securityContext, errorBuffer);
@@ -476,7 +464,30 @@ public class GraphObjectModificationState implements ModificationEvent {
 				valid &= validator.isValid(securityContext, object, key, value, errorBuffer);
 			}
 		}
+//
+//		for (PropertyKey key : modifiedProperties.keySet()) {
+//
+//			List<PropertyValidator> validators = key.getValidators();
+//			for (PropertyValidator validator : validators) {
+//
+//				Object value = object.getProperty(key);
+//
+//				valid &= validator.isValid(securityContext, object, key, value, errorBuffer);
+//			}
+//		}
+//
+//		for (PropertyKey key : newProperties.keySet()) {
+//
+//			List<PropertyValidator> validators = key.getValidators();
+//			for (PropertyValidator validator : validators) {
+//
+//				Object value = object.getProperty(key);
+//
+//				valid &= validator.isValid(securityContext, object, key, value, errorBuffer);
+//			}
+//		}
 
-		return valid;
+		// explicitly call isValid() here
+		return valid && object.isValid(errorBuffer);
 	}
 }
