@@ -734,6 +734,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public boolean isGranted(final Permission permission, final SecurityContext context) {
 
+		// super user can do everything
+		if (context != null && context.isSuperUser()) {
+			return true;
+		}
+
 		Principal accessingUser = null;
 		if (context != null) {
 
