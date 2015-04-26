@@ -351,17 +351,20 @@ var _Schema = {
             success: function(data) {
 
                 var sId, tId;
+                var relCnt = {};
                 $.each(data.result, function(i, res) {
 
-                    if (sId === res.sourceId && tId === res.targetId) {
-                        radius += 10;
-                        stub += 80;
-                        offset += .1;
+                    var relIndex = res.sourceId + '-' + res.targetId;
+                    if (relCnt[relIndex] !== undefined) {
+                        relCnt[relIndex]++;
                     } else {
-                        radius = 20;
-                        stub = 30;
-                        offset = 0;
+                        relCnt[relIndex] = 0;
                     }
+
+                    radius = 20 + 10 * relCnt[relIndex];
+                    stub   = 30 + 80 * relCnt[relIndex];
+                    offset =     0.1 * relCnt[relIndex];
+
 
                     sId = res.sourceId;
                     tId = res.targetId;
