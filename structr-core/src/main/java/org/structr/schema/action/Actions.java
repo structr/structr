@@ -41,7 +41,6 @@ import org.structr.core.script.Scripting;
 public class Actions {
 
 	private static final Logger logger = Logger.getLogger(Actions.class.getName());
-	private static final ThreadLocalInt recursionDetection = new ThreadLocalInt();
 
 	public static final String NOTIFICATION_LOGIN  = "onStructrLogin";
 	public static final String NOTIFICATION_LOGOUT = "onStructrLogout";
@@ -139,17 +138,6 @@ public class Actions {
 	}
 
 	public static Object call(final String key, final Map<String, Object> parameters) throws FrameworkException {
-
-		final Integer depth = recursionDetection.get();
-		if (depth > 100) {
-
-			logger.log(Level.WARNING, "Deep recursion (>100 levels) detected, aborting.");
-			return null;
-
-		} else {
-
-			recursionDetection.set(depth + 1);
-		}
 
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final App app                          = StructrApp.getInstance(superUserContext);
