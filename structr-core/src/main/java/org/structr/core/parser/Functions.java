@@ -89,7 +89,6 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.DateConverter;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -99,13 +98,13 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.DateProperty;
-import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.action.Function;
 import org.structr.schema.parser.DatePropertyParser;
 import org.w3c.dom.Document;
@@ -220,6 +219,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_REVOKE_JS = "Usage: ${Structr.revoke(principal, node, permissions)}. Example: ${Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}";
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once, this}";
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS = "Usage: ${Structr.unlock_readonly_properties_once(node)}. Example ${Structr.unlock_readonly_properties_once, Structr.get('this')}";
+	public static final String ERROR_MESSAGE_CALL = "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
+	public static final String ERROR_MESSAGE_CALL_JS = "Usage: ${Structr.call(key [, payloads...]}. Example ${Structr.call('myEvent')}";
 
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
@@ -3712,6 +3713,33 @@ public class Functions {
 				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
 			}
 		});
+		functions.put("call", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					final String key = sources[0].toString();
+
+					if (sources.length > 1) {
+
+						Actions.call(key, Arrays.copyOfRange(sources, 1, sources.length));
+
+					} else {
+
+						Actions.call(key);
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
+			}
+		});
 	}
 
 	/**
@@ -3845,9 +3873,9 @@ public class Functions {
 			} else {
 
 				Date date = DatePropertyParser.parseISO8601DateString(obj.toString());
-				
+
 				if (date != null) {
-				
+
 					return (double) (date).getTime();
 				}
 

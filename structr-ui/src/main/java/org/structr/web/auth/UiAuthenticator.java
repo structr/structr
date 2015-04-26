@@ -335,7 +335,7 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException {
+	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
 		Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
 		if  (user != null) {
@@ -377,7 +377,7 @@ public class UiAuthenticator implements Authenticator {
 	 * @param response
 	 * @return user
 	 */
-	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) {
+	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
 		String path = PathHelper.clean(request.getPathInfo());
 		String[] uriParts = PathHelper.getParts(path);

@@ -33,7 +33,7 @@ import org.structr.core.entity.Principal;
  * @author Axel Morgner
  */
 public interface Authenticator {
-	
+
 	/*
 	 * Indicate that the authenticator has already examined the request
 	 */
@@ -42,8 +42,8 @@ public interface Authenticator {
 	/**
 	 * Set a boolean flag to indicate that a user should be created
 	 * automatically on registration and after successful authentification.
-	 * 
-	 * @param userAutoCreate 
+	 *
+	 * @param userAutoCreate
 	 * @param userClass
 	 */
 	public void setUserAutoCreate(final boolean userAutoCreate, final Class userClass);
@@ -58,8 +58,8 @@ public interface Authenticator {
 	/**
 	 * Set a boolean flag to indicate that a user should be logged in
 	 * automatically on successful registration.
-	 * 
-	 * @param userAutoLogin 
+	 *
+	 * @param userAutoLogin
 	 * @param userClass
 	 */
 	public void setUserAutoLogin(final boolean userAutoLogin, final Class userClass);
@@ -79,24 +79,24 @@ public interface Authenticator {
 
 	/**
 	 * Initializes the authenticator with data from the given request.
-	 * 
+	 *
 	 * @param request
 	 * @param response
 	 * @return securityContext
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
-	
+
 	/**
-	 * 
+	 *
 	 * @param securityContext
 	 * @param request
 	 * @param resourceSignature
 	 * @param propertyView
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String resourceSignature, final String propertyView) throws FrameworkException;
-	
+
 	/**
 	 *
 	 * Tries to authenticate the given HttpServletRequest.
@@ -104,11 +104,12 @@ public interface Authenticator {
 	 * @param request the request to authenticate
 	 * @param emailOrUsername the (optional) email/username
 	 * @param password the (optional) password
-	 * 
+	 *
 	 * @return the user that was just logged in
 	 * @throws AuthenticationException
+	 * @throws FrameworkException
 	 */
-	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException;
+	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException;
 
 	/**
 	 * Logs the given request out.

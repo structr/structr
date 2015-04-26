@@ -31,7 +31,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
 import org.structr.web.entity.User;

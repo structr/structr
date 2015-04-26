@@ -20,6 +20,7 @@ package org.structr.core.script;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ import org.structr.core.parser.Functions;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.action.Function;
 
 /**
@@ -176,25 +178,70 @@ public class StructrScriptable extends ScriptableObject {
 				@Override
 				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 
-						if (parameters.length > 0 && parameters[0] != null) {
+					if (parameters.length > 0 && parameters[0] != null) {
 
-							try {
+						try {
 
-								final Function func = Functions.functions.get(name);
+							final Function func = Functions.functions.get(name);
 
-								if (func != null) {
+							if (func != null) {
 
-									actionContext.print(func.apply(actionContext, entity, parameters ));
-								}
+								actionContext.print(func.apply(actionContext, entity, parameters ));
+							}
 
-								return null;
+							return null;
 
-							} catch (FrameworkException ex) {
-								exception = ex;
+						} catch (FrameworkException ex) {
+							exception = ex;
+						}
+					}
+
+					return null;
+				}
+			}, null, 0, 0);
+		}
+
+		if ("call".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+					try {
+
+						if (parameters.length > 0) {
+
+							final String methodName = parameters[0].toString();
+							switch (parameters.length) {
+
+								case 0:
+									// error
+									break;
+
+								case 1:
+									// call method without parameters
+									return Actions.call(methodName);
+
+								case 2:
+									// call method with one parameter, map or other
+									if (parameters[1] instanceof Map) {
+										return Actions.call(methodName, (Map)parameters[1]);
+									} else {
+										return Actions.call(methodName, parameters[1]);
+									}
+
+								default:
+									// 3 or more parameters => "index-named" list of parameters (0, 1, 2, ...)
+									return Actions.call(methodName, Arrays.copyOfRange(parameters, 1, parameters.length));
 							}
 						}
 
-						return null;
+					} catch (FrameworkException fex) {
+						fex.printStackTrace();
+					}
+
+					return null;
 				}
 			}, null, 0, 0);
 		}

@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Principal;
+import org.structr.schema.action.Actions;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -37,7 +39,7 @@ public class LogoutCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
 
 		final Principal user = getWebSocket().getCurrentUser();
 
@@ -50,6 +52,8 @@ public class LogoutCommand extends AbstractCommand {
 				user.removeSessionId(sessionId);
 
 			}
+
+			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
 
 			getWebSocket().setAuthenticated(null, null);
 
