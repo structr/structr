@@ -21,8 +21,8 @@ var elements, dropBlocked;
 
 var _Elements = {
     icon: 'icon/brick.png',
-    icon_comp: 'icon/package.png',
-    icon_shared_template: 'icon/package_green.png',
+    icon_comp: 'icon/brick_yellow.png',
+    icon_shared_template: 'icon/layout_yellow.png',
     icon_repeater: 'icon/bricks.png',
     add_icon: 'icon/brick_add.png',
     delete_icon: 'icon/brick_delete.png',
