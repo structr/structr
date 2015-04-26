@@ -432,10 +432,25 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
+				final Class entityType;
+				final String type;
+
+				if (entity != null) {
+
+					entityType = entity.getClass();
+					type       = entity.getType();
+
+				} else {
+
+					entityType = GraphObject.class;
+					type       = "Base";
+
+				}
+
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity.getClass(), sources[0].toString());
-					ctx.raiseError(entity.getType(), new ErrorToken(422, key) {
+					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
+					ctx.raiseError(type, new ErrorToken(422, key) {
 
 						@Override
 						public JsonElement getContent() {
@@ -450,8 +465,8 @@ public class Functions {
 
 				} else if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
-					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity.getClass(), sources[0].toString());
-					ctx.raiseError(entity.getType(), new SemanticErrorToken(key) {
+					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
+					ctx.raiseError(type, new SemanticErrorToken(key) {
 
 						@Override
 						public JsonElement getContent() {
@@ -1903,7 +1918,7 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode) {
 
-					final App app = StructrApp.getInstance(entity.getSecurityContext());
+					final App app = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 					final String name = sources[0].toString();
 					final String locale = sources[1].toString();
 					final MailTemplate template = app.nodeQuery(MailTemplate.class).andName(name).and(MailTemplate.locale, locale).getFirst();
@@ -2042,7 +2057,7 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				final SecurityContext securityContext = entity.getSecurityContext();
+				final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					GraphObject dataObject = null;
@@ -2847,7 +2862,7 @@ public class Functions {
 
 				if (sources != null) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
+					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 					final ConfigurationProvider config = StructrApp.getConfiguration();
 					final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 					Class type = null;
@@ -2927,7 +2942,7 @@ public class Functions {
 
 				if (sources != null) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
+					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 					final App app = StructrApp.getInstance(securityContext);
 					final ConfigurationProvider config = StructrApp.getConfiguration();
 					PropertyMap propertyMap = null;
@@ -2937,7 +2952,7 @@ public class Functions {
 
 						type = config.getNodeEntityClass(sources[0].toString());
 
-						if (type.equals(entity.getClass())) {
+						if (entity != null && type.equals(entity.getClass())) {
 
 							throw new FrameworkException(422, "Cannot create() entity of the same type in save action.");
 						}
@@ -3005,7 +3020,7 @@ public class Functions {
 
 				if (sources != null) {
 
-					final App app = StructrApp.getInstance(entity.getSecurityContext());
+					final App app = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 					for (final Object obj : sources) {
 
 						if (obj instanceof NodeInterface) {
@@ -3037,7 +3052,7 @@ public class Functions {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
-					final RelationshipFactory factory = new RelationshipFactory(entity.getSecurityContext());
+					final RelationshipFactory factory = new RelationshipFactory(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 					final Object source = sources[0];
 
 					if (source instanceof NodeInterface) {
@@ -3077,7 +3092,7 @@ public class Functions {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
-					final RelationshipFactory factory = new RelationshipFactory(entity.getSecurityContext());
+					final RelationshipFactory factory = new RelationshipFactory(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 					final Object source = sources[0];
 
 					if (source instanceof NodeInterface) {

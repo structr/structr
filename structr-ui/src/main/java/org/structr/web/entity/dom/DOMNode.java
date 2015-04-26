@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -62,9 +63,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.parser.Functions;
+import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE;
+import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS;
+import static org.structr.core.parser.Functions.arrayHasMinLengthAndAllElementsNotNull;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -77,6 +82,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.rest.logging.entity.LogEvent;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -252,7 +258,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				if (Functions.arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
+					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 					final App app = StructrApp.getInstance(securityContext);
 
 					final RenderContext innerCtx = new RenderContext((RenderContext) ctx);
@@ -524,7 +530,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				if (sources != null && sources.length > 0 && sources[0] instanceof GraphObject) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
+					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 
 					try {
 
@@ -648,6 +654,64 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_ADD_HEADER_JS : ERROR_MESSAGE_ADD_HEADER);
+			}
+		});
+
+		Functions.functions.put("log_event", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final String action  = sources[0].toString();
+					final String message = sources[1].toString();
+
+					final LogEvent logEvent = StructrApp.getInstance().create(LogEvent.class,
+						new NodeAttribute(LogEvent.actionProperty, action),
+						new NodeAttribute(LogEvent.messageProperty, message),
+						new NodeAttribute(LogEvent.timestampProperty, new Date())
+					);
+
+					switch (sources.length) {
+
+						case 4:
+							final String object = sources[3].toString();
+							logEvent.setProperty(LogEvent.objectProperty, object);
+							// no break, next case should be included
+
+						case 3:
+							final String subject = sources[2].toString();
+							logEvent.setProperty(LogEvent.subjectProperty, subject);
+							break;
+					}
+
+					return logEvent;
+
+				} else if (sources.length == 1 && sources[0] instanceof Map) {
+
+					// support javascript objects here
+					final Map map        = (Map)sources[0];
+					final String action  = DOMNode.objectToString(map.get("action"));
+					final String message = DOMNode.objectToString(map.get("message"));
+					final String subject = DOMNode.objectToString(map.get("subject"));
+					final String object  = DOMNode.objectToString(map.get("object"));
+
+					return StructrApp.getInstance().create(LogEvent.class,
+						new NodeAttribute(LogEvent.actionProperty, action),
+						new NodeAttribute(LogEvent.messageProperty, message),
+						new NodeAttribute(LogEvent.timestampProperty, new Date()),
+						new NodeAttribute(LogEvent.subjectProperty, subject),
+						new NodeAttribute(LogEvent.objectProperty, object)
+					);
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
 			}
 		});
 	}
@@ -1688,13 +1752,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			if (this instanceof LinkSource) {
-				
+
 				final LinkSource linkSourceElement = (LinkSource) this;
-				
+
 				properties.put(LinkSource.linkable, linkSourceElement.getProperty(LinkSource.linkable));
-				
+
 			}
-			
+
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
@@ -2039,5 +2103,15 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			return false;
 		}
+	}
+
+	// ----- private methods -----
+	public static String objectToString(final Object source) {
+
+		if (source != null) {
+			return source.toString();
+		}
+
+		return null;
 	}
 }

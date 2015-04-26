@@ -18,20 +18,18 @@
  */
 package org.structr.core.script;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
-import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.schema.action.ActionContext;
@@ -141,6 +139,8 @@ public class Scripting {
 
 	private static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final String script) throws FrameworkException {
 
+		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
+		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 		final Context scriptingContext = Context.enter();
 
 		try {
@@ -162,7 +162,7 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source [" + ( !((NodeInterface)entity).getName().equals("") ? "\""+((NodeInterface)entity).getName()+"\":" : "" ) + entity.getUuid() + "], line ", 1, null);
+			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source [" + entityDescription + "], line ", 1, null);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();

@@ -19,6 +19,7 @@
 
 <tr><td>merge_properties(source, target , mergeKeys...)</td><td>Copies all the property values of the keys given in mergeKeys from the given source entity to the given target entity.</td><td><code>${merge_properties(this, this.copy, 'name', 'eMail')}</code></td></tr>
 <tr><td>keys(entity, viewName)</td><td>Returns all the property keys of the the given entity that are registered in the view with the given name</td><td><code>${keys(this, 'public')} => ['name', 'type', 'id']</code></td></tr>
+<tr><td>call(method [, parameters..])</td><td>Calls the given SchemaMethod with the given parameters (if any) by name.</td><td><code>${call('myCustomMethod')}</code></td></tr>
 
 
 </table>
