@@ -330,9 +330,18 @@ var StructrModel = {
     refresh: function(id) {
 
         var obj = StructrModel.obj(id);
+        log('Model refresh, updated object', obj);
 
         if (obj) {
             var element = Structr.node(id);
+            
+            if (engine) {
+                // Graph display is active
+                var node = engine.graph.nodes(obj.id);
+                if (node) {
+                    _Graph.updateNode(node, obj);
+                }
+            }
 
             if (!element)
                 return;
@@ -401,7 +410,7 @@ var StructrModel = {
             } else {
                 $(element).children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
             }
-
+            
         }
 
     },
@@ -964,7 +973,15 @@ function StructrSearchResult(data) {
 //}
 //
 StructrSearchResult.prototype.append = function() {
-    _Graph.appendObj(this);
+    
+    var obj = this;
+    //console.log(obj);
+    
+    if (obj.hasOwnProperty('relType') && obj.hasOwnProperty('sourceId') && obj.hasOwnProperty('targetId')) {
+        _Graph.drawRel(obj);
+    } else {
+        _Graph.drawNode(this);
+    }
 }
 
 

@@ -87,6 +87,7 @@ var _Entities = {
         _Entities.appendRowWithInputField(entity, t, 'data-structr-id', 'Element ID (set to ${this.id})');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-attr', 'Attribute Key (if set, render input field in edit mode)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-type', 'Data type (e.g. Date, Boolean; default: String)');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder', 'Placeholder text in edit mode');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query for value options');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value', 'Raw value (unformatted value for Date or Number fields)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-hide', 'Hide [edit|non-edit|edit,non-edit]');
@@ -205,9 +206,9 @@ var _Entities = {
             success: function (data) {
                 text = data;
                 text = text.replace(/<!DOCTYPE[^>]*>/, '');
-                var startTag  = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$1').replace(/^\s+|\s+$/g, '');
+                var startTag = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$1').replace(/^\s+|\s+$/g, '');
                 var innerText = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
-                var endTag    = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$3').replace(/^\s+|\s+$/g, '');
+                var endTag = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$3').replace(/^\s+|\s+$/g, '');
                 text = innerText;
 
                 dialog.append('<div class="editor"></div>');
@@ -333,48 +334,58 @@ var _Entities = {
             editor.markText(sc.from(), sc.to(), {className: 'data-structr-hash', collapsed: true, inclusiveLeft: true});
         }
     },
-    showProperties: function (entity) {
+    showProperties: function (obj) {
 
-        var views, activeView = 'ui';
+        Command.get(obj.id, function (entity) {
 
-        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget']) || entity.isUser) {
-            views = ['ui', 'in', 'out'];
-        } else {
-            views = ['_html_', 'ui', 'in', 'out'];
-            activeView = '_html_';
-        }
+            var views = ['ui', 'in', 'out'], activeView = 'ui';
+//        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget']) || entity.isUser) {
+//            views = ['ui', 'in', 'out'];
+//        } else {
+//            views = ['_html_', 'ui', 'in', 'out'];
+//            activeView = '_html_';
+//        }
+            var hasHtmlAttributes = false;
+            if (isIn('ownerDocument'), Object.keys(entity)) {
+                hasHtmlAttributes = true;
+            }
 
-        var tabTexts = [];
-        tabTexts._html_ = 'HTML Attributes';
-        tabTexts.ui = 'Node Properties';
-        tabTexts.in = 'Incoming Relationships';
-        tabTexts.out = 'Outgoing Relationships';
+            if (hasHtmlAttributes) {
+                views.unshift('_html_');
+                activeView = '_html_';
+            }
 
-        //dialog.empty();
-        Structr.dialog('Edit Properties of ' + (entity.name ? entity.name : entity.id), function () {
-            return true;
-        }, function () {
-            return true;
+            var tabTexts = [];
+            tabTexts._html_ = 'HTML Attributes';
+            tabTexts.ui = 'Node Properties';
+            tabTexts.in = 'Incoming Relationships';
+            tabTexts.out = 'Outgoing Relationships';
+
+            //dialog.empty();
+            Structr.dialog('Edit Properties of ' + (entity.name ? entity.name : entity.id), function () {
+                return true;
+            }, function () {
+                return true;
+            });
+
+            dialog.append('<div id="tabs"><ul></ul></div>');
+            var mainTabs = $('#tabs', dialog);
+
+            if (hasHtmlAttributes) {
+
+                _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function (c) {
+                    _Entities.queryDialog(entity, c);
+                    _Entities.activateTabs('#data-tabs', '#content-tab-rest');
+                });
+
+                _Entities.appendPropTab(mainTabs, 'editBinding', 'Edit Mode Binding', false, function (c) {
+                    _Entities.dataBindingDialog(entity, c);
+                });
+            }
+
+            _Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
+
         });
-
-        dialog.append('<div id="tabs"><ul></ul></div>');
-        var mainTabs = $('#tabs', dialog);
-
-        if (! (isIn(entity.type, ['Comment', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget']) || entity.isUser) ) {
-
-            _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function (c) {
-                _Entities.queryDialog(entity, c);
-                _Entities.activateTabs('#data-tabs', '#content-tab-rest');
-            });
-
-            _Entities.appendPropTab(mainTabs, 'editBinding', 'Edit Mode Binding', false, function (c) {
-                _Entities.dataBindingDialog(entity, c);
-            });
-        }
-
-        _Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
-
-
     },
     appendPropTab: function (el, name, label, active, callback) {
         var ul = el.children('ul');
@@ -464,9 +475,9 @@ var _Entities = {
 
                     var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
                     var focusAttr = 'class';
-                    
+
                     $(keys).each(function (i, key) {
-                        
+
                         if (view === '_html_') {
 
                             var display = false;
@@ -478,7 +489,7 @@ var _Entities = {
                             });
 
                             // Always show non-empty, non 'data-structr-' attributes
-                            if (res[key] !== null && key.indexOf('data-structr-') !== 0 ) {
+                            if (res[key] !== null && key.indexOf('data-structr-') !== 0) {
                                 display = true;
                             }
 
@@ -745,18 +756,18 @@ var _Entities = {
             _Entities.bindAccessControl(keyIcon, entity.id);
         }
     },
-    bindAccessControl: function(btn, id) {
+    bindAccessControl: function (btn, id) {
 
         btn.on('click', function (e) {
             e.stopPropagation();
-            Structr.dialog('Access Control and Visibility', function() {
-            }, function() {
-                Command.get(id, function(entity) {
+            Structr.dialog('Access Control and Visibility', function () {
+            }, function () {
+                Command.get(id, function (entity) {
                     _Crud.refreshRow(id, entity, entity.type);
                 });
             });
 
-            Command.get(id, function(entity) {
+            Command.get(id, function (entity) {
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
                 dialogText.append('<h3>Visibility</h3>');
@@ -844,7 +855,7 @@ var _Entities = {
         el.append('<div><button class="apply_' + key + '">Save</button></div>');
         var btn = $('.apply_' + key, el);
         btn.on('click', function () {
-            Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
+            Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function (obj) {
                 log(key + ' successfully updated!', obj[key]);
                 blinkGreen(btn);
                 _Pages.reloadPreviews();
@@ -858,7 +869,7 @@ var _Entities = {
         el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
         var btn = $('.save_' + key, el);
         btn.on('click', function () {
-            Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
+            Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function (obj) {
                 log(key + ' successfully updated!', obj[key]);
                 blinkGreen(btn);
                 _Pages.reloadPreviews();
@@ -874,7 +885,7 @@ var _Entities = {
         _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
         sw.on('click', function (e) {
             e.stopPropagation();
-            Command.setProperty(entity.id, key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function(obj) {
+            Command.setProperty(entity.id, key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function (obj) {
                 if (obj.id !== entity.id) {
                     return false;
                 }
@@ -947,7 +958,7 @@ var _Entities = {
             _Entities.editSource(entity);
         });
     },
-    appendEditPropertiesIcon: function (parent, entity) {
+    appendEditPropertiesIcon: function (parent, entity, visible) {
 
         var editIcon = $('.edit_props_icon', parent);
 
@@ -960,6 +971,13 @@ var _Entities = {
             log('showProperties', entity);
             _Entities.showProperties(entity);
         });
+        if (visible) {
+            editIcon.css({
+                visibility: 'visible',
+                display: 'inline-block'
+            });
+        }
+        return editIcon;
     },
     appendDataIcon: function (parent, entity) {
 
@@ -1125,9 +1143,9 @@ var _Entities = {
             $('#preview_' + getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
         }
     },
-    isExpanded : function(element) {
+    isExpanded: function (element) {
         var b = $(element).children('.expand_icon').first(), src = b.prop('src');
-        if (!b || ! src) {
+        if (!b || !src) {
             return false;
         }
         return src.endsWith('icon/tree_arrow_down.png');

@@ -26,6 +26,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.schema.action.Actions;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -71,6 +72,8 @@ public class LoginCommand extends AbstractCommand {
 						getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 					}
+
+					Actions.call(Actions.NOTIFICATION_LOGIN, user);
 
 					// Clear possible existing sessions
 					AuthHelper.clearSession(sessionId);

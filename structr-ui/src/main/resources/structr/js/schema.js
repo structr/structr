@@ -323,13 +323,22 @@ var _Schema = {
     },
     openEditDialog: function(id, targetView) {
 
-        Structr.dialog('Edit schema node', function() {
-        }, function() {
-            instance.repaintEverything();
-        });
-
         Command.get(id, function(entity) {
-            _Schema.loadNode(entity, dialogText, targetView);
+
+            var title = 'Edit schema node';
+            var method = _Schema.loadNode;
+
+            if (entity.type === "SchemaRelationshipNode") {
+                title = 'Edit schema relationship';
+                method = _Schema.loadRelationship;
+            }
+
+            Structr.dialog(title, function() {
+            }, function() {
+                instance.repaintEverything();
+            });
+
+            method(entity, dialogText, targetView);
         });
 
     },
@@ -466,16 +475,7 @@ var _Schema = {
                     $('#rel_' + res.id + ' .edit').on('click', function(e) {
                         e.stopPropagation();
 
-                        Structr.dialog('Edit schema relationship', function() {
-                        }, function() {
-                            instance.repaintEverything();
-                        });
-                        var id = getIdFromPrefixIdString($(this).parent().prop('id'), 'rel_');
-                        Command.get(id, function(entity) {
-                            _Schema.loadRelationship(entity, dialogText);
-                        });
-
-                        return false;
+                        _Schema.openEditDialog(res.id);
                     });
 
                     $('#rel_' + res.id + ' .remove').on('click', function(e) {

@@ -315,12 +315,28 @@ function wsConnect() {
             } else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
 
                 $('.pageCount', $('.pager' + type)).val(pageCount[type]);
-
+                
+                var nodes = [];
+                var rels  = [];
+                
                 $(result).each(function (i, entity) {
-
-                    StructrModel.createSearchResult(entity);
-
+                    if (entity.hasOwnProperty('relType')) {
+                        rels.push(entity);
+                    } else {
+                        nodes.push(entity);
+                    }
                 });
+
+                $(nodes).each(function (i, entity) {
+                    StructrModel.createSearchResult(entity);
+                });
+                $(rels).each(function (i, entity) {
+                    StructrModel.createSearchResult(entity);
+                });
+                
+                if (engine) {
+                    _Graph.resize();
+                }
 
             } else if (command.startsWith('LIST_UNATTACHED_NODES')) { /*********************** LIST_UNATTACHED_NODES ************************/
 
@@ -476,7 +492,11 @@ function wsConnect() {
                         _Files.uploadFile(entity);
                     }
 
+                    StructrModel.callCallback(data.callback, entity);
+
                 });
+
+                StructrModel.clearCallback(data.callback);
 
                 if (!localStorage.getItem(autoRefreshDisabledKey + activeTab)) {
                     _Pages.reloadPreviews();

@@ -274,7 +274,7 @@ var Structr = {
         Structr.loadInitialModule();
         Structr.startPing();
         var dialogData = JSON.parse(localStorage.getItem(dialogDataKey));
-        console.log('Dialog data after init', dialogData);
+        //console.log('Dialog data after init', dialogData);
         if (dialogData) {
             Structr.restoreDialog(dialogData);
         }
@@ -385,23 +385,29 @@ var Structr = {
     clearMain: function () {
         $.ui.ddmanager.droppables.default = [];
         $('iframe').unload();
-        main.empty();
+        main.children().not('#graph-box').remove();
+        $('#graph-box').hide();
+        
     },
     confirmation: function (text, yesCallback, noCallback) {
-        if (text)
+        if (text) {
             $('#confirmation .confirmationText').html(text);
-        if (yesCallback)
+        }
+        if (yesCallback) {
             $('#confirmation .yesButton').on('click', function (e) {
                 e.stopPropagation();
                 yesCallback();
                 $(this).off('click');
             });
+        }
         $('#confirmation .noButton').on('click', function (e) {
             e.stopPropagation();
             $.unblockUI({
                 fadeOut: 25
             });
-            noCallback();
+            if (noCallback) {
+                noCallback();
+            }
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;

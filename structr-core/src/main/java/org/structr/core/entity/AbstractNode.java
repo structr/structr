@@ -734,6 +734,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public boolean isGranted(final Permission permission, final SecurityContext context) {
 
+		// super user can do everything
+		if (context != null && context.isSuperUser()) {
+			return true;
+		}
+
 		Principal accessingUser = null;
 		if (context != null) {
 
@@ -814,12 +819,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return isValid(errorBuffer);
+		return true;
 	}
 
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return isValid(errorBuffer);
+		return true;
 	}
 
 	@Override
