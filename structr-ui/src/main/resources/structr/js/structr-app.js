@@ -398,7 +398,7 @@ function StructrApp(baseUrl) {
                 }
             }
         });
-        console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
+        //console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
         s.request(btn, 'PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
     },
 

@@ -356,7 +356,7 @@ img.disabled {
     position: absolute;
     z-index: 2;
     top: 93px;
-    background-color: #f5f5f5;
+    background-color: #fafafa;
 }
 
 .ver-scrollable > .node {
@@ -1366,7 +1366,7 @@ button.disabled {
     height: 20px;
     padding: 1px 4px;
     font-size: 14px;
-    
+
 }
 
 .input-and-button button,
@@ -1518,7 +1518,7 @@ button.add_property {
 }
 
 #schema-graph .label .icon {
-	margin: -3px 2px;
+    margin: -3px 2px;
     display: none;
     cursor: pointer;
 }
@@ -1680,7 +1680,7 @@ button.add_property {
 
 .schema .extends-class {
     text-align: center;
-	display: none;
+    display: none;
 }
 
 .schema .icon.delete {
@@ -1891,7 +1891,7 @@ table.push {
 }
 
 .widget b, .widget span {
-	cursor: pointer;
+    cursor: pointer;
 }
 
 .hidden {
@@ -2132,7 +2132,7 @@ input.bitmask {
     font-size: .8em;
 }
 
- .dashboard-info {
+.dashboard-info {
     margin: 12px 0;
 }
 
@@ -2151,4 +2151,67 @@ input.bitmask {
     position: absolute;
     right: 12px;
     top: 4px;
+}
+
+/*
+ * Graph
+ */
+
+.node-overlay {
+    position: absolute;
+    border: 1px solid #a5a5a5;
+    background-color: #fff;
+    border-radius: 50%;
+    padding: 12px;
+    opacity: .5;
+}
+
+.graph-object-types {
+    position: absolute;
+    right: 24px;
+    width: 240px;
+    min-height: 240px;
+    border: 1px dashed #ccc;
+    background-color: #f7f7f7;
+    border-radius: 3px;
+    padding: 12px;
+    opacity: .9;
+}
+
+#node-types {
+    top: 93px;
+}
+
+#relationship-types {
+    top: 380px;
+}
+
+.graph-object-types > div {
+    color: #000;
+    margin-bottom: 6px;
+}
+
+.graph-object-types > div.hidden-node-type {
+    margin-bottom: 6px;
+    opacity: .4;
+    text-decoration: line-through;
+}
+
+.graph-object-types > div.hidden-node-type {
+}
+
+.graph-object-types > div:hover {
+    cursor: pointer;
+    opacity: .5;
+}
+
+#node-types .circle {
+    display: inline-block;
+    margin-right: 4px;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    /*border: 1px solid #a5a5a5;*/
+    /* width and height can be anything, as long as they're equal */
 }

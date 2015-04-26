@@ -274,7 +274,7 @@ var Structr = {
         Structr.loadInitialModule();
         Structr.startPing();
         var dialogData = JSON.parse(localStorage.getItem(dialogDataKey));
-        console.log('Dialog data after init', dialogData);
+        //console.log('Dialog data after init', dialogData);
         if (dialogData) {
             Structr.restoreDialog(dialogData);
         }
@@ -385,7 +385,9 @@ var Structr = {
     clearMain: function () {
         $.ui.ddmanager.droppables.default = [];
         $('iframe').unload();
-        main.empty();
+        main.children().not('#graph-box').remove();
+        $('#graph-box').hide();
+        
     },
     confirmation: function (text, yesCallback, noCallback) {
         if (text) {
