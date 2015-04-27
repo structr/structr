@@ -273,13 +273,24 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 					if (!source.containsKey(JsonSchema.KEY_LINK)) {
 
 						final Map<String, Object> items = (Map)source.get(JsonSchema.KEY_ITEMS);
-						if (items != null && items.containsKey(JsonSchema.KEY_REFERENCE)) {
+						if (items != null) {
 
-							final Object reference = items.get(JsonSchema.KEY_REFERENCE);
-							if (reference != null && reference instanceof String) {
+							if (items.containsKey(JsonSchema.KEY_REFERENCE)) {
 
-								final String refName = StructrPropertyDefinition.getPropertyNameFromJsonPointer(reference.toString());
-								newProperty = new NotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "array", refName);
+								final Object reference = items.get(JsonSchema.KEY_REFERENCE);
+								if (reference != null && reference instanceof String) {
+
+									final String refName = StructrPropertyDefinition.getPropertyNameFromJsonPointer(reference.toString());
+									newProperty = new NotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "array", refName);
+								}
+
+							} else if (items.containsKey(JsonSchema.KEY_TYPE)) {
+
+								final Object typeValue = items.get(JsonSchema.KEY_TYPE);
+								if (typeValue != null && "string".equals(typeValue.toString())) {
+
+									newProperty = new StructrStringArrayProperty(parent, name);
+								}
 							}
 						}
 					}
@@ -338,13 +349,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 				return notionProperty;
 
-//			case StringArray:
-//				final StructrArrayProperty arr = new StructrArrayProperty(parent, name, null);
-//				final Map<String, Object> items = new TreeMap<>();
-//				items.put(JsonSchema.KEY_TYPE, "string");
-//				arr.put(JsonSchema.KEY_TYPE, "array");
-//				arr.put(JsonSchema.KEY_ITEMS, items);
-//				return arr;
+			case StringArray:
+				final StructrStringArrayProperty arr = new StructrStringArrayProperty(parent, name);
+				arr.deserialize(property);
+				arr.setDefaultValue(property.getDefaultValue());
+				return arr;
 
 			case String:
 				final StructrStringProperty str = new StructrStringProperty(parent, name);

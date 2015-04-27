@@ -772,17 +772,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		// allow full access for nodes without owner
 		// (covered by ResourceAccess objects)
-		if (!hasOwner) {
+		if (!hasOwner && Services.getPermissionsForOwnerlessNodes().contains(permission)) {
 
-			if (Permission.read.equals(permission)) {
+			if (accessingUser != null && isVisibleToAuthenticatedUsers()) {
+				return true;
+			}
 
-				if (accessingUser != null && isVisibleToAuthenticatedUsers()) {
-					return true;
-				}
-
-				if (accessingUser == null && isVisibleToPublicUsers()) {
-					return true;
-				}
+			if (accessingUser == null && isVisibleToPublicUsers()) {
+				return true;
 			}
 		}
 

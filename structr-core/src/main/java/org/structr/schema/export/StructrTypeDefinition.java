@@ -49,6 +49,7 @@ import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonReferenceProperty;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonScriptProperty;
+import org.structr.schema.json.JsonStringArrayProperty;
 import org.structr.schema.json.JsonStringProperty;
 import org.structr.schema.json.JsonType;
 
@@ -176,6 +177,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	public JsonStringProperty addStringProperty(final String name, final String... views) throws URISyntaxException {
 
 		final StructrStringProperty stringProperty = new StructrStringProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(stringProperty);
+
+		return stringProperty;
+	}
+
+	@Override
+	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views) throws URISyntaxException {
+
+		final StructrStringArrayProperty stringProperty = new StructrStringArrayProperty(this, name);
 
 		addPropertyNameToViews(name, views);
 
@@ -655,8 +668,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		} else {
 
-			final URI rel = StructrApp.getSchemaBaseURI().relativize(uri);
-			if (rel.isAbsolute()) {
+			if (uri.isAbsolute()) {
 
 				final Class type = StructrApp.resolveSchemaId(uri);
 				if (type != null) {
