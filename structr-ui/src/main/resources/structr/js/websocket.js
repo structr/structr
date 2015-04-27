@@ -474,7 +474,7 @@ function wsConnect() {
                                 $.each(entity.syncedNodes, function (i, id) {
                                     var el = Structr.node(id);
                                     if (el && el.length) {
-                                        el.children('img.typeIcon').attr('src', (entity.type === 'Template' ? _Elements.icon_shared_template : _Elements.icon_comp));
+                                        el.children('img.typeIcon').attr('src', (entity.isTemplate ? _Elements.icon_shared_template : (entity.isContent ? _Contents.comp_icon : _Elements.icon_comp)));
                                         _Entities.removeExpandIcon(el);
                                     }
                                 });
