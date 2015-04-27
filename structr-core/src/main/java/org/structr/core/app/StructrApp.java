@@ -342,7 +342,7 @@ public class StructrApp implements App {
 		return StringUtils.trim(Services.getInstance().getConfigurationValue(key, defaultValue));
 	}
 
-	public static URI getSchemaId(final Class<? extends GraphObject> type) {
+	public static <T extends GraphObject> URI getSchemaId(final Class<T> type) {
 		initializeSchemaIds();
 		return typeIdMap.get(type);
 	}

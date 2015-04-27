@@ -39,6 +39,7 @@ import org.structr.core.graph.TransactionPostProcess;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.Schema;
@@ -52,22 +53,23 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	public static final Property<List<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
 	public static final Property<List<SchemaMethod>>   schemaMethods    = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
 	public static final Property<List<SchemaView>>     schemaViews      = new EndNodes<>("schemaViews", SchemaNodeView.class);
+	public static final Property<String>               icon             = new StringProperty("icon");
 	public static final Set<String> hiddenPropertyNames                 = new LinkedHashSet<>();
 
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
-		name
+		name, icon
 	);
 
 	public static final View uiView = new View(AbstractSchemaNode.class, PropertyView.Ui,
-		name, schemaProperties, schemaViews, schemaMethods
+		name, schemaProperties, schemaViews, schemaMethods, icon
 	);
 
 	public static final View schemaView = new View(AbstractSchemaNode.class, "schema",
-		id, type, name, schemaProperties, schemaViews, schemaMethods
+		id, type, name, schemaProperties, schemaViews, schemaMethods, icon
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, name
+		id, type, name, icon
 	);
 
 	static {

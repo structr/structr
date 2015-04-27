@@ -56,6 +56,7 @@ public interface JsonType extends Comparable<JsonType> {
 	public JsonBooleanProperty addBooleanProperty(final String name, final String... views) throws URISyntaxException;
 	public JsonScriptProperty addScriptProperty(final String name, final String...views) throws URISyntaxException;
 	public JsonEnumProperty addEnumProperty(final String name, final String...views) throws URISyntaxException;
+	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views) throws URISyntaxException;
 
 	public JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
 }

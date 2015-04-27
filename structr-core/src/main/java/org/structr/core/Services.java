@@ -39,6 +39,8 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.common.Permission;
+import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
 import org.structr.core.app.App;
@@ -64,67 +66,69 @@ import org.structr.schema.ConfigurationProvider;
  */
 public class Services {
 
-	private static final Logger logger                          = Logger.getLogger(StructrApp.class.getName());
-	private static StructrConf baseConf                         = null;
+	private static final Logger logger                              = Logger.getLogger(StructrApp.class.getName());
+	private static StructrConf baseConf                             = null;
 
 	// Configuration constants
-	public static final String INITIAL_SEED_FILE                = "seed.zip";
-	public static final String BASE_PATH                        = "base.path";
-	public static final String CONFIGURED_SERVICES              = "configured.services";
-	public static final String CONFIG_FILE_PATH                 = "configfile.path";
-	public static final String DATABASE_PATH                    = "database.path";
-	public static final String FILES_PATH                       = "files.path";
-	public static final String DATA_EXCHANGE_PATH               = "data.exchange.path";
-	public static final String LOG_DATABASE_PATH                = "log.database.path";
-	public static final String FOREIGN_TYPE                     = "foreign.type.key";
-	public static final String NEO4J_SHELL_ENABLED              = "neo4j.shell.enabled";
-	public static final String NEO4J_SHELL_PORT                 = "neo4j.shell.port";
-	public static final String LOG_SERVICE_INTERVAL             = "structr.logging.interval";
-	public static final String LOG_SERVICE_THRESHOLD            = "structr.logging.threshold";
-	public static final String SERVER_IP                        = "server.ip";
-	public static final String SMTP_HOST                        = "smtp.host";
-	public static final String SMTP_PORT                        = "smtp.port";
-	public static final String SMTP_USER                        = "smtp.user";
-	public static final String SMTP_PASSWORD                    = "smtp.password";
-	public static final String SMTP_USE_TLS                     = "smtp.tls.enabled";
-	public static final String SMTP_REQUIRE_TLS                 = "smtp.tls.required";
-	public static final String SUPERUSER_USERNAME               = "superuser.username";
-	public static final String SUPERUSER_PASSWORD               = "superuser.password";
-	public static final String TCP_PORT                         = "tcp.port";
-	public static final String TMP_PATH                         = "tmp.path";
-	public static final String UDP_PORT                         = "udp.port";
-	public static final String JSON_INDENTATION                 = "json.indentation";
-	public static final String JSON_REDUNDANCY_REDUCTION        = "json.redundancyReduction";
-	public static final String GEOCODING_PROVIDER               = "geocoding.provider";
-	public static final String GEOCODING_LANGUAGE               = "geocoding.language";
-	public static final String GEOCODING_APIKEY                 = "geocoding.apikey";
-	public static final String CONFIGURATION                    = "configuration.provider";
-	public static final String TESTING                          = "testing";
-	public static final String MIGRATION_KEY                    = "NodeService.migration";
-	public static final String ACCESS_CONTROL_MAX_AGE           = "access.control.max.age";
-	public static final String ACCESS_CONTROL_ALLOW_METHODS     = "access.control.allow.methods";
-	public static final String ACCESS_CONTROL_ALLOW_HEADERS     = "access.control.allow.headers";
-	public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS = "access.control.allow.credentials";
-	public static final String ACCESS_CONTROL_EXPOSE_HEADERS    = "access.control.expose.headers";
-	public static final String APPLICATION_SESSION_TIMEOUT      = "application.session.timeout";
-	public static final String SNAPSHOT_PATH                    = "snapshot.path";
-	public static final String WEBSOCKET_FRONTEND_ACCESS        = "WebSocketServlet.frontendAccess";
+	public static final String INITIAL_SEED_FILE                    = "seed.zip";
+	public static final String BASE_PATH                            = "base.path";
+	public static final String CONFIGURED_SERVICES                  = "configured.services";
+	public static final String CONFIG_FILE_PATH                     = "configfile.path";
+	public static final String DATABASE_PATH                        = "database.path";
+	public static final String FILES_PATH                           = "files.path";
+	public static final String DATA_EXCHANGE_PATH                   = "data.exchange.path";
+	public static final String LOG_DATABASE_PATH                    = "log.database.path";
+	public static final String FOREIGN_TYPE                         = "foreign.type.key";
+	public static final String NEO4J_SHELL_ENABLED                  = "neo4j.shell.enabled";
+	public static final String NEO4J_SHELL_PORT                     = "neo4j.shell.port";
+	public static final String LOG_SERVICE_INTERVAL                 = "structr.logging.interval";
+	public static final String LOG_SERVICE_THRESHOLD                = "structr.logging.threshold";
+	public static final String SERVER_IP                            = "server.ip";
+	public static final String SMTP_HOST                            = "smtp.host";
+	public static final String SMTP_PORT                            = "smtp.port";
+	public static final String SMTP_USER                            = "smtp.user";
+	public static final String SMTP_PASSWORD                        = "smtp.password";
+	public static final String SMTP_USE_TLS                         = "smtp.tls.enabled";
+	public static final String SMTP_REQUIRE_TLS                     = "smtp.tls.required";
+	public static final String SUPERUSER_USERNAME                   = "superuser.username";
+	public static final String SUPERUSER_PASSWORD                   = "superuser.password";
+	public static final String TCP_PORT                             = "tcp.port";
+	public static final String TMP_PATH                             = "tmp.path";
+	public static final String UDP_PORT                             = "udp.port";
+	public static final String JSON_INDENTATION                     = "json.indentation";
+	public static final String JSON_REDUNDANCY_REDUCTION            = "json.redundancyReduction";
+	public static final String GEOCODING_PROVIDER                   = "geocoding.provider";
+	public static final String GEOCODING_LANGUAGE                   = "geocoding.language";
+	public static final String GEOCODING_APIKEY                     = "geocoding.apikey";
+	public static final String CONFIGURATION                        = "configuration.provider";
+	public static final String TESTING                              = "testing";
+	public static final String MIGRATION_KEY                        = "NodeService.migration";
+	public static final String ACCESS_CONTROL_MAX_AGE               = "access.control.max.age";
+	public static final String ACCESS_CONTROL_ALLOW_METHODS         = "access.control.allow.methods";
+	public static final String ACCESS_CONTROL_ALLOW_HEADERS         = "access.control.allow.headers";
+	public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS     = "access.control.allow.credentials";
+	public static final String ACCESS_CONTROL_EXPOSE_HEADERS        = "access.control.expose.headers";
+	public static final String APPLICATION_SESSION_TIMEOUT          = "application.session.timeout";
+	public static final String APPLICATION_SECURITY_OWNERLESS_NODES = "application.security.ownerless.nodes";
+	public static final String SNAPSHOT_PATH                        = "snapshot.path";
+	public static final String WEBSOCKET_FRONTEND_ACCESS            = "WebSocketServlet.frontendAccess";
 
 	// singleton instance
 	private static int globalSessionTimeout            = -1;
 	private static Services singletonInstance          = null;
 
 	// non-static members
-	private final Map<String, Object> attributes       = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Map<Class, Service> serviceCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Set<Class> registeredServiceClasses  = new LinkedHashSet<>();
-	private final Set<String> configuredServiceClasses = new LinkedHashSet<>();
-	private StructrConf structrConf                    = new StructrConf();
-	private ConfigurationProvider configuration        = null;
-	private boolean initializationDone                 = false;
-	private boolean shutdownDone                       = false;
-	private String configuredServiceNames              = null;
-	private String configurationClass                  = null;
+	private final Set<Permission> permissionsForOwnerlessNodes = new LinkedHashSet<>();
+	private final Map<String, Object> attributes               = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<Class, Service> serviceCache             = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Set<Class> registeredServiceClasses          = new LinkedHashSet<>();
+	private final Set<String> configuredServiceClasses         = new LinkedHashSet<>();
+	private StructrConf structrConf                            = new StructrConf();
+	private ConfigurationProvider configuration                = null;
+	private boolean initializationDone                         = false;
+	private boolean shutdownDone                               = false;
+	private String configuredServiceNames                      = null;
+	private String configurationClass                          = null;
 
 	private Services() { }
 
@@ -331,6 +335,33 @@ public class Services {
 				shutdown();
 			}
 		});
+
+		// read permissions for ownerless nodes
+		final String configForOwnerlessNodes = this.structrConf.getProperty(Services.APPLICATION_SECURITY_OWNERLESS_NODES, "read");
+		if (StringUtils.isNotBlank(configForOwnerlessNodes)) {
+
+			for (final String permission : configForOwnerlessNodes.split("[, ]+")) {
+
+				final String trimmed = permission.trim();
+				if (StringUtils.isNotBlank(trimmed)) {
+
+					final Permission val = Permissions.valueOf(trimmed);
+					if (val != null) {
+
+						permissionsForOwnerlessNodes.add(val);
+
+					} else {
+
+						logger.log(Level.WARNING, "Invalid permisson {0}, ignoring.", trimmed);
+					}
+				}
+			}
+
+		} else {
+
+			// default
+			permissionsForOwnerlessNodes.add(Permission.read);
+		}
 
 		logger.log(Level.INFO, "Initialization complete");
 
@@ -810,4 +841,7 @@ public class Services {
 		return globalSessionTimeout;
 	}
 
+	public static Set<Permission> getPermissionsForOwnerlessNodes() {
+		return getInstance().permissionsForOwnerlessNodes;
+	}
 }
