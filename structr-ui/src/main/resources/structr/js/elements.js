@@ -113,6 +113,11 @@ var _Elements = {
             'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder']
         },
         {
+            'elements': ['optgroup'],
+            'attrs': ['label', 'disabled'],
+            'focus': 'label'
+        },
+        {
             'elements': ['form'],
             'attrs': ['action', 'method']
         },

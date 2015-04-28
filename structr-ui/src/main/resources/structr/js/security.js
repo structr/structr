@@ -49,8 +49,6 @@ var _Security = {
         
         groups = $('#groups');
         users = $('#users');
-        _Security.refreshGroups();
-        _Security.refreshUsers();
         
         resourceAccesses = $('#resourceAccesses');
         
@@ -71,8 +69,13 @@ var _Security = {
         });
 
         var activeTab = localStorage.getItem(securityTabKey);
-        var t = $('a[href="#' + activeTab + '"]');
-        t.click();
+        if (activeTab === null || activeTab === 'usersAndGroups') {
+            _Security.refreshGroups();
+            _Security.refreshUsers();
+        } else {
+            var t = $('a[href="#' + activeTab + '"]');
+            t.click();
+        }
         
         _Security.resize();
         $(window).off('resize');

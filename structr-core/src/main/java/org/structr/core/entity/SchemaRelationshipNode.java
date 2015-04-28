@@ -298,10 +298,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		final String relationshipTypeName = getProperty(SchemaRelationshipNode.relationshipType).toLowerCase();
 		final String _sourceType          = getSchemaNodeSourceType();
 		final String _targetType          = getSchemaNodeTargetType();
-		final String _targetJsonName = getProperty(targetJsonName);
-		final String _targetMultiplicity = getProperty(targetMultiplicity);
-		final String _sourceJsonName = getProperty(sourceJsonName);
-		final String _sourceMultiplicity = getProperty(sourceMultiplicity);
+		final String _targetJsonName      = getProperty(targetJsonName);
+		final String _targetMultiplicity  = getProperty(targetMultiplicity);
+		final String _sourceJsonName      = getProperty(sourceJsonName);
+		final String _sourceMultiplicity  = getProperty(sourceMultiplicity);
 
 		return SchemaRelationshipNode.getPropertyName(relatedClassName, existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
 	}
