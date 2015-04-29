@@ -154,6 +154,8 @@ public abstract class ImageHelper extends FileHelper {
 
 			} catch (IOException t) {
 
+				t.printStackTrace();
+
 				logger.log(Level.WARNING, "Could not read original image {0} ({1})", new Object[] { originalImage.getName(), originalImage.getId() });
 				return null;
 
