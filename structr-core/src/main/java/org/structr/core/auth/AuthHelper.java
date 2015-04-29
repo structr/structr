@@ -46,7 +46,7 @@ import org.structr.schema.action.Actions;
  */
 public class AuthHelper {
 
-	private static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
+	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
 	private static final Logger logger             = Logger.getLogger(AuthHelper.class.getName());
 
 	//~--- get methods ----------------------------------------------------

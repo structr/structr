@@ -18,10 +18,14 @@
  */
 package org.structr.web.resource;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,6 +66,9 @@ import org.structr.web.servlet.HtmlServlet;
 public class RegistrationResource extends Resource {
 
 	private static final Logger logger = Logger.getLogger(RegistrationResource.class.getName());
+
+	public static final String CUSTOM_ATTRIBUTES                      = "Registration.customUserAttributes";
+	public static final String ALLOW_LOGIN_BEFORE_CONFIRMATION        = "Registration.allowLoginBeforeConfirmation";
 
 	private enum TemplateKey {
 		SENDER_NAME,
@@ -124,10 +131,9 @@ public class RegistrationResource extends Resource {
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
 			confKey = UUID.randomUUID().toString();
 
-			Result result = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getResult();
+			final Result result = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getResult();
 			if (!result.isEmpty()) {
 
-				final App app = StructrApp.getInstance(securityContext);
 				user = (Principal) result.get(0);
 
 				// For existing users, update confirmation key
@@ -138,7 +144,7 @@ public class RegistrationResource extends Resource {
 
 			} else {
 
-				Authenticator auth = securityContext.getAuthenticator();
+				final Authenticator auth = securityContext.getAuthenticator();
 				user = createUser(securityContext, User.eMail, emailString, propertySet, auth.getUserAutoCreate(), auth.getUserClass());
 			}
 
@@ -413,24 +419,40 @@ public class RegistrationResource extends Resource {
 
 			} else if (autoCreate) {
 
+				final App app = StructrApp.getInstance(securityContext);
+				
 				// Clear properties set by us from the user-defined props
 				propertySet.remove(credentialKey.jsonName());
-				propertySet.remove(User.name.jsonName());
 				propertySet.remove(User.confirmationKey.jsonName());
 
 				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, Principal.class, propertySet);
 
+				// Remove any property which is not included in configuration
+				// eMail is mandatory and necessary
+				final String customAttributesString = User.eMail.jsonName().concat(",").concat(Services.getInstance().getConfigurationValue(CUSTOM_ATTRIBUTES));
+				final List<String> customAttributes = Arrays.asList(customAttributesString.split("[ ,]+"));
+				
+				final Set<PropertyKey> propsToRemove = new HashSet<>();
+				for (final PropertyKey key : props.keySet()) {
+					if (!customAttributes.contains(key.jsonName())) {
+						propsToRemove.add(key);
+					}
+				}
+				
+				for (final PropertyKey propToRemove : propsToRemove) {
+					props.remove(propToRemove);
+				}
+
 				props.put(credentialKey, credentialValue);
-				props.put(User.name, credentialValue);
 				props.put(User.confirmationKey, confKey);
 				
-				// Remove security-relevant properties
-				props.remove(Principal.isAdmin);
-				props.remove(Principal.ownedNodes);
-				props.remove(Principal.salt);
-				props.remove(Principal.sessionIds);
+//				// Remove security-relevant properties
+//				props.remove(Principal.isAdmin);
+//				props.remove(Principal.ownedNodes);
+//				props.remove(Principal.salt);
+//				props.remove(Principal.sessionIds);
 
-				user = (Principal) StructrApp.getInstance(securityContext).create(userClass, props);
+				user = (Principal) app.create(userClass, props);
 
 			}
 
