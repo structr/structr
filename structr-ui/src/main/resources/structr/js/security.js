@@ -78,6 +78,7 @@ var _Security = {
         }
         
         _Security.resize();
+        
         $(window).off('resize');
         $(window).on('resize', function() {
             _Security.resize();
@@ -408,6 +409,9 @@ var _Security = {
 
     },
     resize: function() {
+        
+        Structr.resize();
+        
         var w = $(window).width();
         var h = $(window).height();
 

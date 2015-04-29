@@ -443,6 +443,7 @@ var _Graph = {
 
         }
 
+        win.off('resize');
         win.resize(function () {
             _Graph.resize();
         });
@@ -653,6 +654,8 @@ var _Graph = {
 
     },
     resize: function () {
+
+        Structr.resize();
 
         var windowHeight = win.height();
         var offsetHeight = 360;
