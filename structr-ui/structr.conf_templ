@@ -166,6 +166,28 @@ UploadServlet.allowAnonymousUploads = false
 
 
 #############################################################################
+# Registration configuration
+#############################################################################
+# This section configures Structr's built-in opt-in registration for new users.
+# Note that the eMail attribute is mandatory and necessary to send out e-mails.
+
+# Use this to define custom properties to be set on the newly created user when
+# included in the POST request. Works only together with HtmlServlet.user.autocreate = true.
+# Note that eMail will always be included, so removing it here has no effect.
+#
+#                         !!!!!!!!! WARNING !!!!!!!!!
+#
+# It's a bad idea to include security-relevant attributes here
+# as they can be set from an unauthenticated, unauthorized source.
+# If unsure or you don't know what that means, set only eMail
+Registration.customUserAttributes = eMail
+
+# Set to true to allow users to login even before the opt-in confirmation
+# was received, typically when the password was set on the registration POST request
+#Registration.allowLoginBeforeConfirmation = false
+
+
+#############################################################################
 # Resource handler for static resources
 #############################################################################
 # This handler is needed to serve static files with the built-in Jetty container.
