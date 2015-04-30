@@ -345,10 +345,18 @@ var _Entities = {
 //            views = ['_html_', 'ui', 'in', 'out'];
 //            activeView = '_html_';
 //        }
+
+            var attrs = Object.keys(entity);
+
             var hasHtmlAttributes = false;
-            if (isIn('ownerDocument'), Object.keys(entity)) {
+            if (isIn('tag', attrs) && isIn('pageId', attrs)) {
                 hasHtmlAttributes = true;
             }
+            
+            attrs.forEach(function(attr) {
+                if (attr.startsWith('_html_'))
+                hasHtmlAttributes = true;
+            });
 
             if (hasHtmlAttributes) {
                 views.unshift('_html_');

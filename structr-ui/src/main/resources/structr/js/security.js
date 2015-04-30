@@ -78,7 +78,6 @@ var _Security = {
         }
         
         _Security.resize();
-        
         $(window).off('resize');
         $(window).on('resize', function() {
             _Security.resize();
