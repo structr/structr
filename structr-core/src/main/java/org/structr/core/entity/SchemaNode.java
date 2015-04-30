@@ -44,6 +44,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -68,6 +69,8 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<String>                       defaultSortKey   = new StringProperty("defaultSortKey");
 	public static final Property<String>                       defaultSortOrder = new StringProperty("defaultSortOrder");
 	public static final Property<Boolean>                      isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
+	public static final Property<Integer>                      hierarchyLevel   = new IntProperty("hierarchyLevel").indexed();
+	public static final Property<Integer>                      relCount         = new IntProperty("relCount").indexed();
 
 	static {
 
@@ -75,19 +78,19 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
+		extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
 	public static final View schemaView = new View(SchemaMethod.class, "schema",
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		extendsClass, defaultSortKey, defaultSortOrder, isBuiltinType
+		extendsClass, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();

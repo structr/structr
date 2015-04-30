@@ -23,8 +23,10 @@
 
 package org.structr.schema;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -85,7 +87,8 @@ public class SchemaService implements Service {
 					SchemaService.ensureBuiltinTypesExist();
 
 					// collect node classes
-					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+					final List<SchemaNode> schemaNodes = StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList();
+					for (final SchemaNode schemaNode : schemaNodes) {
 
 						nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
 
@@ -147,6 +150,8 @@ public class SchemaService implements Service {
 
 					success = false;
 				}
+
+				calculateHierarchy();
 			}
 
 			// compiling done
@@ -174,7 +179,6 @@ public class SchemaService implements Service {
 		return true;
 	}
 
-	// ----- private methods -----
 	public static void ensureBuiltinTypesExist() throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
@@ -199,5 +203,63 @@ public class SchemaService implements Service {
 	@Override
 	public boolean isVital() {
 		return true;
+	}
+
+	// ----- private methods -----
+	private static void calculateHierarchy() {
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final List<SchemaNode> schemaNodes  = StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList();
+			final Set<String> alreadyCalculated = new HashSet<>();
+			final Map<String, SchemaNode> map   = new LinkedHashMap<>();
+
+			// populate lookup map
+			for (final SchemaNode schemaNode : schemaNodes) {
+				map.put(schemaNode.getName(), schemaNode);
+			}
+
+			// calc hierarchy
+			for (final SchemaNode schemaNode : schemaNodes) {
+
+				final int relCount = schemaNode.getProperty(SchemaNode.relatedFrom).size() + schemaNode.getProperty(SchemaNode.relatedTo).size();
+				final int level    = recursiveGetHierarchyLevel(map, alreadyCalculated, schemaNode);
+
+				schemaNode.setProperty(SchemaNode.hierarchyLevel, level);
+				schemaNode.setProperty(SchemaNode.relCount, relCount);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+	}
+
+	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode) {
+
+		final String name = schemaNode.getName();
+
+		System.out.println("Calc. hierarchy level for " + name + "..");
+
+		String superclass = schemaNode.getProperty(SchemaNode.extendsClass);
+		if (superclass == null) {
+
+			return 0;
+
+		} else if (superclass.startsWith("org.structr.dynamic.")) {
+
+			// find hierarchy level
+			superclass = superclass.substring(superclass.lastIndexOf(".") + 1);
+
+			// recurse upwards
+			final SchemaNode superSchemaNode = map.get(superclass);
+			if (superSchemaNode != null) {
+
+				return recursiveGetHierarchyLevel(map, alreadyCalculated, superSchemaNode) + 1;
+			}
+		}
+
+		return 0;
 	}
 }
