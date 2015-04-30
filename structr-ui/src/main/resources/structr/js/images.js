@@ -29,10 +29,6 @@ $(document).ready(function() {
     //    Structr.classes.push('folder');
     Structr.classes.push('image');
     
-    win.resize(function() {
-        _Images.resize();
-    });
-    
 });
 
 var _Images = {
@@ -50,6 +46,8 @@ var _Images = {
         Structr.makePagesMenuDroppable();
     },
     resize : function() {
+
+        Structr.resize();
 
         var windowWidth = win.width();
         var windowHeight = win.height();
@@ -71,6 +69,7 @@ var _Images = {
                 height: windowHeight - headerOffsetHeight + 'px'
             });
         }
+        
     },
 
     /**
@@ -91,7 +90,11 @@ var _Images = {
         
         _Images.refreshImages();
         
-        //_Images.resize();
+        win.off('resize');
+        win.resize(function() {
+            _Images.resize();
+        });
+
     },
     unload: function() {
         $(main.children('#dropArea')).remove();

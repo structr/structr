@@ -156,6 +156,11 @@ var _Crud = {
             _Crud.init();
         }
 
+        $(window).off('resize');
+        $(window).on('resize', function() {
+            _Crud.resize();
+        });
+
     },
     initTabs: function() {
 
@@ -178,11 +183,6 @@ var _Crud = {
                 _Crud.type = newType;
                 _Crud.updateUrl(newType);
             }
-        });
-
-        $(window).off('resize');
-        $(window).on('resize', function() {
-            _Crud.resize();
         });
 
     },
@@ -2134,6 +2134,9 @@ var _Crud = {
         }
     },
     resize: function() {
+        
+        Structr.resize();
+
         var w = $(window).width();
         var h = $(window).height();
 

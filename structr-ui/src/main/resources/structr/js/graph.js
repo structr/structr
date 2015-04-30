@@ -28,7 +28,7 @@ var savedQueriesKey = 'structrSavedQueries_' + port;
 var relTypes = {}, nodeTypes = {}, nodeColors = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250;
 var hiddenNodeTypes = [], hiddenRelTypes = [];
 
-var maxRels = 10, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc;';
+var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc;';
 var forceAtlas2Config = {
     gravity: 1,
     strongGravityMode: true,
@@ -78,6 +78,8 @@ var _Graph = {
         colors.push('#921C00');
         colors.push('#7D0033');
 
+        _Graph.updateNodeTypes();
+        
         sigma.renderers.def = sigma.renderers.canvas;
 
         if (engine) {
@@ -125,6 +127,9 @@ var _Graph = {
 
         engine.bind('clickNode', function (e) {
             //console.log('clickNode', hasDragged);
+            
+            console.log(e.data.node, sigma.utils.getX(e.data.node), sigma.utils.getY(e.data.node));
+            
             if (hasDragged) {
                 hasDragged = false;
                 return false;
@@ -137,7 +142,7 @@ var _Graph = {
             //console.log(node);
             clickTimeout = window.setTimeout(function () {
                 if (!hasDoubleClicked) {
-                    _Entities.showProperties(e.data.node);
+                    _Entities.showProperties(node);
                     window.clearTimeout(clickTimeout);
                     hasDoubleClicked = false;
                 }
@@ -198,7 +203,13 @@ var _Graph = {
         dragListener.bind('drag', function (event) {
             hasDragged = true;
             //console.log('drag', hasDragged);
-            //console.log(event);
+            //console.log(event.data.captor, event.data.node.x, event.data.node.y, event.data.renderer.camera.x, event.data.renderer.camera.x);
+
+            console.log(event.data.node.x, event.data.renderer.camera.x, event.data.renderer.camera.ratio);
+            
+
+            
+            
         });
 //        dragListener.bind('drop', function (event) {
 //            //console.log(event);
@@ -230,7 +241,7 @@ var _Graph = {
                     + '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Display Options</div></div>'
                     + '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
                     + ' <div class="canvas" id="graph-canvas"></div>'
-                    + ' <div id="node-types" class="graph-object-types"></div>'
+                    + ' <div id="node-types" class="graph-object-types"> <button id="show-all-node-types">Show all</button></div>'
                     + ' <div id="relationship-types" class="graph-object-types"></div>'
                     //+ '<div id="nodes" class="slideOut slideOutRight"><div class="compTab" id="nodesTab">Nodes</div></div>'
                     //+ '<div id="relationships" class="slideOut slideOutRight"><div class="compTab" id="relationshipsTab">Relationships</div></div>'
@@ -244,22 +255,22 @@ var _Graph = {
             graph = $('#graph-canvas');
             graph.droppable({
                 accept: '.node-type',
-                drop: function(e, ui) {
+                drop: function (e, ui) {
                     var nodeType = ui.helper.text();
                     var x = ui.offset.left;
                     var y = ui.offset.top;
                     console.log('Creating node of type', nodeType, x, y);
                     Command.create({
                         type: nodeType
-                    }, function(obj) {
-                        
-                        Command.get(obj.id, function(node) {
+                    }, function (obj) {
+
+                        Command.get(obj.id, function (node) {
                             console.log(node);
                             _Graph.drawNode(node);
                         });
-                        
+
                     });
-                    
+
                 }
             });
 
@@ -443,6 +454,7 @@ var _Graph = {
 
         }
 
+        win.off('resize');
         win.resize(function () {
             _Graph.resize();
         });
@@ -611,8 +623,8 @@ var _Graph = {
         engine.graph.addNode({
             id: node.id || node.name,
             label: (node.name || node.tag || node.id.substring(0, 5) + '…') + ':' + node.type,
-            x: x || (180 + Math.random(40)),
-            y: y || (80 + Math.random(40)),
+            x: x || Math.random(10),
+            y: y || Math.random(10),
             size: 20,
             color: nodeColors[node.type],
             type: node.type,
@@ -620,7 +632,7 @@ var _Graph = {
             hidden: isIn(node.type, hiddenNodeTypes)
         });
         engine.refresh();
-        _Graph.updateNodeTypes();
+        //_Graph.updateNodeTypes();
     },
     drawRel: function (r) {
         relIds.push(r.id);
@@ -654,6 +666,8 @@ var _Graph = {
     },
     resize: function () {
 
+        Structr.resize();
+
         var windowHeight = win.height();
         var offsetHeight = 360;
 
@@ -675,7 +689,7 @@ var _Graph = {
 
         if (engine) {
             engine.refresh();
-            window.setTimeout(function() {
+            window.setTimeout(function () {
                 engine.refresh();
             }, 100);
         }
@@ -713,9 +727,19 @@ var _Graph = {
         });
     },
     updateNodeTypes: function () {
+
         var nodeTypesBox = $('#node-types');
         nodeTypesBox.empty();
-        Object.keys(nodeColors).forEach(function (nodeType) {
+        nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
+        Command.getByType('SchemaNode', 1000, 1, null, null, null, function (node) {
+            
+            var nodeType = node.name;
+
+            if (!isIn(nodeType, Object.keys(nodeColors))) {
+                nodeColors[nodeType] = colors[color++]
+            }
+
+            //Object.keys(nodeColors).forEach(function (nodeType) {
             nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type"><div class="circle" style="background-color: ' + nodeColors[nodeType] + '"></div>' + nodeType + '</div>');
             var nt = $('#node-type-' + nodeType, nodeTypesBox);
             if (isIn(nodeType, hiddenNodeTypes)) {

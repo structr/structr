@@ -186,16 +186,18 @@ var _Schema = {
 
             });
 
-            $(window).off('resize');
-            $(window).on('resize', function() {
-                _Schema.resize();
-            });
+            _Schema.resize();
         });
 
     },
     onload: function() {
         _Schema.init();
         $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Schema');
+
+        $(window).off('resize');
+        $(window).on('resize', function() {
+            _Schema.resize();
+        });
     },
     /**
      * Read the schema from the _schema REST resource and call 'callback'
@@ -917,6 +919,9 @@ var _Schema = {
 
     },
     resize: function() {
+        
+        Structr.resize();
+        
         var zoom = (instance ? instance.getZoom() : 1);
 
         var headerHeight = $('#header').outerHeight() + $('.schema-input-container').outerHeight() + 14;

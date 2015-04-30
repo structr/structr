@@ -408,6 +408,9 @@ var _Security = {
 
     },
     resize: function() {
+        
+        Structr.resize();
+        
         var w = $(window).width();
         var h = $(window).height();
 

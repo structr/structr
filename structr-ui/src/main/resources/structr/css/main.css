@@ -2172,7 +2172,7 @@ input.bitmask {
     width: 240px;
     min-height: 240px;
     border: 1px dashed #ccc;
-    background-color: #f7f7f7;
+    background-color: #fafafa;
     border-radius: 3px;
     padding: 12px;
     opacity: .9;
@@ -2214,4 +2214,10 @@ input.bitmask {
     vertical-align: middle;
     /*border: 1px solid #a5a5a5;*/
     /* width and height can be anything, as long as they're equal */
+}
+
+#show-all-node-types {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
 }
