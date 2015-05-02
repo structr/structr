@@ -282,7 +282,7 @@ function wsConnect() {
 
                 log(command, data);
 
-                $(result).each(function (i, entity) {
+                result.forEach(function (entity) {
 
                     // Don't append a DOM node
                     //var obj = StructrModel.create(entity, undefined, false);
