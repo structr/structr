@@ -25,7 +25,7 @@ var activeTabLeftGraphKey = 'structrActiveTabLeftGraph_' + port;
 var activeTabLeftGraph, activeTabRightGraph;
 var queriesSlideout, displaySlideout, filtersSlideout, nodesSlideout, relationshipsSlideout, graph;
 var savedQueriesKey = 'structrSavedQueries_' + port;
-var relTypes = {}, nodeTypes = {}, nodeColors = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250;
+var relTypes = {}, nodeTypes = {}, nodeColors = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
 var hiddenNodeTypes = [], hiddenRelTypes = [];
 
 var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc;';
@@ -84,7 +84,7 @@ var _Graph = {
 
         if (engine) {
             //console.log('sigma engine already exists', engine);
-            engine.refresh();
+            _Graph.scheduleRefreshEngine();
             return;
         }
         engine = new sigma({
@@ -145,7 +145,7 @@ var _Graph = {
             }
 
             //e.data.node.size = 40;
-            //engine.refresh();
+            //_Graph.scheduleRefreshEngine();
             //engine.startForceAtlas2(forceAtlas2Config);
             //console.log(node);
             clickTimeout = window.setTimeout(function () {
@@ -194,7 +194,7 @@ var _Graph = {
 
         engine.bind('outNode', function (e) {
             //e.data.node.size = 20;
-            //engine.refresh();
+            //_Graph.scheduleRefreshEngine();
             //engine.stopForceAtlas2(forceAtlas2Config);
             //var node = e.data.node;
             //var overlay = $('#node_' + node.id);
@@ -305,7 +305,7 @@ var _Graph = {
 
             $('.slideOut').on('mouseout', function () {
                 running = true;
-                //engine.refresh();
+                //_Graph.scheduleRefreshEngine();
                 return true;
             });
 
@@ -647,7 +647,7 @@ var _Graph = {
             name: node.name,
             hidden: isIn(node.type, hiddenNodeTypes)
         });
-        engine.refresh();
+        _Graph.scheduleRefreshEngine();
         //_Graph.updateNodeTypes();
     },
     drawRel: function (r) {
@@ -664,7 +664,7 @@ var _Graph = {
             relType: r.relType,
             hidden: isIn(r.relType, hiddenRelTypes)
         });
-        engine.refresh();
+        _Graph.scheduleRefreshEngine();
         _Graph.updateRelationshipTypes();
     },
     updateNode: function (node, obj) {
@@ -677,7 +677,7 @@ var _Graph = {
         node.label = (node.name || node.tag || node.id.substring(0, 5) + '…') + ':' + node.type;
         node.type = obj.type;
 
-        engine.refresh();
+        _Graph.scheduleRefreshEngine();
 
     },
     resize: function () {
@@ -704,10 +704,7 @@ var _Graph = {
         });
 
         if (engine) {
-            engine.refresh();
-            window.setTimeout(function () {
-                engine.refresh();
-            }, 100);
+            _Graph.scheduleRefreshEngine();
         }
 
     },
@@ -797,7 +794,7 @@ var _Graph = {
             }
         });
         hiddenNodeTypes.push(type);
-        engine.refresh();
+        _Graph.scheduleRefreshEngine();
         if (callback) {
             callback();
         }
@@ -810,7 +807,7 @@ var _Graph = {
             }
         });
         hiddenNodeTypes.splice(hiddenNodeTypes.indexOf('type'), 1);
-        engine.refresh();
+        _Graph.scheduleRefreshEngine();
         if (callback) {
             callback();
         }
@@ -890,7 +887,7 @@ var _Graph = {
             }
         });
         hiddenRelTypes.push(type);
-        engine.refresh();
+        _Graph.scheduleRefreshEngine();
         if (callback) {
             callback();
         }
@@ -902,7 +899,7 @@ var _Graph = {
             }
         });
         hiddenRelTypes.splice(hiddenRelTypes.indexOf('type'), 1);
-        engine.refresh();
+        _Graph.scheduleRefreshEngine();
         if (callback) {
             callback();
         }
@@ -912,6 +909,15 @@ var _Graph = {
         $('.remove-cypher-parameter', el).on('click', function () {
             $(this).parent().remove();
         });
+    },
+    scheduleRefreshEngine: function () {
+        console.log('scheduleRefreshEngine');
+        window.clearTimeout(refreshTimeout);
+        refreshTimeout = window.setTimeout(_Graph.refreshEngine, 100);
+    },
+    refreshEngine: function () {
+        console.log('actually calling engine.refresh()');
+        engine.refresh();
     }
 };
 
