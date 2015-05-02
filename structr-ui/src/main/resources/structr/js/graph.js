@@ -119,36 +119,48 @@ var _Graph = {
         });
 
         engine.bind('doubleClickNode', function (e) {
-            //console.log('double click on ', e.type, e.data.node.id);
+            console.log('double click on ', e.type, e.data.node.id);
+            window.clearTimeout(clickTimeout);
             hasDoubleClicked = true;
             _Graph.loadRelationships(e.data.node.id);
-            window.clearTimeout(clickTimeout);
+            engine.renderers[0].dispatchEvent('outNode', { node: e.data.node });
+            return false;
         });
 
         engine.bind('clickNode', function (e) {
-            //console.log('clickNode', hasDragged);
+            console.log('clickNode', hasDragged);
             
-            console.log(e.data.node, sigma.utils.getX(e.data.node), sigma.utils.getY(e.data.node));
+            if (hasDoubleClicked) {
+                console.log('double click detected, cancelling single click action');
+                return;
+            }
+            
+            //console.log(e.data.node, sigma.utils.getX(e.data.node), sigma.utils.getY(e.data.node));
+            var node = e.data.node;
             
             if (hasDragged) {
                 hasDragged = false;
+                engine.renderers[0].dispatchEvent('outNode', { node: node });
                 return false;
             }
 
             //e.data.node.size = 40;
             //engine.refresh();
             //engine.startForceAtlas2(forceAtlas2Config);
-            var node = e.data.node;
             //console.log(node);
             clickTimeout = window.setTimeout(function () {
                 if (!hasDoubleClicked) {
+                    console.log('no double click within timeout, triggering single click action');
+                    engine.renderers[0].dispatchEvent('outNode', { node: node });
                     _Entities.showProperties(node);
                     window.clearTimeout(clickTimeout);
                     hasDoubleClicked = false;
                 }
             }, doubleClickTime);
-            clickTimeout = window.setTimeout(function () {
+            window.setTimeout(function () {
+                console.log('second timed action, setting hasDoubleClicked to false');
                 hasDoubleClicked = false;
+                engine.renderers[0].dispatchEvent('outNode', { node: node });
             }, doubleClickTime + 10);
 
 //            graph.append('<div id="node_' + node.id + '" class="node-overlay"></div>');
@@ -205,20 +217,24 @@ var _Graph = {
             //console.log('drag', hasDragged);
             //console.log(event.data.captor, event.data.node.x, event.data.node.y, event.data.renderer.camera.x, event.data.renderer.camera.x);
 
-            console.log(event.data.node.x, event.data.renderer.camera.x, event.data.renderer.camera.ratio);
-            
-
-            
+            //console.log(event.data.node.x, event.data.renderer.camera.x, event.data.renderer.camera.ratio);
             
         });
 //        dragListener.bind('drop', function (event) {
 //            //console.log(event);
 //        });
-        dragListener.bind('dragend', function (event) {
+        dragListener.bind('dragend', function (e) {
             //engine.startForceAtlas2();
+            engine.renderers[0].dispatchEvent('outNode', { node: e.data.node });
             hasDragged &= true;
             //console.log(event.data.node);
             //console.log('dragend', hasDragged);
+        });
+        
+        engine.bind('clickEdge', function(e) {
+            log('edge clicked', e.data.edge.id);
+            _Entities.showProperties(e.data.edge);
+            engine.renderers[0].dispatchEvent('outEdge', { edge: e.data.edge });
         });
 
     },

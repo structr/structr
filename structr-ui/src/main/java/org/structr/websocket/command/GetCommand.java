@@ -20,14 +20,14 @@ package org.structr.websocket.command;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket command to retrieve a single node by id.
+ * Websocket command to retrieve a single graph object by id.
  *
  * @author Christian Morgner
  * @author Axel Morgner
@@ -45,10 +45,11 @@ public class GetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		AbstractNode node = getNode(webSocketData.getId());
+		GraphObject graphObject = getGraphObject(webSocketData.getId());
 
-		if (node != null) {
-			webSocketData.setResult(Arrays.asList(node));
+		if (graphObject != null) {
+			
+			webSocketData.setResult(Arrays.asList(graphObject));
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

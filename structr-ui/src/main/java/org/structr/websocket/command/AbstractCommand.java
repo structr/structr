@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.api.Session;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -101,6 +102,33 @@ public abstract class AbstractCommand {
 	}
 
 	/**
+	 * Returns the graph object to which the uuid parameter
+	 * of this command refers to.
+	 *
+	 * @param id
+	 * @return the graph object
+	 */
+	public GraphObject getGraphObject(final String id) {
+
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject graphObject = (GraphObject) app.get(id);
+
+			tx.success();
+
+			return graphObject;
+
+		} catch (FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to get graph object", fex);
+		}
+
+		return null;
+	}
+
+	/**
 	 * Returns the node to which the uuid parameter
 	 * of this command refers to.
 	 *
@@ -114,7 +142,7 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = (AbstractNode)app.get(id);
+			final AbstractNode node = (AbstractNode) app.get(id);
 
 			tx.success();
 
@@ -145,7 +173,7 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractRelationship rel = (AbstractRelationship)app.get(id);
+			final AbstractRelationship rel = (AbstractRelationship) app.get(id);
 
 			tx.success();
 
