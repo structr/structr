@@ -19,9 +19,9 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -43,15 +43,15 @@ public class GetProperty extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		AbstractNode node = getNode(webSocketData.getId());
+		final GraphObject obj = getGraphObject(webSocketData.getId());
 		String key = (String) webSocketData.getNodeData().get("key");
 
-		if (node != null) {
+		if (obj != null) {
 
-			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), key);
+			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(obj.getClass(), key);
 			PropertyConverter converter = propertyKey.inputConverter(getWebSocket().getSecurityContext());
 
-			Object value = node.getProperty(propertyKey);
+			Object value = obj.getProperty(propertyKey);
 			if (converter != null) {
 
 				try {

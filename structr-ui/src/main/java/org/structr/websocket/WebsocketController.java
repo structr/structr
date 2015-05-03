@@ -254,14 +254,8 @@ public class WebsocketController implements StructrTransactionListener {
 
 			// handle relationship
 			final RelationshipInterface relationship = (RelationshipInterface) modificationEvent.getGraphObject();
-			final RelationshipType relType = modificationEvent.getRelationshipType();
 
-			// only interested in CONTAINS relationships
-			if (!("CONTAINS".equals(relType.name()))) {
-				return null;
-			}
-
-			if (modificationEvent.isDeleted()) { // && "CONTAINS".equals(relType.name())) {
+			if (modificationEvent.isDeleted()) {
 
 				final WebSocketMessage message = createMessage("REMOVE_CHILD");
 

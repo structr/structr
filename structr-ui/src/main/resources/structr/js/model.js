@@ -199,8 +199,8 @@ var StructrModel = {
 
             _Pages.reloadPreviews();
         }
-        if (graph) {
-            graph.redrawRelationships();
+        if (engine) {
+            engine.refresh();
         }
 
     },

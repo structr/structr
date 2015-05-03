@@ -27,8 +27,10 @@ var queriesSlideout, displaySlideout, filtersSlideout, nodesSlideout, relationsh
 var savedQueriesKey = 'structrSavedQueries_' + port;
 var relTypes = {}, nodeTypes = {}, nodeColors = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
 var hiddenNodeTypes = [], hiddenRelTypes = [];
+var edgeType = 'curvedArrow';
 
 var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc;';
+var tmpX, tmpY;
 var forceAtlas2Config = {
     gravity: 1,
     strongGravityMode: true,
@@ -78,8 +80,41 @@ var _Graph = {
         colors.push('#921C00');
         colors.push('#7D0033');
 
-        _Graph.updateNodeTypes();
+
+
+        colors.push('#019097');
+        colors.push('#103BA8');
+        colors.push('#FAA800');
+        colors.push('#FA7300');
+
+        colors.push('#3FB0B5');
+        colors.push('#5070C1');
+        colors.push('#FFC857');
+        colors.push('#FFA557');
+
+        colors.push('#1CA2A8');
+        colors.push('#2E55B7');
+        colors.push('#FFB929');
+        colors.push('#FF8C29');
+
+        colors.push('#017277');
+        colors.push('#0B2E85');
+        colors.push('#C68500');
+        colors.push('#C65B00');
+
+        colors.push('#00595D');
+        colors.push('#072368');
+        colors.push('#9A6800');
+        colors.push('#9A4700');
         
+        for (i = 50; i < 999; i++) {
+            var color = 'rgb(' + (Math.floor((256-199)*Math.random()) + 200) + ',' + (Math.floor((256-199)*Math.random()) + 200) + ',' + (Math.floor((256-199)*Math.random()) + 200) + ')';
+            colors.push(color);
+        }
+        
+
+        _Graph.updateNodeTypes();
+
         sigma.renderers.def = sigma.renderers.canvas;
 
         if (engine) {
@@ -114,127 +149,67 @@ var _Graph = {
             }
         });
 
-        engine.bind('overNode outNode clickNode doubleClickNode', function (e) {
-            //console.log(e.type, e.data.node.label);
-        });
-
         engine.bind('doubleClickNode', function (e) {
-            console.log('double click on ', e.type, e.data.node.id);
             window.clearTimeout(clickTimeout);
             hasDoubleClicked = true;
             _Graph.loadRelationships(e.data.node.id);
-            engine.renderers[0].dispatchEvent('outNode', { node: e.data.node });
+            engine.renderers[0].dispatchEvent('outNode', {node: e.data.node});
             return false;
         });
 
+        $(document.body).on('mousedown', function (e) {
+            tmpX = e.clientX;
+            tmpY = e.clientY;
+        });
+
+        $(document.body).on('mouseup', function (e) {
+            hasDragged = (tmpX && tmpY && (tmpX !== e.clientX || tmpY !== e.clientY));
+            tmpX = e.clientX;
+            tmpY = e.clientY;
+        });
+
         engine.bind('clickNode', function (e) {
-            console.log('clickNode', hasDragged);
-            
+
+            log('clickNode');
+
             if (hasDoubleClicked) {
-                console.log('double click detected, cancelling single click action');
-                return;
-            }
-            
-            //console.log(e.data.node, sigma.utils.getX(e.data.node), sigma.utils.getY(e.data.node));
-            var node = e.data.node;
-            
-            if (hasDragged) {
-                hasDragged = false;
-                engine.renderers[0].dispatchEvent('outNode', { node: node });
+                log('double clicked, returning');
                 return false;
             }
 
-            //e.data.node.size = 40;
-            //_Graph.scheduleRefreshEngine();
-            //engine.startForceAtlas2(forceAtlas2Config);
-            //console.log(node);
+            var node = e.data.node;
+
+            if (hasDragged) {
+                hasDragged = false;
+                return false;
+            }
+
             clickTimeout = window.setTimeout(function () {
-                if (!hasDoubleClicked) {
-                    console.log('no double click within timeout, triggering single click action');
-                    engine.renderers[0].dispatchEvent('outNode', { node: node });
+                if (!hasDoubleClicked && !hasDragged) {
                     _Entities.showProperties(node);
+                    engine.renderers[0].dispatchEvent('outNode', {node: node});
                     window.clearTimeout(clickTimeout);
-                    hasDoubleClicked = false;
                 }
             }, doubleClickTime);
             window.setTimeout(function () {
-                console.log('second timed action, setting hasDoubleClicked to false');
                 hasDoubleClicked = false;
-                engine.renderers[0].dispatchEvent('outNode', { node: node });
             }, doubleClickTime + 10);
 
-//            graph.append('<div id="node_' + node.id + '" class="node-overlay"></div>');
-//            var overlay = $('#node_' + node.id);
-//            console.log(e.data.node);
-//            console.log(e.target.camera);
-//            var ratio = e.target.camera.ratio;
-//            overlay.css({
-//                width: e.data.node.size,
-//                height: e.data.node.size,
-//                left: node['renderer1:x'] - e.data.node.size*ratio,
-//                top: node['renderer1:y'] + e.data.node.size*ratio
-//            });
-//            overlay.on('mouseover', function () {
-////               return false; // avoid bubbling to node 
-//            });
-//            overlay.on('mouseout', function () {
-//                $(this).remove();
-//            });
-//            var editIcon = _Entities.appendEditPropertiesIcon(overlay, node, true);
-//            editIcon.on('hover', function () {
-//                return false;
-//            });
-//            $('.edit', overlay).on('click', function() {
-//               var icon = $(this);
-//               var nodeId = icon.parent('.node-overlay').attr('id').substring(6);
-//               console.log(nodeId);
-//               
-//            });
         });
 
-        engine.bind('outNode', function (e) {
-            //e.data.node.size = 20;
-            //_Graph.scheduleRefreshEngine();
-            //engine.stopForceAtlas2(forceAtlas2Config);
-            //var node = e.data.node;
-            //var overlay = $('#node_' + node.id);
-            //overlay.remove();
-        });
-
-        //mode = 'auto';
-        //engine = new Engine(graph);
-        //engine.initialize();
-        //engine.update();
         var dragListener = new sigma.plugins.dragNodes(engine, engine.renderers[0]);
         dragListener.bind('startdrag', function (event) {
-            //engine.stopForceAtlas2();
-            //engine.killForceAtlas2();
             hasDragged = false;
-            //console.log('startdrags', hasDragged);
         });
         dragListener.bind('drag', function (event) {
             hasDragged = true;
-            //console.log('drag', hasDragged);
-            //console.log(event.data.captor, event.data.node.x, event.data.node.y, event.data.renderer.camera.x, event.data.renderer.camera.x);
+        });
 
-            //console.log(event.data.node.x, event.data.renderer.camera.x, event.data.renderer.camera.ratio);
-            
-        });
-//        dragListener.bind('drop', function (event) {
-//            //console.log(event);
-//        });
-        dragListener.bind('dragend', function (e) {
-            //engine.startForceAtlas2();
-            engine.renderers[0].dispatchEvent('outNode', { node: e.data.node });
-            hasDragged &= true;
-            //console.log(event.data.node);
-            //console.log('dragend', hasDragged);
-        });
-        
-        engine.bind('clickEdge', function(e) {
+        engine.bind('clickEdge', function (e) {
             log('edge clicked', e.data.edge.id);
+            hasDoubleClicked = false;
             _Entities.showProperties(e.data.edge);
-            engine.renderers[0].dispatchEvent('outEdge', { edge: e.data.edge });
+            engine.renderers[0].dispatchEvent('outEdge', {edge: e.data.edge});
         });
 
     },
@@ -253,7 +228,7 @@ var _Graph = {
         } else {
 
             main.prepend(
-                    '<div id="graph-box"><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-canvas">Clear Canvas</button></div></div>'
+                    '<div id="graph-box"><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
                     + '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Display Options</div></div>'
                     + '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
                     + ' <div class="canvas" id="graph-canvas"></div>'
@@ -269,6 +244,12 @@ var _Graph = {
             filtersSlideout = $('#filters');
 
             graph = $('#graph-canvas');
+
+            $(document.body).on('selectstart', function (e) {
+                e.preventDefault();
+                return false;
+            });
+
             graph.droppable({
                 accept: '.node-type',
                 drop: function (e, ui) {
@@ -283,6 +264,7 @@ var _Graph = {
                         Command.get(obj.id, function (node) {
                             console.log(node);
                             _Graph.drawNode(node);
+                            _Graph.refreshEngine();
                         });
 
                     });
@@ -379,15 +361,7 @@ var _Graph = {
             queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><img id="add-cypher-parameter" src="icon/add.png">');
             _Graph.appendCypherParameter($('#cypher-params'));
 
-            $('#clear-canvas').on('click', function () {
-                engine.stopForceAtlas2();
-                engine.killForceAtlas2();
-                engine.graph.clear();
-                nodeIds.length = 0;
-                relIds.length = 0;
-                color = 0;
-                nodeTypes = {};
-                relTypes = {};
+            $('#clear-graph').on('click', function () {
                 _Graph.clearGraph();
             });
 
@@ -565,7 +539,14 @@ var _Graph = {
         $('.search[name=' + type + ']').val('').focus();
     },
     clearGraph: function () {
-        graph.empty();
+        relTypes = {};
+        nodeTypes = {};
+        //nodeColors = {};
+        //relColors = {};
+        nodeIds = [];
+        relIds = [];
+        engine.graph.clear();
+        engine.refresh();
     },
     loadRelationships: function (nodeId) {
         if (nodeId) {
@@ -660,7 +641,7 @@ var _Graph = {
             target: r.targetId,
             size: 40,
             color: defaultRelColor,
-            type: 'curvedArrow',
+            type: edgeType,
             relType: r.relType,
             hidden: isIn(r.relType, hiddenRelTypes)
         });
@@ -743,9 +724,9 @@ var _Graph = {
 
         var nodeTypesBox = $('#node-types');
         nodeTypesBox.empty();
-        nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
+        //nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
         Command.getByType('SchemaNode', 1000, 1, null, null, null, function (node) {
-            
+
             var nodeType = node.name;
 
             if (!isIn(nodeType, Object.keys(nodeColors))) {
@@ -794,7 +775,7 @@ var _Graph = {
             }
         });
         hiddenNodeTypes.push(type);
-        _Graph.scheduleRefreshEngine();
+        _Graph.refreshEngine();
         if (callback) {
             callback();
         }
@@ -807,7 +788,7 @@ var _Graph = {
             }
         });
         hiddenNodeTypes.splice(hiddenNodeTypes.indexOf('type'), 1);
-        _Graph.scheduleRefreshEngine();
+        _Graph.refreshEngine();
         if (callback) {
             callback();
         }
@@ -911,12 +892,12 @@ var _Graph = {
         });
     },
     scheduleRefreshEngine: function () {
-        console.log('scheduleRefreshEngine');
         window.clearTimeout(refreshTimeout);
         refreshTimeout = window.setTimeout(_Graph.refreshEngine, 100);
     },
     refreshEngine: function () {
-        console.log('actually calling engine.refresh()');
+        hasDoubleClicked = false;
+        hasDragged = false;
         engine.refresh();
     }
 };
@@ -924,4 +905,3 @@ var _Graph = {
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
-

@@ -390,7 +390,7 @@ var _Entities = {
 
                 if (hasHtmlAttributes) {
                     views.unshift('_html_');
-                    console.log(lastMenuEntry)
+                    //console.log(lastMenuEntry)
                     if (lastMenuEntry === 'pages') {
                         activeView = '_html_';
                     }

@@ -1858,7 +1858,7 @@ button.add_property {
     overflow: auto;
 }
 
-#clear-canvas {
+#clear-graph {
     float: none ! important;
     display: block;
     margin-bottom: 24px;

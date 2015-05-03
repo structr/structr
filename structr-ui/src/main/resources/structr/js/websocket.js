@@ -265,6 +265,8 @@ function wsConnect() {
 
             } else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
+                console.log(command, data);
+
                 var obj = StructrModel.obj(data.id);
 
                 if (!obj) {
