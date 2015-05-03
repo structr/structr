@@ -67,7 +67,7 @@ public abstract class AbstractCommand {
 
 	public Page getPage(final String id) {
 
-		AbstractNode node = getNode(id);
+		final AbstractNode node = getNode(id);
 
 		if (node != null && node instanceof Page) {
 
@@ -79,7 +79,7 @@ public abstract class AbstractCommand {
 
 	public DOMNode getDOMNode(final String id) {
 
-		AbstractNode node = getNode(id);
+		final AbstractNode node = getNode(id);
 
 		if (node != null && node instanceof DOMNode) {
 
@@ -91,7 +91,7 @@ public abstract class AbstractCommand {
 
 	public Widget getWidget(final String id) {
 
-		AbstractNode node = getNode(id);
+		final AbstractNode node = getNode(id);
 
 		if (node != null && node instanceof Widget) {
 

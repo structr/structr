@@ -45,7 +45,7 @@ public class GetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		GraphObject graphObject = getGraphObject(webSocketData.getId());
+		final GraphObject graphObject = getGraphObject(webSocketData.getId());
 
 		if (graphObject != null) {
 			

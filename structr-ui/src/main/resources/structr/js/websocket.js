@@ -265,7 +265,7 @@ function wsConnect() {
 
             } else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
-                console.log(command, data);
+                log(command, data);
 
                 var obj = StructrModel.obj(data.id);
 
@@ -280,7 +280,7 @@ function wsConnect() {
                     StructrModel.clearCallback(data.callback);
                 }
 
-            } else if (command.startsWith('GET') || command === 'GET_BY_TYPE') { /*********************** GET_BY_TYPE ************************/
+            } else if (command.startsWith('GET') || command === 'GET_BY_TYPE' || command === 'CREATE_RELATIONSHIP') { /*********************** GET_BY_TYPE ************************/
 
                 log(command, data);
 
@@ -443,7 +443,7 @@ function wsConnect() {
             } else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
                 var obj = StructrModel.obj(data.id);
-                if (obj) {
+                if (obj && obj.removes) {
                     obj.remove();
                 }
 

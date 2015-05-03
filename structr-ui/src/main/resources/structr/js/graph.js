@@ -26,8 +26,10 @@ var activeTabLeftGraph, activeTabRightGraph;
 var queriesSlideout, displaySlideout, filtersSlideout, nodesSlideout, relationshipsSlideout, graph;
 var savedQueriesKey = 'structrSavedQueries_' + port;
 var relTypes = {}, nodeTypes = {}, nodeColors = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
-var hiddenNodeTypes = [], hiddenRelTypes = [];
+var hiddenNodeTypes = [], hiddenRelTypes = ['OWNS', 'SECURITY'];
 var edgeType = 'curvedArrow';
+var schemaNodes = {}, schemaRelationships = {}, schemaNodesById = {};
+
 
 var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc;';
 var tmpX, tmpY;
@@ -106,12 +108,12 @@ var _Graph = {
         colors.push('#072368');
         colors.push('#9A6800');
         colors.push('#9A4700');
-        
+
         for (i = 50; i < 999; i++) {
-            var color = 'rgb(' + (Math.floor((256-199)*Math.random()) + 200) + ',' + (Math.floor((256-199)*Math.random()) + 200) + ',' + (Math.floor((256-199)*Math.random()) + 200) + ')';
+            var color = 'rgb(' + (Math.floor((256 - 199) * Math.random()) + 200) + ',' + (Math.floor((256 - 199) * Math.random()) + 200) + ',' + (Math.floor((256 - 199) * Math.random()) + 200) + ')';
             colors.push(color);
         }
-        
+
 
         _Graph.updateNodeTypes();
 
@@ -126,6 +128,7 @@ var _Graph = {
             container: 'graph-canvas',
             settings: {
                 font: 'Open Sans',
+                immutable: false,
                 //scalingMode: 'outside',
                 //autoRescale: false,
                 //batchEdgesDrawing: true,
@@ -201,12 +204,148 @@ var _Graph = {
         dragListener.bind('startdrag', function (event) {
             hasDragged = false;
         });
-        dragListener.bind('drag', function (event) {
+        dragListener.bind('drag', function (e) {
             hasDragged = true;
+
+            var node = e.data.node;
+
+            engine.graph.nodes().forEach(function (n) {
+                if (n === node)
+                    return;
+                var d = _Graph.distance(node, n);
+
+                if (d < 200) {
+
+                    var sourceSchemaNode = schemaNodes[node.type];
+                    sourceSchemaNode.relatedTo.forEach(function (toRel) {
+
+                        var edgeId = node.id + '-[:' + toRel.relationshipType + ']->' + n.id;
+                        var possibleTargetType = schemaNodesById[toRel.targetId].name;
+                        if (possibleTargetType === n.type && !engine.graph.edges(edgeId)) {
+
+                            var hiddenEdge;
+
+                            if (toRel.sourceMultiplicity === '1') {
+
+                                engine.graph.edges().forEach(function (edge) {
+                                    log(edge);
+                                    if (edge.target === n.id && edge.relType === toRel.relationshipType) {
+                                        edge.hidden     = true;
+                                        log('outgoing rel found, will be removed', edge);
+                                        hiddenEdge = edge.id;
+                                    }
+
+                                });
+
+                            }
+                            engine.graph.addEdge({
+                                id: edgeId,
+                                label: toRel.relationshipType,
+                                source: node.id,
+                                target: n.id,
+                                size: 40,
+                                color: '#81ce25',
+                                type: 'curvedArrow',
+                                added: true,
+                                replaced: hiddenEdge,
+                                relType: toRel.relationshipType
+                            });
+
+                        }
+                    });
+
+                    sourceSchemaNode.relatedFrom.forEach(function (fromRel) {
+
+                        var edgeId = node.id + '<-[:' + fromRel.relationshipType + ']-' + n.id;
+                        var possibleSourceType = schemaNodesById[fromRel.sourceId].name;
+                        if (possibleSourceType === n.type && !engine.graph.edges(edgeId)) {
+
+                            var hiddenEdge;
+
+                            if (fromRel.sourceMultiplicity === '1') {
+
+                                engine.graph.edges().forEach(function (edge) {
+                                    log(edge);
+                                    if (edge.target === node.id && edge.relType === fromRel.relationshipType) {
+                                        edge.hidden     = true;
+                                        log('outgoing rel found, will be removed', edge);
+                                        hiddenEdge = edge.id;
+                                    }
+
+                                });
+
+                            }
+
+                            engine.graph.addEdge({
+                                id: edgeId,
+                                label: fromRel.relationshipType,
+                                source: n.id,
+                                target: node.id,
+                                size: 40,
+                                color: '#81ce25',
+                                type: 'curvedArrow',
+                                added: true,
+                                replaced: hiddenEdge,
+                                relType: fromRel.relationshipType
+                            });
+                        }
+                    });
+
+                    _Graph.scheduleRefreshEngine();
+
+
+                } else {
+
+                    engine.graph.edges().forEach(function (edge) {
+
+                        if ((edge.source === node.id && edge.target === n.id) || (edge.source === n.id && edge.target === node.id)) {
+
+                            if (edge.added) {
+                                var replaced = edge.replaced;
+                                log('edge replaced ', replaced);        
+                                engine.graph.dropEdge(edge.id);
+                                if (replaced) {
+                                    engine.graph.edges(replaced).hidden = false;
+                                }
+                            }
+
+                        }
+
+                    });
+
+                }
+
+            });
+
+
+        });
+        dragListener.bind('dragend', function (e) {
+            engine.graph.edges().forEach(function (edge) {
+                
+                if (edge.hidden) {
+                    Command.deleteRelationship(edge.id, function() {
+                        engine.graph.dropEdge(edge.id);
+                    });
+                }
+                
+                if (edge.added) {
+                    // Create new relationship
+                    var relData = {
+                        sourceId: edge.source,
+                        targetId: edge.target,
+                        relType: edge.relType
+                    };
+                    Command.createRelationship(relData, function (rel) {
+                        edge.color = defaultRelColor;
+                        edge.id = rel.id;
+                        edge.added = false;
+                        _Graph.scheduleRefreshEngine();
+                    });
+                }
+            });
         });
 
         engine.bind('clickEdge', function (e) {
-            log('edge clicked', e.data.edge.id);
             hasDoubleClicked = false;
             _Entities.showProperties(e.data.edge);
             engine.renderers[0].dispatchEvent('outEdge', {edge: e.data.edge});
@@ -256,13 +395,12 @@ var _Graph = {
                     var nodeType = ui.helper.text();
                     var x = ui.offset.left;
                     var y = ui.offset.top;
-                    console.log('Creating node of type', nodeType, x, y);
+                    //console.log('Creating node of type', nodeType, x, y);
                     Command.create({
                         type: nodeType
                     }, function (obj) {
 
                         Command.get(obj.id, function (node) {
-                            console.log(node);
                             _Graph.drawNode(node);
                             _Graph.refreshEngine();
                         });
@@ -727,6 +865,9 @@ var _Graph = {
         //nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
         Command.getByType('SchemaNode', 1000, 1, null, null, null, function (node) {
 
+            schemaNodes[node.name] = node;
+            schemaNodesById[node.id] = node;
+
             var nodeType = node.name;
 
             if (!isIn(nodeType, Object.keys(nodeColors))) {
@@ -795,16 +936,21 @@ var _Graph = {
         //console.log(hiddenNodeTypes);
     },
     highlightNodeType: function (type) {
-//        engine.graph.nodes().forEach(function (node) {
-//            if (node.type === type) {
-//                node.hover();
-//            }
-//        });
+        engine.graph.nodes().forEach(function (node) {
+            if (node.type === type) {
+                node.oldColor = node.color;
+                node.color = colorLuminance(node.color, -.2);
+            }
+        });
+        _Graph.scheduleRefreshEngine();
     },
     unhighlightNodeType: function (type) {
-//        engine.graph.nodes().forEach(function (node) {
-//
-//        });
+        engine.graph.nodes().forEach(function (node) {
+            if (node.type === type) {
+                node.color = node.oldColor;
+            }
+        });
+        _Graph.scheduleRefreshEngine();
     },
     setNodeColor: function (node) {
         if (!isIn(node.type, Object.keys(nodeColors))) {
@@ -854,12 +1000,29 @@ var _Graph = {
                     });
                 }
             }).on('mouseover', function () {
-                //_Graph.highlightRelationshipType(relType);
+                _Graph.highlightRelationshipType(relType);
             }).on('mouseout', function () {
-                //_Graph.unhighlightRelationshipType(relType);
+                _Graph.unhighlightRelationshipType(relType);
             });
         });
 
+    },
+    highlightRelationshipType: function (type) {
+        engine.graph.edges().forEach(function (edge) {
+            if (edge.relType === type) {
+                edge.oldColor = edge.color;
+                edge.color = colorLuminance(edge.color, -.2);
+            }
+        });
+        _Graph.scheduleRefreshEngine();
+    },
+    unhighlightRelationshipType: function (type) {
+        engine.graph.edges().forEach(function (edge) {
+            if (edge.relType === type) {
+                edge.color = edge.oldColor;
+            }
+        });
+        _Graph.scheduleRefreshEngine();
     },
     hideRelType: function (type, callback) {
         engine.graph.edges().forEach(function (edge) {
@@ -899,9 +1062,55 @@ var _Graph = {
         hasDoubleClicked = false;
         hasDragged = false;
         engine.refresh();
+    },
+    distance: function (n1, n2) {
+        var x1 = parseInt(n1['renderer1:x']);
+        var y1 = parseInt(n1['renderer1:y']);
+        var x2 = parseInt(n2['renderer1:x']);
+        var y2 = parseInt(n2['renderer1:y']);
+        var d = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        //console.log(x1,y2, x2,y2, d);
+        return d;
     }
 };
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function colorLuminance(hex, lum) {
+
+    hex = String(hex).replace(/[^0-9a-f]/gi, '');
+    lum = lum || 0;
+    if (hex.length < 6) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+
+    // convert to decimal
+    var r = convertToDec(hex.substr(0, 2)), g = convertToDec(hex.substr(2, 2)), b = convertToDec(hex.substr(4, 2));
+
+    // desaturate
+    var rgb = desaturate(r, g, b, .5);
+
+    // change luminosity
+
+    var newHex = "#", c, i;
+    for (i = 0; i < 3; i++) {
+        c = rgb[i];
+        c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+        newHex += ("00" + c).substr(c.length);
+    }
+    return newHex;
+}
+
+function convertToDec(hex) {
+    return parseInt(hex, 16);
+}
+
+function desaturate(r, g, b, k) {
+    var intensity = 0.3 * r + 0.59 * g + 0.11 * b;
+    r = Math.floor(intensity * k + r * (1 - k));
+    g = Math.floor(intensity * k + g * (1 - k));
+    b = Math.floor(intensity * k + b * (1 - k));
+    return [r, g, b];
 }
