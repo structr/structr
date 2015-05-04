@@ -226,17 +226,14 @@ var _Graph = {
                             var hiddenEdge;
 
                             if (toRel.sourceMultiplicity === '1') {
-
                                 engine.graph.edges().forEach(function (edge) {
                                     log(edge);
                                     if (edge.target === n.id && edge.relType === toRel.relationshipType) {
-                                        edge.hidden     = true;
+                                        edge.hidden = true;
                                         log('outgoing rel found, will be removed', edge);
                                         hiddenEdge = edge.id;
                                     }
-
                                 });
-
                             }
                             engine.graph.addEdge({
                                 id: edgeId,
@@ -263,17 +260,14 @@ var _Graph = {
                             var hiddenEdge;
 
                             if (fromRel.sourceMultiplicity === '1') {
-
                                 engine.graph.edges().forEach(function (edge) {
                                     log(edge);
                                     if (edge.target === node.id && edge.relType === fromRel.relationshipType) {
-                                        edge.hidden     = true;
+                                        edge.hidden = true;
                                         log('outgoing rel found, will be removed', edge);
                                         hiddenEdge = edge.id;
                                     }
-
                                 });
-
                             }
 
                             engine.graph.addEdge({
@@ -302,32 +296,27 @@ var _Graph = {
 
                             if (edge.added) {
                                 var replaced = edge.replaced;
-                                log('edge replaced ', replaced);        
+                                log('edge replaced ', replaced);
                                 engine.graph.dropEdge(edge.id);
                                 if (replaced) {
                                     engine.graph.edges(replaced).hidden = false;
                                 }
                             }
-
                         }
-
                     });
-
                 }
-
             });
-
 
         });
         dragListener.bind('dragend', function (e) {
             engine.graph.edges().forEach(function (edge) {
-                
+
                 if (edge.hidden) {
-                    Command.deleteRelationship(edge.id, function() {
+                    Command.deleteRelationship(edge.id, function () {
                         engine.graph.dropEdge(edge.id);
                     });
                 }
-                
+
                 if (edge.added) {
                     // Create new relationship
                     var relData = {
@@ -790,11 +779,19 @@ var _Graph = {
         if (!node) {
             node = engine.graph.nodes(obj.id);
         }
-        node.name = obj.name;
-        node.id = obj.id;
-        node.tag = obj.tag;
+        if (obj.name) {
+            node.name = obj.name;
+        }
+        if (obj.id) {
+            node.id = obj.id;
+        }
+        if (obj.tag) {
+            node.tag = obj.tag;
+        }
         node.label = (node.name || node.tag || node.id.substring(0, 5) + '…') + ':' + node.type;
-        node.type = obj.type;
+        if (obj.type) {
+            node.type = obj.type;
+        }
 
         _Graph.scheduleRefreshEngine();
 
