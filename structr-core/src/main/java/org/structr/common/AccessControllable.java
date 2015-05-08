@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.common;
 
 import java.util.Date;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 
@@ -38,13 +39,19 @@ public interface AccessControllable {
 	public Principal getOwnerNode();
 
 	/**
-	 * Return true if principal has the given permission
+	 * Return true if principal has the given permission on this object.
 	 *
 	 * @param permission
-	 * @param principal
-	 * @return whether the principal has the given permissions
+	 * @param securityContext
+	 *
+	 * @return whether the security context has the given permissions on this node
 	 */
-	public boolean isGranted(final Permission permission, final Principal principal);
+	public boolean isGranted(final Permission permission, final SecurityContext securityContext);
+
+
+	public void grant(final Permission permission, final Principal principal) throws FrameworkException;
+	public void revoke(final Permission permission, final Principal principal) throws FrameworkException;
+
 
 	/**
 	 * Return the (cached) incoming relationship between this node and the

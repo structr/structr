@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -218,7 +218,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// resource access explicetly set to FORBIDDEN => forbidden
+			// resource access explicitly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
 			// allow PUT for authenticated users => access without user/pass should be still forbidden
@@ -235,8 +235,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
-			// allow PUT for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
-			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);		
+			// allow PUT for non-authenticated users =>
+			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
 
 			tx.success();
@@ -248,25 +248,12 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
+			// ownerless non-public node cannot be found by anonymous user
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().put("/folder/" + testFolder.getUuid());
 
 			// Prepare for next test
 			testUser.setProperty(AbstractNode.name, name);
 			testUser.setProperty(User.password, password);
-
-			tx.success();
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			logger.log(Level.SEVERE, fex.toString());
-			fail("Unexpected exception");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			// test user has no specific rights on the object => still 403
-			RestAssured.given()
-				.headers("X-User", name, "X-Password", password)
-				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 
 			// now we give the user ownership and expect a 200
 			testFolder.setProperty(AbstractNode.owner, testUser);
@@ -337,7 +324,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// resource access explicetly set to FORBIDDEN => forbidden
+			// resource access explicitly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
@@ -365,25 +352,12 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().delete("/folder/" + testFolder.getUuid());
 
 			testUser.setProperty(AbstractNode.name, name);
 			testUser.setProperty(User.password, password);
 
-			tx.success();
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			logger.log(Level.SEVERE, fex.toString());
-			fail("Unexpected exception");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			// test user has no specific rights on the object => still 403
-			RestAssured.given()
-				.headers("X-User", name, "X-Password", password)
-				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
-
+			// make user own folder
 			testFolder.setProperty(AbstractNode.owner, testUser);
 
 			tx.success();
@@ -395,21 +369,17 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
+			// test user owns object now => 200
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)
 				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().delete("/folder/" + testFolder.getUuid());
 
 			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			ex.printStackTrace();
-
-			logger.log(Level.SEVERE, ex.toString());
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
 			fail("Unexpected exception");
-
 		}
-
 	}
 
 	/**

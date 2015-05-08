@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,6 +36,10 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 	public EnumProperty(final String name, final Class<T> enumType, final PropertyValidator<T>... validators) {
 		this(name, enumType, null, validators);
+	}
+
+	public EnumProperty(final String jsonName, final String dbName, final Class<T> enumType, final PropertyValidator<T>... validators) {
+		this(jsonName, dbName, enumType, null, validators);
 	}
 
 	public EnumProperty(final String name, final Class<T> enumType, final T defaultValue, final PropertyValidator<T>... validators) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,19 +21,16 @@ package org.structr.core.entity;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
-import org.apache.commons.lang3.ArrayUtils;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.SecurityDelegate;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
@@ -110,117 +107,44 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	public boolean isAllowed(final Permission permission) {
 
-		if (dbRelationship.hasProperty(allowed.dbName())) {
+		final Set<String> permissionSet = SecurityDelegate.getPermissionSet(dbRelationship, Security.allowed);
+		final Principal principal       = getSourceNode();
 
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(allowed.dbName());
+		if (principal != null) {
 
-			if (allowedProperties != null) {
+			final Set<String> allowedPermissions = SecurityDelegate.getPermissionSet(principal.getNode(), Principal.allowed);
+			final Set<String> deniedPermissions  = SecurityDelegate.getPermissionSet(principal.getNode(), Principal.allowed);
 
-				for (String p : allowedProperties) {
-
-					if (p.equals(permission.name())) {
-
-						return true;
-					}
-
-				}
-
+			if (allowedPermissions != null) {
+				permissionSet.addAll(allowedPermissions);
 			}
 
+			if (deniedPermissions != null) {
+				permissionSet.removeAll(deniedPermissions);
+			}
 		}
 
-		return false;
-
+		return permissionSet.contains(permission.name());
 	}
 
-	public void setAllowed(final List<String> allowed) {
-
-		String[] allowedActions = (String[]) allowed.toArray(new String[allowed.size()]);
-
-		setAllowed(allowedActions);
-
+	public void setAllowed(final Set<String> allowed) {
+		SecurityDelegate.setAllowed(this, Security.allowed, allowed);
 	}
 
-	public void setAllowed(final Permission[] allowed) {
-
-		List<String> allowedActions = new ArrayList<>();
-
-		for (Permission permission : allowed) {
-
-			allowedActions.add(permission.name());
-		}
-
-		setAllowed(allowedActions);
-
+	public void setAllowed(final Permission... allowed) {
+		SecurityDelegate.setAllowed(this, Security.allowed, allowed);
 	}
 
-	public void setAllowed(final String[] allowed) {
-
-		dbRelationship.setProperty(Security.allowed.dbName(), allowed);
-
-	}
-
-	public String[] getPermissions() {
-
-		if (dbRelationship.hasProperty(Security.allowed.dbName())) {
-
-			// StringBuilder result             = new StringBuilder();
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(Security.allowed.dbName());
-
-			return allowedProperties;
-
-//                      if (allowedProperties != null) {
-//
-//                              for (String p : allowedProperties) {
-//
-//                                      result.append(p).append("\n");
-//
-//                              }
-//
-//                      }
-//
-//                      return result.toString();
-		} else {
-
-			return null;
-		}
-
+	public Set<String> getPermissions() {
+		return SecurityDelegate.getPermissions(this, Security.allowed);
 	}
 
 	public void addPermission(final Permission permission) {
-
-		String[] _allowed = getPermissions();
-
-		if (ArrayUtils.contains(_allowed, permission.name())) {
-
-			return;
-		}
-
-		setAllowed((String[]) ArrayUtils.add(_allowed, permission.name()));
-
+		SecurityDelegate.addPermission(this, Security.allowed, permission);
 	}
 
 	public void removePermission(final Permission permission) {
-
-		String[] _allowed = getPermissions();
-
-		if (!ArrayUtils.contains(_allowed, permission.name())) {
-
-			return;
-		}
-
-		String[] newPermissions = (String[]) ArrayUtils.removeElement(_allowed, permission.name());
-
-		if (newPermissions.length > 0) {
-
-			setAllowed(newPermissions);
-
-		} else {
-
-			final App app = StructrApp.getInstance(securityContext);
-			app.delete(this);
-		}
-
+		SecurityDelegate.removePermission(this, Security.allowed, permission);
 	}
 
 	// ----- class Relation -----

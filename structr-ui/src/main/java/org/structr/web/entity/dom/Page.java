@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -95,7 +95,7 @@ import org.w3c.dom.Text;
 
 //~--- classes ----------------------------------------------------------------
 /**
- * Represents a ownerDocument resource
+ * Represents a page resource
  *
  * @author Axel Morgner
  * @author Christian Morgner
@@ -113,7 +113,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Boolean> isPage = new BooleanProperty("isPage").defaultValue(true).readOnly();
 	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache").defaultValue(false);
         public static final Property<String> path = new StringProperty("path").indexed();
-	public static final Property<Site> site = new StartNode<>("Site", Pages.class, new UiNotion()).indexedWhenEmpty();
+	public static final Property<Site> site = new StartNode<>("site", Pages.class, new UiNotion()).indexedWhenEmpty();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
 		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage, site, dontCache

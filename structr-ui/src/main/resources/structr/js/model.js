@@ -199,8 +199,8 @@ var StructrModel = {
 
             _Pages.reloadPreviews();
         }
-        if (graph) {
-            graph.redrawRelationships();
+        if (engine) {
+            engine.refresh();
         }
 
     },
@@ -330,9 +330,18 @@ var StructrModel = {
     refresh: function(id) {
 
         var obj = StructrModel.obj(id);
+        log('Model refresh, updated object', obj);
 
         if (obj) {
             var element = Structr.node(id);
+            
+            if (engine) {
+                // Graph display is active
+                var node = engine.graph.nodes(obj.id);
+                if (node) {
+                    _Graph.updateNode(node, obj);
+                }
+            }
 
             if (!element)
                 return;
@@ -388,11 +397,20 @@ var StructrModel = {
                 keyIcon.removeClass('donthide');
             }
 
-            // Did name change from null?
-            if ((obj.type === 'Template' || obj.isContent) && obj.name) {
-                $(element).children('.content_').replaceWith('<b title="' + obj.name + '" class="tag_ name_">' + obj.name + '</b>');
-            }
+            var displayName = getElementDisplayName(obj);
 
+            // Did name change from null?
+            if ((obj.type === 'Template' || obj.isContent)) {
+                if (obj.name) {
+                    $(element).children('.content_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+                    $(element).children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+                } else {
+                    $(element).children('.name_').replaceWith('<div class="content_">' + escapeTags(obj.content) + '</div>');
+                }
+            } else {
+                $(element).children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+            }
+            
         }
 
     },
@@ -955,7 +973,15 @@ function StructrSearchResult(data) {
 //}
 //
 StructrSearchResult.prototype.append = function() {
-    _Dashboard.appendObj(this);
+    
+    var obj = this;
+    //console.log(obj);
+    
+    if (obj.hasOwnProperty('relType') && obj.hasOwnProperty('sourceId') && obj.hasOwnProperty('targetId')) {
+        _Graph.drawRel(obj);
+    } else {
+        _Graph.drawNode(this);
+    }
 }
 
 

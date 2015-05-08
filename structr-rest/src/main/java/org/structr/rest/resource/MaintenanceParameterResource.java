@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,6 +45,7 @@ import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.schema.SchemaHelper;
+import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.RDFImporter;
 
@@ -76,6 +77,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("deleteSoftDeletedNodes", BulkDeleteSoftDeletedNodesCommand.class);
 		maintenanceCommandMap.put("setUuid", BulkSetUuidCommand.class);
 		maintenanceCommandMap.put("sync", SyncCommand.class);
+		maintenanceCommandMap.put("snapshot", SnapshotCommand.class);
 
 	}
 

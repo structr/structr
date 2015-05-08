@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,19 +18,15 @@
  */
 package org.structr.core.property;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
-import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.Tx;
 
 /**
@@ -157,64 +153,6 @@ public class CollectionPropertyTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 		}
-
-	}
-
-	public void testCardinalityEnforcement() {
-
-		// try to recreate the error case where a standalone schema relationship is deleted
-		// because of a self-relationship on the end node of that schema node.
-		SchemaNode task    = null;
-		SchemaNode worker  = null;
-
-		try (final Tx tx = app.tx()) {
-
-			// internal stuff: simulate "foreign properties"
-			Map<String, PropertyMap> notionPropertyMap = new HashMap<>();
-			securityContext.setAttribute("notionProperties", notionPropertyMap);
-
-			task    = createTestNode(SchemaNode.class, "Task");
-			worker  = createTestNode(SchemaNode.class, "Worker");
-
-			// simulate existance of "foreign properties" in JSON
-			final PropertyMap taskTaskProperties = new PropertyMap();
-			taskTaskProperties.put(SchemaRelationship.relationshipType, "SUBTASK");
-			notionPropertyMap.put("TaskIS_RELATED_TOTask", taskTaskProperties);
-
-			task.setProperty(SchemaNode.relatedTo, toList(task));
-
-			// simulate existance of "foreign properties" in JSON
-			final PropertyMap workerTaskProperties = new PropertyMap();
-			workerTaskProperties.put(SchemaRelationship.relationshipType, "WORKS_ON");
-			notionPropertyMap.put("WorkerIS_RELATED_TOTask", workerTaskProperties);
-
-			task.setProperty(SchemaNode.relatedFrom, toList(worker));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			// check condition, relationship task->task still exists
-			final List<SchemaNode> relatedTos   = task.getProperty(SchemaNode.relatedTo);
-			final List<SchemaNode> relatedFroms = task.getProperty(SchemaNode.relatedFrom);
-
-			assertEquals("Invalid cardinality result", 1, relatedTos.size());
-			assertEquals("Invalid cardinality result", 2, relatedFroms.size());
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-
-
 
 	}
 

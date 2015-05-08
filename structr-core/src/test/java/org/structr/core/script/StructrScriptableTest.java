@@ -1,8 +1,27 @@
+/**
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.script;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import org.structr.common.AccessMode;
@@ -12,9 +31,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestOne.Status;
@@ -22,13 +45,11 @@ import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.TestUser;
-import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -67,31 +88,35 @@ public class StructrScriptableTest extends StructrTest {
 			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "Source");
 			final SchemaNode targetNode  = createTestNode(SchemaNode.class, "Target");
 
-			// properties
-			sourceNode.setProperty(new StringProperty("_testBoolean"), "Boolean");
-			sourceNode.setProperty(new StringProperty("_testInteger"), "Integer");
-			sourceNode.setProperty(new StringProperty("_testString"),  "String");
-			sourceNode.setProperty(new StringProperty("_testDouble"),  "Double");
-			sourceNode.setProperty(new StringProperty("_testEnum"),    "Enum(OPEN,CLOSED,TEST)");
-			sourceNode.setProperty(new StringProperty("_testDate"),    "Date");
+			final List<SchemaProperty> properties = new LinkedList<>();
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testBoolean"), new NodeAttribute(SchemaProperty.propertyType, "Boolean")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testInteger"), new NodeAttribute(SchemaProperty.propertyType, "Integer")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testString"), new NodeAttribute(SchemaProperty.propertyType, "String")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testDouble"), new NodeAttribute(SchemaProperty.propertyType, "Double")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testEnum"), new NodeAttribute(SchemaProperty.propertyType, "Enum"), new NodeAttribute(SchemaProperty.format, "OPEN, CLOSED, TEST")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testDate"), new NodeAttribute(SchemaProperty.propertyType, "Date")));
+			sourceNode.setProperty(SchemaNode.schemaProperties, properties);
 
-			// methods
-			sourceNode.setProperty(new StringProperty("___onCreate"), "{ var e = Structr.get('this'); e.targets = Structr.find('Target'); }");
-			sourceNode.setProperty(new StringProperty("___doTest01"), "{ var e = Structr.get('this'); e.testEnum = 'OPEN'; }");
-			sourceNode.setProperty(new StringProperty("___doTest02"), "{ var e = Structr.get('this'); e.testEnum = 'CLOSED'; }");
-			sourceNode.setProperty(new StringProperty("___doTest03"), "{ var e = Structr.get('this'); e.testEnum = 'TEST'; }");
-			sourceNode.setProperty(new StringProperty("___doTest04"), "{ var e = Structr.get('this'); e.testEnum = 'INVALID'; }");
-			sourceNode.setProperty(new StringProperty("___doTest05"), "{ var e = Structr.get('this'); e.testBoolean = true; e.testInteger = 123; e.testString = 'testing..'; e.testDouble = 1.2345; e.testDate = new Date(" + currentTimeMillis + "); }");
+			final List<SchemaMethod> methods = new LinkedList<>();
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "onCreate"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.targets = Structr.find('Target'); }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest01"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'OPEN'; }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest02"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'CLOSED'; }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest03"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'TEST'; }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest04"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'INVALID'; }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest05"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testBoolean = true; e.testInteger = 123; e.testString = 'testing..'; e.testDouble = 1.2345; e.testDate = new Date(" + currentTimeMillis + "); }")));
+			sourceNode.setProperty(SchemaNode.schemaMethods, methods);
 
-			final PropertyMap properties = new PropertyMap();
+			final PropertyMap propertyMap = new PropertyMap();
 
-			properties.put(SchemaRelationship.sourceJsonName, "source");
-			properties.put(SchemaRelationship.targetJsonName, "targets");
-			properties.put(SchemaRelationship.sourceMultiplicity, "*");
-			properties.put(SchemaRelationship.targetMultiplicity, "*");
-			properties.put(SchemaRelationship.relationshipType, "HAS");
+			propertyMap.put(SchemaRelationshipNode.sourceId,       sourceNode.getUuid());
+			propertyMap.put(SchemaRelationshipNode.targetId,       targetNode.getUuid());
+			propertyMap.put(SchemaRelationshipNode.sourceJsonName, "source");
+			propertyMap.put(SchemaRelationshipNode.targetJsonName, "targets");
+			propertyMap.put(SchemaRelationshipNode.sourceMultiplicity, "*");
+			propertyMap.put(SchemaRelationshipNode.targetMultiplicity, "*");
+			propertyMap.put(SchemaRelationshipNode.relationshipType, "HAS");
 
-			app.create(sourceNode, targetNode, SchemaRelationship.class, properties);
+			app.create(SchemaRelationshipNode.class, propertyMap);
 
 			tx.success();
 
@@ -173,8 +198,12 @@ public class StructrScriptableTest extends StructrTest {
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
-			sourceNode.invokeMethod("doTest04", Collections.EMPTY_MAP, true);
-			assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
+			try {
+				sourceNode.invokeMethod("doTest04", Collections.EMPTY_MAP, true);
+				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
+				fail("Setting EnumProperty to invalid value should result in an Exception!");
+
+			} catch (FrameworkException fx) {}
 
 			// test other property types
 			sourceNode.invokeMethod("doTest05", Collections.EMPTY_MAP, true);
@@ -200,8 +229,9 @@ public class StructrScriptableTest extends StructrTest {
 
 			// create two nodes and associate them with each other
 			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "Source");
+			final SchemaMethod method    = createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest01"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.grant(Structr.find('TestUser')[0], 'read', 'write'); }"));
 
-			sourceNode.setProperty(new StringProperty("___doTest01"), "{ var e = Structr.get('this'); e.grant(Structr.find('TestUser')[0], 'read', 'write'); }");
+			sourceNode.setProperty(SchemaNode.schemaMethods, Arrays.asList(new SchemaMethod[] { method } ));
 
 			tx.success();
 
@@ -380,6 +410,29 @@ public class StructrScriptableTest extends StructrTest {
 
 			assertEquals("Invalid unwrapping result", 2, app.nodeQuery(Group.class).getAsList().size());
 
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	public void testEnumPropertyGet() {
+
+		// setup phase
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+			final TestOne context             = app.create(TestOne.class);
+
+			Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); e.anEnum = 'One'; }}");
+
+			assertEquals("Invalid enum get result", "One", Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum; }}"));
+
+			assertEquals("Invaliid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}"));
 
 			tx.success();
 

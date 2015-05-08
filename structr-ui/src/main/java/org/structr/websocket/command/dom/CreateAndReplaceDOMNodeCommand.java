@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -41,10 +41,10 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String parentId              = (String) nodeData.get("parentId");
-		String refId                 = (String) nodeData.get("refId");
-		String pageId                = webSocketData.getPageId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String parentId              = (String) nodeData.get("parentId");
+		final String refId                 = (String) nodeData.get("refId");
+		final String pageId                = webSocketData.getPageId();
 		
 		if (pageId != null) {
 
@@ -56,7 +56,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if parent node with given ID exists
-			DOMNode parentNode = getDOMNode(parentId);
+			final DOMNode parentNode = getDOMNode(parentId);
 			if (parentNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);		
@@ -71,14 +71,14 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if ref node with given ID exists
-			DOMNode refNode = getDOMNode(refId);
+			final DOMNode refNode = getDOMNode(refId);
 			if (refNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("Reference node not found").build(), true);		
 				return;
 			}
 			
-			Document document = getPage(pageId);
+			final Document document = getPage(pageId);
 			if (document != null) {
 
 				String tagName  = (String) nodeData.get("tagName");

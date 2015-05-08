@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -329,6 +329,16 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public Property<T> notNull(final boolean notNull) {
 		return null;
+	}
+
+	@Override
+	public boolean isDynamic() {
+		return propertyKey.isDynamic();
+	}
+
+	@Override
+	public PropertyKey<T> dynamic() {
+		return propertyKey.dynamic();
 	}
 
 }

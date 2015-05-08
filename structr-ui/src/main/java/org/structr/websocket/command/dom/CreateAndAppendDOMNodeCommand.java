@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -127,8 +127,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 						for (Entry entry : nodeData.entrySet()) {
 
-							String key = (String) entry.getKey();
-							Object val = entry.getValue();
+							final String key = (String) entry.getKey();
+							final Object val = entry.getValue();
 
 							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(newNode.getClass(), key);
 							if (propertyKey != null) {
@@ -157,7 +157,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						// create a child text node if content is given
 						if (StringUtils.isNotBlank(childContent)) {
 
-							DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+							final DOMNode childNode = (DOMNode)document.createTextNode(childContent);
 
 							newNode.appendChild(childNode);
 

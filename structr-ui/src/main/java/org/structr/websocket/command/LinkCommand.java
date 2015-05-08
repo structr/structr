@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,14 +11,13 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket.command;
 
-import org.structr.common.SecurityContext;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -33,7 +32,8 @@ import org.structr.websocket.StructrWebSocket;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * Websocket command to create a LINK relationship between a LinkSource and a Linkable.
+ * 
  * @author Axel Morgner
  */
 public class LinkCommand extends AbstractCommand {
@@ -46,10 +46,9 @@ public class LinkCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		String sourceId                       = webSocketData.getId();
-		Map<String, Object> properties        = webSocketData.getNodeData();
-		String targetId                       = (String) properties.get("targetId");
+		final String sourceId                 = webSocketData.getId();
+		final Map<String, Object> properties  = webSocketData.getNodeData();
+		final String targetId                 = (String) properties.get("targetId");
 		final LinkSource sourceNode           = (LinkSource) getNode(sourceId);
 		final Linkable targetNode             = (Linkable) getNode(targetId);
 

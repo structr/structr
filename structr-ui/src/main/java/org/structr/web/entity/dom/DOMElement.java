@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -37,7 +37,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.BooleanProperty;
@@ -320,7 +319,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	/**
 	 * Render (inner) content.
 	 *
-	 * @param securityContext
 	 * @param renderContext
 	 * @param depth
 	 * @throws FrameworkException
@@ -676,8 +674,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public void setIdAttribute(final String idString, boolean isId) throws DOMException {
 
 		checkWriteAccess();
-
-		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 			setProperty(DOMElement._id, idString);

@@ -1,19 +1,20 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.servlet;
 
@@ -187,7 +188,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						if (params.containsKey(NodeInterface.type.jsonName())) {
 							type = (String) params.get(NodeInterface.type.jsonName());
 						}
-						
+
 						final Class cls = type != null
 							? SchemaHelper.getEntityClassForRawType(type)
 							: (isImage
@@ -200,15 +201,13 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 						final org.structr.dynamic.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
 						newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
-						newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
-						newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-						
+
 						PropertyMap additionalProperties = PropertyMap.inputTypeToJavaType(securityContext, cls, params);
-						
+
 						for (PropertyKey key : additionalProperties.keySet()) {
-							
+
 							newFile.setProperty(key, additionalProperties.get(key));
-							
+
 						}
 
 						// Just write out the uuids of the new files
@@ -293,8 +292,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 					if (node instanceof org.structr.web.entity.AbstractFile) {
 
 						final org.structr.dynamic.File file = (org.structr.dynamic.File) node;
-
-						if (securityContext.isAllowed(file, Permission.write)) {
+						if (file.isGranted(Permission.write, securityContext)) {
 
 							FileHelper.writeToFile(file, fileItem.getInputStream());
 							file.increaseVersion();

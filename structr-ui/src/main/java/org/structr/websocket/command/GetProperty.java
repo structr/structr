@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -19,9 +19,9 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -43,15 +43,15 @@ public class GetProperty extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		AbstractNode node = getNode(webSocketData.getId());
+		final GraphObject obj = getGraphObject(webSocketData.getId());
 		String key = (String) webSocketData.getNodeData().get("key");
 
-		if (node != null) {
+		if (obj != null) {
 
-			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), key);
+			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(obj.getClass(), key);
 			PropertyConverter converter = propertyKey.inputConverter(getWebSocket().getSecurityContext());
 
-			Object value = node.getProperty(propertyKey);
+			Object value = obj.getProperty(propertyKey);
 			if (converter != null) {
 
 				try {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,9 +24,10 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import java.util.Set;
+import org.structr.common.Permission;
 import org.structr.common.PropertyView;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
+import org.structr.common.SecurityDelegate;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.entity.relationship.Groups;
@@ -67,7 +68,6 @@ public class Group extends AbstractUser implements Principal {
 
 	public void addMember(final Principal user) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
 		List<Principal> _users = getProperty(members);
 		_users.add(user);
 
@@ -76,7 +76,6 @@ public class Group extends AbstractUser implements Principal {
 
 	public void removeMember(final Principal user) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
 		List<Principal> _users = getProperty(members);
 		_users.remove(user);
 
@@ -94,5 +93,31 @@ public class Group extends AbstractUser implements Principal {
 		}
 
 		return principals;
+	}
+
+	public void addAllowedPermission(final Permission permission) {
+		SecurityDelegate.addPermission(this, Principal.allowed, permission);
+	}
+
+	public void removeAllowedPermission(final Permission permission) {
+		SecurityDelegate.removePermission(this, Principal.allowed, permission);
+	}
+
+	public void addDeniedPermission(final Permission permission) {
+		SecurityDelegate.addPermission(this, Principal.denied, permission);
+	}
+
+	public void removeDeniedPermission(final Permission permission) {
+		SecurityDelegate.removePermission(this, Principal.denied, permission);
+	}
+
+	@Override
+	public Set<String> getAllowedPermissions() {
+		return SecurityDelegate.getPermissionSet(dbNode, Principal.allowed);
+	}
+
+	@Override
+	public Set<String> getDeniedPermissions() {
+		return SecurityDelegate.getPermissionSet(dbNode, Principal.denied);
 	}
 }

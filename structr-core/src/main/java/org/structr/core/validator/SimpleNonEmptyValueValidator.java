@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,8 +32,29 @@ import org.structr.core.PropertyValidator;
  */
 public class SimpleNonEmptyValueValidator implements PropertyValidator<String> {
 
+	private Class type = null;
+
+	public SimpleNonEmptyValueValidator(Class type) {
+		this.type = type;
+	}
+
 	@Override
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<String> key, String value, ErrorBuffer errorBuffer) {
+
+		/*
+		 * Explanation: the property key fields of an entity are static and final, so for example
+		 * the name property exists exactly once, but each type can register a validator for
+		 * uniqueness on it. The property has a list of validators that are checked separately,
+		 * one for each type, so it can happen that the name property has several different
+		 * validators. The below check is there to ensure that only the correct type is used
+		 * for validation.
+		 */
+
+		if (!type.isAssignableFrom(object.getClass())) {
+
+			// types are different
+			return true;
+		}
 
 		if(value != null && value.length() > 0) {
 			return true;

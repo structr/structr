@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -76,6 +76,7 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.MailHelper;
 import org.structr.common.Permission;
+import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -96,14 +97,16 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.action.Function;
+import org.structr.schema.parser.DatePropertyParser;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -165,15 +168,15 @@ public class Functions {
 	public static final String ERROR_MESSAGE_ROUND = "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
 	public static final String ERROR_MESSAGE_MAX = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
 	public static final String ERROR_MESSAGE_MIN = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
-	public static final String ERROR_MESSAGE_CONFIG    = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
+	public static final String ERROR_MESSAGE_CONFIG = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
 	public static final String ERROR_MESSAGE_CONFIG_JS = "Usage: ${{Structr.config(keyFromStructrConf)}}. Example: ${{Structr.config(\"base.path\")}}";
-	public static final String ERROR_MESSAGE_DATE_FORMAT    = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
 	public static final String ERROR_MESSAGE_DATE_FORMAT_JS = "Usage: ${{Structr.date_format(value, pattern)}}. Example: ${{Structr.date_format(Structr.get('this').creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
-	public static final String ERROR_MESSAGE_PARSE_DATE    = "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
+	public static final String ERROR_MESSAGE_PARSE_DATE = "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
 	public static final String ERROR_MESSAGE_PARSE_DATE_JS = "Usage: ${{Structr.parse_date(value, pattern)}}. Example: ${{Structr.parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}}";
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT    = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
 	public static final String ERROR_MESSAGE_NUMBER_FORMAT_JS = "Usage: ${{Structr.number_format(value, ISO639LangCode, pattern)}}. Example: ${{Structr.number_format(12345.6789, 'en', '#,##0.00')}}";
-	public static final String ERROR_MESSAGE_TEMPLATE    = "Usage: ${{Structr.template(name, locale, source)}}. Example: ${{Structr.template(\"TEXT_TEMPLATE_1\", \"en_EN\", Structr.get('this'))}}";
+	public static final String ERROR_MESSAGE_TEMPLATE = "Usage: ${{Structr.template(name, locale, source)}}. Example: ${{Structr.template(\"TEXT_TEMPLATE_1\", \"en_EN\", Structr.get('this'))}}";
 	public static final String ERROR_MESSAGE_TEMPLATE_JS = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
 	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_AND = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
@@ -190,11 +193,11 @@ public class Functions {
 	public static final String ERROR_MESSAGE_MERGE_PROPERTIES = "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
 	public static final String ERROR_MESSAGE_KEYS = "Usage: ${keys(entity, viewName)}. Example: ${keys(this, \"ui\")}";
 	public static final String ERROR_MESSAGE_EACH = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
-	public static final String ERROR_MESSAGE_STORE    = "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
+	public static final String ERROR_MESSAGE_STORE = "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
 	public static final String ERROR_MESSAGE_STORE_JS = "Usage: ${{Structr.store(key, value)}}. Example: ${{Structr.store('tmpUser', Structr.get('this').owner)}}";
-	public static final String ERROR_MESSAGE_RETRIEVE    = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
+	public static final String ERROR_MESSAGE_RETRIEVE = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
 	public static final String ERROR_MESSAGE_RETRIEVE_JS = "Usage: ${{Structr.retrieve(key)}}. Example: ${{retrieve('tmpUser')}}";
-	public static final String ERROR_MESSAGE_PRINT    = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
+	public static final String ERROR_MESSAGE_PRINT = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
 	public static final String ERROR_MESSAGE_PRINT_JS = "Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}";
 	public static final String ERROR_MESSAGE_READ = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
 	public static final String ERROR_MESSAGE_WRITE = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
@@ -211,18 +214,33 @@ public class Functions {
 	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(entity)}. Example: ${delete(this)}";
 	public static final String ERROR_MESSAGE_CACHE = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
 	public static final String ERROR_MESSAGE_GRANT = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
+	public static final String ERROR_MESSAGE_GRANT_JS = "Usage: ${Structr.grant(principal, node, permissions)}. Example: ${Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}";
 	public static final String ERROR_MESSAGE_REVOKE = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
+	public static final String ERROR_MESSAGE_REVOKE_JS = "Usage: ${Structr.revoke(principal, node, permissions)}. Example: ${Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}";
+	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once, this}";
+	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS = "Usage: ${Structr.unlock_readonly_properties_once(node)}. Example ${Structr.unlock_readonly_properties_once, Structr.get('this')}";
+	public static final String ERROR_MESSAGE_CALL = "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
+	public static final String ERROR_MESSAGE_CALL_JS = "Usage: ${Structr.call(key [, payloads...]}. Example ${Structr.call('myEvent')}";
 
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
+	public static final String ERROR_MESSAGE_INCOMING_JS = "Usage: ${Structr.incoming(entity [, relType])}. Example: ${Structr.incoming(Structr.this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
+	public static final String ERROR_MESSAGE_OUTGOING_JS = "Usage: ${Structr.outgoing(entity [, relType])}. Example: ${outgoing(Structr.this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP = "Usage: ${has_relationship(entity1, entity2 [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')} (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP_JS = "Usage: ${Structr.has_relationship(entity1, entity2 [, relType])}. Example: ${Structr.has_relationship(Structr.get('me'), user, 'FOLLOWS')} (ignores direction of the relationship)";
 	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP = "Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP_JS = "Usage: ${Structr.has_outgoing_relationship(from, to [, relType])}. Example: ${Structr.has_outgoing_relationship(Structr.get('me'), user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP = "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS = "Usage: ${Structr.has_incoming_relationship(from, to [, relType])}. Example: ${Structr.has_incoming_relationship(Structr.get('me'), user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS = "Usage: ${get_relationships(entity1, entity2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS_JS = "Usage: ${Structr.get_relationships(entity1, entity2 [, relType])}. Example: ${Structr.get_relationships(Structr.get('me'), user, 'FOLLOWS')}  (ignores direction of the relationship)";
 	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS = "Usage: ${Structr.get_outgoing_relationships(from, to [, relType])}. Example: ${Structr.get_outgoing_relationships(Structr.get('me'), user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS = "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS = "Usage: ${Structr.get_incoming_relationships(from, to [, relType])}. Example: ${Structr.get_incoming_relationships(Structr.get('me'), user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP = "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
+	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP_JS = "Usage: ${Structr.create_relationship(from, to, relType)}. Example: ${Structr.create_relationship(Structr.get('me'), user, 'FOLLOWS')} (Relationshiptype has to exist)";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -231,7 +249,7 @@ public class Functions {
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
 
 		final String expressionWithoutNewlines = expression.replace('\n', ' ');
-		final StreamTokenizer tokenizer        = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
+		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
 		tokenizer.eolIsSignificant(true);
 		tokenizer.ordinaryChar('.');
 		tokenizer.wordChars('_', '_');
@@ -414,10 +432,25 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
+				final Class entityType;
+				final String type;
+
+				if (entity != null) {
+
+					entityType = entity.getClass();
+					type       = entity.getType();
+
+				} else {
+
+					entityType = GraphObject.class;
+					type       = "Base";
+
+				}
+
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity.getClass(), sources[0].toString());
-					ctx.raiseError(entity.getType(), new ErrorToken(422, key) {
+					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
+					ctx.raiseError(type, new ErrorToken(422, key) {
 
 						@Override
 						public JsonElement getContent() {
@@ -432,8 +465,8 @@ public class Functions {
 
 				} else if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
-					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity.getClass(), sources[0].toString());
-					ctx.raiseError(entity.getType(), new SemanticErrorToken(key) {
+					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
+					ctx.raiseError(type, new SemanticErrorToken(key) {
 
 						@Override
 						public JsonElement getContent() {
@@ -565,7 +598,7 @@ public class Functions {
 
 						} else if (source.getClass().isArray()) {
 
-							list.addAll(Arrays.asList((Object[])source));
+							list.addAll(Arrays.asList((Object[]) source));
 
 						} else {
 
@@ -837,7 +870,7 @@ public class Functions {
 
 					} else if (sources[0].getClass().isArray()) {
 
-						return ArrayUtils.contains((Object[])sources[0], sources[1]);
+						return ArrayUtils.contains((Object[]) sources[0], sources[1]);
 					}
 				}
 
@@ -1323,7 +1356,7 @@ public class Functions {
 
 				if (sources[0] instanceof Collection) {
 
-					sourceSet.addAll((Collection)sources[0]);
+					sourceSet.addAll((Collection) sources[0]);
 
 					for (int cnt = 1; cnt < sources.length; cnt++) {
 
@@ -1331,7 +1364,7 @@ public class Functions {
 
 						if (source instanceof Collection) {
 
-							sourceSet.removeAll((Collection)source);
+							sourceSet.removeAll((Collection) source);
 
 						} else if (source != null) {
 
@@ -1452,10 +1485,7 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					double value1 = getDoubleForComparison(sources[0]);
-					double value2 = getDoubleForComparison(sources[1]);
-
-					return value1 < value2;
+					return lt(sources[0], sources[1]);
 				}
 
 				return result;
@@ -1476,10 +1506,7 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					double value1 = getDoubleForComparison(sources[0]);
-					double value2 = getDoubleForComparison(sources[1]);
-
-					return value1 > value2;
+					return gt(sources[0], sources[1]);
 				}
 
 				return result;
@@ -1500,10 +1527,7 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					double value1 = getDoubleForComparison(sources[0]);
-					double value2 = getDoubleForComparison(sources[1]);
-
-					return value1 <= value2;
+					return lte(sources[0], sources[1]);
 				}
 
 				return result;
@@ -1524,10 +1548,8 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					double value1 = getDoubleForComparison(sources[0]);
-					double value2 = getDoubleForComparison(sources[1]);
+					return gte(sources[0], sources[1]);
 
-					return value1 >= value2;
 				}
 
 				return result;
@@ -1896,7 +1918,7 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode) {
 
-					final App app = StructrApp.getInstance(entity.getSecurityContext());
+					final App app = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 					final String name = sources[0].toString();
 					final String locale = sources[1].toString();
 					final MailTemplate template = app.nodeQuery(MailTemplate.class).andName(name).and(MailTemplate.locale, locale).getFirst();
@@ -2035,7 +2057,7 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				final SecurityContext securityContext = entity.getSecurityContext();
+				final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					GraphObject dataObject = null;
@@ -2106,9 +2128,9 @@ public class Functions {
 								}
 							}
 
-						} else if(source.getClass().isArray()) {
+						} else if (source.getClass().isArray()) {
 
-							list.addAll(Arrays.asList((Object[])source));
+							list.addAll(Arrays.asList((Object[]) source));
 
 						} else if (source != null && !NULL_STRING.equals(source)) {
 
@@ -2140,7 +2162,7 @@ public class Functions {
 
 					if (sources[0].getClass().isArray()) {
 
-						final Object[] arr = (Object[])sources[0];
+						final Object[] arr = (Object[]) sources[0];
 						if (arr.length > 0) {
 
 							return arr[0];
@@ -2171,7 +2193,7 @@ public class Functions {
 
 					if (sources[0].getClass().isArray()) {
 
-						final Object[] arr = (Object[])sources[0];
+						final Object[] arr = (Object[]) sources[0];
 						if (arr.length > 0) {
 
 							return arr[arr.length - 1];
@@ -2213,7 +2235,7 @@ public class Functions {
 
 					if (sources[0].getClass().isArray()) {
 
-						final Object[] arr = (Object[])sources[0];
+						final Object[] arr = (Object[]) sources[0];
 						if (pos <= arr.length) {
 
 							return arr[pos];
@@ -2352,14 +2374,13 @@ public class Functions {
 
 				} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof GraphObjectMap) {
 
-					return new LinkedList<>(((GraphObjectMap)sources[0]).keySet());
+					return new LinkedList<>(((GraphObjectMap) sources[0]).keySet());
 
 				} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Map) {
 
-					return new LinkedList<>(((Map)sources[0]).keySet());
+					return new LinkedList<>(((Map) sources[0]).keySet());
 
 				}
-
 
 				return "";
 			}
@@ -2768,8 +2789,8 @@ public class Functions {
 				if (sources != null) {
 
 					final SecurityContext securityContext = ctx.getSecurityContext();
-					final ConfigurationProvider config    = StructrApp.getConfiguration();
-					final Query query                     = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
+					final ConfigurationProvider config = StructrApp.getConfiguration();
+					final Query query = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
 
 					// the type to query for
 					Class type = null;
@@ -2787,10 +2808,9 @@ public class Functions {
 					// extension for native javascript objects
 					if (sources.length == 2 && sources[1] instanceof Map) {
 
-						query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
+						query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map) sources[1]));
 
 					} else {
-
 
 						final Integer parameter_count = sources.length;
 
@@ -2799,7 +2819,7 @@ public class Functions {
 							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
 						}
 
-						for (Integer c = 1; c < parameter_count; c+=2) {
+						for (Integer c = 1; c < parameter_count; c += 2) {
 
 							final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 
@@ -2812,7 +2832,7 @@ public class Functions {
 								}
 
 								final PropertyConverter inputConverter = key.inputConverter(securityContext);
-								Object value = sources[c+1];
+								Object value = sources[c + 1];
 
 								if (inputConverter != null) {
 
@@ -2842,10 +2862,10 @@ public class Functions {
 
 				if (sources != null) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
-					final ConfigurationProvider config    = StructrApp.getConfiguration();
-					final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
-					Class type                            = null;
+					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
+					final ConfigurationProvider config = StructrApp.getConfiguration();
+					final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+					Class type = null;
 
 					if (sources.length >= 1 && sources[0] != null) {
 
@@ -2860,7 +2880,7 @@ public class Functions {
 					// extension for native javascript objects
 					if (sources.length == 2 && sources[1] instanceof Map) {
 
-						final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
+						final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, (Map) sources[1]);
 						for (final Entry<PropertyKey, Object> entry : map.entrySet()) {
 
 							query.and(entry.getKey(), entry.getValue(), false);
@@ -2875,7 +2895,7 @@ public class Functions {
 							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
 						}
 
-						for (Integer c = 1; c < parameter_count; c+=2) {
+						for (Integer c = 1; c < parameter_count; c += 2) {
 
 							final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 
@@ -2888,7 +2908,7 @@ public class Functions {
 								}
 
 								final PropertyConverter inputConverter = key.inputConverter(securityContext);
-								Object value = sources[c+1];
+								Object value = sources[c + 1];
 
 								if (inputConverter != null) {
 
@@ -2912,7 +2932,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_FIND;
+				return ERROR_MESSAGE_SEARCH;
 			}
 		});
 		functions.put("create", new Function<Object, Object>() {
@@ -2922,17 +2942,17 @@ public class Functions {
 
 				if (sources != null) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
-					final App app                         = StructrApp.getInstance(securityContext);
-					final ConfigurationProvider config    = StructrApp.getConfiguration();
-					PropertyMap propertyMap               = null;
-					Class type                            = null;
+					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
+					final App app = StructrApp.getInstance(securityContext);
+					final ConfigurationProvider config = StructrApp.getConfiguration();
+					PropertyMap propertyMap = null;
+					Class type = null;
 
 					if (sources.length >= 1 && sources[0] != null) {
 
 						type = config.getNodeEntityClass(sources[0].toString());
 
-						if (type.equals(entity.getClass())) {
+						if (entity != null && type.equals(entity.getClass())) {
 
 							throw new FrameworkException(422, "Cannot create() entity of the same type in save action.");
 						}
@@ -2941,11 +2961,11 @@ public class Functions {
 					// extension for native javascript objects
 					if (sources.length == 2 && sources[1] instanceof Map) {
 
-						propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
+						propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map) sources[1]);
 
 					} else {
 
-						propertyMap                   = new PropertyMap();
+						propertyMap = new PropertyMap();
 						final Integer parameter_count = sources.length;
 
 						if (parameter_count % 2 == 0) {
@@ -2953,14 +2973,14 @@ public class Functions {
 							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_CREATE);
 						}
 
-						for (Integer c = 1; c < parameter_count; c+=2) {
+						for (Integer c = 1; c < parameter_count; c += 2) {
 
 							final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 
 							if (key != null) {
 
 								final PropertyConverter inputConverter = key.inputConverter(securityContext);
-								Object value = sources[c+1];
+								Object value = sources[c + 1];
 
 								if (inputConverter != null) {
 
@@ -3000,7 +3020,7 @@ public class Functions {
 
 				if (sources != null) {
 
-					final App app = StructrApp.getInstance(entity.getSecurityContext());
+					final App app = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 					for (final Object obj : sources) {
 
 						if (obj instanceof NodeInterface) {
@@ -3032,7 +3052,7 @@ public class Functions {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
-					final RelationshipFactory factory = new RelationshipFactory(entity.getSecurityContext());
+					final RelationshipFactory factory = new RelationshipFactory(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 					final Object source = sources[0];
 
 					if (source instanceof NodeInterface) {
@@ -3062,7 +3082,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_INCOMING;
+				return (inJavaScriptContext ? ERROR_MESSAGE_INCOMING_JS : ERROR_MESSAGE_INCOMING);
 			}
 		});
 		functions.put("outgoing", new Function<Object, Object>() {
@@ -3072,7 +3092,7 @@ public class Functions {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
-					final RelationshipFactory factory = new RelationshipFactory(entity.getSecurityContext());
+					final RelationshipFactory factory = new RelationshipFactory(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 					final Object source = sources[0];
 
 					if (source instanceof NodeInterface) {
@@ -3103,7 +3123,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_OUTGOING;
+				return (inJavaScriptContext ? ERROR_MESSAGE_OUTGOING_JS : ERROR_MESSAGE_OUTGOING);
 			}
 		});
 		functions.put("has_relationship", new Function<Object, Object>() {
@@ -3133,20 +3153,30 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-							if ( (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null & t != null
+								&& ((s.equals(sourceNode) && t.equals(targetNode)) || (s.equals(targetNode) && t.equals(sourceNode)))) {
 								return true;
 							}
 						}
 
 					} else if (sources.length == 3) {
 
-
 						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 						final String relType = (String) sources[2];
 
 						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
-							if ( rel.getRelType().name().equals(relType) && ((rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) || (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode))) ) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null & t != null
+								&& rel.getRelType().name().equals(relType)
+								&& ((s.equals(sourceNode) && t.equals(targetNode)) || (s.equals(targetNode) && t.equals(sourceNode)))) {
 								return true;
 							}
 						}
@@ -3160,7 +3190,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_HAS_RELATIONSHIP;
+				return (inJavaScriptContext ? ERROR_MESSAGE_HAS_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_RELATIONSHIP);
 			}
 		});
 		functions.put("has_outgoing_relationship", new Function<Object, Object>() {
@@ -3190,7 +3220,12 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-							if (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null & t != null
+								&& s.equals(sourceNode) && t.equals(targetNode)) {
 								return true;
 							}
 						}
@@ -3202,7 +3237,13 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-							if (rel.getRelType().name().equals(relType) && rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null & t != null
+								&& rel.getRelType().name().equals(relType)
+								&& s.equals(sourceNode) && t.equals(targetNode)) {
 								return true;
 							}
 						}
@@ -3216,7 +3257,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP;
+				return (inJavaScriptContext ? ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP);
 			}
 		});
 		functions.put("has_incoming_relationship", new Function<Object, Object>() {
@@ -3246,7 +3287,12 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
-							if (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null & t != null
+								&& s.equals(targetNode) && t.equals(sourceNode)) {
 								return true;
 							}
 						}
@@ -3258,7 +3304,13 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
-							if (rel.getRelType().name().equals(relType) && (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null & t != null
+								&& rel.getRelType().name().equals(relType)
+								&& s.equals(targetNode) && t.equals(sourceNode)) {
 								return true;
 							}
 						}
@@ -3272,7 +3324,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP;
+				return (inJavaScriptContext ? ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP);
 			}
 		});
 		functions.put("get_relationships", new Function<Object, Object>() {
@@ -3308,14 +3360,8 @@ public class Functions {
 							final NodeInterface t = rel.getTargetNode();
 
 							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
-							if (
-							       s != null
-							    && t != null
-							    && (
-								     (s.equals(sourceNode) && t.equals(targetNode))
-							          || (s.equals(targetNode) && t.equals(sourceNode))
-								)
-							   ) {
+							if (s != null && t != null
+								&& ((s.equals(sourceNode) && t.equals(targetNode)) || (s.equals(targetNode) && t.equals(sourceNode)))) {
 								list.add(rel);
 							}
 						}
@@ -3331,17 +3377,9 @@ public class Functions {
 							final NodeInterface t = rel.getTargetNode();
 
 							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
-							if (
-							       s != null
-							    && t != null
-							    && (
-								   rel.getRelType().name().equals(relType)
-								&& (
-								         (s.equals(sourceNode) && t.equals(targetNode))
-							              || (s.equals(targetNode) && t.equals(sourceNode))
-								   )
-							       )
-							   ) {
+							if (s != null && t != null
+								&& rel.getRelType().name().equals(relType)
+								&& ((s.equals(sourceNode) && t.equals(targetNode)) || (s.equals(targetNode) && t.equals(sourceNode)))) {
 								list.add(rel);
 							}
 						}
@@ -3354,7 +3392,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_GET_RELATIONSHIPS;
+				return (inJavaScriptContext ? ERROR_MESSAGE_GET_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_RELATIONSHIPS);
 			}
 		});
 		functions.put("get_outgoing_relationships", new Function<Object, Object>() {
@@ -3386,7 +3424,12 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-							if (rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null && t != null
+								&& s.equals(sourceNode) && t.equals(targetNode)) {
 								list.add(rel);
 							}
 						}
@@ -3398,7 +3441,13 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-							if (rel.getRelType().name().equals(relType) && rel.getSourceNode().equals(sourceNode) && rel.getTargetNode().equals(targetNode)) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null && t != null
+								&& rel.getRelType().name().equals(relType)
+								&& s.equals(sourceNode) && t.equals(targetNode)) {
 								list.add(rel);
 							}
 						}
@@ -3411,7 +3460,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS;
+				return (inJavaScriptContext ? ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS);
 			}
 		});
 		functions.put("get_incoming_relationships", new Function<Object, Object>() {
@@ -3443,7 +3492,12 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
-							if (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null && t != null
+								&& s.equals(targetNode) && t.equals(sourceNode)) {
 								list.add(rel);
 							}
 						}
@@ -3455,7 +3509,13 @@ public class Functions {
 
 						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
-							if (rel.getRelType().name().equals(relType) && (rel.getSourceNode().equals(targetNode) && rel.getTargetNode().equals(sourceNode)) ) {
+							final NodeInterface s = rel.getSourceNode();
+							final NodeInterface t = rel.getTargetNode();
+
+							// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
+							if (s != null && t != null
+								&& rel.getRelType().name().equals(relType)
+								&& s.equals(targetNode) && t.equals(sourceNode)) {
 								list.add(rel);
 							}
 						}
@@ -3468,7 +3528,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS;
+				return (inJavaScriptContext ? ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS);
 			}
 		});
 		functions.put("create_relationship", new Function<Object, Object>() {
@@ -3513,7 +3573,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_CREATE_RELATIONSHIP;
+				return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_RELATIONSHIP_JS : ERROR_MESSAGE_CREATE_RELATIONSHIP);
 			}
 		});
 		functions.put("grant", new Function<Object, Object>() {
@@ -3539,12 +3599,12 @@ public class Functions {
 									final String trimmedPart = part.trim();
 									if (trimmedPart.length() > 0) {
 
-										try {
+										final Permission permission = Permissions.valueOf(trimmedPart);
+										if (permission != null) {
 
-											final Permission permission = Permission.valueOf(trimmedPart);
-											principal.grant(permission, node);
+											node.grant(permission, principal);
 
-										} catch (IllegalArgumentException iex) {
+										} else {
 
 											return "Error: unknown permission " + trimmedPart;
 										}
@@ -3576,7 +3636,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_GRANT;
+				return (inJavaScriptContext ? ERROR_MESSAGE_GRANT_JS : ERROR_MESSAGE_GRANT);
 			}
 		});
 		functions.put("revoke", new Function<Object, Object>() {
@@ -3602,12 +3662,12 @@ public class Functions {
 									final String trimmedPart = part.trim();
 									if (trimmedPart.length() > 0) {
 
-										try {
+										final Permission permission = Permissions.valueOf(trimmedPart);
+										if (permission != null) {
 
-											final Permission permission = Permission.valueOf(trimmedPart);
-											principal.revoke(permission, node);
+											node.revoke(permission, principal);
 
-										} catch (IllegalArgumentException iex) {
+										} else {
 
 											return "Error: unknown permission " + trimmedPart;
 										}
@@ -3639,7 +3699,60 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_REVOKE;
+				return (inJavaScriptContext ? ERROR_MESSAGE_REVOKE_JS : ERROR_MESSAGE_REVOKE);
+			}
+		});
+		functions.put("unlock_readonly_properties_once", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					if (sources[0] instanceof AbstractNode) {
+
+						((AbstractNode) sources[0]).unlockReadOnlyPropertiesOnce();
+
+					} else {
+
+						return usage(ctx.isJavaScriptContext());
+
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
+			}
+		});
+		functions.put("call", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					final String key = sources[0].toString();
+
+					if (sources.length > 1) {
+
+						Actions.call(key, Arrays.copyOfRange(sources, 1, sources.length));
+
+					} else {
+
+						Actions.call(key);
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
 			}
 		});
 	}
@@ -3742,11 +3855,7 @@ public class Functions {
 
 	protected static double getDoubleForComparison(final Object obj) {
 
-		if (obj instanceof Date) {
-
-			return ((Date) obj).getTime();
-
-		} else if (obj instanceof Number) {
+		if (obj instanceof Number) {
 
 			return ((Number) obj).doubleValue();
 
@@ -3766,23 +3875,32 @@ public class Functions {
 
 	protected static Double getDoubleOrNull(final Object obj) {
 
-		if (obj instanceof Date) {
+		try {
 
-			return Double.valueOf(((Date) obj).getTime());
+			if (obj instanceof Date) {
 
-		} else if (obj instanceof Number) {
+				return (double) ((Date) obj).getTime();
 
-			return ((Number) obj).doubleValue();
+			} else if (obj instanceof Number) {
 
-		} else {
+				return ((Number) obj).doubleValue();
 
-			try {
-				return Double.valueOf(obj.toString());
+			} else {
 
-			} catch (Throwable t) {
+				Date date = DatePropertyParser.parseISO8601DateString(obj.toString());
 
-				t.printStackTrace();
+				if (date != null) {
+
+					return (double) (date).getTime();
+				}
+
+				return Double.parseDouble(obj.toString());
+
 			}
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
 		}
 
 		return null;
@@ -3796,12 +3914,7 @@ public class Functions {
 
 		}
 
-		if (obj1 instanceof Number && obj2 instanceof Number) {
-
-			return ((Number) obj1).doubleValue() == ((Number) obj2).doubleValue();
-		}
-
-		return obj1.equals(obj2);
+		return eq(obj1, obj2);
 	}
 
 	protected static String getSandboxFileName(final String source) throws IOException {
@@ -3896,12 +4009,12 @@ public class Functions {
 
 				destination.put(new StringProperty(key), obj);
 
-				recursivelyConvertMapToGraphObjectMap(obj, map, depth+1);
+				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
 
 			} else if (value instanceof Collection) {
 
-				final List list              = new LinkedList();
-				final Collection collection  = (Collection)value;
+				final List list = new LinkedList();
+				final Collection collection = (Collection) value;
 
 				for (final Object obj : collection) {
 
@@ -3910,7 +4023,7 @@ public class Functions {
 						final GraphObjectMap container = new GraphObjectMap();
 						list.add(container);
 
-						recursivelyConvertMapToGraphObjectMap(container, (Map<String, Object>)obj, depth+1);
+						recursivelyConvertMapToGraphObjectMap(container, (Map<String, Object>) obj, depth + 1);
 
 					} else {
 
@@ -3946,4 +4059,222 @@ public class Functions {
 
 		return value;
 	}
+
+	private static int compareBooleanBoolean(final Object o1, final Object o2) {
+
+		final Boolean value1 = (Boolean) o1;
+		final Boolean value2 = (Boolean) o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareNumberNumber(final Object o1, final Object o2) {
+
+		final Double value1 = getDoubleForComparison(o1);
+		final Double value2 = getDoubleForComparison(o2);
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareStringString(final Object o1, final Object o2) {
+
+		final String value1 = (String) o1;
+		final String value2 = (String) o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareDateDate(final Object o1, final Object o2) {
+
+		final Date value1 = (Date) o1;
+		final Date value2 = (Date) o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareDateString(final Object o1, final Object o2) {
+
+		final String value1 = DatePropertyParser.format((Date) o1, DateProperty.DEFAULT_FORMAT);
+		final String value2 = (String) o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareStringDate(final Object o1, final Object o2) {
+
+		final String value1 = (String) o1;
+		final String value2 = DatePropertyParser.format((Date) o2, DateProperty.DEFAULT_FORMAT);
+
+		return value1.compareTo(value2);
+	}
+
+	private static int compareBooleanString(final Object o1, final Object o2) {
+
+		return -1;
+	}
+
+	private static int compareStringBoolean(final Object o1, final Object o2) {
+
+		return -1;
+	}
+
+	private static int compareNumberString(final Object o1, final Object o2) {
+
+		final Double value1 = getDoubleForComparison(o1);
+		final Double value2 = Double.parseDouble((String) o2);
+
+		return (value1.compareTo(value2) == 0 ? -1 : value1.compareTo(value2));
+	}
+
+	private static int compareStringNumber(final Object o1, final Object o2) {
+
+		final Double value1 = Double.parseDouble((String) o1);
+		final Double value2 = getDoubleForComparison(o2);
+
+		return (value1.compareTo(value2) == 0 ? -1 : value1.compareTo(value2));
+	}
+
+	private static boolean gt(final Object o1, final Object o2) {
+
+		if (o1 instanceof Number && o2 instanceof Number) {
+
+			return compareNumberNumber(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof String) {
+
+			return compareStringString(o1, o2) > 0;
+
+		} else if (o1 instanceof Date && o2 instanceof Date) {
+
+			return compareDateDate(o1, o2) > 0;
+
+		} else if (o1 instanceof Date && o2 instanceof String) {
+
+			return compareDateString(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof Date) {
+
+			return compareStringDate(o1, o2) > 0;
+
+		} else if (o1 instanceof Boolean && o2 instanceof String) {
+
+			return compareBooleanString(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof Boolean) {
+
+			return compareStringBoolean(o1, o2) > 0;
+
+		} else if (o1 instanceof Number && o2 instanceof String) {
+
+			return compareNumberString(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof Number) {
+
+			return compareStringNumber(o1, o2) > 0;
+
+		} else {
+
+			return compareStringString(o1.toString(), o2.toString()) > 0;
+
+		}
+	}
+
+	private static boolean lt(final Object o1, final Object o2) {
+
+		if (o1 instanceof Number && o2 instanceof Number) {
+
+			return compareNumberNumber(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof String) {
+
+			return compareStringString(o1, o2) < 0;
+
+		} else if (o1 instanceof Date && o2 instanceof Date) {
+
+			return compareDateDate(o1, o2) < 0;
+
+		} else if (o1 instanceof Date && o2 instanceof String) {
+
+			return compareDateString(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof Date) {
+
+			return compareStringDate(o1, o2) < 0;
+
+		} else if (o1 instanceof Boolean && o2 instanceof String) {
+
+			return compareBooleanString(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof Boolean) {
+
+			return compareStringBoolean(o1, o2) < 0;
+
+		} else if (o1 instanceof Number && o2 instanceof String) {
+
+			return compareNumberString(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof Number) {
+
+			return compareStringNumber(o1, o2) < 0;
+
+		} else {
+
+			return compareStringString(o1.toString(), o2.toString()) < 0;
+
+		}
+	}
+
+	private static boolean eq(final Object o1, final Object o2) {
+
+		if (o1 instanceof Number && o2 instanceof Number) {
+
+			return compareNumberNumber(o1, o2) == 0;
+
+		} else if (o1 instanceof String && o2 instanceof String) {
+
+			return compareStringString(o1, o2) == 0;
+
+		} else if (o1 instanceof Date && o2 instanceof Date) {
+
+			return compareDateDate(o1, o2) == 0;
+
+		} else if (o1 instanceof Date && o2 instanceof String) {
+
+			return compareDateString(o1, o2) == 0;
+
+		} else if (o1 instanceof String && o2 instanceof Date) {
+
+			return compareStringDate(o1, o2) == 0;
+
+		} else if (o1 instanceof Boolean && o2 instanceof String) {
+
+			return compareBooleanString(o1, o2) == 0;
+
+		} else if (o1 instanceof String && o2 instanceof Boolean) {
+
+			return compareStringBoolean(o1, o2) == 0;
+
+		} else if (o1 instanceof Number && o2 instanceof String) {
+
+			return compareNumberString(o1, o2) == 0;
+
+		} else if (o1 instanceof String && o2 instanceof Number) {
+
+			return compareStringNumber(o1, o2) == 0;
+
+		} else {
+
+			return compareStringString(o1.toString(), o2.toString()) == 0;
+
+		}
+	}
+
+	private static boolean gte(final Object o1, final Object o2) {
+		return eq(o1, o2) || gt(o1, o2);
+	}
+
+	private static boolean lte(final Object o1, final Object o2) {
+		return eq(o1, o2) || lt(o1, o2);
+	}
+
 }

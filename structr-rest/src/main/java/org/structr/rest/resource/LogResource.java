@@ -1,19 +1,20 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * Structr. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.resource;
 
@@ -462,12 +463,19 @@ public class LogResource extends Resource {
 
 			if (state.overview()) {
 
-				state.countAction(entryAction);
+				if (entryAction != null) {
+
+					state.countAction(entryAction);
+
+				} else {
+
+					state.countAction("null");
+				}
 
 			} else {
 
-				// action present or matching?
-				if (state.correlates(pathSubjectId, pathObjectId, entryMessage)) {
+				// passes filter? action present or matching?
+				if (state.passesFilter(entryMessage) && state.correlates(pathSubjectId, pathObjectId, entryMessage)) {
 
 					final Map<String, Object> map = new HashMap<>();
 
@@ -879,6 +887,7 @@ public class LogResource extends Resource {
 		private final List<Map<String, Object>> entries        = new LinkedList<>();
 		private final Map<String, LinkedList<LogEvent>> correlations         = new ConcurrentHashMap<>();
 		private final Map<String, Integer> actions             = new HashMap<>();
+
 		private long beginTimestamp                            = Long.MAX_VALUE;
 		private long endTimestamp                              = 0L;
 		private String logAction                               = null;
@@ -889,6 +898,7 @@ public class LogResource extends Resource {
 		private String correlationAction                       = null;
 		private String correlationOp                           = null;
 		private Pattern correlationPattern                     = null;
+		private String[] filters                               = null;
 		private boolean inverse                                = false;
 		private boolean overview                               = false;
 		private Range range                                    = null;
@@ -904,6 +914,7 @@ public class LogResource extends Resource {
 			this.histogram  = request.getParameter("histogram");
 			this.correlate  = request.getParameter("correlate");
 			this.multiplier = request.getParameter("multiplier");
+			this.filters    = getFilterPatterns(request);
 			this.range      = getRange(request);
 
 			if (StringUtils.isNotBlank(correlate)) {
@@ -1035,6 +1046,24 @@ public class LogResource extends Resource {
 
 		public String aggregate() {
 			return aggregate;
+		}
+
+		public boolean passesFilter(final String message) {
+
+			if (filters == null) {
+				return true;
+			}
+
+			boolean passes = true;
+
+			for (final String filter : filters) {
+
+				passes &= Pattern.compile(filter).matcher(message).matches();
+
+			}
+
+			return passes;
+
 		}
 
 		public boolean correlates(final String pathSubjectId, final String pathObjectId, final String message) {
@@ -1210,6 +1239,16 @@ public class LogResource extends Resource {
 			}
 
 			return patterns;
+		}
+
+		private String[] getFilterPatterns(final HttpServletRequest request) {
+
+			final String filterString = request.getParameter("filters");
+			if (StringUtils.isNotBlank(filterString)) {
+				return filterString.split(CORRELATION_SEPARATOR);
+			}
+
+			return null;
 		}
 	}
 

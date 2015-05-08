@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -39,15 +39,15 @@ public class CreateDOMNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		Map<String, Object> nodeData = webSocketData.getNodeData();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
 
 		String pageId                = webSocketData.getPageId();
 		if (pageId != null) {
 			
-			Document document = getPage(pageId);
+			final Document document = getPage(pageId);
 			if (document != null) {
 
-				String tagName    = (String) nodeData.get("tagName");
+				final String tagName    = (String) nodeData.get("tagName");
 				if (tagName != null && !tagName.isEmpty()) {
 
 					document.createElement(tagName);

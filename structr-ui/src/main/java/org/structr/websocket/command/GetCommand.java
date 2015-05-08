@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -20,14 +20,14 @@ package org.structr.websocket.command;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket command to retrieve a single node by id.
+ * Websocket command to retrieve a single graph object by id.
  *
  * @author Christian Morgner
  * @author Axel Morgner
@@ -45,10 +45,11 @@ public class GetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		AbstractNode node = getNode(webSocketData.getId());
+		final GraphObject graphObject = getGraphObject(webSocketData.getId());
 
-		if (node != null) {
-			webSocketData.setResult(Arrays.asList(node));
+		if (graphObject != null) {
+			
+			webSocketData.setResult(Arrays.asList(graphObject));
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

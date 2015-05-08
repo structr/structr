@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,7 @@ import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.action.Actions;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,7 +46,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class AuthHelper {
 
-	private static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
+	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
 	private static final Logger logger             = Logger.getLogger(AuthHelper.class.getName());
 
 	//~--- get methods ----------------------------------------------------
@@ -224,17 +225,19 @@ public class AuthHelper {
 
 	}
 
-	public static void doLogin(final HttpServletRequest request, final Principal user) {
+	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
 		String sessionIdFromRequest = getSessionId(request);
 		if (sessionIdFromRequest != null) {
 
 			AuthHelper.clearSession(sessionIdFromRequest);
 			user.addSessionId(sessionIdFromRequest);
+
+			Actions.call(Actions.NOTIFICATION_LOGIN, user);
 		}
 	}
 
-	public static void doLogout(final HttpServletRequest request, final Principal user) {
+	public static void doLogout(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
 		final String sessionId = getSessionId(request);
 
@@ -242,6 +245,8 @@ public class AuthHelper {
 
 			AuthHelper.clearSession(sessionId);
 			user.removeSessionId(sessionId);
+
+			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
 		}
 	}
 

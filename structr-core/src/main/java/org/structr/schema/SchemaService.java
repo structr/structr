@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,8 +23,10 @@
 
 package org.structr.schema;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -39,7 +41,7 @@ import org.structr.core.Service;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.Tx;
 import org.structr.schema.compiler.NodeExtender;
 
@@ -85,7 +87,8 @@ public class SchemaService implements Service {
 					SchemaService.ensureBuiltinTypesExist();
 
 					// collect node classes
-					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+					final List<SchemaNode> schemaNodes = StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList();
+					for (final SchemaNode schemaNode : schemaNodes) {
 
 						nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
 
@@ -99,7 +102,7 @@ public class SchemaService implements Service {
 					}
 
 					// collect relationship classes
-					for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
+					for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
 						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
 
@@ -114,13 +117,21 @@ public class SchemaService implements Service {
 
 					// compile all classes at once and register
 					Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
+
 					for (final Class newType : newTypes.values()) {
 
+						// do full reload
+						config.unregisterEntityType(newType.getName());
 						config.registerEntityType(newType);
 
 						// instantiate classes to execute
 						// static initializer of helpers
 						try { newType.newInstance(); } catch (Throwable t) {}
+					}
+
+					// create properties and views etc.
+					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+						schemaNode.createBuiltInSchemaEntities(errorBuffer);
 					}
 
 					success = !errorBuffer.hasError();
@@ -139,6 +150,8 @@ public class SchemaService implements Service {
 
 					success = false;
 				}
+
+				calculateHierarchy();
 			}
 
 			// compiling done
@@ -166,7 +179,6 @@ public class SchemaService implements Service {
 		return true;
 	}
 
-	// ----- private methods -----
 	public static void ensureBuiltinTypesExist() throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
@@ -191,5 +203,63 @@ public class SchemaService implements Service {
 	@Override
 	public boolean isVital() {
 		return true;
+	}
+
+	// ----- private methods -----
+	private static void calculateHierarchy() {
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final List<SchemaNode> schemaNodes  = StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList();
+			final Set<String> alreadyCalculated = new HashSet<>();
+			final Map<String, SchemaNode> map   = new LinkedHashMap<>();
+
+			// populate lookup map
+			for (final SchemaNode schemaNode : schemaNodes) {
+				map.put(schemaNode.getName(), schemaNode);
+			}
+
+			// calc hierarchy
+			for (final SchemaNode schemaNode : schemaNodes) {
+
+				final int relCount = schemaNode.getProperty(SchemaNode.relatedFrom).size() + schemaNode.getProperty(SchemaNode.relatedTo).size();
+				final int level    = recursiveGetHierarchyLevel(map, alreadyCalculated, schemaNode);
+
+				schemaNode.setProperty(SchemaNode.hierarchyLevel, level);
+				schemaNode.setProperty(SchemaNode.relCount, relCount);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+	}
+
+	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode) {
+
+		final String name = schemaNode.getName();
+
+		System.out.println("Calc. hierarchy level for " + name + "..");
+
+		String superclass = schemaNode.getProperty(SchemaNode.extendsClass);
+		if (superclass == null) {
+
+			return 0;
+
+		} else if (superclass.startsWith("org.structr.dynamic.")) {
+
+			// find hierarchy level
+			superclass = superclass.substring(superclass.lastIndexOf(".") + 1);
+
+			// recurse upwards
+			final SchemaNode superSchemaNode = map.get(superclass);
+			if (superSchemaNode != null) {
+
+				return recursiveGetHierarchyLevel(map, alreadyCalculated, superSchemaNode) + 1;
+			}
+		}
+
+		return 0;
 	}
 }

@@ -57,12 +57,6 @@ var _Types = {
     pageSize: [],
     init: function() {
 
-        $(window).off('resize');
-        $(window).on('resize', function() {
-            _Types.resize();
-        });
-        _Types.resize();
-
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
 
         Structr.ensureIsAdmin($('#resourceTabs'), function() {
@@ -74,9 +68,11 @@ var _Types = {
 
             _Types.loadSchema(function() {
                 _Types.initTabs();
+                _Types.resize();
             });
 
         });
+
 
     },
     onload: function() {
@@ -84,7 +80,13 @@ var _Types = {
         _Types.init();
         
         $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Types');
-    },
+
+        $(window).off('resize');
+        $(window).on('resize', function() {
+            _Types.resize();
+        });
+
+   },
     initTabs: function() {
 
         $.each(_Types.types, function(t, type) {
@@ -254,7 +256,7 @@ var _Types = {
         var typeNode = $('#' + type);
         typeNode.append('<div>Type: ' + res.type + '</div>');
         typeNode.append('<div>URL: <a target="_blank" href="' + rootUrl + res.url.substring(1) + '">' + res.url + '</a></div>');
-        typeNode.append('<table class="props"><thead><tr>\n\
+        typeNode.append('<table><thead><tr>\n\
 <th>Key</th>\n\
 <th>JSON name</th>\n\
 <th>DB name</th>\n\
@@ -325,6 +327,9 @@ var _Types = {
         }
     },
     resize: function() {
+
+        Structr.resize();
+
         var w = $(window).width();
         var h = $(window).height();
 
@@ -356,7 +361,7 @@ var _Types = {
         });
 
         $('#resourceTabs .resourceBox table').css({
-            height: h - ($('#resourceTabsMenu').height() + 154) + 'px',
+            height: h - ($('#resourceTabsMenu').height() + 158) + 'px',
             width:  w - 59 + 'px'
         });
 

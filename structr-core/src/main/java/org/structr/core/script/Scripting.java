@@ -1,17 +1,39 @@
+/**
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.script;
 
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.parser.Functions;
+import org.structr.core.property.DateProperty;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.parser.DatePropertyParser;
 
 /**
  *
@@ -39,7 +61,7 @@ public class Scripting {
 				for (final String expression : extractScripts(value)) {
 
 					final Object extractedValue = evaluate(actionContext, entity, expression);
-					String partValue            = extractedValue != null ? extractedValue.toString() : "";
+					String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 					if (partValue != null) {
 
@@ -117,6 +139,8 @@ public class Scripting {
 
 	private static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final String script) throws FrameworkException {
 
+		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
+		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 		final Context scriptingContext = Context.enter();
 
 		try {
@@ -138,7 +162,7 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source [" + ( !((NodeInterface)entity).getName().equals("") ? "\""+((NodeInterface)entity).getName()+"\":" : "" ) + entity.getUuid() + "], line ", 1, null);
+			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source [" + entityDescription + "], line ", 1, null);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();
@@ -160,16 +184,21 @@ public class Scripting {
 
 			return extractedValue;
 
-		} catch (Throwable t) {
+		} catch (final FrameworkException fex) {
 
-			t.printStackTrace();
+			// just throw the FrameworkException so we dont lose the information contained
+			throw fex;
+
+		} catch (final Throwable t) {
+
+			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
+			throw new FrameworkException(422, t.getMessage());
 
 		} finally {
 
 			Context.exit();
 		}
 
-		return null;
 	}
 
 	private static String embedInFunction(final String source) {
@@ -256,4 +285,19 @@ public class Scripting {
 
 		return expressions;
 	}
+
+	private static String formatToDefaultDateOrString(final Object value) {
+
+		if (value instanceof Date) {
+
+			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+
+		} else {
+
+			return value.toString();
+
+		}
+
+	}
+
 }

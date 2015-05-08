@@ -41,6 +41,11 @@ application.ftp.port = 8021
 # Session timeout (default 30 minutes = 1800 seconds)
 application.session.timeout = 1800
 
+# Access rights to ownerless nodes (nodes without owner)
+# Any combination of read, write, delete, accessControl is possible,
+# default is read only
+#application.security.ownerless.nodes = read
+
 # Neo4j server settings
 ########################################################
 #                                                      #
@@ -140,6 +145,9 @@ WebSocketServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 WebSocketServlet.user.autocreate = false
 WebSocketServlet.user.class = org.structr.web.entity.User
 
+# Uncomment this if you want to use WebSocket functionality for frontend users
+# WebSocketServlet.frontendAccess = true
+
 # CSV servlet
 CsvServlet.authenticator = org.structr.web.auth.UiAuthenticator
 CsvServlet.class = org.structr.rest.servlet.CsvServlet
@@ -160,6 +168,28 @@ UploadServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 UploadServlet.user.autocreate = false
 UploadServlet.user.class = org.structr.web.entity.User
 UploadServlet.allowAnonymousUploads = false
+
+
+#############################################################################
+# Registration configuration
+#############################################################################
+# This section configures Structr's built-in opt-in registration for new users.
+# Note that the eMail attribute is mandatory and necessary to send out e-mails.
+
+# Use this to define custom properties to be set on the newly created user when
+# included in the POST request. Works only together with HtmlServlet.user.autocreate = true.
+# Note that eMail will always be included, so removing it here has no effect.
+#
+#                         !!!!!!!!! WARNING !!!!!!!!!
+#
+# It's a bad idea to include security-relevant attributes here
+# as they can be set from an unauthenticated, unauthorized source.
+# If unsure or you don't know what that means, set only eMail
+Registration.customUserAttributes = eMail
+
+# Set to true to allow users to login even before the opt-in confirmation
+# was received, typically when the password was set on the registration POST request
+#Registration.allowLoginBeforeConfirmation = false
 
 
 #############################################################################

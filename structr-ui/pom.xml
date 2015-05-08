@@ -30,7 +30,8 @@
     <properties>
         <netbeans.hint.license>structr-agpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <neo4j.version>2.1.6</neo4j.version>
+        <neo4j.version>2.1.8</neo4j.version>
+        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     </properties>
     <repositories>
         <repository>
@@ -102,7 +103,7 @@
         <dependency>
             <groupId>org.pegdown</groupId>
             <artifactId>pegdown</artifactId>
-            <version>1.4.2</version>
+            <version>1.5.0</version>
         </dependency>
         <dependency>
             <groupId>net.java</groupId>
@@ -193,6 +194,16 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-jpeg</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-tiff</artifactId>
+            <version>3.1.0</version>
         </dependency>
     </dependencies>
     <build>
@@ -487,7 +498,7 @@
                 <version>1.3</version>
                 <executions>
                     <execution>
-                        <phase>validate</phase>
+                        <phase>initialize</phase>
                         <goals>
                             <goal>create</goal>
                         </goals>
@@ -495,12 +506,10 @@
                 </executions>
                 <configuration>
                     <shortRevisionLength>5</shortRevisionLength>
-                    <!--                    <doCheck>true</doCheck>
-                    <doUpdate>true</doUpdate>-->
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>${project.artifactId}-${project.version}-${buildNumber}</finalName>
+        <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
         <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
         <pluginManagement>
             <plugins>

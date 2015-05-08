@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -75,6 +75,7 @@ public interface ConfigurationProvider {
 	public ViewTransformation getViewTransformation(final Class type, final String view);
 
 	public Set<String> getPropertyViews();
+	public Set<String> getPropertyViewsForType(final Class type);
 	public void registerDynamicViews(final Set<String> dynamicViews);
 
 	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertyKey);

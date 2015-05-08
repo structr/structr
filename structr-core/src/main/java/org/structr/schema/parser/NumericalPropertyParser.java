@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,10 +29,15 @@ import org.structr.schema.Schema;
  *
  * @author Christian Morgner
  */
-public abstract class NumericalPropertyParser extends PropertyParser {
+public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 
-	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	private Number lowerBound = null;
+	private Number upperBound = null;
+	private boolean lowerExclusive = false;
+	private boolean upperExclusive = false;
+
+	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	public abstract Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which);
@@ -57,19 +62,23 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 
 				if (parts.length == 2) {
 
-					Number lowerBound = parseNumber(errorBuffer, parts[0].trim(), "lower");
-					Number upperBound = parseNumber(errorBuffer, parts[1].trim(), "upper");
+					lowerBound = parseNumber(getErrorBuffer(), parts[0].trim(), "lower");
+					upperBound = parseNumber(getErrorBuffer(), parts[1].trim(), "upper");
 
 					if (lowerBound == null || upperBound == null) {
 						error = true;
 					}
+
+					lowerExclusive = expression.startsWith("]");
+					upperExclusive = expression.endsWith("[");
 
 				} else {
 					error = true;
 				}
 
 				if (!error) {
-					globalValidators.add(new Validator("check" + getUnqualifiedValueType() + "InRangeError", className, propertyName, expression));
+
+					addGlobalValidator(new Validator("check" + getUnqualifiedValueType() + "InRangeError", getClassName(), getSourcePropertyName(), expression));
 				}
 
 			} else {
@@ -79,7 +88,23 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 		}
 
 		if (error) {
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", rangeFormatErrorMessage));
+			reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", rangeFormatErrorMessage));
 		}
+	}
+
+	public Number getLowerBound() {
+		return lowerBound;
+	}
+
+	public Number getUpperBound() {
+		return upperBound;
+	}
+
+	public boolean isLowerExclusive() {
+		return lowerExclusive;
+	}
+
+	public boolean isUpperExclusive() {
+		return upperExclusive;
 	}
 }

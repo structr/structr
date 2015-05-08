@@ -42,15 +42,13 @@ var _Security = {
         //Structr.activateMenuEntry('usersAndGroups');
         log('onload');
 
-        main.append('<div id="securityTabs"><ul id="securityTabsMenu"><li><a href="#usersAndGroups"><span>Users and Groups</span></a></li><li><a href="#resourceAccess"><span>Resource Access Grants</span></a></li></ul><div id="usersAndGroups"></div><div id="resourceAccess"></div></div>');
+        main.append('<div id="securityTabs"><ul id="securityTabsMenu"><li><a id="usersAndGroups_" href="#usersAndGroups"><span>Users and Groups</span></a></li><li><a id="resourceAccess_" href="#resourceAccess"><span>Resource Access Grants</span></a></li></ul><div id="usersAndGroups"></div><div id="resourceAccess"></div></div>');
 
         $('#usersAndGroups').append('<div><div class="fit-to-height" id="users"></div><div class="fit-to-height" id="groups"></div></div>');
         $('#resourceAccess').append('<div><div class="" id="resourceAccesses"></div></div>');
         
         groups = $('#groups');
         users = $('#users');
-        _Security.refreshGroups();
-        _Security.refreshUsers();
         
         resourceAccesses = $('#resourceAccesses');
         
@@ -71,8 +69,13 @@ var _Security = {
         });
 
         var activeTab = localStorage.getItem(securityTabKey);
-        var t = $('a[href="#' + activeTab + '"]');
-        t.click();
+        if (activeTab === null || activeTab === 'usersAndGroups') {
+            _Security.refreshGroups();
+            _Security.refreshUsers();
+        } else {
+            var t = $('a[href="#' + activeTab + '"]');
+            t.click();
+        }
         
         _Security.resize();
         $(window).off('resize');
@@ -405,6 +408,9 @@ var _Security = {
 
     },
     resize: function() {
+        
+        Structr.resize();
+        
         var w = $(window).width();
         var h = $(window).height();
 

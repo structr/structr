@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -20,11 +20,13 @@ package org.structr.web.test;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.web.common.StructrUiTest;
 
@@ -62,17 +64,23 @@ public class ImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Company").getFirst();
+			final SchemaNode schemaNode           = app.nodeQuery(SchemaNode.class).andName("Company").getFirst();
+			final List<SchemaProperty> properties = schemaNode.getProperty(SchemaNode.schemaProperties);
+			final Map<String, SchemaProperty> map = new HashMap<>();
+
+			for (final SchemaProperty prop : properties) {
+				map.put(prop.getProperty(SchemaProperty.name), prop);
+			}
 
 			assertNotNull("A schema node with name 'Company' should have been created: ", schemaNode);
 
-			assertEquals("Company schema node should have a 'name' property with value 'String': ",        "String",  schemaNode.getProperty(new StringProperty("_name")));
-			assertEquals("Company schema node should have a 'comp_id' property with value 'String': ",     "String",  schemaNode.getProperty(new StringProperty("_comp_id")));
-			assertEquals("Company schema node should have a 'string_name' property with value 'String': ", "String",  schemaNode.getProperty(new StringProperty("_string_name")));
-			assertEquals("Company schema node should have a 'year' property with value 'Long': ",          "Long",    schemaNode.getProperty(new StringProperty("_year")));
-			assertEquals("Company schema node should have a 'month' property with value 'Long': ",         "Long",    schemaNode.getProperty(new StringProperty("_year")));
-			assertEquals("Company schema node should have a 'day' property with value 'Long': ",           "Long",    schemaNode.getProperty(new StringProperty("_day")));
-			assertEquals("Company schema node should have a 'status' property with value 'String': ",      "String",  schemaNode.getProperty(new StringProperty("_status")));
+			assertEquals("Company schema node should have a 'name' property with value 'String': ",        "String", map.get("name").getPropertyType().name());
+			assertEquals("Company schema node should have a 'comp_id' property with value 'String': ",     "String", map.get("comp_id").getPropertyType().name());
+			assertEquals("Company schema node should have a 'string_name' property with value 'String': ", "String", map.get("string_name").getPropertyType().name());
+			assertEquals("Company schema node should have a 'year' property with value 'Long': ",          "Long",   map.get("year").getPropertyType().name());
+			assertEquals("Company schema node should have a 'month' property with value 'Long': ",         "Long",   map.get("month").getPropertyType().name());
+			assertEquals("Company schema node should have a 'day' property with value 'Long': ",           "Long",   map.get("day").getPropertyType().name());
+			assertEquals("Company schema node should have a 'status' property with value 'String': ",      "String", map.get("status").getPropertyType().name());
 
 			tx.success();
 

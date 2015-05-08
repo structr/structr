@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,12 +30,12 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public class CountPropertyParser extends PropertyParser {
+public class CountPropertyParser extends PropertySourceGenerator {
 
 	private String auxType = "";
 
-	public CountPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public CountPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class CountPropertyParser extends PropertyParser {
 	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
 		if (expression.isEmpty()) {
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_reference", "Empty property reference."));
+			reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_reference", "Empty property reference."));
 			return;
 		}
 

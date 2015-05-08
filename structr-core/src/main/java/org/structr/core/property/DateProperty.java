@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,8 +52,13 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		this.format = getDefaultFormat();
 	}
 
-	public DateProperty(final String name, final String format) {
-		super(name);
+	public DateProperty(final String jsonName, final String dbName) {
+		super(jsonName, dbName);
+		this.format = getDefaultFormat();
+	}
+
+	public DateProperty(final String jsonName, final String dbName, final String format) {
+		super(jsonName);
 
 		if (StringUtils.isNotBlank(format)) {
 			this.format = format;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,12 +29,14 @@ import org.structr.core.validator.SimpleRegexValidator;
 public class UuidProperty extends StringProperty {
 
 	public UuidProperty() {
-		
+
 		super("id", new GlobalPropertyUniquenessValidator(), new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
 
 		indexed();
 		readOnly();
 		writeOnce();
+		unique(true);
+		notNull(true);
 
 		// add uuid indices
 		relationshipIndices.add(NodeService.RelationshipIndex.rel_uuid);

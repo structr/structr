@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -47,14 +47,14 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		DOMNode node = getDOMNode(webSocketData.getId());
+		final DOMNode node = getDOMNode(webSocketData.getId());
 
 		if (node == null) {
 
 			return;
 		}
 
-		List<GraphObject> result = new LinkedList<>();
+		final List<GraphObject> result = new LinkedList<>();
 		DOMNode currentNode      = (DOMNode) node.getFirstChild();
 
 		while (currentNode != null) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,12 +32,12 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public class JoinPropertyParser extends PropertyParser {
+public class JoinPropertyParser extends PropertySourceGenerator {
 
 	private String parameters   = "";
 
-	public JoinPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public JoinPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override

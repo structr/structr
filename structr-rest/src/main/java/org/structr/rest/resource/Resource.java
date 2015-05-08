@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -121,15 +121,16 @@ public abstract class Resource {
 
 				} else if (obj instanceof AbstractNode) {
 
-					if (!securityContext.isAllowed((AbstractNode)obj, Permission.delete)) {
+					final AbstractNode node = (AbstractNode)obj;
+
+					if (!node.isGranted(Permission.delete, securityContext)) {
 
 						logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
 						throw new NotAllowedException();
-
 					}
 
 					// delete cascading
-					app.delete((AbstractNode)obj);
+					app.delete(node);
 				}
 
 			}
@@ -142,7 +143,6 @@ public abstract class Resource {
 
 		final Result<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null);
 		final List<GraphObject> results  = result.getResults();
-		final App app                    = StructrApp.getInstance(securityContext);
 
 		if (results != null && !results.isEmpty()) {
 
@@ -151,6 +151,10 @@ public abstract class Resource {
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
 			for (final GraphObject obj : results) {
+
+				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
+					throw new FrameworkException(403, "Modification not permitted.");
+				}
 
 				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
@@ -306,7 +310,7 @@ public abstract class Resource {
 
 			for (final String name : request.getParameterMap().keySet()) {
 
-				final PropertyKey key = conf.getPropertyKeyForJSONName(type, getFirstPartOfString(name));
+				final PropertyKey key = conf.getPropertyKeyForJSONName(type, getFirstPartOfString(name), false);
 				if (key != null) {
 
 					if (key.isSearchable()) {

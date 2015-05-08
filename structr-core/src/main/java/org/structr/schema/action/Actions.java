@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,10 +19,19 @@
 package org.structr.schema.action;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.script.Scripting;
 
 /**
@@ -30,6 +39,12 @@ import org.structr.core.script.Scripting;
  * @author Christian Morgner
  */
 public class Actions {
+
+	private static final Logger logger = Logger.getLogger(Actions.class.getName());
+
+	public static final String NOTIFICATION_LOGIN  = "onStructrLogin";
+	public static final String NOTIFICATION_LOGOUT = "onStructrLogout";
+
 
 	public enum Type {
 
@@ -77,5 +92,98 @@ public class Actions {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Convenience method to call a schema method with an array of unnamed
+	 * parameters that will end up in the parameter map using string-based
+	 * integer key (i.e. "0", "1", "2" etc.)
+	 *
+	 * @param key
+	 * @param unnamedParameters
+	 *
+	 * @return Object the method call result
+	 *
+	 * @throws FrameworkException
+	 */
+	public static Object call(final String key, final Object... unnamedParameters) throws FrameworkException {
+
+		final Map<String, Object> params = new HashMap<>();
+		int index                        = 0;
+
+		for (final Object param : unnamedParameters) {
+			params.put(Integer.toString(index++), param);
+		}
+
+		return call(key, params);
+	}
+
+	/**
+	 * Convenience method to call a schema method with a user parameter.
+	 * This method is currently used to broadcast login and logout events.
+	 *
+	 * @param key
+	 * @param user
+	 *
+	 * @return Object the method call result
+	 *
+	 * @throws FrameworkException
+	 */
+	public static Object call(final String key, final Principal user) throws FrameworkException {
+
+		final Map<String, Object> params = new HashMap<>();
+		params.put("user", user);
+
+		return call(key, params);
+	}
+
+	public static Object call(final String key, final Map<String, Object> parameters) throws FrameworkException {
+
+		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		final App app                          = StructrApp.getInstance(superUserContext);
+
+		// we might want to introduce caching here at some point in the future..
+		// Cache can be invalidated when the schema is rebuilt for example..
+
+		final List<SchemaMethod> methods = app.nodeQuery(SchemaMethod.class).andName(key).getAsList();
+		if (methods.isEmpty()) {
+
+			logger.log(Level.INFO, "Tried to call method {0} but no SchemaMethod entity was found.", key);
+
+		} else {
+
+			for (final SchemaMethod method : methods) {
+
+				// only call methods that are NOT part of a schema node
+				final AbstractSchemaNode entity = method.getProperty(SchemaMethod.schemaNode);
+				if (entity == null) {
+
+					final String source = method.getProperty(SchemaMethod.source);
+					if (source != null) {
+
+						return Actions.execute(superUserContext, null, "${" + source + "}", parameters);
+
+					} else {
+
+						logger.log(Level.INFO, "Schema method {0} has no source code, will NOT be executed.", key);
+					}
+
+				} else {
+
+					logger.log(Level.INFO, "Schema method {0} is attached to an entity, will NOT be executed.", key);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	// ----- nested classes -----
+	private static class ThreadLocalInt extends ThreadLocal<Integer> {
+
+		@Override
+		public Integer initialValue() {
+			return 0;
+		}
 	}
 }

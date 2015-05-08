@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -42,7 +43,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -63,9 +63,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.parser.Functions;
+import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE;
+import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS;
+import static org.structr.core.parser.Functions.arrayHasMinLengthAndAllElementsNotNull;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -78,6 +82,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
+import org.structr.rest.logging.entity.LogEvent;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -92,6 +98,7 @@ import org.structr.web.datasource.NodeGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.FileBase;
+import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Renderable;
 import static org.structr.web.entity.dom.DOMNode.dataKey;
 import static org.structr.web.entity.dom.DOMNode.ownerDocument;
@@ -100,7 +107,6 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
-import org.structr.websocket.command.AbstractCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -242,9 +248,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		});
 
 		/**
-		 * Convenience method to render named nodes (contained in the ShadowDocument => a shared component)
-		 * if more than one node is found, we return an error message that informs the user that this
-		 * is not allowed and can result in unexpected behavior (instead of including the template)
+		 * Convenience method to render named nodes.
+		 * If more than one node is found, an error message is returned that informs the user that this
+		 * is not allowed and can result in unexpected behavior (instead of including the node).
 		 */
 		Functions.functions.put("include", new Function<Object, Object>() {
 
@@ -253,14 +259,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				if (Functions.arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
-					final App app = StructrApp.getInstance(securityContext);
-
-					final RenderContext innerCtx = new RenderContext((RenderContext) ctx);
-
-					final ShadowDocument shadowDoc = StructrApp.getInstance(securityContext).nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getFirst();
-
-					final List<DOMNode> nodeList = app.nodeQuery(DOMNode.class).andName((String) sources[0]).and(DOMNode.ownerDocument, shadowDoc).getAsList();
+					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
+					final App app                         = StructrApp.getInstance(securityContext);
+					final RenderContext innerCtx          = new RenderContext((RenderContext) ctx);
+					final List<DOMNode> nodeList          = app.nodeQuery(DOMNode.class).andName((String) sources[0]).notBlank(DOMNode.ownerDocument).getAsList();
 
 					DOMNode node = null;
 
@@ -525,7 +527,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				if (sources != null && sources.length > 0 && sources[0] instanceof GraphObject) {
 
-					final SecurityContext securityContext = entity.getSecurityContext();
+					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 
 					try {
 
@@ -651,6 +653,64 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				return (inJavaScriptContext ? ERROR_MESSAGE_ADD_HEADER_JS : ERROR_MESSAGE_ADD_HEADER);
 			}
 		});
+
+		Functions.functions.put("log_event", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final String action  = sources[0].toString();
+					final String message = sources[1].toString();
+
+					final LogEvent logEvent = StructrApp.getInstance().create(LogEvent.class,
+						new NodeAttribute(LogEvent.actionProperty, action),
+						new NodeAttribute(LogEvent.messageProperty, message),
+						new NodeAttribute(LogEvent.timestampProperty, new Date())
+					);
+
+					switch (sources.length) {
+
+						case 4:
+							final String object = sources[3].toString();
+							logEvent.setProperty(LogEvent.objectProperty, object);
+							// no break, next case should be included
+
+						case 3:
+							final String subject = sources[2].toString();
+							logEvent.setProperty(LogEvent.subjectProperty, subject);
+							break;
+					}
+
+					return logEvent;
+
+				} else if (sources.length == 1 && sources[0] instanceof Map) {
+
+					// support javascript objects here
+					final Map map        = (Map)sources[0];
+					final String action  = DOMNode.objectToString(map.get("action"));
+					final String message = DOMNode.objectToString(map.get("message"));
+					final String subject = DOMNode.objectToString(map.get("subject"));
+					final String object  = DOMNode.objectToString(map.get("object"));
+
+					return StructrApp.getInstance().create(LogEvent.class,
+						new NodeAttribute(LogEvent.actionProperty, action),
+						new NodeAttribute(LogEvent.messageProperty, message),
+						new NodeAttribute(LogEvent.timestampProperty, new Date()),
+						new NodeAttribute(LogEvent.subjectProperty, subject),
+						new NodeAttribute(LogEvent.objectProperty, object)
+					);
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
+			}
+		});
 	}
 
 	public abstract boolean isSynced();
@@ -761,7 +821,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	/**
 	 * Render the node including data binding (outer rendering).
 	 *
-	 * @param securityContext
 	 * @param renderContext
 	 * @param depth
 	 * @throws FrameworkException
@@ -905,14 +964,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				if (doc != null && (page == null || doc.equals(page))) {
 
-					try {
-						template.setProperty(DOMNode.ownerDocument, (Page) doc);
+//					try {
+//						template.setProperty(DOMNode.ownerDocument, (Page) doc);
+//
+//					} catch (FrameworkException ex) {
+//						ex.printStackTrace();
+//					}
 
-						return template;
-
-					} catch (FrameworkException ex) {
-						ex.printStackTrace();
-					}
+					return template;
 
 				}
 
@@ -1211,7 +1270,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected void checkWriteAccess() throws DOMException {
 
-		if (!securityContext.isAllowed(this, Permission.write)) {
+
+		if (!isGranted(Permission.write, securityContext)) {
 
 			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
 		}
@@ -1219,7 +1279,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected void checkReadAccess() throws DOMException {
 
-		if (securityContext.isVisible(this) || securityContext.isAllowed(this, Permission.read)) {
+		if (securityContext.isVisible(this) || isGranted(Permission.read, securityContext)) {
 			return;
 		}
 
@@ -1243,7 +1303,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * Decide whether this node should be displayed for the given conditions
 	 * string.
 	 *
-	 * @param securityContext
 	 * @param renderContext
 	 * @return true if node should be displayed
 	 */
@@ -1264,7 +1323,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If hide conditions evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Functions.evaluate(renderContext, this, _hideConditions))) {
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, this, "${".concat(_hideConditions).concat("}")))) {
 				return false;
 			}
 
@@ -1272,8 +1331,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			logger.log(Level.SEVERE, "Hide conditions " + _hideConditions + " could not be evaluated.", ex);
 		}
 		try {
-			// If show conditions don't evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_showConditions) && !(Boolean.TRUE.equals(Functions.evaluate(renderContext, this, _showConditions)))) {
+			// If show conditions evaluate to "false", don't render
+			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, this, "${".concat(_showConditions).concat("}")))) {
 				return false;
 			}
 
@@ -1441,7 +1500,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// the document fragment, so we must first remove
 			// the node from the document fragment and then
 			// add it to the new parent.
-			DocumentFragment fragment = (DocumentFragment) newChild;
+			final DocumentFragment fragment = (DocumentFragment) newChild;
 			Node currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
@@ -1461,7 +1520,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		} else {
 
-			Node _parent = newChild.getParentNode();
+			final Node _parent = newChild.getParentNode();
 			if (_parent != null) {
 
 				_parent.removeChild(newChild);
@@ -1511,13 +1570,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// the node from the document fragment and then
 			// add it to the new parent.
 			// replace indirectly using insertBefore and remove
-			DocumentFragment fragment = (DocumentFragment) newChild;
+			final DocumentFragment fragment = (DocumentFragment) newChild;
 			Node currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
 
 				// save next child in fragment list for later use
-				Node savedNextChild = currentChild.getNextSibling();
+				final Node savedNextChild = currentChild.getNextSibling();
 
 				// remove child from document fragment
 				fragment.removeChild(currentChild);
@@ -1600,13 +1659,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				// the node from the document fragment and then
 				// add it to the new parent.
 				// replace indirectly using insertBefore and remove
-				DocumentFragment fragment = (DocumentFragment) newChild;
+				final DocumentFragment fragment = (DocumentFragment) newChild;
 				Node currentChild = fragment.getFirstChild();
 
 				while (currentChild != null) {
 
 					// save next child in fragment list for later use
-					Node savedNextChild = currentChild.getNextSibling();
+					final Node savedNextChild = currentChild.getNextSibling();
 
 					// remove child from document fragment
 					fragment.removeChild(currentChild);
@@ -1620,7 +1679,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			} else {
 
-				Node _parent = newChild.getParentNode();
+				final Node _parent = newChild.getParentNode();
 
 				if (_parent != null && _parent instanceof DOMNode) {
 					_parent.removeChild(newChild);
@@ -1658,7 +1717,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			for (Iterator<PropertyKey> it = getPropertyKeys(uiView.name()).iterator(); it.hasNext();) {
 
-				PropertyKey key = it.next();
+				final PropertyKey key = it.next();
 
 				// omit system properties (except type), parent/children and page relationships
 				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
@@ -1675,7 +1734,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
 			for (Iterator<PropertyKey> it = getPropertyKeys(DOMElement.htmlView.name()).iterator(); it.hasNext();) {
 
-				PropertyKey key = it.next();
+				final PropertyKey key = it.next();
 
 				// omit system properties (except type), parent/children and page relationships
 				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
@@ -1689,10 +1748,18 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 			}
 
+			if (this instanceof LinkSource) {
+
+				final LinkSource linkSourceElement = (LinkSource) this;
+
+				properties.put(LinkSource.linkable, linkSourceElement.getProperty(LinkSource.linkable));
+
+			}
+
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
-				DOMNode node = app.create(getClass(), properties);
+				final DOMNode node = app.create(getClass(), properties);
 
 				return node;
 
@@ -2033,5 +2100,15 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			return false;
 		}
+	}
+
+	// ----- private methods -----
+	public static String objectToString(final Object source) {
+
+		if (source != null) {
+			return source.toString();
+		}
+
+		return null;
 	}
 }

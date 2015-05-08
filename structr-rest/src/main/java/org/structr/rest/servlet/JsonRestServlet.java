@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -940,7 +940,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
-	private class ThreadLocalGson extends ThreadLocal<Gson> {
+	public class ThreadLocalGson extends ThreadLocal<Gson> {
 
 		private int outputNestingDepth = 3;
 

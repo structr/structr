@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,6 +39,7 @@ import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.TestNine;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
@@ -208,6 +209,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			entityList.remove(TestNine.class);
 			entityList.remove(MailTemplate.class);
 			entityList.remove(SchemaNode.class);
+			entityList.remove(SchemaRelationshipNode.class);
 
 			for (Class type : entityList) {
 

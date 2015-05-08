@@ -29,18 +29,25 @@
         <script src="js/lib/diff_match_patch.js" type="text/javascript"></script>
         <script src="js/lib/jquery.blockUI.js" type="text/javascript"></script>
         <script src="js/lib/jquery.cookie.js" type="text/javascript"></script>
-        <script src="js/lib/jquery.jsPlumb-1.6.1-min.js" type="text/javascript"></script>
+        <script src="js/lib/dom.jsPlumb-1.7.3-min.js" type="text/javascript"></script>
         <script src="js/lib/test/jquery.simulate.js" type="text/javascript"></script>
         <script src="js/lib/test/jquery.simulate.ext.js" type="text/javascript"></script>
         <script src="js/lib/test/jquery.simulate.drag-n-drop.js" type="text/javascript"></script>
         <script src="js/lib/uuid.js" type="text/javascript"></script>
+        <script src="js/lib/sigma/sigma.min.js" type="text/javascript"></script>
+        <script src="js/lib/sigma/plugins/sigma.layout.forceAtlas2.min.js" type="text/javascript"></script>
+        <script src="js/lib/sigma/plugins/sigma.renderers.edgeLabels.min.js" type="text/javascript"></script>
+        <script src="js/lib/sigma/plugins/sigma.renderers.customShapes.min.js" type="text/javascript"></script>
+        <script src="js/lib/sigma/plugins/sigma.renderers.customEdgeShapes.min.js" type="text/javascript"></script>
+        <script src="js/lib/sigma/plugins/sigma.plugins.dragNodes.min.js" type="text/javascript"></script>
+        <script src="js/lib/sigma/plugins/sigma.plugins.animate.min.js" type="text/javascript"></script>
         <script src="codemirror/codemirror-compressed.js"></script>
-<!--        <script src="codemirror/addon/edit/closetag.js"></script>
-        <script src="codemirror/addon/edit/closebrackets.js"></script>
-        <script src="codemirror/addon/search/search.js"></script>
-        <script src="codemirror/addon/search/search.js"></script>
-        <script src="codemirror/addon/search/searchcursor.js"></script>
-        <script src="codemirror/addon/search/match-highlighter.js"></script>-->
+        <!--        <script src="codemirror/addon/edit/closetag.js"></script>
+                <script src="codemirror/addon/edit/closebrackets.js"></script>
+                <script src="codemirror/addon/search/search.js"></script>
+                <script src="codemirror/addon/search/search.js"></script>
+                <script src="codemirror/addon/search/searchcursor.js"></script>
+                <script src="codemirror/addon/search/match-highlighter.js"></script>-->
         <script src="codemirror/addon/scroll/annotatescrollbar.js"></script>
         <script src="codemirror/addon/search/matchesonscrollbar.js"></script>
         <script src="codemirror/addon/dialog/dialog.js"></script>
@@ -59,12 +66,13 @@
         <script src="js/contents.js" type="text/javascript"></script>
         <script src="js/files.js" type="text/javascript"></script>
         <script src="js/images.js" type="text/javascript"></script>
-        <script src="js/layout.js" type="text/javascript"></script>
-        <script src="js/ge/ge_lib.js" type="text/javascript"></script>
-        <script src="js/ge/ge_obj.js" type="text/javascript"></script>
-        <script src="js/ge/graph_editor.js" type="text/javascript"></script>
-        <script src="js/ge/engine.js" type="text/javascript"></script>
         <script src="js/dashboard.js" type="text/javascript"></script>
+        <!--        <script src="js/layout.js" type="text/javascript"></script>
+                <script src="js/ge/ge_lib.js" type="text/javascript"></script>
+                <script src="js/ge/ge_obj.js" type="text/javascript"></script>
+                <script src="js/ge/graph_editor.js" type="text/javascript"></script>
+                <script src="js/ge/engine.js" type="text/javascript"></script>-->
+        <script src="js/graph.js" type="text/javascript"></script>
         <script src="js/init.js" type="text/javascript"></script>
         <script src="js/model.js" type="text/javascript"></script>
         <script src="js/speech.js" type="text/javascript"></script>
@@ -76,6 +84,7 @@
             <div id="menu" class="menu">
                 <ul>
                     <li><a id="dashboard_" href="#dashboard">Dashboard</a></li>
+                    <li><a id="graph_" href="#graph">Graph</a></li>
                     <li><a id="pages_" href="#pages">Pages</a></li>
                     <li><a id="widgets_" href="#widgets">Widgets</a></li>
                     <li><a id="files_" href="#files">Files</a></li>
@@ -95,12 +104,15 @@
         </div>
 
         <div id="login" class="dialog">
-            <table>
-                <tr><td><label for="username">Username:</label></td><td><input id="usernameField" type="text" name="username" autofocus required></td></tr>
-                <tr><td><label for="password">Password:</label></td><td><input id="passwordField" type="password" name="password" autofocus required></td></tr>
-                <tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
-                <tr><td colspan="2" class="btn"><button id="loginButton" name="login"><img src="icon/key.png"> Login</button></td></tr>
-            </table>
+            <img alt="Structr Logo" class="logo-login" src="img/structr_gray_200x54.png">
+            <form action="javascript:void(0)">
+                <table>
+                    <tr><td><label for="usernameField">Username:</label></td><td><input id="usernameField" type="text" name="username" autofocus required></td></tr>
+                    <tr><td><label for="passwordField">Password:</label></td><td><input id="passwordField" type="password" name="password" autofocus required></td></tr>
+                    <tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
+                    <tr><td colspan="2" class="btn"><button id="loginButton" name="login"><img src="icon/key.png"> Login</button></td></tr>
+                </table>
+            </form>
         </div>
 
         <div id="confirmation" class="dialog">

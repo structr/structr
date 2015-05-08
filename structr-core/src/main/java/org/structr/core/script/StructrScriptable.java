@@ -1,12 +1,32 @@
+/**
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.script;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.IdFunctionCall;
 import org.mozilla.javascript.IdFunctionObject;
@@ -28,6 +48,7 @@ import org.structr.core.parser.Functions;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.action.Function;
 
 /**
@@ -127,6 +148,18 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
+		if ("this".equals(name)) {
+
+			return wrap(start, null, entity);
+
+		}
+
+		if ("me".equals(name)) {
+
+			return wrap(start, null, actionContext.getSecurityContext().getUser(false));
+
+		}
+
 		if ("vars".equals(name)) {
 
 			NativeObject nobj = new NativeObject();
@@ -145,25 +178,70 @@ public class StructrScriptable extends ScriptableObject {
 				@Override
 				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 
-						if (parameters.length > 0 && parameters[0] != null) {
+					if (parameters.length > 0 && parameters[0] != null) {
 
-							try {
+						try {
 
-								final Function func = Functions.functions.get(name);
+							final Function func = Functions.functions.get(name);
 
-								if (func != null) {
+							if (func != null) {
 
-									actionContext.print(func.apply(actionContext, entity, parameters ));
-								}
+								actionContext.print(func.apply(actionContext, entity, parameters ));
+							}
 
-								return null;
+							return null;
 
-							} catch (FrameworkException ex) {
-								exception = ex;
+						} catch (FrameworkException ex) {
+							exception = ex;
+						}
+					}
+
+					return null;
+				}
+			}, null, 0, 0);
+		}
+
+		if ("call".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+					try {
+
+						if (parameters.length > 0) {
+
+							final String methodName = parameters[0].toString();
+							switch (parameters.length) {
+
+								case 0:
+									// error
+									break;
+
+								case 1:
+									// call method without parameters
+									return Actions.call(methodName);
+
+								case 2:
+									// call method with one parameter, map or other
+									if (parameters[1] instanceof Map) {
+										return Actions.call(methodName, (Map)parameters[1]);
+									} else {
+										return Actions.call(methodName, parameters[1]);
+									}
+
+								default:
+									// 3 or more parameters => "index-named" list of parameters (0, 1, 2, ...)
+									return Actions.call(methodName, Arrays.copyOfRange(parameters, 1, parameters.length));
 							}
 						}
 
-						return null;
+					} catch (FrameworkException fex) {
+						fex.printStackTrace();
+					}
+
+					return null;
 				}
 			}, null, 0, 0);
 		}
@@ -195,6 +273,15 @@ public class StructrScriptable extends ScriptableObject {
 
 		if (value instanceof GraphObject) {
 			return new GraphObjectWrapper(scope, (GraphObject)value);
+		}
+
+		if (value instanceof HttpServletRequest) {
+			return new HttpServletRequestWrapper((HttpServletRequest)value);
+		}
+
+		if (value != null && value.getClass().isEnum()) {
+
+			return ((Enum)value).name();
 		}
 
 		return value;
@@ -475,7 +562,7 @@ public class StructrScriptable extends ScriptableObject {
 					obj.setProperty(key, value);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					exception = fex;
 				}
 			}
 		}
@@ -494,7 +581,7 @@ public class StructrScriptable extends ScriptableObject {
 					obj.setProperty(key, null);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					exception = fex;
 				}
 			}
 		}
@@ -609,5 +696,38 @@ public class StructrScriptable extends ScriptableObject {
 
 			return null;
 		}
+	}
+
+	public class HttpServletRequestWrapper extends ScriptableObject {
+
+		private HttpServletRequest request = null;
+
+		public HttpServletRequestWrapper(final HttpServletRequest request) {
+			this.request = request;
+		}
+
+		@Override
+		public String getClassName() {
+			return "HttpServletRequest";
+		}
+
+		@Override
+		public Object get(String name, Scriptable start) {
+			return request.getParameter(name);
+		}
+
+		@Override
+		public Object[] getIds() {
+			return request.getParameterMap().values().toArray();
+		}
+
+		@Override
+		public Object getDefaultValue(Class<?> hint) {
+
+			logger.log(Level.WARNING, "getDefaultValue() of HttpServletRequestWrapper called, don't know what to return here.. Please report to team@structr.com what you were trying to do with this object when you encountered this error message.");
+
+			return null;
+		}
+
 	}
 }

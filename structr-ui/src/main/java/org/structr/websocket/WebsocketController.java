@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.Range;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
@@ -102,20 +103,26 @@ public class WebsocketController implements StructrTransactionListener {
 
 			webSocketData.setCallback(socket.getCallback());
 
-			if ((session != null)) { //&& socket.isAuthenticated()) {
+			if (session != null && socket.isAuthenticated()) {
 
 				List<? extends GraphObject> result = webSocketData.getResult();
+				SecurityContext securityContext = socket.getSecurityContext();
+
+				// if the object IS NOT of type AbstractNode AND the client is NOT priviledged
+				// OR
+				// if the object IS of type AbstractNode AND the client has no access to the node
+				// THEN skip sending a message
+				if (
+						( !(webSocketData.getGraphObject() instanceof AbstractNode) && !socket.isPriviledgedUser(socket.getCurrentUser()) )
+						|| (webSocketData.getGraphObject() instanceof AbstractNode && !securityContext.isVisible((AbstractNode) webSocketData.getGraphObject()))
+					) {
+					continue;
+				}
 
 				if ((result != null) && (result.size() > 0)
 					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
 
 					WebSocketMessage clientData = webSocketData.copy();
-					SecurityContext securityContext = socket.getSecurityContext();
-
-					// For non-authenticated clients, construct a security context without user
-					if (securityContext == null) {
-						securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-					}
 
 					clientData.setResult(filter(securityContext, result));
 

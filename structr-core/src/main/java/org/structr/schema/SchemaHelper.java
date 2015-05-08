@@ -1,19 +1,20 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * Structr. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.schema;
 
@@ -42,14 +43,19 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.SchemaMethod;
+import static org.structr.core.entity.SchemaMethod.source;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.ActionContext;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.parser.BooleanPropertyParser;
@@ -63,10 +69,11 @@ import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.JoinPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
-import org.structr.schema.parser.PropertyParameters;
-import org.structr.schema.parser.PropertyParser;
+import org.structr.schema.parser.PropertyDefinition;
+import org.structr.schema.parser.PropertySourceGenerator;
 import org.structr.schema.parser.StringArrayPropertyParser;
-import org.structr.schema.parser.StringPropertyParser;
+import org.structr.schema.parser.StringBasedPropertyDefinition;
+import org.structr.schema.parser.StringPropertySourceGenerator;
 import org.structr.schema.parser.Validator;
 
 /**
@@ -83,7 +90,7 @@ public class SchemaHelper {
 	}
 
 	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
-	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new LinkedHashMap<>();
+	private static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new LinkedHashMap<>();
 
 	static {
 
@@ -93,7 +100,7 @@ public class SchemaHelper {
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
 		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
 		parserMap.put(Type.Integer, IntPropertyParser.class);
-		parserMap.put(Type.String, StringPropertyParser.class);
+		parserMap.put(Type.String, StringPropertySourceGenerator.class);
 		parserMap.put(Type.Double, DoublePropertyParser.class);
 		parserMap.put(Type.Notion, NotionPropertyParser.class);
 		parserMap.put(Type.Cypher, CypherPropertyParser.class);
@@ -239,7 +246,7 @@ public class SchemaHelper {
 
 			}
 
-			for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
+			for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
 				createDynamicGrants(schemaRelationship.getResourceSignature());
 				createDynamicGrants(schemaRelationship.getInverseResourceSignature());
@@ -342,10 +349,10 @@ public class SchemaHelper {
 
 	}
 
-	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
-		final StringBuilder src = new StringBuilder();
+		final StringBuilder src                   = new StringBuilder();
 
 		// output property source code and collect views
 		for (String propertyName : SchemaHelper.getProperties(propertyContainer)) {
@@ -354,25 +361,65 @@ public class SchemaHelper {
 
 				String rawType = propertyContainer.getProperty(propertyName).toString();
 
-				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, rawType);
+				PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), new StringBasedPropertyDefinition(propertyName, rawType));
 				if (parser != null) {
 
-					// add property name to set for later use
-					propertyNames.add(parser.getPropertyName());
-
-					// append created source from parser
-					src.append(parser.getPropertySource(entity, errorBuffer));
-
-					// register global elements created by parser
-					validators.addAll(parser.getGlobalValidators());
-					enums.addAll(parser.getEnumDefinitions());
-
-					// register property in default view
-					//addPropertyToView(PropertyView.Public, propertyName.substring(1), views);
-					addPropertyToView(PropertyView.Ui, propertyName.substring(1), views);
+					// migrate properties
+					if (entity instanceof AbstractSchemaNode) {
+						parser.createSchemaPropertyNode((AbstractSchemaNode)entity, propertyName);
+					}
 				}
 			}
 		}
+
+		final List<SchemaProperty> schemaProperties = entity.getSchemaProperties();
+		if (schemaProperties != null) {
+
+			for (final SchemaProperty schemaProperty : schemaProperties) {
+
+				if (!schemaProperty.getProperty(SchemaProperty.isBuiltinProperty)) {
+
+					final PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), schemaProperty);
+					if (parser != null) {
+
+						final String propertyName = schemaProperty.getPropertyName();
+
+						// add property name to set for later use
+						propertyNames.add(propertyName);
+
+						// append created source from parser
+						parser.getPropertySource(src, entity);
+
+						// register global elements created by parser
+						validators.addAll(parser.getGlobalValidators());
+						enums.addAll(parser.getEnumDefinitions());
+
+						// register property in default view
+						addPropertyToView(PropertyView.Ui, propertyName, views);
+					}
+				}
+			}
+		}
+
+		return src.toString();
+	}
+
+	public static String extractViews(final Schema entity, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		final PropertyContainer propertyContainer = entity.getPropertyContainer();
+		final ConfigurationProvider config        = StructrApp.getConfiguration();
+		final StringBuilder src                   = new StringBuilder();
+
+		Class superClass = config.getNodeEntityClass(entity.getSuperclassName());
+		if (superClass == null) {
+
+			superClass = config.getRelationshipEntityClass(entity.getSuperclassName());
+		}
+
+		if (superClass == null) {
+			superClass = AbstractNode.class;
+		}
+
 
 		for (final String rawViewName : getViews(propertyContainer)) {
 
@@ -382,31 +429,170 @@ public class SchemaHelper {
 				final String[] parts = value.split("[,\\s]+");
 				final String viewName = rawViewName.substring(2);
 
+				if (entity instanceof AbstractSchemaNode) {
+
+					final List<String> nonGraphProperties = new LinkedList<>();
+					final List<SchemaProperty> properties = new LinkedList<>();
+					final AbstractSchemaNode schemaNode   = (AbstractSchemaNode)entity;
+					final App app                         = StructrApp.getInstance();
+
+					if (app.nodeQuery(SchemaView.class).and(SchemaView.schemaNode, schemaNode).and(AbstractNode.name, viewName).getFirst() == null) {
+
+						// add parts to view, overrides defaults (because of clear() above)
+						for (int i = 0; i < parts.length; i++) {
+
+							String propertyName = parts[i].trim();
+
+							while (propertyName.startsWith("_")) {
+								propertyName = propertyName.substring(1);
+							}
+
+							// remove "Property" suffix in views where people needed to
+							// append this as a workaround to include remote properties
+							if (propertyName.endsWith("Property")) {
+								propertyName = propertyName.substring(0, propertyName.length() - "Property".length());
+							}
+
+							final SchemaProperty propertyNode = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
+							if (propertyNode != null) {
+
+								properties.add(propertyNode);
+
+							} else {
+
+								nonGraphProperties.add(propertyName);
+							}
+						}
+
+						app.create(SchemaView.class,
+							new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
+							new NodeAttribute<>(SchemaView.schemaProperties, properties),
+							new NodeAttribute<>(SchemaView.name, viewName),
+							new NodeAttribute<>(SchemaView.nonGraphProperties, StringUtils.join(nonGraphProperties, ","))
+						);
+
+						schemaNode.removeProperty(new StringProperty(rawViewName));
+					}
+				}
+			}
+		}
+
+		final List<SchemaView> schemaViews = entity.getSchemaViews();
+		if (schemaViews != null) {
+
+			for (final SchemaView schemaView : schemaViews) {
+
+				final String nonGraphProperties = schemaView.getProperty(SchemaView.nonGraphProperties);
+				final String viewName           = schemaView.getName();
+
 				// clear view before filling it again
 				Set<String> view = views.get(viewName);
 				if (view == null) {
 
 					view = new LinkedHashSet<>();
 					views.put(viewName, view);
-
-				} else {
-
-					view.clear();
 				}
 
-				// add parts to view, overrides defaults (because of clear() above)
-				for (int i = 0; i < parts.length; i++) {
-					view.add(parts[i].trim());
+				for (final SchemaProperty property : schemaView.getProperty(SchemaView.schemaProperties)) {
+
+					if (property.getProperty(SchemaProperty.isBuiltinProperty) && !property.getProperty(SchemaProperty.isDynamic)) {
+
+						view.add(property.getPropertyName());
+
+					} else {
+
+						view.add(property.getPropertyName() + "Property");
+					}
+				}
+
+				// add properties that are not part of the graph
+				if (StringUtils.isNotBlank(nonGraphProperties)) {
+
+					for (final String propertyName : nonGraphProperties.split("[, ]+")) {
+
+						String extendedPropertyName = propertyName;
+						if (superClass != null) {
+
+							final PropertyKey property = config.getPropertyKeyForJSONName(superClass, propertyName, false);
+							if (property != null) {
+
+								// property exists in superclass
+								if (property.isDynamic()) {
+									extendedPropertyName = extendedPropertyName + "Property";
+								}
+
+							} else {
+
+								extendedPropertyName = extendedPropertyName + "Property";
+							}
+
+						} else {
+							extendedPropertyName = extendedPropertyName + "Property";
+
+						}
+
+						view.add(extendedPropertyName);
+					}
 				}
 			}
 		}
+
+		return src.toString();
+	}
+
+	public static String extractMethods(final Schema entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
+
+		final PropertyContainer propertyContainer = entity.getPropertyContainer();
+		final StringBuilder src                   = new StringBuilder();
 
 		for (final String rawActionName : getActions(propertyContainer)) {
 
 			if (propertyContainer.hasProperty(rawActionName)) {
 
-				final String value           = propertyContainer.getProperty(rawActionName).toString();
-				final ActionEntry entry      = new ActionEntry(rawActionName, value);
+				final String value = propertyContainer.getProperty(rawActionName).toString();
+
+				if (entity instanceof AbstractSchemaNode) {
+
+					final AbstractSchemaNode schemaNode = (AbstractSchemaNode)entity;
+					final App app                       = StructrApp.getInstance();
+					final String methodName             = rawActionName.substring(3);
+
+					if (app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, schemaNode).and(AbstractNode.name, methodName).getFirst() == null) {
+
+						app.create(SchemaMethod.class,
+							new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
+							new NodeAttribute<>(SchemaMethod.name, methodName),
+							new NodeAttribute<>(SchemaMethod.source, value)
+						);
+
+						schemaNode.removeProperty(new StringProperty(rawActionName));
+					}
+
+//				} else {
+//
+//
+//					final ActionEntry entry      = new ActionEntry(rawActionName, value);
+//					List<ActionEntry> actionList = actions.get(entry.getType());
+//
+//					if (actionList == null) {
+//
+//						actionList = new LinkedList<>();
+//						actions.put(entry.getType(), actionList);
+//					}
+//
+//					actionList.add(entry);
+//
+//					Collections.sort(actionList);
+				}
+			}
+		}
+
+		final List<SchemaMethod> schemaMethods = entity.getSchemaMethods();
+		if (schemaMethods != null) {
+
+			for (final SchemaMethod schemaMethod : schemaMethods) {
+
+				final ActionEntry entry      = schemaMethod.getActionEntry();
 				List<ActionEntry> actionList = actions.get(entry.getType());
 
 				if (actionList == null) {
@@ -418,6 +604,7 @@ public class SchemaHelper {
 				actionList.add(entry);
 
 				Collections.sort(actionList);
+
 			}
 		}
 
@@ -714,34 +901,22 @@ public class SchemaHelper {
 
 	}
 
-	public static String getPropertyWithVariableReplacement(ActionContext renderContext, final GraphObject entity, PropertyKey<String> key) throws FrameworkException {
-
-		return Scripting.replaceVariables(renderContext, entity, entity.getProperty(key));
-
-	}
-
 	// ----- private methods -----
-	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String source) throws FrameworkException {
+	private static PropertySourceGenerator getSourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) throws FrameworkException {
 
-		final PropertyParameters params = PropertyParser.detectDbNameNotNullAndDefaultValue(source);
+		final String propertyName                                  = propertyDefinition.getPropertyName();
+		final Type propertyType                                    = propertyDefinition.getPropertyType();
+		final Class<? extends PropertySourceGenerator> parserClass = parserMap.get(propertyType);
 
-		for (final Map.Entry<Type, Class<? extends PropertyParser>> entry : parserMap.entrySet()) {
+		try {
 
-			if (params.source.startsWith(entry.getKey().name())) {
+			return parserClass.getConstructor(ErrorBuffer.class, String.class, PropertyDefinition.class).newInstance(errorBuffer, className, propertyDefinition);
 
-				try {
-
-					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, PropertyParameters.class).newInstance(errorBuffer, className, propertyName, params);
-
-					return parser;
-
-				} catch (Throwable t) {
-					t.printStackTrace();
-				}
-			}
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 
-		errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
+		errorBuffer.add(SchemaProperty.class.getSimpleName(), new InvalidPropertySchemaToken(propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
 		throw new FrameworkException(422, errorBuffer);
 	}
 

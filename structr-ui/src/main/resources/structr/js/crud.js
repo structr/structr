@@ -97,8 +97,10 @@ var _Crud = {
             _Crud.keys = [];
 
             _Crud.loadSchema(function() {
-                if (browser)
+                if (browser) {
                     _Crud.initTabs();
+                }
+                _Crud.resize();
             });
 
             searchField = $('.search', main);
@@ -154,6 +156,11 @@ var _Crud = {
             _Crud.init();
         }
 
+        $(window).off('resize');
+        $(window).on('resize', function() {
+            _Crud.resize();
+        });
+
     },
     initTabs: function() {
 
@@ -178,11 +185,6 @@ var _Crud = {
             }
         });
 
-        $(window).off('resize');
-        $(window).on('resize', function() {
-            _Crud.resize();
-        });
-
     },
     isSchemaLoaded: function() {
         var all = true;
@@ -203,7 +205,7 @@ var _Crud = {
             _Crud.storeType();
             _Crud.storePagerData();
             //window.history.pushState('', '', _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]) + '&view=' + _Crud.view[type] + '&type=' + type + '#crud');
-            window.location.hash = '#crud';
+            window.location.hash = 'crud';
         }
         searchField.focus();
 
@@ -1476,7 +1478,7 @@ var _Crud = {
                     _Crud.populateCell(id, key, type, item[key], cell);
                 });
             });
-            row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button><button class="security"><img src="icon/key.png"> Access Control</button></td>');
+            row.append('<td class="actions"><a title="Edit" class="edit"><img alt="Edit Icon" src="icon/pencil.png"></a><a title="Delete" class="delete"><img alt="Delete Icon" src="icon/cross.png"></a><a title="Access Control" class="security"><img alt="Access Control Icon" src="icon/key.png"></a></td>');
             _Crud.resize();
 
             $('.actions .edit', row).on('mouseup', function(event) {
@@ -1647,7 +1649,7 @@ var _Crud = {
         cell.off('mouseup');
         var input;
         var oldValue = cell.text();
-        cell.empty().append('<select>');
+        cell.empty().append('<select name="' + key + '">');
         input = $('select', cell);
         input.focus();
         var values = format.split(',');
@@ -2132,6 +2134,9 @@ var _Crud = {
         }
     },
     resize: function() {
+        
+        Structr.resize();
+
         var w = $(window).width();
         var h = $(window).height();
 
@@ -2167,7 +2172,7 @@ var _Crud = {
         });
 
         $('#resourceTabs .resourceBox table').css({
-            height: h - ($('#resourceTabsMenu').height() + 191) + 'px',
+            height: h - ($('#resourceTabsMenu').height() + 196) + 'px',
             width:  w - 59 + 'px'
         });
 

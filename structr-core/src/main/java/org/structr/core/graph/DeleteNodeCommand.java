@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.NotFoundException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -128,13 +129,18 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			// deletion callback, must not prevent node deletion!
 			node.onNodeDeletion();
 
-			// Delete any relationship (this is PASSIVE DELETION)
-			for (AbstractRelationship r : node.getRelationships()) {
+			try {
+				// Delete any relationship (this is PASSIVE DELETION)
+				for (AbstractRelationship r : node.getRelationships()) {
 
-				if (r != null) {
-					
-					app.delete(r);
+					if (r != null) {
+
+						app.delete(r);
+					}
 				}
+				
+			} catch (NotFoundException nfex) {
+				// ignore, we cannot do anything about it..
 			}
 
 			// remove node from index

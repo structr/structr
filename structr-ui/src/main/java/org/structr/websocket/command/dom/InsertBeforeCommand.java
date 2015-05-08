@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -42,10 +42,10 @@ public class InsertBeforeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String id                    = webSocketData.getId();
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String refId                 = (String) nodeData.get("refId");
-		String parentId              = (String) nodeData.get("parentId");
+		final String id                    = webSocketData.getId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String refId                 = (String) nodeData.get("refId");
+		final String parentId              = (String) nodeData.get("parentId");
 
 		// check node to append
 		if (id == null) {
@@ -65,10 +65,10 @@ public class InsertBeforeCommand extends AbstractCommand {
 
 		}
 
-		DOMNode refNode = getDOMNode(refId );
+		final DOMNode refNode = getDOMNode(refId );
 
 		// check if parent node with given ID exists
-		DOMNode parentNode = getDOMNode(parentId);
+		final DOMNode parentNode = getDOMNode(parentId);
 
 		if (parentNode == null) {
 
@@ -78,7 +78,7 @@ public class InsertBeforeCommand extends AbstractCommand {
 
 		}
 
-		DOMNode node = getDOMNode(id);
+		final DOMNode node = getDOMNode(id);
 
 		try {
 

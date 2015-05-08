@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -20,13 +20,13 @@ package org.structr.websocket.command.dom;
 
 import java.util.Map;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.w3c.dom.DOMException;
 
 
 /**
@@ -78,9 +78,8 @@ public class CloneNodeCommand extends AbstractCommand {
 				parent.appendChild(clonedNode);
 				clonedNode.setProperty(DOMNode.ownerDocument, parent.getProperty(DOMNode.ownerDocument));
 
-			} catch (FrameworkException ex) {
+			} catch (DOMException | FrameworkException ex) {
 
-				// send DOM exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 
 			}

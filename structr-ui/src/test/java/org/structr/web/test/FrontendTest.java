@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -37,7 +37,7 @@ import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
  *
  * @author Axel Morgner
  */
-public class FrontendTest extends StructrUiTest {
+public abstract class FrontendTest extends StructrUiTest {
 
 	private static final Logger logger = Logger.getLogger(FrontendTest.class.getName());
 
@@ -59,8 +59,9 @@ public class FrontendTest extends StructrUiTest {
 			// Workaround to remove local storage, as phantomjs is pretty buggy here.
 			// Currently, phantomjs doesn't allow localStorage to be modified remotely,
 			// and the --local-storage-path parameter is ignored.
-			String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
-			//String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --debug test " + testName + ".js"};
+			//String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
+			String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
+			//String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --debug test " + testName + ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);
 			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
@@ -95,10 +96,6 @@ public class FrontendTest extends StructrUiTest {
 
 	}
 
-	@Override
-	public void test00() {
-	}
-
 	private void makeVideo(final String testName) throws IOException {
 		String[] args = {"/bin/sh", "-c", "cd ../docs/screenshots &&  avconv -y -r 25 -i " + testName + "/%04d.png -qscale 1 " + testName + ".avi"};
 		Process proc = Runtime.getRuntime().exec(args);
@@ -116,6 +113,7 @@ public class FrontendTest extends StructrUiTest {
 		properties.put(User.name, "admin");
 		properties.put(User.password, "admin");
 		properties.put(User.isAdmin, true);
+		properties.put(User.backendUser, true);
 
 		try (final Tx tx = app.tx()) {
 

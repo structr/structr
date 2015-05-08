@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -60,15 +60,15 @@ public class FileBase extends AbstractFile implements Linkable {
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
-	public static final Property<String> contentType = new StringProperty("contentType").indexedWhenEmpty();
+	public static final Property<String> contentType      = new StringProperty("contentType").indexedWhenEmpty();
 	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath").readOnly();
-	public static final Property<Long> size = new LongProperty("size").indexed().readOnly();
-	public static final Property<String> url = new StringProperty("url");
-	public static final Property<Long> checksum = new LongProperty("checksum").unvalidated().readOnly();
+	public static final Property<Long> size               = new LongProperty("size").indexed().readOnly();
+	public static final Property<String> url              = new StringProperty("url");
+	public static final Property<Long> checksum           = new LongProperty("checksum").unvalidated().readOnly();
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
-	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
-	public static final Property<String> path = new PathProperty("path").indexed().readOnly();
-	public static final Property<Boolean> isFile = new BooleanProperty("isFile").defaultValue(true).readOnly();
+	public static final Property<Integer> version         = new IntProperty("version").indexed().readOnly();
+	public static final Property<String> path             = new PathProperty("path").indexed().readOnly();
+	public static final Property<Boolean> isFile          = new BooleanProperty("isFile").defaultValue(true).readOnly();
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile);

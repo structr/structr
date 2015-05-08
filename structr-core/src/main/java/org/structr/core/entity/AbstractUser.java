@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,15 +21,13 @@ package org.structr.core.entity;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
-import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import static org.structr.core.entity.Principal.password;
 import org.structr.core.entity.relationship.Groups;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 
 //~--- interfaces -------------------------------------------------------------
@@ -42,49 +40,7 @@ import org.structr.core.property.PropertyKey;
 public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	private static final Logger logger = Logger.getLogger(AbstractUser.class.getName());
-
-	@Override
-	public void grant(Permission permission, AbstractNode obj) {
-
-		Security secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			try {
-
-				secRel = createSecurityRelationshipTo(obj);
-
-			} catch (FrameworkException ex) {
-
-				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
-
-			}
-
-		}
-
-		secRel.addPermission(permission);
-
-	}
-
-	@Override
-	public void revoke(Permission permission, AbstractNode obj) {
-
-		Security secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
-
-		} else {
-
-			secRel.removePermission(permission);
-		}
-
-	}
-
-	private Security createSecurityRelationshipTo(final NodeInterface obj) throws FrameworkException {
-		return StructrApp.getInstance().create((Principal)this, obj, Security.class);
-	}
+	private Boolean cachedIsAdminFlag  = null;
 
 	@Override
 	public void addSessionId(final String sessionId) {
@@ -139,7 +95,20 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
+	@Override
+	public boolean isAdmin() {
+
+		if (cachedIsAdminFlag == null) {
+
+			cachedIsAdminFlag = getProperty(Principal.isAdmin);
+			if (cachedIsAdminFlag == null) {
+
+				cachedIsAdminFlag = false;
+			}
+		}
+
+		return cachedIsAdminFlag;
+	}
 
 	@Override
 	public List<Principal> getParents() {
@@ -148,12 +117,14 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 		for (Groups rel : getIncomingRelationships(Groups.class)) {
 
-			parents.add(rel.getSourceNode());
+			if (rel != null && rel.getSourceNode() != null) {
 
+				parents.add(rel.getSourceNode());
+
+			}
 		}
 
 		return parents;
-
 	}
 
 	@Override
@@ -206,4 +177,13 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	}
 
+	@Override
+	public Set<String> getAllowedPermissions() {
+		return null;
+	}
+
+	@Override
+	public Set<String> getDeniedPermissions() {
+		return null;
+	}
 }

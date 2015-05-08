@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import org.structr.web.resource.LoginResource;
 import org.structr.web.resource.LogoutResource;
 import org.structr.web.resource.RegistrationResource;
+import org.structr.web.resource.ResetPasswordResource;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,17 +46,18 @@ public class UiResourceProvider implements ResourceProvider {
 
 		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 
-		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"), UuidResource.class);       // matches a UUID without dashes
-		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);         // cypher query
-		resourceMap.put(Pattern.compile("login"), LoginResource.class);                // login
-		resourceMap.put(Pattern.compile("logout"), LogoutResource.class);              // logout
-		resourceMap.put(Pattern.compile("registration"), RegistrationResource.class);  // self-registration
-		resourceMap.put(Pattern.compile("maintenance"), MaintenanceResource.class);    // maintenance
-		resourceMap.put(Pattern.compile("in"), RelationshipResource.class);            // incoming relationship
-		resourceMap.put(Pattern.compile("out"), RelationshipResource.class);           // outgoing relationship
-		resourceMap.put(Pattern.compile("start"), RelationshipNodeResource.class);     // start node
-		resourceMap.put(Pattern.compile("end"), RelationshipNodeResource.class);       // end node
-
+		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"), UuidResource.class);        // matches a UUID without dashes
+		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);          // cypher query
+		resourceMap.put(Pattern.compile("login"), LoginResource.class);                 // login
+		resourceMap.put(Pattern.compile("logout"), LogoutResource.class);               // logout
+		resourceMap.put(Pattern.compile("registration"), RegistrationResource.class);   // self-registration
+		resourceMap.put(Pattern.compile("reset-password"), ResetPasswordResource.class);// reset password
+		resourceMap.put(Pattern.compile("maintenance"), MaintenanceResource.class);     // maintenance
+		resourceMap.put(Pattern.compile("in"), RelationshipResource.class);             // incoming relationship
+		resourceMap.put(Pattern.compile("out"), RelationshipResource.class);            // outgoing relationship
+		resourceMap.put(Pattern.compile("start"), RelationshipNodeResource.class);      // start node
+		resourceMap.put(Pattern.compile("end"), RelationshipNodeResource.class);        // end node
+ 
 		// FIXME: are views needed here?
 		resourceMap.put(Pattern.compile("public"), ViewFilterResource.class);                 // public view (default)
 		resourceMap.put(Pattern.compile("protected"), ViewFilterResource.class);              // protected view

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,10 +28,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
 
 //~--- classes ----------------------------------------------------------------
@@ -83,9 +81,9 @@ public class UuidResource extends FilterableResource {
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
 		// do not allow nesting of "bare" uuid resource with type resource
-		// as this will not do what the user expects to do. 
+		// as this will not do what the user expects to do.
 		if (next instanceof TypeResource) {
-			
+
 			throw new IllegalPathException();
 		}
 
@@ -94,23 +92,17 @@ public class UuidResource extends FilterableResource {
 
 	public GraphObject getEntity() throws FrameworkException {
 
-		final App app = StructrApp.getInstance();
-		
+		final App app = StructrApp.getInstance(securityContext);
+
 		GraphObject entity = app.nodeQuery().uuid(uuid).getFirst();
 		if (entity == null) {
-			
+
 			entity = app.relationshipQuery().uuid(uuid).getFirst();
 		}
 
 		if (entity == null) {
 			throw new NotFoundException();
 		}
-
-		if (entity instanceof AbstractNode && !securityContext.isReadable((AbstractNode)entity, true, false)) {
-			throw new NotAllowedException();
-		}
-
-		entity.setSecurityContext(securityContext);
 
 		return entity;
 	}

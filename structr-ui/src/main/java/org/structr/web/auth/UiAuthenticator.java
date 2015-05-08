@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -43,6 +43,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -335,11 +336,17 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException {
+	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
-		Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
+		final Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
 		if  (user != null) {
 
+			final String allowLoginBeforeConfirmation = Services.getInstance().getConfigurationValue(RegistrationResource.ALLOW_LOGIN_BEFORE_CONFIRMATION);
+			if (user.getProperty(User.confirmationKey) != null && Boolean.FALSE.equals(Boolean.parseBoolean(allowLoginBeforeConfirmation))) {
+				logger.log(Level.WARNING, "Login as {0} not allowed before confirmation.", user);
+				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
+			}
+			
 			AuthHelper.doLogin(request, user);
 		}
 
@@ -350,13 +357,13 @@ public class UiAuthenticator implements Authenticator {
 	public void doLogout(HttpServletRequest request) {
 
 		try {
-			Principal user = getUser(request, false);
+			final Principal user = getUser(request, false);
 			if (user != null) {
 
 				AuthHelper.doLogout(request, user);
 			}
 
-			HttpSession session = request.getSession(false);
+			final HttpSession session = request.getSession(false);
 			if (session != null) {
 
 				session.invalidate();
@@ -377,10 +384,10 @@ public class UiAuthenticator implements Authenticator {
 	 * @param response
 	 * @return user
 	 */
-	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) {
+	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
-		String path = PathHelper.clean(request.getPathInfo());
-		String[] uriParts = PathHelper.getParts(path);
+		final String path = PathHelper.clean(request.getPathInfo());
+		final String[] uriParts = PathHelper.getParts(path);
 
 		logger.log(Level.FINE, "Checking external authentication ...");
 
@@ -390,11 +397,11 @@ public class UiAuthenticator implements Authenticator {
 			return null;
 		}
 
-		String name   = uriParts[1];
-		String action = uriParts[2];
+		final String name   = uriParts[1];
+		final String action = uriParts[2];
 
 		// Try to getValue an OAuth2 server for the given name
-		StructrOAuthClient oauthServer = StructrOAuthClient.getServer(name);
+		final StructrOAuthClient oauthServer = StructrOAuthClient.getServer(name);
 
 		if (oauthServer == null) {
 
@@ -417,8 +424,8 @@ public class UiAuthenticator implements Authenticator {
 
 		} else if ("auth".equals(action)) {
 
-			String accessToken = oauthServer.getAccessToken(request);
-			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+			final String accessToken = oauthServer.getAccessToken(request);
+			final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 
 			if (accessToken != null) {
 
@@ -478,7 +485,7 @@ public class UiAuthenticator implements Authenticator {
 
 	protected static Principal checkSessionAuthentication(HttpServletRequest request) {
 
-		String sessionIdFromRequest = request.getRequestedSessionId();
+		final String sessionIdFromRequest = request.getRequestedSessionId();
 		if (sessionIdFromRequest == null) {
 
 			// create session id
@@ -491,7 +498,7 @@ public class UiAuthenticator implements Authenticator {
 			return null;
 		}
 
-		Principal user = AuthHelper.getPrincipalForSessionId(sessionIdFromRequest);
+		final Principal user = AuthHelper.getPrincipalForSessionId(sessionIdFromRequest);
 		if (user != null) {
 
 			return user;

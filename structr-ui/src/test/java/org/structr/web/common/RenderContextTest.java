@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -28,7 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -67,13 +67,15 @@ public class RenderContextTest extends StructrUiTest {
 			itemNode = app.create(SchemaNode.class, new NodeAttribute(SchemaNode.name, "Item"));
 
 			final PropertyMap properties = new PropertyMap();
-			properties.put(SchemaRelationship.relationshipType, "CHILD");
-			properties.put(SchemaRelationship.sourceMultiplicity, "1");
-			properties.put(SchemaRelationship.targetMultiplicity, "*");
-			properties.put(SchemaRelationship.sourceJsonName, "parentItem");
-			properties.put(SchemaRelationship.targetJsonName, "children");
+			properties.put(SchemaRelationshipNode.sourceId, itemNode.getUuid());
+			properties.put(SchemaRelationshipNode.targetId, itemNode.getUuid());
+			properties.put(SchemaRelationshipNode.relationshipType, "CHILD");
+			properties.put(SchemaRelationshipNode.sourceMultiplicity, "1");
+			properties.put(SchemaRelationshipNode.targetMultiplicity, "*");
+			properties.put(SchemaRelationshipNode.sourceJsonName, "parentItem");
+			properties.put(SchemaRelationshipNode.targetJsonName, "children");
 
-			app.create(itemNode, itemNode, SchemaRelationship.class, properties);
+			app.create(SchemaRelationshipNode.class, properties);
 
 			// compile the stuff
 			tx.success();
@@ -231,23 +233,28 @@ public class RenderContextTest extends StructrUiTest {
 
 			// create schema relationship
 			final PropertyMap taskProperties = new PropertyMap();
-			taskProperties.put(SchemaRelationship.relationshipType, "TASK");
-			taskProperties.put(SchemaRelationship.sourceMultiplicity, "1");
-			taskProperties.put(SchemaRelationship.targetMultiplicity, "*");
-			taskProperties.put(SchemaRelationship.sourceJsonName, "project");
-			taskProperties.put(SchemaRelationship.targetJsonName, "tasks");
+			taskProperties.put(SchemaRelationshipNode.sourceNode, projectNode);
+			taskProperties.put(SchemaRelationshipNode.targetNode, taskNode);
+			taskProperties.put(SchemaRelationshipNode.relationshipType, "TASK");
+			taskProperties.put(SchemaRelationshipNode.relationshipType, "TASK");
+			taskProperties.put(SchemaRelationshipNode.sourceMultiplicity, "1");
+			taskProperties.put(SchemaRelationshipNode.targetMultiplicity, "*");
+			taskProperties.put(SchemaRelationshipNode.sourceJsonName, "project");
+			taskProperties.put(SchemaRelationshipNode.targetJsonName, "tasks");
 
-			app.create(projectNode, taskNode, SchemaRelationship.class, taskProperties);
+			app.create(SchemaRelationshipNode.class, taskProperties);
 
 			// create schema relationship
 			final PropertyMap currentTaskProperties = new PropertyMap();
-			currentTaskProperties.put(SchemaRelationship.relationshipType, "CURRENT");
-			currentTaskProperties.put(SchemaRelationship.sourceMultiplicity, "1");
-			currentTaskProperties.put(SchemaRelationship.targetMultiplicity, "1");
-			currentTaskProperties.put(SchemaRelationship.sourceJsonName, "project");
-			currentTaskProperties.put(SchemaRelationship.targetJsonName, "currentTask");
+			currentTaskProperties.put(SchemaRelationshipNode.sourceNode, projectNode);
+			currentTaskProperties.put(SchemaRelationshipNode.targetNode, taskNode);
+			currentTaskProperties.put(SchemaRelationshipNode.relationshipType, "CURRENT");
+			currentTaskProperties.put(SchemaRelationshipNode.sourceMultiplicity, "1");
+			currentTaskProperties.put(SchemaRelationshipNode.targetMultiplicity, "1");
+			currentTaskProperties.put(SchemaRelationshipNode.sourceJsonName, "project");
+			currentTaskProperties.put(SchemaRelationshipNode.targetJsonName, "currentTask");
 
-			app.create(projectNode, taskNode, SchemaRelationship.class, currentTaskProperties);
+			app.create(SchemaRelationshipNode.class, currentTaskProperties);
 
 			// compile the stuff
 			tx.success();
@@ -514,8 +521,6 @@ public class RenderContextTest extends StructrUiTest {
 
 			// test POST with invalid name containing curly braces to provoke 422
 			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:8875/structr/rest/folders', '{name:\"Test{{{}}{}{}{}\"}').status}"));
-
-			System.out.println(Scripting.replaceVariables(ctx, page, "${POST('http://localhost:8875/structr/rest/login', '{name:admin,password:admin}')}"));
 
 			// test login and sessions
 			final String sessionIdCookie = Scripting.replaceVariables(ctx, page, "${POST('http://localhost:8875/structr/rest/login', '{name:admin,password:admin}').headers.Set-Cookie}");

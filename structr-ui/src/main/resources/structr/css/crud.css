@@ -22,7 +22,7 @@
 .resourceBox {
     border: 1px solid #999 ! important;
     background: #fff ! important;
-    font-family: Arial, Helvetica, Sans-serif ! important;
+    font-family: 'Open Sans', Arial, Helvetica, Sans-serif ! important;
     font-size: 9pt;
     position: relative;
 }
@@ -83,7 +83,7 @@
     border: none;
     background: none;
     padding: 0;
-    font-family: Arial, Helvetica, Sans-serif;
+    font-family: 'Open Sans', Arial, Helvetica, Sans-serif;
 }
 
 #resourceTabs li.ui-corner-top {
@@ -92,10 +92,6 @@
     border-left: 1px solid #999;
     border-right: 1px solid #999;
     background-color: #e9e9e9;
-    background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f7f7f7)) no-repeat;
-    background: -moz-linear-gradient(90deg, #e3e3e3, #f7f7f7) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#e3e3e3', GradientType=0);
-    /*cursor: pointer ! important;*/
 }
 
 #resourceTabs .ui-state-default a,
@@ -106,9 +102,6 @@
 #resourceTabs li.ui-state-active {
     color: #333 ! important;
     background-color: #81ce25;
-    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
-    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
 }
 
 #resourceTabs li.ui-state-active a,
@@ -153,14 +146,11 @@ input.readonly {
 .props .node {
     color: #333;
     line-height: 1.7em;
-    border-radius: 5px;
+    border-radius: 3px;
     border: 1px solid #a5a5a5;
     padding: 2px 5px;
     margin: 2px 2px 3px 1px;
     background-color: #eee;
-    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
-    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
     float: left;
 }
 
@@ -170,9 +160,6 @@ input.readonly {
     color: #555;
     border: 1px solid #bbb;
     background-color: #fff;
-    background: -webkit-gradient(linear, left bottom, left top, from(#dfdfdf), to(#ffffff)) no-repeat ! important;
-    background: -moz-linear-gradient(90deg, #dfdfdf, #ffffff) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#ffffff', EndColorStr='#dfdfdf', GradientType=0);
     cursor: pointer;
 }
 
@@ -293,6 +280,16 @@ img.thumbnail {
     display: none;
 }
 
+.actions a {
+    display: inline-block;
+    margin: 2px
+}
+
+.actions a:hover {
+    opacity: .6;
+    cursor: pointer;
+}
+
 /*
 * Search
 */
@@ -336,7 +333,7 @@ h2.searchResultsTitle {
 }
 
 .searchResultGroup {
-    border-radius: 5px;
+    border-radius: 3px;
     margin: 12px;
     padding: 8px 12px;
     clear: both;

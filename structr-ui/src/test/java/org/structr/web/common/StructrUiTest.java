@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -67,7 +67,7 @@ import org.structr.websocket.servlet.WebSocketServlet;
  *
  * @author Axel Morgner
  */
-public class StructrUiTest extends TestCase {
+public abstract class StructrUiTest extends TestCase {
 
 	private static final Logger logger = Logger.getLogger(StructrUiTest.class.getName());
 
@@ -204,9 +204,6 @@ public class StructrUiTest extends TestCase {
 
 		graphDbCommand = app.command(GraphDatabaseCommand.class);
 
-	}
-
-	public void test00() {
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,10 @@
  */
 package org.structr.core.app;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +66,7 @@ import org.structr.schema.ConfigurationProvider;
 public class StructrApp implements App {
 
 	private static final Logger logger           = Logger.getLogger(StructrApp.class.getName());
+	private static final URI schemaBaseURI       = URI.create("https://structr.org/v1.1/#");
 	private static final Object globalConfigLock = new Object();
 	private SecurityContext securityContext      = null;
 
@@ -211,6 +215,11 @@ public class StructrApp implements App {
 	}
 
 	@Override
+	public void close() throws IOException {
+		shutdown();
+	}
+
+	@Override
 	public <T extends Command> T command(Class<T> commandType) {
 		return Services.getInstance().command(securityContext, commandType);
 	}
@@ -333,5 +342,42 @@ public class StructrApp implements App {
 		return StringUtils.trim(Services.getInstance().getConfigurationValue(key, defaultValue));
 	}
 
+	public static <T extends GraphObject> URI getSchemaId(final Class<T> type) {
+		initializeSchemaIds();
+		return typeIdMap.get(type);
+	}
 
+	public static Class resolveSchemaId(final URI uri) {
+		initializeSchemaIds();
+		return schemaIdMap.get(uri);
+	}
+
+	public static URI getSchemaBaseURI() {
+		return schemaBaseURI;
+	}
+
+	private static void initializeSchemaIds() {
+
+		if (schemaIdMap.isEmpty()) {
+
+			for (final Class type : StructrApp.getConfiguration().getNodeEntities().values()) {
+				registerType(type);
+			}
+
+			for (final Class type : StructrApp.getConfiguration().getRelationshipEntities().values()) {
+				registerType(type);
+			}
+		}
+	}
+
+	private static void registerType(final Class type) {
+
+		final URI id = schemaBaseURI.resolve(URI.create(("definitions/" + type.getSimpleName())));
+
+		schemaIdMap.put(id, type);
+		typeIdMap.put(type, id);
+	}
+
+	private static final Map<URI, Class> schemaIdMap = new LinkedHashMap<>();
+	private static final Map<Class, URI> typeIdMap   = new LinkedHashMap<>();
 }

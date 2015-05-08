@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -152,6 +152,15 @@ public class StaticRelationshipResource extends SortableResource {
 
 						// return result
 						return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+
+					} else if (value instanceof GraphObject) {
+
+						return new Result((GraphObject)value, isPrimitiveArray());
+
+					} else {
+
+						logger.log(Level.INFO, "Found object {0}, but will not return as it is no graph object or iterable", value);
+
 					}
 				}
 
@@ -250,20 +259,27 @@ public class StaticRelationshipResource extends SortableResource {
 
 			// look for methods that have an @Export annotation
 			final GraphObject entity = typedIdResource.getIdResource().getEntity();
-			final Class entityType = typedIdResource.getEntityClass();
-			final String methodName = typeResource.getRawType();
+			final Class entityType   = typedIdResource.getEntityClass();
+			final String methodName  = typeResource.getRawType();
 
 			if (entity != null && entityType != null && methodName != null) {
 
-				final Object obj              = entity.invokeMethod(methodName, propertySet, true);
-				final RestMethodResult result = new RestMethodResult(200);
+				final Object obj = entity.invokeMethod(methodName, propertySet, true);
 
-				// unwrap nested object(s)
-				unwrapTo(obj, result);
+				if (obj instanceof RestMethodResult) {
 
-				return result;
+					return (RestMethodResult)obj;
+
+				} else {
+
+					final RestMethodResult result = new RestMethodResult(200);
+
+					// unwrap nested object(s)
+					unwrapTo(obj, result);
+
+					return result;
+				}
 			}
-
 		}
 
 		throw new IllegalPathException();
@@ -341,23 +357,4 @@ public class StaticRelationshipResource extends SortableResource {
 	public String getResourceSignature() {
 		return typedIdResource.getResourceSignature().concat("/").concat(typeResource.getResourceSignature());
 	}
-
-	// ----- private methods -----
-	private <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
-
-		try {
-
-			return type.newInstance();
-
-		} catch (Throwable t) {
-
-			// TODO: throw meaningful exception here,
-			// should be a RuntimeException that indicates
-			// wrong use of Relationships etc.
-			t.printStackTrace();
-		}
-
-		return null;
-	}
-
 }

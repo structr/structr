@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.Tx;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -71,7 +71,7 @@ public class PushSchemaCommand extends AbstractCommand {
 					}
 				}
 
-				for (final SchemaRelationship rel : app.relationshipQuery(SchemaRelationship.class).getAsList()) {
+				for (final SchemaRelationshipNode rel : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 					tms.getExportSet().add(rel);
 				}
 

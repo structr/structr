@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,6 @@ package org.structr.core.graph;
 import org.neo4j.graphdb.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.ManyEndpoint;
@@ -54,7 +53,7 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface>, A
 	public static final Property<Principal>       owner            = new StartNode<>("owner", PrincipalOwnsNode.class);
 	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
-	public void init(final SecurityContext securityContext, final Node dbNode, final Class type);
+	public void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation);
 
 	public void onNodeCreation();
 	public void onNodeInstantiation();
@@ -64,7 +63,6 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface>, A
 
 	public String getName();
 
-	public boolean isValid(ErrorBuffer errorBuffer);
 	public boolean isDeleted();
 
 	public <R extends AbstractRelationship> Iterable<R> getRelationships();

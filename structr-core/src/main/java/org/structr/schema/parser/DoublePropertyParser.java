@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,8 +31,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class DoublePropertyParser extends NumericalPropertyParser {
 
-	public DoublePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public DoublePropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override
@@ -63,14 +63,14 @@ public class DoublePropertyParser extends NumericalPropertyParser {
 
 		} catch (Throwable t) {
 
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
+			reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
 		}
 
 		return null;
 	}
 
 	@Override
-	public String getDefaultValueSource() {
-		return defaultValue.concat("d");
+	public String getDefaultValue() {
+		return getSourceDefaultValue().concat("d");
 	}
 }

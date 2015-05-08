@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -29,6 +29,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.w3c.dom.DOMException;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -92,6 +93,11 @@ public class ClonePageCommand extends AbstractCommand {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
+			} catch (DOMException dex) {
+
+				logger.log(Level.WARNING, "Could not create node.", dex);
+				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
 
 			}
 

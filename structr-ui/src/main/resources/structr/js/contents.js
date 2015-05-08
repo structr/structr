@@ -23,7 +23,8 @@ var contents, editor, contentType;
 var _Contents = {
     icon: 'icon/page_white.png',
     comment_icon: 'icon/comment.png',
-    comp_icon: 'icon/package_green.png',
+    comp_icon: 'icon/page_yellow.png',
+    comp_templ_icon: 'icon/layout_yellow.png',
     template_icon: 'icon/layout_content.png',
     add_icon: 'icon/page_white_add.png',
     delete_icon: 'icon/page_white_delete.png',
@@ -46,15 +47,14 @@ var _Contents = {
         var isTemplate = (entity.type === 'Template');
 
         var name = entity.name;
+        var displayName = getElementDisplayName(entity);
 
         var isComment = (entity.type === 'Comment');
         var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
-        //console.log('comment, component, template?', isComment, isComponent, isTemplate);
-        var icon = isComment ? _Contents.comment_icon : (isComponent ? _Contents.comp_icon : (isTemplate ? _Contents.template_icon : _Contents.icon));
-        
+        var icon = isComment ? _Contents.comment_icon : ((isTemplate && isComponent) ? _Contents.comp_templ_icon : (isTemplate ? _Contents.template_icon : (isComponent ? _Contents.comp_icon : _Contents.icon)));
         var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
                 + '<img class="typeIcon" src="' + icon + '">'
-                + (name ? ('<b title="' + name + '" class="tag_ name_">' + name + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
+                + (name ? ('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
                 + '<span class="id">' + entity.id + '</span>'
                 + '</div>';
 
@@ -305,11 +305,12 @@ var _Contents = {
         select.on('change', function() {
             contentType = select.val();
             entity.setProperty('contentType', contentType, false, function() {
+                blinkGreen(select);
                 _Pages.reloadPreviews();
             });
         });
 
-        dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+        dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
         $('#lineWrapping').on('change', function() {
             var inp = $(this);
             if  (inp.is(':checked')) {
@@ -319,6 +320,7 @@ var _Contents = {
                 localStorage.removeItem(lineWrappingKey);
                 editor.setOption('lineWrapping', false);
             }
+            blinkGreen(inp.parent());
             editor.refresh();
         });
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -70,7 +70,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 		GraphObject obj         = getNode(webSocketData.getId());
 		if (obj != null) {
 
-			if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.write)) {
+			if (!((AbstractNode)obj).isGranted(Permission.write, getWebSocket().getSecurityContext())) {
 
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
 				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});

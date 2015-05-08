@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -171,6 +171,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
 								nodeEntityClassCache.put(name, nodeClass);
+								nodeEntityClass = nodeClass;
 
 								// first match wins
 								break;
@@ -197,7 +198,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public Class getRelationshipEntityClass(final String name) {
 
-		Class relationClass = AbstractNode.class;
+		Class relationClass = AbstractRelationship.class;
 
 		if ((name != null) && (name.length() > 0)) {
 
@@ -503,11 +504,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public void unregisterEntityType(final String typeName) {
 
 		nodeEntityClassCache.remove(typeName);
-		nodeEntityPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + typeName);
-
 		relationshipEntityClassCache.remove(typeName);
-		relationshipPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + typeName);
 
+		nodeEntityPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + "." + typeName);
+		relationshipPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + "." + typeName);
+
+		globalPropertyViewMap.remove(typeName);
+		globalClassDBNamePropertyMap.remove(typeName);
+		globalClassJSNamePropertyMap.remove(typeName);
 	}
 
 	@Override
@@ -757,6 +761,18 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		views.addAll(dynamicViews);
 
 		return Collections.unmodifiableSet(views);
+	}
+
+	@Override
+	public Set<String> getPropertyViewsForType(final Class type) {
+
+		final Map<String, Set<PropertyKey>> map = getPropertyViewMapForType(type);
+		if (map != null) {
+
+			return map.keySet();
+		}
+
+		return Collections.emptySet();
 	}
 
 	@Override

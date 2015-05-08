@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -28,6 +28,7 @@ import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Image;
@@ -92,6 +93,11 @@ public class ListCommand extends AbstractCommand {
 		if (type.equals(Image.class)) {
 
 			query.and(Image.isThumbnail, false);
+		}
+
+		if (type.equals(File.class)) {
+
+			query.not().and(File.name, "_thumb_", false);
 		}
 
 		try {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.schema.action;
 
 import java.util.Collection;
@@ -30,7 +29,10 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.DateConverter;
 import org.structr.core.parser.Functions;
+import org.structr.core.property.DateProperty;
+import org.structr.schema.parser.DatePropertyParser;
 
 /**
  *
@@ -231,7 +233,7 @@ public class ActionContext {
 						return securityContext.getRequest();
 
 					case "now":
-						return new Date();
+						return DatePropertyParser.format(new Date(), DateProperty.DEFAULT_FORMAT);
 
 					case "me":
 						return securityContext.getUser(false);

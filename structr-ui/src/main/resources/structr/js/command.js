@@ -78,6 +78,21 @@ var Command = {
         return sendObj(obj, callback);
     },
     /**
+     * Send a single GET_TYPE_INFO command to the server.
+     *
+     * The server will return a single schema node with all relevant properties
+     * of the node with the given type to the sending client (no broadcast).
+     */
+    getTypeInfo: function(type, callback) {
+        var obj = {};
+        obj.command = 'GET_TYPE_INFO';
+        var data = {};
+        data.type = type
+        obj.data = data;
+        log('getTypeInfo()', obj, callback);
+        return sendObj(obj, callback);
+    },
+    /**
      * Send a LIST command to the server.
      *
      * The server will return a result set containing all items of the given
@@ -204,6 +219,24 @@ var Command = {
         }
         obj.data = data;
         log('deleteNode()', obj);
+        return sendObj(obj);
+    },
+    /**
+     * Send a DELETE_RELATIONSHIP command to the server.
+     *
+     * The server will delete the relationship with the given id and broadcast
+     * a deletion notification.
+     */
+    deleteRelationship: function(id, recursive) {
+        var obj = {};
+        obj.command = 'DELETE_RELATIONSHIP';
+        obj.id = id;
+        var data = {};
+        if (recursive) {
+            data.recursive = recursive;
+        }
+        obj.data = data;
+        log('deleteRelationship()', obj);
         return sendObj(obj);
     },
     /**
@@ -446,11 +479,11 @@ var Command = {
     /**
      * Send a GET_LOCAL_STORAGE command to the server.
      */
-    getLocalStorage: function() {
+    getLocalStorage: function(callback) {
         var obj = {};
         obj.command = 'GET_LOCAL_STORAGE';
         log('getLocalStorage()', obj);
-        return sendObj(obj);
+        return sendObj(obj, callback);
     },
     /**
      * Send a REPLACE_WIDGET command to the server.
@@ -682,6 +715,19 @@ var Command = {
         }
         obj.data = nodeData;
         log('create()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a CREATE_RELATIONSHIP command to the server.
+     *
+     * The server will create a new relationship with the given properties contained
+     * in the 'relData' hash and broadcast a CREATE_RELATIONSHIP notification.
+     */
+    createRelationship: function(relData, callback) {
+        var obj = {};
+        obj.command = 'CREATE_RELATIONSHIP';
+        obj.relData = relData;
+        log('createRelationship()', obj);
         return sendObj(obj, callback);
     },
     /**
@@ -1012,5 +1058,32 @@ var Command = {
         obj.command = 'DELETE_UNATTACHED_NODES';
         log('deleteUnattachedNodes()', obj);
         return sendObj(obj);
+    },
+    /**
+     * Send a LIST_SCHEMA_PROPERTIES command to the server.
+     *
+     * No broadcast.
+     */
+    listSchemaProperties: function(id, view, callback) {
+        var obj  = {};
+        obj.command = 'LIST_SCHEMA_PROPERTIES';
+        obj.id      = id;
+        obj.data    = { view: view };
+        log('listSchemaProperties()', obj, callback);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a LIST_SNAPSHOTS command to the server.
+     *
+     * The server will return a list of restorable
+     * snapshots from the snapshot location configured
+     * in the structr.conf.
+     */
+    snapshots: function(mode, name, callback) {
+        var obj  = {};
+        obj.data = { mode: mode, name: name };
+        obj.command = 'SNAPSHOTS';
+        log('snapshots()', obj, callback);
+        return sendObj(obj, callback);
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,12 +29,12 @@ import org.structr.schema.SchemaHelper.Type;
  *
  * @author Christian Morgner
  */
-public class CypherPropertyParser extends PropertyParser {
+public class CypherPropertyParser extends PropertySourceGenerator {
 
 	private String auxType = "";
 
-	public CypherPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final PropertyParameters params) {
-		super(errorBuffer, className, propertyName, params);
+	public CypherPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override

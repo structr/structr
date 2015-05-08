@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,19 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.common;
 
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Person;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestUser;
@@ -83,7 +79,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -121,7 +117,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -161,7 +157,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -202,7 +198,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -244,7 +240,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -270,7 +266,7 @@ public class AccessControlTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// Grant read permission to user 2
-				user2.grant(Permission.read, t1);
+				t1.grant(Permission.read, user2);
 				tx.success();
 			}
 
@@ -288,7 +284,7 @@ public class AccessControlTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// Revoke permission again
-				user2.revoke(Permission.read, t1);
+				t1.revoke(Permission.read, user2);
 				tx.success();
 			}
 
@@ -300,7 +296,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -314,7 +310,6 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final List<Person> persons = createTestNodes(Person.class, 1);
 			final Class type = TestOne.class;
 			final List<NodeInterface> nodes = createTestNodes(type, 10);
 
@@ -329,19 +324,20 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
+				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(AbstractNode.createdDate).getResult();
 
 				assertEquals(3, result.size());
 				assertEquals(3, (int) result.getRawResultCount());
 
-				assertEquals(nodes.get(3).getUuid(), result.get(0).getUuid());
-				assertEquals(nodes.get(5).getUuid(), result.get(1).getUuid());
-				assertEquals(nodes.get(7).getUuid(), result.get(2).getUuid());
+				// do not test order of elements
+//				assertEquals(nodes.get(3).getUuid(), result.get(0).getUuid());
+//				assertEquals(nodes.get(5).getUuid(), result.get(1).getUuid());
+//				assertEquals(nodes.get(7).getUuid(), result.get(2).getUuid());
 			}
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -355,7 +351,6 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final List<Person> persons = createTestNodes(Person.class, 1);
 			final Class type = TestOne.class;
 			final List<NodeInterface> nodes = createTestNodes(type, 10);
 			int count = 0;
@@ -394,28 +389,52 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
 
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final Principal user) throws FrameworkException {
-		return (T)createTestNode(type, new PropertyMap(), user);
-	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final Principal user) throws FrameworkException {
 
-		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend));
+	public void test08WriteAccess() {
 
-		try (final Tx tx = backendApp.tx()) {
+		// remove auto-generated resource access objects
+		clearResourceAccess();
 
-			final T result = backendApp.create(type, props);
-			tx.success();
+		try {
 
-			return result;
+			final TestUser owner = createTestNode(TestUser.class);
+			final TestUser user  = createTestNode(TestUser.class);
+
+			// create new node
+			createTestNode(TestOne.class, owner);
+
+
+			final SecurityContext userContext = SecurityContext.getInstance(owner, AccessMode.Frontend);
+			final App userApp                 = StructrApp.getInstance(userContext);
+
+			try (final Tx tx = userApp.tx()) {
+
+				final TestOne t = StructrApp.getInstance(userContext).nodeQuery(TestOne.class).getFirst();
+
+				assertNotNull(t);
+
+				t.setProperty(TestOne.aString, "aString");
+
+				assertEquals("aString", t.getProperty(TestOne.aString));
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
 		}
+
 	}
 
 	public static void clearResourceAccess() {

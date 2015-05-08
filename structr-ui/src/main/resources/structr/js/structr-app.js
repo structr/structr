@@ -97,40 +97,46 @@ function StructrApp(baseUrl) {
             var action = a[0], type = a[1], suffix = a[2];
             var reload = btn.attr('data-structr-reload') === 'true';
             var appendId = btn.attr('data-structr-append-id') === 'true';
-            var returnUrl = btn.attr('data-structr-return');
+            var returnUrl = btn.attr('data-structr-return') || reload;
             var attrString = btn.attr('data-structr-attributes');
             var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
                 return s.trim();
             });
-            
+
             var id = btn.attr('data-structr-id');
             var container = $('[data-structr-id="' + id + '"]');
             var data = s.collectData(btn, id, attrs, type, suffix);
-            
+
             if (action === 'create') {
-                s.create(btn, type, data, returnUrl || reload, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
+                s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
+
+            } else if (action === 'save') {
+                s.saveAction(btn, id, attrs, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn)});
 
             } else if (action === 'edit') {
-                s.editAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn)}, function() {enableButton(btn);});
+                s.editAction(btn, id, attrs, returnUrl);
 
             } else if (action === 'cancel-edit') {
-                s.cancelEditAction(btn, id, attrs, returnUrl || reload);
+                s.cancelEditAction(btn, id, attrs, returnUrl);
 
             } else if (action === 'delete') {
                 var f = s.field($('[data-structr-attr="name"]', container));
-                s.del(btn, id, type, btn.attr('data-structr-confirm') === 'true', returnUrl || reload, f ? f.val : undefined);
+                s.del(btn, id, type, btn.attr('data-structr-confirm') === 'true', returnUrl, f ? f.val : undefined);
 
             } else if (action === 'login') {
                 s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn)});
 
             } else if (action === 'logout') {
-                s.logoutAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
+                s.logoutAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
             } else if (action === 'registration') {
-                s.registrationAction(btn, id, attrs, returnUrl || reload, function() {enableButton(btn);}, function() {enableButton(btn);});
-            
+                s.registrationAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
+
+            } else if (action === 'reset-password') {
+                s.resetPasswordAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
+
             } else {
-                s.customAction(btn, id, type, action, data, returnUrl || reload, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
+                s.customAction(btn, id, type, action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
             }
         });
     },
@@ -174,7 +180,12 @@ function StructrApp(baseUrl) {
         var container = $('[data-structr-id="' + id + '"]');
         $.each(attrs, function(i, key) {
             var field = s.getPossibleFields(form, container, suffix, type, key);
-            var val = field.val();
+            var val;
+            if (field.attr('type') === 'checkbox') {
+                val = field.prop('checked');
+            } else {
+                val = field.val();
+            }
             // treat empty string as null
             val = (val === '') ? undefined : val;
             val = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
@@ -228,16 +239,17 @@ function StructrApp(baseUrl) {
                     }
                 }
             } else if (f.type === 'Enum') {
-                
+
                 el.html(enumSelect(f));
                 var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
                 sel.append('<option></option>');
                 $.each(f.format.split(','), function(i, o) {
+                    o = o.trim();
                     sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
                 });
                 sel.addClass(f.class);
                 sel.chosen({allow_single_deselect: true});
-                
+
             } else {
                 if (f.type.endsWith('[]')) {
                     el.html(multiSelect(f));
@@ -271,7 +283,7 @@ function StructrApp(baseUrl) {
                 //console.log(dateTimeFormat);
                 var dateFormat = dateTimeFormat ? dateTimeFormat[0] : 'yyyy-MM-dd',
                     timeFormat = (dateTimeFormat && dateTimeFormat.length > 1) ? dateTimeFormat[1] : undefined;
-                
+
                 inp.on('mouseup', function(event) {
                     event.preventDefault();
                     var input = $(this);
@@ -312,14 +324,19 @@ function StructrApp(baseUrl) {
         saveButton.addClass(clazz);
         enableButton(saveButton);
         saveButton.on('click', function() {
-            s.saveAction(btn, id, attrs, reload);
+            s.saveAction(btn, id, attrs, reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+                enableButton(btn);
+            }, function() {
+                s.cancelEditAction(btn, id, attrs, reload);
+            });
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
         enableButton(btn);
     },
 
-    this.saveAction = function(btn, id, attrs, reload) {
+    this.saveAction = function(btn, id, attrs, reload, successMsg, errorMsg, onSuccess, onError) {
         var container = $('[data-structr-id="' + id + '"]');
+        if (!s.data[id]) s.data[id] = {};
         $.each(attrs, function(i, key) {
 
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
@@ -381,10 +398,8 @@ function StructrApp(baseUrl) {
                 }
             }
         });
-        //console.log('PUT', structrRestUrl + id, s.data[id]);
-        s.request(btn, 'PUT', structrRestUrl + id, s.data[id], false, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
-            s.cancelEditAction(btn, id, attrs, reload);
-        });
+        //console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
+        s.request(btn, 'PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
     },
 
     this.cancelEditAction = function(btn, id, attrs, reload) {
@@ -496,9 +511,9 @@ function StructrApp(baseUrl) {
         var btnText = btn.text();
 
         disableButton(btn, 'Processing...');
-        
+
         var successText = 'Thanks! Please check your inbox.';
-        
+
         $.ajax({
             type: 'POST',
             method: 'POST',
@@ -512,7 +527,7 @@ function StructrApp(baseUrl) {
                         $('#msg span').delay(5000).fadeOut(5000);
                     } else {
                         btn.text(successText);
-                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
                     }
                 },
                 201: function() {
@@ -521,7 +536,57 @@ function StructrApp(baseUrl) {
                         $('#msg span').delay(5000).fadeOut(5000);
                     } else {
                         btn.text(successText);
-                        window.setTimeout(function() { btn.text(btnText); redirectOrReload(reload); }, 5000);
+                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
+                    }
+                },
+                400: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>Please enter your e-mail address!</span>');
+                        $('#msg span').delay(1000).fadeOut(1000);
+                    } else {
+                        btn.text('Please enter your e-mail address!');
+                        window.setTimeout(function() { btn.text(btnText); }, 1000);
+                    }
+                    enableButton(btn);
+                }
+            }
+        });
+    },
+    this.resetPasswordAction = function(btn, id, attrs, reload) {
+
+        var data = {};
+
+        if (attrs && attrs.length) {
+            attrs.forEach(function(attr) {
+                data[attr] = $('[data-structr-name="' + attr + '"]').val();
+            });
+        }
+
+        var msgBox = $('#msg');
+        if (msgBox && msgBox.length) {
+            $('span', msgBox).remove();
+        }
+
+        var btnText = btn.text();
+
+        disableButton(btn, 'Processing...');
+
+        var successText = 'Link to reset password sent. Please check your inbox or spam folder.';
+
+        $.ajax({
+            type: 'POST',
+            method: 'POST',
+            contentType: 'application/json',
+            url: '/structr/rest/reset-password',
+            data: JSON.stringify(data),
+            statusCode: {
+                200: function() {
+                    if (msgBox && msgBox.length) {
+                        $('#msg').append('<span>' + successText + '</span>');
+                        $('#msg span').delay(5000).fadeOut(5000);
+                    } else {
+                        btn.text(successText);
+                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
                     }
                 },
                 400: function() {
@@ -572,6 +637,7 @@ function StructrApp(baseUrl) {
         var clazz = el.attr('data-structr-edit-class');
         var query = el.attr('data-structr-custom-options-query');
         var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+        var placeholder = el.attr('data-structr-placeholder');
         var format =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
         //console.log('field', el, rawType, type, format, query, type, id, key, rawVal);
         var val;
@@ -595,7 +661,7 @@ function StructrApp(baseUrl) {
                 //val = rawVal || el.text();
             }
         }
-        var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz}; 
+        var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz, 'placeholder': placeholder};
         //console.log(f);
         return f;
     };
@@ -693,7 +759,7 @@ function StructrApp(baseUrl) {
         var el = $('[data-structr-dialog="' + type + '"]');
         el.addClass(type).html(msg).show().delay(2000).fadeOut(200);
     };
-    
+
     this.showFormErrors = function(btn, msg) {
         var a = btn.attr('data-structr-action').split(':');
         var suffix = a[2];
@@ -860,7 +926,7 @@ function StructrApp(baseUrl) {
         } else {
             //console.log('checkInput', f.type, f.format);
         }
-        
+
         if (isTextarea(inp[0])) {
 
             if (inp.val().indexOf('\n') === -1) {
@@ -889,7 +955,7 @@ function StructrApp(baseUrl) {
 
             inp.replaceWith(textarea(f));
             inp = s.input(parent);
-            
+
             inp.on('keyup', function(e) {
                 s.checkInput(e, f, $(this));
             });
@@ -1084,9 +1150,9 @@ function textarea(f) {
 }
 
 function inputField(f) {
-    //console.log('rendering input field  ', f);
+     console.log('rendering input field  ', f);
     var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
-    return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.key ? f.key.capitalize() : '')
+    return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : (f.key ? f.key.capitalize() : ''))
             + '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
             + '" size="' + size + '">';
 }

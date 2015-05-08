@@ -36,12 +36,6 @@ var win = $(window);
 $(document).ready(function() {
     Structr.registerModule('pages', _Pages);
     Structr.classes.push('page');
-
-    win.off('resize');
-    win.resize(function() {
-        _Pages.resize();
-    });
-
 });
 
 var _Pages = {
@@ -59,6 +53,8 @@ var _Pages = {
 
     },
     resize: function(offsetLeft, offsetRight) {
+
+        Structr.resize();
 
         $('body').css({
             position: 'fixed'
@@ -148,23 +144,11 @@ var _Pages = {
                $(this).removeClass('noclick');
                return;
             }
-            var psw = pagesSlideout.width() + 12;
-            if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
-                Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
-                Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
-            } else {
-                Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
-            }
+            _Pages.pagesTabStateChangeCallback();
         }).droppable({
             tolerance: 'touch',
-            over: function(e, ui) {
-                var psw = pagesSlideout.width() + 12;
-                if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
-                    Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
-                    Structr.openLeftSlideOut(pagesSlideout, this, activeTabLeftKey);
-                } else {
-                    Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
-                }
+            over: function() {
+                _Pages.pagesTabStateChangeCallback();
             }
         });
 
@@ -296,6 +280,11 @@ var _Pages = {
 
         //window.setTimeout('_Pages.resize(0,0)', 100);
 
+        win.off('resize');
+        win.resize(function() {
+            _Pages.resize();
+        });
+
     },
     clearPreviews: function() {
 
@@ -312,7 +301,7 @@ var _Pages = {
         pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>')
         pages = $('#pagesTree', pagesSlideout);
 
-        Structr.addPager(pages, true, 'Page');
+        Structr.addPager(pages, true, 'Page', function(entity) { StructrModel.create(entity); _Pages.pagesTabResizeContent(); });
 
         previewTabs.append('<li id="import_page" title="Import Template" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function(e) {
@@ -1121,6 +1110,20 @@ var _Pages = {
         if (activeNode) {
             activeNode.removeClass('nodeHover');
         }
+    },
+    pagesTabStateChangeCallback: function () {
+        var psw = pagesSlideout.width() + 12;
+        if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
+            Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
+            Structr.openLeftSlideOut(pagesSlideout, $("#pagesTab"), activeTabLeftKey);
+        } else {
+            Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
+        }
+        this.pagesTabResizeContent();
+    },
+    pagesTabResizeContent: function () {
+        var psw = pagesSlideout.width() + 12;
+        $('.node.page', pagesSlideout).width(psw-25);
     }
 };
 

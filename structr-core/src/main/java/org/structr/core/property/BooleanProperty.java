@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,9 +42,9 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		super(name);
 	}
 
-//	public BooleanProperty(final String jsonName, final String dbName) {
-//		this(jsonName, dbName, null);
-//	}
+	public BooleanProperty(final String jsonName, final String dbName) {
+		super(jsonName, dbName);
+	}
 //
 //	public BooleanProperty(final String name, final Boolean defaultValue) {
 //		this(name, name, defaultValue);

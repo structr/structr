@@ -45,24 +45,28 @@ casper.test.begin(testName, numberOfTests, function(test) {
     sections.push('You can rename a page by simply clicking on the name on the preview tab. After entering a new name, press return or tab, or click outside the input field.');
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#previewTabs li:nth-child(2)');
+        s.moveMousePointerTo(casper, '#previewTabs li:nth-child(3)');
     });
 
     casper.then(function() {
-        this.click('#previewTabs li:nth-child(2)');
+        this.click('#previewTabs li:nth-child(3)');
     });
 
-    casper.wait(2000);
+    casper.wait(1000);
 
     casper.then(function() {
-        s.animatedType(this, '#previewTabs li:nth-child(2) .new-name', false, 'renamed-page', true);
+        s.animatedType(this, '#previewTabs li:nth-child(3) .new-name', false, 'renamed-page', true);
     });
+
+    casper.wait(1000);
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#previews');
+        test.assertEval(function() {
+            return $('#previewTabs li:nth-child(3) .name_').text() === 'renamed-page';
+        });
     });
 
-    casper.wait(5000);
+    casper.wait(1000);
 
     casper.then(function() {
         s.animateHtml(testName, heading, sections);

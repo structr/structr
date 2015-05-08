@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,8 +43,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.GraphDatabaseCommand;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -215,6 +217,19 @@ public class StructrTest extends TestCase {
 
 	}
 
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final NodeAttribute... attributes) throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final T newNode = app.create(type, attributes);
+
+			tx.success();
+
+			return newNode;
+		}
+
+	}
+
 	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
 
 		List<GenericNode> nodes = createTestNodes(GenericNode.class, 2);
@@ -246,6 +261,23 @@ public class StructrTest extends TestCase {
 			tx.success();
 
 			return rel;
+		}
+	}
+
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final Principal owner) throws FrameworkException {
+		return (T)createTestNode(type, new PropertyMap(), owner);
+	}
+
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final Principal owner) throws FrameworkException {
+
+		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(owner, AccessMode.Backend));
+
+		try (final Tx tx = backendApp.tx()) {
+
+			final T result = backendApp.create(type, props);
+			tx.success();
+
+			return result;
 		}
 	}
 

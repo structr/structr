@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.AccessControllable;
@@ -52,10 +53,10 @@ public class SuperUser implements Principal, AccessControllable {
 	public void removeProperty(PropertyKey key) throws FrameworkException {}
 
 	@Override
-	public void grant(Permission permission, AbstractNode obj) {}
+	public void grant(Permission permission, Principal obj) {}
 
 	@Override
-	public void revoke(Permission permission, AbstractNode obj) {}
+	public void revoke(Permission permission, Principal obj) {}
 
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {}
@@ -102,7 +103,10 @@ public class SuperUser implements Principal, AccessControllable {
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {}
 
-	//~--- get methods ----------------------------------------------------
+	@Override
+	public boolean isAdmin() {
+		return true;
+	}
 
 	@Override
 	public long getId() {
@@ -277,7 +281,7 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, final Class entityType) {
+	public void init(SecurityContext securityContext, Node dbNode, final Class entityType, final boolean isCreation) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -367,8 +371,8 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public boolean isGranted(Permission permission, Principal principal) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	public boolean isGranted(Permission permission, SecurityContext context) {
+		return true;
 	}
 
 	@Override
@@ -478,5 +482,15 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
+	}
+
+	@Override
+	public Set<String> getAllowedPermissions() {
+		return null;
+	}
+
+	@Override
+	public Set<String> getDeniedPermissions() {
+		return null;
 	}
 }

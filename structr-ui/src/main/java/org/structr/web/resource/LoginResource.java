@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -11,7 +11,7 @@
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
@@ -31,7 +31,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
 import org.structr.web.entity.User;
@@ -114,13 +113,6 @@ public class LoginResource extends Resource {
 	public RestMethodResult doDelete() throws FrameworkException {
 
 		throw new NotAllowedException();
-
-	}
-
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-
-		throw new IllegalMethodException();
 
 	}
 

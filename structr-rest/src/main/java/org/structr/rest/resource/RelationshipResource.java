@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.rest.exception.IllegalPathException;
 
 /**
@@ -43,16 +46,16 @@ public class RelationshipResource extends WrappingResource {
 	private Direction direction = null;
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) {
 
 		this.securityContext = securityContext;
 
-		if("in".equals(part.toLowerCase())) {
+		if ("in".equals(part.toLowerCase())) {
 
 			direction = Direction.INCOMING;
 			return true;
 
-		} else if("out".equals(part.toLowerCase())) {
+		} else if ("out".equals(part.toLowerCase())) {
 
 			direction = Direction.OUTGOING;
 			return true;
@@ -63,10 +66,12 @@ public class RelationshipResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
+		final App app = StructrApp.getInstance();
+		
 		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId).getResults();
-		if(results != null && !results.isEmpty()) {
+		if (results != null && !results.isEmpty()) {
 
 			try {
 				List<GraphObject> resultList = new LinkedList<>();
@@ -74,12 +79,25 @@ public class RelationshipResource extends WrappingResource {
 
 					if (obj instanceof AbstractNode) {
 
-						List relationships = Direction.INCOMING.equals(direction) ? 
-							Iterables.toList(((AbstractNode) obj).getIncomingRelationships()) :
-							Iterables.toList(((AbstractNode) obj).getOutgoingRelationships());
+						final List relationships = Direction.INCOMING.equals(direction) ? 
+							
+							//Iterables.toList(((AbstractNode) obj).getIncomingRelationships()) :
+							//Iterables.toList(((AbstractNode) obj).getOutgoingRelationships());
+							(sortDescending ?
+								app.relationshipQuery().and(AbstractRelationship.targetId, obj.getUuid()).sortDescending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList()
+							:
+								app.relationshipQuery().and(AbstractRelationship.targetId, obj.getUuid()).sortAscending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList()) :
+							(sortDescending ?
+								app.relationshipQuery().and(AbstractRelationship.sourceId, obj.getUuid()).sortDescending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList()
+							:
+								app.relationshipQuery().and(AbstractRelationship.sourceId, obj.getUuid()).sortAscending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList());
 						
 						if (relationships != null) {
 
+							final int rels = relationships.size();
+							
+							logger.log(Level.FINE, "Number of relationships: {0} for parameters {1}, {2}, {3}, {4}, {5}", new Object[]{rels, sortKey, sortDescending, pageSize, page, offsetId});
+							
 							resultList.addAll(relationships);
 						}
 					}
@@ -102,9 +120,9 @@ public class RelationshipResource extends WrappingResource {
 	}
 
 	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
+	public Resource tryCombineWith(final Resource next) throws FrameworkException {
 
-		if(next instanceof UuidResource) {
+		if (next instanceof UuidResource) {
 			return next;
 		}
 
