@@ -443,7 +443,7 @@ function wsConnect() {
             } else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
                 var obj = StructrModel.obj(data.id);
-                if (obj && obj.removes) {
+                if (obj) {
                     obj.remove();
                 }
 
