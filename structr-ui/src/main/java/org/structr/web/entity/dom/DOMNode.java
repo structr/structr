@@ -82,6 +82,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.rest.logging.entity.LogEvent;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
@@ -247,9 +248,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		});
 
 		/**
-		 * Convenience method to render named nodes (contained in the ShadowDocument => a shared component)
-		 * if more than one node is found, we return an error message that informs the user that this
-		 * is not allowed and can result in unexpected behavior (instead of including the template)
+		 * Convenience method to render named nodes.
+		 * If more than one node is found, an error message is returned that informs the user that this
+		 * is not allowed and can result in unexpected behavior (instead of including the node).
 		 */
 		Functions.functions.put("include", new Function<Object, Object>() {
 
@@ -259,13 +260,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				if (Functions.arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
 
 					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
-					final App app = StructrApp.getInstance(securityContext);
-
-					final RenderContext innerCtx = new RenderContext((RenderContext) ctx);
-
-					final ShadowDocument shadowDoc = StructrApp.getInstance(securityContext).nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getFirst();
-
-					final List<DOMNode> nodeList = app.nodeQuery(DOMNode.class).andName((String) sources[0]).and(DOMNode.ownerDocument, shadowDoc).getAsList();
+					final App app                         = StructrApp.getInstance(securityContext);
+					final RenderContext innerCtx          = new RenderContext((RenderContext) ctx);
+					final List<DOMNode> nodeList          = app.nodeQuery(DOMNode.class).andName((String) sources[0]).notBlank(DOMNode.ownerDocument).getAsList();
 
 					DOMNode node = null;
 
@@ -1326,7 +1323,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If hide conditions evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Functions.evaluate(renderContext, this, _hideConditions))) {
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, this, "${".concat(_hideConditions).concat("}")))) {
 				return false;
 			}
 
@@ -1334,8 +1331,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			logger.log(Level.SEVERE, "Hide conditions " + _hideConditions + " could not be evaluated.", ex);
 		}
 		try {
-			// If show conditions don't evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_showConditions) && !(Boolean.TRUE.equals(Functions.evaluate(renderContext, this, _showConditions)))) {
+			// If show conditions evaluate to "false", don't render
+			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, this, "${".concat(_showConditions).concat("}")))) {
 				return false;
 			}
 

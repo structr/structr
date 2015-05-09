@@ -36,12 +36,6 @@ var win = $(window);
 $(document).ready(function() {
     Structr.registerModule('pages', _Pages);
     Structr.classes.push('page');
-
-    win.off('resize');
-    win.resize(function() {
-        _Pages.resize();
-    });
-
 });
 
 var _Pages = {
@@ -59,6 +53,8 @@ var _Pages = {
 
     },
     resize: function(offsetLeft, offsetRight) {
+
+        Structr.resize();
 
         $('body').css({
             position: 'fixed'
@@ -283,6 +279,11 @@ var _Pages = {
         }
 
         //window.setTimeout('_Pages.resize(0,0)', 100);
+
+        win.off('resize');
+        win.resize(function() {
+            _Pages.resize();
+        });
 
     },
     clearPreviews: function() {

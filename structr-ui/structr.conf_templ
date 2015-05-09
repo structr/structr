@@ -41,6 +41,11 @@ application.ftp.port = 8021
 # Session timeout (default 30 minutes = 1800 seconds)
 application.session.timeout = 1800
 
+# Access rights to ownerless nodes (nodes without owner)
+# Any combination of read, write, delete, accessControl is possible,
+# default is read only
+#application.security.ownerless.nodes = read
+
 # Neo4j server settings
 ########################################################
 #                                                      #

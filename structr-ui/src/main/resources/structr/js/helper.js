@@ -51,8 +51,8 @@ function without(s, array) {
 }
 
 function isIn(s, array) {
-    //console.log('is', s, 'in', array, '?', ($.inArray(s, array) > -1));
-    return ($.inArray(s, array) > -1);
+    //console.log('is', s, 'in', array, '?', (array.indexOf(s) !== -1));
+    return (array.indexOf(s) !== -1);
 }
 
 function escapeForHtmlAttributes(str, escapeWhitespace) {

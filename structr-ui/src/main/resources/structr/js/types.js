@@ -57,11 +57,6 @@ var _Types = {
     pageSize: [],
     init: function() {
 
-        $(window).off('resize');
-        $(window).on('resize', function() {
-            _Types.resize();
-        });
-
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
 
         Structr.ensureIsAdmin($('#resourceTabs'), function() {
@@ -85,7 +80,13 @@ var _Types = {
         _Types.init();
         
         $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Types');
-    },
+
+        $(window).off('resize');
+        $(window).on('resize', function() {
+            _Types.resize();
+        });
+
+   },
     initTabs: function() {
 
         $.each(_Types.types, function(t, type) {
@@ -326,6 +327,9 @@ var _Types = {
         }
     },
     resize: function() {
+
+        Structr.resize();
+
         var w = $(window).width();
         var h = $(window).height();
 

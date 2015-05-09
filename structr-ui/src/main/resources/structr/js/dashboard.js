@@ -64,6 +64,11 @@ var _Dashboard = {
             $('#' + $(this).text() + '_').click();
         });
 
+        $(window).off('resize');
+        $(window).on('resize', function() {
+            Structr.resize();
+        });
+
     },
     appendBox: function(heading, id) {
         dashboard.append('<div id="' + id + '" class="dashboard-box"><div class="dashboard-header"><h2>' + heading + '</h2></div></div>');

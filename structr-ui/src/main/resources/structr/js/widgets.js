@@ -23,9 +23,6 @@ var win = $(window);
 $(document).ready(function() {
     Structr.registerModule('widgets', _Widgets);
     Structr.classes.push('widget');
-    win.resize(function() {
-        Structr.resize();
-    });
 });
 
 var _Widgets = {
@@ -54,6 +51,11 @@ var _Widgets = {
         _Widgets.refreshRemoteWidgets();
         
         Structr.resize();
+        
+        win.off('resize');
+        win.resize(function() {
+            Structr.resize();
+        });
     },
     unload: function() {
         $(main.children('table')).remove();

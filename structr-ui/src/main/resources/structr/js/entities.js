@@ -338,52 +338,92 @@ var _Entities = {
 
         Command.get(obj.id, function (entity) {
 
-            var views = ['ui', 'in', 'out'], activeView = 'ui';
+            var views, activeView = 'ui';
 //        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget']) || entity.isUser) {
 //            views = ['ui', 'in', 'out'];
 //        } else {
 //            views = ['_html_', 'ui', 'in', 'out'];
 //            activeView = '_html_';
 //        }
-            var hasHtmlAttributes = false;
-            if (isIn('ownerDocument'), Object.keys(entity)) {
-                hasHtmlAttributes = true;
-            }
 
-            if (hasHtmlAttributes) {
-                views.unshift('_html_');
-                activeView = '_html_';
-            }
+            var attrs = Object.keys(entity);
 
+            log(entity);
+
+            var isRelationship = false;
             var tabTexts = [];
-            tabTexts._html_ = 'HTML Attributes';
-            tabTexts.ui = 'Node Properties';
-            tabTexts.in = 'Incoming Relationships';
-            tabTexts.out = 'Outgoing Relationships';
 
-            //dialog.empty();
-            Structr.dialog('Edit Properties of ' + (entity.name ? entity.name : entity.id), function () {
-                return true;
-            }, function () {
-                return true;
-            });
+            if (entity.hasOwnProperty('relType')) {
 
-            dialog.append('<div id="tabs"><ul></ul></div>');
-            var mainTabs = $('#tabs', dialog);
+                isRelationship = true;
 
-            if (hasHtmlAttributes) {
+                views = ['ui', 'sourceNode', 'targetNode'];
 
-                _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function (c) {
-                    _Entities.queryDialog(entity, c);
-                    _Entities.activateTabs('#data-tabs', '#content-tab-rest');
+                tabTexts.ui = 'Relationship Properties';
+                tabTexts.sourceNode = 'Source Node Properties';
+                tabTexts.targetNode = 'Target Node Properties';
+
+                Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + (isRelationship ? ' relationship ' : ' node ') + (entity.name ? entity.name : entity.id), function () {
+                    return true;
+                }, function () {
+                    return true;
                 });
 
-                _Entities.appendPropTab(mainTabs, 'editBinding', 'Edit Mode Binding', false, function (c) {
-                    _Entities.dataBindingDialog(entity, c);
+                dialog.append('<div id="tabs"><ul></ul></div>');
+                var mainTabs = $('#tabs', dialog);
+
+                _Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
+
+            } else {
+
+                views = ['ui', 'in', 'out'];
+
+                var hasHtmlAttributes = false;
+                if (isIn('tag', attrs) && isIn('pageId', attrs)) {
+                    hasHtmlAttributes = true;
+                }
+
+                attrs.forEach(function (attr) {
+                    if (attr.startsWith('_html_'))
+                        hasHtmlAttributes = true;
                 });
+
+                if (hasHtmlAttributes) {
+                    views.unshift('_html_');
+                    //console.log(lastMenuEntry)
+                    if (lastMenuEntry === 'pages') {
+                        activeView = '_html_';
+                    }
+                }
+
+                tabTexts._html_ = 'HTML Attributes';
+                tabTexts.ui = 'Node Properties';
+                tabTexts.in = 'Incoming Relationships';
+                tabTexts.out = 'Outgoing Relationships';
+
+                Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + (isRelationship ? ' relationship ' : ' node ') + (entity.name ? entity.name : entity.id), function () {
+                    return true;
+                }, function () {
+                    return true;
+                });
+
+                dialog.append('<div id="tabs"><ul></ul></div>');
+                var mainTabs = $('#tabs', dialog);
+
+                if (hasHtmlAttributes) {
+
+                    _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function (c) {
+                        _Entities.queryDialog(entity, c);
+                        _Entities.activateTabs('#data-tabs', '#content-tab-rest');
+                    });
+
+                    _Entities.appendPropTab(mainTabs, 'editBinding', 'Edit Mode Binding', false, function (c) {
+                        _Entities.dataBindingDialog(entity, c);
+                    });
+                }
+
+                _Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
             }
-
-            _Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
 
         });
     },
@@ -517,13 +557,16 @@ var _Entities = {
                             } else {
 
                                 var type = typeInfo[key].type;
+
                                 var isHidden = isIn(key, _Entities.hiddenAttrs);
                                 var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly && !isAdmin);
-                                var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
-                                var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
-                                var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
-                                var isArray = type.endsWith('[]');
-                                var isRelated = typeInfo[key].relatedType;
+                                if (type) {
+                                    var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
+                                    var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
+                                    var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
+                                    var isArray = type.endsWith('[]');
+                                    var isRelated = typeInfo[key].relatedType;
+                                }
 
                                 if (!key.startsWith('_html_') && !isHidden) {
 
@@ -599,6 +642,7 @@ var _Entities = {
                                     } else {
                                         cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
                                     }
+
                                 }
                             }
                         }

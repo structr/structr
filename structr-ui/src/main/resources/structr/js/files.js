@@ -31,10 +31,7 @@ $(document).ready(function() {
     Structr.classes.push('folder');
     //    Structr.classes.push('image');
     _Files.resize();
-    win.resize(function() {
-        _Files.resize();
-    });
-});
+ });
 
 var _Files = {
     icon: 'icon/page_white.png',
@@ -95,6 +92,11 @@ var _Files = {
 
         _Files.refreshFolders();
         _Files.refreshFiles();
+
+        win.off('resize');
+        win.resize(function() {
+            _Files.resize();
+        });
 
     },
     unload: function() {

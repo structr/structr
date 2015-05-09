@@ -51,9 +51,7 @@ var _Contents = {
 
         var isComment = (entity.type === 'Comment');
         var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
-        console.log('comment, component, template?', isComment, isComponent, isTemplate);
         var icon = isComment ? _Contents.comment_icon : ((isTemplate && isComponent) ? _Contents.comp_templ_icon : (isTemplate ? _Contents.template_icon : (isComponent ? _Contents.comp_icon : _Contents.icon)));
-        console.log(icon);
         var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
                 + '<img class="typeIcon" src="' + icon + '">'
                 + (name ? ('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))

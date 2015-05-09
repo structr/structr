@@ -265,6 +265,8 @@ function wsConnect() {
 
             } else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
+                log(command, data);
+
                 var obj = StructrModel.obj(data.id);
 
                 if (!obj) {
@@ -278,11 +280,11 @@ function wsConnect() {
                     StructrModel.clearCallback(data.callback);
                 }
 
-            } else if (command.startsWith('GET') || command === 'GET_BY_TYPE') { /*********************** GET_BY_TYPE ************************/
+            } else if (command.startsWith('GET') || command === 'GET_BY_TYPE' || command === 'CREATE_RELATIONSHIP') { /*********************** GET_BY_TYPE ************************/
 
                 log(command, data);
 
-                $(result).each(function (i, entity) {
+                result.forEach(function (entity) {
 
                     // Don't append a DOM node
                     //var obj = StructrModel.create(entity, undefined, false);

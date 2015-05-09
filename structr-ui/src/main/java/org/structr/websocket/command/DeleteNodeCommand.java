@@ -42,13 +42,13 @@ import org.w3c.dom.DOMException;
  *
  * @author Christian Morgner
  */
-public class DeleteCommand extends AbstractCommand {
+public class DeleteNodeCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(DeleteCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(DeleteNodeCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(DeleteCommand.class);
+		StructrWebSocket.addCommand(DeleteNodeCommand.class);
 
 	}
 

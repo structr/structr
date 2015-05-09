@@ -48,7 +48,7 @@ import org.structr.web.servlet.HtmlServlet;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * A resource to reset a users's password
+ * A resource to reset a user's password
  *
  * @author Axel Morgner
  */
@@ -57,18 +57,18 @@ public class ResetPasswordResource extends Resource {
 	private static final Logger logger = Logger.getLogger(ResetPasswordResource.class.getName());
 
 	private enum TemplateKey {
-		SENDER_NAME,
-		SENDER_ADDRESS,
-		SUBJECT,
-		TEXT_BODY,
-		HTML_BODY,
-		BASE_URL,
-		TARGET_PAGE,
-		ERROR_PAGE,
+		RESET_PASSWORD_SENDER_NAME,
+		RESET_PASSWORD_SENDER_ADDRESS,
+		RESET_PASSWORD_SUBJECT,
+		RESET_PASSWORD_TEXT_BODY,
+		RESET_PASSWORD_HTML_BODY,
+		RESET_PASSWORD_BASE_URL,
+		RESET_PASSWORD_TARGET_PAGE,
+		RESET_PASSWORD_ERROR_PAGE,
 		RESET_PASSWORD_PAGE,
-		CONFIRM_KEY_KEY,
-		TARGET_PAGE_KEY,
-		ERROR_PAGE_KEY
+		RESET_PASSWORD_CONFIRM_KEY_KEY,
+		RESET_PASSWORD_TARGET_PAGE_KEY,
+		RESET_PASSWORD_ERROR_PAGE_KEY
 	}
 
 	private static String localeString;
@@ -204,24 +204,24 @@ public class ResetPasswordResource extends Resource {
 
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort)
+			getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, "http://" + appHost + ":" + httpPort)
 			      + getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE)
-			+ "?" + getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY) + "=" + confKey
-			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY) + "=" + getTemplateText(TemplateKey.TARGET_PAGE, HtmlServlet.RESET_PASSWORD_PAGE)
+			+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY) + "=" + confKey
+			+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE, HtmlServlet.RESET_PASSWORD_PAGE)
 		);
 
-		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY, "Go to ${link} to reset your password.");
-		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to reset your password.</div>");
+		String textMailTemplate = getTemplateText(TemplateKey.RESET_PASSWORD_TEXT_BODY, "Go to ${link} to reset your password.");
+		String htmlMailTemplate = getTemplateText(TemplateKey.RESET_PASSWORD_HTML_BODY, "<div>Click <a href='${link}'>here</a> to reset your password.</div>");
 		String textMailContent  = MailHelper.replacePlaceHoldersInTemplate(textMailTemplate, replacementMap);
 		String htmlMailContent  = MailHelper.replacePlaceHoldersInTemplate(htmlMailTemplate, replacementMap);
 
 		try {
 
 			MailHelper.sendHtmlMail(
-				getTemplateText(TemplateKey.SENDER_ADDRESS, "structr-mail-daemon@localhost"),
-				getTemplateText(TemplateKey.SENDER_NAME, "Structr Mail Daemon"),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_ADDRESS, "structr-mail-daemon@localhost"),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_NAME, "Structr Mail Daemon"),
 				userEmail, "", null, null, null,
-				getTemplateText(TemplateKey.SUBJECT, "Request to reset your Structr password"),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SUBJECT, "Request to reset your Structr password"),
 				htmlMailContent, textMailContent);
 
 		} catch (Exception e) {

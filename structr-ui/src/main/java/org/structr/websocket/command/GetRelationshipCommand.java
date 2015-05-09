@@ -46,9 +46,10 @@ public class GetRelationshipCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		AbstractRelationship rel = getRelationship(webSocketData.getId());
+		final AbstractRelationship rel = getRelationship(webSocketData.getId());
 
 		if (rel != null) {
+			
 			webSocketData.setResult(Arrays.asList(rel));
 
 			// send only over local connection (no broadcast)
