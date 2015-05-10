@@ -11,7 +11,7 @@ if [ -z $HEAPSIZE ]; then
         HEAPSIZE=1
 fi
 
-BASE_DIR=/opt/structrdb
+BASE_DIR=.
 PIDFILE=$BASE_DIR/structrdb-$NAME.pid
 STRUCTR_SCRIPT=$BASE_DIR/run.sh
 

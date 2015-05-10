@@ -1,9 +1,6 @@
 #!/bin/bash
-JAVA=`which java`
-LATEST=`ls target/structr-ui-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
-VERSION=${LATEST#target/structr-ui-};VERSION=${VERSION%%.jar}
-STRUCTR="-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -cp target/lib/*:$LATEST org.structr.Server"
-STRUCTR_ARGS="-d64 -Xms1g -Xmx1g -XX:+UseG1GC -XX:MaxPermSize=128m -XX:+UseNUMA -Dinstance=your_instance_name"
+NAME=$1
+HEAPSIZE=$2
 
 if [ -z $NAME ]; then
         NAME="default"
@@ -14,10 +11,12 @@ if [ -z $HEAPSIZE ]; then
 fi
 
 JAVA="/opt/jdk1.7.0_45/bin/java"
-STRUCTR="-Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -cp target/lib/*:target/structr-ui-1.1-SNAPSHOT-$(git rev-parse --short=5 HEAD).jar org.structr.Server"
+LATEST=`ls target/structr-ui-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
+VERSION=${LATEST#target/structr-ui-};VERSION=${VERSION%%.jar}
+STRUCTR="-Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -cp target/lib/*:$LATEST org.structr.Server"
 STRUCTR_ARGS="-server -d64 -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:MaxPermSize=128m -XX:+UseNUMA -XX:+UseG1GC -Dinstance=$NAME"
 
-BASE_DIR=/opt/structrdb
+BASE_DIR=.
 PIDFILE=$BASE_DIR/structrdb-$NAME.pid
 LOGS_DIR=$BASE_DIR/logs
 SERVER_LOG=$BASE_DIR/logs/server.log
