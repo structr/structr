@@ -20,7 +20,7 @@
 var images, files, folders, drop;
 var fileList;
 var chunkSize = 1024 * 64;
-var sizeLimit = 1024 * 1024 * 70;
+var sizeLimit = 1024 * 1024 * 1024;
 var win = $(window);
 var selectedElements = [];
 var activeFileId, fileContents = {};
@@ -31,7 +31,7 @@ $(document).ready(function() {
     Structr.classes.push('folder');
     //    Structr.classes.push('image');
     _Files.resize();
- });
+});
 
 var _Files = {
     icon: 'icon/page_white.png',
@@ -306,7 +306,7 @@ var _Files = {
             zIndex: 2,
             start: function(e, ui) {
                 $(this).css({
-                   opacity: 0 
+                    opacity: 0
                 });
                 ui.helper.css({
                     width: files.width() + 'px'
@@ -455,44 +455,30 @@ var _Files = {
         return div;
     },
     uploadFile: function(file) {
+        var worker = new Worker('js/upload-worker.js');
+        worker.onmessage = function(e) {
 
-        $(fileList).each(function(i, fileObj) {
+            var binaryContent = e.data;
+            var chunks = Math.ceil(file.size / chunkSize);
 
-            if (fileObj.name === file.name) {
-
-                log('Uploading chunks for file ' + file.id);
-
-                var reader = new FileReader();
-                reader.readAsBinaryString(fileObj);
-                //reader.readAsText(fileObj);
-
-                var chunks = Math.ceil(fileObj.size / chunkSize);
-                reader.onload = function(f) {
-
-                    log('File was read into memory.', f);
-                    var binaryContent = f.target.result;
-                    log('uploadFile: binaryContent', binaryContent);
-
-                    for (var c = 0; c < chunks; c++) {
-
-                        var start = c * chunkSize;
-                        var end = (c + 1) * chunkSize;
-
-                        var chunk = window.btoa(binaryContent.substring(start, end));
-                        // TODO: check if we can send binary data directly
-
-                        Command.chunk(file.id, c, chunkSize, chunk, chunks);
-
-                    }
-
-                    var typeIcon = Structr.node(file.id).find('.typeIcon');
-                    var iconSrc = typeIcon.prop('src');
-                    log('Icon src: ', iconSrc);
-                    typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
-
-                }
+            for (var c = 0; c < chunks; c++) {
+                var start = c * chunkSize;
+                var end = (c + 1) * chunkSize;
+                var chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
+                Command.chunk(file.id, c, chunkSize, chunk, chunks);
             }
 
+            var typeIcon = Structr.node(file.id).find('.typeIcon');
+            var iconSrc = typeIcon.prop('src');
+            log('Icon src: ', iconSrc);
+            typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
+        };
+
+        $(fileList).each(function(i, fileObj) {
+            if (fileObj.name === file.name) {
+                log('Uploading chunks for file ' + file.id);
+                worker.postMessage(fileObj);
+            }
         });
 
     },
@@ -616,7 +602,7 @@ var _Files = {
                 dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
                 $('#lineWrapping').on('change', function() {
                     var inp = $(this);
-                    if  (inp.is(':checked')) {
+                    if (inp.is(':checked')) {
                         localStorage.setItem(lineWrappingKey, "1");
                         editor.setOption('lineWrapping', true);
                     } else {

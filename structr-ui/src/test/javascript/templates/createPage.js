@@ -39,24 +39,24 @@
         this.click('#add_page');
     });
 
-    casper.wait(1000);
+    casper.waitForSelector('#previewTabs li.page.active', function() {
+        test.assertSelectorHasText('#previewTabs li.page.active', 'New Page');
+    });
 
     if (name) {
 
         casper.then(function() {
-            s.moveMousePointerTo(casper, '#previewTabs li:nth-child(3)');
+            s.moveMousePointerTo(casper, '#previewTabs li.page.active');
         });
 
         casper.then(function() {
-            this.click('#previewTabs li:nth-child(3)');
+            this.click('#previewTabs li.page.active');
+        });
+
+        casper.waitForSelector('#previewTabs li input.new-name', function() {
+            s.animatedType(this, '#previewTabs li input.new-name', false, name, true);
         });
 
         casper.wait(1000);
-
-        casper.then(function() {
-            s.animatedType(this, '#previewTabs li:nth-child(3) .new-name', false, name, true);
-        });
-
-        casper.wait(2000);
     }
 };

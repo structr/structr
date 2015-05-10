@@ -40,6 +40,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.dynamic.File;
+import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
@@ -59,6 +60,12 @@ import org.structr.web.property.ThumbnailProperty;
  */
 public class Image extends File {
 
+	// register this type as an overridden builtin type
+	static {
+
+		SchemaService.registerBuiltinTypeOverride("Image", Image.class.getName());
+	}
+	
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
 	public static final Property<Integer> height = new IntProperty("height");
