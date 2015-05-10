@@ -567,11 +567,6 @@ var _Elements = {
                             $(this).removeClass('nodeHover');
                         });
 
-                        if (isIn(entity.id, folder.linkingElements)) {
-                            //console.log(entity.id, file.linkingElements);
-                            div.addClass('nodeActive');
-                        }
-
                     });
 
                     Structr.addPager(filesToLink, true, 'File', function(file) {
