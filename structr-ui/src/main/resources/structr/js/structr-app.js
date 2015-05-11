@@ -136,7 +136,7 @@ function StructrApp(baseUrl) {
                 s.resetPasswordAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
             } else {
-                s.customAction(btn, id, type, action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
+                s.customAction(btn, id, type, btn.attr('data-structr-confirm') === 'true', action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
             }
         });
     },
@@ -677,9 +677,17 @@ function StructrApp(baseUrl) {
         s.request(btn, 'POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
     };
 
-    this.customAction = function(btn, id, type, action, data, reload, appendId, successCallback, errorCallback) {
+    this.customAction = function(btn, id, type, conf, action, data, reload, appendId, successCallback, errorCallback) {
         //console.log('Custom action', action, type, data, reload);
-        s.request(btn, 'POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+        var sure = true;
+        if (conf) {
+            sure = confirm('Are you sure?');
+        }
+        if (!conf || sure) {
+            s.request(btn, 'POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+        } else {
+            enableButton(btn);
+        }
     };
 
     this.request = function(btn, method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
@@ -1150,7 +1158,7 @@ function textarea(f) {
 }
 
 function inputField(f) {
-     console.log('rendering input field  ', f);
+    //console.log('rendering input field  ', f);
     var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
     return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : (f.key ? f.key.capitalize() : ''))
             + '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
