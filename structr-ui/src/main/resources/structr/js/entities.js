@@ -102,12 +102,10 @@ var _Entities = {
             t.append('<tr><td class="key">Reload</td><td class="value" id="reload"></td><td></td></tr>');
             _Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
 
-            if (entity['data-structr-action'] === 'delete') {
+            // Confirm action?
+            t.append('<tr><td class="key">Confirm action?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
+            _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the action.');
 
-                // Delete action
-                t.append('<tr><td class="key">Confirm on delete?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
-                _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
-            }
             _Entities.appendRowWithInputField(entity, t, 'data-structr-return', 'Return URI after successful action');
 
             t.append('<tr><td class="key">Append ID on create</td><td class="value" id="append-id"></td><td></td></tr>');
