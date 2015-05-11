@@ -429,7 +429,7 @@ public class RegistrationResource extends Resource {
 
 				// Remove any property which is not included in configuration
 				// eMail is mandatory and necessary
-				final String customAttributesString = User.eMail.jsonName().concat(",").concat(Services.getInstance().getConfigurationValue(CUSTOM_ATTRIBUTES));
+				final String customAttributesString = User.eMail.jsonName() + "," + Services.getInstance().getConfigurationValue(CUSTOM_ATTRIBUTES);
 				final List<String> customAttributes = Arrays.asList(customAttributesString.split("[ ,]+"));
 				
 				final Set<PropertyKey> propsToRemove = new HashSet<>();
