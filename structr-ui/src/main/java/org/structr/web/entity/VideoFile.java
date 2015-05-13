@@ -43,6 +43,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.media.AVConv;
 import org.structr.rest.RestMethodResult;
+import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
 import static org.structr.web.entity.FileBase.relativeFilePath;
 import static org.structr.web.entity.FileBase.size;
@@ -56,6 +57,12 @@ import static org.structr.web.entity.FileBase.size;
  *
  */
 public class VideoFile extends File {
+
+	// register this type as an overridden builtin type
+	static {
+
+		SchemaService.registerBuiltinTypeOverride("VideoFile", VideoFile.class.getName());
+	}
 
 	private static final Logger logger = Logger.getLogger(VideoFile.class.getName());
 
