@@ -223,17 +223,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <configuration>
-                    <executable>java</executable>
-                    <arguments>
-                        <argument>-server</argument>
-                        <argument>-Dfile.encoding=utf-8</argument>
-                        <argument>-XX:+UseNUMA</argument>
-                        <argument>-Xms1g</argument>
-                        <argument>-Xmx1g</argument>
-                        <argument>-classpath</argument>
-                        <argument>target/lib/*${path.separator}target/${project.build.finalName}.jar</argument>
-                        <argument>org.structr.Server</argument>
-                    </arguments>
+                    <executable>${basedir}/run_debug.sh</executable>
                 </configuration>
             </plugin>
             <plugin>
