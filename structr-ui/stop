@@ -24,6 +24,6 @@ kill -15 $PID
 
 rm $PIDFILE
 
-echo "Structr stopped."
+echo "Structr instance '$NAME' stopped."
 kill `cat tail.pid`
 rm tail.pid

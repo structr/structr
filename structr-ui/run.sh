@@ -34,7 +34,7 @@ if [ -f $PIDFILE ]; then
 fi
 
 STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
-echo "Starting Structr with config file $STRUCTR_CONF"
+echo "Starting Structr instance '$NAME' with config file $STRUCTR_CONF"
 
 nohup $JAVA $STRUCTR $STRUCTR_ARGS > $SERVER_LOG 2>&1 &
 echo $! >$PIDFILE
@@ -61,6 +61,6 @@ echo
 echo "$VERSION"
 
 echo
-echo "Structr started successfully (PID $!)"
+echo "Structr instance '$NAME' started successfully (PID $!)"
 kill `cat tail.pid`
 rm tail.pid
