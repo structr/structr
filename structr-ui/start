@@ -12,9 +12,6 @@ if [ -z $HEAPSIZE ]; then
 fi
 
 BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-PIDFILE=$BASE_DIR/structrdb-$NAME.pid
 STRUCTR_SCRIPT=$BASE_DIR/run.sh
 
-# run structr script
 $STRUCTR_SCRIPT $NAME $HEAPSIZE
-
