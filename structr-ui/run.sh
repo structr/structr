@@ -1,11 +1,23 @@
 #!/bin/bash
+
+NAME=$1
+HEAPSIZE=$2
+
+if [ -z $NAME ]; then
+        NAME="default"
+fi
+
+if [ -z $HEAPSIZE ]; then
+	HEAPSIZE=1
+fi
+
 BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $BASE_DIR
 JAVA=`which java`
 LATEST=`ls target/structr-ui-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
 VERSION=${LATEST#target/structr-ui-};VERSION=${VERSION%%.jar}
 STRUCTR="-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -cp target/lib/*:$LATEST org.structr.Server"
-STRUCTR_ARGS="-d64 -Xms1g -Xmx1g -XX:+UseG1GC -XX:MaxPermSize=128m -XX:+UseNUMA -Dinstance=your_instance_name"
+STRUCTR_ARGS="-server -d64 -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:MaxPermSize=128m -XX:+UseNUMA -XX:+UseG1GC -Dinstance=$NAME"
 
 PIDFILE=$BASE_DIR/structr-ui.pid
 LOGS_DIR=$BASE_DIR/logs
@@ -22,7 +34,7 @@ if [ -f $PIDFILE ]; then
 fi
 
 STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
-echo "Starting Structr with config file $STRUCTR_CONF"
+echo "Starting Structr instance '$NAME' with config file $STRUCTR_CONF"
 
 nohup $JAVA $STRUCTR $STRUCTR_ARGS > $SERVER_LOG 2>&1 &
 echo $! >$PIDFILE
@@ -49,6 +61,6 @@ echo
 echo "$VERSION"
 
 echo
-echo "Structr started successfully (PID $!)"
+echo "Structr instance '$NAME' started successfully (PID $!)"
 kill `cat tail.pid`
 rm tail.pid

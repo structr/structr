@@ -1,5 +1,11 @@
 #!/bin/bash
 
+NAME=$1
+
+if [ -z $NAME ]; then
+        NAME="default"
+fi
+
 BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $BASE_DIR
 PIDFILE=./structr-ui.pid
@@ -18,6 +24,6 @@ kill -15 $PID
 
 rm $PIDFILE
 
-echo "Structr stopped."
+echo "Structr instance '$NAME' stopped."
 kill `cat tail.pid`
 rm tail.pid
