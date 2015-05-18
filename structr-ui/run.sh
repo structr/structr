@@ -21,7 +21,7 @@ fi
 nohup $JAVA $STRUCTR $STRUCTR_ARGS > $SERVER_LOG 2>&1 &
 echo $! >$PIDFILE
 
-{ tail -q -n0 --pid=$! -F $SERVER_LOG 2>/dev/null & } | sed -n '/Initialization complete/q'
+( tail -q -n0 -F $SERVER_LOG 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q'
 tail -200 $SERVER_LOG 2> /dev/null | grep 'Starting'
 
 # If your console font is rather slim, you can change the ascii art message to
@@ -44,3 +44,5 @@ echo "$VERSION"
 
 echo
 echo "Structr started successfully (PID $!)"
+kill `cat tail.pid`
+rm tail.pid

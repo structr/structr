@@ -8,9 +8,10 @@ SERVER_LOG=$BASE_DIR/logs/server.log
 PID=`cat $PIDFILE`
 kill -15 $PID
 
-{ tail -q --pid=$PID -n0 -F $SERVER_LOG & } | sed -n '/Shutdown complete/q'
+( tail -q -n0 -F $SERVER_LOG & echo $! >tail.pid ) | sed -n '/Shutdown complete/q'
 
 rm $PIDFILE
 
 echo "Structr stopped."
-
+kill `cat tail.pid`
+rm tail.pid
