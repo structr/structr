@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_DIR=.
+BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 PIDFILE=$BASE_DIR/structr-ui.pid
 LOGS_DIR=$BASE_DIR/logs
 SERVER_LOG=$BASE_DIR/logs/server.log
