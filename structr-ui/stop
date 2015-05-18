@@ -1,9 +1,15 @@
 #!/bin/bash
 
 BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-PIDFILE=$BASE_DIR/structr-ui.pid
-LOGS_DIR=$BASE_DIR/logs
-SERVER_LOG=$BASE_DIR/logs/server.log
+cd $BASE_DIR
+PIDFILE=./structr-ui.pid
+LOGS_DIR=./logs
+SERVER_LOG=./logs/server.log
+
+if [ ! -f $PIDFILE ]; then
+	echo "No pid file exists, exiting."
+	exit 0
+fi
 
 PID=`cat $PIDFILE`
 kill -15 $PID

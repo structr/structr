@@ -7,22 +7,28 @@ VERSION=${LATEST#target/structr-ui-};VERSION=${VERSION%%.jar}
 STRUCTR="-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -cp target/lib/*:$LATEST org.structr.Server"
 STRUCTR_ARGS="-d64 -Xms1g -Xmx1g -XX:+UseG1GC -XX:MaxPermSize=128m -XX:+UseNUMA -Dinstance=your_instance_name"
 
-STRUCTR_CONF=`find . -name structr.conf`
-echo "Starting Structr with config file $STRUCTR_CONF"
-
-PIDFILE=./structr-ui.pid
-LOGS_DIR=./logs
-SERVER_LOG=./logs/server.log
+PIDFILE=$BASE_DIR/structr-ui.pid
+LOGS_DIR=$BASE_DIR/logs
+SERVER_LOG=$BASE_DIR/logs/server.log
 
 if [ ! -d $LOGS_DIR ]; then
         mkdir $LOGS_DIR
 fi
 
+if [ -f $PIDFILE ]; then
+	PID=`cat $PIDFILE`
+	echo "Structr seems to be running as pid $PID, pid file $PIDFILE exists, exiting."
+	exit 0
+fi
+
+STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
+echo "Starting Structr with config file $STRUCTR_CONF"
+
 nohup $JAVA $STRUCTR $STRUCTR_ARGS > $SERVER_LOG 2>&1 &
 echo $! >$PIDFILE
 
 ( tail -q -n0 -F $SERVER_LOG 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q'
-tail -200 $SERVER_LOG 2> /dev/null | grep 'Starting'
+tail -q -200 $SERVER_LOG 2> /dev/null | grep 'Starting'
 
 # If your console font is rather slim, you can change the ascii art message to
 # better fit the structr logo ;-) (you know, details matter...)
