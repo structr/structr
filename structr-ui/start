@@ -1,7 +1,6 @@
 #!/bin/bash
 
 BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-PIDFILE=$BASE_DIR/structr-ui.pid
 STRUCTR_SCRIPT=$BASE_DIR/run.sh
 
-start-stop-daemon --quiet --start --make-pidfile --pidfile $PIDFILE --chdir $BASE_DIR --exec $STRUCTR_SCRIPT
+$STRUCTR_SCRIPT

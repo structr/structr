@@ -1,4 +1,6 @@
 #!/bin/bash
+BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd $BASE_DIR
 JAVA=`which java`
 LATEST=`ls target/structr-ui-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
 VERSION=${LATEST#target/structr-ui-};VERSION=${VERSION%%.jar}
@@ -7,11 +9,10 @@ STRUCTR_ARGS="-d64 -Xms1g -Xmx1g -XX:+UseG1GC -XX:MaxPermSize=128m -XX:+UseNUMA 
 
 STRUCTR_CONF=`find . -name structr.conf`
 echo "Starting Structr with config file $STRUCTR_CONF"
-BASE_DIR=`grep -v '^#' $STRUCTR_CONF | grep -m1 "base\.path" | awk '{ print $3 }' | tr -d [:cntrl:]`
 
-PIDFILE=$BASE_DIR/structr-ui.pid
-LOGS_DIR=$BASE_DIR/logs
-SERVER_LOG=$BASE_DIR/logs/server.log
+PIDFILE=./structr-ui.pid
+LOGS_DIR=./logs
+SERVER_LOG=./logs/server.log
 
 if [ ! -d $LOGS_DIR ]; then
         mkdir $LOGS_DIR
