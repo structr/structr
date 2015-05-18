@@ -238,10 +238,6 @@ public class SchemaService implements Service {
 
 	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode) {
 
-		final String name = schemaNode.getName();
-
-		System.out.println("Calc. hierarchy level for " + name + "..");
-
 		String superclass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (superclass == null) {
 

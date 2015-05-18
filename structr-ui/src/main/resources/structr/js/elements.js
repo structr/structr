@@ -149,13 +149,16 @@ var _Elements = {
             'elements': ['label'],
             'attrs': ['for', 'form'],
             'focus' : 'for'
-            
         },
         {
             'elements': ['style'],
             'attrs': ['type', 'media', 'scoped'],
             'focus' : 'type'
-            
+        },
+        {
+            'elements': ['iframe'],
+            'attrs': ['src', 'width', 'height'],
+            'focus' : 'src'
         }
     ],
     voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'source', 'track', 'wbr'],    

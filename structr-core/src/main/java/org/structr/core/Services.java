@@ -438,7 +438,7 @@ public class Services {
 	}
 
 	public String getConfigurationValue(String key) {
-		return getConfigurationValue(key, null);
+		return getConfigurationValue(key, "");
 	}
 
 	public String getConfigurationValue(String key, String defaultValue) {

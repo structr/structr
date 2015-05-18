@@ -171,6 +171,17 @@ UploadServlet.allowAnonymousUploads = false
 
 
 #############################################################################
+# Custom response headers
+#############################################################################
+#
+# Add your custom response headers here 
+HtmlServlet.customResponseHeaders = Strict-Transport-Security:max-age\=60,\
+X-Content-Type-Options:nosniff,\
+X-Frame-Options:SAMEORIGIN,\
+X-XSS-Protection:1;mode=block
+
+
+#############################################################################
 # Registration configuration
 #############################################################################
 # This section configures Structr's built-in opt-in registration for new users.
