@@ -6,7 +6,7 @@ if [ -z $NAME ]; then
         NAME="default"
 fi
 
-BASE_DIR=/opt/structrdb
+BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 PIDFILE=$BASE_DIR/structrdb-$NAME.pid
 LOGS_DIR=$BASE_DIR/logs
 SERVER_LOG=$BASE_DIR/logs/server.log
