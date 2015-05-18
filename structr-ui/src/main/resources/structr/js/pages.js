@@ -834,9 +834,9 @@ var _Pages = {
             });
 
         });
-
+        
         _Dragndrop.makeDroppable(div);
-
+        
         return div;
 
     },
