@@ -274,7 +274,60 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					} else if (listSize > 1) {
 
-						return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
+						/**
+						 * included nodes don't necessarily have to be in the shadow document (since 1f93543).
+						 * Therefore we can get multiple hits IF the name references a shared component.
+						 * We need to check that all returned nodes reference the same shared component AND that shared component is also in the list
+						 * if not we still return the error message.
+						 */
+
+						boolean isSharedComponent = true;
+						String sharedComponentId = null;
+
+						for (DOMNode n : nodeList) {
+
+							if ( n.getProperty(DOMNode.sharedComponent) == null) {
+
+								// the node IS a shared component
+
+								if (node == null) {
+
+									sharedComponentId = n.getProperty(DOMNode.id);
+									node = n;
+
+								} else {
+
+									// ERROR CASE 1: we have found multiple shared components
+									isSharedComponent = false;
+									break;
+
+								}
+
+							} else {
+
+								// the node IS NOT a shared component. Therefor it MUST reference a shared component to work
+
+								if (sharedComponentId == null) {
+
+									sharedComponentId = n.getProperty(DOMNode.id);
+
+								} else if (sharedComponentId != n.getProperty(DOMNode.id) ) {
+
+									// ERROR CASE 2: we have found a node referencing a second shared component
+									isSharedComponent = false;
+									break;
+
+								}
+
+							}
+
+						}
+
+						if (!isSharedComponent) {
+
+							return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
+
+						}
 
 					}
 
