@@ -258,6 +258,7 @@ var Structr = {
         log('######## Expanded IDs after reload ##########', Structr.expanded);
     },
     ping: function(callback) {
+        sessionId = Structr.getSessionId();
         if (sessionId) {
             sendObj({command: 'PING', sessionId: sessionId}, callback);
         }
@@ -283,13 +284,16 @@ var Structr = {
         log('Starting PING');
         if (!ping) {
             ping = window.setInterval(function() {
-                sendObj({command: 'PING', sessionId: sessionId});
+                Structr.ping();
             }, 1000);
         }
     },
+    getSessionId: function() {
+        return $.cookie('JSESSIONID');
+    },
     connect: function() {
-        log('connect')
-        sessionId = $.cookie('JSESSIONID');
+        log('connect');
+        sessionId = Structr.getSessionId();
         if (!sessionId) {
             $.get('/').always(function() {
                 sessionId = $.cookie('JSESSIONID');
@@ -300,7 +304,6 @@ var Structr = {
         }
     },
     login: function(text) {
-
         if (!loginBox.is(':visible')) {
 
             main.empty();
@@ -327,26 +330,28 @@ var Structr = {
         Structr.activateMenuEntry('logout');
     },
     doLogin: function(username, password) {
-        log('doLogin ' + username + ' with ' + password);
-        var obj = {};
-        obj.command = 'LOGIN';
-        obj.sessionId = sessionId;
-        var data = {};
-        data.username = username;
-        data.password = password;
-        obj.data = data;
-        if (sendObj(obj)) {
-            user = username;
-            return true;
-        }
-        return false;
+        $.ajax('/structr/rest/_env').always(function() {
+            log('doLogin ' + username + ' with ' + password);
+            var obj = {};
+            obj.command = 'LOGIN';
+            obj.sessionId = Structr.getSessionId();
+            var data = {};
+            data.username = username;
+            data.password = password;
+            obj.data = data;
+            if (sendObj(obj)) {
+                user = username;
+                return true;
+            }
+            return false;
+        });
     },
     doLogout: function(text) {
         Structr.saveLocalStorage();
         log('doLogout ' + user);
         var obj = {};
         obj.command = 'LOGOUT';
-        obj.sessionId = sessionId;
+        obj.sessionId = Structr.getSessionId();
         var data = {};
         data.username = user;
         obj.data = data;

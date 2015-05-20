@@ -19,6 +19,7 @@
 package org.structr.web.auth;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -34,6 +35,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
+import static org.structr.core.auth.AuthHelper.newSession;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.UnauthorizedException;
@@ -150,7 +152,7 @@ public class UiAuthenticator implements Authenticator {
 		securityContext.setAuthenticator(this);
 
 		// Check CORS settings (Cross-origin resource sharing, see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-		String origin = request.getHeader("Origin");
+		final String origin = request.getHeader("Origin");
 		if (!StringUtils.isBlank(origin)) {
 
 			final Services services = Services.getInstance();
@@ -354,7 +356,7 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void doLogout(HttpServletRequest request) {
+	public void doLogout(final HttpServletRequest request) {
 
 		try {
 			final Principal user = getUser(request, false);
@@ -369,9 +371,7 @@ public class UiAuthenticator implements Authenticator {
 				session.invalidate();
 			}
 
-			request.logout();
-
-		} catch (ServletException | FrameworkException ex) {
+		} catch (IllegalStateException | FrameworkException ex) {
 
 			logger.log(Level.WARNING, "Error while logging out user", ex);
 		}
@@ -483,45 +483,79 @@ public class UiAuthenticator implements Authenticator {
 
 	}
 
-	protected static Principal checkSessionAuthentication(HttpServletRequest request) {
+	protected Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
 
-		final String sessionIdFromRequest = request.getRequestedSessionId();
-		if (sessionIdFromRequest == null) {
-
-			// create session id
-			final HttpSession session = request.getSession(true);
+		boolean sessionValid      = false;
+		String requestedSessionId = request.getRequestedSessionId();
+		HttpSession session = request.getSession(false);
+		
+		if (requestedSessionId == null) {
+			
+			// No session id requested => create new session
+			session = AuthHelper.newSession(request);
+			
+		} else {
+	
+			// Existing session id, check if we have an existing session
 			if (session != null) {
-
-				session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
+				
+				if (session.getId().equals(requestedSessionId)) {
+					
+					sessionValid = !AuthHelper.isSessionTimedOut(session);
+					
+				}
+				
+			} else {
+				
+				// No existing session, create new
+				session = AuthHelper.newSession(request);
+				
 			}
-
-			return null;
+			
 		}
+		
+		if (sessionValid) {
 
-		final Principal user = AuthHelper.getPrincipalForSessionId(sessionIdFromRequest);
-		if (user != null) {
-
+			final Principal user = AuthHelper.getPrincipalForSessionId(session.getId());
+			logger.log(Level.FINE, "Valid session found: {0}, last accessed {1}, authenticated with user {2}", new Object[] { session, session.getLastAccessedTime(), user });
+			
 			return user;
-		}
 
+
+		} else {
+			
+			final Principal user = AuthHelper.getPrincipalForSessionId(requestedSessionId);
+			
+			logger.log(Level.FINE, "Invalid session: {0}, last accessed {1}, authenticated with user {2}", new Object[] { session, (session != null ? session.getLastAccessedTime() : ""), user });
+			
+			if (user != null) {
+				
+				AuthHelper.doLogout(request, user);
+			}
+			
+			try { request.logout(); request.changeSessionId(); } catch (Throwable t) {}
+			
+		}
+		
+		
 		return null;
 
 	}
 
-	public static void writeUnauthorized(HttpServletResponse response) throws IOException {
+	public static void writeUnauthorized(final HttpServletResponse response) throws IOException {
 
 		response.setHeader("WWW-Authenticate", "BASIC realm=\"Restricted Access\"");
 		response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 
 	}
 
-	public static void writeNotFound(HttpServletResponse response) throws IOException {
+	public static void writeNotFound(final HttpServletResponse response) throws IOException {
 
 		response.sendError(HttpServletResponse.SC_NOT_FOUND);
 
 	}
 
-	public static void writeInternalServerError(HttpServletResponse response) {
+	public static void writeInternalServerError(final HttpServletResponse response) {
 
 		try {
 
@@ -549,8 +583,16 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
+		Principal user = null;
+
 		// First, check session (JSESSIONID cookie)
-		Principal user = checkSessionAuthentication(request);
+		final HttpSession session = request.getSession(false);
+
+		if (session != null) {
+			
+			user = AuthHelper.getPrincipalForSessionId(session.getId());
+			
+		}
 
 		if (user == null) {
 
