@@ -281,7 +281,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						 * if not we still return the error message.
 						 */
 
-						boolean isSharedComponent = true;
+						boolean isSingleSharedComponent = true;
 						String sharedComponentId = null;
 
 						for (DOMNode n : nodeList) {
@@ -298,7 +298,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 								} else {
 
 									// ERROR CASE 1: we have found multiple shared components
-									isSharedComponent = false;
+									isSingleSharedComponent = false;
 									break;
 
 								}
@@ -307,14 +307,16 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 								// the node IS NOT a shared component. Therefor it MUST reference a shared component to work
 
+								String referencedSharedComponentId = n.getProperty(DOMNode.sharedComponent).getProperty(DOMNode.id);
+
 								if (sharedComponentId == null) {
 
-									sharedComponentId = n.getProperty(DOMNode.id);
+									sharedComponentId = referencedSharedComponentId;
 
-								} else if (sharedComponentId != n.getProperty(DOMNode.id) ) {
+								} else if (!sharedComponentId.equals(referencedSharedComponentId) ) {
 
 									// ERROR CASE 2: we have found a node referencing a second shared component
-									isSharedComponent = false;
+									isSingleSharedComponent = false;
 									break;
 
 								}
@@ -323,7 +325,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 						}
 
-						if (!isSharedComponent) {
+						if (!isSingleSharedComponent) {
 
 							return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
 
