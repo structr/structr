@@ -99,7 +99,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				TransactionCommand.nodeCreated(node);
 
 				// first: create security relationship, but only for non-Principal node types
-				if (user != null && !(user instanceof SuperUser) && !Principal.class.isAssignableFrom(nodeType)) {
+				if (user != null && !(user instanceof SuperUser) && node.canHaveOwner()) {
 
 					final App app = StructrApp.getInstance(securityContext);
 

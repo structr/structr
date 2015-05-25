@@ -664,7 +664,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (cachedOwnerNode == null) {
 
-			if (this instanceof Principal) {
+			if (this instanceof Principal && !(this instanceof Group)) {
 
 				// a user is its own owner
 				cachedOwnerNode = (Principal)this;
@@ -946,6 +946,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return securityContext.isVisible(this);
 
+	}
+
+	@Override
+	public boolean canHaveOwner() {
+		return true;
 	}
 
 	/**
