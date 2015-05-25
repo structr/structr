@@ -2,6 +2,7 @@
 .project
 .classpath
 target
+structr-ui/data
 structr-ui/db
 structr-ui/files
 structr-ui/files
