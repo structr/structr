@@ -43,7 +43,6 @@ import java.io.File;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.shell.ShellSettings;
@@ -81,8 +80,6 @@ public class NodeService implements SingletonService {
 	private Index<Relationship> relFulltextIndex    = null;
 	private Index<Relationship> relKeywordIndex     = null;
 	private Index<Relationship> relUuidIndex        = null;
-
-	private ExecutionEngine cypherExecutionEngine   = null;
 
 	// indices
 	private final Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<>(RelationshipIndex.class);
@@ -129,8 +126,6 @@ public class NodeService implements SingletonService {
 
 			command.setArgument("indices", NodeIndex.values());
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
-
-			command.setArgument("cypherExecutionEngine", cypherExecutionEngine);
 		}
 	}
 
@@ -251,10 +246,7 @@ public class NodeService implements SingletonService {
 
 		logger.log(Level.FINE, "Relationship numeric index ready.");
 		logger.log(Level.FINE, "Initializing relationship factory...");
-
 		logger.log(Level.FINE, "Relationship factory ready.");
-		cypherExecutionEngine = new ExecutionEngine(graphDb);
-
 		logger.log(Level.FINE, "Cypher execution engine ready.");
 
 		isInitialized = true;

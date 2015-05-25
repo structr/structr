@@ -58,9 +58,8 @@ public abstract class NodeServiceCommand extends Command {
 	 * @param description
 	 * @param operation the operation to execute
 	 * @return the number of nodes processed
-	 * @throws FrameworkException
 	 */
-	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation) throws FrameworkException {
+	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation) {
 		return bulkGraphOperation(securityContext, nodes, commitCount, description, operation, true);
 	}
 	/**
@@ -74,9 +73,8 @@ public abstract class NodeServiceCommand extends Command {
 	 * @param operation the operation to execute
 	 * @param validation
 	 * @return the number of nodes processed
-	 * @throws FrameworkException
 	 */
-	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) throws FrameworkException {
+	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
 
 		final App app              = StructrApp.getInstance(securityContext);
 		final Iterator<T> iterator = nodes.iterator();

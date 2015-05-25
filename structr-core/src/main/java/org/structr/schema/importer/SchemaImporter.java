@@ -30,12 +30,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.kernel.logging.BufferingLogger;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
@@ -124,11 +123,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		return sources;
 	}
 
-	public static void importCypher(final List<String> sources) throws FrameworkException {
+	public static void importCypher(final List<String> sources) {
 
 		final App app                      = StructrApp.getInstance();
 		final GraphDatabaseService graphDb = app.command(GraphDatabaseCommand.class).execute();
-		final ExecutionEngine engine       = new ExecutionEngine(graphDb, new BufferingLogger());
 
 		// nothing to do
 		if (sources.isEmpty()) {
@@ -138,9 +136,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		// first step: execute cypher queries
 		for (final String source : sources) {
 
-			try {
+			try (final Transaction tx = graphDb.beginTx()) {
+
 				// be very tolerant here, just execute everything
-				engine.execute(source);
+				graphDb.execute(source);
+				tx.success();
 
 			} catch (Throwable t) {
 				// ignore
@@ -149,7 +149,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		}
 	}
 
-	public static void analyzeSchema() throws FrameworkException {
+	public static void analyzeSchema() {
 
 		final App app                                     = StructrApp.getInstance();
 		final GraphDatabaseService graphDb                = app.command(GraphDatabaseCommand.class).execute();
@@ -346,8 +346,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				app.create(SchemaRelationshipNode.class, propertyMap);
 			}
 
-
 			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
 
 		// rebuild index
