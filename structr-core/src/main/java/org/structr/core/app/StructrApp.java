@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -68,6 +69,7 @@ public class StructrApp implements App {
 	private static final Logger logger           = Logger.getLogger(StructrApp.class.getName());
 	private static final URI schemaBaseURI       = URI.create("https://structr.org/v1.1/#");
 	private static final Object globalConfigLock = new Object();
+	private static GraphProperties config        = null;
 	private SecurityContext securityContext      = null;
 
 	private StructrApp(final SecurityContext securityContext) {
@@ -256,20 +258,57 @@ public class StructrApp implements App {
 	public GraphDatabaseService getGraphDatabaseService() {
 		return Services.getInstance().command(securityContext, GraphDatabaseCommand.class).execute();
 	}
+	
+	private GraphProperties getOrCreateGraphProperties() {
+		
+		GraphProperties graphProperties = null;
+		
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+			
+			final NodeManager mgr = ((GraphDatabaseAPI)getGraphDatabaseService()).getDependencyResolver().resolveDependency(NodeManager.class);
+			
+			tx.success();
+			
+			graphProperties = mgr.newGraphProperties();
+			
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, t.getMessage());
+			t.printStackTrace();
+		}
+		
+		return graphProperties;
+	}
 
 	@Override
 	public <T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException {
 
-		final NodeManager mgr        = ((GraphDatabaseAPI)getGraphDatabaseService()).getDependencyResolver().resolveDependency(NodeManager.class);
-		final GraphProperties config = mgr.getGraphProperties();
-		T value                      = null;
+		if (config == null) {
+			config = getOrCreateGraphProperties();
+		}
+
+		T value = null;
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			value = (T)config.getProperty(key);
+			value = (T) config.getProperty(key);
 			tx.success();
 
-		} catch (Throwable t) {}
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, t.getMessage());
+			t.printStackTrace();
+			
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+			
+				config = getOrCreateGraphProperties();
+				config.setProperty(key, value);
+
+				tx.success();
+
+			} catch (Throwable t1) {
+				logger.log(Level.WARNING, t1.getMessage());
+				t1.printStackTrace();
+			}
+		}
 
 		if (value == null) {
 			return defaultValue;
@@ -281,15 +320,31 @@ public class StructrApp implements App {
 	@Override
 	public void setGlobalSetting(final String key, final Object value) throws FrameworkException {
 
-		final NodeManager mgr        = ((GraphDatabaseAPI)getGraphDatabaseService()).getDependencyResolver().resolveDependency(NodeManager.class);
-		final GraphProperties config = mgr.getGraphProperties();
+		if (config == null) {
+			config = getOrCreateGraphProperties();
+		}
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			config.setProperty(key, value);
 			tx.success();
 
-		} catch (Throwable t) {}
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, t.getMessage());
+			t.printStackTrace();
+			
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+			
+				config = getOrCreateGraphProperties();
+				config.setProperty(key, value);
+
+				tx.success();
+
+			} catch (Throwable t1) {
+				logger.log(Level.WARNING, t1.getMessage());
+				t1.printStackTrace();
+			}
+		}
 	}
 
 	@Override
@@ -297,13 +352,14 @@ public class StructrApp implements App {
 
 		synchronized (globalConfigLock) {
 
-			String instanceId = (String)getGlobalSetting("structr.instance.id", null);
+			String instanceId = (String) getGlobalSetting("structr.instance.id", null);
+			System.out.println("instance id from getGlobalSetting: " + instanceId);
 			if (instanceId == null) {
 
 				instanceId = NodeServiceCommand.getNextUuid();
 				setGlobalSetting("structr.instance.id", instanceId);
 			}
-
+			System.out.println("instance id: " + instanceId);
 			return instanceId;
 		}
 	}
