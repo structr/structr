@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -58,7 +60,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rels != null) {
-
+			
 			return Iterables.map(nodeFactory, Iterables.map(new Function<Relationship, Node>() {
 
 				@Override
@@ -66,7 +68,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 					return from.getEndNode();
 				}
 
-			}, rels));
+			}, sort(rels)));
 		}
 
 		return null;

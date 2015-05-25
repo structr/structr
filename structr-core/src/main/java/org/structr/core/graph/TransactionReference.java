@@ -35,8 +35,7 @@ public class TransactionReference implements Transaction {
 	private boolean successful       = false;
 
 	public TransactionReference(final Transaction tx) {
-		this.source = source;
-		this.tx     = tx;
+		this.tx = tx;
 	}
 
 	public boolean isToplevel() {
@@ -108,5 +107,10 @@ public class TransactionReference implements Transaction {
 	@Override
 	public Lock acquireReadLock(PropertyContainer entity) {
 		return tx.acquireReadLock(entity);
+	}
+
+	@Override
+	public void terminate() {
+		tx.terminate();
 	}
 }

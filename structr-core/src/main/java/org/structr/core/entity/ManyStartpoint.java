@@ -18,8 +18,12 @@
  */
 package org.structr.core.entity;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,7 +70,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 					return from.getStartNode();
 				}
 
-			}, rels));
+			}, sort(rels)));
 		}
 
 		return null;
