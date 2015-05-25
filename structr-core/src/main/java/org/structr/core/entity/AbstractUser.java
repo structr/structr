@@ -186,4 +186,9 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 	public Set<String> getDeniedPermissions() {
 		return null;
 	}
+
+	@Override
+	public boolean canHaveOwner() {
+		return false;
+	}
 }

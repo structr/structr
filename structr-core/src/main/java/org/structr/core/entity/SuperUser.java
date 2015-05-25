@@ -231,6 +231,11 @@ public class SuperUser implements Principal, AccessControllable {
 
 	}
 
+	@Override
+	public boolean canHaveOwner() {
+		return false;
+	}
+
 	//~--- set methods ----------------------------------------------------
 
 //      @Override
