@@ -664,7 +664,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (cachedOwnerNode == null) {
 
-			if (this instanceof Principal) {
+			if (this instanceof Principal && !(this instanceof Group)) {
 
 				// a user is its own owner
 				cachedOwnerNode = (Principal)this;
@@ -745,10 +745,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			accessingUser = context.getUser(false);
 		}
 
-		return isGranted(permission, accessingUser);
+		return isGranted(permission, accessingUser, 0);
 	}
 
-	private boolean isGranted(final Permission permission, final Principal accessingUser) {
+	private boolean isGranted(final Permission permission, final Principal accessingUser, final int level) {
 
 		// use quick checks for maximum performance
 		if (isCreation && (accessingUser == null || accessingUser.equals(getOwnerNode()) ) ) {
@@ -761,8 +761,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			return true;
 		}
 
-		// allow accessingUser to access itself
-		if (this.equals(accessingUser)) {
+		// allow accessingUser to access itself, but
+		// not parents etc.
+		if (this.equals(accessingUser) && level == 0) {
+			return true;
+		}
+
+		// but allow read access to groups
+		if (level > 0 && permission.equals(Permission.read)) {
 			return true;
 		}
 
@@ -804,7 +810,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			// Now check possible parent principals
 			for (Principal parent : accessingUser.getParents()) {
 
-				if (isGranted(permission, parent)) {
+				if (isGranted(permission, parent, level+1)) {
 
 					return true;
 				}
@@ -946,6 +952,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return securityContext.isVisible(this);
 
+	}
+
+	@Override
+	public boolean canHaveOwner() {
+		return true;
 	}
 
 	/**

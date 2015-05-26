@@ -45,7 +45,7 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 	}
 
 	@Override
-	public Object createWebSocket(ServletUpgradeRequest request, ServletUpgradeResponse response) {
+	public Object createWebSocket(final ServletUpgradeRequest request, final ServletUpgradeResponse response) {
 
 		for (String subprotocol : request.getSubProtocols()) {
 

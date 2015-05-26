@@ -49,18 +49,9 @@ public class ImportTest extends StructrUiTest {
 
 		final List<String> sourceLines = GraphGistImporter.extractSources(new ByteArrayInputStream(source.getBytes(Charset.forName("utf-8"))));
 
-		try (final Tx tx = app.tx()) {
-
-			GraphGistImporter.importCypher(sourceLines);
-			GraphGistImporter.analyzeSchema();
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
+		// import (uses Neo4j transaction)
+		GraphGistImporter.importCypher(sourceLines);
+		GraphGistImporter.analyzeSchema();
 
 		try (final Tx tx = app.tx()) {
 

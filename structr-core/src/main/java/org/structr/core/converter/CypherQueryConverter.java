@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -42,27 +41,25 @@ import org.structr.core.graph.GraphDatabaseCommand;
 public class CypherQueryConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(CypherQueryConverter.class.getName());
-	
+
 	private GraphDatabaseService graphDb    = null;
-	private ExecutionEngine engine          = null;
 	private CypherQueryHandler handler      = null;
 
 	public CypherQueryConverter(SecurityContext securityContext, GraphObject entity, CypherQueryHandler handler) {
-		
+
 		super(securityContext, entity);
-		
+
 		this.handler = handler;
-		
+
 		try {
 			graphDb = (GraphDatabaseService)StructrApp.getInstance().command(GraphDatabaseCommand.class).execute();
-			engine  = new ExecutionEngine(graphDb);
 
 		} catch(Throwable t) {
-			
+
 			logger.log(Level.WARNING, "Unable to create cypher execution engine.");
 		}
 	}
-	
+
 	@Override
 	public Object convert(Object source) throws FrameworkException {
 		return source;
@@ -70,7 +67,7 @@ public class CypherQueryConverter extends PropertyConverter {
 
 	@Override
 	public Object revert(Object source) {
-		
+
 		if (currentObject != null) {
 
 			Map<String, Object> parameters = new LinkedHashMap<>();
@@ -88,7 +85,7 @@ public class CypherQueryConverter extends PropertyConverter {
 
 			try {
 
-				List<AbstractNode> nodes = (List<AbstractNode>)handler.handleQueryResults(engine.execute(query, parameters));
+				List<AbstractNode> nodes = (List<AbstractNode>)handler.handleQueryResults(graphDb.execute(query, parameters));
 
 				return nodes;
 
@@ -98,8 +95,8 @@ public class CypherQueryConverter extends PropertyConverter {
 				logger.log(Level.WARNING, "Exception while executing cypher query {0}: {1}", new Object[] { query, fex.getMessage() } );
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 }

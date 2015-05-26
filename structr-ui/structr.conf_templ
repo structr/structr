@@ -317,3 +317,29 @@ oauth.facebook.redirect_uri = /oauth/facebook/auth
 oauth.facebook.user_details_resource_uri = https://graph.facebook.com/me
 oauth.facebook.error_uri = /login
 oauth.facebook.return_uri = /
+
+
+#############################################################################
+#        Geocoding configuration        
+#############################################################################
+#
+# Structr supports geocoding via Bing and Google
+#
+#
+# You just need to configure the desired geocoding provider, language and
+# supply your API key (optional). Please note that some services have a
+# rate limit for unauthenticated requests.
+#
+# Possible values for geocoding.provider are
+# org.structr.common.geo.BingGeoCodingProvider
+# org.structr.common.geo.GoogleGeoCodingProvider
+#
+# geocoding.language takes your country's language code
+#
+# geocoding.apikey takes your API key
+# (leave commented out if not applicable)
+#
+
+#geocoding.provider=
+#geocoding.language=
+#geocoding.apikey=

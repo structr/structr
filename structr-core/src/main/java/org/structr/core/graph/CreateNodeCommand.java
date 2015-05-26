@@ -94,12 +94,12 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 			// Create node with type
 			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
-			if(node != null) {
+			if (node != null) {
 
 				TransactionCommand.nodeCreated(node);
 
 				// first: create security relationship, but only for non-Principal node types
-				if (user != null && !(user instanceof SuperUser) && !Principal.class.isAssignableFrom(nodeType)) {
+				if (user != null && !(user instanceof SuperUser) && node.canHaveOwner()) {
 
 					final App app = StructrApp.getInstance(securityContext);
 
@@ -133,7 +133,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
-					Object value = attr.getValue();
+					final Object value = attr.getValue();
 					PropertyKey key = attr.getKey();
 					if (key.isReadOnly()) {
 						node.unlockReadOnlyPropertiesOnce();

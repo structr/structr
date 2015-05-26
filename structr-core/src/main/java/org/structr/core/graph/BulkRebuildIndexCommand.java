@@ -51,7 +51,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void execute(Map<String, Object> attributes) throws FrameworkException {
+	public void execute(Map<String, Object> attributes) {
 
 		final String mode                      = (String) attributes.get("mode");
 		final String entityType                = (String) attributes.get("type");
@@ -86,6 +86,14 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 				}
 
 				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+
+				logger.log(Level.SEVERE, "Unable to instantiate nodes, aborting.");
+				return;
+
 			}
 
 			if (type == null) {
@@ -102,14 +110,6 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-					try {
-						// Set type to update labels
-						final String type = node.getProperty(NodeInterface.type);
-						node.setProperty(NodeInterface.type, null);
-						node.setProperty(NodeInterface.type, type);
-					} catch (FrameworkException ex) {
-						ex.printStackTrace();
-					}
 					node.updateInIndex();
 
 				}
@@ -141,7 +141,8 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			// instantiate all relationships in a single list
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()));
+				final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()));
+
 				for (AbstractRelationship rel : unfilteredRels) {
 
 					if (relType == null || rel.getType().equals(relType)) {
@@ -151,6 +152,15 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 				}
 
 				tx.success();
+
+			} catch (FrameworkException fex) {
+
+
+				fex.printStackTrace();
+
+				logger.log(Level.SEVERE, "Unable to instantiate relationships, aborting.");
+				return;
+
 			}
 
 			if (relType == null) {

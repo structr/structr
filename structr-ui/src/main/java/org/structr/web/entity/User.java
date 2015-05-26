@@ -82,4 +82,9 @@ public class User extends AbstractUser {
 		User.name.addValidator(new TypeUniquenessValidator(User.class));
 		User.eMail.addValidator(new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));
 	}
+
+	@Override
+	public boolean canHaveOwner() {
+		return false;
+	}
 }

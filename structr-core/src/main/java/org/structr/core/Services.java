@@ -814,7 +814,7 @@ public class Services {
 	 */
 	public static int parseInt(String value, int defaultValue) {
 
-		if (value == null) {
+		if (StringUtils.isBlank(value)) {
 			return defaultValue;
 		}
 
@@ -825,9 +825,15 @@ public class Services {
 		return defaultValue;
 	}
 
-	public static boolean parseBoolean(Object source, boolean defaultValue) {
+	public static boolean parseBoolean(String value, boolean defaultValue) {
 
-		try { return Boolean.parseBoolean(source.toString()); } catch(Throwable ignore) {}
+		if (StringUtils.isBlank(value)) {
+			return defaultValue;
+		}
+		
+		try {
+			return Boolean.parseBoolean(value);
+		} catch(Throwable ignore) {}
 
 		return defaultValue;
 	}

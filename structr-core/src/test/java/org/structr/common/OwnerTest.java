@@ -52,7 +52,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.TestUser;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
@@ -65,7 +64,7 @@ import org.structr.core.graph.Tx;
 public class OwnerTest extends StructrTest {
 
 	private static final Logger logger = Logger.getLogger(OwnerTest.class.getName());
-	
+
 	//~--- methods --------------------------------------------------------
 
 	@Override
@@ -78,7 +77,7 @@ public class OwnerTest extends StructrTest {
 	public void test01SetOwner() {
 
 		try {
-		
+
 			TestUser user1 = null;
 			TestUser user2 = null;
 			TestOne t1 = null;
@@ -90,7 +89,7 @@ public class OwnerTest extends StructrTest {
 				List<TestUser> users = createTestNodes(TestUser.class, 2);
 				user1 = (TestUser) users.get(0);
 				user1.setProperty(AbstractNode.name, "user1");
-				
+
 				user2 = (TestUser) users.get(1);
 				user2.setProperty(AbstractNode.name, "user2");
 
@@ -105,7 +104,7 @@ public class OwnerTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				assertEquals(user1, t1.getProperty(AbstractNode.owner));
 
 				// Switch user context to user1
@@ -114,20 +113,20 @@ public class OwnerTest extends StructrTest {
 				// Check if user1 can see t1
 				assertEquals(t1, user1App.nodeQuery(type, false).getFirst());
 			}
-			
+
 			try (final Tx tx = app.tx()) {
 
 				// As superuser, make another user the owner
 				t1.setProperty(AbstractNode.owner, user2);
 
 				tx.success();
-				
+
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, ex.toString());
 			}
-			
+
 			try (final Tx tx = app.tx()) {
-				
+
 				// Switch user context to user2
 				final App user2App = StructrApp.getInstance(SecurityContext.getInstance(user2, AccessMode.Backend));
 
@@ -137,7 +136,7 @@ public class OwnerTest extends StructrTest {
 				// Check if user2 is owner of t1
 				assertEquals(user2, t1.getProperty(AbstractNode.owner));
 			}
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
@@ -147,16 +146,10 @@ public class OwnerTest extends StructrTest {
 
 	}
 
-	/**
-	 * This test fails due to the removal of the interface check in
-	 * {@link AbstractRelationProperty#ensureManyToOne} and {@link AbstractRelationProperty#ensureOneToMany}
-	 * 
-	 * With Structr 1.0, this has to be resolved!!
-	 */
 	public void test02SetDifferentPrincipalTypesAsOwner() {
 
 		final App superUserApp = StructrApp.getInstance();
-		
+
 		try (final Tx tx = app.tx()) {
 
 			List<TestUser> users = createTestNodes(TestUser.class, 2);
@@ -164,13 +157,13 @@ public class OwnerTest extends StructrTest {
 
 			List<Group> groups = createTestNodes(Group.class, 1);
 			Group group1 = (Group) groups.get(0);
-			
+
 			TestOne t1 = createTestNode(TestOne.class);
-			
+
 			t1.setProperty(AbstractNode.owner, user1);
 			t1.setProperty(AbstractNode.owner, group1);
 			assertEquals(group1, t1.getProperty(AbstractNode.owner));
-			
+
 			Ownership ownerRel = t1.getIncomingRelationship(PrincipalOwnsNode.class);
 			assertNotNull(ownerRel);
 
@@ -179,13 +172,13 @@ public class OwnerTest extends StructrTest {
 			assertEquals(1, incomingRels.size());
 
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 		}
 	}
-	
-	
+
+
 }

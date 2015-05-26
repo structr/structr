@@ -91,7 +91,7 @@ public class StructrWebSocket implements WebSocketListener {
 	@Override
 	public void onWebSocketConnect(final Session session) {
 
-		logger.log(Level.INFO, "New connection with protocol {0}", session.getProtocolVersion());
+		logger.log(Level.FINE, "New connection with protocol {0}", session.getProtocolVersion());
 
 		this.session = session;
 
@@ -104,7 +104,7 @@ public class StructrWebSocket implements WebSocketListener {
 	@Override
 	public void onWebSocketClose(final int closeCode, final String message) {
 
-		logger.log(Level.INFO, "Connection closed with closeCode {0} and message {1}", new Object[]{closeCode, message});
+		logger.log(Level.FINE, "Connection closed with closeCode {0} and message {1}", new Object[]{closeCode, message});
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -305,7 +305,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			String msg = gson.toJson(message, WebSocketMessage.class);
+			final String msg = gson.toJson(message, WebSocketMessage.class);
 
 			logger.log(Level.FINE, "################### Private message: {0}", message.getCommand());
 			logger.log(Level.FINEST, "############################################################ SENDING \n{0}", msg);
@@ -330,7 +330,7 @@ public class StructrWebSocket implements WebSocketListener {
 	// ----- file handling -----
 	public void createFileUploadHandler(FileBase file) {
 
-		String uuid = file.getProperty(GraphObject.id);
+		final String uuid = file.getProperty(GraphObject.id);
 
 		uploads.put(uuid, new FileUploadHandler(file));
 
@@ -386,7 +386,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	private void authenticate(final String sessionId) {
 
-		Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
+		final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 
 		if (user != null) {
 
@@ -399,7 +399,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try {
 
-			AbstractCommand msg = (AbstractCommand) command.newInstance();
+			final AbstractCommand msg = (AbstractCommand) command.newInstance();
 
 			commandSet.put(msg.getCommand(), command);
 

@@ -148,7 +148,7 @@ public class Actions {
 		final List<SchemaMethod> methods = app.nodeQuery(SchemaMethod.class).andName(key).getAsList();
 		if (methods.isEmpty()) {
 
-			logger.log(Level.INFO, "Tried to call method {0} but no SchemaMethod entity was found.", key);
+			logger.log(Level.FINE, "Tried to call method {0} but no SchemaMethod entity was found.", key);
 
 		} else {
 
@@ -165,12 +165,12 @@ public class Actions {
 
 					} else {
 
-						logger.log(Level.INFO, "Schema method {0} has no source code, will NOT be executed.", key);
+						logger.log(Level.WARNING, "Schema method {0} has no source code, will NOT be executed.", key);
 					}
 
 				} else {
 
-					logger.log(Level.INFO, "Schema method {0} is attached to an entity, will NOT be executed.", key);
+					logger.log(Level.WARNING, "Schema method {0} is attached to an entity, will NOT be executed.", key);
 				}
 			}
 		}
