@@ -768,7 +768,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 		// but allow read access to groups
-		if (level > 0 && permission.equals(Permission.read)) {
+		if (level > 0 && this instanceof Group && permission.equals(Permission.read)) {
 			return true;
 		}
 
