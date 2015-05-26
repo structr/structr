@@ -21,6 +21,7 @@ package org.structr.schema.action;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +30,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.DateConverter;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.schema.parser.DatePropertyParser;
@@ -47,7 +47,8 @@ public class ActionContext {
 	protected Map<Integer, Integer> counters  = new HashMap<>();
 	protected ErrorBuffer errorBuffer         = new ErrorBuffer();
 	protected StringBuilder outputBuffer      = new StringBuilder();
-	private boolean javaScriptContext		  = false;
+	protected Locale locale                   = Locale.getDefault();
+	private boolean javaScriptContext         = false;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -284,5 +285,9 @@ public class ActionContext {
 	 */
 	public void setJavaScriptContext(boolean javaScriptContext) {
 		this.javaScriptContext = javaScriptContext;
+	}
+
+	public Locale getLocale() {
+		return locale;
 	}
 }

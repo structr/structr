@@ -221,6 +221,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS = "Usage: ${Structr.unlock_readonly_properties_once(node)}. Example ${Structr.unlock_readonly_properties_once, Structr.get('this')}";
 	public static final String ERROR_MESSAGE_CALL = "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
 	public static final String ERROR_MESSAGE_CALL_JS = "Usage: ${Structr.call(key [, payloads...]}. Example ${Structr.call('myEvent')}";
+	public static final String ERROR_MESSAGE_IS_LOCALE = "Usage: ${is_locale(locales...)}";
+	public static final String ERROR_MESSAGE_IS_LOCALE_JS = "Usage: ${Structr.isLocale(locales...}. Example ${Structr.isLocale('de_DE', 'de_AT', 'de_CH')}";
 
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
