@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -764,6 +765,36 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
+			}
+		});
+
+		Functions.functions.put("is_locale", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final Locale locale = ctx.getLocale();
+				if (locale != null) {
+
+					final String localeString = locale.toString();
+					if (sources != null && sources.length > 0) {
+
+						final int len = sources.length;
+						for (int i=0; i<len; i++) {
+
+							if (sources[i] != null && localeString.equals(sources[i].toString())) {
+								return true;
+							}
+						}
+					}
+				}
+
+				return false;
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? Functions.ERROR_MESSAGE_IS_LOCALE_JS : Functions.ERROR_MESSAGE_IS_LOCALE);
 			}
 		});
 	}

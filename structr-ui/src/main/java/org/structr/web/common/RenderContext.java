@@ -53,7 +53,6 @@ public class RenderContext extends ActionContext {
 
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
 	private final long renderStartTime                 = System.currentTimeMillis();
-	private Locale locale                              = Locale.getDefault();
 	private EditMode editMode                          = EditMode.NONE;
 	private AsyncBuffer buffer                         = new AsyncBuffer();
 	private int depth                                  = 0;
@@ -218,10 +217,6 @@ public class RenderContext extends ActionContext {
 
 		return edit;
 
-	}
-
-	public Locale getLocale() {
-		return locale;
 	}
 
 	public String getISO3Country() {
