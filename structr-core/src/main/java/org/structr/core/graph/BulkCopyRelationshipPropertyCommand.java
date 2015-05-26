@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph;
 
-import java.util.LinkedList;
+import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -26,10 +26,10 @@ import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -64,13 +64,15 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 		if(graphDb != null) {
 
-			List<AbstractRelationship> rels = new LinkedList<>();
+			Iterator<AbstractRelationship> relIterator = null;
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				rels.addAll(relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships()));
-			}
 
-			long count = bulkGraphOperation(securityContext, rels, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+				relIterator = Iterables.map(relFactory, GlobalGraphOperations.at(graphDb).getAllRelationships()).iterator();
+				tx.success();
+			} 
+
+			long count = bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {

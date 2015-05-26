@@ -24,18 +24,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -45,21 +49,22 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.BulkGraphOperation;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.ReloadSchema;
 
 /**
  *
  * @author Christian Morgner
  */
 public abstract class SchemaImporter extends NodeServiceCommand {
+
+	private static final Logger logger = Logger.getLogger(SchemaImporter.class.getName());
 
 	public static List<String> extractSources(final InputStream source) {
 
@@ -162,15 +167,27 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		final Map<String, List<TypeInfo>> typeInfoTypeMap = new LinkedHashMap<>();
 		final List<TypeInfo> reducedTypeInfos             = new LinkedList<>();
 		final List<TypeInfo> typeInfos                    = new LinkedList<>();
+		Iterator<Relationship> relIterator                = null;
+		Iterator<Node> nodeIterator                       = null;
 
-		// second step: analyze schema of newly created nodes, skip existing ones (structr & spatial)
+
+		logger.log(Level.INFO, "Fetching all nodes iterator..");
+
 		try (final Tx tx = app.tx()) {
 
-			// register transaction post process that rebuilds the index after successful creation
-			TransactionCommand.postProcess("reloadschema", new ReloadSchema());
+			nodeIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllNodes()).iterator();
+			tx.success();
 
-			// analyze nodes
-			for (final Node node : Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllNodes())) {
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		logger.log(Level.INFO, "Starting to analyze nodes..");
+
+		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), nodeIterator, 200, "Analyzing nodes", new BulkGraphOperation<Node>() {
+
+			@Override
+			public void handleGraphObject(final SecurityContext securityContext, final Node node) throws FrameworkException {
 
 				final NodeInfo nodeInfo = new NodeInfo(node);
 
@@ -186,24 +203,48 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				nodes.add(node);
 			}
 
-			// nodeTypes now contains all existing node types and their property sets
-			identifyCommonBaseClasses(nodeTypes, nodeMap, typeInfos);
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, Node currentObject) {
+			}
 
-			// group type infos by type
-			collectTypeInfos(typeInfos, typeInfoTypeMap);
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+			}
+		});
 
-			// reduce type infos with more than one type
-			reduceTypeInfos(typeInfoTypeMap, reducedTypeInfos);
+		logger.log(Level.INFO, "Identifying common base classes..");
 
-			// intersect property sets of type infos
-			intersectPropertySets(reducedTypeInfos);
+		// nodeTypes now contains all existing node types and their property sets
+		identifyCommonBaseClasses(nodeTypes, nodeMap, typeInfos);
 
-			// sort type infos
-			Collections.sort(reducedTypeInfos, new HierarchyComparator(false));
+		logger.log(Level.INFO, "Collecting type information..");
 
-			// set type and ID on newly created nodes
-			final Map<String, TypeInfo> reducedTypeInfoMap = new LinkedHashMap<>();
-			for (final TypeInfo info : reducedTypeInfos) {
+		// group type infos by type
+		collectTypeInfos(typeInfos, typeInfoTypeMap);
+
+		logger.log(Level.INFO, "Aggregating type information..");
+
+		// reduce type infos with more than one type
+		reduceTypeInfos(typeInfoTypeMap, reducedTypeInfos);
+
+		logger.log(Level.INFO, "Identifying property sets..");
+
+		// intersect property sets of type infos
+		intersectPropertySets(reducedTypeInfos);
+
+		logger.log(Level.INFO, "Sorting result..");
+
+		// sort type infos
+		Collections.sort(reducedTypeInfos, new HierarchyComparator(false));
+
+		logger.log(Level.INFO, "Starting with setting type and ID");
+
+		final Map<String, TypeInfo> reducedTypeInfoMap = new LinkedHashMap<>();
+
+		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos.iterator(), 200, "Setting type and ID", new BulkGraphOperation<TypeInfo>() {
+
+			@Override
+			public void handleGraphObject(SecurityContext securityContext, TypeInfo info) throws FrameworkException {
 
 				final String type = info.getPrimaryType();
 
@@ -220,8 +261,34 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				}
 			}
 
-			// analyze relationships
-			for (final Relationship rel : Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllRelationships())) {
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, TypeInfo currentObject) {
+			}
+
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+			}
+
+
+		});
+
+		logger.log(Level.INFO, "Fetching all relationships iterator..");
+
+		try (final Tx tx = app.tx()) {
+
+			relIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllRelationships()).iterator();
+			tx.success();
+
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		logger.log(Level.INFO, "Starting with analyzing relationships..");
+
+		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), relIterator, 200, "Analyzing relationships", new BulkGraphOperation<Relationship>() {
+
+			@Override
+			public void handleGraphObject(SecurityContext securityContext, Relationship rel) throws FrameworkException {
 
 				final Node startNode          = rel.getStartNode();
 				final Node endNode            = rel.getEndNode();
@@ -233,7 +300,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					final TypeInfo endTypeInfo    = nodeTypeInfoMap.get(endNode.getId());
 
 					if (startTypeInfo == null || endTypeInfo == null) {
-						continue;
+						return;
 					}
 
 					final String relationshipType = rel.getType().name();
@@ -254,38 +321,56 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				}
 			}
 
-			// group relationships by type
-			final Map<String, List<RelationshipInfo>> relTypeInfoMap = new LinkedHashMap<>();
-			for (final RelationshipInfo relInfo : relationships) {
-
-				final String relType         = relInfo.getRelType();
-				List<RelationshipInfo> infos = relTypeInfoMap.get(relType);
-
-				if (infos == null) {
-
-					infos = new LinkedList<>();
-					relTypeInfoMap.put(relType, infos);
-				}
-
-				infos.add(relInfo);
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, Relationship currentObject) {
 			}
 
-			final List<RelationshipInfo> reducedRelationshipInfos = new LinkedList<>();
-			if ("true".equals(Services.getInstance().getConfigurationValue("importer.inheritancedetection", "true"))) {
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+			}
+		});
 
-				// reduce relationship infos into one
-				for (final List<RelationshipInfo> infos : relTypeInfoMap.values()) {
 
-					reducedRelationshipInfos.addAll(reduceNodeTypes(infos, reducedTypeInfoMap));
-				}
+		logger.log(Level.INFO, "Grouping relationships..");
 
-			} else {
+		// group relationships by type
+		final Map<String, List<RelationshipInfo>> relTypeInfoMap = new LinkedHashMap<>();
+		for (final RelationshipInfo relInfo : relationships) {
 
-				reducedRelationshipInfos.addAll(relationships);
+			final String relType         = relInfo.getRelType();
+			List<RelationshipInfo> infos = relTypeInfoMap.get(relType);
+
+			if (infos == null) {
+
+				infos = new LinkedList<>();
+				relTypeInfoMap.put(relType, infos);
 			}
 
-			// create schema nodes
-			for (final TypeInfo typeInfo : reducedTypeInfos) {
+			infos.add(relInfo);
+		}
+
+		logger.log(Level.INFO, "Aggregating relationship information..");
+
+		final List<RelationshipInfo> reducedRelationshipInfos = new LinkedList<>();
+		if ("true".equals(Services.getInstance().getConfigurationValue("importer.inheritancedetection", "true"))) {
+
+			// reduce relationship infos into one
+			for (final List<RelationshipInfo> infos : relTypeInfoMap.values()) {
+
+				reducedRelationshipInfos.addAll(reduceNodeTypes(infos, reducedTypeInfoMap));
+			}
+
+		} else {
+
+			reducedRelationshipInfos.addAll(relationships);
+		}
+
+		logger.log(Level.INFO, "Starting with schema node creation..");
+
+		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos.iterator(), 200, "Creating schema nodes", new BulkGraphOperation<TypeInfo>() {
+
+			@Override
+			public void handleGraphObject(SecurityContext securityContext, TypeInfo typeInfo) throws FrameworkException {
 
 				final String type = typeInfo.getPrimaryType();
 				if (!"ReferenceNode".equals(type)) {
@@ -331,8 +416,24 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				}
 			}
 
-			// create relationships
-			for (final RelationshipInfo template : reducedRelationshipInfos) {
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, TypeInfo currentObject) {
+			}
+
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+			}
+
+		});
+
+
+		logger.log(Level.INFO, "Starting with schema relationship creation..");
+
+
+		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedRelationshipInfos.iterator(), 200, "Creating schema relationships", new BulkGraphOperation<RelationshipInfo>() {
+
+			@Override
+			public void handleGraphObject(SecurityContext securityContext, RelationshipInfo template) throws FrameworkException {
 
 				final SchemaNode startNode    = schemaNodes.get(template.getStartNodeType());
 				final SchemaNode endNode      = schemaNodes.get(template.getEndNodeType());
@@ -346,11 +447,18 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				app.create(SchemaRelationshipNode.class, propertyMap);
 			}
 
-			tx.success();
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, RelationshipInfo currentObject) {
+			}
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+			}
+
+		});
+
+
+		logger.log(Level.INFO, "Starting with index rebuild..");
 
 		// rebuild index
 		app.command(BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);

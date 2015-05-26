@@ -40,7 +40,7 @@ import org.structr.schema.ConfigurationProvider;
  * @author Christian Morgner
  */
 
-public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> {
+public class StructrAndSpatialPredicate<T extends PropertyContainer> implements Predicate<T> {
 
 	private static final Set<String> spatialRelationshipTypes = new LinkedHashSet<>();
 	private static final Pattern uuidPattern                  = Pattern.compile("[a-zA-Z0-9]{32}");
@@ -68,7 +68,7 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 	}
 
 	@Override
-	public boolean accept(PropertyContainer container) {
+	public boolean accept(T container) {
 
 		final boolean isStructrEntity = isStructrEntity(container);
 
@@ -104,7 +104,7 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 		return true;
 	}
 
-	private boolean isStructrEntity(final PropertyContainer container) {
+	private boolean isStructrEntity(final T container) {
 
 		if (container.hasProperty(idName)) {
 

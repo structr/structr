@@ -20,15 +20,14 @@ package org.structr.core.graph;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 
 /**
  * Encapsulates a bulk graph operation.
- * 
+ *
  * @author Christian Morgner
  */
-public interface BulkGraphOperation<T extends GraphObject> {
-	
+public interface BulkGraphOperation<T> {
+
 	public void handleGraphObject(SecurityContext securityContext, T obj) throws FrameworkException;
 	public void handleThrowable(SecurityContext securityContext, Throwable t, T currentObject);
 	public void handleTransactionFailure(SecurityContext securityContext, Throwable t);

@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -25,11 +26,11 @@ import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
@@ -58,13 +59,15 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 		if (graphDb != null) {
 
-			List<AbstractRelationship> rels = null;
-			final String typeName   = "type";
+			Iterator<AbstractRelationship> relIterator = null;
+			final String typeName                      = "type";
 
 			if (properties.containsKey(typeName)) {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					rels = StructrApp.getInstance(securityContext).relationshipQuery(SchemaHelper.getEntityClassForRawType(typeName)).getAsList();
+
+					relIterator = StructrApp.getInstance(securityContext).relationshipQuery(SchemaHelper.getEntityClassForRawType(typeName)).getAsList().iterator();
+					tx.success();
 				}
 
 				properties.remove(typeName);
@@ -72,11 +75,13 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 			} else {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					rels = (List<AbstractRelationship>) relationshipFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
+
+					relIterator = Iterables.map(relationshipFactory, GlobalGraphOperations.at(graphDb).getAllRelationships()).iterator();
+					tx.success();
 				}
 			}
 
-			long count = NodeServiceCommand.bulkGraphOperation(securityContext, rels, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+			long count = NodeServiceCommand.bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
