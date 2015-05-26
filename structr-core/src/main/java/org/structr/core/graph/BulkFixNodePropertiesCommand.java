@@ -18,8 +18,7 @@
  */
 package org.structr.core.graph;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,18 +54,19 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 			final Class type = SchemaHelper.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
 
-				final List<AbstractNode> nodes = new LinkedList<>();
+				Iterator<AbstractNode> nodeIterator = null;
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					nodes.addAll(StructrApp.getInstance(securityContext).nodeQuery(type).getAsList());
+
+					nodeIterator = StructrApp.getInstance(securityContext).nodeQuery(type).getAsList().iterator();
 					tx.success();
 				}
 
 				if (type != null) {
 
-					logger.log(Level.INFO, "Trying to fix properties of {0} {1} nodes", new Object[] { nodes.size(), type.getSimpleName() } );
+					logger.log(Level.INFO, "Trying to fix properties of all {0} nodes", type.getSimpleName() );
 
-					long nodeCount = bulkGraphOperation(securityContext, nodes, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
+					long nodeCount = bulkGraphOperation(securityContext, nodeIterator, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 						private void fixProperty(AbstractNode node, Property propertyToFix) {
 
