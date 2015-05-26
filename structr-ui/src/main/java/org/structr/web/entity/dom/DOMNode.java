@@ -2053,6 +2053,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			Credentials defaultcreds = new UsernamePasswordCredentials(username, password);
 			client.getState().setCredentials(AuthScope.ANY, defaultcreds);
+			client.getParams().setAuthenticationPreemptive(true);
+
+			getMethod.setDoAuthentication(true);
 		}
 
 		getMethod.addRequestHeader("Connection", "close");
