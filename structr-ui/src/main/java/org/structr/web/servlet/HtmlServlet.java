@@ -260,7 +260,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					}
 
-					if (dataNode != null && !(dataNode instanceof Linkable)) {
+					//if (dataNode != null && !(dataNode instanceof Linkable)) {
+					if (dataNode != null) {
 
 						// Last path part matches a data node
 						// Remove last path part and try again searching for a page
@@ -1141,14 +1142,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
 		}
+		
+		final int numberOfParts = PathHelper.getParts(path).length;
 
-		if (path.length() > 0) {
+		if (numberOfParts > 0) {
 
 			logger.log(Level.FINE, "Requested name {0}", path);
 
 			possibleEntryPoints = findPossibleEntryPointsByPath(securityContext, request, path);
 
-			if (possibleEntryPoints.isEmpty()) {
+			if (possibleEntryPoints.isEmpty() && numberOfParts == 1) {
 				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, PathHelper.getName(path));
 			}
 
