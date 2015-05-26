@@ -37,8 +37,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
@@ -492,9 +495,19 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 						String address = sources[0].toString();
 						String contentType = null;
+						String username    = null;
+						String password    = null;
 
 						if (sources.length > 1) {
 							contentType = sources[1].toString();
+						}
+
+						if (sources.length > 2) {
+							username = sources[2].toString();
+						}
+
+						if (sources.length > 3) {
+							password = sources[3].toString();
 						}
 
 						//long t0 = System.currentTimeMillis();
@@ -518,10 +531,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 						} else {
 
-							return getFromUrl(ctx, address);
+							return getFromUrl(ctx, address, username, password);
 						}
 
 					} catch (Throwable t) {
+						t.printStackTrace();
 					}
 
 					return "";
@@ -2026,10 +2040,20 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	// ----- static methods -----
 	private static String getFromUrl(final ActionContext ctx, final String requestUrl) throws IOException {
+		return getFromUrl(ctx, requestUrl, null, null);
+	}
+
+	private static String getFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException {
 
 		final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
 		final HttpClient client       = new HttpClient(params);
 		final GetMethod getMethod     = new GetMethod(requestUrl);
+
+		if (username != null && password != null) {
+
+			Credentials defaultcreds = new UsernamePasswordCredentials(username, password);
+			client.getState().setCredentials(AuthScope.ANY, defaultcreds);
+		}
 
 		getMethod.addRequestHeader("Connection", "close");
 
