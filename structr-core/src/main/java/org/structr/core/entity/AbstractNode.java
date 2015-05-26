@@ -761,14 +761,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			return true;
 		}
 
-		// allow accessingUser to access itself, but
-		// not parents etc.
-		if (this.equals(accessingUser) && level == 0) {
-			return true;
-		}
-
-		// but allow read access to groups
-		if (level > 0 && this instanceof Group && permission.equals(Permission.read)) {
+		// allow accessingUser to access itself, but not parents etc.
+		if (this.equals(accessingUser) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
 			return true;
 		}
 
