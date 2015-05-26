@@ -31,20 +31,19 @@ Now you need to activate the installed Java version.
 
 Open the Java Runtime Environment Settings from the Java Control Panel, found in Control Panel > Programs:
 
-![Java Runtime Environment Settings](img-015.png "Fig. 1: Java Runtime Environment Settings")
+<img src="img-015.png" class="zoomable">
 
 Click on "Find" and navigate to the location of the newly installed JDK:
 
-![Select Java Runtime Environment location](img-016.png "Fig. 2: Select Java Runtime Environment location")
+<img src="img-016.png" class="zoomable">
 
 Click "Next", select the entry found, click "Finish" to confirm the selection.
 
-![Confirm JRE Finder](img-017.png "Fig. 3: Confirm JRE Finder")
+<img src="img-017.png" class="zoomable">
 
 Deactivate the old and activate the new Java location:
 
-![Activate new location](img-018.png "Fig. 4: Activate new location")
-
+<img src="img-018.png" class="zoomable">
 
 4. Change %PATH% variable
 
@@ -52,14 +51,15 @@ In order to make the new Java version available for running Structr, it's good p
 
 Go to "Control Panel > System and Security > System", click the "Advanced" tab and click on "Environment Variables".
 
-![Environment Variables](img-019.png "Fig. 5: Environment Variables")
+<img src="img-019.png" class="zoomable">
 
-![Path Variable](img-020.png "Fig. 6: Path Variable")
+<img src="img-020.png" class="zoomable">
 
 Click on "Edit" and change the value to reflect the new JDK location:
 
-![Edit System Variable](img-021.png "Fig. 7: Edit System Variable")
-![System variables after editing](img-022.png "Fig. 8: System variables after editing")
+<img src="img-021.png" class="zoomable">
+
+<img src="img-022.png" class="zoomable">
 
 To confirm new settings, open a new Command Prompt window (cmd) and type
 
@@ -74,7 +74,7 @@ Both commands should return the paths to the JDK executables java.exe and javac.
 C:\Program Files\Java\jdk1.7.0_79\bin\java.exe
 C:\Program Files\Java\jdk1.7.0_79\bin\javac.exe
 
-![Check Paths](img-023.png "Fig. 9: Check Paths")
+<img src="img-023.png" class="zoomable">
 
 Important Note: Unless you have javac.exe available in the path, you're not running a full JDK, and Structr will not run at all, showing errors when trying to compile the dynamic schema at startup (you will see a lot of NodeExtender exceptions in the log).
 
@@ -121,7 +121,7 @@ A new configuration file named "structr.conf" will be automatically created upon
 
 You should see startup messages similar to the following figure:
 
-![Startup Log](img-027.png "Fig. 10: Startup Log")
+<img src="img-027.png" class="zoomable">
 
 You can stop the Structr process with "Ctrl-C".
 
@@ -130,12 +130,13 @@ You can stop the Structr process with "Ctrl-C".
 
 To verifiy Structr is running properly, go to http://localhost:8082/ and check if you can see the Welcome page.
 
-![Welcome Page](img-030.png "Fig. 11: Welcome Page")
+<img src="img-030.png" class="zoomable">
 
 Go to http://localhost:8082/structr/ and login with admin/admin.
 
-![Login Page](img-028.png "Fig. 12: Login Page")
+<img src="img-028.png" class="zoomable">
+
 
 After login, you should see the following:
 
-![Backend UI Pages](img-032.png "Fig. 13: Backend UI Pages")
+<img src="img-032.png" class="zoomable">
