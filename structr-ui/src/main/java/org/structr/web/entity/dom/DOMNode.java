@@ -266,76 +266,72 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 					final App app                         = StructrApp.getInstance(securityContext);
 					final RenderContext innerCtx          = new RenderContext((RenderContext) ctx);
-					final List<DOMNode> nodeList          = app.nodeQuery(DOMNode.class).andName((String) sources[0]).notBlank(DOMNode.ownerDocument).getAsList();
-
+					final List<DOMNode> nodeList          = app.nodeQuery(DOMNode.class).andName((String) sources[0]).getAsList();
+					
 					DOMNode node = null;
 
-					final int listSize = nodeList.size();
+					/**
+					 * included nodes don't necessarily have to be in the shadow document (since 1f93543).
+					 * Therefore we can get multiple hits IF the name references a shared component.
+					 * We need to check that all returned nodes reference the same shared component AND that shared component is also in the list
+					 * if not we still return the error message.
+					 */
 
-					if (listSize == 1) {
+					boolean isSingleSharedComponent = true;
+					String sharedComponentId = null;
 
-						node = nodeList.get(0);
+					for (final DOMNode n : nodeList) {
 
-					} else if (listSize > 1) {
+						// Ignore nodes in trash
+						if (n.getProperty(DOMNode.parent) == null && n.getProperty(DOMNode.ownerDocument) == null) {
+							continue;
+						}
 
-						/**
-						 * included nodes don't necessarily have to be in the shadow document (since 1f93543).
-						 * Therefore we can get multiple hits IF the name references a shared component.
-						 * We need to check that all returned nodes reference the same shared component AND that shared component is also in the list
-						 * if not we still return the error message.
-						 */
+						if (n.getProperty(DOMNode.sharedComponent) == null) {
 
-						boolean isSingleSharedComponent = true;
-						String sharedComponentId = null;
+							// the node IS a shared component
 
-						for (DOMNode n : nodeList) {
+							if (node == null) {
 
-							if ( n.getProperty(DOMNode.sharedComponent) == null) {
-
-								// the node IS a shared component
-
-								if (node == null) {
-
-									sharedComponentId = n.getProperty(DOMNode.id);
-									node = n;
-
-								} else {
-
-									// ERROR CASE 1: we have found multiple shared components
-									isSingleSharedComponent = false;
-									break;
-
-								}
+								sharedComponentId = n.getProperty(DOMNode.id);
+								node = n;
 
 							} else {
 
-								// the node IS NOT a shared component. Therefor it MUST reference a shared component to work
+								// ERROR CASE 1: we have found multiple shared components
+								isSingleSharedComponent = false;
+								break;
 
-								String referencedSharedComponentId = n.getProperty(DOMNode.sharedComponent).getProperty(DOMNode.id);
+							}
 
-								if (sharedComponentId == null) {
+						} else {
 
-									sharedComponentId = referencedSharedComponentId;
+							// the node IS NOT a shared component. Therefor it MUST reference a shared component to work
 
-								} else if (!sharedComponentId.equals(referencedSharedComponentId) ) {
+							String referencedSharedComponentId = n.getProperty(DOMNode.sharedComponent).getProperty(DOMNode.id);
 
-									// ERROR CASE 2: we have found a node referencing a second shared component
-									isSingleSharedComponent = false;
-									break;
+							if (sharedComponentId == null) {
 
-								}
+								sharedComponentId = referencedSharedComponentId;
+
+							} else if (!sharedComponentId.equals(referencedSharedComponentId) ) {
+
+								// ERROR CASE 2: we have found a node referencing a second shared component
+								isSingleSharedComponent = false;
+								break;
 
 							}
 
 						}
 
-						if (!isSingleSharedComponent) {
+					}
 
-							return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
+					if (!isSingleSharedComponent) {
 
-						}
+						return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
 
 					}
+
 
 					if (node != null) {
 
@@ -1158,7 +1154,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
 
-		Iterable<GraphObject> listSource = renderContext.getListSource();
+		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {
 			for (GraphObject dataObject : listSource) {
 
