@@ -309,7 +309,6 @@ var _Crud = {
 
                         $.each(data.result, function(i, res) {
                             //console.log(res);
-                            var type = res.type;
 
                             _Crud.determinePagerData(type);
 

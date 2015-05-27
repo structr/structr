@@ -164,9 +164,9 @@ $(function() {
         var k = e.which;
         if (k === 16)
             shiftKey = false;
-        if (k === 17)
-            altKey = false;
         if (k === 18)
+            altKey = false;
+        if (k === 17)
             ctrlKey = false;
         if (k === 69)
             eKey = false;
@@ -205,14 +205,18 @@ $(function() {
             e.preventDefault();
         }
         var k = e.which;
-        if (k === 16)
+        if (k === 16) {
             shiftKey = true;
-        if (k === 17)
+        }
+        if (k === 18) {
             altKey = true;
-        if (k === 18)
+        }
+        if (k === 17) {
             ctrlKey = true;
-        if (k === 69)
+        }
+        if (k === 69) {
             eKey = true;
+        }
         if (navigator.platform === 'MacIntel' && k === 91)
             cmdKey = true;
         if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
@@ -221,6 +225,7 @@ $(function() {
                 dialogSaveButton.click();
             }
         }
+        //console.log(e.which, shiftKey, ctrlKey, altKey, eKey, cmdKey);
     });
 
     $(window).on('resize', function() {

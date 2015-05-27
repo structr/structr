@@ -31,19 +31,19 @@ Now you need to activate the installed Java version.
 
 Open the Java Runtime Environment Settings from the Java Control Panel, found in Control Panel > Programs:
 
-<img src="img-015.png" class="zoomable">
+<img src="http://docs.structr.org/img-015.png" class="zoomable">
 
 Click on "Find" and navigate to the location of the newly installed JDK:
 
-<img src="img-016.png" class="zoomable">
+<img src="http://docs.structr.org/img-016.png" class="zoomable">
 
 Click "Next", select the entry found, click "Finish" to confirm the selection.
 
-<img src="img-017.png" class="zoomable">
+<img src="http://docs.structr.org/img-017.png" class="zoomable">
 
 Deactivate the old and activate the new Java location:
 
-<img src="img-018.png" class="zoomable">
+<img src="http://docs.structr.org/img-018.png" class="zoomable">
 
 4. Change %PATH% variable
 
@@ -51,15 +51,15 @@ In order to make the new Java version available for running Structr, it's good p
 
 Go to "Control Panel > System and Security > System", click the "Advanced" tab and click on "Environment Variables".
 
-<img src="img-019.png" class="zoomable">
+<img src="http://docs.structr.org/img-019.png" class="zoomable">
 
-<img src="img-020.png" class="zoomable">
+<img src="http://docs.structr.org/img-020.png" class="zoomable">
 
 Click on "Edit" and change the value to reflect the new JDK location:
 
-<img src="img-021.png" class="zoomable">
+<img src="http://docs.structr.org/img-021.png" class="zoomable">
 
-<img src="img-022.png" class="zoomable">
+<img src="http://docs.structr.org/img-022.png" class="zoomable">
 
 To confirm new settings, open a new Command Prompt window (cmd) and type
 
@@ -74,7 +74,7 @@ Both commands should return the paths to the JDK executables java.exe and javac.
 C:\Program Files\Java\jdk1.7.0_79\bin\java.exe
 C:\Program Files\Java\jdk1.7.0_79\bin\javac.exe
 
-<img src="img-023.png" class="zoomable">
+<img src="http://docs.structr.org/img-023.png" class="zoomable">
 
 Important Note: Unless you have javac.exe available in the path, you're not running a full JDK, and Structr will not run at all, showing errors when trying to compile the dynamic schema at startup (you will see a lot of NodeExtender exceptions in the log).
 
@@ -121,7 +121,7 @@ A new configuration file named "structr.conf" will be automatically created upon
 
 You should see startup messages similar to the following figure:
 
-<img src="img-027.png" class="zoomable">
+<img src="http://docs.structr.org/img-027.png" class="zoomable">
 
 You can stop the Structr process with "Ctrl-C".
 
@@ -130,13 +130,13 @@ You can stop the Structr process with "Ctrl-C".
 
 To verifiy Structr is running properly, go to http://localhost:8082/ and check if you can see the Welcome page.
 
-<img src="img-030.png" class="zoomable">
+<img src="http://docs.structr.org/img-030.png" class="zoomable">
 
 Go to http://localhost:8082/structr/ and login with admin/admin.
 
-<img src="img-028.png" class="zoomable">
+<img src="http://docs.structr.org/img-028.png" class="zoomable">
 
 
 After login, you should see the following:
 
-<img src="img-032.png" class="zoomable">
+<img src="http://docs.structr.org/img-032.png" class="zoomable">

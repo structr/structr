@@ -211,7 +211,7 @@ var _Graph = {
                 }
                 var d = _Graph.distance(node, n);
 
-                if (d < 200) {
+                if (shiftKey && d < 200) {
 
                     var sourceSchemaNode = schemaNodes[node.type];
                     if (!sourceSchemaNode) {
