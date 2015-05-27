@@ -2221,3 +2221,20 @@ input.bitmask {
     right: 12px;
     bottom: 12px;
 }
+
+
+#info-area {
+    z-index: 1000;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 500px;
+}
+
+#info-area .message {
+    padding: 0 10px 0 10px;
+    margin: 5px 0 5px 0;
+    background: #f1f1f1;
+    border: 1px solid #d1d1d1;
+    opacity: 0.95;
+}

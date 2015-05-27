@@ -199,8 +199,8 @@ var _Types = {
                     // no schema entry found?
                     if(data.result_count === 0){
 
-                        console.log("ERROR: loading Schema " + type);
-                        //Structr.error("ERROR: loading Schema " + type, true);
+                        // console.log("ERROR: loading Schema " + type);
+                        new MessageBuilder().warning("Failed loading Schema for '" + type + "' - check your resource access grants.").show();
 
 
                         var typeIndex = _Types.types.indexOf(type);

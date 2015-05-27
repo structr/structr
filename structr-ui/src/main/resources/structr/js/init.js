@@ -245,6 +245,7 @@ var Structr = {
     expanded_icon: 'icon/tree_arrow_down.png',
     link_icon: 'icon/link.png',
     key_icon: 'icon/key.png',
+    msgCount: 0,
     reconnect: function() {
         ws.close();
         log('activating reconnect loop');
@@ -649,28 +650,16 @@ var Structr = {
         localStorage.setItem(dialogMaximizedKey, '1');
 
     },
-    error: function(text, callback) {
-        if (text)
-            $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        if (callback)
-            $('#errorBox .closeButton').on('click', function(e) {
-                e.stopPropagation();
-
-                $.unblockUI({
-                    fadeOut: 25
-                });
-            });
-        $.blockUI.defaults.overlayCSS.opacity = .6;
-        $.blockUI.defaults.applyPlatformOpacityRules = false;
-        $.blockUI({
-            message: $('#errorBox'),
-            css: {
-                border: 'none',
-                backgroundColor: 'transparent'
-            }
-        });
+    error: function(text, confirmationRequired) {
+        var message = new MessageBuilder().error(text);
+        if (confirmationRequired) {
+            message.requiresConfirmation();
+        } else {
+            message.delayDuration(2000).fadeDuration(1000);
+        }
+        message.show();
     },
-    errorFromResponse: function(response, url, callback) {
+    errorFromResponse: function(response, url) {
         var errorText = '';
         if (response.errors) {
             $.each(Object.keys(response.errors), function(i, err) {
@@ -680,7 +669,7 @@ var Structr = {
                     $.each(response.errors[err][attr], function(k, cond) {
                         if (typeof cond === 'object') {
                             $.each(Object.keys(cond), function(l, key) {
-                                errorText += key + ' ' + cond[key];
+                                errorText += key + ' ' + cond[key] + ' ';
                             });
                         } else {
                             errorText += ' ' + cond;
@@ -693,13 +682,7 @@ var Structr = {
             errorText += url + ': ' + response.code + ' ' + response.message;
         }
 
-        if (callback) {
-            callback(errorText);
-        } else {
-            Structr.error(errorText, function() {
-            }, function() {
-            });
-        }
+        new MessageBuilder().error(errorText).show();
     },
     loaderIcon: function(element, css) {
         element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="img/ajax-loader.gif">');
@@ -1236,9 +1219,7 @@ var Structr = {
 
             if (!isAdmin) {
 
-                Structr.error('You do not have sufficient permissions<br>to access this function.', function() {
-                    return;
-                });
+                Structr.error('You do not have sufficient permissions<br>to access this function.', true);
 
                 el.append('<div class="errorText"><img src="icon/error.png"> You do not have sufficient permissions to access this function.</div>');
 
@@ -1262,8 +1243,110 @@ var Structr = {
             }
             $('.structr-version').html('<a target="_blank" href="' + versionLink + '">' + version + '</a> build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a>');
         });
-    }
+    },
 };
+
+function MessageBuilder () {
+	this.params = {
+		// defaults
+		text: 'Default message',
+		delayDuration: 3000,
+		fadeDuration: 1000
+	};
+
+	this.requiresConfirmation = function () {
+		this.params.requiresConfirmation = true;
+		return this;
+	};
+
+	this.title = function (title) {
+		this.params.title = title;
+		return this;
+	};
+
+	this.text = function (text) {
+		this.params.text = text;
+		return this;
+	};
+
+    this.error = function (text) {
+		this.params.text = '<img src="icon/exclamation.png"> ' + text;
+        return this.className('error');
+    }
+
+    this.warning = function (text) {
+		this.params.text = '<img src="icon/error.png"> ' + text;
+        return this.className('warning');
+    }
+
+    this.info = function (text) {
+		this.params.text = '<img src="icon/information.png"> ' + text;
+        return this.className('info');
+    }
+
+    this.success = function (text) {
+		this.params.text = '<img src="icon/accept.png"> ' + text;
+        return this.className('success');
+    }
+
+	this.delayDuration = function (delayDuration) {
+		this.params.delayDuration = delayDuration;
+		return this;
+	};
+
+	this.fadeDuration = function (fadeDuration) {
+		this.params.fadeDuration = fadeDuration;
+		return this;
+	};
+
+	this.className = function (className) {
+		this.params.className = className;
+		return this;
+	};
+
+	this.delayDuration = function (delayDuration) {
+		this.params.delayDuration = delayDuration;
+		return this;
+	};
+
+	this.show = function () {
+		this.params.msgId = 'message_' + (Structr.msgCount++);
+
+		$('#info-area').append(
+			'<div class="message' + (this.params.className ? ' ' + this.params.className : '') +  '" id="' + this.params.msgId + '"">' +
+				(this.params.title ? '<h2>' + this.params.title + '</h2>' : '') +
+				'<p>' + this.params.text + '</p>' +
+				(this.params.requiresConfirmation ? '<button>Confirm</button>' : '') +
+			'</div>'
+		);
+
+		var msgBuilder = this;
+
+		if (this.params.requiresConfirmation === true) {
+			$('#' + this.params.msgId).find('button').click(function () {
+				msgBuilder.hide();
+			});
+		} else {
+			window.setTimeout(function () {
+				msgBuilder.hide();
+			}, this.params.delayDuration);
+		}
+	};
+
+	this.hide = function () {
+		$('#' + this.params.msgId).animate({
+			opacity: 0,
+			height: 0
+		}, {
+			duration: this.params.fadeDuration,
+			complete: function () {
+				$(this).remove();
+			}
+		});
+	}
+
+	return this;
+}
 
 function getElementPath(element) {
     var i = -1;
