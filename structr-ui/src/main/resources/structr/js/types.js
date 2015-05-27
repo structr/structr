@@ -219,7 +219,6 @@ var _Types = {
 
                         $.each(data.result, function(i, res) {
                             //console.log(res);
-                            var type = res.type;
 
                             _Types.schema[type] = res;
                             _Types.view[type] = 'all';
