@@ -18,15 +18,13 @@
  */
 package org.structr.core.graph;
 
+import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +32,6 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -57,41 +54,28 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory = new NodeFactory(superUserContext);
 
-		Class type = null;
-		if (entityType != null) {
+		Iterator<AbstractNode> nodeIterator = null;
 
-			type = SchemaHelper.getEntityClassForRawType(entityType);
-		}
-		// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-
-		final List<AbstractNode> nodes = new LinkedList<>();
-
-		// instantiate all nodes in a single list
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final Result<AbstractNode> result = nodeFactory.instantiateAll(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()));
-			for (AbstractNode node : result.getResults()) {
-
-				if (type == null || node.getClass().equals(type)) {
-
-					nodes.add(node);
-				}
-
-			}
-
+			nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()))).iterator();
 			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
+			fex.printStackTrace();
 		}
 
-		if (type == null) {
+		if (entityType == null) {
 
-			logger.log(Level.INFO, "Node type not set or no entity class found. Starting creation of labels for {0} nodes", nodes.size());
+			logger.log(Level.INFO, "Node type not set or no entity class found. Starting creation of labels for all nodes.");
 
 		} else {
 
-			logger.log(Level.INFO, "Starting creation of labels for {0} nodes of type {0}", new Object[]{nodes.size(), type.getSimpleName()});
+			logger.log(Level.INFO, "Starting creation of labels for all nodes of type {0}", entityType);
 		}
 
-		long count = bulkGraphOperation(securityContext, nodes, 1000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {

@@ -18,12 +18,12 @@
  */
 package org.structr.core.graph;
 
+import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
@@ -66,14 +67,17 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 		if (graphDb != null && StringUtils.isNotBlank(oldKey) && StringUtils.isNotBlank(newKey)) {
 
-			Result<AbstractNode> nodes = null;
+			Iterator<AbstractNode> nodeIterator = null;
 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
 				type = (String) properties.get(AbstractNode.type.dbName());
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					nodes = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult();
+
+					// create iterator
+					nodeIterator = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult().getResults().iterator();
+					tx.success();
 				}
 
 				properties.remove(AbstractNode.type.dbName());
@@ -81,11 +85,13 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 			} else {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+
+					nodeIterator = Iterables.map(nodeFactory, GlobalGraphOperations.at(graphDb).getAllNodes()).iterator();
+					tx.success();
 				}
 			}
 
-			long nodeCount = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
+			long nodeCount = bulkGraphOperation(securityContext, nodeIterator, 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
