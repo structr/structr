@@ -20,7 +20,7 @@
 var header, main, footer;
 var debug = false;
 var sessionId, user;
-var lastMenuEntry, activeTab;
+var lastMenuEntry, activeTab, menuBlocked;
 var dmp;
 var editorCursor;
 var dialog, isMax = false;
@@ -739,7 +739,18 @@ var Structr = {
             }
         });
     },
+    blockMenu: function() {
+        menuBlocked = true;
+        $('#menu > ul > li > a').attr('disabled', 'disabled').addClass('disabled');
+        
+    },
+    unblockMenu: function() {
+        menuBlocked = false;
+        $('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
+    },
     activateModule: function(event, name) {
+        if (menuBlocked) return;
+        Structr.blockMenu();
         event.stopPropagation();
         if (localStorage.getItem(lastMenuEntryKey) !== name || main.children().length === 0) {
             Structr.clearMain();

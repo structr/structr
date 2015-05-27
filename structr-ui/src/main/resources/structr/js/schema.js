@@ -182,6 +182,10 @@ var _Schema = {
 
                     _Schema.setZoom(zoomLevel, instance, [0,0], $('#schema-graph')[0]);
                     _Schema.resize();
+            
+                    // Wait 1 second before releasing the main menu
+                    window.setTimeout(function() { Structr.unblockMenu(); }, 1000);
+
                 });
 
             });

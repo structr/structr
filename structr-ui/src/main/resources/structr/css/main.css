@@ -195,6 +195,11 @@ input[type="checkbox"] {
     background-color: #81ce25;
 }
 
+.menu ul li a.disabled {
+   /*pointer-events: none;*/
+   cursor: wait;
+}
+
 img.disabled {
     filter: alpha(opacity=40);
     -khtml-opacity: 0.4;

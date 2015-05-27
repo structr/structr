@@ -69,6 +69,7 @@ var _Types = {
             _Types.loadSchema(function() {
                 _Types.initTabs();
                 _Types.resize();
+                Structr.unblockMenu();
             });
 
         });

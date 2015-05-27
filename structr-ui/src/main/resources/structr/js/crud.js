@@ -101,6 +101,7 @@ var _Crud = {
                     _Crud.initTabs();
                 }
                 _Crud.resize();
+                Structr.unblockMenu();
             });
 
             searchField = $('.search', main);
