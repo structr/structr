@@ -205,6 +205,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_XML = "Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
 	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
 	public static final String ERROR_MESSAGE_SET = "Usage: ${set(entity, propertyKey, value)}. Example: ${set(this, \"email\", lower(this.email))}";
+	public static final String ERROR_MESSAGE_SET_PRIVILEGED = "Usage: ${set_privileged(entity, propertyKey, value)}. Example: ${set_privileged(this, \"email\", lower(this.email))}";
+	public static final String ERROR_MESSAGE_SET_PRIVILEGED_JS = "Usage: ${setPrvileged(entity, propertyKey, value)}. Example: ${Structr.setPrivileged(this, \"email\", lower(this.email))}";
 	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 	public static final String ERROR_MESSAGE_SEND_HTML_MAIL = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 	public static final String ERROR_MESSAGE_GEOCODE = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
@@ -3755,6 +3757,38 @@ public class Functions {
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
+			}
+		});
+		functions.put("set_privileged", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				Function<Object, Object> set = functions.get("set");
+				if (set != null) {
+
+					synchronized (entity) {
+
+						final SecurityContext previousSecurityContext = entity.getSecurityContext();
+						entity.setSecurityContext(SecurityContext.getSuperUserInstance());
+
+						try {
+
+							set.apply(ctx, entity, sources);
+
+						} finally {
+
+							entity.setSecurityContext(previousSecurityContext);
+						}
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_SET_PRIVILEGED_JS : ERROR_MESSAGE_SET_PRIVILEGED);
 			}
 		});
 	}
