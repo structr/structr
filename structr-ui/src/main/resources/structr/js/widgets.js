@@ -56,6 +56,10 @@ var _Widgets = {
         win.resize(function() {
             Structr.resize();
         });
+        
+        // Wait 1 second before releasing the main menu
+        window.setTimeout(function() { Structr.unblockMenu(); }, 1000);
+        
     },
     unload: function() {
         $(main.children('table')).remove();

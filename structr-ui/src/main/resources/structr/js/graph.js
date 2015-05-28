@@ -143,7 +143,7 @@ var _Graph = {
                 edgeHoverSizeRatio: 1.3,
                 edgeHoverExtremities: true,
                 defaultEdgeHoverColor: '#555',
-                edgeLabelSize: 'proportional',
+                //edgeLabelSize: 'proportional',
                 minArrowSize: 12
                         //sideMargin: 1,
             }
@@ -230,7 +230,7 @@ var _Graph = {
                                     log(edge);
                                     if (edge.target === n.id && edge.relType === toRel.relationshipType) {
                                         edge.hidden = true;
-                                        log('outgoing rel found, will be removed', edge);
+                                        //console.log('outgoing rel found, will be removed', edge);
                                         hiddenEdge = edge.id;
                                     }
                                 });
@@ -264,7 +264,7 @@ var _Graph = {
                                     log(edge);
                                     if (edge.target === node.id && edge.relType === fromRel.relationshipType) {
                                         edge.hidden = true;
-                                        log('outgoing rel found, will be removed', edge);
+                                        //console.log('outgoing rel found, will be removed', edge);
                                         hiddenEdge = edge.id;
                                     }
                                 });
@@ -310,7 +310,7 @@ var _Graph = {
         dragListener.bind('dragend', function(e) {
             engine.graph.edges().forEach(function(edge) {
 
-                if (edge.hidden) {
+                if (edge.removed) {
                     Command.deleteRelationship(edge.id, function() {
                         engine.graph.dropEdge(edge.id);
                     });
@@ -574,6 +574,12 @@ var _Graph = {
         win.resize(function() {
             _Graph.resize();
         });
+
+        // Wait 1 second before releasing the main menu
+        window.setTimeout(function() {
+            Structr.unblockMenu();
+        }, 1000);
+
     },
     execQuery: function(query, type, params) {
 
@@ -604,6 +610,7 @@ var _Graph = {
         if (!exists) {
             savedQueries.unshift({'type': type, 'query': query, 'params': params});
             localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+            Structr.saveLocalStorage();
         }
     },
     removeSavedQuery: function(i) {
@@ -611,6 +618,7 @@ var _Graph = {
         savedQueries.splice(i, 1);
         localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
         _Graph.listSavedQueries();
+        Structr.saveLocalStorage();
     },
     restoreSavedQuery: function(i, exec) {
         var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
@@ -736,6 +744,15 @@ var _Graph = {
             })
         });
     },
+    findRelationships: function(sourceId, targedId, relType) {
+        var edges = [];
+        engine.graph.edges().forEach(function(edge) {
+            if (edge.source === sourceId && edge.target === targedId && edge.relType === relType) {
+                edges.push(edge);
+            }
+        });
+        return edges;
+    },
     drawNode: function(node, x, y) {
         if (isIn(node.id, nodeIds)) {
             return;
@@ -760,16 +777,19 @@ var _Graph = {
     drawRel: function(r) {
         relIds.push(r.id);
         _Graph.setRelationshipColor(r);
+        var existingEdges = _Graph.findRelationships(r.sourceId, r.targetId, r.relType);
+        var c = existingEdges.length * 10;
         engine.graph.addEdge({
             id: r.id,
-            label: r.relType,
+            label: r.relType + c,
             source: r.sourceId,
             target: r.targetId,
             size: 40,
             color: defaultRelColor,
             type: edgeType,
             relType: r.relType,
-            hidden: isIn(r.relType, hiddenRelTypes)
+            hidden: isIn(r.relType, hiddenRelTypes),
+            count: c
         });
         _Graph.scheduleRefreshEngine();
         _Graph.updateRelationshipTypes();

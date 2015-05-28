@@ -18,10 +18,10 @@
  */
 package org.structr.core.graph;
 
+import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -48,7 +48,7 @@ public class ModificationQueue {
 	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
 
 	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
-	private final List<ModificationEvent> modificationEvents                                = new LinkedList<>();
+	private final Collection<ModificationEvent> modificationEvents                          = new ArrayDeque<>(1000);
 	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
 	private final Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
 	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
@@ -225,7 +225,7 @@ public class ModificationQueue {
 		modifyEndNodes(relationship.getSourceNode(), relationship.getTargetNode(), relationship.getRelType());
 	}
 
-	public List<ModificationEvent> getModificationEvents() {
+	public Collection<ModificationEvent> getModificationEvents() {
 		return modificationEvents;
 	}
 

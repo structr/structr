@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -87,7 +87,7 @@ public class Tx implements AutoCloseable {
 					// notify listeners if desired
 					if (doNotifications) {
 
-						final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
+						final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
 						for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
 
 							listener.afterCommit(securityContext, modificationEvents, cmd.getSource());

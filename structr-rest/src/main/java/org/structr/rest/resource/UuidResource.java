@@ -18,8 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
@@ -55,11 +53,7 @@ public class UuidResource extends FilterableResource {
 		GraphObject obj = getEntity();
 		if (obj != null) {
 
-			List<GraphObject> results = new LinkedList<>();
-
-			results.add(obj);
-
-			return new Result(results, null, isCollectionResource(), isPrimitiveArray());
+			return new Result(obj, isPrimitiveArray());
 
 		}
 

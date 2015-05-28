@@ -19,8 +19,8 @@
 package org.structr.core.graph;
 
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -187,7 +187,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		finishTx();
 	}
 
-	public List<ModificationEvent> getModificationEvents() {
+	public Collection<ModificationEvent> getModificationEvents() {
 
 		ModificationQueue modificationQueue = queues.get();
 		if (modificationQueue != null) {

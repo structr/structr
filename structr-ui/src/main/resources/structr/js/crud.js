@@ -101,6 +101,7 @@ var _Crud = {
                     _Crud.initTabs();
                 }
                 _Crud.resize();
+                Structr.unblockMenu();
             });
 
             searchField = $('.search', main);
@@ -2180,43 +2181,20 @@ var _Crud = {
         });
 
     },
-    error: function(text, callback) {
-
-        if (!dialogBox.is(':visible')) {
-
-            if (text) {
-                $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-            }
-            if (callback) {
-                $('#errorBox .closeButton').on('click', function(e) {
-                    e.stopPropagation();
-                    $.unblockUI({
-                        fadeOut: 25
-                    });
-                });
-            }
-            $.blockUI.defaults.overlayCSS.opacity = .6;
-            $.blockUI.defaults.applyPlatformOpacityRules = false;
-            $.blockUI({
-                message: $('#errorBox'),
-                css: {
-                    border: 'none',
-                    backgroundColor: 'transparent'
-                }
-            });
-
+    error: function(text, confirmationRequired) {
+        var message = new MessageBuilder().text(text);
+        if (confirmationRequired) {
+            message.requiresConfirmation();
         } else {
-            dialogMsg.html('<div class="infoBox error">' + text + '</div>');
-            $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+            message.delayDuration(2000).fadeDuration(1000);
         }
+        message.show();
     },
     showDetails: function(n, typeParam) {
 
         var type = typeParam || n.type;
         if (!type) {
-            Structr.error('Missing type', function() {
-            }, function() {
-            });
+            new MessageBuilder().text('Missing type').requiresConfirmation().show();
             return;
         }
 

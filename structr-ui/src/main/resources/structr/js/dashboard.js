@@ -69,6 +69,9 @@ var _Dashboard = {
             Structr.resize();
         });
 
+        // Wait 1 second before releasing the main menu
+        window.setTimeout(function() { Structr.unblockMenu(); }, 1000);
+
     },
     appendBox: function(heading, id) {
         dashboard.append('<div id="' + id + '" class="dashboard-box"><div class="dashboard-header"><h2>' + heading + '</h2></div></div>');

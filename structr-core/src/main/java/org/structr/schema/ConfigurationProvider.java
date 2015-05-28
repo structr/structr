@@ -42,7 +42,7 @@ public interface ConfigurationProvider {
 	public void initialize();
 	public void shutdown();
 
-	public void unregisterEntityType(final String typeName);
+	public void unregisterEntityType(final Class oldType);
 	public void registerEntityType(final Class newType);
 	public void registerEntityCreationTransformation(final Class type, final Transformation<GraphObject> transformation);
 

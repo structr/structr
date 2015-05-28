@@ -20,6 +20,7 @@ package org.structr.schema.parser;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.CollectionNotionProperty;
@@ -73,6 +74,11 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 	@Override
 	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
+
+		if (StringUtils.isBlank(expression)) {
+
+			throw new FrameworkException(422, "Notion property expression may not be empty.");
+		}
 
 		final StringBuilder buf = new StringBuilder();
 		final String[] parts    = expression.split("[, ]+");

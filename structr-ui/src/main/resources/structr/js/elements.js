@@ -342,7 +342,12 @@ var _Elements = {
             }
 
             var obj = StructrModel.create(entity, null, false);
-            var el = _Pages.appendElementElement(obj, elements, true);
+            var el;
+            if (obj.isContent) {
+                el = _Contents.appendContentElement(obj, elements, true);
+            } else {
+                el = _Pages.appendElementElement(obj, elements, true);
+            }
 
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);

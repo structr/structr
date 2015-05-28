@@ -18,10 +18,13 @@
  */
 package org.structr.schema.importer;
 
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.set.hash.THashSet;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -159,14 +162,14 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		final App app                                     = StructrApp.getInstance();
 		final GraphDatabaseService graphDb                = app.command(GraphDatabaseCommand.class).execute();
 		final ConfigurationProvider configuration         = Services.getInstance().getConfigurationProvider();
-		final Set<NodeInfo> nodeTypes                     = new LinkedHashSet<>();
-		final Map<Long, TypeInfo> nodeTypeInfoMap         = new LinkedHashMap<>();
-		final Set<RelationshipInfo> relationships         = new LinkedHashSet<>();
-		final Map<String, SchemaNode> schemaNodes         = new LinkedHashMap<>();
-		final Map<NodeInfo, List<Node>> nodeMap           = new LinkedHashMap<>();
-		final Map<String, List<TypeInfo>> typeInfoTypeMap = new LinkedHashMap<>();
-		final List<TypeInfo> reducedTypeInfos             = new LinkedList<>();
-		final List<TypeInfo> typeInfos                    = new LinkedList<>();
+		final Set<NodeInfo> nodeTypes                     = new THashSet<>();
+		final Map<Long, TypeInfo> nodeTypeInfoMap         = new THashMap<>();
+		final Set<RelationshipInfo> relationships         = new THashSet<>();
+		final Map<String, SchemaNode> schemaNodes         = new THashMap<>();
+		final Map<NodeInfo, List<Node>> nodeMap           = new THashMap<>();
+		final Map<String, List<TypeInfo>> typeInfoTypeMap = new THashMap<>();
+		final List<TypeInfo> reducedTypeInfos             = new ArrayList<>();
+		final List<TypeInfo> typeInfos                    = new ArrayList<>();
 		Iterator<Relationship> relIterator                = null;
 		Iterator<Node> nodeIterator                       = null;
 
@@ -184,7 +187,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 		logger.log(Level.INFO, "Starting to analyze nodes..");
 
-		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), nodeIterator, 200, "Analyzing nodes", new BulkGraphOperation<Node>() {
+		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), nodeIterator, 10000, "Analyzing nodes", new BulkGraphOperation<Node>() {
 
 			@Override
 			public void handleGraphObject(final SecurityContext securityContext, final Node node) throws FrameworkException {
@@ -241,7 +244,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 		final Map<String, TypeInfo> reducedTypeInfoMap = new LinkedHashMap<>();
 
-		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos.iterator(), 200, "Setting type and ID", new BulkGraphOperation<TypeInfo>() {
+		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos.iterator(), 10000, "Setting type and ID", new BulkGraphOperation<TypeInfo>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, TypeInfo info) throws FrameworkException {
@@ -285,7 +288,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 		logger.log(Level.INFO, "Starting with analyzing relationships..");
 
-		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), relIterator, 200, "Analyzing relationships", new BulkGraphOperation<Relationship>() {
+		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), relIterator, 10000, "Analyzing relationships", new BulkGraphOperation<Relationship>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, Relationship rel) throws FrameworkException {
@@ -367,7 +370,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 		logger.log(Level.INFO, "Starting with schema node creation..");
 
-		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos.iterator(), 200, "Creating schema nodes", new BulkGraphOperation<TypeInfo>() {
+		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos.iterator(), 10000, "Creating schema nodes", new BulkGraphOperation<TypeInfo>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, TypeInfo typeInfo) throws FrameworkException {

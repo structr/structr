@@ -284,7 +284,10 @@ var _Pages = {
         win.resize(function() {
             _Pages.resize();
         });
-
+        
+        // Wait 1 second before releasing the main menu
+        window.setTimeout(function() { Structr.unblockMenu(); }, 1000);
+        
     },
     clearPreviews: function() {
 
@@ -301,7 +304,9 @@ var _Pages = {
         pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>')
         pages = $('#pagesTree', pagesSlideout);
 
-        Structr.addPager(pages, true, 'Page', function(entity) { StructrModel.create(entity); _Pages.pagesTabResizeContent(); });
+        Structr.addPager(pages, true, 'Page', function(entity) {
+            StructrModel.create(entity); _Pages.pagesTabResizeContent();
+        });
 
         previewTabs.append('<li id="import_page" title="Import Template" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function(e) {

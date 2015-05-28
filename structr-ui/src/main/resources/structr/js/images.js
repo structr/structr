@@ -93,6 +93,9 @@ var _Images = {
         win.resize(function() {
             _Images.resize();
         });
+        
+        // Wait 1 second before releasing the main menu
+        window.setTimeout(function() { Structr.unblockMenu(); }, 1000);        
 
     },
     unload: function() {
@@ -229,7 +232,7 @@ var _Images = {
         if (tnSmall) {
             _Images.showThumbnails(img, div);
         } else {
-            if (img.contentType.startsWith('image/svg') || img.contentType.endsWith('image/vnd.microsoft.icon')) {
+            if (img.contentType &&  (img.contentType.startsWith('image/svg') || img.contentType.endsWith('image/vnd.microsoft.icon'))) {
                 img.tnSmall = img;
                 img.tnMid = img;
                 _Images.showThumbnails(img, div);

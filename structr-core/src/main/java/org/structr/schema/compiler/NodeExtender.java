@@ -22,6 +22,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,6 +40,7 @@ import javax.tools.ToolProvider;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.module.JarConfigurationProvider;
 
 /**
@@ -90,29 +92,48 @@ public class NodeExtender {
 
 	public synchronized Map<String, Class> compile(final ErrorBuffer errorBuffer) throws ClassNotFoundException {
 
-		final Writer errorWriter = new StringWriter();
+		final Writer errorWriter     = new StringWriter();
+		final List<Class> newClasses = new LinkedList<>();
 
 		if (!jfiles.isEmpty()) {
 
 			logger.log(Level.INFO, "Compiling {0} dynamic entities", jfiles.size());
 
-			// clear classes map
-			classes.clear();
-
 			compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
 
 			final ClassLoader loader = fileManager.getClassLoader(null);
+			boolean success          = true;
+
 			for (final String fqcn : fqcns) {
 
 				try {
-					classes.put(fqcn, loader.loadClass(fqcn));
+
+					newClasses.add(loader.loadClass(fqcn));
 
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { fqcn, t.toString() });
+					logger.log(Level.WARNING, "Unable to load dynamic entity {0}: {1}", new Object[] { fqcn, t.toString() });
 					t.printStackTrace();
+
+					success = false;
 				}
 			}
+
+			if (success) {
+
+				for (final Class oldType : classes.values()) {
+					StructrApp.getConfiguration().unregisterEntityType(oldType);
+				}
+
+				// clear classes map
+				classes.clear();
+
+				// add new classes to map
+				for (final Class newType : newClasses) {
+					classes.put(newType.getName(), newType);
+				}
+			}
+
 		}
 
 		return classes;
@@ -139,7 +160,7 @@ public class NodeExtender {
 				}
 
 				errorBuffer.add(name, new DiagnosticErrorToken(diagnostic));
-                                
+
                                 // log also to log file
                                 logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });
 			}
