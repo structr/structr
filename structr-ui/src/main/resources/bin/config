@@ -3,9 +3,9 @@
 # configuration options for structr-ui
 #
 
-RUN_OPTS="-cp lib/*:${artifactId}-${version}-${maven.build.timestamp}.${buildNumber}.jar"
+RUN_OPTS="-cp lib/*:${project.build.finalName}.jar"
 JAVA_OPTS="-Xms1g -Xmx1g -XX:+UseNUMA"
 MAIN_CLASS="org.structr.Server"
-DISPLAY_NAME="${artifactId}-${version}-${maven.build.timestamp}.${buildNumber}.jar"
+DISPLAY_NAME="${project.build.finalName}.jar"
 LOG_FILE="logs/server.log"
 PID_FILE="server.pid"
