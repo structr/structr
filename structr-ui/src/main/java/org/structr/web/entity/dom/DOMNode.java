@@ -24,6 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -267,7 +268,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					final App app                         = StructrApp.getInstance(securityContext);
 					final RenderContext innerCtx          = new RenderContext((RenderContext) ctx);
 					final List<DOMNode> nodeList          = app.nodeQuery(DOMNode.class).andName((String) sources[0]).getAsList();
-					
+
 					DOMNode node = null;
 
 					/**
@@ -1122,7 +1123,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 */
 	private List<Node> getAncestors() {
 
-		List<Node> ancestors = new LinkedList();
+		List<Node> ancestors = new ArrayList();
 
 		Node _parent = getParentNode();
 		while (_parent != null) {

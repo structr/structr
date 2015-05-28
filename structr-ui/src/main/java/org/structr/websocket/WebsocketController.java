@@ -20,19 +20,18 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.Range;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketException;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -182,11 +181,11 @@ public class WebsocketController implements StructrTransactionListener {
 
 	// ----- interface StructrTransactionListener -----
 	@Override
-	public void beforeCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) {
+	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) {
 	}
 
 	@Override
-	public void afterCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) {
+	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 

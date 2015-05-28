@@ -20,6 +20,7 @@ package org.structr.cloud.sync;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -274,7 +275,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 	// ----- interface StructrTransactionListener -----
 	@Override
-	public void beforeCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException {
+	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException {
 
 		// prevent all (!) transactions from being committed on slave instances
 		if (SyncRole.slave.equals(role) && (source == null || !allowedMaster.equals(source.getOriginAddress()))) {
@@ -287,7 +288,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	}
 
 	@Override
-	public void afterCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) {
+	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) {
 
 		if (source != null && source.isRemote()) {
 			return;
