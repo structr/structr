@@ -18,7 +18,8 @@
  */
 package org.structr.schema.importer;
 
-import java.util.LinkedHashMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.set.hash.THashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -33,18 +34,29 @@ import org.neo4j.graphdb.Node;
 
 public class NodeInfo {
 
-	private static Map<String, Set<String>> propertySets = new LinkedHashMap<>();
+	private static Map<String, Set<String>> propertySets;
 
-	private Map<String, Class> properties         = new LinkedHashMap<>();
-	private Set<String> types                     = new LinkedHashSet<>();
+	private Map<String, Class> properties;
+	private Set<String> types;
+	private Node node;
+	
+	private Integer hashCode;
 
 	public NodeInfo(final Node node) {
+		
+		this.node = node;
 
 		extractProperties(node);
 		extractTypes(node);
-		createPropertySets();
+		//createPropertySets();
 
+		this.hashCode = calcHashCode();
 
+		// help garbage collection
+		propertySets = null;
+		properties   = null;
+		types        = null;
+		
 //		final String type = null;
 //
 //		// create ID and type on imported node
@@ -53,14 +65,19 @@ public class NodeInfo {
 
 	}
 
-	@Override
-	public int hashCode() {
+	private int calcHashCode() {
 
 		int hashCode = 13;
 
 		hashCode += types.hashCode();
 		hashCode += properties.hashCode() * 31;
 
+		return hashCode;
+		
+	}
+	
+	@Override
+	public int hashCode() {
 		return hashCode;
 	}
 
@@ -80,31 +97,47 @@ public class NodeInfo {
 	}
 
 	public Map<String, Class> getProperties() {
+		if (properties == null) {
+			extractProperties(node);
+		}
 		return properties;
 	}
 
 	public Set<String> getTypes() {
+		if (types == null) {
+			extractTypes(node);
+		}
 		return types;
 	}
 
-	public static Map<String, Set<String>> getPropertySets() {
+	public Map<String, Set<String>> getPropertySets() {
+		if (propertySets == null) {
+			createPropertySets();
+		}
 		return propertySets;
 	}
 
 	// ----- private methods -----
 	private void extractProperties(final Node node) {
+		
+		if (properties == null) {
+			properties = new THashMap<>();
+		}
 
 		for (final String key : node.getPropertyKeys()) {
 
 			final Object value = node.getProperty(key);
 			if (value != null) {
-
 				properties.put(key, value.getClass());
 			}
 		}
 	}
 
 	private void extractTypes(final Node node) {
+		
+		if (types == null) {
+			types = new THashSet<>();
+		}
 
 		// first try: label
 		for (final Label label : node.getLabels()) {
@@ -147,6 +180,8 @@ public class NodeInfo {
 		}
 		*/
 
+		getProperties();
+		
 		if (types.isEmpty() && !properties.keySet().isEmpty()) {
 
 			// fifth try: analyze properties
@@ -162,6 +197,12 @@ public class NodeInfo {
 
 	private void createPropertySets() {
 
+		if (propertySets == null) {
+			propertySets = new THashMap<>();
+		}
+
+		getTypes();
+		
 		for (final String type : types) {
 
 			Set<String> propertySet = propertySets.get(type);
