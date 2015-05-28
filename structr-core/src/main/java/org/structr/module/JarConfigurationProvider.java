@@ -18,6 +18,7 @@
  */
 package org.structr.module;
 
+import gnu.trove.set.hash.TLinkedHashSet;
 import org.structr.agent.Agent;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -37,7 +38,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -82,9 +82,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private final Map<String, Class<? extends NodeInterface>> nodeEntityClassCache                 = new ConcurrentHashMap(1000);
 	private final Map<String, Class<? extends Agent>> agentClassCache                              = new ConcurrentHashMap<>(100);
 
-	private final Set<String> agentPackages                                                        = new LinkedHashSet<>();
- 	private final Set<String> nodeEntityPackages                                                   = new LinkedHashSet<>();
- 	private final Set<String> relationshipPackages                                                 = new LinkedHashSet<>();
+	private final Set<String> agentPackages                                                        = new TLinkedHashSet<>();
+ 	private final Set<String> nodeEntityPackages                                                   = new TLinkedHashSet<>();
+ 	private final Set<String> relationshipPackages                                                 = new TLinkedHashSet<>();
 
 	private final Map<String, Class> combinedTypeRelationClassCache                                = new ConcurrentHashMap<>(100);
 	private final Map<String, Set<Class>> interfaceCache                                           = new ConcurrentHashMap<>(2000);
@@ -107,8 +107,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private final Map<Class, Set<Class>> interfaceMap                                              = new ConcurrentHashMap<>(2000);
 	private final Map<String, Class> reverseInterfaceMap                                           = new ConcurrentHashMap<>(5000);
 
-	private final Set<PropertyKey> globalKnownPropertyKeys                                         = new LinkedHashSet<>();
-	private final Set<String> dynamicViews                                                         = new LinkedHashSet<>();
+	private final Set<PropertyKey> globalKnownPropertyKeys                                         = new TLinkedHashSet<>();
+	private final Set<String> dynamicViews                                                         = new TLinkedHashSet<>();
 
 	private FactoryDefinition factoryDefinition                                                    = new DefaultFactoryDefinition();
 
@@ -295,7 +295,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		combinedTypeRelationClassCache.put(getCombinedType(sourceType, relType, targetType), clazz);
 	}
 
-	public Class getRelationClassForCombinedType(final String combinedType) {
+	private Class getRelationClassForCombinedType(final String combinedType) {
 
 		Class cachedRelationClass = combinedTypeRelationClassCache.get(combinedType);
 
@@ -501,17 +501,33 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public void unregisterEntityType(final String typeName) {
+	public void unregisterEntityType(final Class oldType) {
 
-		nodeEntityClassCache.remove(typeName);
-		relationshipEntityClassCache.remove(typeName);
+		final String simpleName = oldType.getSimpleName();
+		final String fqcn       = oldType.getName();
 
-		nodeEntityPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + "." + typeName);
-		relationshipPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + "." + typeName);
+		nodeEntityClassCache.remove(simpleName);
+		relationshipEntityClassCache.remove(simpleName);
 
-		globalPropertyViewMap.remove(typeName);
-		globalClassDBNamePropertyMap.remove(typeName);
-		globalClassJSNamePropertyMap.remove(typeName);
+		nodeEntityPackages.remove(fqcn);
+		relationshipPackages.remove(fqcn);
+
+		globalPropertyViewMap.remove(simpleName);
+		globalClassDBNamePropertyMap.remove(simpleName);
+		globalClassJSNamePropertyMap.remove(simpleName);
+
+		interfaceMap.remove(oldType);
+
+		// clear all
+		combinedTypeRelationClassCache.clear();
+
+		// clear interfaceCache manually..
+		for (final Set<Class> classes : interfaceCache.values()) {
+
+			if (classes.contains(oldType)) {
+				classes.remove(oldType);
+			}
+		}
 	}
 
 	@Override
@@ -520,7 +536,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// moved here from scanEntity, no reason to have this in a separate
 		// method requiring two different calls instead of one
 		String simpleName = type.getSimpleName();
-		String fullName = type.getName();
+		String fullName   = type.getName();
 
 		if (AbstractNode.class.isAssignableFrom(type)) {
 			nodeEntityClassCache.put(simpleName, type);
@@ -542,7 +558,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			if (classesForInterface == null) {
 
-				classesForInterface = new LinkedHashSet<>();
+				classesForInterface = new TLinkedHashSet<>();
 
 				interfaceCache.put(interfaceName, classesForInterface);
 
@@ -627,7 +643,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		Set<Class> interfaces = interfaceMap.get(type);
 		if (interfaces == null) {
 
-			interfaces = new LinkedHashSet<>();
+			interfaces = new TLinkedHashSet<>();
 			interfaceMap.put(type, interfaces);
 
 			for (Class iface : type.getInterfaces()) {
@@ -750,7 +766,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public Set<String> getPropertyViews() {
 
-		Set<String> views = new LinkedHashSet<>();
+		Set<String> views = new TLinkedHashSet<>();
 
 		// add all existing views
 		for (Map<String, Set<PropertyKey>> view : globalPropertyViewMap.values()) {
@@ -788,7 +804,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		Set<PropertyKey> properties = propertyViewMap.get(propertyView);
 
 		if (properties == null) {
-			properties = new LinkedHashSet<>();
+			properties = new TLinkedHashSet<>();
 		}
 
 		// read-only
@@ -814,7 +830,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		Set<PropertyKey> properties = propertyViewMap.get(propertyView);
 
 		if (properties == null) {
-			properties = new LinkedHashSet<>();
+			properties = new TLinkedHashSet<>();
 			propertyViewMap.put(propertyView, properties);
 		}
 
@@ -883,7 +899,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
 
-		Set<PropertyValidator> validators = new LinkedHashSet<>();
+		Set<PropertyValidator> validators = new TLinkedHashSet<>();
 		Map<PropertyKey, Set<PropertyValidator>> validatorMap = null;
 		Class localType = type;
 
@@ -1168,7 +1184,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private Set<String> getResourcesToScan() {
 
 		String classPath = System.getProperty("java.class.path");
-		Set<String> modules = new LinkedHashSet<>();
+		Set<String> modules = new TLinkedHashSet<>();
 		Pattern pattern = Pattern.compile(".*(structr).*(war|jar)");
 		Matcher matcher = pattern.matcher("");
 
@@ -1259,7 +1275,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		Collections.reverse(types);
 
-		return new LinkedHashSet<>(types);
+		return new TLinkedHashSet<>(types);
 	}
 
 	private void collectAllInterfaces(Class<?> type, List<Class<?>> interfaces) {
@@ -1372,7 +1388,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		Set<Transformation<GraphObject>> transformations = globalTransformationMap.get(name);
 		if (transformations == null) {
 
-			transformations = new LinkedHashSet<>();
+			transformations = new TLinkedHashSet<>();
 
 			globalTransformationMap.put(name, transformations);
 		}
@@ -1389,5 +1405,30 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 
 		return viewTransformationMap;
+	}
+
+	public void printCacheStats() {
+
+		System.out.println("###################################################");
+ 		System.out.println("" + relationshipEntityClassCache.size());
+ 		System.out.println("" + nodeEntityClassCache.size());
+ 		System.out.println("" + nodeEntityPackages.size());
+ 		System.out.println("" + relationshipPackages.size());
+		System.out.println("" + combinedTypeRelationClassCache.size());
+ 		System.out.println("" + interfaceCache.size());
+ 		System.out.println("" + globalPropertyViewMap.size());
+		System.out.println("" + globalValidatorMap.size());
+ 		System.out.println("" + globalClassDBNamePropertyMap.size());
+ 		System.out.println("" + globalClassJSNamePropertyMap.size());
+		System.out.println("" + globalAggregatedPropertyGroupMap.size());
+		System.out.println("" + globalPropertyGroupMap.size());
+		System.out.println("" + viewTransformations.size());
+		System.out.println("" + globalTransformationMap.size());
+		System.out.println("" + exportedMethodMap.size());
+		System.out.println("" + interfaceMap.size());
+	 	System.out.println("" + reverseInterfaceMap.size());
+		System.out.println("" + globalKnownPropertyKeys.size());
+		System.out.println("" + dynamicViews.size());
+		System.out.println("###################################################");
 	}
 }
