@@ -471,7 +471,7 @@
                         <exclude>src/main/deb/**</exclude>
                     </excludes>
                     <properties>
-                        <year>2014</year>
+                        <year>2015</year>
                         <owner>Morgner UG (haftungsbeschränkt)</owner>
                     </properties>
                 </configuration>
@@ -567,7 +567,7 @@
             <name>GNU Affero General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt), structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt), structr &lt;structr@structr.org&gt;
 
                 This file is part of structr &lt;http://structr.org&gt;.
 
