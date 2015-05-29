@@ -4,7 +4,7 @@
 #
 
 RUN_OPTS="-cp lib/*:${project.build.finalName}.jar"
-JAVA_OPTS="-Xms1g -Xmx1g -XX:+UseNUMA"
+JAVA_OPTS="-server -d64 -Xms1g -Xmx1g -XX:MaxPermSize=128m -XX:+UseNUMA"
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="${project.build.finalName}.jar"
 LOG_FILE="logs/server.log"
