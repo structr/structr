@@ -81,6 +81,7 @@ public class Services {
 	public static final String FOREIGN_TYPE                         = "foreign.type.key";
 	public static final String NEO4J_SHELL_ENABLED                  = "neo4j.shell.enabled";
 	public static final String NEO4J_SHELL_PORT                     = "neo4j.shell.port";
+	public static final String NEO4J_PAGE_CACHE_MEMORY              = "neo4j.pagecache.memory";
 	public static final String LOG_SERVICE_INTERVAL                 = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD                = "structr.logging.threshold";
 	public static final String SERVER_IP                            = "server.ip";
