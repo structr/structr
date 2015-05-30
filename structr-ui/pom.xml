@@ -233,7 +233,7 @@
                 <configuration>
                     <reuseForks>false</reuseForks>
                      <forkCount>1</forkCount>
-                    <argLine>-Xmx2048m -XX:MaxPermSize=256m</argLine>
+                    <argLine>-Xmx1g -XX:MaxPermSize=256m</argLine>
                     <systemPropertyVariables>
                         <user.timezone>UTC</user.timezone>
                     </systemPropertyVariables>

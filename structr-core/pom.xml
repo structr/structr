@@ -220,7 +220,7 @@
                 <configuration>
                     <reuseForks>false</reuseForks>
                     <forkCount>1</forkCount>
-                    <argLine>-Xmx1536m -XX:MaxPermSize=256m</argLine>
+                    <argLine>-Xmx1g -XX:MaxPermSize=256m</argLine>
                     <systemPropertyVariables>
                         <user.timezone>UTC</user.timezone>
                     </systemPropertyVariables>
@@ -241,7 +241,7 @@
                         <exclude>src/**/*.properties</exclude>
                     </excludes>
                     <properties>
-                        <year>2014</year>
+                        <year>2015</year>
                         <owner>Morgner UG (haftungsbeschränkt)</owner>
                     </properties>
                 </configuration>
