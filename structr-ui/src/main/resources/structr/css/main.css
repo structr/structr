@@ -2188,7 +2188,7 @@ input.bitmask {
 }
 
 #relationship-types {
-    top: 380px;
+    /*top: 380px;*/
 }
 
 .graph-object-types > div {
