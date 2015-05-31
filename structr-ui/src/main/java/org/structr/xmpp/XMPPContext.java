@@ -1,0 +1,332 @@
+package org.structr.xmpp;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import org.jivesoftware.smack.AbstractXMPPConnection;
+import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.ConnectionListener;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.SmackException.NotConnectedException;
+import org.jivesoftware.smack.StanzaListener;
+import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.filter.MessageWithBodiesFilter;
+import org.jivesoftware.smack.filter.StanzaTypeFilter;
+import org.jivesoftware.smack.java7.Java7SmackInitializer;
+import org.jivesoftware.smack.packet.IQ;
+import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.Presence.Mode;
+import org.jivesoftware.smack.packet.Stanza;
+import org.jivesoftware.smack.tcp.XMPPTCPConnection;
+import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
+import org.structr.xmpp.XMPPInfo.XMPPCallback;
+
+/**
+ *
+ * @author Christian Morgner
+ */
+public class XMPPContext {
+
+	private static final Map<String, XMPPClientConnection> connections = new HashMap<>();
+
+	static {
+
+		Services.getInstance().registerInitializationCallback(new Services.InitializationCallback() {
+
+			@Override
+			public void initializationDone() {
+
+				final App app = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					for (final XMPPClient client : app.nodeQuery(XMPPClient.class).getAsList()) {
+
+						client.setProperty(XMPPClient.isConnected, false);
+
+						// enable clients on startup
+						if (client.getProperty(XMPPClient.isEnabled)) {
+							XMPPContext.connect(client);
+						}
+					}
+
+					tx.success();
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+			}
+		});
+	}
+
+	public static void connect(final XMPPInfo callback) throws FrameworkException {
+
+		new Java7SmackInitializer().initialize();
+
+		final XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
+			.setUsernameAndPassword(callback.getUsername(), callback.getPassword())
+			.setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible)
+			.setServiceName(callback.getService())
+			.setHost(callback.getHostName())
+			.setPort(callback.getPort())
+			.build();
+
+		try {
+
+			final AbstractXMPPConnection connection = new XMPPTCPConnection(config);
+			connections.put(callback.getUuid(), new StructrXMPPConnection(callback, connection));
+			connection.connect();
+
+		} catch (IOException | SmackException | XMPPException ex) {
+
+			ex.printStackTrace();
+		}
+	}
+
+	public static XMPPClientConnection getClientForId(final String id) {
+		return connections.get(id);
+	}
+
+	public static class StructrXMPPConnection implements ConnectionListener, XMPPClientConnection {
+
+		private AbstractXMPPConnection connection = null;
+		private Exception exception               = null;
+		private boolean isAuthenticated           = false;
+		private boolean isConnected               = false;
+
+		public StructrXMPPConnection(final XMPPInfo info, final AbstractXMPPConnection connection) {
+
+			this.connection = connection;
+
+			connection.addConnectionListener(this);
+
+			connection.addAsyncStanzaListener(new CallbackAdapter(info.getPresenceCallback()), new StanzaTypeFilter(Presence.class));
+			connection.addAsyncStanzaListener(new CallbackAdapter(info.getMessageCallback()),  MessageWithBodiesFilter.INSTANCE);
+			connection.addAsyncStanzaListener(new CallbackAdapter(info.getIqCallback()),       new StanzaTypeFilter(IQ.class));
+		}
+
+		@Override
+		public void sendMessage(final String recipient, final String message) throws FrameworkException {
+
+			if (isConnected) {
+
+				try {
+
+					final Message messageObject = new Message(recipient);
+					messageObject.setBody(message);
+
+					connection.sendStanza(messageObject);
+
+				} catch (NotConnectedException nex) {
+
+					throw new FrameworkException(422, "Not connected");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected");
+			}
+		}
+
+		@Override
+		public void setPresence(final Mode mode) throws FrameworkException {
+
+			if (isConnected) {
+
+				try {
+					final Presence presence = new Presence(Presence.Type.available);
+					presence.setMode(mode);
+
+					connection.sendStanza(presence);
+
+				} catch (NotConnectedException nex) {
+
+					throw new FrameworkException(422, "Not connected");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected");
+			}
+		}
+
+		@Override
+		public void subscribe(final String to) throws FrameworkException {
+
+			if (isConnected) {
+
+				try {
+					final Presence presence = new Presence(Presence.Type.subscribe);
+					presence.setTo(to);
+
+					connection.sendStanza(presence);
+
+				} catch (NotConnectedException nex) {
+
+					throw new FrameworkException(422, "Not connected");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected");
+			}
+		}
+
+		@Override
+		public void confirmSubscription(final String subscriber) throws FrameworkException {
+
+			if (isConnected) {
+
+				try {
+					final Presence presence = new Presence(Presence.Type.subscribed);
+					presence.setTo(subscriber);
+
+					connection.sendStanza(presence);
+
+				} catch (NotConnectedException nex) {
+
+					throw new FrameworkException(422, "Not connected");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected");
+			}
+		}
+
+		@Override
+		public void denySubscription(final String subscriber) throws FrameworkException {
+
+			if (isConnected) {
+
+				try {
+					final Presence presence = new Presence(Presence.Type.unsubscribed);
+					presence.setTo(subscriber);
+
+					connection.sendStanza(presence);
+
+				} catch (NotConnectedException nex) {
+
+					throw new FrameworkException(422, "Not connected");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected");
+			}
+		}
+
+		@Override
+		public void unsubscribe(final String to) throws FrameworkException {
+
+			if (isConnected) {
+
+				try {
+					final Presence presence = new Presence(Presence.Type.unsubscribe);
+					presence.setTo(to);
+
+					connection.sendStanza(presence);
+
+				} catch (NotConnectedException nex) {
+
+					throw new FrameworkException(422, "Not connected");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected");
+			}
+		}
+
+		@Override
+		public Exception getException() {
+			return exception;
+		}
+
+		@Override
+		public boolean isConnected() {
+			return isConnected;
+		}
+
+		@Override
+		public boolean isAuthenticated() {
+			return isAuthenticated;
+		}
+
+		@Override
+		public void disconnect() {
+
+			if (isConnected) {
+				connection.disconnect();
+			}
+		}
+
+		// ----- interface ConnectionListener -----
+		@Override
+		public void connected(final XMPPConnection xmppc) {
+			isConnected = true;
+
+			try {
+				connection.login();
+
+			} catch (Exception ex) {
+
+				ex.printStackTrace();
+			}
+		}
+
+		@Override
+		public void authenticated(final XMPPConnection xmppc, final boolean resumed) {
+			isAuthenticated = true;
+		}
+
+		@Override
+		public void connectionClosed() {
+			isConnected = false;
+		}
+
+		@Override
+		public void connectionClosedOnError(final Exception excptn) {
+
+			isConnected = false;
+			this.exception = excptn;
+		}
+
+		@Override
+		public void reconnectionSuccessful() {
+			isConnected = true;
+		}
+
+		@Override
+		public void reconnectingIn(final int i) {
+		}
+
+		@Override
+		public void reconnectionFailed(final Exception excptn) {
+
+			isConnected = false;
+			this.exception = excptn;
+		}
+	}
+
+	private static class CallbackAdapter<T> implements StanzaListener {
+
+		private XMPPCallback<T> callback = null;
+
+		public CallbackAdapter(final XMPPCallback<T> callback) {
+			this.callback = callback;
+		}
+
+		@Override
+		public void processPacket(final Stanza packet) throws NotConnectedException {
+			callback.onMessage((T)packet);
+		}
+	}
+}
