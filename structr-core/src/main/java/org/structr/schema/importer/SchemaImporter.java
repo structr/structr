@@ -220,11 +220,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			// nodeTypes now contains all existing node types and their property sets
 			identifyCommonBaseClasses(app, nodeTypes, nodeIdMap, typeInfos);
 
-		
+
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
-		
+
 
 		logger.log(Level.INFO, "Collecting type information..");
 
@@ -232,7 +232,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 			// group type infos by type
 			collectTypeInfos(typeInfos, typeInfoTypeMap);
-		
+
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
@@ -240,10 +240,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		logger.log(Level.INFO, "Aggregating type information..");
 
 		try (final Tx tx = app.tx(true, false, false)) {
-		
+
 			// reduce type infos with more than one type
 			reduceTypeInfos(typeInfoTypeMap, reducedTypeInfos);
-		
+
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
@@ -253,7 +253,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 			// intersect property sets of type infos
 			intersectPropertySets(reducedTypeInfos);
-		
+
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
@@ -264,7 +264,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 			// sort type infos
 			Collections.sort(reducedTypeInfos, new HierarchyComparator(false));
-		
+
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
@@ -285,8 +285,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				reducedTypeInfoMap.put(type, info);
 
 				for (final Long nodeId : info.getNodeIds()) {
-					
-					final Node node = app.getGraphDatabaseService().getNodeById(nodeId);
+
+					final Node node = graphDb.getNodeById(nodeId);
 
 					node.setProperty(GraphObject.id.dbName(), NodeServiceCommand.getNextUuid());
 					node.setProperty(GraphObject.type.dbName(), type);
@@ -506,7 +506,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		// finding all NodeInfo entries that share at least one type
 
 		for (final NodeInfo nodeInfo : nodeTypes) {
-			
+
 			final Set<String> allTypes = nodeInfo.getTypes();
 			for (final String type : allTypes) {
 
