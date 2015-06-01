@@ -45,6 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
+import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.shell.ShellSettings;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
@@ -154,6 +155,9 @@ public class NodeService implements SingletonService {
 		// neo4j remote shell configuration
 		builder.setConfig(ShellSettings.remote_shell_enabled, config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"));
 		builder.setConfig(ShellSettings.remote_shell_port,    config.getProperty(Services.NEO4J_SHELL_PORT, "1337"));
+		
+		// Neo4j page cache memory, default 64m 
+		builder.setConfig(GraphDatabaseSettings.pagecache_memory, config.getProperty(Services.NEO4J_PAGE_CACHE_MEMORY, Long.toString(1024*1024*64L)));
 
 		// create graph database instance
 		graphDb = builder.newGraphDatabase();

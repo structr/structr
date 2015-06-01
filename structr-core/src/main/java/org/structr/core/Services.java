@@ -81,6 +81,7 @@ public class Services {
 	public static final String FOREIGN_TYPE                         = "foreign.type.key";
 	public static final String NEO4J_SHELL_ENABLED                  = "neo4j.shell.enabled";
 	public static final String NEO4J_SHELL_PORT                     = "neo4j.shell.port";
+	public static final String NEO4J_PAGE_CACHE_MEMORY              = "neo4j.pagecache.memory";
 	public static final String LOG_SERVICE_INTERVAL                 = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD                = "structr.logging.threshold";
 	public static final String SERVER_IP                            = "server.ip";
@@ -118,6 +119,7 @@ public class Services {
 	private static Services singletonInstance          = null;
 
 	// non-static members
+	private final List<InitializationCallback> callbacks       = new LinkedList<>();
 	private final Set<Permission> permissionsForOwnerlessNodes = new LinkedHashSet<>();
 	private final Map<String, Object> attributes               = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<Class, Service> serviceCache             = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -268,6 +270,11 @@ public class Services {
 
 		initialize(config);
 
+
+		for (final InitializationCallback callback : callbacks) {
+			callback.initializationDone();
+		}
+
 	}
 
 	private void initialize(final StructrConf properties) {
@@ -366,6 +373,10 @@ public class Services {
 		logger.log(Level.INFO, "Initialization complete");
 
 		initializationDone = true;
+	}
+
+	public void registerInitializationCallback(final InitializationCallback callback) {
+		callbacks.add(callback);
 	}
 
 	public boolean isInitialized() {
@@ -830,7 +841,7 @@ public class Services {
 		if (StringUtils.isBlank(value)) {
 			return defaultValue;
 		}
-		
+
 		try {
 			return Boolean.parseBoolean(value);
 		} catch(Throwable ignore) {}
@@ -849,5 +860,10 @@ public class Services {
 
 	public static Set<Permission> getPermissionsForOwnerlessNodes() {
 		return getInstance().permissionsForOwnerlessNodes;
+	}
+
+	// ----- nested classes -----
+	public static interface InitializationCallback {
+		public void initializationDone();
 	}
 }

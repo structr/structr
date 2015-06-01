@@ -26,7 +26,7 @@ var activeTabLeftGraph, activeTabRightGraph;
 var queriesSlideout, displaySlideout, filtersSlideout, nodesSlideout, relationshipsSlideout, graph;
 var savedQueriesKey = 'structrSavedQueries_' + port;
 var relTypes = {}, nodeTypes = {}, nodeColors = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
-var hiddenNodeTypes = [], hiddenRelTypes = ['OWNS', 'SECURITY'];
+var hiddenNodeTypes = [], hiddenRelTypes = []; //['OWNS', 'SECURITY'];
 var edgeType = 'curvedArrow';
 var schemaNodes = {}, schemaRelationships = {}, schemaNodesById = {};
 
@@ -142,7 +142,7 @@ var _Graph = {
                 edgeHoverColor: 'default',
                 edgeHoverSizeRatio: 1.3,
                 edgeHoverExtremities: true,
-                defaultEdgeHoverColor: '#555',
+                defaultEdgeHoverColor: '#888',
                 //edgeLabelSize: 'proportional',
                 minArrowSize: 12
                         //sideMargin: 1,
@@ -747,7 +747,7 @@ var _Graph = {
     findRelationships: function(sourceId, targedId, relType) {
         var edges = [];
         engine.graph.edges().forEach(function(edge) {
-            if (edge.source === sourceId && edge.target === targedId && edge.relType === relType) {
+            if (edge.source === sourceId && edge.target === targedId && (!relType || edge.relType === relType)) {
                 edges.push(edge);
             }
         });
@@ -777,11 +777,13 @@ var _Graph = {
     drawRel: function(r) {
         relIds.push(r.id);
         _Graph.setRelationshipColor(r);
-        var existingEdges = _Graph.findRelationships(r.sourceId, r.targetId, r.relType);
-        var c = existingEdges.length * 10;
+        //var existingEdges = _Graph.findRelationships(r.sourceId, r.targetId, r.relType);
+        var existingEdges = _Graph.findRelationships(r.sourceId, r.targetId);
+        var c = existingEdges.length * 15;
+        //console.log('Found existing edges:', r, existingEdges, c);
         engine.graph.addEdge({
             id: r.id,
-            label: r.relType + c,
+            label: r.relType,
             source: r.sourceId,
             target: r.targetId,
             size: 40,
@@ -836,6 +838,10 @@ var _Graph = {
         $('canvas', graph).css({
             height: ch,
             width: win.width(),
+        });
+
+        $('#relationship-types').css({
+            top: $('#node-types').height() + $('#node-types').position().top + 64
         });
 
         if (engine) {
