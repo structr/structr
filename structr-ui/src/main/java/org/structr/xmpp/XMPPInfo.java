@@ -1,9 +1,5 @@
 package org.structr.xmpp;
 
-import org.jivesoftware.smack.packet.IQ;
-import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Presence;
-
 
 /**
  *
@@ -18,13 +14,4 @@ public interface XMPPInfo {
 	public int getPort();
 
 	public String getUuid();
-
-	public XMPPCallback<Message> getMessageCallback();
-	public XMPPCallback<Presence> getPresenceCallback();
-	public XMPPCallback<IQ> getIqCallback();
-
-	public interface XMPPCallback<T> {
-
-		public void onMessage(final T message);
-	}
 }

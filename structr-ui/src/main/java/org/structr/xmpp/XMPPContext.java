@@ -3,6 +3,8 @@ package org.structr.xmpp;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
@@ -11,14 +13,15 @@ import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.filter.MessageWithBodiesFilter;
-import org.jivesoftware.smack.filter.StanzaTypeFilter;
 import org.jivesoftware.smack.java7.Java7SmackInitializer;
-import org.jivesoftware.smack.packet.IQ;
+import org.jivesoftware.smack.packet.Bind;
+import org.jivesoftware.smack.packet.EmptyResultIQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Mode;
 import org.jivesoftware.smack.packet.Stanza;
+import org.jivesoftware.smack.roster.packet.RosterPacket;
+import org.jivesoftware.smack.sm.predicates.ForEveryStanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.structr.common.error.FrameworkException;
@@ -26,7 +29,12 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.xmpp.XMPPInfo.XMPPCallback;
+import org.structr.xmpp.handler.BindTypeHandler;
+import org.structr.xmpp.handler.EmptyResultIQTypeHandler;
+import org.structr.xmpp.handler.MessageTypeHandler;
+import org.structr.xmpp.handler.PresenceTypeHandler;
+import org.structr.xmpp.handler.RosterPacketTypeHandler;
+import org.structr.xmpp.handler.TypeHandler;
 
 /**
  *
@@ -34,7 +42,18 @@ import org.structr.xmpp.XMPPInfo.XMPPCallback;
  */
 public class XMPPContext {
 
+	private static final Logger logger                                 = Logger.getLogger(XMPPContext.class.getName());
 	private static final Map<String, XMPPClientConnection> connections = new HashMap<>();
+	private static final Map<Class, TypeHandler> typeHandlers          = new HashMap<>();
+
+	static {
+
+		typeHandlers.put(Bind.class,          new BindTypeHandler());
+		typeHandlers.put(RosterPacket.class,  new RosterPacketTypeHandler());
+		typeHandlers.put(Presence.class,      new PresenceTypeHandler());
+		typeHandlers.put(Message.class,       new MessageTypeHandler());
+		typeHandlers.put(EmptyResultIQ.class, new EmptyResultIQTypeHandler());
+	}
 
 	static {
 
@@ -72,7 +91,8 @@ public class XMPPContext {
 
 		final XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
 			.setUsernameAndPassword(callback.getUsername(), callback.getPassword())
-			.setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible)
+//			.setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible)
+			.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
 			.setServiceName(callback.getService())
 			.setHost(callback.getHostName())
 			.setPort(callback.getPort())
@@ -94,22 +114,23 @@ public class XMPPContext {
 		return connections.get(id);
 	}
 
-	public static class StructrXMPPConnection implements ConnectionListener, XMPPClientConnection {
+	public static class StructrXMPPConnection implements ConnectionListener, XMPPClientConnection, StanzaListener {
 
 		private AbstractXMPPConnection connection = null;
 		private Exception exception               = null;
 		private boolean isAuthenticated           = false;
 		private boolean isConnected               = false;
+		private String uuid                       = null;
+		private String resource                   = null;
+		private String jid                        = null;
 
 		public StructrXMPPConnection(final XMPPInfo info, final AbstractXMPPConnection connection) {
 
 			this.connection = connection;
+			this.uuid       = info.getUuid();
 
 			connection.addConnectionListener(this);
-
-			connection.addAsyncStanzaListener(new CallbackAdapter(info.getPresenceCallback()), new StanzaTypeFilter(Presence.class));
-			connection.addAsyncStanzaListener(new CallbackAdapter(info.getMessageCallback()),  MessageWithBodiesFilter.INSTANCE);
-			connection.addAsyncStanzaListener(new CallbackAdapter(info.getIqCallback()),       new StanzaTypeFilter(IQ.class));
+			connection.addAsyncStanzaListener(this, ForEveryStanza.INSTANCE);
 		}
 
 		@Override
@@ -268,6 +289,18 @@ public class XMPPContext {
 			}
 		}
 
+		public String getUuid() {
+			return uuid;
+		}
+
+		public void setJID(final String jid) {
+			this.jid = jid;
+		}
+
+		public void setResource(final String resource) {
+			this.resource = resource;
+		}
+
 		// ----- interface ConnectionListener -----
 		@Override
 		public void connected(final XMPPConnection xmppc) {
@@ -314,19 +347,19 @@ public class XMPPContext {
 			isConnected = false;
 			this.exception = excptn;
 		}
-	}
-
-	private static class CallbackAdapter<T> implements StanzaListener {
-
-		private XMPPCallback<T> callback = null;
-
-		public CallbackAdapter(final XMPPCallback<T> callback) {
-			this.callback = callback;
-		}
 
 		@Override
 		public void processPacket(final Stanza packet) throws NotConnectedException {
-			callback.onMessage((T)packet);
+
+			final TypeHandler handler = typeHandlers.get(packet.getClass());
+			if (handler != null) {
+
+				handler.handle(this, packet);
+
+			} else {
+
+				logger.log(Level.WARNING, "No type handler for type {0}", packet.getClass());
+			}
 		}
 	}
 }

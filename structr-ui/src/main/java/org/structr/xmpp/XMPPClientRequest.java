@@ -7,7 +7,7 @@ import org.structr.core.entity.Relation;
  *
  * @author Christian Morgner
  */
-public class XMPPClientInMessage extends OneToMany<XMPPClient, IncomingXMPPMessage> {
+public class XMPPClientRequest extends OneToMany<XMPPClient, XMPPRequest> {
 
 	@Override
 	public Class<XMPPClient> getSourceType() {
@@ -15,13 +15,13 @@ public class XMPPClientInMessage extends OneToMany<XMPPClient, IncomingXMPPMessa
 	}
 
 	@Override
-	public Class<IncomingXMPPMessage> getTargetType() {
-		return IncomingXMPPMessage.class;
+	public Class<XMPPRequest> getTargetType() {
+		return XMPPRequest.class;
 	}
 
 	@Override
 	public String name() {
-		return "RECEIVED";
+		return "PENDING_REQUEST";
 	}
 
 	@Override

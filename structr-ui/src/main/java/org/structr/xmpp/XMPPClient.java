@@ -1,15 +1,18 @@
 package org.structr.xmpp;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Mode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -23,6 +26,8 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.rest.RestMethodResult;
+import org.structr.schema.SchemaService;
 
 /**
  *
@@ -30,31 +35,33 @@ import org.structr.core.property.StringProperty;
  */
 public class XMPPClient extends AbstractNode implements XMPPInfo {
 
-	public static final Property<List<IncomingXMPPMessage>> receivedMessages = new EndNodes<>("receivedMessages", XMPPClientInMessage.class);
-	public static final Property<List<OutgoingXMPPMessage>> sentMessages     = new EndNodes<>("sentMessages", XMPPClientOutMessage.class);
+	private static final Logger logger = Logger.getLogger(XMPPClient.class.getName());
 
-	public static final Property<String>  xmppHandle   = new FunctionProperty("xmppHandle").format("concat(this.xmppUsername, '@', this.xmppHost)").indexed();
-	public static final Property<String>  xmppUsername = new StringProperty("xmppUsername").indexed();
-	public static final Property<String>  xmppPassword = new StringProperty("xmppPassword");
-	public static final Property<String>  xmppService  = new StringProperty("xmppService");
-	public static final Property<String>  xmppHost     = new StringProperty("xmppHost");
-	public static final Property<Integer> xmppPort     = new IntProperty("xmppPort");
+	public static final Property<List<XMPPRequest>> pendingRequests = new EndNodes<>("pendingRequests", XMPPClientRequest.class);
+	public static final Property<String>            xmppHandle      = new FunctionProperty("xmppHandle").format("concat(this.xmppUsername, '@', this.xmppHost)").indexed();
+	public static final Property<String>            xmppUsername    = new StringProperty("xmppUsername").indexed();
+	public static final Property<String>            xmppPassword    = new StringProperty("xmppPassword");
+	public static final Property<String>            xmppService     = new StringProperty("xmppService");
+	public static final Property<String>            xmppHost        = new StringProperty("xmppHost");
+	public static final Property<Integer>           xmppPort        = new IntProperty("xmppPort");
+	public static final Property<Mode>              presenceMode    = new EnumProperty("presenceMode", Mode.class, Mode.available);
+	public static final Property<Boolean>           isEnabled       = new BooleanProperty("isEnabled");
+	public static final Property<Boolean>           isConnected     = new BooleanProperty("isConnected");
 
-	public static final Property<Mode> presenceMode    = new EnumProperty("presenceMode", Mode.class, Mode.available);
+	static {
 
-	public static final Property<Boolean> isEnabled    = new BooleanProperty("isEnabled");
-	public static final Property<Boolean> isConnected  = new BooleanProperty("isConnected");
+		SchemaService.registerBuiltinTypeOverride("XMPPClient", XMPPClient.class.getName());
+	}
+
 
 
 	public static final View publicView = new View(XMPPClient.class, PropertyView.Public,
-		xmppHandle, xmppUsername, xmppService, xmppHost, xmppPort, presenceMode, isEnabled, isConnected, receivedMessages, sentMessages
+		xmppHandle, xmppUsername, xmppPassword, xmppService, xmppHost, xmppPort, presenceMode, isEnabled, isConnected, pendingRequests
 	);
 
 	public static final View uiView = new View(XMPPClient.class, PropertyView.Ui,
-		xmppHandle, xmppUsername, xmppService, xmppHost, xmppPort, presenceMode, isEnabled, isConnected, receivedMessages, sentMessages
+		xmppHandle, xmppUsername, xmppPassword, xmppService, xmppHost, xmppPort, presenceMode, isEnabled, isConnected, pendingRequests
 	);
-
-
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -142,116 +149,149 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 		return getProperty(xmppPort);
 	}
 
-	@Override
-	public XMPPCallback<Message> getMessageCallback() {
+	@Export
+	public RestMethodResult doSendMessage(final String recipient, final String message) throws FrameworkException {
 
-		return new MessageCallback<Message>(getUuid()) {
+		if (getProperty(isEnabled)) {
 
-			@Override
-			public void onMessage(final Message message) {
+			final XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+			if (connection.isConnected()) {
 
-				final App app = StructrApp.getInstance();
+				connection.sendMessage(recipient, message);
 
-				try (final Tx tx = app.tx()) {
+			} else {
 
-					final XMPPClient client = getClient();
-					if (client != null) {
-
-						app.create(IncomingXMPPMessage.class,
-							new NodeAttribute(IncomingXMPPMessage.sender, cleanXMPPUserName(message.getFrom())),
-							new NodeAttribute(IncomingXMPPMessage.recipient, cleanXMPPUserName(message.getTo())),
-							new NodeAttribute(IncomingXMPPMessage.text, message.getBody()),
-							new NodeAttribute(IncomingXMPPMessage.owner, client.getProperty(AbstractNode.owner))
-						);
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
-				}
-			}
-		};
-	}
-
-	@Override
-	public XMPPCallback<Presence> getPresenceCallback() {
-
-		return new MessageCallback<Presence>(getUuid()) {
-
-			@Override
-			public void onMessage(final Presence message) {
-
-				System.out.println("PRESENCE: " + message);
-
-//				try (final Tx tx = StructrApp.getInstance().tx()) {
-//
-//					final XMPPClient client = getClient();
-//					if (client != null) {
-//
-//
-//					}
-//
-//					tx.success();
-//
-//				} catch (FrameworkException fex) {
-//					fex.printStackTrace();
-//				}
-			}
-		};
-	}
-
-	@Override
-	public XMPPCallback<IQ> getIqCallback() {
-
-		return new MessageCallback<IQ>(getUuid()) {
-
-			@Override
-			public void onMessage(final IQ message) {
-
-				System.out.println("IQ: " + message);
-//
-//				try (final Tx tx = StructrApp.getInstance().tx()) {
-//
-//					final XMPPClient client = getClient();
-//					if (client != null) {
-//
-//
-//					}
-//
-//					tx.success();
-//
-//				} catch (FrameworkException fex) {
-//					fex.printStackTrace();
-//				}
-			}
-		};
-	}
-
-	// ----- private methods -----
-	private String cleanXMPPUserName(final String source) {
-
-		if (source != null) {
-
-			if (source.contains("/")) {
-				return source.substring(0, source.lastIndexOf("/"));
+				throw new FrameworkException(422, "Not connected.");
 			}
 		}
 
-		return source;
+		return new RestMethodResult(200);
 	}
 
-	// ----- nested classes -----
-	private static abstract class MessageCallback<T> implements XMPPCallback<T> {
+	@Export
+	public RestMethodResult doSubscribe(final String recipient) throws FrameworkException {
 
-		private String uuid = null;
+		if (getProperty(isEnabled)) {
 
-		public MessageCallback(final String uuid) {
-			this.uuid = uuid;
+			final XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+			if (connection.isConnected()) {
+
+				connection.subscribe(recipient);
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected.");
+			}
 		}
 
-		protected XMPPClient getClient() throws FrameworkException {
-			return StructrApp.getInstance().get(XMPPClient.class, uuid);
+		return new RestMethodResult(200);
+	}
+
+	@Export
+	public RestMethodResult doUnsubscribe(final String recipient) throws FrameworkException {
+
+		if (getProperty(isEnabled)) {
+
+			final XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+			if (connection.isConnected()) {
+
+				connection.unsubscribe(recipient);
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected.");
+			}
+		}
+
+		return new RestMethodResult(200);
+	}
+
+	@Export
+	public RestMethodResult doConfirmSubscription(final String recipient) throws FrameworkException {
+
+		if (getProperty(isEnabled)) {
+
+			final XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+			if (connection.isConnected()) {
+
+				connection.confirmSubscription(recipient);
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected.");
+			}
+		}
+
+		return new RestMethodResult(200);
+	}
+
+	@Export
+	public RestMethodResult doDenySubscription(final String recipient) throws FrameworkException {
+
+		if (getProperty(isEnabled)) {
+
+			final XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+			if (connection.isConnected()) {
+
+				connection.denySubscription(recipient);
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected.");
+			}
+		}
+
+		return new RestMethodResult(200);
+	}
+
+	// ----- static methods -----
+	public static void onMessage(final String uuid, final Message message) {
+
+		final App app = StructrApp.getInstance();
+		try (final Tx tx = app.tx()) {
+
+			final XMPPClient client = StructrApp.getInstance().get(XMPPClient.class, uuid);
+			if (client != null) {
+
+				final String callbackName            = "onXMPP" + message.getClass().getSimpleName();
+				final Map<String, Object> properties = new HashMap<>();
+
+				properties.put("sender", message.getFrom());
+				properties.put("message", message.getBody());
+
+				client.invokeMethod(callbackName, properties, false);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+	}
+
+	public static void onRequest(final String uuid, final IQ request) {
+
+		final App app = StructrApp.getInstance();
+		try (final Tx tx = app.tx()) {
+
+			final XMPPClient client = StructrApp.getInstance().get(XMPPClient.class, uuid);
+			if (client != null) {
+
+				app.create(XMPPRequest.class,
+					new NodeAttribute(XMPPRequest.client, client),
+					new NodeAttribute(XMPPRequest.sender, request.getFrom()),
+					new NodeAttribute(XMPPRequest.owner, client.getProperty(XMPPClient.owner)),
+					new NodeAttribute(XMPPRequest.content, request.toXML().toString()),
+					new NodeAttribute(XMPPRequest.requestType, request.getType())
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
 		}
 	}
 }
