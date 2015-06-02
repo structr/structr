@@ -20,6 +20,7 @@ package org.structr.schema.importer;
 
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
+import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,8 @@ import java.util.Set;
  */
 public class TypeInfo {
 
+	private static final String userHome = System.getProperty("user.home");
+
 	private final Map<String, Class> propertySet = new THashMap<>();
 	private final Set<String> otherTypes         = new THashSet<>();
 	private Collection<Long> nodeIds             = null;
@@ -38,7 +41,7 @@ public class TypeInfo {
 
 	public TypeInfo(final String primaryType, final Set<String> otherTypes, final Collection<Long> nodeIds) {
 
-		this.nodeIds     = new LazyFileBasedLongCollection("/home/chrisi/tmp/schemaAnalyzer/" + primaryType + ".lfc");
+		this.nodeIds     = new LazyFileBasedLongCollection(userHome + File.separator + ".structrSchemaAnalyzer" + File.separator + primaryType + ".lfc");
 		this.primaryType = primaryType;
 
 		this.otherTypes.addAll(otherTypes);
