@@ -75,17 +75,18 @@ public abstract class NodeServiceCommand extends Command {
 	 */
 	public static <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
 
-		final App app              = StructrApp.getInstance(securityContext);
-		long objectCount           = 0L;
-		boolean active             = true;
+		final org.neo4j.helpers.Predicate<Long> condition = operation.getCondition();
+		final App app                   = StructrApp.getInstance(securityContext);
+		long objectCount                = 0L;
+		boolean active                  = true;
 
 		while (active) {
 
+			active = false;
+
 			try (final Tx tx = app.tx()) {
 
-				active = false;
-
-				while (iterator.hasNext()) {
+				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 
 					T node = iterator.next();
 					active = true;

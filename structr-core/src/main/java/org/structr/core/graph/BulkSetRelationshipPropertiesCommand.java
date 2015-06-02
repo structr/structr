@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
@@ -118,6 +119,11 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to set relationship properties: {0}", t.getMessage() );
+				}
+
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
 				}
 
 			});

@@ -28,6 +28,7 @@ import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.GraphObject;
@@ -112,6 +113,11 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 				logger.log(Level.WARNING, "Unable to create labels for node: {0}", t.getMessage());
 
+			}
+
+			@Override
+			public Predicate<Long> getCondition() {
+				return null;
 			}
 
 		});

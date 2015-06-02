@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.GraphObject;
@@ -118,6 +119,11 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					}
 
+					@Override
+					public Predicate<Long> getCondition() {
+						return null;
+					}
+
 				});
 
 				logger.log(Level.INFO, "Done with setting UUID on {0} nodes", count);
@@ -168,6 +174,11 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					logger.log(Level.WARNING, "Unable to set UUID on relationship: {0}", t.getMessage());
 
+				}
+
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
 				}
 
 			});

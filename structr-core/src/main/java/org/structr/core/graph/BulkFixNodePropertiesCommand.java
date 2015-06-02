@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -150,6 +151,11 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 						@Override
 						public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 							t.printStackTrace();
+						}
+
+						@Override
+						public Predicate<Long> getCondition() {
+							return null;
 						}
 					});
 

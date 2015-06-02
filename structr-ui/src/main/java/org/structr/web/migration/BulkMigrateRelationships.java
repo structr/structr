@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
@@ -135,6 +136,11 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to migrate relationship: {0}", t.getMessage() );
+				}
+
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
 				}
 			});
 

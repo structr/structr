@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -70,7 +71,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 				relIterator = Iterables.map(relFactory, GlobalGraphOperations.at(graphDb).getAllRelationships()).iterator();
 				tx.success();
-			} 
+			}
 
 			long count = bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
@@ -103,6 +104,11 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to copy relationship properties: {0}", t.getMessage() );
+				}
+
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
 				}
 			});
 

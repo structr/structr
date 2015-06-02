@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -135,6 +136,11 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to set node properties: {0}", t.getMessage() );
+				}
+
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
 				}
 			});
 

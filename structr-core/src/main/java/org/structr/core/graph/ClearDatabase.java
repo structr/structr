@@ -29,6 +29,7 @@ import org.structr.core.entity.AbstractNode;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
@@ -94,6 +95,11 @@ public class ClearDatabase extends NodeServiceCommand {
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to clear database: {0}", t.getMessage() );
+				}
+
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
 				}
 			});
 

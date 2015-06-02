@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
@@ -104,6 +105,11 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 				}
 
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
+				}
+
 			});
 
 			logger.log(Level.INFO, "Done with (re-)indexing {0} nodes", count);
@@ -156,6 +162,11 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 					logger.log(Level.WARNING, "Unable to index relationship: {0}", t.getMessage());
 
+				}
+
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
 				}
 
 			});

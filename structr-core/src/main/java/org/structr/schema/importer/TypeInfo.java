@@ -20,8 +20,7 @@ package org.structr.schema.importer;
 
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,15 +30,17 @@ import java.util.Set;
  */
 public class TypeInfo {
 
-	private Map<String, Class> propertySet = new THashMap<>();
-	private Set<String> otherTypes         = new THashSet<>();
-	private List<Long> nodeIds             = new LinkedList<>();
-	private String primaryType             = null;
-	private int hierarchyLevel             = 0;
+	private final Map<String, Class> propertySet = new THashMap<>();
+	private final Set<String> otherTypes         = new THashSet<>();
+	private Collection<Long> nodeIds             = null;
+	private String primaryType                   = null;
+	private int hierarchyLevel                   = 0;
 
-	public TypeInfo(final String primaryType, final Set<String> otherTypes, final List<Long> nodeIds) {
+	public TypeInfo(final String primaryType, final Set<String> otherTypes, final Collection<Long> nodeIds) {
 
+		this.nodeIds     = new LazyFileBasedLongCollection("/home/chrisi/tmp/schemaAnalyzer/" + primaryType + ".lfc");
 		this.primaryType = primaryType;
+
 		this.otherTypes.addAll(otherTypes);
 		this.otherTypes.remove(primaryType);
 
@@ -118,7 +119,7 @@ public class TypeInfo {
 		return otherTypes;
 	}
 
-	public List<Long> getNodeIds() {
+	public Collection<Long> getNodeIds() {
 		return nodeIds;
 	}
 
