@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.helpers.Predicate;
@@ -73,7 +74,9 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				tx.success();
 			}
 
-			long count = bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+			final AtomicLong count = new AtomicLong();
+
+			bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -110,9 +113,14 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				public Predicate<Long> getCondition() {
 					return null;
 				}
+
+				@Override
+				public AtomicLong getCounter() {
+					return count;
+				}
 			});
 
-			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count);
+			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count.get());
 
 		}
 	}

@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
@@ -96,7 +97,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			// remove "type" so it won't be set later
 			properties.remove("type");
 
-			long nodeCount  = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+			final AtomicLong nodeCount = new AtomicLong();
+			bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -161,10 +163,15 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 				public Predicate<Long> getCondition() {
 					return null;
 				}
+
+				@Override
+				public AtomicLong getCounter() {
+					return nodeCount;
+				}
 			});
 
 
-			logger.log(Level.INFO, "Fixed {0} nodes ...", nodeCount);
+			logger.log(Level.INFO, "Fixed {0} nodes ...", nodeCount.get());
 		}
 
 		logger.log(Level.INFO, "Done");

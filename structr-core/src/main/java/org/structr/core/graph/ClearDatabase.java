@@ -19,6 +19,7 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -70,7 +71,9 @@ public class ClearDatabase extends NodeServiceCommand {
 				fex.printStackTrace();
 			}
 
-			long deletedNodes = bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
+			final AtomicLong deletedNodes = new AtomicLong();
+
+			bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -101,9 +104,15 @@ public class ClearDatabase extends NodeServiceCommand {
 				public Predicate<Long> getCondition() {
 					return null;
 				}
+
+				@Override
+				public AtomicLong getCounter() {
+					return deletedNodes;
+				}
+
 			});
 
-			logger.log(Level.INFO, "Finished deleting {0} nodes", deletedNodes);
+			logger.log(Level.INFO, "Finished deleting {0} nodes", deletedNodes.get());
 
 		}
 	}

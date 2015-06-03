@@ -20,6 +20,7 @@ package org.structr.web.migration;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -69,8 +70,9 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 		if (graphDb != null) {
 
 			final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships())).iterator();
+			final AtomicLong counter                         = new AtomicLong();
 
-			long count = bulkGraphOperation(securityContext, relIterator, 1000, "MigrateRelationships", new BulkGraphOperation<AbstractRelationship>() {
+			bulkGraphOperation(securityContext, relIterator, 1000, "MigrateRelationships", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -142,9 +144,14 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 				public Predicate<Long> getCondition() {
 					return null;
 				}
+
+				@Override
+				public AtomicLong getCounter() {
+					return counter;
+				}
 			});
 
-			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count);
+			logger.log(Level.INFO, "Finished setting properties on {0} nodes", counter.get());
 
 		}
 	}

@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.helpers.Predicate;
@@ -105,6 +106,11 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 				@Override
 				public Predicate<Long> getCondition() {
 					return null;
+				}
+
+				@Override
+				public AtomicLong getCounter() {
+					return new AtomicLong();
 				}
 			});
 

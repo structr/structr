@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.helpers.Predicate;
@@ -82,7 +83,8 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 				}
 			}
 
-			long count = NodeServiceCommand.bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+			final AtomicLong count = new AtomicLong();
+			NodeServiceCommand.bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -126,9 +128,13 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 					return null;
 				}
 
+				@Override
+				public AtomicLong getCounter() {
+					return count;
+				}
 			});
 
-			logger.log(Level.INFO, "Finished setting properties on {0} relationships", count);
+			logger.log(Level.INFO, "Finished setting properties on {0} relationships", count.get());
 		}
 	}
 

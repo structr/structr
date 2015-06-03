@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -212,13 +213,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			@Override
 			public Predicate<Long> getCondition() {
 				return null;
-//				return new Predicate<Long>() {
-//
-//					@Override
-//					public boolean accept(Long item) {
-//						return item < 1_000_000;
-//					}
-//				};
+			}
+
+			@Override
+			public AtomicLong getCounter() {
+				return new AtomicLong();
 			}
 		});
 
@@ -312,6 +311,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				public Predicate<Long> getCondition() {
 					return null;
 				}
+
+				@Override
+				public AtomicLong getCounter() {
+					return new AtomicLong();
+				}
 			});
 		}
 
@@ -368,13 +372,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			@Override
 			public Predicate<Long> getCondition() {
 				return null;
-//				return new Predicate<Long>() {
-//
-//					@Override
-//					public boolean accept(Long item) {
-//						return item < 1_000_000;
-//					}
-//				};
+			}
+
+			@Override
+			public AtomicLong getCounter() {
+				return new AtomicLong();
 			}
 		});
 
@@ -476,11 +478,15 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			public Predicate<Long> getCondition() {
 				return null;
 			}
+
+			@Override
+			public AtomicLong getCounter() {
+				return new AtomicLong();
+			}
 		});
 
 
 		logger.log(Level.INFO, "Starting with schema relationship creation..");
-
 
 		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedRelationshipInfos.iterator(), 100000, "Creating schema relationships", new BulkGraphOperation<RelationshipInfo>() {
 
@@ -510,6 +516,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			@Override
 			public Predicate<Long> getCondition() {
 				return null;
+			}
+
+			@Override
+			public AtomicLong getCounter() {
+				return new AtomicLong();
 			}
 		});
 
