@@ -19,6 +19,29 @@ public interface XMPPClientConnection {
 	public void sendMessage(final String recipient, final String message) throws FrameworkException;
 
 	/**
+	 * Sends the given message to the given XMPP chatroom. An optional password
+	 * can be provided to join a password-protected chatroom prior to sending
+	 * the message.
+	 *
+	 * @param chatRoom
+	 * @param message
+	 * @param password
+	 * @throws FrameworkException
+	 */
+	public void sendChatMessage(final String chatRoom, final String message, final String password) throws FrameworkException;
+
+	/**
+	 * Joins the given chatroom using the given nickname and an (optional) password.
+	 * Password can be null or empty to indicate that no password should be used.
+	 *
+	 * @param chatRoom
+	 * @param nickname
+	 * @param password
+	 * @throws FrameworkException
+	 */
+	public void joinChat(final String chatRoom, final String nickname, final String password) throws FrameworkException;
+
+	/**
 	 * Broadcast the given presence status.
 	 *
 	 * @param mode

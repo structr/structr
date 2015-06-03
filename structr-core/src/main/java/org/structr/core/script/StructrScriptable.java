@@ -453,7 +453,7 @@ public class StructrScriptable extends ScriptableObject {
 		public GraphObjectWrapper(final Scriptable scope, final GraphObject obj) {
 
 			this.scope = scope;
-			this.obj         = obj;
+			this.obj   = obj;
 		}
 
 		@Override
