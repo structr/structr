@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -35,13 +36,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			file.delete();
 		}
 
-		try {
-
-			dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, true)));
-
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
-		}
+		open(true);
 	}
 
 
@@ -73,27 +68,48 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 	@Override
 	public boolean isEmpty() {
-		return file.exists();
+		return !iterator().hasNext();
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		for (final Long val : this) {
+
+			if (val.equals(o)) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	@Override
 	public Iterator<Long> iterator() {
-		return new FileIterator();
+		return new FileIterator(file);
 	}
 
 	@Override
 	public Object[] toArray() {
-		throw new UnsupportedOperationException("Not supported.");
+
+		final ArrayList<Long> list = new ArrayList<>();
+		for (final Long val : this) {
+			list.add(val);
+		}
+
+		return list.toArray();
 	}
 
 	@Override
 	public <T> T[] toArray(T[] a) {
-		throw new UnsupportedOperationException("Not supported.");
+
+		final ArrayList<Long> list = new ArrayList<>();
+		for (final Long val : this) {
+			list.add(val);
+		}
+
+		return list.toArray(a);
 	}
 
 	@Override
@@ -152,7 +168,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 	@Override
 	public void clear() {
-		file.delete();
+		open(false);
 	}
 
 	@Override
@@ -162,12 +178,33 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 		dos.close();
 	}
 
-	private class FileIterator implements Iterator<Long> {
+	private void open(final boolean append) {
+
+		try {
+
+			if (dos != null) {
+				dos.close();
+			}
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+
+		try {
+
+			dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, append)));
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private static class FileIterator implements Iterator<Long> {
 
 		private DataInputStream dis = null;
-		private Long currentObject     = null;
+		private Long currentObject  = null;
 
-		public FileIterator() {
+		public FileIterator(final File file) {
 
 			try {
 
@@ -191,6 +228,8 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 			} catch (IOException ex) { }
 
+			close();
+
 			return false;
 		}
 
@@ -202,6 +241,18 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 		@Override
 		public void remove() {
 			throw new UnsupportedOperationException("Not supported.");
+		}
+
+		// ----- private methods -----
+		private void close() {
+
+			try {
+
+				dis.close();
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
 		}
 
 	}
