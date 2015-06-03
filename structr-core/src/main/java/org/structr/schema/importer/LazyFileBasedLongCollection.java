@@ -26,20 +26,22 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 	private File file            = null;
 
 	public LazyFileBasedLongCollection(final String path) {
+		this(path, true);
+	}
+
+	public LazyFileBasedLongCollection(final String path, final boolean clearOnOpen) {
 
 		this.file = new File(path);
 
 		file.getParentFile().mkdirs();
 
 		// remove file if it exists
-		if (file.exists()) {
+		if (clearOnOpen && file.exists()) {
 			file.delete();
 		}
 
 		open(true);
 	}
-
-
 
 	@Override
 	public int hashCode() {

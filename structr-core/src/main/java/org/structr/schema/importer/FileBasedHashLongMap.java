@@ -12,10 +12,14 @@ import java.util.Map;
 public class FileBasedHashLongMap<K> {
 
 	private final Map<K, LazyFileBasedLongCollection> hashFiles = new THashMap<>();
+	private boolean clearOnOpen                                 = true;
 	private String basePath                                     = null;
 
-
 	public FileBasedHashLongMap(final String basePath) {
+		this(basePath, true);
+	}
+
+	public FileBasedHashLongMap(final String basePath, final boolean clearOnOpen) {
 		this.basePath = basePath;
 	}
 
@@ -33,7 +37,7 @@ public class FileBasedHashLongMap<K> {
 		LazyFileBasedLongCollection collection = hashFiles.get(key);
 		if (collection == null) {
 
-			collection = new LazyFileBasedLongCollection(basePath + File.separator + key.hashCode() + ".lfc");
+			collection = new LazyFileBasedLongCollection(basePath + File.separator + key.hashCode() + ".lfc", clearOnOpen);
 			hashFiles.put(key, collection);
 		}
 
