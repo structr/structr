@@ -277,7 +277,7 @@ public class HttpService implements RunnableService {
 
 			final FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
 			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
-			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
+			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
 		}
 
 		if (enableGzipCompression) {
@@ -288,7 +288,7 @@ public class HttpService implements RunnableService {
 			gzipFilter.setInitParameter("minGzipSize", "256");
 			gzipFilter.setInitParameter("deflateCompressionLevel", "9");
 			gzipFilter.setInitParameter("methods", "GET,POST");
-			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
+			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
 
 		}
 
