@@ -13,6 +13,7 @@ import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.XMPPException.XMPPErrorException;
 import org.jivesoftware.smack.java7.Java7SmackInitializer;
 import org.jivesoftware.smack.packet.Bind;
 import org.jivesoftware.smack.packet.EmptyResultIQ;
@@ -24,6 +25,8 @@ import org.jivesoftware.smack.roster.packet.RosterPacket;
 import org.jivesoftware.smack.sm.predicates.ForEveryStanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.muc.MultiUserChat;
+import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -120,6 +123,7 @@ public class XMPPContext {
 		private Exception exception               = null;
 		private boolean isAuthenticated           = false;
 		private boolean isConnected               = false;
+		private String name                       = null;
 		private String uuid                       = null;
 		private String resource                   = null;
 		private String jid                        = null;
@@ -128,6 +132,7 @@ public class XMPPContext {
 
 			this.connection = connection;
 			this.uuid       = info.getUuid();
+			this.name       = info.getUsername() + "@" + info.getHostName();
 
 			connection.addConnectionListener(this);
 			connection.addAsyncStanzaListener(this, ForEveryStanza.INSTANCE);
@@ -148,6 +153,77 @@ public class XMPPContext {
 				} catch (NotConnectedException nex) {
 
 					throw new FrameworkException(422, "Not connected");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected");
+			}
+		}
+
+		@Override
+		public void sendChatMessage(final String chatRoom, final String message, final String password) throws FrameworkException {
+
+			if (isConnected) {
+
+				try {
+
+					final MultiUserChatManager manager = MultiUserChatManager.getInstanceFor(connection);
+					if (manager != null) {
+
+						final MultiUserChat chat = manager.getMultiUserChat(chatRoom);
+						if (chat != null) {
+
+							// join chat first
+							if (!chat.isJoined()) {
+
+								chat.join(name, password);
+							}
+
+							chat.sendMessage(message);
+						}
+
+					}
+
+				} catch (XMPPErrorException | SmackException ex) {
+
+					throw new FrameworkException(422, "Connection error: " + ex.getMessage());
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected");
+			}
+		}
+
+		@Override
+		public void joinChat(final String chatRoom, final String nickname, final String password) throws FrameworkException {
+
+			if (isConnected) {
+
+				try {
+
+					final MultiUserChatManager manager = MultiUserChatManager.getInstanceFor(connection);
+					if (manager != null) {
+
+						final MultiUserChat chat = manager.getMultiUserChat(chatRoom);
+						if (chat != null) {
+
+							if (password != null) {
+
+								chat.join(nickname, password);
+
+							} else {
+
+								chat.join(nickname);
+							}
+						}
+
+					}
+
+				} catch (XMPPErrorException | SmackException ex) {
+
+					throw new FrameworkException(422, "Connection error: " + ex.getMessage());
 				}
 
 			} else {

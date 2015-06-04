@@ -18,6 +18,8 @@
  */
 package org.structr.core.graph;
 
+import java.util.concurrent.atomic.AtomicLong;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
@@ -31,4 +33,6 @@ public interface BulkGraphOperation<T> {
 	public void handleGraphObject(SecurityContext securityContext, T obj) throws FrameworkException;
 	public void handleThrowable(SecurityContext securityContext, Throwable t, T currentObject);
 	public void handleTransactionFailure(SecurityContext securityContext, Throwable t);
+	public Predicate<Long> getCondition();
+	public AtomicLong getCounter();
 }

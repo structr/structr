@@ -26,8 +26,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.app.StructrApp;
@@ -99,6 +101,16 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to set node properties: {0}", t.getMessage() );
+				}
+
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
+				}
+
+				@Override
+				public AtomicLong getCounter() {
+					return new AtomicLong();
 				}
 			});
 

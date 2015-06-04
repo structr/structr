@@ -20,10 +20,18 @@ package org.structr.core.graph;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
@@ -33,6 +41,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -46,123 +55,29 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	private static final Logger logger = Logger.getLogger(BulkRebuildIndexCommand.class.getName());
 
+	private int threadCount = 4;
+
 	//~--- methods --------------------------------------------------------
 	@Override
 	public void execute(Map<String, Object> attributes) {
 
-		final String mode                      = (String) attributes.get("mode");
-		final String entityType                = (String) attributes.get("type");
-		final String relType                   = (String) attributes.get("relType");
-		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
+		final ExecutorService service = Executors.newCachedThreadPool();
+		final String mode             = (String) attributes.get("mode");
+		final String entityType       = (String) attributes.get("type");
+		final String relType          = (String) attributes.get("relType");
+
+		// try to set thread count
+		try { threadCount = (Integer)attributes.get("threads"); } catch (Throwable t) { threadCount = 4; }
 
 		if (mode == null || "nodesOnly".equals(mode)) {
-
-			Iterator<AbstractNode> nodeIterator = null;
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()))).iterator();
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-				fex.printStackTrace();
-			}
-
-			if (entityType == null) {
-
-				logger.log(Level.INFO, "Node type not set or no entity class found. Starting (re-)indexing all nodes");
-
-			} else {
-
-				logger.log(Level.INFO, "Starting (re-)indexing all nodes of type {0}", entityType);
-			}
-
-			long count = bulkGraphOperation(securityContext, nodeIterator, 100, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
-
-				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
-
-					node.updateInIndex();
-
-				}
-
-				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-
-					logger.log(Level.WARNING, "Unable to index node {0}: {1}", new Object[]{node, t.getMessage()});
-
-				}
-
-				@Override
-				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to index node: {0}", t.getMessage());
-
-				}
-
-			});
-
-			logger.log(Level.INFO, "Done with (re-)indexing {0} nodes", count);
+			rebuildNodeIndex(service, entityType);
 		}
 
 		if (mode == null || "relsOnly".equals(mode)) {
-
-			Iterator<AbstractRelationship> relIterator = null;
-			long count                                       = 0;
-
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()))).iterator();;
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-				fex.printStackTrace();
-			}
-
-			if (relType == null) {
-
-				logger.log(Level.INFO, "Relationship type not set, starting (re-)indexing all relationships");
-
-			} else {
-
-				logger.log(Level.INFO, "Starting (re-)indexing all relationships of type {0}", new Object[]{relType});
-
-			}
-
-			count = bulkGraphOperation(securityContext, relIterator, 100, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
-
-				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
-
-					rel.updateInIndex();
-
-				}
-
-				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-
-					logger.log(Level.WARNING, "Unable to index relationship {0}: {1}", new Object[]{rel, t.getMessage()});
-
-				}
-
-				@Override
-				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to index relationship: {0}", t.getMessage());
-
-				}
-
-			});
-
-			logger.log(Level.INFO, "Done with (re-)indexing {0} relationships", count);
+			rebuildRelationshipIndex(service, relType);
 		}
 
+		service.shutdown();
 	}
 
 	// ----- interface TransactionPostProcess -----
@@ -177,5 +92,177 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return false;
+	}
+
+	// ----- private methods -----
+	private void rebuildNodeIndex(final ExecutorService service, final String entityType) {
+
+		final NodeFactory nodeFactory       = new NodeFactory(SecurityContext.getSuperUserInstance());
+		final GraphDatabaseService graphDb  = (GraphDatabaseService) arguments.get("graphDb");
+		Iterator<AbstractNode> nodeIterator = null;
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()))).iterator();
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
+			fex.printStackTrace();
+		}
+
+		if (entityType == null) {
+
+			logger.log(Level.INFO, "Node type not set or no entity class found. Starting (re-)indexing all nodes");
+
+		} else {
+
+			logger.log(Level.INFO, "Starting (re-)indexing all nodes of type {0}", entityType);
+		}
+
+		final Iterator<AbstractNode> finalIterator = nodeIterator;
+		final AtomicLong counter                   = new AtomicLong();
+		final Runnable indexer = new Runnable() {
+
+			@Override
+			public void run() {
+
+				bulkGraphOperation(securityContext, finalIterator, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
+
+					@Override
+					public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+
+						node.updateInIndex();
+					}
+
+					@Override
+					public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+
+						logger.log(Level.WARNING, "Unable to index node {0}: {1}", new Object[]{node, t.getMessage()});
+
+					}
+
+					@Override
+					public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
+						logger.log(Level.WARNING, "Unable to index node: {0}", t.getMessage());
+
+					}
+
+					@Override
+					public Predicate<Long> getCondition() {
+						return null;
+					}
+
+					@Override
+					public AtomicLong getCounter() {
+						return counter;
+					}
+
+				});
+
+				logger.log(Level.INFO, "Done with (re-)indexing {0} nodes", counter.get());
+			}
+
+		};
+
+		logger.log(Level.INFO, "Rebuilding node index with {0} threads.", threadCount);
+
+		final List<Future> futures = new LinkedList<>();
+		for (int i=0; i<threadCount; i++) {
+			futures.add(service.submit(indexer));
+		}
+
+		for (final Future future : futures) {
+			try { future.get(); } catch (InterruptedException | ExecutionException iex) { iex.printStackTrace(); }
+		}
+
+	}
+
+	private void rebuildRelationshipIndex(final ExecutorService service, final String relType) {
+
+		final RelationshipFactory relFactory = new RelationshipFactory(SecurityContext.getSuperUserInstance());
+		final GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
+
+		Iterator<AbstractRelationship> relIterator = null;
+
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()))).iterator();;
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.log(Level.WARNING, "Exception while creating all relationships iterator.");
+			fex.printStackTrace();
+		}
+
+		if (relType == null) {
+
+			logger.log(Level.INFO, "Relationship type not set, starting (re-)indexing all relationships");
+
+		} else {
+
+			logger.log(Level.INFO, "Starting (re-)indexing all relationships of type {0}", new Object[]{relType});
+
+		}
+
+		final Iterator<AbstractRelationship> finalIterator = relIterator;
+		final AtomicLong counter                           = new AtomicLong();
+
+		final Runnable indexer = new Runnable() {
+
+			@Override
+			public void run() {
+
+				bulkGraphOperation(securityContext, finalIterator, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
+
+					@Override
+					public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
+
+						rel.updateInIndex();
+
+					}
+
+					@Override
+					public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
+
+						logger.log(Level.WARNING, "Unable to index relationship {0}: {1}", new Object[]{rel, t.getMessage()});
+
+					}
+
+					@Override
+					public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
+						logger.log(Level.WARNING, "Unable to index relationship: {0}", t.getMessage());
+
+					}
+
+					@Override
+					public Predicate<Long> getCondition() {
+						return null;
+					}
+
+					@Override
+					public AtomicLong getCounter() {
+						return counter;
+					}
+
+				});
+
+				logger.log(Level.INFO, "Done with (re-)indexing {0} relationships", counter.get());
+			}
+		};
+
+		logger.log(Level.INFO, "Rebuilding relationship index with {0} threads.", threadCount);
+
+		final List<Future> futures = new LinkedList<>();
+		for (int i=0; i<threadCount; i++) {
+			futures.add(service.submit(indexer));
+		}
+
+		for (final Future future : futures) {
+			try { future.get(); } catch (InterruptedException | ExecutionException iex) { iex.printStackTrace(); }
+		}
 	}
 }

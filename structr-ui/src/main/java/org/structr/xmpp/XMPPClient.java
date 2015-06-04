@@ -53,8 +53,6 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 		SchemaService.registerBuiltinTypeOverride("XMPPClient", XMPPClient.class.getName());
 	}
 
-
-
 	public static final View publicView = new View(XMPPClient.class, PropertyView.Public,
 		xmppHandle, xmppUsername, xmppPassword, xmppService, xmppHost, xmppPort, presenceMode, isEnabled, isConnected, pendingRequests
 	);
@@ -234,6 +232,45 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 			if (connection.isConnected()) {
 
 				connection.denySubscription(recipient);
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected.");
+			}
+		}
+
+		return new RestMethodResult(200);
+	}
+
+	@Export
+	public RestMethodResult doJoinChat(final String chatRoom, final String nickname, final String password) throws FrameworkException {
+
+		if (getProperty(isEnabled)) {
+
+			final XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+			if (connection.isConnected()) {
+
+				connection.joinChat(chatRoom, nickname, password);
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected.");
+			}
+		}
+
+		return new RestMethodResult(200);
+
+	}
+
+	@Export
+	public RestMethodResult doSendChatMessage(final String chatRoom, final String message, final String password) throws FrameworkException {
+
+		if (getProperty(isEnabled)) {
+
+			final XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+			if (connection.isConnected()) {
+
+				connection.sendChatMessage(chatRoom, message, password);
 
 			} else {
 

@@ -31,8 +31,10 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.GraphObject;
@@ -82,7 +84,8 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				logger.log(Level.INFO, "Start setting UUID on all nodes of type {0}", new Object[] { entityType });
 
-				long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+				final AtomicLong count = new AtomicLong();
+				bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 					@Override
 					public void handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
@@ -118,9 +121,19 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					}
 
+					@Override
+					public Predicate<Long> getCondition() {
+						return null;
+					}
+
+					@Override
+					public AtomicLong getCounter() {
+						return count;
+					}
+
 				});
 
-				logger.log(Level.INFO, "Done with setting UUID on {0} nodes", count);
+				logger.log(Level.INFO, "Done with setting UUID on {0} nodes", count.get());
 
 				return;
 			}
@@ -141,7 +154,8 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			logger.log(Level.INFO, "Start setting UUID on all rels of type {0}", new Object[] { relType });
 
-			long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
+			final AtomicLong count = new AtomicLong();
+			bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -168,6 +182,16 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					logger.log(Level.WARNING, "Unable to set UUID on relationship: {0}", t.getMessage());
 
+				}
+
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
+				}
+
+				@Override
+				public AtomicLong getCounter() {
+					return count;
 				}
 
 			});

@@ -28,8 +28,10 @@ import org.structr.common.error.FrameworkException;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
@@ -81,7 +83,8 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 				}
 			}
 
-			long count = NodeServiceCommand.bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+			final AtomicLong count = new AtomicLong();
+			NodeServiceCommand.bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -120,9 +123,18 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 					logger.log(Level.WARNING, "Unable to set relationship properties: {0}", t.getMessage() );
 				}
 
+				@Override
+				public Predicate<Long> getCondition() {
+					return null;
+				}
+
+				@Override
+				public AtomicLong getCounter() {
+					return count;
+				}
 			});
 
-			logger.log(Level.INFO, "Finished setting properties on {0} relationships", count);
+			logger.log(Level.INFO, "Finished setting properties on {0} relationships", count.get());
 		}
 	}
 

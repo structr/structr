@@ -26,8 +26,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.GraphObject;
@@ -75,7 +77,9 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			logger.log(Level.INFO, "Starting creation of labels for all nodes of type {0}", entityType);
 		}
 
-		long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		final AtomicLong count = new AtomicLong();
+
+		bulkGraphOperation(securityContext, nodeIterator, 1000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -114,9 +118,19 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 			}
 
+			@Override
+			public Predicate<Long> getCondition() {
+				return null;
+			}
+
+			@Override
+			public AtomicLong getCounter() {
+				return count;
+			}
+
 		});
 
-		logger.log(Level.INFO, "Done with creating labels on {0} nodes", count);
+		logger.log(Level.INFO, "Done with creating labels on {0} nodes", count.get());
 	}
 
 	@Override
