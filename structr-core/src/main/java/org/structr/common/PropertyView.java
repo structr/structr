@@ -48,11 +48,6 @@ public interface PropertyView {
 	public static final String Private =	"private";
 	
 	/**
-	 * The "owner" view, free to use.
-	 */
-	public static final String Owner =	"owner";
-	
-	/**
 	 * The "ui" view used by structr UI.
 	 */
 	public static final String Ui	=	"ui";

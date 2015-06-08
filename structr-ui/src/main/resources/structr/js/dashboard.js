@@ -40,24 +40,35 @@ var _Dashboard = {
         
         aboutMe = _Dashboard.appendBox('About Me', 'about-me');
         aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
+        aboutMe.append('<table class="props"></table>');
+        $.get(rootUrl + '/me/ui', function(data) {
+            var me = data.result;
+            console.log(me);
+            var t = $('table', aboutMe);
+            t.append('<tr><td class="key">ID</td><td>' + me.id + '</td></tr>');
+            t.append('<tr><td class="key">E-Mail</td><td>' + me.eMail + '</td></tr>');
+            t.append('<tr><td class="key">Session ID(s)</td><td>' + me.sessionIds + '</td></tr>');
+            t.append('<tr><td class="key">Groups</td><td>' + me.groups.map(function(g) { return g.name; }).join(', ') + '</td></tr>');
+            
+        });
         _Dashboard.checkAdmin();
         
         var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
         myPages.append('<div class="dashboard-info">You own the following <a class="internal-link" href="javascript:void(0)">pages</a>:</div>');
-        Command.getByType('Page', 10, 1, 'version', 'desc', null, function(p) {
-            myPages.append('<div class="dashboard-info"><a href="/' + p.name + '" target="_blank"><img class="icon" src="icon/page.png"></a> <a href="/' + p.name + '" target="_blank">' + p.name + '</a> (ver. ' + (p.version ? p.version : '') + ')</div>');
+        Command.getByType('Page', 5, 1, 'version', 'desc', null, function(p) {
+            myPages.append('<div class="dashboard-info"><a href="/' + p.name + '" target="_blank"><img class="icon" src="icon/page.png"></a> <a href="/' + p.name + '" target="_blank">' + _Dashboard.displayName(p) + '</a>' + _Dashboard.displayVersion(p) + '</div>');
         });
         
         var myFiles = _Dashboard.appendBox('My Files', 'my-files');
         myFiles.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">files</a> are:</div>');
-        Command.getByType('File', 10, 1, 'version', 'desc', null, function(f) {
-            myFiles.append('<div class="dashboard-info"><a href="/' + f.name + '" target="_blank"><img class="icon" src="' + _Files.getIcon(f) + '"></a> <a href="/' + f.name + '" target="_blank">' + f.name + '</a> (ver. ' + (f.version ? f.version : '') + ')</div>');
+        Command.getByType('File', 5, 1, 'version', 'desc', null, function(f) {
+            myFiles.append('<div class="dashboard-info"><a href="/' + f.name + '" target="_blank"><img class="icon" src="' + _Files.getIcon(f) + '"></a> <a href="/' + f.id + '" target="_blank">' + _Dashboard.displayName(f) + '</a>' + _Dashboard.displayVersion(f) + '</div>');
         });
         
         var myImages = _Dashboard.appendBox('My Images', 'my-images');
         myImages.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">images</a> are:</div>');
-        Command.getByType('Image', 10, 1, 'version', 'desc', null, function(i) {
-            myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><img class="icon" src="' + _Images.getIcon(i) + '"></a> <a href="/' + i.name + '" target="_blank">' + i.name + '</a> (ver. ' + (i.version ? i.version : '') + ')</div>');
+        Command.getByType('Image', 5, 1, 'version', 'desc', null, function(i) {
+            myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><img class="icon" src="' + _Images.getIcon(i) + '"></a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
         });
         
         $('.dashboard-info a.internal-link').on('click', function() {
@@ -81,5 +92,11 @@ var _Dashboard = {
         if (me.isAdmin && aboutMe && aboutMe.length && aboutMe.find('admin').length === 0) {
             aboutMe.append('<div class="dashboard-info admin red">You have admin rights.</div>');
         }
+    },
+    displayVersion: function(obj) {
+        return (obj.version ? ' (v' + obj.version + ')': '');
+    },
+    displayName: function(obj) {
+        return fitStringToWidth(obj.name, 160);
     }
 };
