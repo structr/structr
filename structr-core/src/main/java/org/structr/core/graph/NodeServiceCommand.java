@@ -56,9 +56,10 @@ public abstract class NodeServiceCommand extends Command {
 	 * @param commitCount
 	 * @param description
 	 * @param operation the operation to execute
+	 * @return the number of nodes processed
 	 */
-	public static <T> void bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation) {
-		bulkGraphOperation(securityContext, iterator, commitCount, description, operation, true);
+	public static <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation) {
+		return bulkGraphOperation(securityContext, iterator, commitCount, description, operation, true);
 	}
 	/**
 	 * Executes the given operation on all nodes in the given list.
@@ -70,12 +71,13 @@ public abstract class NodeServiceCommand extends Command {
 	 * @param description
 	 * @param operation the operation to execute
 	 * @param validation
+	 * @return the number of nodes processed
 	 */
-	public static <T> void bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
+	public static <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
 
 		final org.neo4j.helpers.Predicate<Long> condition = operation.getCondition();
 		final App app                   = StructrApp.getInstance(securityContext);
-		final AtomicLong objectCount    = operation.getCounter();
+		long objectCount                = 0L;
 		boolean active                  = true;
 
 		while (active) {
@@ -84,7 +86,7 @@ public abstract class NodeServiceCommand extends Command {
 
 			try (final Tx tx = app.tx()) {
 
-				while (iterator.hasNext() && (condition == null || condition.accept(objectCount.get()))) {
+				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 
 					T node = iterator.next();
 					active = true;
@@ -99,7 +101,7 @@ public abstract class NodeServiceCommand extends Command {
 					}
 
 					// commit transaction after commitCount
-					if ((objectCount.incrementAndGet() % commitCount) == 0) {
+					if ((++objectCount % commitCount) == 0) {
 						break;
 					}
 				}
@@ -113,9 +115,11 @@ public abstract class NodeServiceCommand extends Command {
 			}
 
 			if (description != null) {
-				logger.log(Level.INFO, "{0}: {1} objects processed", new Object[] { description, objectCount.get() } );
+				logger.log(Level.INFO, "{0}: {1} objects processed", new Object[] { description, objectCount } );
 			}
 		}
+
+		return objectCount;
 	}
 
 	/**

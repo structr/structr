@@ -27,10 +27,8 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -74,9 +72,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				tx.success();
 			}
 
-			final AtomicLong count = new AtomicLong();
-
-			bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -108,19 +104,9 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to copy relationship properties: {0}", t.getMessage() );
 				}
-
-				@Override
-				public Predicate<Long> getCondition() {
-					return null;
-				}
-
-				@Override
-				public AtomicLong getCounter() {
-					return count;
-				}
 			});
 
-			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count.get());
+			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count);
 
 		}
 	}
