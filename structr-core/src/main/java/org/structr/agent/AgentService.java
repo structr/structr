@@ -67,6 +67,8 @@ public class AgentService extends Thread implements RunnableService {
 		super("AgentService");
 		supportedCommands = new LinkedHashSet<>();
 		supportedCommands.add(ProcessTaskCommand.class);
+
+		super.setDaemon(true);
 	}
 
 	//~--- methods --------------------------------------------------------

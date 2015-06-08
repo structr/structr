@@ -50,6 +50,7 @@ public class CronService extends Thread implements RunnableService {
 
 	public CronService() {
 		super("CronService");
+		this.setDaemon(true);
 	}
 
 	@Override
