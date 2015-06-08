@@ -18,7 +18,8 @@
  */
 package org.structr.core.graph;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -28,11 +29,23 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public interface BulkGraphOperation<T> {
+public abstract class BulkGraphOperation<T> {
 
-	public void handleGraphObject(SecurityContext securityContext, T obj) throws FrameworkException;
-	public void handleThrowable(SecurityContext securityContext, Throwable t, T currentObject);
-	public void handleTransactionFailure(SecurityContext securityContext, Throwable t);
-	public Predicate<Long> getCondition();
-	public AtomicLong getCounter();
+	private static final Logger logger = Logger.getLogger(BulkGraphOperation.class.getName());
+
+	public abstract void handleGraphObject(SecurityContext securityContext, T obj) throws FrameworkException;
+
+	public void handleThrowable(final SecurityContext securityContext, final Throwable t, final T currentObject) {
+		logger.log(Level.WARNING, "Exception in bulk graph operation.");
+		t.printStackTrace();
+	}
+
+	public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
+		logger.log(Level.WARNING, "Transaction failure in bulk graph operation.");
+		t.printStackTrace();
+	}
+
+	public Predicate<Long> getCondition() {
+		return null;
+	}
 }

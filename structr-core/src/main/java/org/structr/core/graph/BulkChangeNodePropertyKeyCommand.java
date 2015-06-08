@@ -27,12 +27,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Node;
-import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -93,8 +91,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				}
 			}
 
-			final AtomicLong nodeCount = new AtomicLong();
-			bulkGraphOperation(securityContext, nodeIterator, 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -139,20 +136,10 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to set node properties: {0}", t.getMessage() );
 				}
-
-				@Override
-				public Predicate<Long> getCondition() {
-					return null;
-				}
-
-				@Override
-				public AtomicLong getCounter() {
-					return nodeCount;
-				}
 			});
 
 
-			logger.log(Level.INFO, "Fixed {0} nodes ...", nodeCount.get());
+			logger.log(Level.INFO, "Fixed {0} nodes ...", count);
 
 		} else {
 
