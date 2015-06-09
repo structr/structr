@@ -94,8 +94,8 @@ public class XMPPContext {
 
 		final XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
 			.setUsernameAndPassword(callback.getUsername(), callback.getPassword())
-//			.setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible)
-			.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
+			.setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible)
+//			.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
 			.setServiceName(callback.getService())
 			.setHost(callback.getHostName())
 			.setPort(callback.getPort())
