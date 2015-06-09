@@ -97,7 +97,7 @@ public class ListCommand extends AbstractCommand {
 
 		if (type.equals(File.class)) {
 
-			query.not().and(File.name, "_thumb_", false);
+			query.not().and(Image.isThumbnail, true);
 		}
 
 		try {
