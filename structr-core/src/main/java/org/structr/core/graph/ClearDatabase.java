@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -30,7 +29,6 @@ import org.structr.core.entity.AbstractNode;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
@@ -71,9 +69,7 @@ public class ClearDatabase extends NodeServiceCommand {
 				fex.printStackTrace();
 			}
 
-			final AtomicLong deletedNodes = new AtomicLong();
-
-			bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
+			final long deletedNodes = bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -99,20 +95,9 @@ public class ClearDatabase extends NodeServiceCommand {
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to clear database: {0}", t.getMessage() );
 				}
-
-				@Override
-				public Predicate<Long> getCondition() {
-					return null;
-				}
-
-				@Override
-				public AtomicLong getCounter() {
-					return deletedNodes;
-				}
-
 			});
 
-			logger.log(Level.INFO, "Finished deleting {0} nodes", deletedNodes.get());
+			logger.log(Level.INFO, "Finished deleting {0} nodes", deletedNodes);
 
 		}
 	}

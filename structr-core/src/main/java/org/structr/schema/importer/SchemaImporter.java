@@ -33,14 +33,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
@@ -201,24 +199,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				// add node ID to our new test datastructure
 				nodeIdMap.add(nodeInfo, node.getId());
 			}
-
-			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, Node currentObject) {
-			}
-
-			@Override
-			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-			}
-
-			@Override
-			public Predicate<Long> getCondition() {
-				return null;
-			}
-
-			@Override
-			public AtomicLong getCounter() {
-				return new AtomicLong();
-			}
 		});
 
 		logger.log(Level.INFO, "Identifying common base classes..");
@@ -228,6 +208,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			// nodeTypes now contains all existing node types and their property sets
 			identifyCommonBaseClasses(app, nodeTypes, nodeIdMap, typeInfos);
 
+			tx.success();
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -241,6 +222,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			// group type infos by type
 			collectTypeInfos(typeInfos, typeInfoTypeMap);
 
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
@@ -252,6 +235,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			// reduce type infos with more than one type
 			reduceTypeInfos(typeInfoTypeMap, reducedTypeInfos);
 
+			tx.success();
+
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
@@ -261,6 +246,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 			// intersect property sets of type infos
 			intersectPropertySets(reducedTypeInfos);
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -272,6 +259,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 			// sort type infos
 			Collections.sort(reducedTypeInfos, new HierarchyComparator(false));
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -297,24 +286,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 					node.setProperty(GraphObject.id.dbName(), NodeServiceCommand.getNextUuid());
 					node.setProperty(GraphObject.type.dbName(), type);
-				}
-
-				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, Long currentObject) {
-				}
-
-				@Override
-				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-				}
-
-				@Override
-				public Predicate<Long> getCondition() {
-					return null;
-				}
-
-				@Override
-				public AtomicLong getCounter() {
-					return new AtomicLong();
 				}
 			});
 		}
@@ -359,24 +330,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					// create ID on imported relationship
 					rel.setProperty(GraphObject.id.dbName(), NodeServiceCommand.getNextUuid());
 				}
-			}
-
-			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, Relationship currentObject) {
-			}
-
-			@Override
-			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-			}
-
-			@Override
-			public Predicate<Long> getCondition() {
-				return null;
-			}
-
-			@Override
-			public AtomicLong getCounter() {
-				return new AtomicLong();
 			}
 		});
 
@@ -465,24 +418,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					schemaNodes.put(type, app.create(SchemaNode.class, propertyMap));
 				}
 			}
-
-			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, TypeInfo currentObject) {
-			}
-
-			@Override
-			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-			}
-
-			@Override
-			public Predicate<Long> getCondition() {
-				return null;
-			}
-
-			@Override
-			public AtomicLong getCounter() {
-				return new AtomicLong();
-			}
 		});
 
 
@@ -503,24 +438,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				propertyMap.put(SchemaRelationshipNode.relationshipType, relationshipType);
 
 				app.create(SchemaRelationshipNode.class, propertyMap);
-			}
-
-			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, RelationshipInfo currentObject) {
-			}
-
-			@Override
-			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-			}
-
-			@Override
-			public Predicate<Long> getCondition() {
-				return null;
-			}
-
-			@Override
-			public AtomicLong getCounter() {
-				return new AtomicLong();
 			}
 		});
 

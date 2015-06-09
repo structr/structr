@@ -20,11 +20,9 @@ package org.structr.core.graph;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Node;
-import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -68,9 +66,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 					logger.log(Level.INFO, "Trying to fix properties of all {0} nodes", type.getSimpleName() );
 
-					final AtomicLong nodeCount = new AtomicLong();
-
-					bulkGraphOperation(securityContext, nodeIterator, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
+					long nodeCount = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 						private void fixProperty(AbstractNode node, Property propertyToFix) {
 
@@ -145,29 +141,9 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 								}
 							}
 						}
-
-						@Override
-						public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode currentObject) {
-							t.printStackTrace();
-						}
-
-						@Override
-						public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-							t.printStackTrace();
-						}
-
-						@Override
-						public Predicate<Long> getCondition() {
-							return null;
-						}
-
-						@Override
-						public AtomicLong getCounter() {
-							return nodeCount;
-						}
 					});
 
-					logger.log(Level.INFO, "Fixed {0} nodes", nodeCount.get());
+					logger.log(Level.INFO, "Fixed {0} nodes", nodeCount);
 
 					return;
 				}
