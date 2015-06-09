@@ -29,7 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
-import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
@@ -93,7 +93,7 @@ public class EnvResource extends Resource {
 			modules.add(module);
 		}
 
-		info.setProperty(new StringProperty("modules"), modules);
+		info.setProperty(new GenericProperty("modules"), modules);
 		
 		info.setProperty(new StringProperty("classPath"), classPath);
 

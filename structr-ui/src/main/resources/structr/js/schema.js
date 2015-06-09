@@ -658,18 +658,17 @@ var _Schema = {
 
         var propertiesTable = $('.local.schema-props', el);
 
-        _Schema.sortByBuiltinFlagAndName(entity.schemaProperties, 'isBuiltinProperty');
+        _Schema.sortByName(entity.schemaProperties);
 
         $.each(entity.schemaProperties, function(i, prop) {
             _Schema.appendLocalProperty(propertiesTable, prop);
         });
 
+        // 2. Display builtin schema properties
         Command.listSchemaProperties(entity.id, 'ui', function(data) {
 
             // sort by name
-            data.sort(function(a, b) {
-                return a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
-            });
+            _Schema.sortByName(data);
 
             $.each(data, function(i, prop) {
 
@@ -733,7 +732,7 @@ var _Schema = {
         var viewsTable = $('.views.schema-props', el);
         var newSelectClass   = 'select-view-attrs-new';
 
-        _Schema.sortByBuiltinFlagAndName(entity.schemaViews, 'isBuiltinView');
+        _Schema.sortByName(entity.schemaViews);
 
         $.each(entity.schemaViews, function(i, view) {
             _Schema.appendView(viewsTable, view, resource, entity);
@@ -763,9 +762,7 @@ var _Schema = {
 
         var actionsTable = $('.actions.schema-props', el);
 
-        entity.schemaMethods.sort(function(a, b) {
-           return a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
-        });
+        _Schema.sortByName(entity.schemaMethods);
 
         $.each(entity.schemaMethods, function(i, method) {
             _Schema.appendMethod(actionsTable, method);
@@ -2160,18 +2157,9 @@ var _Schema = {
         instance.setZoom(zoom);
         _Schema.resize();
     },
-    sortByBuiltinFlagAndName: function(collection, flagName) {
-
+    sortByName: function(collection) {
         collection.sort(function(a, b) {
-
-            var result = a[flagName] ? b[flagName] ? 0 : 1 : -1;
-            if (result === 0) {
-
-                result = a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
-            }
-
-            return result;
-
+            return ((a.name > b.name) ? 1 : ((a.name < b.name) ? -1 : 0));
         });
     }
 };

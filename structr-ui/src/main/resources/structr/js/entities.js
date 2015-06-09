@@ -346,7 +346,7 @@ var _Entities = {
 
             var attrs = Object.keys(entity);
 
-            log(entity);
+            console.log(entity);
 
             var isRelationship = false;
             var tabTexts = [];
@@ -376,17 +376,9 @@ var _Entities = {
 
                 views = ['ui', 'in', 'out'];
 
-                var hasHtmlAttributes = false;
-                if (isIn('tag', attrs) && isIn('pageId', attrs)) {
-                    hasHtmlAttributes = true;
-                }
+                var hasHtmlAttributes = entity.isDOMNode;
 
-                attrs.forEach(function (attr) {
-                    if (attr.startsWith('_html_'))
-                        hasHtmlAttributes = true;
-                });
-
-                if (hasHtmlAttributes) {
+                if (hasHtmlAttributes && !entity.isContent) {
                     views.unshift('_html_');
                     //console.log(lastMenuEntry)
                     if (lastMenuEntry === 'pages') {
@@ -408,7 +400,7 @@ var _Entities = {
                 dialog.append('<div id="tabs"><ul></ul></div>');
                 var mainTabs = $('#tabs', dialog);
 
-                if (hasHtmlAttributes || obj.isContent) {
+                if (hasHtmlAttributes) {
 
                     _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function (c) {
                         _Entities.queryDialog(entity, c);
