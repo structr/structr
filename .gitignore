@@ -16,5 +16,6 @@ structr-ui/logDb.dat
 structr-ui/src/test/javascript/screenshots
 structr-ui/structr-ui*.pid
 **nb-configuration.xml
+**nohup.out
 docs/html
 docs/screenshots

@@ -186,28 +186,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 
 	public static final Property<List<DOMNode>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMNode> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
+	public static final Property<DOMNode> sharedComponent   = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
 
-	public static final Property<Boolean> hideOnIndex = new BooleanProperty("hideOnIndex").indexed();
-	public static final Property<Boolean> hideOnDetail = new BooleanProperty("hideOnDetail").indexed();
+	public static final Property<Boolean> hideOnIndex   = new BooleanProperty("hideOnIndex").indexed();
+	public static final Property<Boolean> hideOnDetail  = new BooleanProperty("hideOnDetail").indexed();
 	public static final Property<String> showForLocales = new StringProperty("showForLocales").indexed();
 	public static final Property<String> hideForLocales = new StringProperty("hideForLocales").indexed();
-
 	public static final Property<String> showConditions = new StringProperty("showConditions").indexed();
 	public static final Property<String> hideConditions = new StringProperty("hideConditions").indexed();
 
-	public static final Property<List<DOMNode>> children = new EndNodes<>("children", DOMChildren.class);
-	public static final Property<DOMNode> parent = new StartNode<>("parent", DOMChildren.class);
-	public static final Property<DOMNode> previousSibling = new StartNode<>("previousSibling", DOMSiblings.class);
-	public static final Property<DOMNode> nextSibling = new EndNode<>("nextSibling", DOMSiblings.class);
-
+	public static final Property<DOMNode> parent           = new StartNode<>("parent", DOMChildren.class);
+	public static final Property<String> parentId          = new EntityIdProperty("parentId", parent);
+	public static final Property<List<DOMNode>> children   = new EndNodes<>("children", DOMChildren.class);
 	public static final Property<List<String>> childrenIds = new CollectionIdProperty("childrenIds", children);
-	public static final Property<String> nextSiblingId = new EntityIdProperty("nextSiblingId", nextSibling);
+	public static final Property<DOMNode> previousSibling  = new StartNode<>("previousSibling", DOMSiblings.class);
+	public static final Property<DOMNode> nextSibling      = new EndNode<>("nextSibling", DOMSiblings.class);
+	public static final Property<String> nextSiblingId     = new EntityIdProperty("nextSiblingId", nextSibling);
 
-	public static final Property<String> parentId = new EntityIdProperty("parentId", parent);
 
 	public static final Property<Page> ownerDocument = new EndNode<>("ownerDocument", PageLink.class);
-	public static final Property<String> pageId = new EntityIdProperty("pageId", ownerDocument);
+	public static final Property<String> pageId      = new EntityIdProperty("pageId", ownerDocument);
+	public static final Property<Boolean> isDOMNode  = new BooleanProperty("isDOMNode").defaultValue(true).readOnly();
 
 	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id");
 	public static final Property<String> dataHashProperty = new StringProperty("data-structr-hash");
