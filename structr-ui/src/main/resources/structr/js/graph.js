@@ -31,7 +31,7 @@ var edgeType = 'curvedArrow';
 var schemaNodes = {}, schemaRelationships = {}, schemaNodesById = {};
 
 
-var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc;';
+var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc';
 var tmpX, tmpY;
 var forceAtlas2Config = {
     gravity: 1,

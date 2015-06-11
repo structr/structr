@@ -346,7 +346,7 @@ var _Entities = {
 
             var attrs = Object.keys(entity);
 
-            console.log(entity);
+            //console.log(entity);
 
             var isRelationship = false;
             var tabTexts = [];
