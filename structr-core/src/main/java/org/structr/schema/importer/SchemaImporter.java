@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,6 +57,7 @@ import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
@@ -414,8 +416,21 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 						propertyMap.put(SchemaNode.extendsClass, typeInfo.getSuperclass(reducedTypeInfoMap));
 					}
 
-					// create schema node
-					schemaNodes.put(type, app.create(SchemaNode.class, propertyMap));
+					final SchemaNode existingNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+					if (existingNode != null) {
+
+						for (final Entry<PropertyKey, Object> entry : propertyMap.entrySet()) {
+
+							existingNode.setProperty(entry.getKey(), entry.getValue());
+						}
+
+						schemaNodes.put(type, existingNode);
+
+					} else {
+
+						// create schema node
+						schemaNodes.put(type, app.create(SchemaNode.class, propertyMap));
+					}
 				}
 			}
 		});
