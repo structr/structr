@@ -23,7 +23,6 @@ import com.google.gson.reflect.TypeToken;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.SecurityContext;
-import org.structr.web.entity.VideoFile;
 
 /**
  *
@@ -32,13 +31,13 @@ import org.structr.web.entity.VideoFile;
 
 public class GetVideoInfoProcess extends AbstractProcess<Map<String, Object>> {
 
-	private VideoFile inputVideo = null;
+	private String path = null;
 
-	public GetVideoInfoProcess(final SecurityContext securityContext, final VideoFile inputVideo) {
+	public GetVideoInfoProcess(final SecurityContext securityContext, final String path) {
 
 		super(securityContext);
 
-		this.inputVideo = inputVideo;
+		this.path = path;
 	}
 
 	@Override
@@ -48,10 +47,9 @@ public class GetVideoInfoProcess extends AbstractProcess<Map<String, Object>> {
 	@Override
 	public StringBuilder getCommandLine() {
 
-		StringBuilder commandLine = new StringBuilder("avprobe -v verbose -show_format -show_streams -of json ");
-
-		// build command line from builder options
-		commandLine.append(inputVideo.getDiskFilePath(securityContext));
+		StringBuilder commandLine = new StringBuilder("if [ -x \"$(which avprobe)\" ]; then avprobe -v verbose -show_format -show_streams -of json ");
+		commandLine.append(path);
+		commandLine.append("; fi;");
 
 		return commandLine;
 	}

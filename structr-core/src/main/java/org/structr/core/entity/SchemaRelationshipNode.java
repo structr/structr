@@ -194,7 +194,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 			final String _sourceType = getSchemaNodeSourceType();
 			final String _targetType = getSchemaNodeTargetType();
-			final String _relType    = getRelationshipType();
+			final String _relType    = SchemaHelper.cleanPropertyName(getRelationshipType());
 
 			name = _sourceType + _relType + _targetType;
 		}

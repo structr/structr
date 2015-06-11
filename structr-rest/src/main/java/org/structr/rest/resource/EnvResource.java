@@ -77,7 +77,7 @@ public class EnvResource extends Resource {
 			
 			final String g = outerMatcher.group();
 
-			final Pattern innerPattern = Pattern.compile("(structr-core|structr-rest|structr-ui)-(.*)-([0-9a-f]{0,40}).*");
+			final Pattern innerPattern = Pattern.compile("(structr-core|structr-rest|structr-ui)-([^-]*(?:-SNAPSHOT){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,5})).*");
 			final Matcher innerMatcher = innerPattern.matcher(g);
 			
 			final Map<String, String> module = new HashMap<>();
@@ -86,7 +86,8 @@ public class EnvResource extends Resource {
 			
 				module.put("module", innerMatcher.group(1));
 				module.put("version", innerMatcher.group(2));
-				module.put("build", innerMatcher.group(3));
+				module.put("date", innerMatcher.group(3));
+				module.put("build", innerMatcher.group(4));
 				
 			}
 
