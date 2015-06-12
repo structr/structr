@@ -131,6 +131,10 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 		return getMultiple(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType(), predicate);
 	}
 
+	public Relationship getRawTarget(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+		return getSingle(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType());
+	}
+
 	@Override
 	public boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
 		return getRawSource(securityContext, dbNode, predicate).iterator().hasNext();

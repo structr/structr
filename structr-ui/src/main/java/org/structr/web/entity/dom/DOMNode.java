@@ -68,8 +68,12 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.ManyStartpoint;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Target;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.parser.Functions;
 import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE;
@@ -127,6 +131,8 @@ import org.w3c.dom.UserDataHandler;
 public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable {
 
 	private static final Logger logger = Logger.getLogger(DOMNode.class.getName());
+
+	private Page cachedOwnerDocument;
 
 	// ----- error messages for DOMExceptions -----
 	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE = "Permission denied.";
@@ -271,64 +277,46 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					DOMNode node = null;
 
 					/**
-					 * included nodes don't necessarily have to be in the shadow document (since 1f93543).
-					 * Therefore we can get multiple hits IF the name references a shared component.
-					 * We need to check that all returned nodes reference the same shared component AND that shared component is also in the list
-					 * if not we still return the error message.
+					 * Nodes can be included via their name property
+					 * These nodes MUST:
+					 * 1. be unique in name
+					 * 2. NOT be in the trash => have an ownerDocument AND a parent   (public users are not allowed to see the __ShadowDocument__ ==> this check must either be made in a superuser-context OR the __ShadowDocument could be made public?)
+					 * 
+					 * These nodes can be:
+					 * 1. somewhere in the pages tree
+					 * 2. in the shared components
+					 * 3. both  ==> causes a problem because we now have multiple nodes with the same name (one shared component and multiple linking instances of that component)
+					 * 
+					 * INFOS:
+					 * 
+					 * - If a DOMNode has "syncedNodes" it MUST BE a shared component
+					 * - If a DOMNodes "sharedComponent" is set it MUST BE AN INSTANCE of a shared component      => Can we safely ignore these? I THINK SO!
 					 */
-
-					boolean isSingleSharedComponent = true;
-					String sharedComponentId = null;
 
 					for (final DOMNode n : nodeList) {
 
 						// Ignore nodes in trash
-						if (n.getProperty(DOMNode.parent) == null && n.getProperty(DOMNode.ownerDocument) == null) {
+						if (n.getProperty(DOMNode.parent) == null && n.getOwnerDocumentAsSuperUser() == null) {
 							continue;
 						}
 
+						// IGNORE everything that REFERENCES a shared component!
 						if (n.getProperty(DOMNode.sharedComponent) == null) {
 
-							// the node IS a shared component
-
+							// the DOMNode is either a shared component OR a named node in the pages tree
 							if (node == null) {
 
-								sharedComponentId = n.getProperty(DOMNode.id);
 								node = n;
 
 							} else {
 
-								// ERROR CASE 1: we have found multiple shared components
-								isSingleSharedComponent = false;
-								break;
-
-							}
-
-						} else {
-
-							// the node IS NOT a shared component. Therefor it MUST reference a shared component to work
-
-							String referencedSharedComponentId = n.getProperty(DOMNode.sharedComponent).getProperty(DOMNode.id);
-
-							if (sharedComponentId == null) {
-
-								sharedComponentId = referencedSharedComponentId;
-
-							} else if (!sharedComponentId.equals(referencedSharedComponentId) ) {
-
-								// ERROR CASE 2: we have found a node referencing a second shared component
-								isSingleSharedComponent = false;
-								break;
+								// ERROR: we have found multiple DOMNodes with the same name
+								// TODO: Do we need to remove the nodes from the nodeList which can be ignored? (references to a shared component)
+								return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
 
 							}
 
 						}
-
-					}
-
-					if (!isSingleSharedComponent) {
-
-						return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
 
 					}
 
@@ -2216,4 +2204,39 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		return null;
 	}
+
+	/**
+	 * Returns the owner document of this DOMNode, following an OUTGOING "PAGE"
+	 * relationship.
+	 *
+	 * @return the owner node of this node
+	 */
+	public Document getOwnerDocumentAsSuperUser() {
+
+		if (cachedOwnerDocument == null) {
+
+			final PageLink ownership = getOutgoingRelationshipAsSuperUser(PageLink.class);
+			if (ownership != null) {
+
+				Page page = ownership.getTargetNode();
+				cachedOwnerDocument = page;
+			}
+		}
+
+		return cachedOwnerDocument;
+	}
+
+	private <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
+
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRawTarget(SecurityContext.getSuperUserInstance(), dbNode, null);
+
+		if (relationship != null) {
+			return factory.adapt(relationship);
+		}
+
+		return null;
+	}
+
 }
