@@ -85,7 +85,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 	// private fields
 	private final ConfigurationProvider config = Services.getInstance().getConfigurationProvider();
-	private App app                            = StructrApp.getInstance();
+	private App app                            = null;
 	private CloudListener listener             = null;
 	private long transmissionAbortTime         = 0L;
 	private boolean authenticated              = false;
@@ -103,10 +103,11 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 	private int count                          = 0;
 	private int total                          = 0;
 
-	public CloudConnection(final Socket socket, final CloudListener listener) {
+	public CloudConnection(final SecurityContext securityContext, final Socket socket, final CloudListener listener) {
 
 		super("CloudConnection(" + socket.getRemoteSocketAddress() + ")");
 
+		this.app           = StructrApp.getInstance(securityContext);
 		this.remoteAddress = socket.getInetAddress().getHostAddress();
 		this.listener      = listener;
 		this.socket        = socket;
