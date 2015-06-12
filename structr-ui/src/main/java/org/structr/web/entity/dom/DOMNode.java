@@ -68,12 +68,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.entity.ManyStartpoint;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.Target;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.parser.Functions;
 import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE;
@@ -132,8 +128,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	private static final Logger logger = Logger.getLogger(DOMNode.class.getName());
 
-	private Page cachedOwnerDocument;
-
 	// ----- error messages for DOMExceptions -----
 	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE = "Permission denied.";
 	protected static final String INVALID_ACCESS_ERR_MESSAGE = "Permission denied.";
@@ -172,6 +166,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
 
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
+	private Page cachedOwnerDocument;
 
 	static {
 
@@ -2225,18 +2220,4 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		return cachedOwnerDocument;
 	}
-
-	private <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
-
-		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRawTarget(SecurityContext.getSuperUserInstance(), dbNode, null);
-
-		if (relationship != null) {
-			return factory.adapt(relationship);
-		}
-
-		return null;
-	}
-
 }
