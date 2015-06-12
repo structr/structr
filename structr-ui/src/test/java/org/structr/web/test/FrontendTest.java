@@ -71,7 +71,7 @@ public abstract class FrontendTest extends StructrUiTest {
 				logger.log(Level.WARNING, warnings);
 			}
 
-			Integer exitValue = null;
+			Integer exitValue = 1; // default is error
 			try {
 				exitValue = proc.exitValue();
 
