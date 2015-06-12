@@ -91,7 +91,7 @@ public class SchemaTypeResource extends Resource {
 
 					for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
 
-						property.setProperty(new StringProperty(prop.getKey()), prop.getValue());
+						property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
 					}
 
 					resultList.add(property);
