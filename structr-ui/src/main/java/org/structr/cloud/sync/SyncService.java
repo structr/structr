@@ -228,7 +228,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 						try {
 
-							CloudService.doRemote(transmission, info, successListener);
+							CloudService.doRemote(SecurityContext.getSuperUserInstance(), transmission, info, successListener);
 
 						} catch (FrameworkException fex) {
 							logger.log(Level.WARNING, "Unable to synchronize with host {0}: {1}", new Object[] { info, fex.getMessage() } );
@@ -338,7 +338,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			try {
 
 				final SingleTransmission<ReplicationStatus> transmission = new SingleTransmission<>(new ReplicationStatus(instanceId));
-				final ReplicationStatus status = CloudService.doRemote(transmission, host, new LoggingListener());
+				final ReplicationStatus status = CloudService.doRemote(SecurityContext.getSuperUserInstance(), transmission, host, new LoggingListener());
 				if (status != null) {
 
 					final String slaveId = status.getSlaveId();
@@ -435,7 +435,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			CloudService.doRemote(new UpdateTransmission(), info, new LoggingListener());
+			CloudService.doRemote(SecurityContext.getSuperUserInstance(), new UpdateTransmission(), info, new LoggingListener());
 
 			tx.success();
 

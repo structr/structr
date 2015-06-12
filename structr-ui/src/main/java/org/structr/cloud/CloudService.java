@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import org.structr.cloud.message.AuthenticationRequest;
 import org.structr.cloud.message.Begin;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -128,7 +129,7 @@ public class CloudService extends Thread implements RunnableService {
 			try {
 
 				// start a new thread for the connection
-				new CloudConnection(serverSocket.accept(), null).start();
+				new CloudConnection(SecurityContext.getSuperUserInstance(), serverSocket.accept(), null).start();
 
 			} catch (IOException ioex) {}
 		}
@@ -151,7 +152,7 @@ public class CloudService extends Thread implements RunnableService {
 	}
 
 	// ----- public static methods -----
-	public static <T> T doRemote(final CloudTransmission<T> transmission, final CloudHost host, final CloudListener listener) throws FrameworkException {
+	public static <T> T doRemote(final SecurityContext securityContext, final CloudTransmission<T> transmission, final CloudHost host, final CloudListener listener) throws FrameworkException {
 
 		CloudConnection<T> client   = null;
 		int maxKeyLen               = 128;
@@ -166,7 +167,7 @@ public class CloudService extends Thread implements RunnableService {
 
 		try {
 
-			client = new CloudConnection(new Socket(host.getHostName(), host.getPort()), listener);
+			client = new CloudConnection(securityContext, new Socket(host.getHostName(), host.getPort()), listener);
 			client.start();
 
 			// notify listener

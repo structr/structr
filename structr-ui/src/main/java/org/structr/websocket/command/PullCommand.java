@@ -68,6 +68,7 @@ public class PullCommand extends AbstractCommand {
 				}
 
 				CloudService.doRemote(
+					webSocket.getSecurityContext(),
 					new PullTransmission(sourceId, recursive),
 					new HostInfo(username, password, host, port.intValue()),
 					new WebsocketProgressListener(getWebSocket(), key)
