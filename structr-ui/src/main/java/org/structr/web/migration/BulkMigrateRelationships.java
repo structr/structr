@@ -18,17 +18,16 @@
  */
 package org.structr.web.migration;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Security;
@@ -38,7 +37,6 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
@@ -69,14 +67,9 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 
 		if (graphDb != null) {
 
-			// collect relationships in transactional context
-			List<AbstractRelationship> rels = new LinkedList<>();
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-				
-				rels.addAll(relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships()));
-			}
+			final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships())).iterator();
 
-			long count = bulkGraphOperation(securityContext, rels, 1000, "MigrateRelationships", new BulkGraphOperation<AbstractRelationship>() {
+			final long counter = bulkGraphOperation(securityContext, relIterator, 1000, "MigrateRelationships", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -90,8 +83,6 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 
 						try {
 
-							Class sourceType = rel.getSourceNode().getClass();
-							Class targetType = rel.getTargetNode().getClass();
 							String relType   = rel.getType();
 
 							rel.getRelationship().removeProperty("combinedType");
@@ -147,7 +138,7 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 				}
 			});
 
-			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count);
+			logger.log(Level.INFO, "Finished setting properties on {0} nodes", counter);
 
 		}
 	}

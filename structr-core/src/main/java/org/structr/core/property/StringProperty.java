@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
@@ -150,7 +151,23 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 
 	@Override
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
-		return null;
+		return new PropertyConverter<Object, String>(securityContext) {
+
+			@Override
+			public Object revert(String source) throws FrameworkException {
+				return source;
+			}
+
+			@Override
+			public String convert(final Object source) throws FrameworkException {
+
+				if (source != null) {
+					return source.toString();
+				}
+
+				return null;
+			}
+		};
 	}
 
 	/**

@@ -18,8 +18,7 @@
  */
 package org.structr.core.graph;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -30,7 +29,9 @@ import org.structr.core.entity.AbstractNode;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
+import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 
@@ -56,13 +57,19 @@ public class ClearDatabase extends NodeServiceCommand {
 
 		if (graphDb != null) {
 
-			final List<AbstractNode> result = new LinkedList<>();
-			
+			Iterator<AbstractNode> nodeIterator = null;
+
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				result.addAll(nodeFactory.bulkInstantiate(GlobalGraphOperations.at(graphDb).getAllNodes()));
+
+				nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes())).iterator();
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
+				fex.printStackTrace();
 			}
 
-			long deletedNodes = bulkGraphOperation(securityContext, result, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
+			final long deletedNodes = bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {

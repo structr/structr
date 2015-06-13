@@ -86,10 +86,10 @@ public class LoginCommand extends AbstractCommand {
 					webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
 
 					// authenticate socket
-					this.getWebSocket().setAuthenticated(sessionId, user);
+					socket.setAuthenticated(sessionId, user);
 
 					// send data..
-					this.getWebSocket().send(webSocketData, false);
+					socket.send(webSocketData, false);
 
 				}
 

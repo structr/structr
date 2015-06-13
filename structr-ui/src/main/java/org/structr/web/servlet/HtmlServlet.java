@@ -3,18 +3,18 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.servlet;
 
@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -43,6 +44,7 @@ import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.LocaleUtils;
@@ -66,7 +68,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -93,19 +94,27 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
-	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
+	public static final String RESET_PASSWORD_PAGE = "/reset-password";
 	public static final String POSSIBLE_ENTRY_POINTS_KEY = "possibleEntryPoints";
-	public static final String DOWNLOAD_AS_FILENAME_KEY  = "filename";
-	public static final String DOWNLOAD_AS_DATA_URL_KEY  = "as-data-url";
-	public static final String CONFIRM_KEY_KEY           = "key";
-	public static final String TARGET_PAGE_KEY           = "target";
-	public static final String ERROR_PAGE_KEY            = "onerror";
-	public static final String LOCALE_KEY                = "locale";
+	public static final String DOWNLOAD_AS_FILENAME_KEY = "filename";
+	public static final String DOWNLOAD_AS_DATA_URL_KEY = "as-data-url";
+	public static final String CONFIRM_KEY_KEY = "key";
+	public static final String TARGET_PAGE_KEY = "target";
+	public static final String ERROR_PAGE_KEY = "onerror";
+	public static final String LOCALE_KEY = "locale";
+
+	private static final String CUSTOM_RESPONSE_HEADERS = "HtmlServlet.customResponseHeaders";
+	private static final String defaultCustomResponseHeaders = "Strict-Transport-Security:max-age=60,"
+				+ "X-Content-Type-Options:nosniff,"
+				+ "X-Frame-Options:SAMEORIGIN,"
+				+ "X-XSS-Protection:1;mode=block";
+	private static List<String> customResponseHeaders = Collections.EMPTY_LIST;
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
 
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -113,6 +122,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	public HtmlServlet() {
+
+		String customResponseHeadersString = Services.getBaseConfiguration().getProperty(CUSTOM_RESPONSE_HEADERS);
+
+		if (StringUtils.isBlank(customResponseHeadersString)) {
+			
+			customResponseHeadersString = defaultCustomResponseHeaders;
+		}
+
+		if (StringUtils.isNotBlank(customResponseHeadersString)) {
+			customResponseHeaders = Arrays.asList(customResponseHeadersString.split("[ ,]+"));
+		}
 	}
 
 	@Override
@@ -146,7 +166,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
-
+			
 			app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
@@ -240,7 +260,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					}
 
-					if (dataNode != null && !(dataNode instanceof Linkable)) {
+					//if (dataNode != null && !(dataNode instanceof Linkable)) {
+					if (dataNode != null) {
 
 						// Last path part matches a data node
 						// Remove last path part and try again searching for a page
@@ -291,8 +312,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				// but don't modify true to false
 				dontCache |= rootElement.getProperty(Page.dontCache);
 
-
-
 				if (EditMode.WIDGET.equals(edit) || dontCache) {
 
 					setNoCacheHeaders(response);
@@ -336,19 +355,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						response.setContentType(contentType);
 
-						response.setHeader("Strict-Transport-Security", "max-age=60");
-						response.setHeader("X-Content-Type-Options", "nosniff");
-						response.setHeader("X-Frame-Options", "SAMEORIGIN");
-						response.setHeader("X-XSS-Protection", "1; mode=block");
+						setCustomResponseHeaders(response);
 
 						// async or not?
 						boolean isAsync = Services.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), true);
 						if (isAsync) {
 
-							final AsyncContext async      = request.startAsync();
+							final AsyncContext async = request.startAsync();
 							final ServletOutputStream out = async.getResponse().getOutputStream();
-							final AtomicBoolean finished  = new AtomicBoolean(false);
-							final DOMNode rootNode        = rootElement;
+							final AtomicBoolean finished = new AtomicBoolean(false);
+							final DOMNode rootNode = rootElement;
 
 							threadPool.submit(new Runnable() {
 
@@ -358,14 +374,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 									try (final Tx tx = app.tx()) {
 
 										//final long start = System.currentTimeMillis();
-
 										// render
 										rootNode.render(renderContext, 0);
 										finished.set(true);
 
 										//final long end = System.currentTimeMillis();
 										//System.out.println("Done in " + (end-start) + " ms");
-
 										tx.success();
 
 									} catch (Throwable t) {
@@ -396,7 +410,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 											String buffer = null;
 
-											synchronized(queue) {
+											synchronized (queue) {
 												buffer = queue.poll();
 											}
 
@@ -671,10 +685,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						response.setContentType(contentType);
 
-						response.setHeader("Strict-Transport-Security", "max-age=60");
-						response.setHeader("X-Content-Type-Options", "nosniff");
-						response.setHeader("X-Frame-Options", "SAMEORIGIN");
-						response.setHeader("X-XSS-Protection", "1; mode=block");
+						setCustomResponseHeaders(response);
 
 						response.getOutputStream().close();
 					}
@@ -891,7 +902,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		Collections.sort(result.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
 		// Find first visible page
-
 		if (!result.isEmpty()) {
 
 			for (Page page : result.getResults()) {
@@ -949,7 +959,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// Clear confirmation key and set session id
 					user.setProperty(User.confirmationKey, null);
 
-					if (auth.getUserAutoLogin()){
+					if (auth.getUserAutoLogin()) {
 
 						AuthHelper.doLogin(request, user);
 					}
@@ -1018,7 +1028,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// Clear confirmation key and set session id
 					user.setProperty(User.confirmationKey, null);
 
-					if (auth.getUserAutoLogin()){
+					if (auth.getUserAutoLogin()) {
 
 						AuthHelper.doLogin(request, user);
 					}
@@ -1037,7 +1047,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		return false;
 	}
-	
+
 	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, final HttpServletRequest request, final String uuid) throws FrameworkException {
 
 		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);
@@ -1132,14 +1142,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
 		}
+		
+		final int numberOfParts = PathHelper.getParts(path).length;
 
-		if (path.length() > 0) {
+		if (numberOfParts > 0) {
 
 			logger.log(Level.FINE, "Requested name {0}", path);
 
 			possibleEntryPoints = findPossibleEntryPointsByPath(securityContext, request, path);
 
-			if (possibleEntryPoints.isEmpty()) {
+			if (possibleEntryPoints.isEmpty() && numberOfParts == 1) {
 				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, PathHelper.getName(path));
 			}
 
@@ -1158,6 +1170,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	}
 
+	private static void setCustomResponseHeaders(final HttpServletResponse response) {
+
+		for (final String header : customResponseHeaders) {
+
+			final String[] keyValuePair = header.split("[ :]+");
+			response.setHeader(keyValuePair[0], keyValuePair[1]);
+
+			logger.log(Level.FINE, "Set custom response header: {0} {1}", new Object[]{keyValuePair[0], keyValuePair[1]});
+
+		}
+
+	}
+
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node, final boolean dontCache) {
 
 		boolean notModified = false;
@@ -1165,13 +1190,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		// add some caching directives to header
 		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
-		DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+		final DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
 		httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 
 		response.setHeader("Date", httpDateFormat.format(new Date()));
 
-		Calendar cal = new GregorianCalendar();
-		Integer seconds = node.getProperty(Page.cacheForSeconds);
+		final Calendar cal = new GregorianCalendar();
+		final Integer seconds = node.getProperty(Page.cacheForSeconds);
 
 		if (!dontCache && seconds != null) {
 
@@ -1191,10 +1216,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (lastModified != null) {
 
-			Date roundedLastModified = DateUtils.round(lastModified, Calendar.SECOND);
+			final Date roundedLastModified = DateUtils.round(lastModified, Calendar.SECOND);
 			response.setHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
 
-			String ifModifiedSince = request.getHeader("If-Modified-Since");
+			final String ifModifiedSince = request.getHeader("If-Modified-Since");
 
 			if (StringUtils.isNotBlank(ifModifiedSince)) {
 
@@ -1222,10 +1247,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		return notModified;
-	}
-
-	public void setResourceProvider(final ResourceProvider resourceProvider) {
-		config.setResourceProvider(resourceProvider);
 	}
 
 	private void streamFile(SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
@@ -1263,12 +1284,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				IOUtils.write(FileHelper.getBase64String(file), out);
 				response.setContentType("text/plain");
 				response.setStatus(HttpServletResponse.SC_OK);
-				
+
 				out.flush();
 				out.close();
 
 			} else {
-
 
 				// 2b: stream file to response
 				final InputStream in = file.getInputStream();
@@ -1341,7 +1361,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
-	 * Check if the given page is visible for the requested site defined by a hostname and a port.
+	 * Check if the given page is visible for the requested site defined by
+	 * a hostname and a port.
 	 *
 	 * @param request
 	 * @param page
@@ -1350,7 +1371,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
 		logger.log(Level.FINE, "Page: {0} [{1}], server name: {2}, server port: {3}", new Object[]{page.getName(), page.getUuid(), request.getServerName(), request.getServerPort()});
-		
+
 		final Site site = page.getProperty(Page.site);
 
 		if (site == null) {
@@ -1359,7 +1380,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		logger.log(Level.FINE, "Checking site: {0} [{1}], hostname: {2}, port: {3}", new Object[]{site.getName(), site.getUuid(), site.getProperty(Site.hostname), site.getProperty(Site.port)});
-		
+
 		final String serverName = request.getServerName();
 		final int serverPort = request.getServerPort();
 
@@ -1379,7 +1400,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		logger.log(Level.FINE, "Matching site: {0} [{1}], hostname: {2}, port: {3}", new Object[]{site.getName(), site.getUuid(), site.getProperty(Site.hostname), site.getProperty(Site.port)});
-		
+
 		return true;
 
 	}

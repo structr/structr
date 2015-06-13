@@ -69,6 +69,7 @@ var _Types = {
             _Types.loadSchema(function() {
                 _Types.initTabs();
                 _Types.resize();
+                Structr.unblockMenu();
             });
 
         });
@@ -199,8 +200,8 @@ var _Types = {
                     // no schema entry found?
                     if(data.result_count === 0){
 
-                        console.log("ERROR: loading Schema " + type);
-                        //Structr.error("ERROR: loading Schema " + type, true);
+                        // console.log("ERROR: loading Schema " + type);
+                        new MessageBuilder().warning("Failed loading Schema for '" + type + "' - check your resource access grants.").show();
 
 
                         var typeIndex = _Types.types.indexOf(type);
@@ -219,7 +220,6 @@ var _Types = {
 
                         $.each(data.result, function(i, res) {
                             //console.log(res);
-                            var type = res.type;
 
                             _Types.schema[type] = res;
                             _Types.view[type] = 'all';

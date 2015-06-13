@@ -36,6 +36,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
@@ -89,7 +91,7 @@ public class SchemaTypeResource extends Resource {
 
 					for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
 
-						property.setProperty(new StringProperty(prop.getKey()), prop.getValue());
+						property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
 					}
 
 					resultList.add(property);
@@ -106,14 +108,14 @@ public class SchemaTypeResource extends Resource {
 				schema.setProperty(new StringProperty("url"), url);
 				schema.setProperty(new StringProperty("type"), type.getSimpleName());
 				schema.setProperty(new StringProperty("className"), type.getName());
-				schema.setProperty(new StringProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
+				schema.setProperty(new BooleanProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
 				Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
 
 				// list property sets for all views
 				Map<String, Map<String, Object>> views = new TreeMap();
-				schema.setProperty(new StringProperty("views"), views);
+				schema.setProperty(new GenericProperty("views"), views);
 
 				for (String view : propertyViews) {
 

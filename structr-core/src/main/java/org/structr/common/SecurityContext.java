@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with
+ * Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.common;
 
@@ -42,12 +41,10 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaHelper;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Encapsulates the current user and access path and provides methods
- * to query permission flags for a given node. This is the place where
- * HttpServletRequest and Authenticator get together.
+ * Encapsulates the current user and access path and provides methods to query
+ * permission flags for a given node. This is the place where HttpServletRequest
+ * and Authenticator get together.
  *
  * @author Christian Morgner
  */
@@ -58,18 +55,17 @@ public class SecurityContext {
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 
 	//~--- fields ---------------------------------------------------------
-
-	private Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
-	private AccessMode accessMode          = AccessMode.Frontend;
-	private Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
-	private Authenticator authenticator    = null;
-	private Principal cachedUser           = null;
-	private HttpServletRequest request     = null;
-	private Set<String> customView         = null;
+	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
+	private final Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+	private AccessMode accessMode                = AccessMode.Frontend;
+	private Authenticator authenticator          = null;
+	private Principal cachedUser                 = null;
+	private HttpServletRequest request           = null;
+	private Set<String> customView               = null;
 
 	//~--- constructors ---------------------------------------------------
-
-	private SecurityContext() {}
+	private SecurityContext() {
+	}
 
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
@@ -93,7 +89,7 @@ public class SecurityContext {
 
 	private SecurityContext(HttpServletRequest request) {
 
-		this.request    = request;
+		this.request = request;
 
 		initializeCustomView(request);
 		initializeQueryRanges(request);
@@ -114,7 +110,7 @@ public class SecurityContext {
 						customView = new LinkedHashSet<>();
 
 						final String properties = matcher.group(1);
-						final String[] parts    = properties.split("[,]+");
+						final String[] parts = properties.split("[,]+");
 						for (final String part : parts) {
 
 							final String p = part.trim();
@@ -126,7 +122,8 @@ public class SecurityContext {
 					}
 				}
 
-			} catch (Throwable ignore) { }
+			} catch (Throwable ignore) {
+			}
 		}
 
 	}
@@ -141,7 +138,7 @@ public class SecurityContext {
 				final String[] rangeParts = rangeSource.split("[;]+");
 				final int rangeCount      = rangeParts.length;
 
-				for (int i=0; i<rangeCount; i++) {
+				for (int i = 0; i < rangeCount; i++) {
 
 					final String[] parts = rangeParts[i].split("[=]+");
 					if (parts.length == 2) {
@@ -161,7 +158,7 @@ public class SecurityContext {
 								if (valueParts.length == 2) {
 
 									String startString = valueParts[0].trim();
-									String endString   = valueParts[1].trim();
+									String endString = valueParts[1].trim();
 
 									// remove optional total size indicator
 									if (endString.contains("/")) {
@@ -191,9 +188,9 @@ public class SecurityContext {
 
 	public static void clearResourceFlag(final String resource, long flag) {
 
-		String name     = SchemaHelper.normalizeEntityName(resource);
-		Long flagObject = resourceFlags.get(name);
-		long flags      = 0;
+		final String name     = SchemaHelper.normalizeEntityName(resource);
+		final Long flagObject = resourceFlags.get(name);
+		long flags            = 0;
 
 		if (flagObject != null) {
 
@@ -210,7 +207,7 @@ public class SecurityContext {
 
 		boolean readableByUser = false;
 
-		for (Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext(); ) {
+		for (Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext();) {
 
 			GraphObject obj = it.next();
 
@@ -232,7 +229,6 @@ public class SecurityContext {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
 		return new SuperUserSecurityContext(request);
 	}
@@ -254,13 +250,19 @@ public class SecurityContext {
 
 	public HttpSession getSession() {
 
-		final HttpSession session = request.getSession();
-		if (session != null) {
+		if (request != null) {
+		
+			final HttpSession session = request.getSession(false);
+			if (session != null) {
 
-			session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
+				session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
+			}
+
+			return session;
+		
 		}
-
-		return session;
+		
+		return null;
 
 	}
 
@@ -317,7 +319,7 @@ public class SecurityContext {
 
 	public StringBuilder getBaseURI() {
 
-		StringBuilder uriBuilder = new StringBuilder(200);
+		final StringBuilder uriBuilder = new StringBuilder(200);
 
 		uriBuilder.append(request.getScheme());
 		uriBuilder.append("://");
@@ -340,13 +342,13 @@ public class SecurityContext {
 
 	public static long getResourceFlags(String resource) {
 
-		String name     = SchemaHelper.normalizeEntityName(resource);
-		Long flagObject = resourceFlags.get(name);
-		long flags      = 0;
+		final String name     = SchemaHelper.normalizeEntityName(resource);
+		final Long flagObject = resourceFlags.get(name);
+		long flags            = 0;
 
 		if (flagObject != null) {
 
-			flags = flagObject.longValue();
+			flags = flagObject;
 		} else {
 
 			logger.log(Level.FINE, "No resource flag set for {0}", resource);
@@ -374,13 +376,13 @@ public class SecurityContext {
 
 		switch (accessMode) {
 
-			case Backend :
+			case Backend:
 				return isVisibleInBackend(node);
 
-			case Frontend :
+			case Frontend:
 				return isVisibleInFrontend(node);
 
-			default :
+			default:
 				return false;
 
 		}
@@ -390,10 +392,9 @@ public class SecurityContext {
 	public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
 
 		/**
-		 * The if-clauses in the following lines have been split
-		 * for performance reasons.
+		 * The if-clauses in the following lines have been split for
+		 * performance reasons.
 		 */
-
 		// deleted and hidden nodes will only be returned if we are told to do so
 		if ((node.isDeleted() || node.isHidden()) && !includeDeletedAndHidden) {
 
@@ -439,7 +440,7 @@ public class SecurityContext {
 		}
 
 		// fetch user
-		Principal user = getUser(false);
+		final Principal user = getUser(false);
 
 		// anonymous users may not see any nodes in backend
 		if (user == null) {
@@ -457,16 +458,16 @@ public class SecurityContext {
 	}
 
 	/**
-	 * Indicates whether the given node is visible for a frontend
-	 * request. This method should be used to explicetely check
-	 * visibility of the requested root element, like e.g. a page,
-	 * a partial or a file/image to download.
+	 * Indicates whether the given node is visible for a frontend request.
+	 * This method should be used to explicetely check visibility of the
+	 * requested root element, like e.g. a page, a partial or a file/image
+	 * to download.
 	 *
-	 * It should *not* be used to check accessibility of child
-	 * nodes because it might send a 401 along with a request for
-	 * basic authentication.
+	 * It should *not* be used to check accessibility of child nodes because
+	 * it might send a 401 along with a request for basic authentication.
 	 *
-	 * For those, use {@link SecurityContext#isReadable(org.structr.core.entity.AbstractNode, boolean, boolean)}
+	 * For those, use
+	 * {@link SecurityContext#isReadable(org.structr.core.entity.AbstractNode, boolean, boolean)}
 	 *
 	 * @param node
 	 * @return isVisible
@@ -485,11 +486,11 @@ public class SecurityContext {
 		}
 
 		// Fetch already logged-in user, if present (don't try to login)
-		Principal user = getUser(false);
+		final Principal user = getUser(false);
 
 		if (user != null) {
 
-			Principal owner = node.getOwnerNode();
+			final Principal owner = node.getOwnerNode();
 
 			// owner is always allowed to do anything with its nodes
 			if (user.equals(node) || user.equals(owner) || user.getParents().contains(owner)) {
@@ -519,7 +520,6 @@ public class SecurityContext {
 	}
 
 	//~--- set methods ----------------------------------------------------
-
 	public void setRequest(HttpServletRequest request) {
 
 		this.request = request;
@@ -528,9 +528,9 @@ public class SecurityContext {
 
 	public static void setResourceFlag(final String resource, long flag) {
 
-		String name     = SchemaHelper.normalizeEntityName(resource);
-		Long flagObject = resourceFlags.get(name);
-		long flags      = 0;
+		final String name     = SchemaHelper.normalizeEntityName(resource);
+		final Long flagObject = resourceFlags.get(name);
+		long flags            = 0;
 
 		if (flagObject != null) {
 
@@ -600,14 +600,7 @@ public class SecurityContext {
 		}
 
 		//~--- get methods --------------------------------------------
-
-		@Override
-		public HttpSession getSession() {
-
-			throw new IllegalStateException("Trying to access session in SuperUserSecurityContext!");
-
-		}
-
+		
 		@Override
 		public Principal getUser(final boolean tryLogin) {
 

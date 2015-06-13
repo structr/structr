@@ -102,12 +102,10 @@ var _Entities = {
             t.append('<tr><td class="key">Reload</td><td class="value" id="reload"></td><td></td></tr>');
             _Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
 
-            if (entity['data-structr-action'] === 'delete') {
+            // Confirm action?
+            t.append('<tr><td class="key">Confirm action?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
+            _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the action.');
 
-                // Delete action
-                t.append('<tr><td class="key">Confirm on delete?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
-                _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
-            }
             _Entities.appendRowWithInputField(entity, t, 'data-structr-return', 'Return URI after successful action');
 
             t.append('<tr><td class="key">Append ID on create</td><td class="value" id="append-id"></td><td></td></tr>');
@@ -348,7 +346,7 @@ var _Entities = {
 
             var attrs = Object.keys(entity);
 
-            log(entity);
+            //console.log(entity);
 
             var isRelationship = false;
             var tabTexts = [];
@@ -378,17 +376,9 @@ var _Entities = {
 
                 views = ['ui', 'in', 'out'];
 
-                var hasHtmlAttributes = false;
-                if (isIn('tag', attrs) && isIn('pageId', attrs)) {
-                    hasHtmlAttributes = true;
-                }
+                var hasHtmlAttributes = entity.isDOMNode;
 
-                attrs.forEach(function (attr) {
-                    if (attr.startsWith('_html_'))
-                        hasHtmlAttributes = true;
-                });
-
-                if (hasHtmlAttributes) {
+                if (hasHtmlAttributes && !entity.isContent) {
                     views.unshift('_html_');
                     //console.log(lastMenuEntry)
                     if (lastMenuEntry === 'pages') {

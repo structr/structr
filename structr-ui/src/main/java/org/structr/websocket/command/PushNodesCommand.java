@@ -72,6 +72,7 @@ public class PushNodesCommand extends AbstractCommand {
 					}
 
 					CloudService.doRemote(
+						webSocket.getSecurityContext(),
 						new PushTransmission(root, recursive),
 						new HostInfo(username, password, host, port.intValue()),
 						new WebsocketProgressListener(getWebSocket(), key)

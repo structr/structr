@@ -77,6 +77,7 @@ public class PushSchemaCommand extends AbstractCommand {
 
 				// push schema
 				CloudService.doRemote(
+					webSocket.getSecurityContext(),
 					tms,
 					new HostInfo(username, password, host, port.intValue()),
 					new WebsocketProgressListener(getWebSocket(), key)

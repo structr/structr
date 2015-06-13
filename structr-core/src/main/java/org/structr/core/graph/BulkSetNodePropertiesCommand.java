@@ -18,18 +18,19 @@
  */
 package org.structr.core.graph;
 
+import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -70,12 +71,13 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 		if (graphDb != null) {
 
-			Result<AbstractNode> nodes = null;
+			Iterator<AbstractNode> nodeIterator = null;
 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					nodes = StructrApp.getInstance(securityContext).nodeQuery(cls).getResult();
+
+					nodeIterator = StructrApp.getInstance(securityContext).nodeQuery(cls).getResult().getResults().iterator();
 					tx.success();
 				}
 
@@ -84,7 +86,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			} else {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+
+					nodeIterator = Iterables.map(nodeFactory, GlobalGraphOperations.at(graphDb).getAllNodes()).iterator();
 					tx.success();
 				}
 			}
@@ -92,7 +95,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			// remove "type" so it won't be set later
 			properties.remove("type");
 
-			long nodeCount  = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -155,7 +158,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			});
 
 
-			logger.log(Level.INFO, "Fixed {0} nodes ...", nodeCount);
+			logger.log(Level.INFO, "Fixed {0} nodes ...", count);
 		}
 
 		logger.log(Level.INFO, "Done");

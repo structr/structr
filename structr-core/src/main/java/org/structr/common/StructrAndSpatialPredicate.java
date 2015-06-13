@@ -21,14 +21,14 @@ package org.structr.common;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.regex.Pattern;
+import org.apache.commons.lang.StringUtils;
+import org.neo4j.function.Function;
 import org.neo4j.gis.spatial.SpatialRelationshipTypes;
 import org.neo4j.gis.spatial.rtree.RTreeRelationshipTypes;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.helpers.Function;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.GraphObject;
@@ -40,10 +40,9 @@ import org.structr.schema.ConfigurationProvider;
  * @author Christian Morgner
  */
 
-public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> {
+public class StructrAndSpatialPredicate<T extends PropertyContainer> implements Predicate<T> {
 
 	private static final Set<String> spatialRelationshipTypes = new LinkedHashSet<>();
-	private static final Pattern uuidPattern                  = Pattern.compile("[a-zA-Z0-9]{32}");
 	private static final String typeName                      = GraphObject.type.dbName();
 	private static final String idName                        = GraphObject.id.dbName();
 
@@ -68,7 +67,7 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 	}
 
 	@Override
-	public boolean accept(PropertyContainer container) {
+	public boolean accept(T container) {
 
 		final boolean isStructrEntity = isStructrEntity(container);
 
@@ -104,7 +103,7 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 		return true;
 	}
 
-	private boolean isStructrEntity(final PropertyContainer container) {
+	private boolean isStructrEntity(final T container) {
 
 		if (container.hasProperty(idName)) {
 
@@ -113,7 +112,7 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 
 				final String id = (String)idObject;
 
-				if (uuidPattern.matcher(id).matches()) {
+				if (id.length() == 32 && StringUtils.isAlphanumeric(id)) {
 
 					// id is a Structr uuid
 					if (container.hasProperty(typeName)) {
@@ -124,12 +123,12 @@ public class StructrAndSpatialPredicate implements Predicate<PropertyContainer> 
 							final String type = (String)typeObject;
 
 							// return true if type is an existing node entity
-							if (configuration.getNodeEntityClass(type) != null) {
+							if (configuration.getNodeEntities().containsKey(type)) {
 								return true;
 							}
 
 							// return true if type is an existing relationship entity
-							if (configuration.getRelationshipEntityClass(type) != null) {
+							if (configuration.getRelationshipEntities().containsKey(type)) {
 								return true;
 							}
 						}

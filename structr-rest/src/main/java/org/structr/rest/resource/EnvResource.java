@@ -29,7 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
-import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
@@ -77,7 +77,7 @@ public class EnvResource extends Resource {
 			
 			final String g = outerMatcher.group();
 
-			final Pattern innerPattern = Pattern.compile("(structr-core|structr-rest|structr-ui)-(.*)-([0-9a-f]{0,40}).*");
+			final Pattern innerPattern = Pattern.compile("(structr-core|structr-rest|structr-ui)-([^-]*(?:-SNAPSHOT){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,5})).*");
 			final Matcher innerMatcher = innerPattern.matcher(g);
 			
 			final Map<String, String> module = new HashMap<>();
@@ -86,14 +86,15 @@ public class EnvResource extends Resource {
 			
 				module.put("module", innerMatcher.group(1));
 				module.put("version", innerMatcher.group(2));
-				module.put("build", innerMatcher.group(3));
+				module.put("date", innerMatcher.group(3));
+				module.put("build", innerMatcher.group(4));
 				
 			}
 
 			modules.add(module);
 		}
 
-		info.setProperty(new StringProperty("modules"), modules);
+		info.setProperty(new GenericProperty("modules"), modules);
 		
 		info.setProperty(new StringProperty("classPath"), classPath);
 

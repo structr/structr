@@ -48,6 +48,7 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -98,14 +99,14 @@ public class HttpService implements RunnableService {
 		Started, Stopped
 	}
 
-	private Server server = null;
-	private String basePath = null;
+	private Server server          = null;
+	private String basePath        = null;
 	private String applicationName = null;
-	private String host = null;
-	private boolean async = true;
-	private int httpPort = 8082;
-	private int maxIdleTime = 30000;
-	private int requestHeaderSize = 8192;
+	private String host            = null;
+	private boolean async          = true;
+	private int httpPort           = 8082;
+	private int maxIdleTime        = 30000;
+	private int requestHeaderSize  = 8192;
 
 	private HttpConfiguration httpConfig;
 	private HttpConfiguration httpsConfig;
@@ -161,7 +162,7 @@ public class HttpService implements RunnableService {
 		finalConfig.setProperty(APPLICATION_HTTP_PORT, "8082");
 		finalConfig.setProperty(APPLICATION_HTTPS_ENABLED, "false");
 		finalConfig.setProperty(APPLICATION_HTTPS_PORT, "8083");
-		finalConfig.setProperty(ASYNC, "false");
+		finalConfig.setProperty(ASYNC, "true");
 		finalConfig.setProperty(SERVLETS, "JsonRestServlet");
 
 		finalConfig.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
@@ -175,7 +176,7 @@ public class HttpService implements RunnableService {
 
 		Services.mergeConfiguration(finalConfig, additionalConfig);
 
-		String mainClassName = (String) finalConfig.get(MAIN_CLASS);
+		final String mainClassName = (String) finalConfig.get(MAIN_CLASS);
 
 		Class mainClass = null;
 		if (mainClassName != null) {
@@ -211,22 +212,22 @@ public class HttpService implements RunnableService {
 		httpPort          = Services.parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8082);
 		maxIdleTime       = Services.parseInt(System.getProperty("maxIdleTime"), 30000);
 		requestHeaderSize = Services.parseInt(System.getProperty("requestHeaderSize"), 8192);
-		async             = Services.parseBoolean(finalConfig.getProperty(ASYNC), false);
+		async             = Services.parseBoolean(finalConfig.getProperty(ASYNC), true);
 
 		if (async) {
 			logger.log(Level.INFO, "Running in asynchronous mode");
 		}
 
 		// other properties
-		String keyStorePath = finalConfig.getProperty(APPLICATION_KEYSTORE_PATH);
-		String keyStorePassword = finalConfig.getProperty(APPLICATION_KEYSTORE_PASSWORD);
-		String contextPath = System.getProperty("contextPath", "/");
-		String logPrefix = "structr";
-		boolean enableRewriteFilter = true; // configurationFile.getProperty(Services.
-		boolean enableHttps = Services.parseBoolean(finalConfig.getProperty(APPLICATION_HTTPS_ENABLED), false);
-		boolean enableGzipCompression = true; //
-		boolean logRequests = false; //
-		int httpsPort = Services.parseInt(finalConfig.getProperty(APPLICATION_HTTPS_PORT), 8083);
+		final String keyStorePath           = finalConfig.getProperty(APPLICATION_KEYSTORE_PATH);
+		final String keyStorePassword       = finalConfig.getProperty(APPLICATION_KEYSTORE_PASSWORD);
+		final String contextPath            = System.getProperty("contextPath", "/");
+		final String logPrefix              = "structr";
+		final boolean enableRewriteFilter   = true; // configurationFile.getProperty(Services.
+		final boolean enableHttps           = Services.parseBoolean(finalConfig.getProperty(APPLICATION_HTTPS_ENABLED), false);
+		final boolean enableGzipCompression = true; //
+		final boolean logRequests           = false; //
+		final int httpsPort                 = Services.parseInt(finalConfig.getProperty(APPLICATION_HTTPS_PORT), 8083);
 
 		// get current base path
 		basePath = System.getProperty("home", basePath);
@@ -237,13 +238,13 @@ public class HttpService implements RunnableService {
 		}
 
 		// create base directory if it does not exist
-		File baseDir = new File(basePath);
+		final File baseDir = new File(basePath);
 		if (!baseDir.exists()) {
 			baseDir.mkdirs();
 		}
 
 		server = new Server(httpPort);
-		ContextHandlerCollection contexts = new ContextHandlerCollection();
+		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
 		contexts.addHandler(new DefaultHandler());
 
@@ -262,23 +263,32 @@ public class HttpService implements RunnableService {
 		// this is needed for the filters to work on the root context "/"
 		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+		
+		final HashSessionManager sessionManager = new HashSessionManager();
+		try {
+			sessionManager.setStoreDirectory(new File(baseDir + "/sessions"));
+		} catch (IOException ex) {
+			logger.log(Level.WARNING, "Could not set custom session manager with session store directory {0}/sessions", baseDir);
+		}
+		
+		servletContext.getSessionHandler().setSessionManager(sessionManager);
 
 		if (enableRewriteFilter) {
 
-			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
+			final FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
 			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
-			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
+			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
 		}
 
 		if (enableGzipCompression) {
 
-			FilterHolder gzipFilter = async ? new FilterHolder(AsyncGzipFilter.class) : new FilterHolder(GzipFilter.class);
+			final FilterHolder gzipFilter = async ? new FilterHolder(AsyncGzipFilter.class) : new FilterHolder(GzipFilter.class);
 			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
 			gzipFilter.setInitParameter("bufferSize", "32768");
 			gzipFilter.setInitParameter("minGzipSize", "256");
 			gzipFilter.setInitParameter("deflateCompressionLevel", "9");
 			gzipFilter.setInitParameter("methods", "GET,POST");
-			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
+			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
 
 		}
 
@@ -287,16 +297,16 @@ public class HttpService implements RunnableService {
 		// enable request logging
 		if (logRequests || "true".equals(finalConfig.getProperty("log.requests", "false"))) {
 
-			String etcPath = basePath + "/etc";
-			File etcDir = new File(etcPath);
+			final String etcPath = basePath + "/etc";
+			final File etcDir    = new File(etcPath);
 
 			if (!etcDir.exists()) {
 
 				etcDir.mkdir();
 			}
 
-			String logbackConfFilePath = basePath + "/etc/logback-access.xml";
-			File logbackConfFile = new File(logbackConfFilePath);
+			final String logbackConfFilePath = basePath + "/etc/logback-access.xml";
+			final File logbackConfFile       = new File(logbackConfFilePath);
 
 			if (!logbackConfFile.exists()) {
 
@@ -326,13 +336,13 @@ public class HttpService implements RunnableService {
 				}
 			}
 
-			FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
+			final FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
 			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
 			loggingFilter.setInitParameter("includes", "");
 
-			RequestLogHandler requestLogHandler = new RequestLogHandler();
-			String logPath = basePath + "/logs";
-			File logDir = new File(logPath);
+			final RequestLogHandler requestLogHandler = new RequestLogHandler();
+			final String logPath                      = basePath + "/logs";
+			final File logDir                         = new File(logPath);
 
 			// Create logs directory if not existing
 			if (!logDir.exists()) {
@@ -346,7 +356,7 @@ public class HttpService implements RunnableService {
 
 			final HandlerCollection handlers = new HandlerCollection();
 
-			handlers.setHandlers(new Handler[]{contexts, new DefaultHandler(), requestLogHandler});
+			handlers.setHandlers(new Handler[]{contexts, requestLogHandler});
 
 			server.setHandler(handlers);
 
@@ -367,8 +377,8 @@ public class HttpService implements RunnableService {
 		int position = 1;
 		for (Map.Entry<String, ServletHolder> servlet : servlets.entrySet()) {
 
-			ServletHolder servletHolder = servlet.getValue();
-			String path = servlet.getKey();
+			final ServletHolder servletHolder = servlet.getValue();
+			final String path = servlet.getKey();
 
 			servletHolder.setInitOrder(position++);
 
@@ -387,7 +397,7 @@ public class HttpService implements RunnableService {
 			//httpConfig.setOutputBufferSize(8192);
 			httpConfig.setRequestHeaderSize(requestHeaderSize);
 
-			ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
 
 			httpConnector.setHost(host);
 			httpConnector.setPort(httpPort);
@@ -406,11 +416,11 @@ public class HttpService implements RunnableService {
 				httpsConfig = new HttpConfiguration(httpConfig);
 				httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-				SslContextFactory sslContextFactory = new SslContextFactory();
+				final SslContextFactory sslContextFactory = new SslContextFactory();
 				sslContextFactory.setKeyStorePath(keyStorePath);
 				sslContextFactory.setKeyStorePassword(keyStorePassword);
 
-				ServerConnector https = new ServerConnector(server,
+				final ServerConnector https = new ServerConnector(server,
 					new SslConnectionFactory(sslContextFactory, "http/1.1"),
 					new HttpConnectionFactory(httpsConfig));
 
@@ -485,8 +495,7 @@ public class HttpService implements RunnableService {
 	private List<ContextHandler> collectResourceHandlers(final StructrConf properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final List<ContextHandler> resourceHandlers = new LinkedList<>();
-
-		final String resourceHandlerList = properties.getProperty(RESOURCE_HANDLERS, "");
+		final String resourceHandlerList            = properties.getProperty(RESOURCE_HANDLERS, "");
 
 		if (resourceHandlerList != null) {
 
@@ -551,7 +560,7 @@ public class HttpService implements RunnableService {
 	private Map<String, ServletHolder> collectServlets(final StructrConf properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
-		final String servletNameList = properties.getProperty(SERVLETS, "");
+		final String servletNameList              = properties.getProperty(SERVLETS, "");
 
 		if (servletNameList != null) {
 
@@ -596,9 +605,8 @@ public class HttpService implements RunnableService {
 
 	private void removeDir(final String basePath, final String directoryName) {
 
-		String strippedBasePath = StringUtils.stripEnd(basePath, "/");
-
-		File file = new File(strippedBasePath + "/" + directoryName);
+		final String strippedBasePath = StringUtils.stripEnd(basePath, "/");
+		final File file               = new File(strippedBasePath + "/" + directoryName);
 
 		if (file.isDirectory()) {
 

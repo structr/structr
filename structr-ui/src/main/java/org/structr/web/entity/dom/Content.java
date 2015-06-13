@@ -83,12 +83,12 @@ public class Content extends DOMNode implements Text {
 
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
 		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
+		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode
 	);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
 		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent
+		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode
 	);
 	//~--- static initializers --------------------------------------------
 
@@ -317,10 +317,10 @@ public class Content extends DOMNode implements Text {
 			return;
 		}
 
-		String id            = getUuid();
-		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
-		boolean inBody       = renderContext.inBody();
-		AsyncBuffer out       = renderContext.getBuffer();
+		final String id            = getUuid();
+		final EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
+		final boolean inBody       = renderContext.inBody();
+		final AsyncBuffer out      = renderContext.getBuffer();
 
 		String _contentType = getProperty(contentType);
 
@@ -365,7 +365,7 @@ public class Content extends DOMNode implements Text {
 
 			if (_contentType != null) {
 
-				Adapter<String, String> converter = contentConverters.get(_contentType);
+				final Adapter<String, String> converter = contentConverters.get(_contentType);
 
 				if (converter != null) {
 

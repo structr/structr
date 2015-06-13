@@ -18,14 +18,12 @@
  */
 package org.structr.schema.importer;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.set.hash.THashSet;
+import java.io.File;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import org.neo4j.graphdb.Node;
 
 /**
  *
@@ -33,19 +31,23 @@ import org.neo4j.graphdb.Node;
  */
 public class TypeInfo {
 
-	private Map<String, Class> propertySet = new LinkedHashMap<>();
-	private Set<String> otherTypes         = new LinkedHashSet<>();
-	private List<Node> nodes               = new LinkedList<>();
-	private String primaryType             = null;
-	private int hierarchyLevel             = 0;
+	private static final String userHome = System.getProperty("user.home");
 
-	public TypeInfo(final String primaryType, final Set<String> otherTypes, final List<Node> nodes) {
+	private final Map<String, Class> propertySet = new THashMap<>();
+	private final Set<String> otherTypes         = new THashSet<>();
+	private Collection<Long> nodeIds             = null;
+	private String primaryType                   = null;
+	private int hierarchyLevel                   = 0;
 
+	public TypeInfo(final String primaryType, final Set<String> otherTypes, final Collection<Long> nodeIds) {
+
+		this.nodeIds     = new LazyFileBasedLongCollection(userHome + File.separator + ".structrSchemaAnalyzer" + File.separator + primaryType + ".lfc");
 		this.primaryType = primaryType;
+
 		this.otherTypes.addAll(otherTypes);
 		this.otherTypes.remove(primaryType);
 
-		this.nodes.addAll(nodes);
+		this.nodeIds.addAll(nodeIds);
 	}
 
 	@Override
@@ -82,7 +84,7 @@ public class TypeInfo {
 
 	public String getSuperclass(final Map<String, TypeInfo> typeInfos) {
 
-		final Map<Integer, TypeInfo> hierarchyMap = new TreeMap<>();
+		final Map<Integer, TypeInfo> hierarchyMap = new THashMap<>();
 
 		for (final TypeInfo info : typeInfos.values()) {
 
@@ -120,8 +122,8 @@ public class TypeInfo {
 		return otherTypes;
 	}
 
-	public List<Node> getNodes() {
-		return nodes;
+	public Collection<Long> getNodeIds() {
+		return nodeIds;
 	}
 
 	public int getHierarchyLevel() {
@@ -131,4 +133,5 @@ public class TypeInfo {
 	public void setHierarchyLevel(int level) {
 		this.hierarchyLevel = level;
 	}
+
 }

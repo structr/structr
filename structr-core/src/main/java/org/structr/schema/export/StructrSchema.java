@@ -134,7 +134,7 @@ public class StructrSchema {
 			for (final SchemaView schemaView : app.nodeQuery(SchemaView.class).getAsList()) {
 				app.delete(schemaView);
 			}
-
+			
 			newSchema.createDatabaseSchema(app);
 
 			tx.success();

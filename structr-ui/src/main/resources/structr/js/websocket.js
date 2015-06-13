@@ -245,13 +245,16 @@ function wsConnect() {
 
                     } else {
 
-                        if (dialogBox.is(':visible')) {
-                            dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
-                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                        if (codeStr.startsWith('2')) {
+                            new MessageBuilder().success(msg).show();
+                        } else if (codeStr.startsWith('3')) {
+                            new MessageBuilder().info(msg).show();
+                        } else if (codeStr.startsWith('4')) {
+                            new MessageBuilder().warning(msg).show();
                         } else {
-                            Structr.tempInfo('', true);
-                            $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                            new MessageBuilder().error(msg).show();
                         }
+
                     }
 
                 }
@@ -443,7 +446,7 @@ function wsConnect() {
             } else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
                 var obj = StructrModel.obj(data.id);
-                if (obj && obj.removes) {
+                if (obj) {
                     obj.remove();
                 }
 

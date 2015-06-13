@@ -82,6 +82,10 @@ var _Security = {
         $(window).on('resize', function() {
             _Security.resize();
         });
+        
+        // Wait 1 second before releasing the main menu
+        window.setTimeout(function() { Structr.unblockMenu(); }, 1000);
+        
     },
     
     refreshResourceAccesses : function() {

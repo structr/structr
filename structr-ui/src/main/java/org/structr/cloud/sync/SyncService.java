@@ -20,6 +20,7 @@ package org.structr.cloud.sync;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -227,7 +228,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 						try {
 
-							CloudService.doRemote(transmission, info, successListener);
+							CloudService.doRemote(SecurityContext.getSuperUserInstance(), transmission, info, successListener);
 
 						} catch (FrameworkException fex) {
 							logger.log(Level.WARNING, "Unable to synchronize with host {0}: {1}", new Object[] { info, fex.getMessage() } );
@@ -274,7 +275,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 	// ----- interface StructrTransactionListener -----
 	@Override
-	public void beforeCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException {
+	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException {
 
 		// prevent all (!) transactions from being committed on slave instances
 		if (SyncRole.slave.equals(role) && (source == null || !allowedMaster.equals(source.getOriginAddress()))) {
@@ -287,7 +288,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	}
 
 	@Override
-	public void afterCommit(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents, final TransactionSource source) {
+	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) {
 
 		if (source != null && source.isRemote()) {
 			return;
@@ -337,7 +338,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			try {
 
 				final SingleTransmission<ReplicationStatus> transmission = new SingleTransmission<>(new ReplicationStatus(instanceId));
-				final ReplicationStatus status = CloudService.doRemote(transmission, host, new LoggingListener());
+				final ReplicationStatus status = CloudService.doRemote(SecurityContext.getSuperUserInstance(), transmission, host, new LoggingListener());
 				if (status != null) {
 
 					final String slaveId = status.getSlaveId();
@@ -434,7 +435,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			CloudService.doRemote(new UpdateTransmission(), info, new LoggingListener());
+			CloudService.doRemote(SecurityContext.getSuperUserInstance(), new UpdateTransmission(), info, new LoggingListener());
 
 			tx.success();
 

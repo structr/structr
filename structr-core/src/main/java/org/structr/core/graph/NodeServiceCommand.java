@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
-import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -53,42 +52,44 @@ public abstract class NodeServiceCommand extends Command {
 	 *
 	 * @param <T>
 	 * @param securityContext
-	 * @param nodes the nodes to operate on
+	 * @param iterator the iterator that provides the nodes to operate on
 	 * @param commitCount
 	 * @param description
 	 * @param operation the operation to execute
 	 * @return the number of nodes processed
-	 * @throws FrameworkException
 	 */
-	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation) throws FrameworkException {
-		return bulkGraphOperation(securityContext, nodes, commitCount, description, operation, true);
+	public static <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation) {
+		return bulkGraphOperation(securityContext, iterator, commitCount, description, operation, true);
 	}
 	/**
 	 * Executes the given operation on all nodes in the given list.
 	 *
 	 * @param <T>
 	 * @param securityContext
-	 * @param nodes the nodes to operate on
+	 * @param iterator the iterator that provides the nodes to operate on
 	 * @param commitCount
 	 * @param description
 	 * @param operation the operation to execute
 	 * @param validation
 	 * @return the number of nodes processed
-	 * @throws FrameworkException
 	 */
-	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) throws FrameworkException {
+	public static <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
 
-		final App app              = StructrApp.getInstance(securityContext);
-		final Iterator<T> iterator = nodes.iterator();
-		long objectCount           = 0L;
+		final org.neo4j.helpers.Predicate<Long> condition = operation.getCondition();
+		final App app                   = StructrApp.getInstance(securityContext);
+		long objectCount                = 0L;
+		boolean active                  = true;
 
-		while (iterator.hasNext()) {
+		while (active) {
+
+			active = false;
 
 			try (final Tx tx = app.tx()) {
 
-				while (iterator.hasNext()) {
+				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 
 					T node = iterator.next();
+					active = true;
 
 					try {
 

@@ -18,7 +18,7 @@
  */
 package org.structr.web.common;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.Queue;
 
 /**
@@ -28,17 +28,12 @@ import java.util.Queue;
  */
 public class AsyncBuffer {
 
-	private final Queue<String> queue = new LinkedList<>();
+	private final Queue<String> queue = new ArrayDeque<>(1000);
 
 	public AsyncBuffer append(final String s) {
 
-		try {
-			synchronized(queue) {
-				queue.add(s);
-			}
-
-		} catch (Throwable t) {
-			t.printStackTrace();
+		synchronized(queue) {
+			queue.add(s);
 		}
 
 		return this;

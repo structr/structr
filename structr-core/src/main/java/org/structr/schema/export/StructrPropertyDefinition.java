@@ -389,7 +389,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				return doubleProperty;
 
 			case Date:
-				final StructrStringProperty date = new StructrStringProperty(parent, name);
+				final StructrDateProperty date = new StructrDateProperty(parent, name);
 				date.deserialize(property);
 				date.setFormat(JsonSchema.FORMAT_DATE_TIME);
 				return date;

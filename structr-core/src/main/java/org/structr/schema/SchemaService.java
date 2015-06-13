@@ -76,86 +76,92 @@ public class SchemaService implements Service {
 		// compiling must only be done once
 		if (compiling.compareAndSet(false, true)) {
 
-			// this is a very critical section :)
-			synchronized (SchemaService.class) {
+			try {
 
-				final Set<String> dynamicViews  = new LinkedHashSet<>();
-				final NodeExtender nodeExtender = new NodeExtender();
+				// this is a very critical section :)
+				synchronized (SchemaService.class) {
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+					final Set<String> dynamicViews  = new LinkedHashSet<>();
+					final NodeExtender nodeExtender = new NodeExtender();
 
-					SchemaService.ensureBuiltinTypesExist();
+					try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					// collect node classes
-					final List<SchemaNode> schemaNodes = StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList();
-					for (final SchemaNode schemaNode : schemaNodes) {
+						SchemaService.ensureBuiltinTypesExist();
 
-						nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
+						// collect node classes
+						final List<SchemaNode> schemaNodes = StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList();
+						for (final SchemaNode schemaNode : schemaNodes) {
 
-						final String auxSource = schemaNode.getAuxiliarySource();
-						if (auxSource != null) {
+							nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
 
-							nodeExtender.addClass("_" + schemaNode.getClassName() + "Helper", auxSource);
+							final String auxSource = schemaNode.getAuxiliarySource();
+							if (auxSource != null) {
+
+								nodeExtender.addClass("_" + schemaNode.getClassName() + "Helper", auxSource);
+							}
+
+							dynamicViews.addAll(schemaNode.getViews());
 						}
 
-						dynamicViews.addAll(schemaNode.getViews());
-					}
+						// collect relationship classes
+						for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
-					// collect relationship classes
-					for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
+							nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
 
-						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
+							final String auxSource = schemaRelationship.getAuxiliarySource();
+							if (auxSource != null) {
 
-						final String auxSource = schemaRelationship.getAuxiliarySource();
-						if (auxSource != null) {
+								nodeExtender.addClass("_" + schemaRelationship.getClassName() + "Helper", auxSource);
+							}
 
-							nodeExtender.addClass("_" + schemaRelationship.getClassName() + "Helper", auxSource);
+							dynamicViews.addAll(schemaRelationship.getViews());
 						}
 
-						dynamicViews.addAll(schemaRelationship.getViews());
+						// compile all classes at once and register
+						Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
+
+						for (final Class newType : newTypes.values()) {
+
+							// do full reload
+							config.registerEntityType(newType);
+
+							// instantiate classes to execute
+							// static initializer of helpers
+							try { newType.newInstance(); } catch (Throwable t) {}
+						}
+
+						// create properties and views etc.
+						for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+							schemaNode.createBuiltInSchemaEntities(errorBuffer);
+						}
+
+						success = !errorBuffer.hasError();
+
+						// inject views in configuration provider
+						if (success) {
+
+							config.registerDynamicViews(dynamicViews);
+							tx.success();
+						}
+
+					} catch (Throwable t) {
+
+						logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
+						t.printStackTrace();
+
+						success = false;
 					}
 
-					// compile all classes at once and register
-					Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
+					calculateHierarchy();
 
-					for (final Class newType : newTypes.values()) {
-
-						// do full reload
-						config.unregisterEntityType(newType.getName());
-						config.registerEntityType(newType);
-
-						// instantiate classes to execute
-						// static initializer of helpers
-						try { newType.newInstance(); } catch (Throwable t) {}
-					}
-
-					// create properties and views etc.
-					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
-						schemaNode.createBuiltInSchemaEntities(errorBuffer);
-					}
-
-					success = !errorBuffer.hasError();
-
-					// inject views in configuration provider
-					if (success) {
-
-						config.registerDynamicViews(dynamicViews);
-						tx.success();
-					}
-
-				} catch (Throwable t) {
-
-					logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
-					t.printStackTrace();
-
-					success = false;
 				}
 
-				calculateHierarchy();
-			}
+			} finally {
 
-			// compiling done
-			compiling.set(false);
+				// compiling done
+				compiling.set(false);
+
+			}
 		}
 
 		return success;
@@ -237,10 +243,6 @@ public class SchemaService implements Service {
 	}
 
 	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode) {
-
-		final String name = schemaNode.getName();
-
-		System.out.println("Calc. hierarchy level for " + name + "..");
 
 		String superclass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (superclass == null) {

@@ -149,13 +149,16 @@ var _Elements = {
             'elements': ['label'],
             'attrs': ['for', 'form'],
             'focus' : 'for'
-            
         },
         {
             'elements': ['style'],
             'attrs': ['type', 'media', 'scoped'],
             'focus' : 'type'
-            
+        },
+        {
+            'elements': ['iframe'],
+            'attrs': ['src', 'width', 'height'],
+            'focus' : 'src'
         }
     ],
     voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'source', 'track', 'wbr'],    
@@ -339,7 +342,12 @@ var _Elements = {
             }
 
             var obj = StructrModel.create(entity, null, false);
-            var el = _Pages.appendElementElement(obj, elements, true);
+            var el;
+            if (obj.isContent) {
+                el = _Contents.appendContentElement(obj, elements, true);
+            } else {
+                el = _Pages.appendElementElement(obj, elements, true);
+            }
 
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);
@@ -566,11 +574,6 @@ var _Elements = {
                         }, function() {
                             $(this).removeClass('nodeHover');
                         });
-
-                        if (isIn(entity.id, folder.linkingElements)) {
-                            //console.log(entity.id, file.linkingElements);
-                            div.addClass('nodeActive');
-                        }
 
                     });
 

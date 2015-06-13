@@ -52,7 +52,7 @@ function without(s, array) {
 
 function isIn(s, array) {
     //console.log('is', s, 'in', array, '?', (array.indexOf(s) !== -1));
-    return (array.indexOf(s) !== -1);
+    return (s && array && array.indexOf(s) !== -1);
 }
 
 function escapeForHtmlAttributes(str, escapeWhitespace) {

@@ -18,8 +18,8 @@
  */
 package org.structr.schema.importer;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.set.hash.THashSet;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -33,34 +33,28 @@ import org.neo4j.graphdb.Node;
 
 public class NodeInfo {
 
-	private static Map<String, Set<String>> propertySets = new LinkedHashMap<>();
-
-	private Map<String, Class> properties         = new LinkedHashMap<>();
-	private Set<String> types                     = new LinkedHashSet<>();
+	private final Map<String, Class> properties = new THashMap<>();
+	private final Set<String> types             = new THashSet<>();
+	private int hashCode                        = 0;
 
 	public NodeInfo(final Node node) {
 
 		extractProperties(node);
 		extractTypes(node);
-		createPropertySets();
 
+		calcHashCode();
+	}
 
-//		final String type = null;
-//
-//		// create ID and type on imported node
-//		node.setProperty(GraphObject.id.dbName(), uuid);
-//		node.setProperty(GraphObject.type.dbName(), type);
+	private void calcHashCode() {
 
+		this.hashCode = 13;
+
+		hashCode += types.hashCode();
+		hashCode += properties.hashCode() * 31;
 	}
 
 	@Override
 	public int hashCode() {
-
-		int hashCode = 13;
-
-		hashCode += types.hashCode();
-		hashCode += properties.hashCode() * 31;
-
 		return hashCode;
 	}
 
@@ -87,10 +81,6 @@ public class NodeInfo {
 		return types;
 	}
 
-	public static Map<String, Set<String>> getPropertySets() {
-		return propertySets;
-	}
-
 	// ----- private methods -----
 	private void extractProperties(final Node node) {
 
@@ -98,7 +88,6 @@ public class NodeInfo {
 
 			final Object value = node.getProperty(key);
 			if (value != null) {
-
 				properties.put(key, value.getClass());
 			}
 		}
@@ -157,25 +146,6 @@ public class NodeInfo {
 			}
 
 			types.add(buf.toString());
-		}
-	}
-
-	private void createPropertySets() {
-
-		for (final String type : types) {
-
-			Set<String> propertySet = propertySets.get(type);
-			if (propertySet == null) {
-
-				propertySet = new LinkedHashSet<>();
-				propertySets.put(type, propertySet);
-
-				propertySet.addAll(properties.keySet());
-
-			} else {
-
-				propertySet.retainAll(properties.keySet());
-			}
 		}
 	}
 }

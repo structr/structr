@@ -18,9 +18,11 @@
  */
 package org.structr.core.auth;
 
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -226,12 +228,18 @@ public class AuthHelper {
 	}
 
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
-
-		String sessionIdFromRequest = getSessionId(request);
-		if (sessionIdFromRequest != null) {
-
-			AuthHelper.clearSession(sessionIdFromRequest);
-			user.addSessionId(sessionIdFromRequest);
+		
+		HttpSession session = request.getSession(false);
+		
+		if (session == null) {
+			session = newSession(request);
+		}
+		
+		// We need a session to login a user
+		if (session != null) {
+		
+			AuthHelper.clearSession(session.getId());
+			user.addSessionId(session.getId());
 
 			Actions.call(Actions.NOTIFICATION_LOGIN, user);
 		}
@@ -239,38 +247,70 @@ public class AuthHelper {
 
 	public static void doLogout(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
-		final String sessionId = getSessionId(request);
-
-		if (sessionId != null) {
-
-			AuthHelper.clearSession(sessionId);
-			user.removeSessionId(sessionId);
+		final HttpSession session = request.getSession(false);
+		
+		// We need a session to logout a user
+		if (session != null) {
+			
+			AuthHelper.clearSession(session.getId());
+			user.removeSessionId(session.getId());
 
 			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
+		
+			try { request.logout(); request.changeSessionId(); } catch (Throwable t) {}
+
 		}
 	}
 
-	public static String getSessionId(final HttpServletRequest request) {
-
-		String existingSessionId = null;
-
+	public static boolean isSessionTimedOut(final HttpSession session) {
+		
+		if (session == null) {
+			return true;
+		}
+		
+		final long now = (new Date()).getTime();
+		
 		try {
-			existingSessionId = request.getRequestedSessionId();
-		} catch (UnsupportedOperationException uoe) {
-			// ignore
-		}
+			
+			final long lastAccessed = session.getLastAccessedTime();
 
-		if (existingSessionId == null) {
+			if (now > lastAccessed + Services.getGlobalSessionTimeout() * 1000) {
 
-			HttpSession session = request.getSession(true);
-			if (session != null) {
-
-				session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
-				return session.getId();
+				logger.log(Level.INFO, "Session {0} timed out, last accessed at {1}", new Object[]{ session, lastAccessed});
+				return true;
 			}
+
+			return false;
+
+		} catch (IllegalStateException ise) {
+			
+			return true;
 		}
 
-		return existingSessionId;
+	}
+	
+	public static HttpSession newSession(final HttpServletRequest request) {
+		
+		HttpSession session = request.getSession(true);
+		if (session == null) {
+		
+			// try again
+			session = request.getSession(true);
+		
+		}
+		
+		if (session != null) {
+			
+			session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
+			
+		} else {
+			
+			logger.log(Level.SEVERE, "Unable to create new session after two attempts");
+			
+		}
+		
+		return session;
+		
 	}
 
 	/**

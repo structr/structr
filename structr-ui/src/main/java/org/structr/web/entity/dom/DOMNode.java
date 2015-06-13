@@ -24,6 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -31,13 +32,17 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
@@ -161,6 +166,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
 
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
+	private Page cachedOwnerDocument;
 
 	static {
 
@@ -181,28 +187,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 
 	public static final Property<List<DOMNode>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMNode> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
+	public static final Property<DOMNode> sharedComponent   = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
 
-	public static final Property<Boolean> hideOnIndex = new BooleanProperty("hideOnIndex").indexed();
-	public static final Property<Boolean> hideOnDetail = new BooleanProperty("hideOnDetail").indexed();
+	public static final Property<Boolean> hideOnIndex   = new BooleanProperty("hideOnIndex").indexed();
+	public static final Property<Boolean> hideOnDetail  = new BooleanProperty("hideOnDetail").indexed();
 	public static final Property<String> showForLocales = new StringProperty("showForLocales").indexed();
 	public static final Property<String> hideForLocales = new StringProperty("hideForLocales").indexed();
-
 	public static final Property<String> showConditions = new StringProperty("showConditions").indexed();
 	public static final Property<String> hideConditions = new StringProperty("hideConditions").indexed();
 
-	public static final Property<List<DOMNode>> children = new EndNodes<>("children", DOMChildren.class);
-	public static final Property<DOMNode> parent = new StartNode<>("parent", DOMChildren.class);
-	public static final Property<DOMNode> previousSibling = new StartNode<>("previousSibling", DOMSiblings.class);
-	public static final Property<DOMNode> nextSibling = new EndNode<>("nextSibling", DOMSiblings.class);
-
+	public static final Property<DOMNode> parent           = new StartNode<>("parent", DOMChildren.class);
+	public static final Property<String> parentId          = new EntityIdProperty("parentId", parent);
+	public static final Property<List<DOMNode>> children   = new EndNodes<>("children", DOMChildren.class);
 	public static final Property<List<String>> childrenIds = new CollectionIdProperty("childrenIds", children);
-	public static final Property<String> nextSiblingId = new EntityIdProperty("nextSiblingId", nextSibling);
+	public static final Property<DOMNode> previousSibling  = new StartNode<>("previousSibling", DOMSiblings.class);
+	public static final Property<DOMNode> nextSibling      = new EndNode<>("nextSibling", DOMSiblings.class);
+	public static final Property<String> nextSiblingId     = new EntityIdProperty("nextSiblingId", nextSibling);
 
-	public static final Property<String> parentId = new EntityIdProperty("parentId", parent);
 
 	public static final Property<Page> ownerDocument = new EndNode<>("ownerDocument", PageLink.class);
-	public static final Property<String> pageId = new EntityIdProperty("pageId", ownerDocument);
+	public static final Property<String> pageId      = new EntityIdProperty("pageId", ownerDocument);
+	public static final Property<Boolean> isDOMNode  = new BooleanProperty("isDOMNode").defaultValue(true).readOnly();
 
 	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id");
 	public static final Property<String> dataHashProperty = new StringProperty("data-structr-hash");
@@ -262,21 +267,54 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 					final App app                         = StructrApp.getInstance(securityContext);
 					final RenderContext innerCtx          = new RenderContext((RenderContext) ctx);
-					final List<DOMNode> nodeList          = app.nodeQuery(DOMNode.class).andName((String) sources[0]).notBlank(DOMNode.ownerDocument).getAsList();
+					final List<DOMNode> nodeList          = app.nodeQuery(DOMNode.class).andName((String) sources[0]).getAsList();
 
 					DOMNode node = null;
 
-					final int listSize = nodeList.size();
+					/**
+					 * Nodes can be included via their name property
+					 * These nodes MUST:
+					 * 1. be unique in name
+					 * 2. NOT be in the trash => have an ownerDocument AND a parent   (public users are not allowed to see the __ShadowDocument__ ==> this check must either be made in a superuser-context OR the __ShadowDocument could be made public?)
+					 * 
+					 * These nodes can be:
+					 * 1. somewhere in the pages tree
+					 * 2. in the shared components
+					 * 3. both  ==> causes a problem because we now have multiple nodes with the same name (one shared component and multiple linking instances of that component)
+					 * 
+					 * INFOS:
+					 * 
+					 * - If a DOMNode has "syncedNodes" it MUST BE a shared component
+					 * - If a DOMNodes "sharedComponent" is set it MUST BE AN INSTANCE of a shared component      => Can we safely ignore these? I THINK SO!
+					 */
 
-					if (listSize == 1) {
+					for (final DOMNode n : nodeList) {
 
-						node = nodeList.get(0);
+						// Ignore nodes in trash
+						if (n.getProperty(DOMNode.parent) == null && n.getOwnerDocumentAsSuperUser() == null) {
+							continue;
+						}
 
-					} else if (listSize > 1) {
+						// IGNORE everything that REFERENCES a shared component!
+						if (n.getProperty(DOMNode.sharedComponent) == null) {
 
-						return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
+							// the DOMNode is either a shared component OR a named node in the pages tree
+							if (node == null) {
+
+								node = n;
+
+							} else {
+
+								// ERROR: we have found multiple DOMNodes with the same name
+								// TODO: Do we need to remove the nodes from the nodeList which can be ignored? (references to a shared component)
+								return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
+
+							}
+
+						}
 
 					}
+
 
 					if (node != null) {
 
@@ -436,9 +474,19 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 						String address = sources[0].toString();
 						String contentType = null;
+						String username    = null;
+						String password    = null;
 
 						if (sources.length > 1) {
 							contentType = sources[1].toString();
+						}
+
+						if (sources.length > 2) {
+							username = sources[2].toString();
+						}
+
+						if (sources.length > 3) {
+							password = sources[3].toString();
 						}
 
 						//long t0 = System.currentTimeMillis();
@@ -462,10 +510,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 						} else {
 
-							return getFromUrl(ctx, address);
+							return getFromUrl(ctx, address, username, password);
 						}
 
 					} catch (Throwable t) {
+						t.printStackTrace();
 					}
 
 					return "";
@@ -709,6 +758,36 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
+			}
+		});
+
+		Functions.functions.put("is_locale", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final Locale locale = ctx.getLocale();
+				if (locale != null) {
+
+					final String localeString = locale.toString();
+					if (sources != null && sources.length > 0) {
+
+						final int len = sources.length;
+						for (int i=0; i<len; i++) {
+
+							if (sources[i] != null && localeString.equals(sources[i].toString())) {
+								return true;
+							}
+						}
+					}
+				}
+
+				return false;
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? Functions.ERROR_MESSAGE_IS_LOCALE_JS : Functions.ERROR_MESSAGE_IS_LOCALE);
 			}
 		});
 	}
@@ -1026,7 +1105,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 */
 	private List<Node> getAncestors() {
 
-		List<Node> ancestors = new LinkedList();
+		List<Node> ancestors = new ArrayList();
 
 		Node _parent = getParentNode();
 		while (_parent != null) {
@@ -1058,7 +1137,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
 
-		Iterable<GraphObject> listSource = renderContext.getListSource();
+		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {
 			for (GraphObject dataObject : listSource) {
 
@@ -1940,10 +2019,23 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	// ----- static methods -----
 	private static String getFromUrl(final ActionContext ctx, final String requestUrl) throws IOException {
+		return getFromUrl(ctx, requestUrl, null, null);
+	}
+
+	private static String getFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException {
 
 		final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
 		final HttpClient client       = new HttpClient(params);
 		final GetMethod getMethod     = new GetMethod(requestUrl);
+
+		if (username != null && password != null) {
+
+			Credentials defaultcreds = new UsernamePasswordCredentials(username, password);
+			client.getState().setCredentials(AuthScope.ANY, defaultcreds);
+			client.getParams().setAuthenticationPreemptive(true);
+
+			getMethod.setDoAuthentication(true);
+		}
 
 		getMethod.addRequestHeader("Connection", "close");
 
@@ -2047,13 +2139,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		data.add(getProperty(DOMNode.sharedComponent));
 		data.add(getIncomingRelationship(Sync.class));
 
-		if (isSynced()) {
-
-			// add parent
-			data.add(getProperty(ownerDocument));
-			data.add(getOutgoingRelationship(PageLink.class));
-		}
-
+		// add parent
+		data.add(getProperty(ownerDocument));
+		data.add(getOutgoingRelationship(PageLink.class));
 
 		return data;
 	}
@@ -2110,5 +2198,26 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		return null;
+	}
+
+	/**
+	 * Returns the owner document of this DOMNode, following an OUTGOING "PAGE"
+	 * relationship.
+	 *
+	 * @return the owner node of this node
+	 */
+	public Document getOwnerDocumentAsSuperUser() {
+
+		if (cachedOwnerDocument == null) {
+
+			final PageLink ownership = getOutgoingRelationshipAsSuperUser(PageLink.class);
+			if (ownership != null) {
+
+				Page page = ownership.getTargetNode();
+				cachedOwnerDocument = page;
+			}
+		}
+
+		return cachedOwnerDocument;
 	}
 }

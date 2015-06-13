@@ -74,6 +74,7 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 
 				final StructrWebSocket webSocket   = getWebSocket();
 				final List<SyncableInfo> syncables = CloudService.doRemote(
+					webSocket.getSecurityContext(),
 					new SingleTransmission<>(new ListSyncables(type)),
 					new HostInfo(username, password, host, port.intValue()),
 					new WebsocketProgressListener(getWebSocket(), key)

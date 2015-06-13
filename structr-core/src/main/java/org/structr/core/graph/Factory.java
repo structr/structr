@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.function.Function;
 
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.Function;
 import org.neo4j.helpers.collection.PagingIterator;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;

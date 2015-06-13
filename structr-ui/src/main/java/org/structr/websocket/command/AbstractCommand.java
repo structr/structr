@@ -50,8 +50,8 @@ public abstract class AbstractCommand {
 	public static final String ID_KEY      = "id";
 	private static final Logger logger     = Logger.getLogger(AbstractCommand.class.getName());
 
-	private Session session                = null;
-	private StructrWebSocket webSocket     = null;
+	protected Session session              = null;
+	protected StructrWebSocket webSocket   = null;
 
 	public abstract void processMessage(final WebSocketMessage webSocketData) throws FrameworkException;
 

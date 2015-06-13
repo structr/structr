@@ -51,6 +51,7 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("login"), LoginResource.class);                 // login
 		resourceMap.put(Pattern.compile("logout"), LogoutResource.class);               // logout
 		resourceMap.put(Pattern.compile("registration"), RegistrationResource.class);   // self-registration
+		resourceMap.put(Pattern.compile("me"), MeResource.class);                       // me
 		resourceMap.put(Pattern.compile("reset-password"), ResetPasswordResource.class);// reset password
 		resourceMap.put(Pattern.compile("maintenance"), MaintenanceResource.class);     // maintenance
 		resourceMap.put(Pattern.compile("in"), RelationshipResource.class);             // incoming relationship

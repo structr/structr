@@ -1,7 +1,17 @@
 #!/bin/bash
 
-BASE_DIR=.
-PIDFILE=$BASE_DIR/structr-ui.pid
+NAME=$1
+HEAPSIZE=$2
+
+if [ -z $NAME ]; then
+        NAME="default"
+fi
+
+if [ -z $HEAPSIZE ]; then
+        HEAPSIZE=1
+fi
+
+BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 STRUCTR_SCRIPT=$BASE_DIR/run.sh
 
-start-stop-daemon --quiet --start --make-pidfile --pidfile $PIDFILE --chdir $BASE_DIR --exec $STRUCTR_SCRIPT
+$STRUCTR_SCRIPT $NAME $HEAPSIZE

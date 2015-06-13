@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.ReloadSchema;
@@ -70,8 +69,6 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 
 			SchemaHelper.removeDynamicGrants(getResourceSignature());
 		}
-
-		StructrApp.getConfiguration().unregisterEntityType(getClassName());
 
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());

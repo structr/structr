@@ -532,7 +532,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	}
 
-	private <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type) {
+	protected <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
 		final R template = getRelationshipForType(type);
@@ -624,6 +624,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return null;
 	}
 
+	protected <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
+
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRawTarget(SecurityContext.getSuperUserInstance(), dbNode, null);
+
+		if (relationship != null) {
+			return factory.adapt(relationship);
+		}
+
+		return null;
+	}
+
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type) {
 
@@ -664,7 +677,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (cachedOwnerNode == null) {
 
-			if (this instanceof Principal) {
+			if (this instanceof Principal && !(this instanceof Group)) {
 
 				// a user is its own owner
 				cachedOwnerNode = (Principal)this;
@@ -694,7 +707,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	}
 
-	private <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type) {
+	protected <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
 		final R template                     = getRelationshipForType(type);
@@ -745,10 +758,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			accessingUser = context.getUser(false);
 		}
 
-		return isGranted(permission, accessingUser);
+		return isGranted(permission, accessingUser, 0);
 	}
 
-	private boolean isGranted(final Permission permission, final Principal accessingUser) {
+	private boolean isGranted(final Permission permission, final Principal accessingUser, final int level) {
 
 		// use quick checks for maximum performance
 		if (isCreation && (accessingUser == null || accessingUser.equals(getOwnerNode()) ) ) {
@@ -761,8 +774,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			return true;
 		}
 
-		// allow accessingUser to access itself
-		if (this.equals(accessingUser)) {
+		// allow accessingUser to access itself, but not parents etc.
+		if (this.equals(accessingUser) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
 			return true;
 		}
 
@@ -804,7 +817,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			// Now check possible parent principals
 			for (Principal parent : accessingUser.getParents()) {
 
-				if (isGranted(permission, parent)) {
+				if (isGranted(permission, parent, level+1)) {
 
 					return true;
 				}
@@ -946,6 +959,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return securityContext.isVisible(this);
 
+	}
+
+	@Override
+	public boolean canHaveOwner() {
+		return true;
 	}
 
 	/**

@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph;
 
-import java.util.LinkedList;
+import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -29,11 +29,12 @@ import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.collection.Iterables;
+import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
@@ -65,35 +66,34 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 		if (entityType != null) {
 
 			final Class type = SchemaHelper.getEntityClassForRawType(entityType);
-
 			if (type != null) {
 
-				final List<AbstractNode> nodes = new LinkedList<>();
+				Iterator<AbstractNode> nodeIterator = null;
 
-				// instantiate all nodes in a single list
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					nodes.addAll(nodeFactory.bulkInstantiate(GlobalGraphOperations.at(graphDb).getAllNodes()));
+
+					nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()))).iterator();
+					tx.success();
+
+				} catch (FrameworkException fex) {
+					logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
+					fex.printStackTrace();
 				}
 
-				logger.log(Level.INFO, "Start setting UUID on all nodes of type {0}", new Object[] { type.getSimpleName() });
+				logger.log(Level.INFO, "Start setting UUID on all nodes of type {0}", new Object[] { entityType });
 
-				long count = bulkGraphOperation(securityContext, nodes, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+				final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 					@Override
-					public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
-
-						if (!node.getClass().equals(type)) {
-
-							return;
-						}
+					public void handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
 
 						try {
 
 							node.setProperty(GraphObject.id, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
-							
+
 							// make sure type attribute is filled if it wasn't already
 							if (node.getProperty(NodeInterface.type) == null) {
-								
+
 								node.setProperty(NodeInterface.type, type.getSimpleName());
 							}
 
@@ -117,7 +117,6 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 						logger.log(Level.WARNING, "Unable to set UUID on node: {0}", t.getMessage());
 
 					}
-
 				});
 
 				logger.log(Level.INFO, "Done with setting UUID on {0} nodes", count);
@@ -127,24 +126,24 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 		} else if (relType != null) {
 
-			final List<AbstractRelationship> rels = new LinkedList<>();
+			Iterator<AbstractRelationship> relIterator = null;
 
-			// instantiate all rels in a single list
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				rels.addAll(relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships()));
+
+				relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()))).iterator();
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
+				fex.printStackTrace();
 			}
 
 			logger.log(Level.INFO, "Start setting UUID on all rels of type {0}", new Object[] { relType });
 
-			long count = bulkGraphOperation(securityContext, rels, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
+			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
-
-					if (!rel.getType().equals(relType)) {
-
-						return;
-					}
 
 					try {
 
@@ -169,7 +168,6 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 					logger.log(Level.WARNING, "Unable to set UUID on relationship: {0}", t.getMessage());
 
 				}
-
 			});
 
 			logger.log(Level.INFO, "Done with setting UUID on {0} relationships", count);

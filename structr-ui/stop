@@ -1,17 +1,29 @@
 #!/bin/bash
 
-BASE_DIR=.
-PIDFILE=$BASE_DIR/structr-ui.pid
-LOGS_DIR=$BASE_DIR/logs
-SERVER_LOG=$BASE_DIR/logs/server.log
+NAME=$1
 
-start-stop-daemon --stop --signal 15 --pidfile $PIDFILE
+if [ -z $NAME ]; then
+        NAME="default"
+fi
+
+BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd $BASE_DIR
+PIDFILE=./structr-ui.pid
+LOGS_DIR=./logs
+SERVER_LOG=./logs/server.log
+
+if [ ! -f $PIDFILE ]; then
+	echo "No pid file exists, exiting."
+	exit 0
+fi
 
 PID=`cat $PIDFILE`
+kill -15 $PID
 
-{ tail -q --pid=$PID -n0 -F $SERVER_LOG & } | sed -n '/Shutdown complete/q'
+( tail -q -n0 -F $SERVER_LOG & echo $! >tail.pid ) | sed -n '/Shutdown complete/q'
 
 rm $PIDFILE
 
-echo "Structr stopped."
-
+echo "Structr instance '$NAME' stopped."
+kill `cat tail.pid`
+rm tail.pid

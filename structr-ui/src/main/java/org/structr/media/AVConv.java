@@ -138,7 +138,7 @@ public class AVConv implements VideoHelper {
 		try {
 
 			final ExecutorService service  = Executors.newSingleThreadExecutor();
-			final Map<String, Object> info = service.submit(new GetVideoInfoProcess(securityContext, inputVideo)).get();
+			final Map<String, Object> info = service.submit(new GetVideoInfoProcess(securityContext, inputVideo.getDiskFilePath(securityContext))).get();
 			service.shutdown();
 
 			return info;

@@ -23,10 +23,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.function.Function;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.Function;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
@@ -66,7 +66,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 					return from.getStartNode();
 				}
 
-			}, rels));
+			}, sort(rels)));
 		}
 
 		return null;
@@ -129,6 +129,10 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 	@Override
 	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
 		return getMultiple(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType(), predicate);
+	}
+
+	public Relationship getRawTarget(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+		return getSingle(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType());
 	}
 
 	@Override

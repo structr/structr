@@ -1,13 +1,23 @@
 #!/bin/bash
+
+NAME=$1
+HEAPSIZE=$2
+
+if [ -z $NAME ]; then
+        NAME="default"
+fi
+
+if [ -z $HEAPSIZE ]; then
+	HEAPSIZE=1
+fi
+
+BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd $BASE_DIR
 JAVA=`which java`
 LATEST=`ls target/structr-ui-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
 VERSION=${LATEST#target/structr-ui-};VERSION=${VERSION%%.jar}
 STRUCTR="-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -cp target/lib/*:$LATEST org.structr.Server"
-STRUCTR_ARGS="-d64 -Xms1g -Xmx1g -XX:+UseG1GC -XX:MaxPermSize=128m -XX:+UseNUMA -Dinstance=your_instance_name"
-
-STRUCTR_CONF=`find . -name structr.conf`
-echo "Starting Structr with config file $STRUCTR_CONF"
-BASE_DIR=`grep -v '^#' $STRUCTR_CONF | grep -m1 "base\.path" | awk '{ print $3 }' | tr -d [:cntrl:]`
+STRUCTR_ARGS="-server -d64 -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:MaxPermSize=128m -XX:+UseNUMA -XX:+UseG1GC -Dinstance=$NAME"
 
 PIDFILE=$BASE_DIR/structr-ui.pid
 LOGS_DIR=$BASE_DIR/logs
@@ -17,11 +27,20 @@ if [ ! -d $LOGS_DIR ]; then
         mkdir $LOGS_DIR
 fi
 
+if [ -f $PIDFILE ]; then
+	PID=`cat $PIDFILE`
+	echo "Structr seems to be running as pid $PID, pid file $PIDFILE exists, exiting."
+	exit 0
+fi
+
+STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
+echo "Starting Structr instance '$NAME' with config file $STRUCTR_CONF"
+
 nohup $JAVA $STRUCTR $STRUCTR_ARGS > $SERVER_LOG 2>&1 &
 echo $! >$PIDFILE
 
-{ tail -q -n0 --pid=$! -F $SERVER_LOG 2>/dev/null & } | sed -n '/Initialization complete/q'
-tail -200 $SERVER_LOG 2> /dev/null | grep 'Starting'
+( tail -q -n0 -F $SERVER_LOG 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q'
+tail -q -200 $SERVER_LOG 2> /dev/null | grep 'Starting'
 
 # If your console font is rather slim, you can change the ascii art message to
 # better fit the structr logo ;-) (you know, details matter...)
@@ -42,4 +61,6 @@ echo
 echo "$VERSION"
 
 echo
-echo "Structr started successfully (PID $!)"
+echo "Structr instance '$NAME' started successfully (PID $!)"
+kill `cat tail.pid`
+rm tail.pid
