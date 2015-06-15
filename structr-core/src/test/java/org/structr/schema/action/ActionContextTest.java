@@ -316,6 +316,11 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid escape_javascript() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${escape_javascript(this.alwaysNull)}"));
 			assertEquals("Invalid usage message for escape_javascript()", Functions.ERROR_MESSAGE_ESCAPE_JS, Scripting.replaceVariables(ctx, testOne, "${escape_javascript()}"));
 
+			// escape_json
+			assertEquals("Invalid escape_json() result", "A'B\\\"C", Scripting.replaceVariables(ctx, testOne, "${escape_json(this.stringWithQuotes)}"));
+			assertEquals("Invalid escape_json() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${escape_json(this.alwaysNull)}"));
+			assertEquals("Invalid usage message for escape_json()", Functions.ERROR_MESSAGE_ESCAPE_JSON, Scripting.replaceVariables(ctx, testOne, "${escape_json()}"));
+
 			// if etc.
 			assertEquals("Invalid if() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${if(\"true\", \"true\", \"false\")}"));
 			assertEquals("Invalid if() result", "false", Scripting.replaceVariables(ctx, testOne,  "${if(\"false\", \"true\", \"false\")}"));

@@ -144,6 +144,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_CLEAN = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
 	public static final String ERROR_MESSAGE_URLENCODE = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
 	public static final String ERROR_MESSAGE_ESCAPE_JS = "Usage: ${escape_javascript(string)}. Example: ${escape_javascript(this.name)}";
+	public static final String ERROR_MESSAGE_ESCAPE_JSON = "Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}";
 	public static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
 	public static final String ERROR_MESSAGE_EMPTY = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 	public static final String ERROR_MESSAGE_EQUAL = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
@@ -1027,6 +1028,23 @@ public class Functions {
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ESCAPE_JS;
+			}
+
+		});
+		functions.put("escape_json", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
+					? StringEscapeUtils.escapeJson(sources[0].toString())
+					: "";
+
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_ESCAPE_JSON;
 			}
 
 		});
