@@ -606,13 +606,13 @@ ul#previewTabs {
 #previewTabs li:hover, #tabs li:hover, .compTabs:hover, .data-tabs li:hover {
     color: #333 ! important;
     background-color: #e3e3e3;
-    background-image: none;    
+    background-image: none;
 }
 
 #previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active {
     color: #333 ! important;
     background-color: #81ce25;
-    background-image: none;   
+    background-image: none;
 }
 
 #previews {

@@ -3,6 +3,7 @@ package org.structr.xmpp;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -25,6 +26,7 @@ import org.jivesoftware.smack.roster.packet.RosterPacket;
 import org.jivesoftware.smack.sm.predicates.ForEveryStanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.structr.common.error.FrameworkException;
@@ -209,13 +211,19 @@ public class XMPPContext {
 						final MultiUserChat chat = manager.getMultiUserChat(chatRoom);
 						if (chat != null) {
 
+							final DiscussionHistory history = new DiscussionHistory();
+							final long timeout              = TimeUnit.SECONDS.toMillis(10);
+
+							history.setMaxChars(0);
+							history.setMaxStanzas(0);
+
 							if (password != null) {
 
-								chat.join(nickname, password);
+								chat.join(nickname, password, history, timeout);
 
 							} else {
 
-								chat.join(nickname);
+								chat.join(nickname, "", history, timeout);
 							}
 						}
 
