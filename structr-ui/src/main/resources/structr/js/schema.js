@@ -182,7 +182,7 @@ var _Schema = {
 
                     _Schema.setZoom(zoomLevel, instance, [0,0], $('#schema-graph')[0]);
                     _Schema.resize();
-            
+
                     // Wait 1 second before releasing the main menu
                     window.setTimeout(function() { Structr.unblockMenu(); }, 1000);
 
@@ -696,7 +696,9 @@ var _Schema = {
                     + '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
                     + '<td><input class="not-null" type="checkbox"></td>'
                     + '<td><input class="unique" type="checkbox"></td>'
-                    + '<td><input class="property-default" size="10" type="text"></td><td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"></td></div>');
+                    + '<td><input class="property-default" size="10" type="text"></td>'
+                    + '<td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">'
+                    + '</td></div>');
 
             $('.new .remove-property', propertiesTable).on('click', function() {
                 var self = $(this);
@@ -920,9 +922,9 @@ var _Schema = {
 
     },
     resize: function() {
-        
+
         Structr.resize();
-        
+
         var zoom = (instance ? instance.getZoom() : 1);
 
         var headerHeight = $('#header').outerHeight() + $('.schema-input-container').outerHeight() + 14;
@@ -969,7 +971,7 @@ var _Schema = {
                 + (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
                 + (property.unique ? ' checked="checked"' : '') + '</td><td>'
                 + '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td>'
-                + (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">')
+                + (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"><img alt="Labels" class="remove-icon edit-labels" src="icon/book_open.png">')
                 + '</td></div>');
 
         _Schema.bindEvents(property);
@@ -1050,6 +1052,12 @@ var _Schema = {
 
         $('.' + key + ' .remove-property', el).on('click', function() {
             _Schema.confirmRemoveSchemaEntity(property, 'Delete property', 'local', 'Property values will not be removed from data nodes.');
+        }).prop('disabled', null);
+
+        $('.' + key + ' .edit-labels', el).on('click', function() {
+
+            alert("Test");
+
         }).prop('disabled', null);
 
 
