@@ -363,7 +363,7 @@ var _Pages = {
         $('#import_page', previewTabs).after('<li id="pull_page" title="Sync page from remote instance" class="button"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
         $('#pull_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
-            Structr.pullDialog('Page, ShadowDocument');
+            Structr.pullDialog('Page');
         });
 
         $('#pull_page', previewTabs).after('<li id="add_page" title="Add page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
