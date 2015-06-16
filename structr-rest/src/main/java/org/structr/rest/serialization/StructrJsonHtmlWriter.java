@@ -20,7 +20,9 @@ package org.structr.rest.serialization;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
@@ -109,7 +111,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		try (final Tx tx = app.tx()) {
 
-			for (SchemaNode node : app.nodeQuery(SchemaNode.class).getAsList()) {
+			final List<SchemaNode> schemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
+			Collections.sort(schemaNodes);
+
+			for (SchemaNode node : schemaNodes) {
 
 				final String rawType = node.getName();
 				top.inline("a").attr(new Href(restPath + "/" + rawType), new If(rawType.equals(currentType), new Css("active"))).text(rawType);
