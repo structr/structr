@@ -67,7 +67,9 @@ import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
 
 /**
  *
@@ -356,6 +358,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 		final String uuid              = receivedNodeData.getSourceNodeId();
 		GraphObject newOrExistingNode  = app.get(nodeType, uuid);
 
+
 		if (newOrExistingNode != null) {
 
 			// merge properties
@@ -363,8 +366,24 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 		} else {
 
-			// create
-			final PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, nodeType, receivedNodeData.getProperties());
+			final PropertyMap properties         = PropertyMap.databaseTypeToJavaType(securityContext, nodeType, receivedNodeData.getProperties());
+			final List<DOMNode> existingChildren = new LinkedList<>();
+
+			// special handling for ShadowDocument (all others must be deleted)
+			if (ShadowDocument.class.getSimpleName().equals(typeName)) {
+
+				// delete shadow document
+				for (ShadowDocument existingDoc : app.nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getAsList()) {
+
+					existingChildren.addAll(existingDoc.getProperty(Page.elements));
+					app.delete(existingDoc);
+				}
+
+				// add existing children to new shadow document
+				properties.put(Page.elements, existingChildren);
+			}
+
+			// create node
 			newOrExistingNode = app.create(nodeType, properties);
 		}
 
