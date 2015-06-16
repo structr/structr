@@ -608,7 +608,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 		if (types == null || types.isEmpty()) {
 
-			for (final Page page : app.nodeQuery(Page.class).getAsList()) {
+			for (final Page page : app.nodeQuery(Page.class).includeDeletedAndHidden().getAsList()) {
 				syncables.add(new SyncableInfo(page));
 			}
 
@@ -633,7 +633,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 			if (NodeInterface.class.isAssignableFrom(type)) {
 
-				for (final NodeInterface syncable : (Iterable<NodeInterface>) app.nodeQuery(type).getAsList()) {
+				for (final NodeInterface syncable : (Iterable<NodeInterface>) app.nodeQuery(type).includeDeletedAndHidden().getAsList()) {
 					syncables.add(new SyncableInfo(syncable));
 				}
 

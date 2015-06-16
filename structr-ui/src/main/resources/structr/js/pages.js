@@ -250,9 +250,9 @@ var _Pages = {
         _Pages.refresh();
 
         if (activeTabLeft) {
-            
+
             if (localStorage.getItem(leftSlideoutWidthKey)) {
-                
+
                 var leftSlideoutWidth = parseInt(localStorage.getItem(leftSlideoutWidthKey));
                 var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
                 leftSlideout.css({
@@ -284,10 +284,10 @@ var _Pages = {
         win.resize(function() {
             _Pages.resize();
         });
-        
+
         // Wait 1 second before releasing the main menu
         window.setTimeout(function() { Structr.unblockMenu(); }, 1000);
-        
+
     },
     clearPreviews: function() {
 
@@ -363,7 +363,7 @@ var _Pages = {
         $('#import_page', previewTabs).after('<li id="pull_page" title="Sync page from remote instance" class="button"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
         $('#pull_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
-            Structr.pullDialog('Page');
+            Structr.pullDialog('Page, ShadowDocument');
         });
 
         $('#pull_page', previewTabs).after('<li id="add_page" title="Add page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
@@ -817,7 +817,7 @@ var _Pages = {
 
                             // Store old text in global var and attribute
                             textBeforeEditing = self.text();
-                            
+
                             var srcText = expandNewline(self.attr('data-structr-raw-content'));
 
                             // Replace only if it differs (e.g. for variables)
@@ -839,9 +839,9 @@ var _Pages = {
             });
 
         });
-        
+
         _Dragndrop.makeDroppable(div);
-        
+
         return div;
 
     },
