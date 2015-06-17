@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
@@ -36,6 +38,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
@@ -224,6 +227,44 @@ public class SchemaTypeResource extends Resource {
 				propProperties.put("type", property.typeName());
 			}
 			propProperties.put("isCollection", property.isCollection());
+
+			if (property.isDynamic()) {
+
+				// lookup the SchemaProperty => labels
+				try {
+
+					for (final SchemaProperty schemaProp : StructrApp.getInstance().nodeQuery(SchemaProperty.class).andName(property.jsonName()).getAsList()) {
+
+						if (schemaProp.schemaNode.getProperty(securityContext, schemaProp, false).getName().equals(declaringClass.getSimpleName())) {
+
+							// The wanted labels
+							propProperties.put("labels", schemaProp.labels.getProperty(securityContext, schemaProp, false));
+
+						}
+
+					}
+
+/*
+					// I would rather do it like this because we'd save a loop and let the DB do that for us... but see the following comment an explanation as to why this is *seemingly* not possible
+
+					SchemaProperty schemaProp = StructrApp.getInstance().nodeQuery(SchemaProperty.class).andName(property.jsonName())
+
+							// THIS DOES NOT WORK BECAUSE "declaringClass" in "SchemaNode" is always empty
+							// WITHOUT THIS THE QUERY IS AMBIGUOUS...
+							// Solutions:
+							// 1. populate "declaringClass" on "SchemaNode"
+							// 2. query "SchemaNode" where name=declaringClass.getSimpleName()   and the search the related schemaProperties for a name="property.jsonName"
+							// 3. query "SchemaProperty" where name "property.jsonName" and filter the resulting list by the correct SchemaNode
+//							.and(SchemaProperty.declaringClass, declaringClass.getSimpleName())
+
+							.getFirst();
+*/
+
+				} catch (FrameworkException ex) {
+					// TODO: Better error message!?
+					Logger.getLogger(SchemaTypeResource.class.getName()).log(Level.SEVERE, "Error looking up SchemaProperty!", ex);
+				}
+			}
 
 			final PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
 			final PropertyConverter inputConverter = property.inputConverter(securityContext);
