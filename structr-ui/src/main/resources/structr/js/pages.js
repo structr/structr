@@ -250,9 +250,9 @@ var _Pages = {
         _Pages.refresh();
 
         if (activeTabLeft) {
-            
+
             if (localStorage.getItem(leftSlideoutWidthKey)) {
-                
+
                 var leftSlideoutWidth = parseInt(localStorage.getItem(leftSlideoutWidthKey));
                 var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
                 leftSlideout.css({
@@ -284,10 +284,10 @@ var _Pages = {
         win.resize(function() {
             _Pages.resize();
         });
-        
+
         // Wait 1 second before releasing the main menu
         window.setTimeout(function() { Structr.unblockMenu(); }, 1000);
-        
+
     },
     clearPreviews: function() {
 
@@ -817,7 +817,7 @@ var _Pages = {
 
                             // Store old text in global var and attribute
                             textBeforeEditing = self.text();
-                            
+
                             var srcText = expandNewline(self.attr('data-structr-raw-content'));
 
                             // Replace only if it differs (e.g. for variables)
@@ -839,9 +839,9 @@ var _Pages = {
             });
 
         });
-        
+
         _Dragndrop.makeDroppable(div);
-        
+
         return div;
 
     },

@@ -18,22 +18,38 @@
  */
 package org.structr.web.entity.dom;
 
+import java.util.List;
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.web.entity.relation.PageLink;
 
 /**
  * Shadow document.
- * 
+ *
  * The sole purpose of this class is to have a node to append reused elements
  * (aka) components to.
  *
  * @author Axel Morgner
  */
 public class ShadowDocument extends Page {
-	
+
 	public static final org.structr.common.View publicView = new org.structr.common.View(ShadowDocument.class, PropertyView.Public, type, name, id);
 
-	public ShadowDocument() {
-		
-	}
+	public ShadowDocument() { }
 
+	// ----- interface Syncable -----
+	@Override
+	public List<GraphObject> getSyncData() throws FrameworkException {
+
+		final List<GraphObject> data = super.getSyncData();
+
+		for (final PageLink pageLink : getIncomingRelationships(PageLink.class)) {
+
+			data.add(pageLink.getSourceNode());
+			data.add(pageLink);
+		}
+
+		return data;
+	}
 }
