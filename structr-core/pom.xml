@@ -32,7 +32,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <structr.version>1.1-SNAPSHOT</structr.version>
         <neo4j.version>2.2.2</neo4j.version>
-        <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
 
     <repositories>
@@ -212,6 +211,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <additionalparam>${javadoc.opts}</additionalparam>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -271,6 +273,15 @@
         </resources>
     </build>
     <profiles>
+        <profile>
+            <id>doclint-java8-disable</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <javadoc.opts>-Xdoclint:none</javadoc.opts>
+            </properties>
+        </profile>
         <profile>
             <id>release-sign-artifacts</id>
             <activation>
