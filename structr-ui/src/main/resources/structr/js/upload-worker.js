@@ -1,14 +1,14 @@
 self.addEventListener('message', function (e) {
-    try {
+	try {
 
-        var file = e.data;
-        var reader = new FileReaderSync();
+		var file = e.data;
+		var reader = new FileReaderSync();
 
-        postMessage(reader.readAsArrayBuffer(file));
+		postMessage(reader.readAsArrayBuffer(file));
 
-    } catch (e) {
-        postMessage({
-            result: 'error'
-        });
-    }
+	} catch (e) {
+		postMessage({
+			result: 'error'
+		});
+	}
 }, false);

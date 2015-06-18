@@ -72,7 +72,7 @@
             <type>jar</type>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>
+        <!--        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.7</version>
@@ -211,6 +211,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <additionalparam>${javadoc.opts}</additionalparam>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -270,6 +273,15 @@
         </resources>
     </build>
     <profiles>
+        <profile>
+            <id>doclint-java8-disable</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <javadoc.opts>-Xdoclint:none</javadoc.opts>
+            </properties>
+        </profile>
         <profile>
             <id>release-sign-artifacts</id>
             <activation>

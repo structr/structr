@@ -178,12 +178,4 @@ public class Actions {
 		return null;
 	}
 
-	// ----- nested classes -----
-	private static class ThreadLocalInt extends ThreadLocal<Integer> {
-
-		@Override
-		public Integer initialValue() {
-			return 0;
-		}
-	}
 }

@@ -26,6 +26,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.common.error.FrameworkException;
+import static org.structr.core.auth.AuthHelper.getHash;
+import static org.structr.core.auth.AuthHelper.getSimpleHash;
 import static org.structr.core.entity.Principal.password;
 import org.structr.core.entity.relationship.Groups;
 import org.structr.core.property.PropertyKey;
@@ -128,6 +130,32 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 	}
 
 	@Override
+	public boolean isValidPassword(final String password) {
+
+		final String encryptedPasswordFromDatabase = getEncryptedPassword();
+		if (encryptedPasswordFromDatabase != null) {
+
+			final String salt = getProperty(Principal.salt);
+			String encryptedPasswordToCheck = null;
+
+			if (salt != null) {
+
+				encryptedPasswordToCheck = getHash(password, salt);
+
+			} else {
+
+				encryptedPasswordToCheck = getSimpleHash(password);
+			}
+
+			if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
 	public String getEncryptedPassword() {
 
 		boolean dbNodeHasProperty = dbNode.hasProperty(password.dbName());
@@ -142,7 +170,6 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 			return null;
 		}
-
 	}
 
 	@Override

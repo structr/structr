@@ -18,6 +18,8 @@
  */
 package org.structr.core.graph.search;
 
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.set.hash.TLinkedHashSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,8 +73,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
 	protected static final boolean PUBLIC_ONLY		  = false;
 
-	private static final Set<Character> specialCharsExact = new LinkedHashSet<>();
-	private static final Set<Character> specialChars      = new LinkedHashSet<>();
+	private static final Map<String, Set<String>> subtypeMapForType = new THashMap<>();
+	private static final Set<Character> specialCharsExact           = new LinkedHashSet<>();
+	private static final Set<Character> specialChars                = new LinkedHashSet<>();
 
 	public static final String LOCATION_SEARCH_KEYWORD    = "location";
 	public static final String STATE_SEARCH_KEYWORD       = "state";
@@ -562,13 +565,25 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return this;
 	}
 
+	public org.structr.core.app.Query<T> andType(final String type) {
+
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.MUST, exactSearch));
+		return this;
+	}
+
+	public org.structr.core.app.Query<T> orType(final String type) {
+
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.SHOULD, exactSearch));
+		return this;
+	}
+
 	@Override
 	public org.structr.core.app.Query<T> andTypes(final Class type) {
 
 		// create a new search group
 		and();
 
-		for (final Class subtype : allSubtypes(type)) {
+		for (final String subtype : getAllSubtypesAsStringSet(type.getSimpleName())) {
 			orType(subtype);
 		}
 
@@ -584,7 +599,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// create a new search group
 		or();
 
-		for (final Class subtype : allSubtypes(type)) {
+		for (final String subtype : getAllSubtypesAsStringSet(type.getSimpleName())) {
 			orType(subtype);
 		}
 
@@ -848,6 +863,61 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			if (type.isAssignableFrom(entityClass)) {
 
 				allSubtypes.add(entityClass);
+			}
+		}
+
+		return allSubtypes;
+	}
+
+	public static void clearInheritanceMap() {
+		subtypeMapForType.clear();
+	}
+
+	public static Set<String> getAllSubtypesAsStringSet(final String type) {
+
+		Set<String> allSubtypes = subtypeMapForType.get(type);
+		if (allSubtypes == null) {
+
+			allSubtypes = new TLinkedHashSet<>();
+			subtypeMapForType.put(type, allSubtypes);
+
+			final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
+			final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
+			final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
+
+			// add type first (this is neccesary because two class objects of the same dynamic type node are not equal
+			// to each other and not assignable, if the schema node was modified in the meantime)
+			allSubtypes.add(type);
+
+			// scan all node entities for subtypes
+			for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
+
+				final Class entityType     = entity.getValue();
+				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
+
+				for (final Class superClass : ancestors) {
+
+					final String superClassName = superClass.getSimpleName();
+					if (superClassName.equals(type)) {
+
+						allSubtypes.add(entityType.getSimpleName());
+					}
+				}
+			}
+
+			// scan all relationship entities for subtypes
+			for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
+
+				final Class entityType = entity.getClass();
+
+				for (final Class superClass : typeAndAllSupertypes(entityType)) {
+
+					final String superClassName = superClass.getSimpleName();
+					if (superClassName.equals(type)) {
+
+						allSubtypes.add(entityType.getSimpleName());
+					}
+				}
 			}
 		}
 

@@ -31,38 +31,38 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
 
-    var s = new StructrApp(structrRestUrl);
-    s.activateButtons(buttonSelector);
-    $(document).trigger('structr-ready');
-    s.hideNonEdit();
+	var s = new StructrApp(structrRestUrl);
+	s.activateButtons(buttonSelector);
+	$(document).trigger('structr-ready');
+	s.hideNonEdit();
 
-    $(window).on('keydown', function(e) {
-        var k = e.which;
-        //console.log('before down', k, altKey, ctrlKey, shiftKey, eKey)
-        if (k === 16)
-            shiftKey = true;
-        if (k === 17)
-            altKey = true;
-        if (k === 18)
-            ctrlKey = true;
-        if (k === 69)
-            eKey = true;
-        //console.log('after down', k, altKey, ctrlKey, shiftKey, eKey)
-    });
+	$(window).on('keydown', function(e) {
+		var k = e.which;
+		//console.log('before down', k, altKey, ctrlKey, shiftKey, eKey)
+		if (k === 16)
+			shiftKey = true;
+		if (k === 17)
+			altKey = true;
+		if (k === 18)
+			ctrlKey = true;
+		if (k === 69)
+			eKey = true;
+		//console.log('after down', k, altKey, ctrlKey, shiftKey, eKey)
+	});
 
-    $(window).on('keyup', function(e) {
-        var k = e.which;
-        //console.log('before up', k, altKey, ctrlKey, shiftKey, eKey)
-        if (k === 16)
-            shiftKey = false;
-        if (k === 17)
-            altKey = false;
-        if (k === 18)
-            ctrlKey = false;
-        if (k === 69)
-            eKey = false;
-        //console.log('after up', k, altKey, ctrlKey, shiftKey, eKey)
-    });
+	$(window).on('keyup', function(e) {
+		var k = e.which;
+		//console.log('before up', k, altKey, ctrlKey, shiftKey, eKey)
+		if (k === 16)
+			shiftKey = false;
+		if (k === 17)
+			altKey = false;
+		if (k === 18)
+			ctrlKey = false;
+		if (k === 69)
+			eKey = false;
+		//console.log('after up', k, altKey, ctrlKey, shiftKey, eKey)
+	});
 
 });
 
@@ -73,1200 +73,1200 @@ $(function() {
  * @returns {StructrApp}
  */
 function StructrApp(baseUrl) {
-    if (baseUrl) {
-        structrRestUrl = baseUrl;
-    }
-    var s = this;
-    var hideEditElements = {}; // store elements in edit mode
-    var hideNonEditElements = {}; // store elements in not edit mode
-    this.edit = false;
-    this.data = {};
-    this.btnLabel = undefined;
+	if (baseUrl) {
+		structrRestUrl = baseUrl;
+	}
+	var s = this;
+	var hideEditElements = {}; // store elements in edit mode
+	var hideNonEditElements = {}; // store elements in not edit mode
+	this.edit = false;
+	this.data = {};
+	this.btnLabel = undefined;
 
-    /**
-     * Bind 'click' event to all Structr buttons
-     */
-    this.activateButtons = function(sel) {
-        $(sel).on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var btn = $(this);
-            disableButton(btn);
-            s.btnLabel = s.btnLabel || btn.text();
-            var a = btn.attr('data-structr-action').split(':');
-            var action = a[0], type = a[1], suffix = a[2];
-            var reload = btn.attr('data-structr-reload') === 'true';
-            var appendId = btn.attr('data-structr-append-id') === 'true';
-            var returnUrl = btn.attr('data-structr-return') || reload;
-            var attrString = btn.attr('data-structr-attributes');
-            var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
-                return s.trim();
-            });
+	/**
+	 * Bind 'click' event to all Structr buttons
+	 */
+	this.activateButtons = function(sel) {
+		$(sel).on('click', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var btn = $(this);
+			disableButton(btn);
+			s.btnLabel = s.btnLabel || btn.text();
+			var a = btn.attr('data-structr-action').split(':');
+			var action = a[0], type = a[1], suffix = a[2];
+			var reload = btn.attr('data-structr-reload') === 'true';
+			var appendId = btn.attr('data-structr-append-id') === 'true';
+			var returnUrl = btn.attr('data-structr-return') || reload;
+			var attrString = btn.attr('data-structr-attributes');
+			var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
+				return s.trim();
+			});
 
-            var id = btn.attr('data-structr-id');
-            var container = $('[data-structr-id="' + id + '"]');
-            var data = s.collectData(btn, id, attrs, type, suffix);
+			var id = btn.attr('data-structr-id');
+			var container = $('[data-structr-id="' + id + '"]');
+			var data = s.collectData(btn, id, attrs, type, suffix);
 
-            if (action === 'create') {
-                s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
+			if (action === 'create') {
+				s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
-            } else if (action === 'save') {
-                s.saveAction(btn, id, attrs, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn)});
+			} else if (action === 'save') {
+				s.saveAction(btn, id, attrs, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn)});
 
-            } else if (action === 'edit') {
-                s.editAction(btn, id, attrs, returnUrl);
+			} else if (action === 'edit') {
+				s.editAction(btn, id, attrs, returnUrl);
 
-            } else if (action === 'cancel-edit') {
-                s.cancelEditAction(btn, id, attrs, returnUrl);
+			} else if (action === 'cancel-edit') {
+				s.cancelEditAction(btn, id, attrs, returnUrl);
 
-            } else if (action === 'delete') {
-                var f = s.field($('[data-structr-attr="name"]', container));
-                s.del(btn, id, type, btn.attr('data-structr-confirm') === 'true', returnUrl, f ? f.val : undefined);
+			} else if (action === 'delete') {
+				var f = s.field($('[data-structr-attr="name"]', container));
+				s.del(btn, id, type, btn.attr('data-structr-confirm') === 'true', returnUrl, f ? f.val : undefined);
 
-            } else if (action === 'login') {
-                s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn)});
+			} else if (action === 'login') {
+				s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn)});
 
-            } else if (action === 'logout') {
-                s.logoutAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
+			} else if (action === 'logout') {
+				s.logoutAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
-            } else if (action === 'registration') {
-                s.registrationAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
+			} else if (action === 'registration') {
+				s.registrationAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
-            } else if (action === 'reset-password') {
-                s.resetPasswordAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
+			} else if (action === 'reset-password') {
+				s.resetPasswordAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
-            } else {
-                s.customAction(btn, id, type, btn.attr('data-structr-confirm') === 'true', action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
-            }
-        });
-    },
-    this.getPossibleFields = function(form, container, suffix, type, key) {
-        var possibleFields;
-        if (typeof suffix === 'string' && suffix.length) {
-            // if a suffix is given, use only input elements with that suffix
-            possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
-        } else if (form && form.length) {
-            // if we are in a form, try to find input elements in form only
-            possibleFields = form.find('[data-structr-name="' + key + '"]');
-        } else {
-            if (container.length) {
-                possibleFields = $('[data-structr-name="' + key + '"]', container);
-            } else {
-                possibleFields = $('[data-structr-name="' + key + '"]');
-            }
-        }
-        var val;
-        if (possibleFields.length !== 1) {
-            // none, or more than one field: try with type prefix
-            if (container.length) {
-                possibleFields = $('[data-structr-name="' + type + '.' + key + '"]', container);
-            } else {
-                possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
-            }
-        }
-        if (possibleFields.length !== 1) {
-            // if still not found, try both, type prefix and suffix
-            if (container.length) {
-                possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]', container);
-            } else {
-                possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
-            }
-        }
-        return possibleFields;
-    },
-    this.collectData = function(btn, id, attrs, type, suffix) {
-        var data = {};
-        var form = btn.closest('form');
-        var container = $('[data-structr-id="' + id + '"]');
-        $.each(attrs, function(i, key) {
-            var field = s.getPossibleFields(form, container, suffix, type, key);
-            var val;
-            if (field.attr('type') === 'checkbox') {
-                val = field.prop('checked');
-            } else {
-                val = field.val();
-            }
-            // treat empty string as null
-            val = (val === '') ? undefined : val;
-            val = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
-            data[key] = val;
-        });
-        return data;
-    },
-    this.editAction = function(btn, id, attrs, reload) {
-        var container = $('[data-structr-id="' + id + '"]');
+			} else {
+				s.customAction(btn, id, type, btn.attr('data-structr-confirm') === 'true', action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
+			}
+		});
+	},
+	this.getPossibleFields = function(form, container, suffix, type, key) {
+		var possibleFields;
+		if (typeof suffix === 'string' && suffix.length) {
+			// if a suffix is given, use only input elements with that suffix
+			possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
+		} else if (form && form.length) {
+			// if we are in a form, try to find input elements in form only
+			possibleFields = form.find('[data-structr-name="' + key + '"]');
+		} else {
+			if (container.length) {
+				possibleFields = $('[data-structr-name="' + key + '"]', container);
+			} else {
+				possibleFields = $('[data-structr-name="' + key + '"]');
+			}
+		}
+		var val;
+		if (possibleFields.length !== 1) {
+			// none, or more than one field: try with type prefix
+			if (container.length) {
+				possibleFields = $('[data-structr-name="' + type + '.' + key + '"]', container);
+			} else {
+				possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
+			}
+		}
+		if (possibleFields.length !== 1) {
+			// if still not found, try both, type prefix and suffix
+			if (container.length) {
+				possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]', container);
+			} else {
+				possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
+			}
+		}
+		return possibleFields;
+	},
+	this.collectData = function(btn, id, attrs, type, suffix) {
+		var data = {};
+		var form = btn.closest('form');
+		var container = $('[data-structr-id="' + id + '"]');
+		$.each(attrs, function(i, key) {
+			var field = s.getPossibleFields(form, container, suffix, type, key);
+			var val;
+			if (field.attr('type') === 'checkbox') {
+				val = field.prop('checked');
+			} else {
+				val = field.val();
+			}
+			// treat empty string as null
+			val = (val === '') ? undefined : val;
+			val = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
+			data[key] = val;
+		});
+		return data;
+	},
+	this.editAction = function(btn, id, attrs, reload) {
+		var container = $('[data-structr-id="' + id + '"]');
 
-        //show edit elements and hide non-edit elements
-        s.hideEdit(container);
+		//show edit elements and hide non-edit elements
+		s.hideEdit(container);
 
-        $.each(attrs, function(i, key) {
-            var el = $('[data-structr-attr="' + key + '"]', container);
-            if (!el.length) {
-                return;
-            }
+		$.each(attrs, function(i, key) {
+			var el = $('[data-structr-attr="' + key + '"]', container);
+			if (!el.length) {
+				return;
+			}
 
-            var f = s.field(el);
-            f.id = id;
-            if (!s.data[id]) s.data[id] = {};
-            s.data[id][key] = f.val;
-            var anchor = el[0].tagName.toLowerCase() === 'a' ? el : el.parent('a');
-            if (anchor.length) {
-                var href = anchor.attr('href');
-                anchor.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
-                    return false;
-                });
-                anchor.attr('data-structr-href', href);
-            }
-            //el.html(inputField(id, key, val));
+			var f = s.field(el);
+			f.id = id;
+			if (!s.data[id]) s.data[id] = {};
+			s.data[id][key] = f.val;
+			var anchor = el[0].tagName.toLowerCase() === 'a' ? el : el.parent('a');
+			if (anchor.length) {
+				var href = anchor.attr('href');
+				anchor.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
+					return false;
+				});
+				anchor.attr('data-structr-href', href);
+			}
+			//el.html(inputField(id, key, val));
 
-            // don't replace select elements
-            var inp = s.input(el);
-            if (inp && inp.is('select')) {
-                return;
-            }
+			// don't replace select elements
+			var inp = s.input(el);
+			if (inp && inp.is('select')) {
+				return;
+			}
 
-            if (f.type === 'Boolean') {
-                el.html(checkbox(f));
-            } else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Double' || f.type === 'Date') {
-                //console.log(f.format);
-                if (f.format && f.format === 'multi-line') {
-                    el.html(textarea(f));
-                } else {
-                    if (!f.val || f.val.indexOf('\n') === -1) {
-                        el.html(inputField(f));
-                    } else {
-                        el.html(textarea(f));
-                    }
-                }
-            } else if (f.type === 'Enum') {
+			if (f.type === 'Boolean') {
+				el.html(checkbox(f));
+			} else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Double' || f.type === 'Date') {
+				//console.log(f.format);
+				if (f.format && f.format === 'multi-line') {
+					el.html(textarea(f));
+				} else {
+					if (!f.val || f.val.indexOf('\n') === -1) {
+						el.html(inputField(f));
+					} else {
+						el.html(textarea(f));
+					}
+				}
+			} else if (f.type === 'Enum') {
 
-                el.html(enumSelect(f));
-                var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
-                sel.append('<option></option>');
-                $.each(f.format.split(','), function(i, o) {
-                    o = o.trim();
-                    sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
-                });
-                sel.addClass(f.class);
-                sel.chosen({allow_single_deselect: true});
+				el.html(enumSelect(f));
+				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
+				sel.append('<option></option>');
+				$.each(f.format.split(','), function(i, o) {
+					o = o.trim();
+					sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
+				});
+				sel.addClass(f.class);
+				sel.chosen({allow_single_deselect: true});
 
-            } else {
-                if (f.type.endsWith('[]')) {
-                    el.html(multiSelect(f));
-                } else {
-                    el.html(singleSelect(f));
-                }
-            }
+			} else {
+				if (f.type.endsWith('[]')) {
+					el.html(multiSelect(f));
+				} else {
+					el.html(singleSelect(f));
+				}
+			}
 
-            //var el = container.find('[data-structr-attr="' + f.key + '"]');
-            var inp = s.input(el);
-            inp.addClass(f.class);
+			//var el = container.find('[data-structr-attr="' + f.key + '"]');
+			var inp = s.input(el);
+			inp.addClass(f.class);
 
-            //console.log('editAction: input element', inp);
-            if (f.type !== 'Enum') {
-                resizeInput(inp);
-            }
+			//console.log('editAction: input element', inp);
+			if (f.type !== 'Enum') {
+				resizeInput(inp);
+			}
 
-            if (anchor.length) {
-                inp.attr('data-structr-href', href);
-            }
+			if (anchor.length) {
+				inp.attr('data-structr-href', href);
+			}
 
-            inp.on('keyup', function(e) {
-                if (f.type === 'String') {
-                    //console.log('keyup', inp, s.field(inp))
-                    s.checkInput(e, s.field(inp), inp);
-                }
-            });
+			inp.on('keyup', function(e) {
+				if (f.type === 'String') {
+					//console.log('keyup', inp, s.field(inp))
+					s.checkInput(e, s.field(inp), inp);
+				}
+			});
 
-            if (f.type === 'Date') {
-                var dateTimeFormat = f.format ? f.format.split('\'T\'') : 'yyyy-MM-ddTHH:mm:ssZ';
-                //console.log(dateTimeFormat);
-                var dateFormat = dateTimeFormat ? dateTimeFormat[0] : 'yyyy-MM-dd',
-                    timeFormat = (dateTimeFormat && dateTimeFormat.length > 1) ? dateTimeFormat[1] : undefined;
+			if (f.type === 'Date') {
+				var dateTimeFormat = f.format ? f.format.split('\'T\'') : 'yyyy-MM-ddTHH:mm:ssZ';
+				//console.log(dateTimeFormat);
+				var dateFormat = dateTimeFormat ? dateTimeFormat[0] : 'yyyy-MM-dd',
+					timeFormat = (dateTimeFormat && dateTimeFormat.length > 1) ? dateTimeFormat[1] : undefined;
 
-                inp.on('mouseup', function(event) {
-                    event.preventDefault();
-                    var input = $(this);
+				inp.on('mouseup', function(event) {
+					event.preventDefault();
+					var input = $(this);
 
-                    if (timeFormat) {
-                        input.datetimepicker({
-                            // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-                            dateFormat: 'yy-mm-dd',
-                            timeFormat: 'HH:mm:ssz',
-                            separator: 'T',
-                            onClose: function() {
-                                var newValue = input.val();
-                                //console.log(newValue, moment(newValue), f.format);//, moment(newValue).formatWithJDF(dateTimeFormat));
-                                var formattedValue = moment(newValue).formatWithJDF(dateFormat + 'T' + timeFormat);
-                                //input.val(formattedValue);
-                            }
-                        });
-                    } else {
-                        input.datepicker({
-                            dateFormat: 'yy-mm-dd',
-                            onClose: function() {
-                                var newValue = input.val();
-                                var formattedValue = moment(newValue).formatWithJDF(dateFormat);
-                                input.val(formattedValue);
-                            }
-                        });
-                    }
-                    input.datetimepicker('show');
-                    input.off('mouseup');
-                });
-            }
+					if (timeFormat) {
+						input.datetimepicker({
+							// ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+							dateFormat: 'yy-mm-dd',
+							timeFormat: 'HH:mm:ssz',
+							separator: 'T',
+							onClose: function() {
+								var newValue = input.val();
+								//console.log(newValue, moment(newValue), f.format);//, moment(newValue).formatWithJDF(dateTimeFormat));
+								var formattedValue = moment(newValue).formatWithJDF(dateFormat + 'T' + timeFormat);
+								//input.val(formattedValue);
+							}
+						});
+					} else {
+						input.datepicker({
+							dateFormat: 'yy-mm-dd',
+							onClose: function() {
+								var newValue = input.val();
+								var formattedValue = moment(newValue).formatWithJDF(dateFormat);
+								input.val(formattedValue);
+							}
+						});
+					}
+					input.datetimepicker('show');
+					input.off('mouseup');
+				});
+			}
 
-        });
-        var clazz = btn.attr('data-structr-edit-class');
-        $('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
-        var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
-        saveButton.prop('class', btn.prop('class')).after(' ');
-        saveButton.addClass(clazz);
-        enableButton(saveButton);
-        saveButton.on('click', function() {
-            s.saveAction(btn, id, attrs, reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
-                enableButton(btn);
-            }, function() {
-                s.cancelEditAction(btn, id, attrs, reload);
-            });
-        });
-        btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
-        enableButton(btn);
-    },
+		});
+		var clazz = btn.attr('data-structr-edit-class');
+		$('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
+		var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
+		saveButton.prop('class', btn.prop('class')).after(' ');
+		saveButton.addClass(clazz);
+		enableButton(saveButton);
+		saveButton.on('click', function() {
+			s.saveAction(btn, id, attrs, reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+				enableButton(btn);
+			}, function() {
+				s.cancelEditAction(btn, id, attrs, reload);
+			});
+		});
+		btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
+		enableButton(btn);
+	},
 
-    this.saveAction = function(btn, id, attrs, reload, successMsg, errorMsg, onSuccess, onError) {
-        var container = $('[data-structr-id="' + id + '"]');
-        if (!s.data[id]) s.data[id] = {};
-        $.each(attrs, function(i, key) {
+	this.saveAction = function(btn, id, attrs, reload, successMsg, errorMsg, onSuccess, onError) {
+		var container = $('[data-structr-id="' + id + '"]');
+		if (!s.data[id]) s.data[id] = {};
+		$.each(attrs, function(i, key) {
 
-            var inp = s.input($('[data-structr-attr="' + key + '"]', container));
-            var f = s.field(inp);
-            if (!f) return;
-            //console.log('saving', f);
+			var inp = s.input($('[data-structr-attr="' + key + '"]', container));
+			var f = s.field(inp);
+			if (!f) return;
+			//console.log('saving', f);
 
-            if (key.contains('.')) {
-                delete s.data[id][key];
-                var prop = key.split('.');
-                var local = prop[0];
-                var related = prop[1];
-                //console.log('related property (key, local, value)', key, local, related, f);
+			if (key.contains('.')) {
+				delete s.data[id][key];
+				var prop = key.split('.');
+				var local = prop[0];
+				var related = prop[1];
+				//console.log('related property (key, local, value)', key, local, related, f);
 
-                key = local;
-                s.data[id][local] = {};
-                s.data[id][local][related] = f.val;
+				key = local;
+				s.data[id][local] = {};
+				s.data[id][local][related] = f.val;
 
-            } else if (f.type === 'Boolean') {
+			} else if (f.type === 'Boolean') {
 
-                s.data[id][key] = (f.val === true ? true : false);
+				s.data[id][key] = (f.val === true ? true : false);
 
-            } else if (f.type === 'Integer') {
+			} else if (f.type === 'Integer') {
 
-                s.data[id][key] = parseInt(f.val) || f.val;
+				s.data[id][key] = parseInt(f.val) || f.val;
 
-            } else if (f.type === 'Double' || f.type === 'Float') {
+			} else if (f.type === 'Double' || f.type === 'Float') {
 
-                s.data[id][key] = parseFloat(f.val) || f.val;
+				s.data[id][key] = parseFloat(f.val) || f.val;
 
-            } else if (f.type === 'String' || f.type === 'Date') {
+			} else if (f.type === 'String' || f.type === 'Date') {
 
-                if (f.val && f.val.length) {
-                    s.data[id][key] = f.val;
-                } else {
-                    s.data[id][key] = null;
-                }
-            } else if (f.type === 'Enum') {
-                var val = $('option:selected', inp).val();
-                s.data[id][key] = (val === '' ? null : val);
+				if (f.val && f.val.length) {
+					s.data[id][key] = f.val;
+				} else {
+					s.data[id][key] = null;
+				}
+			} else if (f.type === 'Enum') {
+				var val = $('option:selected', inp).val();
+				s.data[id][key] = (val === '' ? null : val);
 
-            } else {
-                var ids = [];
-                $('option:selected', inp).each(function() {
-                    var self = $(this);
-                    if (self.val()) {
-                        ids.push(self.val());
-                    }
-                });
+			} else {
+				var ids = [];
+				$('option:selected', inp).each(function() {
+					var self = $(this);
+					if (self.val()) {
+						ids.push(self.val());
+					}
+				});
 
-                if (!ids.length) {
-                    s.data[id][key] = null;
-                } else if (!f.type.endsWith('[]')) {
-                    s.data[id][key] = {'id':ids[0]};
-                } else {
-                    s.data[id][key] = ids.map(function(id) {
-                       return {'id':id};
-                    });
-                }
-            }
-        });
-        //console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
-        s.request(btn, 'PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
-    },
+				if (!ids.length) {
+					s.data[id][key] = null;
+				} else if (!f.type.endsWith('[]')) {
+					s.data[id][key] = {'id':ids[0]};
+				} else {
+					s.data[id][key] = ids.map(function(id) {
+						return {'id':id};
+					});
+				}
+			}
+		});
+		//console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
+		s.request(btn, 'PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
+	},
 
-    this.cancelEditAction = function(btn, id, attrs, reload) {
-        if (reload && typeof reload === 'boolean') {
-            window.location.reload();
-        } else {
-            var container = $('[data-structr-id="' + id + '"]');
-            $.each(attrs, function(i, key) {
-                var inp = s.input($('[data-structr-attr="' + key + '"]', container));
+	this.cancelEditAction = function(btn, id, attrs, reload) {
+		if (reload && typeof reload === 'boolean') {
+			window.location.reload();
+		} else {
+			var container = $('[data-structr-id="' + id + '"]');
+			$.each(attrs, function(i, key) {
+				var inp = s.input($('[data-structr-attr="' + key + '"]', container));
 //                if (inp && inp.is('select')) {
 //                    return;
 //                }
-                var href = inp.attr('data-structr-href');
-                var anchor = inp.parent('a');
-                if (href && anchor.length) {
-                    anchor.attr('href', href);
-                    anchor.removeAttr('data-structr-href');
-                    anchor.attr('href', '').css({textDecoration: ''}).on('click', function() {
-                        document.location.href = href;
-                    });
-                }
-                inp.replaceWith(s.data[id][key]);
-            });
-            // clear data
-            $('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
-            btn.text(s.btnLabel).attr('data-structr-action', 'edit');
-            enableButton(btn);
-
-            //hide non edit elements and show edit elements
-            s.hideNonEdit(container);
-
-            //remove chosen containers
-            $('.chosen-container').remove();
-        }
-    },
-
-    this.loginAction = function(btn, id, attrs, reload) {
-
-        var data = {};
-
-        if (attrs && attrs.length === 2) {
-            data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
-            data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
-        }
-
-        var msgBox = $('#msg');
-        if (msgBox && msgBox.length) {
-            $('span', msgBox).remove();
-        }
-
-        var btnText = btn.text();
-        disableButton(btn, 'Checking...');
-
-        $.ajax({
-            type: 'POST',
-            method: 'POST',
-            contentType: 'application/json',
-            url: '/structr/rest/login',
-            data: JSON.stringify(data),
-            statusCode: {
-                200: function(data) {
-                    btn.text('Success!');
-                    redirectOrReload(reload);
-                },
-                401: function() {
-                    if (msgBox && msgBox.length) {
-                        $('#msg').append('<span>Wrong username or password!</span>');
-                        $('#msg span').delay(1000).fadeOut(1000);
-                    } else {
-                        btn.text('Wrong username or password!');
-                        window.setTimeout(function() { btn.text(btnText); }, 1000);
-                    }
-                    enableButton(btn);
-                }
-            }
-        });
-
-    },
-    this.logoutAction = function(btn, id, attrs, reload) {
-        disableButton(btn, 'Processing...');
-        $.ajax({
-            type: 'POST',
-            method: 'POST',
-            contentType: 'application/json',
-            url: '/structr/rest/logout',
-            data: JSON.stringify({}),
-            statusCode: {
-                200: function() {
-                    redirectOrReload(reload);
-                }
-            }
-        });
-    },
-    this.registrationAction = function(btn, id, attrs, reload) {
-
-        var data = {};
-
-        if (attrs && attrs.length) {
-            attrs.forEach(function(attr) {
-                data[attr] = $('[data-structr-name="' + attr + '"]').val();
-            });
-        }
-
-        var msgBox = $('#msg');
-        if (msgBox && msgBox.length) {
-            $('span', msgBox).remove();
-        }
-
-        var btnText = btn.text();
-
-        disableButton(btn, 'Processing...');
-
-        var successText = 'Thanks! Please check your inbox.';
-
-        $.ajax({
-            type: 'POST',
-            method: 'POST',
-            contentType: 'application/json',
-            url: '/structr/rest/registration',
-            data: JSON.stringify(data),
-            statusCode: {
-                200: function() {
-                    if (msgBox && msgBox.length) {
-                        $('#msg').append('<span>' + successText + '</span>');
-                        $('#msg span').delay(5000).fadeOut(5000);
-                    } else {
-                        btn.text(successText);
-                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
-                    }
-                },
-                201: function() {
-                    if (msgBox && msgBox.length) {
-                        $('#msg').append('<span>' + successText + '</span>');
-                        $('#msg span').delay(5000).fadeOut(5000);
-                    } else {
-                        btn.text(successText);
-                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
-                    }
-                },
-                400: function() {
-                    if (msgBox && msgBox.length) {
-                        $('#msg').append('<span>Please enter your e-mail address!</span>');
-                        $('#msg span').delay(1000).fadeOut(1000);
-                    } else {
-                        btn.text('Please enter your e-mail address!');
-                        window.setTimeout(function() { btn.text(btnText); }, 1000);
-                    }
-                    enableButton(btn);
-                }
-            }
-        });
-    },
-    this.resetPasswordAction = function(btn, id, attrs, reload) {
-
-        var data = {};
-
-        if (attrs && attrs.length) {
-            attrs.forEach(function(attr) {
-                data[attr] = $('[data-structr-name="' + attr + '"]').val();
-            });
-        }
-
-        var msgBox = $('#msg');
-        if (msgBox && msgBox.length) {
-            $('span', msgBox).remove();
-        }
-
-        var btnText = btn.text();
-
-        disableButton(btn, 'Processing...');
-
-        var successText = 'Link to reset password sent. Please check your inbox or spam folder.';
-
-        $.ajax({
-            type: 'POST',
-            method: 'POST',
-            contentType: 'application/json',
-            url: '/structr/rest/reset-password',
-            data: JSON.stringify(data),
-            statusCode: {
-                200: function() {
-                    if (msgBox && msgBox.length) {
-                        $('#msg').append('<span>' + successText + '</span>');
-                        $('#msg span').delay(5000).fadeOut(5000);
-                    } else {
-                        btn.text(successText);
-                        window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
-                    }
-                },
-                400: function() {
-                    if (msgBox && msgBox.length) {
-                        $('#msg').append('<span>Please enter your e-mail address!</span>');
-                        $('#msg span').delay(1000).fadeOut(1000);
-                    } else {
-                        btn.text('Please enter your e-mail address!');
-                        window.setTimeout(function() { btn.text(btnText); }, 1000);
-                    }
-                    enableButton(btn);
-                }
-            }
-        });
-    },
-    this.input = function(elements) {
-        var el = $(elements[0]);
-        var inp;
-        if (el.is('input') || el.is('textarea') || el.is('select')) {
-            //console.log('el is input or textarea', el);
-            return el;
-        } else {
-            inp = el.children('textarea');
-            if (inp.length) {
-                //console.log('inp is textarea', inp);
-                return inp;
-            } else {
-                inp = el.children('input');
-                if (inp.length) {
-                    //console.log('inp is input field', inp);
-                    return inp;
-                } else {
-                    inp = el.children('select');
-                    if (inp.length) {
-                        //console.log('inp is select element', inp);
-                        return inp;
-                    } else {
-                        //console.log('no input found');
-                        return null;
-                    }
-                }
-            }
-        }
-    },
-    this.field = function(el) {
-        if (!el || !el.length) return;
-        var rawType = el.attr('data-structr-type');
-        var clazz = el.attr('data-structr-edit-class');
-        var query = el.attr('data-structr-custom-options-query');
-        var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
-        var placeholder = el.attr('data-structr-placeholder');
-        var format =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
-        //console.log('field', el, rawType, type, format, query, type, id, key, rawVal);
-        var val;
-        if (type === 'Boolean') {
-            if (el.is('input')) {
-                val = el.is(':checked');
-            } else {
-                val = (el.text() === 'true');
-            }
-        } else {
-            var inp = s.input(el);
-            if (inp) {
-                if (inp.is('select')) {
-                    var selection = $(':selected', inp);
-                    val = selection.attr('value');
-                } else {
-                    val = rawVal || (inp.val() && inp.val().replace(/<br>/gi, '\n'));
-                }
-            } else {
-                val = rawVal || el.html().replace(/<br>/gi, '\n');
-                //val = rawVal || el.text();
-            }
-        }
-        var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz, 'placeholder': placeholder};
-        //console.log(f);
-        return f;
-    };
-
-    this.getRelatedType = function(type, key, callback) {
-        s.request(null, 'GET', structrRestUrl + '_schema', null, false, false, null, null, function(data) {
-            //console.log(data);
-        });
-    },
-
-    this.create = function(btn, type, data, reload, appendId, successCallback, errorCallback) {
-        //console.log('Create', type, data, reload, successCallback, errorCallback);
-        s.request(btn, 'POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
-    };
-
-    this.customAction = function(btn, id, type, conf, action, data, reload, appendId, successCallback, errorCallback) {
-        //console.log('Custom action', action, type, data, reload);
-        var sure = true;
-        if (conf) {
-            sure = confirm('Are you sure?');
-        }
-        if (!conf || sure) {
-            s.request(btn, 'POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
-        } else {
-            enableButton(btn);
-        }
-    };
-
-    this.request = function(btn, method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
-        var dataString = JSON.stringify(data);
-        //console.log(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError);
-        $.ajax({
-            type: method,
-            url: url,
-            data: dataString,
-            contentType: 'application/json; charset=utf-8',
-            statusCode: {
-                200: function(data) {
-                    s.dialog('success', successMsg);
-                    if (reload) {
-                        redirectOrReload(reload);
-                    } else {
-                        if (onSuccess) {
-                            onSuccess(data);
-                        }
-                    }
-                },
-                201: function(data) {
-                    s.dialog('success', successMsg);
-                    if (reload) {
-                        if (appendId) {
-                            reload += '/' + data.result[0];
-                        }
-                        redirectOrReload(reload);
-                    } else {
-                        if (onSuccess) {
-                            onSuccess();
-                        }
-                    }
-                },
-                400: function(data, status, xhr) {
-                    s.dialog('error', errorMsg + ': ' + data.responseText);
-                    if (onError) {
-                        onError();
-                    }
-                },
-                401: function(data, status, xhr) {
-                    s.dialog('error', errorMsg + ': ' + data.responseText);
-                    if (onError) {
-                        onError();
-                    }
-                },
-                403: function(data, status, xhr) {
-                    s.dialog('error', errorMsg + ': ' + data.responseText);
-                    if (onError) {
-                        onError();
-                    }
-                },
-                404: function(data, status, xhr) {
-                    s.dialog('error', errorMsg + ': ' + data.responseText);
-                    if (onError) {
-                        onError(data);
-                    }
-                },
-                422: function(data, status, xhr) {
-                    s.dialog('error', errorMsg + ': ' + data.responseText);
-                    s.showFormErrors(btn, data.responseJSON);
-                    if (onError) {
-                        onError();
-                    }
-                },
-                500: function(data, status, xhr) {
-                    s.dialog('error', errorMsg + ': ' + data.responseText);
-                    if (onError) {
-                        onError();
-                    }
-                }
-            }
-        });
-    },
-
-    this.dialog = function(type, msg) {
-        var el = $('[data-structr-dialog="' + type + '"]');
-        el.addClass(type).html(msg).show().delay(2000).fadeOut(200);
-    };
-
-    this.showFormErrors = function(btn, msg) {
-        var a = btn.attr('data-structr-action').split(':');
-        var suffix = a[2];
-        var id = btn.attr('data-structr-id');
-        var container = $('[data-structr-id="' + id + '"]');
-        if (window.jQuery.validator) {
-            var form;
-            Object.keys(msg.errors).forEach(function(type) {
-               Object.keys(msg.errors[type]).forEach(function(key) {
-                   var inp = s.getPossibleFields(form, container, suffix, type, key);
-                   inp.attr('name', type + '.' + key);
-                   inp.attr('required', 'required');
-                   inp.attr('data-validate', 'required');
-                   form = inp.closest('form');
-               });
-            });
-            form.validate();
-            form.valid();
-        }
-    };
-
-    this.add = function(id, sourceId, sourceType, relatedProperty) {
-
-        var d = {};
-        d[relatedProperty] = [ {'id': id} ];
-
-        $.ajax({
-            url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
-            statusCode: {
-                200: function(data) {
-                    //console.log(data.result, data.result[relatedProperty], d);
-
-                    if (data.result[relatedProperty] === undefined) {
-                        alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
-                        return;
-                    }
-
-                    if (data.result[relatedProperty].length) {
-                        $.each(data.result[relatedProperty], function(i, obj) {
-                            d[relatedProperty].push({'id': obj.id});
-                        });
-                    }
-
-                    $.ajax({
-                        url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
-                        data: JSON.stringify(d),
-                        statusCode: {
-                            200: function() {
-                                window.location.reload();
-                            },
-                            400: function(xhr) {
-                                console.log(xhr);
-                            },
-                            422: function(xhr) {
-                                console.log(xhr);
-                            }
-                        }
-                    });
-
-                }
-            }
-        });
-
-    };
-
-    this.remove = function(id, sourceId, sourceType, relatedProperty) {
-
-        var d = {};
-        d[relatedProperty] = [];
-
-        $.ajax({
-            url: structrRestUrl + sourceId + '/ui', method: 'GET', contentType: 'application/json',
-            statusCode: {
-                200: function(data) {
-
-                    if (data.result[relatedProperty] === undefined) {
-                        alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
-                        return;
-                    }
-
-                    if (data.result[relatedProperty].length) {
-                        $.each(data.result[relatedProperty], function(i, obj) {
-                            if (obj.id !== id) {
-                                d[relatedProperty].push({'id': obj.id});
-                            }
-                        });
-                    }
-
-                    //console.log(data.result[relatedProperty], d, JSON.stringify(d));
-
-                    $.ajax({
-                        //url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
-                        url: structrRestUrl + sourceId, method: 'PUT', contentType: 'application/json',
-                        data: JSON.stringify(d),
-                        statusCode: {
-                            200: function() {
-                                window.location.reload();
-                            },
-                            400: function(xhr) {
-                                console.log(xhr);
-                            },
-                            422: function(xhr) {
-                                console.log(xhr);
-                            }
-                        }
-                    });
-
-                }
-            }
-        });
-
-    };
-
-    this.del = function(btn, id, type, conf, reload, name) {
-        //console.log('Delete', type, id, conf, reload);
-        var sure = true;
-        if (conf) {
-            sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
-        }
-        if (!conf || sure) {
-            $.ajax({
-                url: structrRestUrl + (type ? type + '/' : '') + id, method: 'DELETE', contentType: 'application/json',
-                statusCode: {
-                    200: function() {
-                        if (reload) {
-                            redirectOrReload(reload);
-                            //window.location.reload();
-                        } else {
-                            enableButton(btn);
-                        }
-                    }
-                }
-            });
-        } else {
-            enableButton(btn);
-        }
-    };
-
-    this.save = function(f, b) {
-        //console.log(f, b);
-        var obj = {};
-
-        obj[f.key] = f.val;
-        if (b) {
-            b.html('<img src="/structr/img/al.gif"> Saving');
-        }
-
-        $.ajax({url: baseUrl + f.id, method: 'PUT', contentType: 'application/json', data: JSON.stringify(obj),
-            statusCode: {
-                200: function() {
-                    if (b) {
-                        b.text('Success!').remove();
-                    }
-                }
-            }
-        });
-    };
-
-    this.checkInput = function(e, f, inp) {
-        var k = e.which;
-
-        if (f.type === 'String' && f.format === 'multi-line') {
-            return;
-        } else {
-            //console.log('checkInput', f.type, f.format);
-        }
-
-        if (isTextarea(inp[0])) {
-
-            if (inp.val().indexOf('\n') === -1) {
-
-                var parent = inp.parent();
-
-                // No new line in textarea content => transform to input field
-                f.val = inp.val();
-                inp.replaceWith(inputField(f));
-                inp = s.input(parent);
-
-                inp.on('keyup', function(e) {
-                    s.checkInput(e, f, inp);
-                });
-
-                setCaretToEnd(inp[0]);
-
-            }
-
-        } else if (k === 13) {// && shiftKey === true) {
-
-            // Return key in input field => replace by textarea
-            var parent = inp.parent();
-
-            f.val = inp.val() + '\n';
-
-            inp.replaceWith(textarea(f));
-            inp = s.input(parent);
-
-            inp.on('keyup', function(e) {
-                s.checkInput(e, f, $(this));
-            });
-
-            setCaretToEnd(inp[0]);
-
-        }
-
-        inp.addClass(f.class);
-
-        resizeInput(inp);
-
-    };
-    this.appendSaveButton = function(b, p, inp, id, key) {
-
-        // Remove existing save button
-        if (b.length) {
-            $('#save_' + id + '_' + key).remove();
-        }
-
-        //(p.length ? p : inp).after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
-        inp.after('<button id="save_' + id + '_' + key + '">Save</button>');
-        $('#save_' + id + '_' + key).on('click', function() {
-            var btn = $(this), inp = btn.prev();
-            //console.log('append save button', btn, inp);
-            s.save(s.field(inp), btn);
-        });
-
-    };
-    this.hideEdit = function(container) {
-
-        // show elements [data-structr-hide="non-edit"]
-        $.each($('[data-structr-hide-id]', container), function() {
-           var id = $(this).attr('data-structr-hide-id');
-           $(this).replaceWith(hideNonEditElements[id]);
-           delete hideNonEditElements[id];
-
-        });
-
-        // hide edit elements
-        $.each($('[data-structr-hide="edit"]', container), function(i, obj) {
-
-            var random = Math.floor(Math.random()*1000000+1);
-
-            hideEditElements[random] = $(obj).clone(true,true);
-            $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
-        });
-
-        $(document).trigger("structr-edit");
-    };
-    this.hideNonEdit = function(container) {
-
-        //first call to hide all non-edit elements
-        if (container === undefined){
-
-            // hide all non-edit elements
-            $.each($('[data-structr-hide="non-edit"]'), function(i, obj) {
-
-                var random = Math.floor(Math.random()*1000000+1);
-
-                hideNonEditElements[random] = $(obj).clone(true,true);
-                $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
-            });
-
-        } else {
-
-            // show elements [data-structr-hide="edit"]
-            $.each($('[data-structr-hide-id]', container), function() {
-
-                var id = $(this).attr("data-structr-hide-id");
-                $(this).replaceWith(hideEditElements[id]);
-                delete hideNonEditElements[id];
-
-             });
-
-            // hide non-edit elements
-            $.each($('[data-structr-hide="non-edit"]', container), function(i, obj) {
-
-                var random = Math.floor(Math.random()*1000000+1);
-
-                hideNonEditElements[random] = $(obj).clone(true,true);
-                $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
-
-            });
-
-        }
-    };
+				var href = inp.attr('data-structr-href');
+				var anchor = inp.parent('a');
+				if (href && anchor.length) {
+					anchor.attr('href', href);
+					anchor.removeAttr('data-structr-href');
+					anchor.attr('href', '').css({textDecoration: ''}).on('click', function() {
+						document.location.href = href;
+					});
+				}
+				inp.replaceWith(s.data[id][key]);
+			});
+			// clear data
+			$('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
+			btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+			enableButton(btn);
+
+			//hide non edit elements and show edit elements
+			s.hideNonEdit(container);
+
+			//remove chosen containers
+			$('.chosen-container').remove();
+		}
+	},
+
+	this.loginAction = function(btn, id, attrs, reload) {
+
+		var data = {};
+
+		if (attrs && attrs.length === 2) {
+			data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
+			data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+		}
+
+		var msgBox = $('#msg');
+		if (msgBox && msgBox.length) {
+			$('span', msgBox).remove();
+		}
+
+		var btnText = btn.text();
+		disableButton(btn, 'Checking...');
+
+		$.ajax({
+			type: 'POST',
+			method: 'POST',
+			contentType: 'application/json',
+			url: '/structr/rest/login',
+			data: JSON.stringify(data),
+			statusCode: {
+				200: function(data) {
+					btn.text('Success!');
+					redirectOrReload(reload);
+				},
+				401: function() {
+					if (msgBox && msgBox.length) {
+						$('#msg').append('<span>Wrong username or password!</span>');
+						$('#msg span').delay(1000).fadeOut(1000);
+					} else {
+						btn.text('Wrong username or password!');
+						window.setTimeout(function() { btn.text(btnText); }, 1000);
+					}
+					enableButton(btn);
+				}
+			}
+		});
+
+	},
+	this.logoutAction = function(btn, id, attrs, reload) {
+		disableButton(btn, 'Processing...');
+		$.ajax({
+			type: 'POST',
+			method: 'POST',
+			contentType: 'application/json',
+			url: '/structr/rest/logout',
+			data: JSON.stringify({}),
+			statusCode: {
+				200: function() {
+					redirectOrReload(reload);
+				}
+			}
+		});
+	},
+	this.registrationAction = function(btn, id, attrs, reload) {
+
+		var data = {};
+
+		if (attrs && attrs.length) {
+			attrs.forEach(function(attr) {
+				data[attr] = $('[data-structr-name="' + attr + '"]').val();
+			});
+		}
+
+		var msgBox = $('#msg');
+		if (msgBox && msgBox.length) {
+			$('span', msgBox).remove();
+		}
+
+		var btnText = btn.text();
+
+		disableButton(btn, 'Processing...');
+
+		var successText = 'Thanks! Please check your inbox.';
+
+		$.ajax({
+			type: 'POST',
+			method: 'POST',
+			contentType: 'application/json',
+			url: '/structr/rest/registration',
+			data: JSON.stringify(data),
+			statusCode: {
+				200: function() {
+					if (msgBox && msgBox.length) {
+						$('#msg').append('<span>' + successText + '</span>');
+						$('#msg span').delay(5000).fadeOut(5000);
+					} else {
+						btn.text(successText);
+						window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
+					}
+				},
+				201: function() {
+					if (msgBox && msgBox.length) {
+						$('#msg').append('<span>' + successText + '</span>');
+						$('#msg span').delay(5000).fadeOut(5000);
+					} else {
+						btn.text(successText);
+						window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
+					}
+				},
+				400: function() {
+					if (msgBox && msgBox.length) {
+						$('#msg').append('<span>Please enter your e-mail address!</span>');
+						$('#msg span').delay(1000).fadeOut(1000);
+					} else {
+						btn.text('Please enter your e-mail address!');
+						window.setTimeout(function() { btn.text(btnText); }, 1000);
+					}
+					enableButton(btn);
+				}
+			}
+		});
+	},
+	this.resetPasswordAction = function(btn, id, attrs, reload) {
+
+		var data = {};
+
+		if (attrs && attrs.length) {
+			attrs.forEach(function(attr) {
+				data[attr] = $('[data-structr-name="' + attr + '"]').val();
+			});
+		}
+
+		var msgBox = $('#msg');
+		if (msgBox && msgBox.length) {
+			$('span', msgBox).remove();
+		}
+
+		var btnText = btn.text();
+
+		disableButton(btn, 'Processing...');
+
+		var successText = 'Link to reset password sent. Please check your inbox or spam folder.';
+
+		$.ajax({
+			type: 'POST',
+			method: 'POST',
+			contentType: 'application/json',
+			url: '/structr/rest/reset-password',
+			data: JSON.stringify(data),
+			statusCode: {
+				200: function() {
+					if (msgBox && msgBox.length) {
+						$('#msg').append('<span>' + successText + '</span>');
+						$('#msg span').delay(5000).fadeOut(5000);
+					} else {
+						btn.text(successText);
+						window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
+					}
+				},
+				400: function() {
+					if (msgBox && msgBox.length) {
+						$('#msg').append('<span>Please enter your e-mail address!</span>');
+						$('#msg span').delay(1000).fadeOut(1000);
+					} else {
+						btn.text('Please enter your e-mail address!');
+						window.setTimeout(function() { btn.text(btnText); }, 1000);
+					}
+					enableButton(btn);
+				}
+			}
+		});
+	},
+	this.input = function(elements) {
+		var el = $(elements[0]);
+		var inp;
+		if (el.is('input') || el.is('textarea') || el.is('select')) {
+			//console.log('el is input or textarea', el);
+			return el;
+		} else {
+			inp = el.children('textarea');
+			if (inp.length) {
+				//console.log('inp is textarea', inp);
+				return inp;
+			} else {
+				inp = el.children('input');
+				if (inp.length) {
+					//console.log('inp is input field', inp);
+					return inp;
+				} else {
+					inp = el.children('select');
+					if (inp.length) {
+						//console.log('inp is select element', inp);
+						return inp;
+					} else {
+						//console.log('no input found');
+						return null;
+					}
+				}
+			}
+		}
+	},
+	this.field = function(el) {
+		if (!el || !el.length) return;
+		var rawType = el.attr('data-structr-type');
+		var clazz = el.attr('data-structr-edit-class');
+		var query = el.attr('data-structr-custom-options-query');
+		var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+		var placeholder = el.attr('data-structr-placeholder');
+		var format =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
+		//console.log('field', el, rawType, type, format, query, type, id, key, rawVal);
+		var val;
+		if (type === 'Boolean') {
+			if (el.is('input')) {
+				val = el.is(':checked');
+			} else {
+				val = (el.text() === 'true');
+			}
+		} else {
+			var inp = s.input(el);
+			if (inp) {
+				if (inp.is('select')) {
+					var selection = $(':selected', inp);
+					val = selection.attr('value');
+				} else {
+					val = rawVal || (inp.val() && inp.val().replace(/<br>/gi, '\n'));
+				}
+			} else {
+				val = rawVal || el.html().replace(/<br>/gi, '\n');
+				//val = rawVal || el.text();
+			}
+		}
+		var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz, 'placeholder': placeholder};
+		//console.log(f);
+		return f;
+	};
+
+	this.getRelatedType = function(type, key, callback) {
+		s.request(null, 'GET', structrRestUrl + '_schema', null, false, false, null, null, function(data) {
+			//console.log(data);
+		});
+	},
+
+	this.create = function(btn, type, data, reload, appendId, successCallback, errorCallback) {
+		//console.log('Create', type, data, reload, successCallback, errorCallback);
+		s.request(btn, 'POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
+	};
+
+	this.customAction = function(btn, id, type, conf, action, data, reload, appendId, successCallback, errorCallback) {
+		//console.log('Custom action', action, type, data, reload);
+		var sure = true;
+		if (conf) {
+			sure = confirm('Are you sure?');
+		}
+		if (!conf || sure) {
+			s.request(btn, 'POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+		} else {
+			enableButton(btn);
+		}
+	};
+
+	this.request = function(btn, method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
+		var dataString = JSON.stringify(data);
+		//console.log(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError);
+		$.ajax({
+			type: method,
+			url: url,
+			data: dataString,
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				200: function(data) {
+					s.dialog('success', successMsg);
+					if (reload) {
+						redirectOrReload(reload);
+					} else {
+						if (onSuccess) {
+							onSuccess(data);
+						}
+					}
+				},
+				201: function(data) {
+					s.dialog('success', successMsg);
+					if (reload) {
+						if (appendId) {
+							reload += '/' + data.result[0];
+						}
+						redirectOrReload(reload);
+					} else {
+						if (onSuccess) {
+							onSuccess();
+						}
+					}
+				},
+				400: function(data, status, xhr) {
+					s.dialog('error', errorMsg + ': ' + data.responseText);
+					if (onError) {
+						onError();
+					}
+				},
+				401: function(data, status, xhr) {
+					s.dialog('error', errorMsg + ': ' + data.responseText);
+					if (onError) {
+						onError();
+					}
+				},
+				403: function(data, status, xhr) {
+					s.dialog('error', errorMsg + ': ' + data.responseText);
+					if (onError) {
+						onError();
+					}
+				},
+				404: function(data, status, xhr) {
+					s.dialog('error', errorMsg + ': ' + data.responseText);
+					if (onError) {
+						onError(data);
+					}
+				},
+				422: function(data, status, xhr) {
+					s.dialog('error', errorMsg + ': ' + data.responseText);
+					s.showFormErrors(btn, data.responseJSON);
+					if (onError) {
+						onError();
+					}
+				},
+				500: function(data, status, xhr) {
+					s.dialog('error', errorMsg + ': ' + data.responseText);
+					if (onError) {
+						onError();
+					}
+				}
+			}
+		});
+	},
+
+	this.dialog = function(type, msg) {
+		var el = $('[data-structr-dialog="' + type + '"]');
+		el.addClass(type).html(msg).show().delay(2000).fadeOut(200);
+	};
+
+	this.showFormErrors = function(btn, msg) {
+		var a = btn.attr('data-structr-action').split(':');
+		var suffix = a[2];
+		var id = btn.attr('data-structr-id');
+		var container = $('[data-structr-id="' + id + '"]');
+		if (window.jQuery.validator) {
+			var form;
+			Object.keys(msg.errors).forEach(function(type) {
+				Object.keys(msg.errors[type]).forEach(function(key) {
+					var inp = s.getPossibleFields(form, container, suffix, type, key);
+					inp.attr('name', type + '.' + key);
+					inp.attr('required', 'required');
+					inp.attr('data-validate', 'required');
+					form = inp.closest('form');
+				});
+			});
+			form.validate();
+			form.valid();
+		}
+	};
+
+	this.add = function(id, sourceId, sourceType, relatedProperty) {
+
+		var d = {};
+		d[relatedProperty] = [ {'id': id} ];
+
+		$.ajax({
+			url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
+			statusCode: {
+				200: function(data) {
+					//console.log(data.result, data.result[relatedProperty], d);
+
+					if (data.result[relatedProperty] === undefined) {
+						alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
+						return;
+					}
+
+					if (data.result[relatedProperty].length) {
+						$.each(data.result[relatedProperty], function(i, obj) {
+							d[relatedProperty].push({'id': obj.id});
+						});
+					}
+
+					$.ajax({
+						url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
+						data: JSON.stringify(d),
+						statusCode: {
+							200: function() {
+								window.location.reload();
+							},
+							400: function(xhr) {
+								console.log(xhr);
+							},
+							422: function(xhr) {
+								console.log(xhr);
+							}
+						}
+					});
+
+				}
+			}
+		});
+
+	};
+
+	this.remove = function(id, sourceId, sourceType, relatedProperty) {
+
+		var d = {};
+		d[relatedProperty] = [];
+
+		$.ajax({
+			url: structrRestUrl + sourceId + '/ui', method: 'GET', contentType: 'application/json',
+			statusCode: {
+				200: function(data) {
+
+					if (data.result[relatedProperty] === undefined) {
+						alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
+						return;
+					}
+
+					if (data.result[relatedProperty].length) {
+						$.each(data.result[relatedProperty], function(i, obj) {
+							if (obj.id !== id) {
+								d[relatedProperty].push({'id': obj.id});
+							}
+						});
+					}
+
+					//console.log(data.result[relatedProperty], d, JSON.stringify(d));
+
+					$.ajax({
+						//url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
+						url: structrRestUrl + sourceId, method: 'PUT', contentType: 'application/json',
+						data: JSON.stringify(d),
+						statusCode: {
+							200: function() {
+								window.location.reload();
+							},
+							400: function(xhr) {
+								console.log(xhr);
+							},
+							422: function(xhr) {
+								console.log(xhr);
+							}
+						}
+					});
+
+				}
+			}
+		});
+
+	};
+
+	this.del = function(btn, id, type, conf, reload, name) {
+		//console.log('Delete', type, id, conf, reload);
+		var sure = true;
+		if (conf) {
+			sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
+		}
+		if (!conf || sure) {
+			$.ajax({
+				url: structrRestUrl + (type ? type + '/' : '') + id, method: 'DELETE', contentType: 'application/json',
+				statusCode: {
+					200: function() {
+						if (reload) {
+							redirectOrReload(reload);
+							//window.location.reload();
+						} else {
+							enableButton(btn);
+						}
+					}
+				}
+			});
+		} else {
+			enableButton(btn);
+		}
+	};
+
+	this.save = function(f, b) {
+		//console.log(f, b);
+		var obj = {};
+
+		obj[f.key] = f.val;
+		if (b) {
+			b.html('<img src="/structr/img/al.gif"> Saving');
+		}
+
+		$.ajax({url: baseUrl + f.id, method: 'PUT', contentType: 'application/json', data: JSON.stringify(obj),
+			statusCode: {
+				200: function() {
+					if (b) {
+						b.text('Success!').remove();
+					}
+				}
+			}
+		});
+	};
+
+	this.checkInput = function(e, f, inp) {
+		var k = e.which;
+
+		if (f.type === 'String' && f.format === 'multi-line') {
+			return;
+		} else {
+			//console.log('checkInput', f.type, f.format);
+		}
+
+		if (isTextarea(inp[0])) {
+
+			if (inp.val().indexOf('\n') === -1) {
+
+				var parent = inp.parent();
+
+				// No new line in textarea content => transform to input field
+				f.val = inp.val();
+				inp.replaceWith(inputField(f));
+				inp = s.input(parent);
+
+				inp.on('keyup', function(e) {
+					s.checkInput(e, f, inp);
+				});
+
+				setCaretToEnd(inp[0]);
+
+			}
+
+		} else if (k === 13) {// && shiftKey === true) {
+
+			// Return key in input field => replace by textarea
+			var parent = inp.parent();
+
+			f.val = inp.val() + '\n';
+
+			inp.replaceWith(textarea(f));
+			inp = s.input(parent);
+
+			inp.on('keyup', function(e) {
+				s.checkInput(e, f, $(this));
+			});
+
+			setCaretToEnd(inp[0]);
+
+		}
+
+		inp.addClass(f.class);
+
+		resizeInput(inp);
+
+	};
+	this.appendSaveButton = function(b, p, inp, id, key) {
+
+		// Remove existing save button
+		if (b.length) {
+			$('#save_' + id + '_' + key).remove();
+		}
+
+		//(p.length ? p : inp).after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
+		inp.after('<button id="save_' + id + '_' + key + '">Save</button>');
+		$('#save_' + id + '_' + key).on('click', function() {
+			var btn = $(this), inp = btn.prev();
+			//console.log('append save button', btn, inp);
+			s.save(s.field(inp), btn);
+		});
+
+	};
+	this.hideEdit = function(container) {
+
+		// show elements [data-structr-hide="non-edit"]
+		$.each($('[data-structr-hide-id]', container), function() {
+			var id = $(this).attr('data-structr-hide-id');
+			$(this).replaceWith(hideNonEditElements[id]);
+			delete hideNonEditElements[id];
+
+		});
+
+		// hide edit elements
+		$.each($('[data-structr-hide="edit"]', container), function(i, obj) {
+
+			var random = Math.floor(Math.random()*1000000+1);
+
+			hideEditElements[random] = $(obj).clone(true,true);
+			$(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+		});
+
+		$(document).trigger("structr-edit");
+	};
+	this.hideNonEdit = function(container) {
+
+		//first call to hide all non-edit elements
+		if (container === undefined){
+
+			// hide all non-edit elements
+			$.each($('[data-structr-hide="non-edit"]'), function(i, obj) {
+
+				var random = Math.floor(Math.random()*1000000+1);
+
+				hideNonEditElements[random] = $(obj).clone(true,true);
+				$(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+			});
+
+		} else {
+
+			// show elements [data-structr-hide="edit"]
+			$.each($('[data-structr-hide-id]', container), function() {
+
+				var id = $(this).attr("data-structr-hide-id");
+				$(this).replaceWith(hideEditElements[id]);
+				delete hideNonEditElements[id];
+
+			});
+
+			// hide non-edit elements
+			$.each($('[data-structr-hide="non-edit"]', container), function(i, obj) {
+
+				var random = Math.floor(Math.random()*1000000+1);
+
+				hideNonEditElements[random] = $(obj).clone(true,true);
+				$(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+
+			});
+
+		}
+	};
 }
 function resizeInput(inp) {
 
-    var text = inp.val();// console.log(inp, 'value of input', text);
-    // don't resize empty input elements with preset size
-    if (!text || (!text.length && inp.attr('size'))) return;
+	var text = inp.val();// console.log(inp, 'value of input', text);
+	// don't resize empty input elements with preset size
+	if (!text || (!text.length && inp.attr('size'))) return;
 
-    if (isTextarea(inp[0])) {
+	if (isTextarea(inp[0])) {
 
-        var n = (text.match(/\n/g) || []).length;
-        inp.attr('rows', n+2);
+		var n = (text.match(/\n/g) || []).length;
+		inp.attr('rows', n+2);
 
-        var lines = text.split('\n');
-        var c = lines.sort(function(a, b) {
-            return b.length - a.length;
-        })[0].length;
+		var lines = text.split('\n');
+		var c = lines.sort(function(a, b) {
+			return b.length - a.length;
+		})[0].length;
 
-        inp.attr('cols', c+1);
+		inp.attr('cols', c+1);
 
-    } else {
+	} else {
 
-        inp.attr('size', text.length + 1);
+		inp.attr('size', text.length + 1);
 
-    }
-    // Focus on last empty field
+	}
+	// Focus on last empty field
 //    if (!text || !text.length)
 //        inp.focus();
 }
 
 function urlParam(name) {
-    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    var regexS = "[\\?&]" + name + "=([^&#]*)";
-    var regex = new RegExp(regexS);
-    var res = regex.exec(window.location.href);
-    return (res && res.length ? res[1] : '');
+	name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+	var regexS = "[\\?&]" + name + "=([^&#]*)";
+	var regex = new RegExp(regexS);
+	var res = regex.exec(window.location.href);
+	return (res && res.length ? res[1] : '');
 }
 
 String.prototype.capitalize = function() {
-    return this.charAt(0).toUpperCase() + this.slice(1);
+	return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
 String.prototype.endsWith = function(suffix) {
-    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+	return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
 
 String.prototype.parseIfJSON = function() {
-    if (this.substring(0,1) === '{') {
-        var cleaned = this.replace(/'/g, "\"");
-        return JSON.parse(cleaned);
-    }
-    return this.toString();
+	if (this.substring(0,1) === '{') {
+		var cleaned = this.replace(/'/g, "\"");
+		return JSON.parse(cleaned);
+	}
+	return this.toString();
 };
 
 String.prototype.splitAndTitleize = function(sep) {
 
-    var res = new Array();
-    var parts = this.split(sep);
-    parts.forEach(function(part) {
-        res.push(part.capitalize());
-    });
-    return res.join(' ');
+	var res = new Array();
+	var parts = this.split(sep);
+	parts.forEach(function(part) {
+		res.push(part.capitalize());
+	});
+	return res.join(' ');
 };
 
 String.prototype.toUnderscore = function() {
-    return this.replace(/([A-Z])/g, function(m, a, offset) {
-        return (offset > 0 ? '_' : '') + m.toLowerCase();
-    });
+	return this.replace(/([A-Z])/g, function(m, a, offset) {
+		return (offset > 0 ? '_' : '') + m.toLowerCase();
+	});
 };
 
 if (typeof String.prototype.contains !== 'function') {
-    String.prototype.contains = function(pattern) {
-        return this.indexOf(pattern) > 0;
-    };
+	String.prototype.contains = function(pattern) {
+		return this.indexOf(pattern) > 0;
+	};
 }
 
 function setCaretToEnd(el) {
-    var l = el.value.length;
-    if (document.selection) {
-        el.focus();
-        var o = document.selection.createRange();
-        o.moveStart('character', -l);
-        o.moveStart('character', l);
-        o.moveEnd('character', 0);
-        o.select();
-    } else if (el.selectionStart || el.selectionStart === 0 || el.selectionStart === '0') {
-        el.selectionStart = l;
-        el.selectionEnd = l;
-        el.focus();
-    }
+	var l = el.value.length;
+	if (document.selection) {
+		el.focus();
+		var o = document.selection.createRange();
+		o.moveStart('character', -l);
+		o.moveStart('character', l);
+		o.moveEnd('character', 0);
+		o.select();
+	} else if (el.selectionStart || el.selectionStart === 0 || el.selectionStart === '0') {
+		el.selectionStart = l;
+		el.selectionEnd = l;
+		el.focus();
+	}
 }
 
 function escapeTags(str) {
-    if (!str)
-        return str;
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	if (!str)
+		return str;
+	return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function isTextarea(el) {
-    return el.nodeName.toLowerCase() === 'textarea';
+	return el.nodeName.toLowerCase() === 'textarea';
 }
 
 function textarea(f) {
-    //console.log('rendering textarea', f);
-    return '<textarea data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '">' + f.val + '</textarea>';
+	//console.log('rendering textarea', f);
+	return '<textarea data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '">' + f.val + '</textarea>';
 }
 
 function inputField(f) {
-    //console.log('rendering input field  ', f);
-    var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
-    return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : (f.key ? f.key.capitalize() : ''))
-            + '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
-            + '" size="' + size + '">';
+	//console.log('rendering input field  ', f);
+	var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
+	return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : (f.key ? f.key.capitalize() : ''))
+			+ '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
+			+ '" size="' + size + '">';
 }
 
 function field(f) {
-    return '<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '">' + f.val + '</span>';
+	return '<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '">' + f.val + '</span>';
 }
 
 function checkbox(f) {
-    return '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '">';
+	return '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '">';
 }
 
 function enumSelect(f) {
-    //console.log(f, f.format, f.format.split(','))
-    var inp = '<select data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>';
-    return inp;
+	//console.log(f, f.format, f.format.split(','))
+	var inp = '<select data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>';
+	return inp;
 }
 
 function singleSelect(f) {
-    var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>';
-    $.ajax({
-        url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
-        statusCode: {
-            200: function(data) {
-                var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
-                sel.append('<option></option>');
-                if (data.result && data.result.length) {
-                    $.each(data.result, function(i, o) {
-                        sel.append('<option value="' + o.id + '" ' + (o.id === f.val ? 'selected' : '') + '>' + o.name + '</option>');
-                    });
-                    sel.chosen({allow_single_deselect: true});
-                }
-            }
-        }
-    });
-    return inp;
+	var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>';
+	$.ajax({
+		url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
+		statusCode: {
+			200: function(data) {
+				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
+				sel.append('<option></option>');
+				if (data.result && data.result.length) {
+					$.each(data.result, function(i, o) {
+						sel.append('<option value="' + o.id + '" ' + (o.id === f.val ? 'selected' : '') + '>' + o.name + '</option>');
+					});
+					sel.chosen({allow_single_deselect: true});
+				}
+			}
+		}
+	});
+	return inp;
 }
 
 function multiSelect(f) {
-    var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
-    f.type = f.type.substring(0, f.type.length-2);
-    var valIds = f.val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
-    $.ajax({
-        url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
-        statusCode: {
-            200: function(data) {
-                var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
-                if (data.result && data.result.length) {
-                    $.each(data.result, function(i, o) {
-                        sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
-                    });
-                    sel.chosen();
-                }
-            }
-        }
-    });
-    return inp;
+	var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
+	f.type = f.type.substring(0, f.type.length-2);
+	var valIds = f.val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
+	$.ajax({
+		url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
+		statusCode: {
+			200: function(data) {
+				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
+				if (data.result && data.result.length) {
+					$.each(data.result, function(i, o) {
+						sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
+					});
+					sel.chosen();
+				}
+			}
+		}
+	});
+	return inp;
 }
 
 function enableButton(btn) {
-  btn.removeClass('disabled');
-  btn.removeAttr('disabled');
+	btn.removeClass('disabled');
+	btn.removeAttr('disabled');
 }
 
 function disableButton(btn) {
-  btn.addClass('disabled');
-  btn.attr('disabled', 'disabled');
+	btn.addClass('disabled');
+	btn.attr('disabled', 'disabled');
 }
 
 function redirectOrReload(reload) {
-    if (reload) {
-        if (reload && typeof reload === 'string') {
-            window.location.href = reload;
-        } else if (reload === true) {
-            window.location.reload();
-        }
-    }
+	if (reload) {
+		if (reload && typeof reload === 'string') {
+			window.location.href = reload;
+		} else if (reload === true) {
+			window.location.reload();
+		}
+	}
 }
 
 function escapeForHtmlAttributes(str, escapeWhitespace) {
-    if (!(typeof str === 'string'))
-        return str;
-    var escapedStr = str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+	if (!(typeof str === 'string'))
+		return str;
+	var escapedStr = str
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
 
-    return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
+	return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
 }
 
 
 function lang() {
-    if (navigator.language.toLowerCase() === 'en-us') { return ''; }
-    else {
-        var l = navigator.language.toLowerCase().split('-');
-        if (l.length === 1) {
-            if ($.datepicker.regional[l[0]] !== undefined) return l[0];
-            else return '';
-        } else if (l.length > 1) {
-            if ($.datepicker.regional[l[0] + '-' + l[1].toUpperCase()] !== undefined) return l[0] + '-' + l[1].toUpperCase();
-            else if ($.datepicker.regional[l[0]] !== undefined) return l[0];
-            else return '';
-        } else {
-            return '';
-        }
-    }
+	if (navigator.language.toLowerCase() === 'en-us') { return ''; }
+	else {
+		var l = navigator.language.toLowerCase().split('-');
+		if (l.length === 1) {
+			if ($.datepicker.regional[l[0]] !== undefined) return l[0];
+			else return '';
+		} else if (l.length > 1) {
+			if ($.datepicker.regional[l[0] + '-' + l[1].toUpperCase()] !== undefined) return l[0] + '-' + l[1].toUpperCase();
+			else if ($.datepicker.regional[l[0]] !== undefined) return l[0];
+			else return '';
+		} else {
+			return '';
+		}
+	}
 }

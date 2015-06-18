@@ -263,10 +263,7 @@
                 <configuration>
                     <reuseForks>false</reuseForks>
                      <forkCount>1</forkCount>
-                    <argLine>-Xmx1g -XX:MaxPermSize=256m</argLine>
-                    <systemPropertyVariables>
-                        <user.timezone>UTC</user.timezone>
-                    </systemPropertyVariables>
+                    <argLine>-Xmx1g -XX:MaxPermSize=256m -Duser.timezone=UTC</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -473,6 +470,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <additionalparam>${javadoc.opts}</additionalparam>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -564,6 +564,15 @@
         </pluginManagement>
     </build>
     <profiles>
+        <profile>
+            <id>doclint-java8-disable</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <javadoc.opts>-Xdoclint:none</javadoc.opts>
+            </properties>
+        </profile>
         <profile>
             <id>release-sign-artifacts</id>
             <activation>

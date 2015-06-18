@@ -43,6 +43,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.schema.compiler.NodeExtender;
 
 /**
@@ -134,6 +135,9 @@ public class SchemaService implements Service {
 						for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
 							schemaNode.createBuiltInSchemaEntities(errorBuffer);
 						}
+
+						// prevent inheritance map from leaking
+						SearchCommand.clearInheritanceMap();
 
 						success = !errorBuffer.hasError();
 
