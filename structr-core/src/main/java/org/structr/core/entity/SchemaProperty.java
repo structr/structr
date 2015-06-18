@@ -55,7 +55,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	public static final Property<AbstractSchemaNode> schemaNode        = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 	public static final Property<List<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<List<SchemaLabel>>  labels            = new EndNodes<>("labels", SchemaPropertyLabel.class, new PropertySetNotion(true, SchemaLabel.locale, SchemaLabel.label));
+	public static final Property<List<SchemaLabel>>  labels            = new EndNodes<>("labels", SchemaPropertyLabel.class, new PropertySetNotion(true, AbstractNode.id, SchemaLabel.locale, SchemaLabel.name));
 
 	public static final Property<String>             declaringClass    = new StringProperty("declaringClass");
 	public static final Property<String>             defaultValue      = new StringProperty("defaultValue");
