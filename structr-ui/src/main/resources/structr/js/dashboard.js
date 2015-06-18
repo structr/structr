@@ -43,11 +43,11 @@ var _Dashboard = {
         aboutMe.append('<table class="props"></table>');
         $.get(rootUrl + '/me/ui', function(data) {
             var me = data.result;
-            console.log(me);
+            //console.log(me);
             var t = $('table', aboutMe);
             t.append('<tr><td class="key">ID</td><td>' + me.id + '</td></tr>');
             t.append('<tr><td class="key">E-Mail</td><td>' + me.eMail + '</td></tr>');
-            t.append('<tr><td class="key">Session ID(s)</td><td>' + me.sessionIds + '</td></tr>');
+            t.append('<tr><td class="key">Session ID(s)</td><td>' + me.sessionIds.join('<br>') + '</td></tr>');
             t.append('<tr><td class="key">Groups</td><td>' + me.groups.map(function(g) { return g.name; }).join(', ') + '</td></tr>');
             
         });
