@@ -331,79 +331,89 @@ var _Schema = {
 
 		Command.get(id, function(entity) {
 
-			var title = 'Edit schema node';
-			var method = _Schema.loadNode;
+			if (entity.type === "SchemaProperty") {
 
-			if (entity.type === "SchemaRelationshipNode") {
-				title = 'Edit schema relationship';
-				method = _Schema.loadRelationship;
+				_Schema.populateLabelDialog(entity);
+
+			} else {
+
+				_Schema.populateEditDialog(entity, targetView);
+
 			}
 
-			Structr.dialog(title, function() {
-			}, function() {
-				instance.repaintEverything();
-			});
-
-			method(entity, dialogText, targetView);
 		});
 
 	},
-	openLabelDialog: function (id) {
+	populateEditDialog: function (entity, targetView) {
 
-		Command.get(id, function(entity) {
+		var title = 'Edit schema node';
+		var method = _Schema.loadNode;
 
-			var title = 'Edit localized labels for "' + entity.name + '"';
+		if (entity.type === "SchemaRelationshipNode") {
+			title = 'Edit schema relationship';
+			method = _Schema.loadRelationship;
+		}
 
-			Structr.dialog(title, function() {
-			}, function() {
-				window.setTimeout(function () {
-					_Schema.openEditDialog(entity.schemaNode.id);
-				}, 250);
+		Structr.dialog(title, function() {
+		}, function() {
+			instance.repaintEverything();
+		});
+
+		method(entity, dialogText, targetView);
+
+	},
+	populateLabelDialog: function (entity) {
+
+		var title = 'Edit localized labels for "' + entity.name + '"';
+
+		Structr.dialog(title, function() {
+		}, function() {
+			window.setTimeout(function () {
+				_Schema.openEditDialog(entity.schemaNode.id);
+			}, 250);
+		});
+
+		var id = '___' + entity.id;
+		dialogText.append('<div id="' + id + '" class="schema-details"></div>');
+
+		var el = $('#' + id);
+
+		el.append('<table class="local schemaprop-labels"><th>Locale</th><th>Localized Name</th><th>Action</th></table>');
+		el.append('<img alt="Add local attribute" class="add-icon add-local-label" src="icon/add.png">');
+
+		var labelTable = $('.local.schemaprop-labels', el);
+		var addButton = $('.local.add-local-label', el);
+
+		// sort by locale
+		_Schema.sort(entity.labels, 'locale');
+
+		$.each(entity.labels, function(i, label) {
+			_Schema.appendLocalLabel(labelTable, label, entity.id);
+		});
+
+		addButton.on('click', function() {
+			labelTable.append('<tr class="new"><td><input size="15" type="text" class="label-locale" placeholder="Enter locale"></td>'
+				+ '<td><input size="15" type="text" class="label-name" placeholder="Enter localized name"></td>'
+				+ '<td><img alt="Remove" class="remove-icon remove-label" src="icon/delete.png"></td>'
+				+ '</tr>');
+
+			$('.new .remove-property', labelTable).on('click', function() {
+				var self = $(this);
+				self.closest('tr').remove();
 			});
 
-			var id = '___' + entity.id;
-			dialogText.append('<div id="' + id + '" class="schema-details"></div>');
-
-			var el = $('#' + id);
-
-			el.append('<table class="local schemaprop-labels"><th>Locale</th><th>Localized Name</th><th>Action</th></table>');
-			el.append('<img alt="Add local attribute" class="add-icon add-local-label" src="icon/add.png">');
-
-			var labelTable = $('.local.schemaprop-labels', el);
-			var addButton = $('.local.add-local-label', el);
-
-			// sort by locale
-			_Schema.sort(entity.labels, 'locale');
-
-			$.each(entity.labels, function(i, label) {
-				_Schema.appendLocalLabel(labelTable, label);
+			$('.new .label-locale', labelTable).on('blur', function() {
+				_Schema.collectAndSaveNewLabel(labelTable, entity);
 			});
 
-			$('.add-local-label', el).on('click', function() {
-				labelTable.append('<tr class="new"><td><input size="15" type="text" class="label-locale" placeholder="Enter locale"></td>'
-					+ '<td><input size="15" type="text" class="label-name" placeholder="Enter localized name"></td>'
-					+ '<td><img alt="Remove" class="remove-icon remove-label" src="icon/delete.png"></td>'
-					+ '</tr>');
-
-				$('.new .remove-property', labelTable).on('click', function() {
-					var self = $(this);
-					self.closest('tr').remove();
-				});
-
-				$('.new .label-locale', labelTable).on('blur', function() {
-					_Schema.collectAndSaveNewLabel(labelTable, entity);
-				});
-
-				$('.new .label-name', labelTable).on('blur', function() {
-					_Schema.collectAndSaveNewLabel(labelTable, entity);
-				});
-
+			$('.new .label-name', labelTable).on('blur', function() {
+				_Schema.collectAndSaveNewLabel(labelTable, entity);
 			});
 
 		});
 
 	},
-	appendLocalLabel: function (el, label) {
+	appendLocalLabel: function (el, label, schemaPropertyId) {
 		var key = label.id;
 
 		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="label-locale" value="' + escapeForHtmlAttributes(label.locale) + '"></td><td>'
@@ -411,11 +421,7 @@ var _Schema = {
 				+ '<img alt="Remove" class="remove-icon remove-label" src="icon/delete.png">'
 				+ '</td></div>');
 
-		_Schema.bindLabelEvents(label);
-//
-//		if (property.isBuiltinProperty) {
-//			_Schema.disable(property);
-//		}
+		_Schema.bindLabelEvents(label, schemaPropertyId);
 	},
 	loadRels: function(callback) {
 		var url = rootUrl + 'schema_relationship_nodes';
@@ -1015,7 +1021,7 @@ var _Schema = {
 
 								row.removeClass('new').addClass('local').addClass(label.id);
 								row = $('.local.' + label.id, el);
-								console.log($('.remove-label', row));
+
 								$('.remove-label', row).off('click');
 
 								_Schema.bindLabelEvents(label);
@@ -1030,7 +1036,7 @@ var _Schema = {
 			});
 		}
 	},
-	confirmRemoveSchemaEntity: function(entity, title, target, hint) {
+	confirmRemoveSchemaEntity: function(entity, title, target, hint, reopen) {
 
 		Structr.confirmation(
 			'<h3>' + title + ' ' + entity.name + '?</h3>' + (hint ? '<p>' + hint + '</p>' : ''),
@@ -1040,11 +1046,17 @@ var _Schema = {
 				});
 
 				_Schema.removeSchemaEntity(entity, function() {
-					_Schema.openEditDialog(entity.schemaNode.id, target);
+					if (!reopen) {
+						reopen = entity.schemaNode.id;
+					}
+					_Schema.openEditDialog(reopen, target);
 				});
 			},
 			function() {
-				_Schema.openEditDialog(entity.schemaNode.id, target);
+				if (!reopen) {
+					reopen = entity.schemaNode.id;
+				}
+				_Schema.openEditDialog(reopen, target);
 			}
 		);
 
@@ -1183,7 +1195,7 @@ var _Schema = {
 		}).prop('disabled', null);
 
 		$('.' + key + ' .edit-labels', el).on('click', function() {
-			_Schema.openLabelDialog(property.id);
+			_Schema.openEditDialog(property.id);
 		}).prop('disabled', null);
 	},
 	unbindEvents: function(key) {
@@ -1205,7 +1217,7 @@ var _Schema = {
 		$('.' + key + ' .remove-property', el).off('click').prop('disabled', 'disabled');
 
 	},
-	bindLabelEvents: function (label) {
+	bindLabelEvents: function (label, schemaPropertyId) {
 
 		var key = label.id;
 		var el  = $('.local.schemaprop-labels');
@@ -1219,10 +1231,12 @@ var _Schema = {
 		}).prop('disabled', null);
 
 		$('.' + key + ' .remove-label', el).on('click', function() {
-			_Schema.confirmRemoveSchemaEntity(label, 'Delete localized name', 'local', 'Really delete localized name?');
+			_Schema.confirmRemoveSchemaEntity(label, 'Delete localized name', 'local', 'Really delete localized name?', schemaPropertyId);
 		}).prop('disabled', null);
+
 	},
 	unbindLabelEvents: function (key) {
+
 		var el  = $('.local.schemaprop-labels');
 
 		$('.' + key + ' .label-locale', el).off('blur').prop('disabled', 'disabled');
@@ -1409,7 +1423,7 @@ var _Schema = {
 			});
 		}
 	},
-	saveSchemaLabel: function(label) {
+	saveSchemaLabel: function(label, schemaPropertyId) {
 
 		var key = label.id;
 
@@ -1432,16 +1446,16 @@ var _Schema = {
 				label.name = obj.name;
 				label.locale = obj.locale;
 
-				_Schema.bindLabelEvents(label);
+				_Schema.bindLabelEvents(label, schemaPropertyId);
 
 			}, function() {
 
 				blinkRed($('.local .' + key));
-				_Schema.bindLabelEvents(label);
+				_Schema.bindLabelEvents(label, schemaPropertyId);
 
 			}, function() {
 
-				_Schema.bindLabelEvents(label);
+				_Schema.bindLabelEvents(label, schemaPropertyId);
 			});
 		}
 	},
