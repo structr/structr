@@ -34,13 +34,12 @@ public class SchemaLabel extends AbstractNode {
 
 	public static final Property<List<SchemaProperty>> labeledProperties = new StartNodes<>("labeledProperties", SchemaPropertyLabel.class);
 	public static final Property<String>               locale            = new StringProperty("locale");
-	public static final Property<String>               label             = new StringProperty("label");
 
 	public static final View defaultView = new View(SchemaLabel.class, PropertyView.Public,
-		labeledProperties, locale, label
+		labeledProperties, locale, name
 	);
 
 	public static final View uiView = new View(SchemaLabel.class, PropertyView.Ui,
-		labeledProperties, locale, label
+		labeledProperties, locale, name
 	);
 }
