@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.MaintenanceCommand;
@@ -74,7 +75,8 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 			}
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			//ioex.printStackTrace();
+			logger.log(Level.FINE, "Filename: " + fileName + ", URL: " + url + ", source: " + source, ioex);
 		}
 
 		analyzeSchema();
