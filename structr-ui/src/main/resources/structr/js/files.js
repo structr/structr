@@ -137,7 +137,7 @@ var _Files = {
                     return;
                 }
 
-                log('dropped something in the #files area')
+                log('dropped something in the #files area');
 
                 event.stopPropagation();
                 event.preventDefault();
@@ -168,8 +168,9 @@ var _Files = {
                         });
                         $(filesToUpload).each(function(i, file) {
                             log(file);
-                            if (file)
+                            if (file) {
                                 Command.createFile(file);
+                            }
                         });
                     });
 
@@ -302,15 +303,13 @@ var _Files = {
 
         div.draggable({
             revert: 'invalid',
-            helper: 'clone',
+            //helper: 'clone',
             containment: 'document',
-            stack: '.node',
+            //stack: '.node',
             appendTo: '#main',
-            zIndex: 2,
+            //zIndex: 2,
             start: function(e, ui) {
-                $(this).css({
-                    opacity: 0
-                });
+                $(this).hide();
                 ui.helper.css({
                     width: files.width() + 'px'
                 });
