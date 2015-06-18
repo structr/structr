@@ -49,6 +49,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public List<Principal> getParents();
 
+	public boolean isValidPassword(final String password);
 	public String getEncryptedPassword();
 
 	public void addSessionId(final String sessionId);

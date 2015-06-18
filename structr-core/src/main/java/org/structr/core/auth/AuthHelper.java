@@ -22,7 +22,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -137,26 +136,10 @@ public class AuthHelper {
 
 					} else {
 
-						String salt			= principal.getProperty(Principal.salt);
-						String encryptedPasswordValue;
-
-						if (salt != null) {
-
-							encryptedPasswordValue	= getHash(password, salt);
-						} else {
-
-							encryptedPasswordValue	= getSimpleHash(password);
-
-						}
-
-						String pw			= principal.getEncryptedPassword();
-
-						if (pw == null || !encryptedPasswordValue.equals(pw)) {
-
-							logger.log(Level.INFO, "Wrong password for principal {0}", principal);
+						// let Principal decide how to check password
+						if (!principal.isValidPassword(password)) {
 
 							errorMsg = STANDARD_ERROR_MSG;
-
 						}
 
 					}
@@ -228,16 +211,16 @@ public class AuthHelper {
 	}
 
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
-		
+
 		HttpSession session = request.getSession(false);
-		
+
 		if (session == null) {
 			session = newSession(request);
 		}
-		
+
 		// We need a session to login a user
 		if (session != null) {
-		
+
 			AuthHelper.clearSession(session.getId());
 			user.addSessionId(session.getId());
 
@@ -248,30 +231,30 @@ public class AuthHelper {
 	public static void doLogout(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
 		final HttpSession session = request.getSession(false);
-		
+
 		// We need a session to logout a user
 		if (session != null) {
-			
+
 			AuthHelper.clearSession(session.getId());
 			user.removeSessionId(session.getId());
 
 			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
-		
+
 			try { request.logout(); request.changeSessionId(); } catch (Throwable t) {}
 
 		}
 	}
 
 	public static boolean isSessionTimedOut(final HttpSession session) {
-		
+
 		if (session == null) {
 			return true;
 		}
-		
+
 		final long now = (new Date()).getTime();
-		
+
 		try {
-			
+
 			final long lastAccessed = session.getLastAccessedTime();
 
 			if (now > lastAccessed + Services.getGlobalSessionTimeout() * 1000) {
@@ -283,34 +266,34 @@ public class AuthHelper {
 			return false;
 
 		} catch (IllegalStateException ise) {
-			
+
 			return true;
 		}
 
 	}
-	
+
 	public static HttpSession newSession(final HttpServletRequest request) {
-		
+
 		HttpSession session = request.getSession(true);
 		if (session == null) {
-		
+
 			// try again
 			session = request.getSession(true);
-		
+
 		}
-		
+
 		if (session != null) {
-			
+
 			session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
-			
+
 		} else {
-			
+
 			logger.log(Level.SEVERE, "Unable to create new session after two attempts");
-			
+
 		}
-		
+
 		return session;
-		
+
 	}
 
 	/**

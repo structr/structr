@@ -115,42 +115,30 @@ public class SuperUser implements Principal, AccessControllable {
 
 	}
 
-//      @Override
 	public String getRealName() {
 
 		return "Super User";
 
 	}
 
-	@Override
-	public String getEncryptedPassword() {
-
-		return null;
-
-	}
-
-//      @Override
 	public Object getPropertyForIndexing(String key) {
 
 		return null;
 
 	}
 
-//      @Override
 	public String getPassword() {
 
 		return null;
 
 	}
 
-//      @Override
 	public String getConfirmationKey() {
 
 		return null;
 
 	}
 
-//      @Override
 	public String getSessionId() {
 
 		return null;
@@ -217,14 +205,12 @@ public class SuperUser implements Principal, AccessControllable {
 
 	}
 
-//      @Override
 	public boolean isFrontendUser() {
 
 		return (true);
 
 	}
 
-//      @Override
 	public boolean isBackendUser() {
 
 		return (true);
@@ -238,13 +224,11 @@ public class SuperUser implements Principal, AccessControllable {
 
 	//~--- set methods ----------------------------------------------------
 
-//      @Override
 	public void setPassword(final String passwordValue) {
 
 		// not supported
 	}
 
-//      @Override
 	public void setRealName(final String realName) {
 
 		// not supported
@@ -496,6 +480,16 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public Set<String> getDeniedPermissions() {
+		return null;
+	}
+
+	@Override
+	public boolean isValidPassword(final String password) {
+		return false;
+	}
+
+	@Override
+	public String getEncryptedPassword() {
 		return null;
 	}
 }
