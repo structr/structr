@@ -18,6 +18,8 @@
  */
 package org.structr.rest.resource;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -38,6 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaLabel;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.BooleanProperty;
@@ -239,7 +242,20 @@ public class SchemaTypeResource extends Resource {
 
 					if (sProp.getName().equals(property.jsonName())) {
 
-						propProperties.put("labels", sProp.labels.getProperty(securityContext, sProp, false));
+						final List<SchemaLabel> labels = sProp.labels.getProperty(securityContext, sProp, false);
+						final List<Map<String, Object>> labelMap = new ArrayList<>(labels.size());
+
+						for (final SchemaLabel lbl : labels) {
+
+							final HashMap tmpMap = new HashMap(3);
+							tmpMap.put("id", lbl.getProperty(SchemaLabel.id));
+							tmpMap.put("locale", lbl.getProperty(SchemaLabel.locale));
+							tmpMap.put("name", lbl.getProperty(SchemaLabel.name));
+							labelMap.add(tmpMap);
+
+						}
+
+						propProperties.put("labels", labelMap);
 						break;
 
 					}
