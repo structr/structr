@@ -382,7 +382,7 @@ var _Schema = {
 		el.append('<img alt="Add local attribute" class="add-icon add-local-label" src="icon/add.png">');
 
 		var labelTable = $('.local.schemaprop-labels', el);
-		var addButton = $('.local.add-local-label', el);
+		var addButton = $('.add-local-label', el);
 
 		// sort by locale
 		_Schema.sort(entity.labels, 'locale');
