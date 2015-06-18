@@ -74,11 +74,11 @@ public class VideoFile extends File {
 	public static final Property<String>  audioCodec     = new StringProperty("audioCodec");
 	public static final Property<Integer> audioChannels  = new IntProperty("audioChannels");
 
-	public static final Property<Double>  sampleRate     = new DoubleProperty("sampleRate");
-	public static final Property<Double>  duration       = new DoubleProperty("duration");
+	public static final Property<Double>  sampleRate     = new DoubleProperty("sampleRate").indexed();
+	public static final Property<Double>  duration       = new DoubleProperty("duration").indexed();
 
-	public static final Property<Integer> width          = new IntProperty("width");
-	public static final Property<Integer> height         = new IntProperty("height");
+	public static final Property<Integer> width          = new IntProperty("width").indexed();
+	public static final Property<Integer> height         = new IntProperty("height").indexed();
 
 	public static final org.structr.common.View uiView              = new org.structr.common.View(VideoFile.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat, audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height);
 	public static final org.structr.common.View publicView          = new org.structr.common.View(VideoFile.class, PropertyView.Public, type, name, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat, audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height);
