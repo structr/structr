@@ -197,7 +197,12 @@ public class SchemaTypeResource extends Resource {
 		try {
 
 			SchemaNode schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
-			schemaProperties = schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false);
+
+			if (schemaNode != null) {
+
+				schemaProperties = schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false);
+
+			}
 
 		} catch (FrameworkException ex) {
 
