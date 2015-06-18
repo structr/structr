@@ -357,20 +357,65 @@ var _Schema = {
 			Structr.dialog(title, function() {
 			}, function() {
 				window.setTimeout(function () {
-					_Schema.openEditDialog(entity.schemaNode.id, target);
+					_Schema.openEditDialog(entity.schemaNode.id);
 				}, 250);
 			});
 
 			var id = '___' + entity.id;
-			el.append('<div id="' + id + '" class="schema-details">MOO</div>');
+			dialogText.append('<div id="' + id + '" class="schema-details"></div>');
 
-//			var div = $('#' + id);
+			var el = $('#' + id);
 
-//			div.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
+			el.append('<table class="local schemaprop-labels"><th>Locale</th><th>Localized Name</th><th>Action</th></table>');
+			el.append('<img alt="Add local attribute" class="add-icon add-local-label" src="icon/add.png">');
 
-//			var mainTabs = $('#tabs', div);
+			var labelTable = $('.local.schemaprop-labels', el);
+			var addButton = $('.local.add-local-label', el);
+
+			// sort by locale
+			_Schema.sort(entity.labels, 'locale');
+
+			$.each(entity.labels, function(i, label) {
+				_Schema.appendLocalLabel(labelTable, label);
+			});
+
+			$('.add-local-label', el).on('click', function() {
+				labelTable.append('<tr class="new"><td><input size="15" type="text" class="label-locale" placeholder="Enter locale"></td>'
+					+ '<td><input size="15" type="text" class="label-name" placeholder="Enter localized name"></td>'
+					+ '<td><img alt="Remove" class="remove-icon remove-label" src="icon/delete.png"></td>'
+					+ '</tr>');
+
+				$('.new .remove-property', labelTable).on('click', function() {
+					var self = $(this);
+					self.closest('tr').remove();
+				});
+
+				$('.new .label-locale', labelTable).on('blur', function() {
+					_Schema.collectAndSaveNewLabel(labelTable, entity);
+				});
+
+				$('.new .label-name', labelTable).on('blur', function() {
+					_Schema.collectAndSaveNewLabel(labelTable, entity);
+				});
+
+			});
+
 		});
 
+	},
+	appendLocalLabel: function (el, label) {
+		var key = label.id;
+
+		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="label-locale" value="' + escapeForHtmlAttributes(label.locale) + '"></td><td>'
+				+ '<input size="15" type="text" class="label-name" value="' + escapeForHtmlAttributes(label.name) + '"></td><td>'
+				+ '<img alt="Remove" class="remove-icon remove-label" src="icon/delete.png">'
+				+ '</td></div>');
+
+		_Schema.bindLabelEvents(label);
+//
+//		if (property.isBuiltinProperty) {
+//			_Schema.disable(property);
+//		}
 	},
 	loadRels: function(callback) {
 		var url = rootUrl + 'schema_relationship_nodes';
@@ -682,7 +727,7 @@ var _Schema = {
 
 		var propertiesTable = $('.local.schema-props', el);
 
-		_Schema.sortByName(entity.schemaProperties);
+		_Schema.sort(entity.schemaProperties);
 
 		$.each(entity.schemaProperties, function(i, prop) {
 			_Schema.appendLocalProperty(propertiesTable, prop);
@@ -692,7 +737,7 @@ var _Schema = {
 		Command.listSchemaProperties(entity.id, 'ui', function(data) {
 
 			// sort by name
-			_Schema.sortByName(data);
+			_Schema.sort(data);
 
 			$.each(data, function(i, prop) {
 
@@ -758,7 +803,7 @@ var _Schema = {
 		var viewsTable = $('.views.schema-props', el);
 		var newSelectClass   = 'select-view-attrs-new';
 
-		_Schema.sortByName(entity.schemaViews);
+		_Schema.sort(entity.schemaViews);
 
 		$.each(entity.schemaViews, function(i, view) {
 			_Schema.appendView(viewsTable, view, resource, entity);
@@ -788,7 +833,7 @@ var _Schema = {
 
 		var actionsTable = $('.actions.schema-props', el);
 
-		_Schema.sortByName(entity.schemaMethods);
+		_Schema.sort(entity.schemaMethods);
 
 		$.each(entity.schemaMethods, function(i, method) {
 			_Schema.appendMethod(actionsTable, method);
@@ -928,21 +973,80 @@ var _Schema = {
 			});
 		}
 	},
+	collectAndSaveNewLabel: function(el, entity) {
+
+		var name = $('.new .label-name', el).val();
+		var locale = $('.new .label-locale', el).val();
+
+		if (name && name.length) {
+
+			var obj = {
+				labeledProperties: [{ id: entity.id }]
+			};
+			if (name) {
+				obj.name = name;
+			}
+			if (locale) {
+				obj.locale = locale;
+			}
+
+			// store property definition with an empty property object
+			_Schema.storeSchemaEntity('schema_labels', {}, JSON.stringify(obj), function(result) {
+
+				if (result && result.result) {
+
+					var id = result.result[0];
+
+					$.ajax({
+						url: rootUrl + id,
+						type: 'GET',
+						dataType: 'json',
+						contentType: 'application/json; charset=utf-8',
+						statusCode: {
+
+							200: function(data) {
+
+								var label = data.result;
+								var row      = $('.new', el);
+
+								blinkGreen(row);
+
+								_Schema.unbindEvents(label.id);
+
+								row.removeClass('new').addClass('local').addClass(label.id);
+								row = $('.local.' + label.id, el);
+								console.log($('.remove-label', row));
+								$('.remove-label', row).off('click');
+
+								_Schema.bindLabelEvents(label);
+							}
+						}
+					});
+				}
+
+			}, function() {
+
+				blinkRed($('.new', el));
+			});
+		}
+	},
 	confirmRemoveSchemaEntity: function(entity, title, target, hint) {
 
-		Structr.confirmation('<h3>' + title + ' ' + entity.name + '?</h3>' + (hint ? '<p>' + hint + '</p>' : ''),
-				function() {
-					$.unblockUI({
-						fadeOut: 25
-					});
+		Structr.confirmation(
+			'<h3>' + title + ' ' + entity.name + '?</h3>' + (hint ? '<p>' + hint + '</p>' : ''),
+			function() {
+				$.unblockUI({
+					fadeOut: 25
+				});
 
-					_Schema.removeSchemaEntity(entity, function() {
-						_Schema.openEditDialog(entity.schemaNode.id, target);
-					});
-				},
-				function() {
+				_Schema.removeSchemaEntity(entity, function() {
 					_Schema.openEditDialog(entity.schemaNode.id, target);
 				});
+			},
+			function() {
+				_Schema.openEditDialog(entity.schemaNode.id, target);
+			}
+		);
 
 	},
 	resize: function() {
@@ -1079,7 +1183,7 @@ var _Schema = {
 		}).prop('disabled', null);
 
 		$('.' + key + ' .edit-labels', el).on('click', function() {
-			_Schema;
+			_Schema.openLabelDialog(property.id);
 		}).prop('disabled', null);
 	},
 	unbindEvents: function(key) {
@@ -1099,6 +1203,33 @@ var _Schema = {
 		$('.' + key + ' .property-default', el).off('change').prop('disabled', 'disabled');
 
 		$('.' + key + ' .remove-property', el).off('click').prop('disabled', 'disabled');
+
+	},
+	bindLabelEvents: function (label) {
+
+		var key = label.id;
+		var el  = $('.local.schemaprop-labels');
+
+		$('.' + key + ' .label-name', el).on('blur', function() {
+			_Schema.saveSchemaLabel(label);
+		}).prop('disabled', null);
+
+		$('.' + key + ' .label-locale', el).on('blur', function() {
+			_Schema.saveSchemaLabel(label);
+		}).prop('disabled', null);
+
+		$('.' + key + ' .remove-label', el).on('click', function() {
+			_Schema.confirmRemoveSchemaEntity(label, 'Delete localized name', 'local', 'Really delete localized name?');
+		}).prop('disabled', null);
+	},
+	unbindLabelEvents: function (key) {
+		var el  = $('.local.schemaprop-labels');
+
+		$('.' + key + ' .label-locale', el).off('blur').prop('disabled', 'disabled');
+
+		$('.' + key + ' .label-name', el).off('blur').prop('disabled', 'disabled');
+
+		$('.' + key + ' .remove-label', el).off('click').prop('disabled', 'disabled');
 
 	},
 	appendRelatedProperty: function(el, rel, key, out) {
@@ -1275,6 +1406,42 @@ var _Schema = {
 			}, function() {
 
 				_Schema.bindEvents(property);
+			});
+		}
+	},
+	saveSchemaLabel: function(label) {
+
+		var key = label.id;
+
+		_Schema.unbindLabelEvents(key);
+
+		var name = $('.' + key + ' .label-name').val();
+		var locale = $('.' + key + ' .label-locale').val();
+
+		if (name && name.length) {
+
+			var obj = {};
+			obj.name = name;
+			obj.locale = locale;
+
+			_Schema.storeSchemaEntity('schema_labels', label, JSON.stringify(obj), function() {
+
+				blinkGreen($('.local .' + key));
+
+				// accept values into label object
+				label.name = obj.name;
+				label.locale = obj.locale;
+
+				_Schema.bindLabelEvents(label);
+
+			}, function() {
+
+				blinkRed($('.local .' + key));
+				_Schema.bindLabelEvents(label);
+
+			}, function() {
+
+				_Schema.bindLabelEvents(label);
 			});
 		}
 	},
@@ -2185,9 +2352,12 @@ var _Schema = {
 		instance.setZoom(zoom);
 		_Schema.resize();
 	},
-	sortByName: function(collection) {
+	sort: function(collection, sortKey) {
+		if (!sortKey) {
+			sortKey = "name";
+		}
 		collection.sort(function(a, b) {
-			return ((a.name > b.name) ? 1 : ((a.name < b.name) ? -1 : 0));
+			return ((a[sortKey] > b[sortKey]) ? 1 : ((a[sortKey] < b[sortKey]) ? -1 : 0));
 		});
 	}
 };

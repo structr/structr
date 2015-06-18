@@ -1493,22 +1493,22 @@ button.add_property {
     vertical-align: top;
 }
 
-.schema-props {
+.schema-props, .schemaprop-labels {
     background-color: #f9f9f9;
     width: 100%;
     border-collapse: collapse;
 }
 
-.schema-props th, .schema-props td {
+.schema-props th, .schema-props td, .schemaprop-labels th, .schemaprop-labels td {
     border: 1px solid #ccc;
 }
 
-.schema-props td {
+.schema-props td, .schemaprop-labels td {
     border: 1px solid #ccc;
     padding: 2px 4px;
 }
 
-.schema-props tr:nth-child(even) {
+.schema-props tr:nth-child(even), .schemaprop-labels tr:nth-child(even) {
     background-color: #fff;
 }
 
@@ -1542,6 +1542,8 @@ button.add_property {
 .property-code,
 .property-attrs,
 .property-default,
+.label-locale,
+.label-name,
 #relationship-label {
     width: 98%;
     font-size: 1em;
@@ -1562,7 +1564,7 @@ button.add_property {
     background: transparent;
 }
 
-.schema.expanded tr, .schema.expanded .schema-props {
+.schema.expanded tr, .schema.expanded .schema-props, .schema-prop-labels {
     background: transparent ! important;
 }
 
@@ -1583,7 +1585,9 @@ button.add_property {
 .schema-details .property-dbname:hover,
 .schema-details .property-format:hover,
 .schema-details .property-default:hover,
-.schema-details .property-code:hover {
+.schema-details .property-code:hover,
+.schema-details .label-locale:hover,
+.schema-details .label-name:hover {
     cursor: text;
     box-shadow: 2px 0 #000;
     color: #222;
