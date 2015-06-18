@@ -32,6 +32,7 @@ var _Schema = {
 	type_icon: 'icon/database_table.png',
 	schemaLoading: false,
 	schemaLoaded: false,
+	cnt: 0,
 	reload: function() {
 		if (reload) {
 			return;
@@ -392,22 +393,23 @@ var _Schema = {
 		});
 
 		addButton.on('click', function() {
-			labelTable.append('<tr class="new"><td><input size="15" type="text" class="label-locale" placeholder="Enter locale"></td>'
+			var rowClass = 'new' + (_Schema.cnt++);
+			labelTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="label-locale" placeholder="Enter locale"></td>'
 				+ '<td><input size="15" type="text" class="label-name" placeholder="Enter localized name"></td>'
 				+ '<td><img alt="Remove" class="remove-icon remove-label" src="icon/delete.png"></td>'
 				+ '</tr>');
 
-			$('.new .remove-property', labelTable).on('click', function() {
+			$('.' + rowClass + ' .remove-property', labelTable).on('click', function() {
 				var self = $(this);
 				self.closest('tr').remove();
 			});
 
-			$('.new .label-locale', labelTable).on('blur', function() {
-				_Schema.collectAndSaveNewLabel(labelTable, entity);
+			$('.' + rowClass + ' .label-locale', labelTable).on('blur', function() {
+				_Schema.collectAndSaveNewLabel(rowClass, labelTable, entity);
 			});
 
-			$('.new .label-name', labelTable).on('blur', function() {
-				_Schema.collectAndSaveNewLabel(labelTable, entity);
+			$('.' + rowClass + ' .label-name', labelTable).on('blur', function() {
+				_Schema.collectAndSaveNewLabel(rowClass, labelTable, entity);
 			});
 
 		});
@@ -765,7 +767,8 @@ var _Schema = {
 
 
 		$('.add-local-attribute', el).on('click', function() {
-			propertiesTable.append('<tr class="new"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name"></td>'
+			var rowClass = 'new' + (_Schema.cnt++);
+			propertiesTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name"></td>'
 					+ '<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>'
 					+ '<td>' + typeOptions + '</td>'
 					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
@@ -775,29 +778,29 @@ var _Schema = {
 					+ '<td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">'
 					+ '</td></div>');
 
-			$('.new .remove-property', propertiesTable).on('click', function() {
+			$('.' + rowClass + ' .remove-property', propertiesTable).on('click', function() {
 				var self = $(this);
 				self.closest('tr').remove();
 			});
 
-			$('.new .property-name', propertiesTable).on('blur', function() {
-				_Schema.collectAndSaveNewLocalProperty(propertiesTable, entity);
+			$('.' + rowClass + ' .property-name', propertiesTable).on('blur', function() {
+				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
 			});
 
-			$('.new .property-type', propertiesTable).on('change', function() {
-				_Schema.collectAndSaveNewLocalProperty(propertiesTable, entity);
+			$('.' + rowClass + ' .property-type', propertiesTable).on('change', function() {
+				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
 			});
 
-			$('.new .property-format', propertiesTable).on('blur', function() {
-				_Schema.collectAndSaveNewLocalProperty(propertiesTable, entity);
+			$('.' + rowClass + ' .property-format', propertiesTable).on('blur', function() {
+				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
 			});
 
-			$('.new .not-null', propertiesTable).on('change', function() {
-				_Schema.collectAndSaveNewLocalProperty(propertiesTable, entity);
+			$('.' + rowClass + ' .not-null', propertiesTable).on('change', function() {
+				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
 			});
 
-			$('.new .unique', propertiesTable).on('change', function() {
-				_Schema.collectAndSaveNewLocalProperty(propertiesTable, entity);
+			$('.' + rowClass + ' .unique', propertiesTable).on('change', function() {
+				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
 			});
 		});
 	},
@@ -909,15 +912,15 @@ var _Schema = {
 		});
 
 	},
-	collectAndSaveNewLocalProperty: function(el, entity) {
+	collectAndSaveNewLocalProperty: function(rowClass, el, entity) {
 
-		var name = $('.new .property-name', el).val();
-		var dbName = $('.new .property-dbname', el).val();
-		var type = $('.new .property-type', el).val();
-		var format = $('.new .property-format', el).val();
-		var notNull = $('.new .not-null', el).is(':checked');
-		var unique = $('.new .unique', el).is(':checked');
-		var defaultValue = $('.new .property-default', el).val();
+		var name = $('.' + rowClass + ' .property-name', el).val();
+		var dbName = $('.' + rowClass + ' .property-dbname', el).val();
+		var type = $('.' + rowClass + ' .property-type', el).val();
+		var format = $('.' + rowClass + ' .property-format', el).val();
+		var notNull = $('.' + rowClass + ' .not-null', el).is(':checked');
+		var unique = $('.' + rowClass + ' .unique', el).is(':checked');
+		var defaultValue = $('.' + rowClass + ' .property-default', el).val();
 
 		if (name && name.length && type) {
 
@@ -949,7 +952,7 @@ var _Schema = {
 
 								var property = data.result;
 								var name     = property.name;
-								var row      = $('.new', el);
+								var row      = $('.' + rowClass, el);
 
 								blinkGreen(row);
 
@@ -957,7 +960,7 @@ var _Schema = {
 
 								_Schema.unbindEvents(name);
 
-								row.removeClass('new').addClass('local').addClass(name);
+								row.removeClass(rowClass).addClass('local').addClass(name);
 								row = $('.local.' + name, el);
 
 								$('.remove-property', row).off('click');
@@ -974,15 +977,15 @@ var _Schema = {
 
 			}, function() {
 
-				blinkRed($('.new', el));
+				blinkRed($('.' + rowClass, el));
 				//_Schema.bindEvents(entity, type, key);
 			});
 		}
 	},
-	collectAndSaveNewLabel: function(el, entity) {
+	collectAndSaveNewLabel: function(rowClass, el, entity) {
 
-		var name = $('.new .label-name', el).val();
-		var locale = $('.new .label-locale', el).val();
+		var name = $('.' + rowClass + ' .label-name', el).val();
+		var locale = $('.' + rowClass + ' .label-locale', el).val();
 
 		if (name && name.length) {
 
@@ -1013,13 +1016,13 @@ var _Schema = {
 							200: function(data) {
 
 								var label = data.result;
-								var row      = $('.new', el);
+								var row      = $('.' + rowClass, el);
 
 								blinkGreen(row);
 
 								_Schema.unbindEvents(label.id);
 
-								row.removeClass('new').addClass('local').addClass(label.id);
+								row.removeClass(rowClass).addClass('local').addClass(label.id);
 								row = $('.local.' + label.id, el);
 
 								$('.remove-label', row).off('click');
@@ -1032,7 +1035,7 @@ var _Schema = {
 
 			}, function() {
 
-				blinkRed($('.new', el));
+				blinkRed($('.' + rowClass, el));
 			});
 		}
 	},
@@ -1112,7 +1115,7 @@ var _Schema = {
 				+ (property.unique ? ' checked="checked"' : '') + '</td><td>'
 				+ '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td>'
 				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"><img alt="Labels" class="remove-icon edit-labels" src="icon/book_open.png">')
-				+ '</td></div>');
+				+ '</td></tr>');
 
 		_Schema.bindEvents(property);
 
