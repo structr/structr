@@ -30,6 +30,7 @@
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
 
     <build>
@@ -74,10 +75,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.18.1</version>
                 <configuration>
-                    <argLine>-Xmx1g -XX:MaxPermSize=256m</argLine>
-                    <systemPropertyVariables>
-                        <user.timezone>UTC</user.timezone>
-                    </systemPropertyVariables>
+                    <argLine>-Xmx1g -XX:MaxPermSize=256m -Duser.timezone=UTC</argLine>
                     <reuseForks>false</reuseForks>
                 </configuration>
             </plugin>

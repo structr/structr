@@ -32,6 +32,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <neo4j.version>2.2.2</neo4j.version>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+        <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
     <repositories>
         <repository>
@@ -263,10 +264,7 @@
                 <configuration>
                     <reuseForks>false</reuseForks>
                      <forkCount>1</forkCount>
-                    <argLine>-Xmx1g -XX:MaxPermSize=256m</argLine>
-                    <systemPropertyVariables>
-                        <user.timezone>UTC</user.timezone>
-                    </systemPropertyVariables>
+                    <argLine>-Xmx1g -XX:MaxPermSize=256m -Duser.timezone=UTC</argLine>
                 </configuration>
             </plugin>
             <plugin>
