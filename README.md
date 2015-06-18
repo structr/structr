@@ -11,7 +11,7 @@ Structr was awarded with the Graphie Award (by Neo4j maker Neo Technology) for t
 
 Build and run Structr from the source code.
 
-Prerequisites are the Java JDK 1.7, Maven 3.0.4+ and git.
+Prerequisites are the Java JDK 1.7 or 1.8, Maven 3.0.4+ and git.
 
 Verify the java/maven version with mvn -v, then do:
 
@@ -25,6 +25,8 @@ cd structr-ui
 mvn validate exec:exec
 ```
 
+To run Structr on Windows, check [https://docs.structr.org/installation-and-configuration-guide#Windows Manual Installation](windows installation instructrions).
+
 Login with the credentials admin/admin at:
 
 [http://localhost:8082/structr/](http://localhost:8082/structr/)
@@ -34,8 +36,6 @@ For documentation, please take a look here:
 http://docs.structr.org
 
 ## Getting Started
-
-A very simple CMS demo app, hands-on tutorial: 
 
 A Structr Demo Application in Less Than Ten Minutes: [https://structr.org/blog/structr-demo-in-ten-minutes](https://structr.org/blog/structr-demo-in-ten-minutes)
 
