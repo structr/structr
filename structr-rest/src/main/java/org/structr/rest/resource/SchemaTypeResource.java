@@ -193,14 +193,14 @@ public class SchemaTypeResource extends Resource {
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
 
-		// get all SchemaProperties for  thetype so we can search for labels later
 		List<SchemaProperty> schemaProperties = null;
 		try {
+
 			SchemaNode schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
 			schemaProperties = schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false);
 
 		} catch (FrameworkException ex) {
-			// TODO: Better error message!?
+
 			Logger.getLogger(SchemaTypeResource.class.getName()).log(Level.SEVERE, "Error looking up SchemaNode - cannot display labels for properties!", ex);
 		}
 
@@ -229,13 +229,18 @@ public class SchemaTypeResource extends Resource {
 			propProperties.put("dynamic", property.isDynamic());
 
 			if (property.isDynamic() && schemaProperties != null) {
-				// look up labels for that property
+
 				for (final SchemaProperty sProp : schemaProperties) {
+
 					if (sProp.getName().equals(property.jsonName())) {
+
 						propProperties.put("labels", sProp.labels.getProperty(securityContext, sProp, false));
 						break;
+
 					}
+
 				}
+
 			}
 
 			final Class<? extends GraphObject> relatedType = property.relatedType();
