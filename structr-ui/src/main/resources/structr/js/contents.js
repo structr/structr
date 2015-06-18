@@ -21,316 +21,316 @@ var lineWrappingKey = 'structrEditorLineWrapping_' + port;
 var contents, editor, contentType;
 
 var _Contents = {
-    icon: 'icon/page_white.png',
-    comment_icon: 'icon/comment.png',
-    comp_icon: 'icon/page_yellow.png',
-    comp_templ_icon: 'icon/layout_yellow.png',
-    template_icon: 'icon/layout_content.png',
-    add_icon: 'icon/page_white_add.png',
-    delete_icon: 'icon/page_white_delete.png',
-    appendContentElement: function(entity, refNode, refNodeIsParent) {
-        log('Contents.appendContentElement', entity, refNode);
+	icon: 'icon/page_white.png',
+	comment_icon: 'icon/comment.png',
+	comp_icon: 'icon/page_yellow.png',
+	comp_templ_icon: 'icon/layout_yellow.png',
+	template_icon: 'icon/layout_content.png',
+	add_icon: 'icon/page_white_add.png',
+	delete_icon: 'icon/page_white_delete.png',
+	appendContentElement: function(entity, refNode, refNodeIsParent) {
+		log('Contents.appendContentElement', entity, refNode);
 
-        var parent;
+		var parent;
 
-        if (entity.parent && entity.parent.id) {
-            parent = Structr.node(entity.parent.id);
-            _Entities.ensureExpanded(parent);
-        } else {
-            parent = refNode;
-        }
+		if (entity.parent && entity.parent.id) {
+			parent = Structr.node(entity.parent.id);
+			_Entities.ensureExpanded(parent);
+		} else {
+			parent = refNode;
+		}
 
-        if (!parent)
-            return false;
+		if (!parent)
+			return false;
 
-        var isActiveNode = entity.hideOnIndex || entity.hideOnDetail || entity.hideConditions || entity.showConditions || entity.dataKey;
-        var isTemplate = (entity.type === 'Template');
+		var isActiveNode = entity.hideOnIndex || entity.hideOnDetail || entity.hideConditions || entity.showConditions || entity.dataKey;
+		var isTemplate = (entity.type === 'Template');
 
-        var name = entity.name;
-        var displayName = getElementDisplayName(entity);
+		var name = entity.name;
+		var displayName = getElementDisplayName(entity);
 
-        var isComment = (entity.type === 'Comment');
-        var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
-        var icon = isComment ? _Contents.comment_icon : ((isTemplate && isComponent) ? _Contents.comp_templ_icon : (isTemplate ? _Contents.template_icon : (isComponent ? _Contents.comp_icon : _Contents.icon)));
-        var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
-                + '<img class="typeIcon" src="' + icon + '">'
-                + (name ? ('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
-                + '<span class="id">' + entity.id + '</span>'
-                + '</div>';
+		var isComment = (entity.type === 'Comment');
+		var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
+		var icon = isComment ? _Contents.comment_icon : ((isTemplate && isComponent) ? _Contents.comp_templ_icon : (isTemplate ? _Contents.template_icon : (isComponent ? _Contents.comp_icon : _Contents.icon)));
+		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
+				+ '<img class="typeIcon" src="' + icon + '">'
+				+ (name ? ('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
+				+ '<span class="id">' + entity.id + '</span>'
+				+ '</div>';
 
-        if (refNode && !refNodeIsParent) {
-            refNode.before(html);
-        } else {
-            parent.append(html);
-        }
+		if (refNode && !refNodeIsParent) {
+			refNode.before(html);
+		} else {
+			parent.append(html);
+		}
 
-        var div = Structr.node(entity.id);
+		var div = Structr.node(entity.id);
 
-        _Dragndrop.makeSortable(div);
-        _Dragndrop.makeDroppable(div);
+		_Dragndrop.makeSortable(div);
+		_Dragndrop.makeDroppable(div);
 
-        if (isTemplate) {
-            var hasChildren = entity.childrenIds && entity.childrenIds.length;
-            _Entities.appendExpandIcon(div, entity, hasChildren);
-        }
-        
-        _Entities.appendAccessControlIcon(div, entity);
+		if (isTemplate) {
+			var hasChildren = entity.childrenIds && entity.childrenIds.length;
+			_Entities.appendExpandIcon(div, entity, hasChildren);
+		}
 
-        div.append('<img title="Clone content node ' + entity.id + '" alt="Clone content node ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
-        $('.clone_icon', div).on('click', function(e) {
-            e.stopPropagation();
-            Command.cloneNode(entity.id, entity.parent.id, true)
-        });
+		_Entities.appendAccessControlIcon(div, entity);
 
-        div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', div).on('click', function(e) {
-            e.stopPropagation();
-            _Entities.deleteNode(this, entity);
-        });
+		div.append('<img title="Clone content node ' + entity.id + '" alt="Clone content node ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
+		$('.clone_icon', div).on('click', function(e) {
+			e.stopPropagation();
+			Command.cloneNode(entity.id, entity.parent.id, true)
+		});
 
-        div.append('<img title="Edit Content" alt="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button" src="icon/pencil.png">');
-        $('.edit_icon', div).on('click', function(e) {
-            e.stopPropagation();
-            _Contents.openEditContentDialog(this, entity);
-            return false;
-        });
+		div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		$('.delete_icon', div).on('click', function(e) {
+			e.stopPropagation();
+			_Entities.deleteNode(this, entity);
+		});
 
-        $('.content_', div).on('click', function(e) {
-            e.stopPropagation();
-            _Contents.openEditContentDialog(this, entity);
-            return false;
-        });
+		div.append('<img title="Edit Content" alt="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button" src="icon/pencil.png">');
+		$('.edit_icon', div).on('click', function(e) {
+			e.stopPropagation();
+			_Contents.openEditContentDialog(this, entity);
+			return false;
+		});
 
-        _Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
+		$('.content_', div).on('click', function(e) {
+			e.stopPropagation();
+			_Contents.openEditContentDialog(this, entity);
+			return false;
+		});
 
-        _Entities.appendEditPropertiesIcon(div, entity);
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
 
-        return div;
-    },
-    openEditContentDialog: function(btn, entity) {
-        Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
-            log('content saved')
-        }, function() {
-            log('cancelled')
-        });
-        Command.getProperty(entity.id, 'content', function(text) {
-            _Contents.editContent(this, entity, text, dialogText);        
-        });
-    },
-    editContent: function(button, entity, text, element) {
-        if (isDisabled(button)) {
-            return;
-        }
-        var div = element.append('<div class="editor"></div>');
-        log(div);
-        var contentBox = $('.editor', element);
-        contentType = contentType ? contentType : entity.contentType;
-        var text1, text2;
-        
-        var lineWrapping = localStorage.getItem(lineWrappingKey);
-        
-        // Intitialize editor
-        editor = CodeMirror(contentBox.get(0), {
-            value: text,
-            mode: contentType,
-            lineNumbers: true,
-            lineWrapping: lineWrapping
-        });
-        Structr.resize();
-        
-        dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
-        dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
-        
-        // Experimental speech recognition, works only in Chrome 25+
-        if (typeof(webkitSpeechRecognition) === 'function') {
-        
-            dialogBox.append('<button class="speechToText"><img src="img/icon_microphone.svg"></button>');
-            var speechBtn = $('.speechToText', dialogBox);
+		_Entities.appendEditPropertiesIcon(div, entity);
 
-            _Speech.init(speechBtn, function(interim, final) {
-                //console.log('Interim:', interim);
-                //console.log('Final:', final);
+		return div;
+	},
+	openEditContentDialog: function(btn, entity) {
+		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
+			log('content saved')
+		}, function() {
+			log('cancelled')
+		});
+		Command.getProperty(entity.id, 'content', function(text) {
+			_Contents.editContent(this, entity, text, dialogText);
+		});
+	},
+	editContent: function(button, entity, text, element) {
+		if (isDisabled(button)) {
+			return;
+		}
+		var div = element.append('<div class="editor"></div>');
+		log(div);
+		var contentBox = $('.editor', element);
+		contentType = contentType ? contentType : entity.contentType;
+		var text1, text2;
 
-                if (_Speech.isCommand('save', interim)) {
-                    //console.log('Save command detected');
-                    dialogSaveButton.click();
-                } else if (_Speech.isCommand('saveAndClose', interim)) {
-                    //console.log('Save and close command detected');
-                    _Speech.toggleStartStop(speechBtn, function() {
-                        $('#saveAndClose', dialogBtn).click();
-                    });
-                } else if (_Speech.isCommand('close', interim)) {
-                    //console.log('Close command detected');
-                    _Speech.toggleStartStop(speechBtn, function() {
-                        dialogCancelButton.click();
-                    });
-                } else if (_Speech.isCommand('stop', interim)) {
-                    _Speech.toggleStartStop(speechBtn, function() {
-                        //
-                    });
-                } else if (_Speech.isCommand('clearAll', interim)) {
-                    editor.setValue('');
-                    editor.focus();
-                    editor.execCommand('goDocEnd');
-                } else if (_Speech.isCommand('deleteLastParagraph', interim)) {
-                    var text = editor.getValue();
-                    editor.setValue(text.substring(0, text.lastIndexOf('\n')));
-                    editor.focus();
-                    editor.execCommand('goDocEnd');
-                } else if (_Speech.isCommand('deleteLastSentence', interim)) {
-                    var text = editor.getValue();
-                    editor.setValue(text.substring(0, text.lastIndexOf('.')+1));
-                    editor.focus();
-                    editor.execCommand('goDocEnd');
-                } else if (_Speech.isCommand('deleteLastWord', interim)) {
-                    var text = editor.getValue();
-                    editor.setValue(text.substring(0, text.lastIndexOf(' ')));
-                    editor.focus();
-                    editor.execCommand('goDocEnd');
-                } else if (_Speech.isCommand('deleteLine', interim)) {
-                    editor.execCommand('deleteLine');
-                } else if (_Speech.isCommand('deleteLineLeft', interim)) {
-                    editor.execCommand('deleteLineLeft');
-                } else if (_Speech.isCommand('deleteLineRight', interim)) {
-                    editor.execCommand('killLine');
-                    
-                } else if (_Speech.isCommand('lineUp', interim)) {
-                    editor.execCommand('goLineUp');
-                } else if (_Speech.isCommand('lineDown', interim)) {
-                    editor.execCommand('goLineDown');
-                } else if (_Speech.isCommand('wordLeft', interim)) {
-                    editor.execCommand('goWordLeft');
-                } else if (_Speech.isCommand('wordRight', interim)) {
-                    editor.execCommand('goWordRight');
-                } else if (_Speech.isCommand('left', interim)) {
-                    editor.execCommand('goCharLeft');
-                } else if (_Speech.isCommand('right', interim)) {
-                    editor.execCommand('goCharRight');
-                    
-                    
-                } else {
-                    //editor.setValue(editor.getValue() + interim);
-                    
-                    editor.replaceSelection(interim);
-                    
-                    //editor.focus();
-                    //editor.execCommand('goDocEnd');
-                }
+		var lineWrapping = localStorage.getItem(lineWrappingKey);
 
-            });
-        }
+		// Intitialize editor
+		editor = CodeMirror(contentBox.get(0), {
+			value: text,
+			mode: contentType,
+			lineNumbers: true,
+			lineWrapping: lineWrapping
+		});
+		Structr.resize();
 
-        dialogSaveButton = $('#editorSave', dialogBtn);
-        var saveAndClose = $('#saveAndClose', dialogBtn);
+		dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
+		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
-        saveAndClose.on('click', function(e) {
-            e.stopPropagation();
-            dialogSaveButton.click();
-            setTimeout(function() {
-                dialogSaveButton.remove();
-                saveAndClose.remove();
-                dialogCancelButton.click();
-            }, 500);
-        });
+		// Experimental speech recognition, works only in Chrome 25+
+		if (typeof(webkitSpeechRecognition) === 'function') {
 
-        editor.on('change', function(cm, change) {
+			dialogBox.append('<button class="speechToText"><img src="img/icon_microphone.svg"></button>');
+			var speechBtn = $('.speechToText', dialogBox);
 
-            if (text === editor.getValue()) {
-                dialogSaveButton.prop("disabled", true).addClass('disabled');
-                saveAndClose.prop("disabled", true).addClass('disabled');
-            } else {
-                dialogSaveButton.prop("disabled", false).removeClass('disabled');
-                saveAndClose.prop("disabled", false).removeClass('disabled');
-            }
-            
-            $('#chars').text(editor.getValue().length);
-            $('#words').text(editor.getValue().match(/\S+/g).length);
-        });
+			_Speech.init(speechBtn, function(interim, final) {
+				//console.log('Interim:', interim);
+				//console.log('Final:', final);
 
-        var scrollInfo = JSON.parse(localStorage.getItem(scrollInfoKey + '_' + entity.id));
-        if (scrollInfo) {
-            editor.scrollTo(scrollInfo.left, scrollInfo.top);
-        }
+				if (_Speech.isCommand('save', interim)) {
+					//console.log('Save command detected');
+					dialogSaveButton.click();
+				} else if (_Speech.isCommand('saveAndClose', interim)) {
+					//console.log('Save and close command detected');
+					_Speech.toggleStartStop(speechBtn, function() {
+						$('#saveAndClose', dialogBtn).click();
+					});
+				} else if (_Speech.isCommand('close', interim)) {
+					//console.log('Close command detected');
+					_Speech.toggleStartStop(speechBtn, function() {
+						dialogCancelButton.click();
+					});
+				} else if (_Speech.isCommand('stop', interim)) {
+					_Speech.toggleStartStop(speechBtn, function() {
+						//
+					});
+				} else if (_Speech.isCommand('clearAll', interim)) {
+					editor.setValue('');
+					editor.focus();
+					editor.execCommand('goDocEnd');
+				} else if (_Speech.isCommand('deleteLastParagraph', interim)) {
+					var text = editor.getValue();
+					editor.setValue(text.substring(0, text.lastIndexOf('\n')));
+					editor.focus();
+					editor.execCommand('goDocEnd');
+				} else if (_Speech.isCommand('deleteLastSentence', interim)) {
+					var text = editor.getValue();
+					editor.setValue(text.substring(0, text.lastIndexOf('.')+1));
+					editor.focus();
+					editor.execCommand('goDocEnd');
+				} else if (_Speech.isCommand('deleteLastWord', interim)) {
+					var text = editor.getValue();
+					editor.setValue(text.substring(0, text.lastIndexOf(' ')));
+					editor.focus();
+					editor.execCommand('goDocEnd');
+				} else if (_Speech.isCommand('deleteLine', interim)) {
+					editor.execCommand('deleteLine');
+				} else if (_Speech.isCommand('deleteLineLeft', interim)) {
+					editor.execCommand('deleteLineLeft');
+				} else if (_Speech.isCommand('deleteLineRight', interim)) {
+					editor.execCommand('killLine');
 
-        editor.on('scroll', function() {
-            var scrollInfo = editor.getScrollInfo();
-            localStorage.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
-        });
+				} else if (_Speech.isCommand('lineUp', interim)) {
+					editor.execCommand('goLineUp');
+				} else if (_Speech.isCommand('lineDown', interim)) {
+					editor.execCommand('goLineDown');
+				} else if (_Speech.isCommand('wordLeft', interim)) {
+					editor.execCommand('goWordLeft');
+				} else if (_Speech.isCommand('wordRight', interim)) {
+					editor.execCommand('goWordRight');
+				} else if (_Speech.isCommand('left', interim)) {
+					editor.execCommand('goCharLeft');
+				} else if (_Speech.isCommand('right', interim)) {
+					editor.execCommand('goCharRight');
 
-        dialogSaveButton.on('click', function(e) {
-            e.stopPropagation();
 
-            //var contentNode = Structr.node(entity.id)[0];
+				} else {
+					//editor.setValue(editor.getValue() + interim);
 
-            text1 = text;
-            text2 = editor.getValue();
+					editor.replaceSelection(interim);
 
-            if (!text1)
-                text1 = '';
-            if (!text2)
-                text2 = '';
+					//editor.focus();
+					//editor.execCommand('goDocEnd');
+				}
 
-            if (debug) {
-                console.log('Element', contentNode);
-                console.log('text1', text1);
-                console.log('text2', text2);
-            }
+			});
+		}
 
-            if (text1 === text2) {
-                return;
-            }
-            
-            Command.patch(entity.id, text1, text2, function() {
-                dialogMsg.html('<div class="infoBox success">Content saved.</div>');
-                $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-                _Pages.reloadPreviews();
-                dialogSaveButton.prop("disabled", true).addClass('disabled');
-                saveAndClose.prop("disabled", true).addClass('disabled');
-                Command.getProperty(entity.id, 'content', function(newText) {
-                    text = newText;
-                });
-            });
+		dialogSaveButton = $('#editorSave', dialogBtn);
+		var saveAndClose = $('#saveAndClose', dialogBtn);
 
-        });
+		saveAndClose.on('click', function(e) {
+			e.stopPropagation();
+			dialogSaveButton.click();
+			setTimeout(function() {
+				dialogSaveButton.remove();
+				saveAndClose.remove();
+				dialogCancelButton.click();
+			}, 500);
+		});
 
-        //_Entities.appendBooleanSwitch(dialogMeta, entity, 'editable', 'Editable', 'If enabled, data fields in this content element are editable in edit mode.');
+		editor.on('change', function(cm, change) {
 
-        var values = ['text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
+			if (text === editor.getValue()) {
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+			} else {
+				dialogSaveButton.prop("disabled", false).removeClass('disabled');
+				saveAndClose.prop("disabled", false).removeClass('disabled');
+			}
 
-        dialogMeta.append('<label for="contentTypeSelect">Content-Type:</label> <select class="contentType_" id="contentTypeSelect"></select>');
-        var select = $('#contentTypeSelect', dialogMeta);
-        $.each(values, function(i, type) {
-            select.append('<option ' + (type === entity.contentType ? 'selected' : '') + ' value="' + type + '">' + type + '</option>');
-        });
-        select.on('change', function() {
-            contentType = select.val();
-            entity.setProperty('contentType', contentType, false, function() {
-                blinkGreen(select);
-                _Pages.reloadPreviews();
-            });
-        });
+			$('#chars').text(editor.getValue().length);
+			$('#words').text(editor.getValue().match(/\S+/g).length);
+		});
 
-        dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
-        $('#lineWrapping').on('change', function() {
-            var inp = $(this);
-            if  (inp.is(':checked')) {
-                localStorage.setItem(lineWrappingKey, "1");
-                editor.setOption('lineWrapping', true);
-            } else {
-                localStorage.removeItem(lineWrappingKey);
-                editor.setOption('lineWrapping', false);
-            }
-            blinkGreen(inp.parent());
-            editor.refresh();
-        });
+		var scrollInfo = JSON.parse(localStorage.getItem(scrollInfoKey + '_' + entity.id));
+		if (scrollInfo) {
+			editor.scrollTo(scrollInfo.left, scrollInfo.top);
+		}
 
-        dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
-        dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + editor.getValue().match(/\S+/g).length + '</span></span>');
+		editor.on('scroll', function() {
+			var scrollInfo = editor.getScrollInfo();
+			localStorage.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
+		});
 
-        editor.id = entity.id;
+		dialogSaveButton.on('click', function(e) {
+			e.stopPropagation();
 
-        editor.focus();
-        //editor.execCommand('goDocEnd');
+			//var contentNode = Structr.node(entity.id)[0];
 
-    }
+			text1 = text;
+			text2 = editor.getValue();
+
+			if (!text1)
+				text1 = '';
+			if (!text2)
+				text2 = '';
+
+			if (debug) {
+				console.log('Element', contentNode);
+				console.log('text1', text1);
+				console.log('text2', text2);
+			}
+
+			if (text1 === text2) {
+				return;
+			}
+
+			Command.patch(entity.id, text1, text2, function() {
+				dialogMsg.html('<div class="infoBox success">Content saved.</div>');
+				$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+				_Pages.reloadPreviews();
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+				Command.getProperty(entity.id, 'content', function(newText) {
+					text = newText;
+				});
+			});
+
+		});
+
+		//_Entities.appendBooleanSwitch(dialogMeta, entity, 'editable', 'Editable', 'If enabled, data fields in this content element are editable in edit mode.');
+
+		var values = ['text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
+
+		dialogMeta.append('<label for="contentTypeSelect">Content-Type:</label> <select class="contentType_" id="contentTypeSelect"></select>');
+		var select = $('#contentTypeSelect', dialogMeta);
+		$.each(values, function(i, type) {
+			select.append('<option ' + (type === entity.contentType ? 'selected' : '') + ' value="' + type + '">' + type + '</option>');
+		});
+		select.on('change', function() {
+			contentType = select.val();
+			entity.setProperty('contentType', contentType, false, function() {
+				blinkGreen(select);
+				_Pages.reloadPreviews();
+			});
+		});
+
+		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+		$('#lineWrapping').on('change', function() {
+			var inp = $(this);
+			if  (inp.is(':checked')) {
+				localStorage.setItem(lineWrappingKey, "1");
+				editor.setOption('lineWrapping', true);
+			} else {
+				localStorage.removeItem(lineWrappingKey);
+				editor.setOption('lineWrapping', false);
+			}
+			blinkGreen(inp.parent());
+			editor.refresh();
+		});
+
+		dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
+		dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + editor.getValue().match(/\S+/g).length + '</span></span>');
+
+		editor.id = entity.id;
+
+		editor.focus();
+		//editor.execCommand('goDocEnd');
+
+	}
 };

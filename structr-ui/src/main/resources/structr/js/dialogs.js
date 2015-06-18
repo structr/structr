@@ -19,106 +19,105 @@
 
 var _Dialogs = {
 
-    showFolderDialog: function(entity, el) {
-    },
+	showFolderDialog: function(entity, el) {
+	},
 
-    showFileDialog: function(entity, el) {
-    },
+	showFileDialog: function(entity, el) {
+	},
 
-    showImageDialog: function(entity, el) {
-    },
+	showImageDialog: function(entity, el) {
+	},
 
-    showUserDialog: function(entity, el) {
-    },
+	showUserDialog: function(entity, el) {
+	},
 
-    showGroupDialog: function(entity, el) {
-    },
+	showGroupDialog: function(entity, el) {
+	},
 
-    showElementDialog: function(entity, el) {
+	showElementDialog: function(entity, el) {
 
-        var id = entity.id;
+		var id = entity.id;
 
-        el.append('<h3>Most used HTML properties</h3>');
-        el.append('<table class="props" id="html-properties"></table>');
+		el.append('<h3>Most used HTML properties</h3>');
+		el.append('<table class="props" id="html-properties"></table>');
 
-        el.append('<h3>Properties for type ' + entity.tag + '</h3>');
-        el.append('<table class="props" id="type-properties"></table>');
+		el.append('<h3>Properties for type ' + entity.tag + '</h3>');
+		el.append('<table class="props" id="type-properties"></table>');
 
-        var typeProperties = $('#type-properties');
-        var htmlProperties = $('#html-properties');
+		var typeProperties = $('#type-properties');
+		var htmlProperties = $('#html-properties');
 
-        _Dialogs.appendLabeledInput(htmlProperties, 'class', '_html_class', entity);
-        _Dialogs.appendLabeledInput(htmlProperties, 'id', '_html_id', entity);
-        _Dialogs.appendLabeledInput(htmlProperties, 'style', '_html_style', entity);
+		_Dialogs.appendLabeledInput(htmlProperties, 'class', '_html_class', entity);
+		_Dialogs.appendLabeledInput(htmlProperties, 'id', '_html_id', entity);
+		_Dialogs.appendLabeledInput(htmlProperties, 'style', '_html_style', entity);
 
-        $.ajax({
-            url: rootUrl + '_schema/' + entity.type + '/main',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            success: function(data) {
-                $(data.result).each(function(i, prop) {
-                    _Dialogs.appendLabeledInput(typeProperties, prop.jsonName.replace('_html_', ''), prop.jsonName, entity);
-                });
-            }
-        });
+		$.ajax({
+			url: rootUrl + '_schema/' + entity.type + '/main',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			success: function(data) {
+				$(data.result).each(function(i, prop) {
+					_Dialogs.appendLabeledInput(typeProperties, prop.jsonName.replace('_html_', ''), prop.jsonName, entity);
+				});
+			}
+		});
 
-        $('.props input', dialog).each(function(i, v) {
-            _Entities.activateInput(v, id);
-        });
+		$('.props input', dialog).each(function(i, v) {
+			_Entities.activateInput(v, id);
+		});
 
-        $('.props .nullIcon', dialog).each(function(i, icon) {
+		$('.props .nullIcon', dialog).each(function(i, icon) {
 
-            $(icon).on('click', function() {
+			$(icon).on('click', function() {
 
-                var key = $(this).prop('id').substring(5);
-                var input = $('input[name=' + key + ']');
+				var key = $(this).prop('id').substring(5);
+				var input = $('input[name=' + key + ']');
 
-                _Entities.setProperty(id, key, null, false, function(newVal) {
-                    if (!newVal) {
-                        blinkGreen(input);
-                    } else {
-                        blinkRed(input);
-                    }
-                    input.val(newVal);
-                });
-            });
-        });
-    },
+				_Entities.setProperty(id, key, null, false, function(newVal) {
+					if (!newVal) {
+						blinkGreen(input);
+					} else {
+						blinkRed(input);
+					}
+					input.val(newVal);
+				});
+			});
+		});
+	},
 
-    appendLabeledInput: function(el, label, name, entity) {
+	appendLabeledInput: function(el, label, name, entity) {
 
-        var value = entity[name];
+		var value = entity[name];
 
-        el.append(
-              '<tr>'
-            + '<td class="key"><label>' + label + '</label></td>'
-            + '<td class="value"><input type="text" name="' + name + '" value="' + (value ? value : '') + '"></td>'
-            + '<td><img class="nullIcon" id="null_' + name + '" src="icon/cross_small_grey.png"></td>'
-        );
-    }
+		el.append(
+			'<tr>'
+			+ '<td class="key"><label>' + label + '</label></td>'
+			+ '<td class="value"><input type="text" name="' + name + '" value="' + (value ? value : '') + '"></td>'
+			+ '<td><img class="nullIcon" id="null_' + name + '" src="icon/cross_small_grey.png"></td>'
+		);
+	}
 }
 
-
 /*
-        el.append('<table class="props"></table>');
-        var t = $('.props', el);
+		el.append('<table class="props"></table>');
+		var t = $('.props', el);
 
-        t.append('<tr><td class="key">Query auto-limit</td><td class="value" id="queryAutoLimit"></td></tr>');
-        t.append('<tr><td class="key">Hide in index mode</td><td  class="value" id="hideIndexMode"></td></tr>');
-        t.append('<tr><td class="key">Hide in details mode</td><td  class="value" id="hideDetailsMode"></td></tr>');
+		t.append('<tr><td class="key">Query auto-limit</td><td class="value" id="queryAutoLimit"></td></tr>');
+		t.append('<tr><td class="key">Hide in index mode</td><td  class="value" id="hideIndexMode"></td></tr>');
+		t.append('<tr><td class="key">Hide in details mode</td><td  class="value" id="hideDetailsMode"></td></tr>');
 
-        _Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Limit result to the object with the ID the URL ends with.');
-        _Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
-        _Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
+		_Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Limit result to the object with the ID the URL ends with.');
+		_Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
+		_Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
 
-        el.append('<div id="data-tabs" class="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
-                + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
+		el.append('<div id="data-tabs" class="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
+				+ '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
 
-        _Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
-        _Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
-        _Entities.appendTextarea($('#content-tab-xpath'), entity, 'xpathQuery', 'XPath Query', '');
+		_Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
+		_Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
+		_Entities.appendTextarea($('#content-tab-xpath'), entity, 'xpathQuery', 'XPath Query', '');
 
-        _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
-                'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+		_Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
+				'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
 
  */
