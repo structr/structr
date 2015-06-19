@@ -41,6 +41,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaNodeLocalization;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaPropertyLocalization;
 import org.structr.core.property.BooleanProperty;
@@ -89,10 +90,19 @@ public class SchemaTypeResource extends Resource {
 		Class type = typeResource.getEntityClass();
 		if (type != null) {
 
+			SchemaNode schemaNode = null;
+			try {
+
+				schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
+
+			} catch (FrameworkException ex) {
+
+				Logger.getLogger(SchemaTypeResource.class.getName()).log(Level.SEVERE, "Error looking up SchemaNode - cannot display labels for properties!", ex);
+			}
 
 			if (propertyView != null) {
 
-				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView).entrySet()) {
+				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView, schemaNode).entrySet()) {
 
 					final GraphObjectMap property = new GraphObjectMap();
 
@@ -118,6 +128,23 @@ public class SchemaTypeResource extends Resource {
 				schema.setProperty(new BooleanProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
+				if (schemaNode != null) {
+					final List<SchemaNodeLocalization> nodeLocalizations = schemaNode.localizations.getProperty(securityContext, schemaNode, false);
+					final List<Map<String, Object>> localizationsMap = new ArrayList<>(nodeLocalizations.size());
+
+					for (final SchemaNodeLocalization loc : nodeLocalizations) {
+
+						final HashMap tmpMap = new HashMap(3);
+						tmpMap.put("id", loc.getProperty(SchemaNodeLocalization.id));
+						tmpMap.put("locale", loc.getProperty(SchemaNodeLocalization.locale));
+						tmpMap.put("name", loc.getProperty(SchemaNodeLocalization.name));
+						localizationsMap.add(tmpMap);
+
+					}
+
+					schema.setProperty(new GenericProperty("localizations"), localizationsMap);
+				}
+
 				Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
 
 				// list property sets for all views
@@ -126,7 +153,7 @@ public class SchemaTypeResource extends Resource {
 
 				for (String view : propertyViews) {
 
-					views.put(view, getPropertiesForView(type, view));
+					views.put(view, getPropertiesForView(type, view, schemaNode));
 
 				}
 
@@ -191,25 +218,16 @@ public class SchemaTypeResource extends Resource {
 
 	}
 
-	private Map<String, Object> getPropertiesForView(final Class type, final String view) {
+	private Map<String, Object> getPropertiesForView(final Class type, final String view, SchemaNode schemaNode) {
 
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
 
 		List<SchemaProperty> schemaProperties = null;
-		try {
+		if (schemaNode != null) {
 
-			SchemaNode schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
+			schemaProperties = schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false);
 
-			if (schemaNode != null) {
-
-				schemaProperties = schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false);
-
-			}
-
-		} catch (FrameworkException ex) {
-
-			Logger.getLogger(SchemaTypeResource.class.getName()).log(Level.SEVERE, "Error looking up SchemaNode - cannot display labels for properties!", ex);
 		}
 
 		for (PropertyKey property : properties) {
@@ -242,20 +260,20 @@ public class SchemaTypeResource extends Resource {
 
 					if (sProp.getName().equals(property.jsonName())) {
 
-						final List<SchemaPropertyLocalization> labels = sProp.localizations.getProperty(securityContext, sProp, false);
-						final List<Map<String, Object>> labelMap = new ArrayList<>(labels.size());
+						final List<SchemaPropertyLocalization> propertyLocalizations = sProp.localizations.getProperty(securityContext, sProp, false);
+						final List<Map<String, Object>> localizationsMap = new ArrayList<>(propertyLocalizations.size());
 
-						for (final SchemaPropertyLocalization lbl : labels) {
+						for (final SchemaPropertyLocalization loc : propertyLocalizations) {
 
 							final HashMap tmpMap = new HashMap(3);
-							tmpMap.put("id", lbl.getProperty(SchemaPropertyLocalization.id));
-							tmpMap.put("locale", lbl.getProperty(SchemaPropertyLocalization.locale));
-							tmpMap.put("name", lbl.getProperty(SchemaPropertyLocalization.name));
-							labelMap.add(tmpMap);
+							tmpMap.put("id", loc.getProperty(SchemaPropertyLocalization.id));
+							tmpMap.put("locale", loc.getProperty(SchemaPropertyLocalization.locale));
+							tmpMap.put("name", loc.getProperty(SchemaPropertyLocalization.name));
+							localizationsMap.add(tmpMap);
 
 						}
 
-						propProperties.put("labels", labelMap);
+						propProperties.put("localizations", localizationsMap);
 						break;
 
 					}
