@@ -898,7 +898,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				for (final Class superClass : ancestors) {
 
 					final String superClassName = superClass.getSimpleName();
-					if (superClassName.equals(type)) {
+					if (superClass.getName().startsWith("org.structr.") && superClassName.equals(type)) {
 
 						allSubtypes.add(entityType.getSimpleName());
 					}
@@ -913,7 +913,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				for (final Class superClass : typeAndAllSupertypes(entityType)) {
 
 					final String superClassName = superClass.getSimpleName();
-					if (superClassName.equals(type)) {
+					if (superClass.getName().startsWith("org.structr.") && superClassName.equals(type)) {
 
 						allSubtypes.add(entityType.getSimpleName());
 					}
