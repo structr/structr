@@ -18,28 +18,24 @@
  */
 package org.structr.core.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.entity.relationship.SchemaPropertyLabel;
 import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SchemaLabel extends AbstractNode {
+public abstract class AbstractSchemaLocalization extends AbstractNode {
 
-	public static final Property<List<SchemaProperty>> labeledProperties = new StartNodes<>("labeledProperties", SchemaPropertyLabel.class);
-	public static final Property<String>               locale            = new StringProperty("locale");
+	public static final Property<String>                  locale = new StringProperty("locale");
 
-	public static final View defaultView = new View(SchemaLabel.class, PropertyView.Public,
-		labeledProperties, locale, name
+	public static final View defaultView = new View(AbstractSchemaLocalization.class, PropertyView.Public,
+		locale, name
 	);
 
-	public static final View uiView = new View(SchemaLabel.class, PropertyView.Ui,
-		labeledProperties, locale, name
+	public static final View uiView = new View(AbstractSchemaLocalization.class, PropertyView.Ui,
+		locale, name
 	);
 }

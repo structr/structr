@@ -29,7 +29,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
-import org.structr.core.entity.relationship.SchemaPropertyLabel;
+import org.structr.core.entity.relationship.SchemaPropertyLocalizationRel;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
@@ -53,9 +53,9 @@ import org.structr.schema.parser.PropertyDefinition;
  */
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 
-	public static final Property<AbstractSchemaNode> schemaNode        = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<List<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<List<SchemaLabel>>  labels            = new EndNodes<>("labels", SchemaPropertyLabel.class, new PropertySetNotion(true, AbstractNode.id, AbstractNode.name, SchemaLabel.locale));
+	public static final Property<AbstractSchemaNode> schemaNode                   = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<List<SchemaView>>   schemaViews                  = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<List<SchemaPropertyLocalization>>  localizations = new EndNodes<>("localizations", SchemaPropertyLocalizationRel.class, new PropertySetNotion(true, AbstractNode.id, AbstractNode.name, SchemaPropertyLocalization.locale));
 
 	public static final Property<String>             declaringClass    = new StringProperty("declaringClass");
 	public static final Property<String>             defaultValue      = new StringProperty("defaultValue");
@@ -72,19 +72,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             contentHash       = new StringProperty("contentHash");
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic, labels
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic, localizations
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic, labels
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic, localizations
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, labels
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, localizations
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, labels
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, localizations
 	);
 
 	private NotionPropertyParser notionPropertyParser = null;

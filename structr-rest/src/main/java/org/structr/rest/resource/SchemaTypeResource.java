@@ -40,9 +40,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaLabel;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaPropertyLocalization;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
@@ -242,15 +242,15 @@ public class SchemaTypeResource extends Resource {
 
 					if (sProp.getName().equals(property.jsonName())) {
 
-						final List<SchemaLabel> labels = sProp.labels.getProperty(securityContext, sProp, false);
+						final List<SchemaPropertyLocalization> labels = sProp.localizations.getProperty(securityContext, sProp, false);
 						final List<Map<String, Object>> labelMap = new ArrayList<>(labels.size());
 
-						for (final SchemaLabel lbl : labels) {
+						for (final SchemaPropertyLocalization lbl : labels) {
 
 							final HashMap tmpMap = new HashMap(3);
-							tmpMap.put("id", lbl.getProperty(SchemaLabel.id));
-							tmpMap.put("locale", lbl.getProperty(SchemaLabel.locale));
-							tmpMap.put("name", lbl.getProperty(SchemaLabel.name));
+							tmpMap.put("id", lbl.getProperty(SchemaPropertyLocalization.id));
+							tmpMap.put("locale", lbl.getProperty(SchemaPropertyLocalization.locale));
+							tmpMap.put("name", lbl.getProperty(SchemaPropertyLocalization.name));
 							labelMap.add(tmpMap);
 
 						}

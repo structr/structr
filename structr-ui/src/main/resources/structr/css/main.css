@@ -1493,22 +1493,22 @@ button.add_property {
     vertical-align: top;
 }
 
-.schema-props, .schemaprop-labels {
+.schema-props, .schemaprop-localizations {
     background-color: #f9f9f9;
     width: 100%;
     border-collapse: collapse;
 }
 
-.schema-props th, .schema-props td, .schemaprop-labels th, .schemaprop-labels td {
+.schema-props th, .schema-props td, .schemaprop-localizations th, .schemaprop-localizations td {
     border: 1px solid #ccc;
 }
 
-.schema-props td, .schemaprop-labels td {
+.schema-props td, .schemaprop-localizations td {
     border: 1px solid #ccc;
     padding: 2px 4px;
 }
 
-.schema-props tr:nth-child(even), .schemaprop-labels tr:nth-child(even) {
+.schema-props tr:nth-child(even), .schemaprop-localizations tr:nth-child(even) {
     background-color: #fff;
 }
 
@@ -1542,8 +1542,8 @@ button.add_property {
 .property-code,
 .property-attrs,
 .property-default,
-.label-locale,
-.label-name,
+.localization-locale,
+.localization-name,
 #relationship-label {
     width: 98%;
     font-size: 1em;
@@ -1564,7 +1564,7 @@ button.add_property {
     background: transparent;
 }
 
-.schema.expanded tr, .schema.expanded .schema-props, .schema-prop-labels {
+.schema.expanded tr, .schema.expanded .schema-props, .schema-prop-localizations {
     background: transparent ! important;
 }
 
@@ -1586,8 +1586,8 @@ button.add_property {
 .schema-details .property-format:hover,
 .schema-details .property-default:hover,
 .schema-details .property-code:hover,
-.schema-details .label-locale:hover,
-.schema-details .label-name:hover {
+.schema-details .localization-locale:hover,
+.schema-details .localization-name:hover {
     cursor: text;
     box-shadow: 2px 0 #000;
     color: #222;
