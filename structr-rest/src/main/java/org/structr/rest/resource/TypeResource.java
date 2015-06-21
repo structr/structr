@@ -158,8 +158,6 @@ public class TypeResource extends SortableResource {
 				}
 			}
 
-			// do search: FIXME: this doesn't work for inexact search because
-			// the type search attribute has to be lowercase in the fulltext indices..
 			return query
 				.includeDeletedAndHidden(includeDeletedAndHidden)
 				.publicOnly(publicOnly)
