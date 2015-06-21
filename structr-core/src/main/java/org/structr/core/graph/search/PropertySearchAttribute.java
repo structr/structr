@@ -175,7 +175,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 						String n = (String) nodeValue;
 						String s = (String) searchValue;
 
-						return StringUtils.contains(n, s);
+						return StringUtils.containsIgnoreCase(n, s);
 
 					}
 					
