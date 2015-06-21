@@ -168,6 +168,19 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 			if (nodeValue != null) {
 
+				if (!isExactMatch) {
+					
+					if (nodeValue instanceof String && searchValue instanceof String) {
+
+						String n = (String) nodeValue;
+						String s = (String) searchValue;
+
+						return StringUtils.contains(n, s);
+
+					}
+					
+				}
+				
 				if (compare(nodeValue, searchValue) != 0) {
 					return false;
 				}
