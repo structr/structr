@@ -39,6 +39,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.property.UuidProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
@@ -97,14 +98,14 @@ public class SchemaResource extends Resource {
 					if (schemaNode != null) {
 
 						final List<SchemaNodeLocalization> nodeLocalizations = schemaNode.localizations.getProperty(securityContext, schemaNode, false);
-						final List<Map<String, Object>> localizationsMap = new ArrayList<>(nodeLocalizations.size());
+						final List<GraphObjectMap> localizationsMap = new ArrayList<>(nodeLocalizations.size());
 
 						for (final SchemaNodeLocalization loc : nodeLocalizations) {
 
-							final HashMap tmpMap = new HashMap(3);
-							tmpMap.put("id", loc.getProperty(SchemaNodeLocalization.id));
-							tmpMap.put("locale", loc.getProperty(SchemaNodeLocalization.locale));
-							tmpMap.put("name", loc.getProperty(SchemaNodeLocalization.name));
+							final GraphObjectMap tmpMap = new GraphObjectMap();
+							tmpMap.setProperty(new UuidProperty(), loc.getProperty(SchemaNodeLocalization.id));
+							tmpMap.setProperty(new StringProperty("locale"), loc.getProperty(SchemaNodeLocalization.locale));
+							tmpMap.setProperty(new StringProperty("name"), loc.getProperty(SchemaNodeLocalization.name));
 							localizationsMap.add(tmpMap);
 
 						}
