@@ -65,6 +65,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.SchemaService;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -136,17 +137,26 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	@Override
 	public Map<String, Class<? extends NodeInterface>> getNodeEntities() {
-		return nodeEntityClassCache;
+
+		synchronized (SchemaService.class) {
+			return nodeEntityClassCache;
+		}
 	}
 
 	@Override
 	public Map<String, Class<? extends RelationshipInterface>> getRelationshipEntities() {
-		return relationshipEntityClassCache;
+
+		synchronized (SchemaService.class) {
+			return relationshipEntityClassCache;
+		}
 	}
 
 	@Override
 	public Set<Class> getClassesForInterface(final String simpleName) {
-		return interfaceCache.get(simpleName);
+
+		synchronized (SchemaService.class) {
+			return interfaceCache.get(simpleName);
+		}
 	}
 
 	@Override
@@ -156,39 +166,38 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		if ((name != null) && (!name.isEmpty())) {
 
-			nodeEntityClass = nodeEntityClassCache.get(name);
+			synchronized (SchemaService.class) {
 
-			if (nodeEntityClass == null) {
+				nodeEntityClass = nodeEntityClassCache.get(name);
 
-				for (String possiblePath : nodeEntityPackages) {
+				if (nodeEntityClass == null) {
 
-					if (possiblePath != null) {
+					for (String possiblePath : nodeEntityPackages) {
 
-						try {
+						if (possiblePath != null) {
 
-							Class nodeClass = Class.forName(possiblePath + "." + name);
+							try {
 
-							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
+								Class nodeClass = Class.forName(possiblePath + "." + name);
 
-								nodeEntityClassCache.put(name, nodeClass);
-								nodeEntityClass = nodeClass;
+								if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
-								// first match wins
-								break;
+									nodeEntityClassCache.put(name, nodeClass);
+									nodeEntityClass = nodeClass;
 
+									// first match wins
+									break;
+
+								}
+
+							} catch (ClassNotFoundException ex) {
+
+								// ignore
 							}
-
-						} catch (ClassNotFoundException ex) {
-
-							// ignore
 						}
-
 					}
-
 				}
-
 			}
-
 		}
 
 		return nodeEntityClass;
@@ -202,38 +211,37 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		if ((name != null) && (name.length() > 0)) {
 
-			relationClass = relationshipEntityClassCache.get(name);
+			synchronized (SchemaService.class) {
 
-			if (relationClass == null) {
+				relationClass = relationshipEntityClassCache.get(name);
 
-				for (String possiblePath : relationshipPackages) {
+				if (relationClass == null) {
 
-					if (possiblePath != null) {
+					for (String possiblePath : relationshipPackages) {
 
-						try {
+						if (possiblePath != null) {
 
-							Class nodeClass = Class.forName(possiblePath + "." + name);
+							try {
 
-							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
+								Class nodeClass = Class.forName(possiblePath + "." + name);
 
-								relationshipEntityClassCache.put(name, nodeClass);
+								if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
-								// first match wins
-								return nodeClass;
+									relationshipEntityClassCache.put(name, nodeClass);
 
+									// first match wins
+									return nodeClass;
+
+								}
+
+							} catch (ClassNotFoundException ex) {
+
+								// ignore
 							}
-
-						} catch (ClassNotFoundException ex) {
-
-							// ignore
 						}
-
 					}
-
 				}
-
 			}
-
 		}
 
 		return relationClass;
@@ -503,29 +511,32 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public void unregisterEntityType(final Class oldType) {
 
-		final String simpleName = oldType.getSimpleName();
-		final String fqcn       = oldType.getName();
+		synchronized (SchemaService.class) {
 
-		nodeEntityClassCache.remove(simpleName);
-		relationshipEntityClassCache.remove(simpleName);
+			final String simpleName = oldType.getSimpleName();
+			final String fqcn       = oldType.getName();
 
-		nodeEntityPackages.remove(fqcn);
-		relationshipPackages.remove(fqcn);
+			nodeEntityClassCache.remove(simpleName);
+			relationshipEntityClassCache.remove(simpleName);
 
-		globalPropertyViewMap.remove(simpleName);
-		globalClassDBNamePropertyMap.remove(simpleName);
-		globalClassJSNamePropertyMap.remove(simpleName);
+			nodeEntityPackages.remove(fqcn);
+			relationshipPackages.remove(fqcn);
 
-		interfaceMap.remove(oldType);
+			globalPropertyViewMap.remove(simpleName);
+			globalClassDBNamePropertyMap.remove(simpleName);
+			globalClassJSNamePropertyMap.remove(simpleName);
 
-		// clear all
-		combinedTypeRelationClassCache.clear();
+			interfaceMap.remove(oldType);
 
-		// clear interfaceCache manually..
-		for (final Set<Class> classes : interfaceCache.values()) {
+			// clear all
+			combinedTypeRelationClassCache.clear();
 
-			if (classes.contains(oldType)) {
-				classes.remove(oldType);
+			// clear interfaceCache manually..
+			for (final Set<Class> classes : interfaceCache.values()) {
+
+				if (classes.contains(oldType)) {
+					classes.remove(oldType);
+				}
 			}
 		}
 	}
@@ -945,22 +956,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public void registerDynamicProperty(Class type, PropertyKey propertyKey) {
 
-		final String typeName = type.getName();
+		synchronized (SchemaService.class) {
 
-		registerProperty(type, propertyKey);
+			final String typeName = type.getName();
 
-		// scan all existing classes and find all classes that have the given
-		// type as a supertype
+			registerProperty(type, propertyKey);
 
-		for (final Class possibleSubclass : nodeEntityClassCache.values()) {
+			// scan all existing classes and find all classes that have the given
+			// type as a supertype
 
-			// need to compare strings not classes here..
-			for (final Class supertype : getAllTypes(possibleSubclass)) {
+			for (final Class possibleSubclass : nodeEntityClassCache.values()) {
 
-				if (supertype.getName().equals(typeName)) {
+				// need to compare strings not classes here..
+				for (final Class supertype : getAllTypes(possibleSubclass)) {
 
-					registerProperty(possibleSubclass, propertyKey);
-					registerPropertySet(possibleSubclass, PropertyView.Ui, propertyKey);
+					if (supertype.getName().equals(typeName)) {
+
+						registerProperty(possibleSubclass, propertyKey);
+						registerPropertySet(possibleSubclass, PropertyView.Ui, propertyKey);
+					}
 				}
 			}
 		}
