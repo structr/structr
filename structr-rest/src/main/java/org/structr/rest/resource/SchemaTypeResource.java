@@ -18,6 +18,8 @@
  */
 package org.structr.rest.resource;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -25,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
@@ -36,6 +40,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaNodeLocalization;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaPropertyLocalization;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
@@ -82,10 +90,19 @@ public class SchemaTypeResource extends Resource {
 		Class type = typeResource.getEntityClass();
 		if (type != null) {
 
+			SchemaNode schemaNode = null;
+			try {
+
+				schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
+
+			} catch (FrameworkException ex) {
+
+				Logger.getLogger(SchemaTypeResource.class.getName()).log(Level.SEVERE, "Error looking up SchemaNode - cannot display labels for properties!", ex);
+			}
 
 			if (propertyView != null) {
 
-				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView).entrySet()) {
+				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView, schemaNode).entrySet()) {
 
 					final GraphObjectMap property = new GraphObjectMap();
 
@@ -111,6 +128,23 @@ public class SchemaTypeResource extends Resource {
 				schema.setProperty(new BooleanProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
+				if (schemaNode != null) {
+					final List<SchemaNodeLocalization> nodeLocalizations = schemaNode.localizations.getProperty(securityContext, schemaNode, false);
+					final List<Map<String, Object>> localizationsMap = new ArrayList<>(nodeLocalizations.size());
+
+					for (final SchemaNodeLocalization loc : nodeLocalizations) {
+
+						final HashMap tmpMap = new HashMap(3);
+						tmpMap.put("id", loc.getProperty(SchemaNodeLocalization.id));
+						tmpMap.put("locale", loc.getProperty(SchemaNodeLocalization.locale));
+						tmpMap.put("name", loc.getProperty(SchemaNodeLocalization.name));
+						localizationsMap.add(tmpMap);
+
+					}
+
+					schema.setProperty(new GenericProperty("localizations"), localizationsMap);
+				}
+
 				Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
 
 				// list property sets for all views
@@ -119,7 +153,7 @@ public class SchemaTypeResource extends Resource {
 
 				for (String view : propertyViews) {
 
-					views.put(view, getPropertiesForView(type, view));
+					views.put(view, getPropertiesForView(type, view, schemaNode));
 
 				}
 
@@ -184,10 +218,17 @@ public class SchemaTypeResource extends Resource {
 
 	}
 
-	private Map<String, Object> getPropertiesForView(final Class type, final String view) {
+	private Map<String, Object> getPropertiesForView(final Class type, final String view, SchemaNode schemaNode) {
 
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
+
+		List<SchemaProperty> schemaProperties = null;
+		if (schemaNode != null) {
+
+			schemaProperties = schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false);
+
+		}
 
 		for (PropertyKey property : properties) {
 
@@ -212,6 +253,34 @@ public class SchemaTypeResource extends Resource {
 			propProperties.put("unique", property.isUnique());
 			propProperties.put("notNull", property.isNotNull());
 			propProperties.put("dynamic", property.isDynamic());
+
+			if (property.isDynamic() && schemaProperties != null) {
+
+				for (final SchemaProperty sProp : schemaProperties) {
+
+					if (sProp.getName().equals(property.jsonName())) {
+
+						final List<SchemaPropertyLocalization> propertyLocalizations = sProp.localizations.getProperty(securityContext, sProp, false);
+						final List<Map<String, Object>> localizationsMap = new ArrayList<>(propertyLocalizations.size());
+
+						for (final SchemaPropertyLocalization loc : propertyLocalizations) {
+
+							final HashMap tmpMap = new HashMap(3);
+							tmpMap.put("id", loc.getProperty(SchemaPropertyLocalization.id));
+							tmpMap.put("locale", loc.getProperty(SchemaPropertyLocalization.locale));
+							tmpMap.put("name", loc.getProperty(SchemaPropertyLocalization.name));
+							localizationsMap.add(tmpMap);
+
+						}
+
+						propProperties.put("localizations", localizationsMap);
+						break;
+
+					}
+
+				}
+
+			}
 
 			final Class<? extends GraphObject> relatedType = property.relatedType();
 			if (relatedType != null) {
