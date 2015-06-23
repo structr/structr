@@ -36,7 +36,7 @@ fi
 STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
 echo "Starting Structr instance '$NAME' with config file $STRUCTR_CONF"
 
-nohup $JAVA $STRUCTR $STRUCTR_ARGS > $SERVER_LOG 2>&1 &
+nohup $JAVA $STRUCTR_ARGS $STRUCTR > $SERVER_LOG 2>&1 &
 echo $! >$PIDFILE
 
 ( tail -q -n0 -F $SERVER_LOG 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q'
