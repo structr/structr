@@ -154,8 +154,7 @@ public class Scripting {
 
 			// set optimization level to interpreter mode to avoid
 			// class loading / PermGen space bug in Rhino
-			scriptingContext.setOptimizationLevel(-1);
-
+			//scriptingContext.setOptimizationLevel(-1);
 			
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity);
 			scriptable.setParentScope(scope);
