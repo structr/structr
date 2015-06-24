@@ -78,7 +78,7 @@ public class GetByTypeCommand extends AbstractCommand {
 		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
 
 		
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
+		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).sort(sortProperty).order("desc".equals(sortOrder));
 
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
