@@ -140,6 +140,23 @@ public class Services {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize();
+
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+
+					// wait a second
+					try { Thread.sleep(1000); } catch (Throwable ignore) {}
+
+					// call initialization callbacks from a different thread
+					for (final InitializationCallback callback : singletonInstance.callbacks) {
+						callback.initializationDone();
+					}
+				}
+
+			}).start();
+
 		}
 
 		return singletonInstance;
@@ -269,12 +286,6 @@ public class Services {
 		mergeConfiguration(config, structrConf);
 
 		initialize(config);
-
-
-		for (final InitializationCallback callback : callbacks) {
-			callback.initializationDone();
-		}
-
 	}
 
 	private void initialize(final StructrConf properties) {
