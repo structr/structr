@@ -19,7 +19,6 @@
 package org.structr.rest.resource;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -219,17 +218,12 @@ public class SchemaTypeResource extends Resource {
 
 	}
 
-	private Map<String, Object> getPropertiesForView(final Class type, final String view, SchemaNode schemaNode) throws FrameworkException {
+	private Map<String, Object> getPropertiesForView(final Class type, final String view, final SchemaNode schemaNode) throws FrameworkException {
 
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
 
-		List<SchemaProperty> schemaProperties = null;
-		if (schemaNode != null) {
-
-			schemaProperties = schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false);
-
-		}
+		final List<SchemaProperty> schemaProperties = getSchemaProperties(schemaNode);
 
 		for (PropertyKey property : properties) {
 
@@ -254,31 +248,37 @@ public class SchemaTypeResource extends Resource {
 			propProperties.put("unique", property.isUnique());
 			propProperties.put("notNull", property.isNotNull());
 			propProperties.put("dynamic", property.isDynamic());
+			
+			if (property.isDynamic()) {
 
-			if (property.isDynamic() && schemaProperties != null) {
+				final List<SchemaProperty> schemaPropertiesOfDeclaringClass = getSchemaProperties(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst());
+				final List<SchemaProperty> effectiveSchemaProperties = type.equals(declaringClass) ? schemaProperties : schemaPropertiesOfDeclaringClass;
+				
+				if (effectiveSchemaProperties != null && !effectiveSchemaProperties.isEmpty()) {
 
-				for (final SchemaProperty sProp : schemaProperties) {
+					for (final SchemaProperty sProp : effectiveSchemaProperties) {
 
-					if (sProp.getName().equals(property.jsonName())) {
+						if (sProp.getName().equals(property.jsonName())) {
 
-						final List<SchemaPropertyLocalization> propertyLocalizations = sProp.localizations.getProperty(securityContext, sProp, false);
-						final List<GraphObjectMap> localizationsMap = new ArrayList<>(propertyLocalizations.size());
+							final List<SchemaPropertyLocalization> propertyLocalizations = sProp.localizations.getProperty(securityContext, sProp, false);
+							final List<GraphObjectMap> localizationsMap = new ArrayList<>(propertyLocalizations.size());
 
-						for (final SchemaPropertyLocalization loc : propertyLocalizations) {
+							for (final SchemaPropertyLocalization loc : propertyLocalizations) {
 
-							final GraphObjectMap tmpMap = new GraphObjectMap();
-							tmpMap.setProperty(new UuidProperty(), loc.getProperty(SchemaPropertyLocalization.id));
-							tmpMap.setProperty(new StringProperty("locale"), loc.getProperty(SchemaPropertyLocalization.locale));
-							tmpMap.setProperty(new StringProperty("name"), loc.getProperty(SchemaPropertyLocalization.name));
-							localizationsMap.add(tmpMap);
+								final GraphObjectMap tmpMap = new GraphObjectMap();
+								tmpMap.setProperty(new UuidProperty(), loc.getProperty(SchemaPropertyLocalization.id));
+								tmpMap.setProperty(new StringProperty("locale"), loc.getProperty(SchemaPropertyLocalization.locale));
+								tmpMap.setProperty(new StringProperty("name"), loc.getProperty(SchemaPropertyLocalization.name));
+								localizationsMap.add(tmpMap);
+
+							}
+
+							propProperties.put("localizations", localizationsMap);
+							break;
 
 						}
 
-						propProperties.put("localizations", localizationsMap);
-						break;
-
 					}
-
 				}
 
 			}
@@ -322,5 +322,18 @@ public class SchemaTypeResource extends Resource {
 		}
 
 		return propertyConverterMap;
+	}
+	
+	private List<SchemaProperty> getSchemaProperties(final SchemaNode schemaNode) {
+		
+		final List<SchemaProperty> schemaProperties = new LinkedList<>();
+		
+		if (schemaNode != null) {
+			
+			schemaProperties.addAll(schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false));
+			
+		}
+		
+		return schemaProperties;
 	}
 }

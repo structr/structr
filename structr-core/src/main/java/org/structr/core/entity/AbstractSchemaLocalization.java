@@ -18,8 +18,11 @@
  */
 package org.structr.core.entity;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 
@@ -38,4 +41,18 @@ public abstract class AbstractSchemaLocalization extends AbstractNode {
 	public static final View uiView = new View(AbstractSchemaLocalization.class, PropertyView.Ui,
 		locale, name
 	);
+	
+	@Override
+	public void onNodeCreation() {
+		try {
+
+			setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			setProperty(AbstractNode.visibleToPublicUsers, true);
+
+		} catch (FrameworkException ex) {
+
+			Logger.getLogger(AbstractSchemaLocalization.class.getName()).log(Level.WARNING, "Unable to set the visibility flags for Localization", ex);
+
+		}
+	}
 }
