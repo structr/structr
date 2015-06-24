@@ -19,7 +19,6 @@
 package org.structr.rest.resource;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -219,17 +218,12 @@ public class SchemaTypeResource extends Resource {
 
 	}
 
-	private Map<String, Object> getPropertiesForView(final Class type, final String view, SchemaNode schemaNode) throws FrameworkException {
+	private Map<String, Object> getPropertiesForView(final Class type, final String view, final SchemaNode schemaNode) throws FrameworkException {
 
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
 
-		List<SchemaProperty> schemaProperties = null;
-		if (schemaNode != null) {
-
-			schemaProperties = schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false);
-
-		}
+		List<SchemaProperty> schemaProperties = getSchemaProperties(schemaNode);
 
 		for (PropertyKey property : properties) {
 
@@ -255,6 +249,13 @@ public class SchemaTypeResource extends Resource {
 			propProperties.put("notNull", property.isNotNull());
 			propProperties.put("dynamic", property.isDynamic());
 
+			if ((schemaProperties == null || schemaProperties.isEmpty()) && !declaringClass.equals(type)) {
+				
+				// Check schema properties of declaring class
+				schemaProperties = getSchemaProperties(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst());
+				
+			}
+			
 			if (property.isDynamic() && schemaProperties != null) {
 
 				for (final SchemaProperty sProp : schemaProperties) {
@@ -322,5 +323,18 @@ public class SchemaTypeResource extends Resource {
 		}
 
 		return propertyConverterMap;
+	}
+	
+	private List<SchemaProperty> getSchemaProperties(final SchemaNode schemaNode) {
+		
+		final List<SchemaProperty> schemaProperties = new LinkedList<>();
+		
+		if (schemaNode != null) {
+			
+			schemaProperties.addAll(schemaNode.schemaProperties.getProperty(securityContext, schemaNode, false));
+			
+		}
+		
+		return schemaProperties;
 	}
 }
