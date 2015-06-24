@@ -248,11 +248,10 @@ public class SchemaTypeResource extends Resource {
 			propProperties.put("unique", property.isUnique());
 			propProperties.put("notNull", property.isNotNull());
 			propProperties.put("dynamic", property.isDynamic());
-
-			final List<SchemaProperty> schemaPropertiesOfDeclaringClass = getSchemaProperties(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst());
 			
 			if (property.isDynamic()) {
 
+				final List<SchemaProperty> schemaPropertiesOfDeclaringClass = getSchemaProperties(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst());
 				final List<SchemaProperty> effectiveSchemaProperties = type.equals(declaringClass) ? schemaProperties : schemaPropertiesOfDeclaringClass;
 				
 				if (effectiveSchemaProperties != null && !effectiveSchemaProperties.isEmpty()) {
