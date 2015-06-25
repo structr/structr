@@ -1244,16 +1244,21 @@ var Structr = {
 	},
 	updateVersionInfo: function() {
 		$.get(rootUrl + '_env', function(envInfo) {
-			var version = envInfo.result.modules[2].version;
-			var build = envInfo.result.modules[2].build;
-			var date = envInfo.result.modules[2].date;
-			var versionLink;
-			if (version.endsWith('SNAPSHOT')) {
-				versionLink = 'https://oss.sonatype.org/content/repositories/snapshots/org/structr/structr-ui/' + version;
-			} else {
-				versionLink = 'http://repo1.maven.org/maven2/org/structr/structr-ui/' + version;
+			var ui = envInfo.result.modules['structr-ui'];
+			if (ui !== null) {
+
+				var version = ui.version;
+				var build = ui.build;
+				var date = ui.date;
+				var versionLink;
+				if (version.endsWith('SNAPSHOT')) {
+					versionLink = 'https://oss.sonatype.org/content/repositories/snapshots/org/structr/structr-ui/' + version;
+				} else {
+					versionLink = 'http://repo1.maven.org/maven2/org/structr/structr-ui/' + version;
+				}
+				$('.structr-version').html('<a target="_blank" href="' + versionLink + '">' + version + '</a> build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')');
+
 			}
-			$('.structr-version').html('<a target="_blank" href="' + versionLink + '">' + version + '</a> build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')');
 		});
 	},
 };
