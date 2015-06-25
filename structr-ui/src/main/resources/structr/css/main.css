@@ -1551,7 +1551,6 @@ button.add_property {
     background: transparent;
 }
 
-
 .schema.expanded .property-name,
 .schema.expanded .property-type,
 .schema.expanded .property-dbname,
@@ -1595,6 +1594,10 @@ button.add_property {
     -webkit-box-shadow: 0 0 5px yellow;
     -moz-box-shadow: 0 0 5px #888;
     box-shadow: 0 0 5px #888;
+}
+
+.schema-props tbody tr:hover {
+    background-color: #ffe;
 }
 
 .schema-details .new-name,
