@@ -120,7 +120,7 @@ public class SchemaTypeResource extends Resource {
 
 				resultList.add(schema);
 
-				String url = "/".concat(CaseHelper.toUnderscore(rawType, false));
+				String url = "/".concat(rawType);
 
 				schema.setProperty(new StringProperty("url"), url);
 				schema.setProperty(new StringProperty("type"), type.getSimpleName());
