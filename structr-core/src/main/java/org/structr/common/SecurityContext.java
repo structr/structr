@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.helpers.collection.LruMap;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
@@ -51,7 +52,7 @@ import org.structr.schema.SchemaHelper;
 public class SecurityContext {
 
 	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
-	private static final Map<String, Long> resourceFlags = new LinkedHashMap<>();
+	private static final Map<String, Long> resourceFlags = new LruMap<>(10000);
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 
 	//~--- fields ---------------------------------------------------------
@@ -251,7 +252,7 @@ public class SecurityContext {
 	public HttpSession getSession() {
 
 		if (request != null) {
-		
+
 			final HttpSession session = request.getSession(false);
 			if (session != null) {
 
@@ -259,9 +260,9 @@ public class SecurityContext {
 			}
 
 			return session;
-		
+
 		}
-		
+
 		return null;
 
 	}
@@ -600,7 +601,7 @@ public class SecurityContext {
 		}
 
 		//~--- get methods --------------------------------------------
-		
+
 		@Override
 		public Principal getUser(final boolean tryLogin) {
 

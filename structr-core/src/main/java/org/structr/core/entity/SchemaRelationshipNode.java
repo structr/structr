@@ -397,8 +397,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append(SchemaHelper.extractMethods(this, actions));
 
 		// source and target id properties
-		src.append("\tpublic static final Property<String> sourceIdProperty = new SourceId(\"sourceId\");\n");
-		src.append("\tpublic static final Property<String> targetIdProperty = new TargetId(\"targetId\");\n");
+		src.append("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\");\n");
+		src.append("\tpublic static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\");\n");
 
 		// add sourceId and targetId to view properties
 		//SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);
@@ -433,15 +433,15 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("\t\treturn ").append(_targetNodeType).append(".class;\n");
 		src.append("\t}\n\n");
 		src.append("\t@Override\n");
-		src.append("\tpublic Property<String> getSourceIdProperty() {\n");
+		src.append("\tpublic Property<java.lang.String> getSourceIdProperty() {\n");
 		src.append("\t\treturn sourceId;\n");
 		src.append("\t}\n\n");
 		src.append("\t@Override\n");
-		src.append("\tpublic Property<String> getTargetIdProperty() {\n");
+		src.append("\tpublic Property<java.lang.String> getTargetIdProperty() {\n");
 		src.append("\t\treturn targetId;\n");
 		src.append("\t}\n\n");
 		src.append("\t@Override\n");
-		src.append("\tpublic String name() {\n");
+		src.append("\tpublic java.lang.String name() {\n");
 		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
 		src.append("\t}\n\n");
 

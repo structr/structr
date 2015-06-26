@@ -732,7 +732,7 @@ var _Schema = {
 	},
 	appendLocalProperties: function(el, entity) {
 
-		el.append('<table class="local schema-props"><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th><th>Default</th><th>Action</th></table>');
+		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th><th>Default</th><th>Action</th></thead></table>');
 		el.append('<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">');
 
 		var propertiesTable = $('.local.schema-props', el);
@@ -808,7 +808,7 @@ var _Schema = {
 	},
 	appendViews: function(el, resource, entity) {
 
-		el.append('<table class="views schema-props"><th>Name</th><th>Attributes</th><th>Action</th></table>');
+		el.append('<table class="views schema-props"><thead><th>Name</th><th>Attributes</th><th>Action</th></thead></table>');
 		el.append('<img alt="Add view" class="add-icon add-view" src="icon/add.png">');
 
 		var viewsTable = $('.views.schema-props', el);
@@ -839,7 +839,7 @@ var _Schema = {
 	},
 	appendMethods: function(el, entity) {
 
-		el.append('<table class="actions schema-props"><th>JSON Name</th><th>Code</th><th>Action</th></table>');
+		el.append('<table class="actions schema-props"><thead><th>JSON Name</th><th>Code</th><th>Action</th></thead></table>');
 		el.append('<img alt="Add action" class="add-icon add-action-attribute" src="icon/add.png">');
 
 		var actionsTable = $('.actions.schema-props', el);
@@ -867,7 +867,7 @@ var _Schema = {
 	},
 	appendRemoteProperties: function(el, entity) {
 
-		el.append('<table class="related-attrs schema-props"><th>JSON Name</th><th>Type and Direction</th></table>');
+		el.append('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type and Direction</th></thead></table>');
 
 		var url = rootUrl + 'schema_relationship_nodes?sourceId=' + entity.id;
 		$.ajax({

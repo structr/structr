@@ -19,14 +19,12 @@
 package org.structr.rest.resource;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -83,7 +81,7 @@ public class SchemaResource extends Resource {
 
 			if (type != null) {
 
-				String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
+				String url = "/".concat(rawType);
 
 				schema.setProperty(new StringProperty("url"), url);
 				schema.setProperty(new StringProperty("type"), type.getSimpleName());

@@ -29,7 +29,6 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -120,7 +119,7 @@ public class SchemaTypeResource extends Resource {
 
 				resultList.add(schema);
 
-				String url = "/".concat(CaseHelper.toUnderscore(rawType, false));
+				String url = "/".concat(rawType);
 
 				schema.setProperty(new StringProperty("url"), url);
 				schema.setProperty(new StringProperty("type"), type.getSimpleName());
@@ -248,11 +247,10 @@ public class SchemaTypeResource extends Resource {
 			propProperties.put("unique", property.isUnique());
 			propProperties.put("notNull", property.isNotNull());
 			propProperties.put("dynamic", property.isDynamic());
-
-			final List<SchemaProperty> schemaPropertiesOfDeclaringClass = getSchemaProperties(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst());
 			
 			if (property.isDynamic()) {
 
+				final List<SchemaProperty> schemaPropertiesOfDeclaringClass = getSchemaProperties(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst());
 				final List<SchemaProperty> effectiveSchemaProperties = type.equals(declaringClass) ? schemaProperties : schemaPropertiesOfDeclaringClass;
 				
 				if (effectiveSchemaProperties != null && !effectiveSchemaProperties.isEmpty()) {

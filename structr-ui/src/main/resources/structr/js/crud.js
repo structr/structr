@@ -2341,18 +2341,19 @@ var _Crud = {
 
 	},
 	formatKey: function(text) {
-		if (!text)
-			return '';
-		var result = '';
-		for (var i = 0; i < text.length; i++) {
-			var c = text.charAt(i);
-			if (c === c.toUpperCase()) {
-				result += ' ' + c;
-			} else {
-				result += (i === 0 ? c.toUpperCase() : c);
-			}
-		}
-		return result;
+		return text;
+//		if (!text)
+//			return '';
+//		var result = '';
+//		for (var i = 0; i < text.length; i++) {
+//			var c = text.charAt(i);
+//			if (c === c.toUpperCase()) {
+//				result += ' ' + c;
+//			} else {
+//				result += (i === 0 ? c.toUpperCase() : c);
+//			}
+//		}
+//		return result;
 	},
 	filterKeys: function(type, sourceArray) {
 

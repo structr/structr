@@ -31,7 +31,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 
 /**
@@ -129,19 +128,19 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 					}
 				}
 			}
-			
+
 			final Iterable<Label> labels = node.getLabels();
 			if (labels != null && labels.iterator().hasNext()) {
 				final Label firstLabel = labels.iterator().next();
-				
+
 				// return dynamic type
 				final Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(firstLabel.name());
 				if (dynamicType != null) {
-					
+
 					return dynamicType;
 				}
-				
-				
+
+
 			}
 
 

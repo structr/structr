@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -36,6 +35,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.Permission;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;

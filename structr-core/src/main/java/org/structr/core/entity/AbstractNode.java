@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +38,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.helpers.collection.LruMap;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
@@ -77,7 +77,7 @@ import org.structr.schema.action.ActionContext;
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
-	private static final Map<Class, Object> relationshipTemplateInstanceCache = new LinkedHashMap<>();
+	private static final Map<Class, Object> relationshipTemplateInstanceCache = new LruMap<>(1000);
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
