@@ -202,6 +202,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				nodeIdMap.add(nodeInfo, node.getId());
 			}
 		});
+		
+		printNodeTypes(nodeTypes);
 
 		logger.log(Level.INFO, "Identifying common base classes..");
 
@@ -216,6 +218,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			fex.printStackTrace();
 		}
 
+		printNodeTypes(nodeTypes);
+		
 
 		logger.log(Level.INFO, "Collecting type information..");
 
@@ -325,7 +329,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					// create combined type on imported relationship
 					if (startNodeType != null && endNodeType != null) {
 
-						final String combinedType = startNodeType.concat(relationshipType).concat(endNodeType);
+						final String combinedType = getCombinedType(startNodeType, relationshipType, endNodeType);
+						
+						logger.log(Level.INFO, "Combined relationship type {0} found for rel type {1}, start node type {2}, end node type {3}", new Object[]{combinedType, relationshipType, startNodeType, endNodeType});
+						
 						rel.setProperty(GraphObject.type.dbName(), combinedType);
 					}
 
@@ -342,13 +349,14 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		final Map<String, List<RelationshipInfo>> relTypeInfoMap = new THashMap<>();
 		for (final RelationshipInfo relInfo : relationships) {
 
-			final String relType         = relInfo.getRelType();
-			List<RelationshipInfo> infos = relTypeInfoMap.get(relType);
+			//final String relType         = relInfo.getRelType();
+			final String combinedType = getCombinedType(relInfo.getStartNodeType(), relInfo.getRelType(), relInfo.getEndNodeType());
+			List<RelationshipInfo> infos = relTypeInfoMap.get(combinedType);
 
 			if (infos == null) {
 
 				infos = new LinkedList<>();
-				relTypeInfoMap.put(relType, infos);
+				relTypeInfoMap.put(combinedType, infos);
 			}
 
 			infos.add(relInfo);
@@ -463,6 +471,28 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 	}
 
 	// ----- private static methods -----
+	
+	private static String getCombinedType(final String startNodeType, final String relationshipType, final String endNodeType) {
+		
+		return startNodeType.concat(relationshipType).concat(endNodeType);
+		
+	}
+	
+	private static void printNodeTypes(final Set<NodeInfo> nodeTypes) {
+		
+		for (final NodeInfo nodeInfo : nodeTypes) {
+			
+			for (final String type : nodeInfo.getTypes()) {
+				
+				System.out.println("#### "  + type);
+				
+			}
+			
+		}
+		
+		
+	}
+	
 	private static void identifyCommonBaseClasses(final App app, final Set<NodeInfo> nodeTypes, final FileBasedHashLongMap<NodeInfo> nodeIds, final List<TypeInfo> typeInfos) {
 
 		// next we need to identify common base classes, which can be found by
