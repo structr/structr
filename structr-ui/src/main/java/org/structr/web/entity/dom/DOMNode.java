@@ -164,6 +164,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
 	public static final String ERROR_MESSAGE_ADD_HEADER    = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
+	public static final String ERROR_MESSAGE_IS_LOCALE = "Usage: ${is_locale(locales...)}";
+	public static final String ERROR_MESSAGE_IS_LOCALE_JS = "Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}";
 
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
 	private Page cachedOwnerDocument;
@@ -787,9 +789,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? Functions.ERROR_MESSAGE_IS_LOCALE_JS : Functions.ERROR_MESSAGE_IS_LOCALE);
+				return (inJavaScriptContext ? ERROR_MESSAGE_IS_LOCALE_JS : ERROR_MESSAGE_IS_LOCALE);
 			}
 		});
+
 	}
 
 	public abstract boolean isSynced();
