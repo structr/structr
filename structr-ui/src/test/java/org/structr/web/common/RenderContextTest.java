@@ -531,7 +531,10 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:8875/structr/rest/users')).result[1].name}"));
 			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:8875/structr/rest/users')).result[2].name}"));
 
-
+			// locale
+			final String localeString = ctx.getLocale().toString();
+			assertEquals("Invalid locale result", localeString, Scripting.replaceVariables(ctx, page, "${locale}"));
+			
 			tx.success();
 
 		} catch (FrameworkException fex) {
