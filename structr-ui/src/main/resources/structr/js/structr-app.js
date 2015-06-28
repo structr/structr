@@ -633,12 +633,13 @@ function StructrApp(baseUrl) {
 	},
 	this.field = function(el) {
 		if (!el || !el.length) return;
-		var rawType = el.attr('data-structr-type');
-		var clazz = el.attr('data-structr-edit-class');
-		var query = el.attr('data-structr-custom-options-query');
-		var type = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+		var rawType     = el.attr('data-structr-type');
+		var clazz       = el.attr('data-structr-edit-class');
+		var query       = el.attr('data-structr-custom-options-query');
+		var optionsKey  = el.attr('data-structr-options-key');
+		var type        = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
 		var placeholder = el.attr('data-structr-placeholder');
-		var format =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
+		var format      =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
 		//console.log('field', el, rawType, type, format, query, type, id, key, rawVal);
 		var val;
 		if (type === 'Boolean') {
@@ -661,7 +662,7 @@ function StructrApp(baseUrl) {
 				//val = rawVal || el.text();
 			}
 		}
-		var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'class' : clazz, 'placeholder': placeholder};
+		var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'optionsKey': optionsKey, 'class' : clazz, 'placeholder': placeholder};
 		//console.log(f);
 		return f;
 	};
@@ -1181,6 +1182,7 @@ function enumSelect(f) {
 
 function singleSelect(f) {
 	var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>';
+	var optionsKey = f.optionsKey || 'name';
 	$.ajax({
 		url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
 		statusCode: {
@@ -1189,7 +1191,7 @@ function singleSelect(f) {
 				sel.append('<option></option>');
 				if (data.result && data.result.length) {
 					$.each(data.result, function(i, o) {
-						sel.append('<option value="' + o.id + '" ' + (o.id === f.val ? 'selected' : '') + '>' + o.name + '</option>');
+						sel.append('<option value="' + o.id + '" ' + (o.id === f.val ? 'selected' : '') + '>' + o[optionsKey] + '</option>');
 					});
 					sel.chosen({allow_single_deselect: true});
 				}
@@ -1203,6 +1205,7 @@ function multiSelect(f) {
 	var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
 	f.type = f.type.substring(0, f.type.length-2);
 	var valIds = f.val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
+	var optionsKey = f.optionsKey || 'name';
 	$.ajax({
 		url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
 		statusCode: {
@@ -1210,7 +1213,7 @@ function multiSelect(f) {
 				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
 				if (data.result && data.result.length) {
 					$.each(data.result, function(i, o) {
-						sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o.name + '</option>');
+						sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o[optionsKey] + '</option>');
 					});
 					sel.chosen();
 				}
