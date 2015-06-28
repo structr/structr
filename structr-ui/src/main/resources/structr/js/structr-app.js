@@ -646,7 +646,7 @@ function StructrApp(baseUrl) {
 			if (el.is('input')) {
 				val = el.is(':checked');
 			} else {
-				val = (el.text() === 'true');
+				val = (rawVal === 'true') || (el.text() === 'true');
 			}
 		} else {
 			var inp = s.input(el);
