@@ -203,8 +203,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			}
 		});
 		
-		printNodeTypes(nodeTypes);
-
 		logger.log(Level.INFO, "Identifying common base classes..");
 
 		try (final Tx tx = app.tx(true, false, false)) {
@@ -218,9 +216,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			fex.printStackTrace();
 		}
 
-		printNodeTypes(nodeTypes);
 		
-
 		logger.log(Level.INFO, "Collecting type information..");
 
 		try (final Tx tx = app.tx(true, false, false)) {
@@ -331,7 +327,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 						final String combinedType = getCombinedType(startNodeType, relationshipType, endNodeType);
 						
-						logger.log(Level.INFO, "Combined relationship type {0} found for rel type {1}, start node type {2}, end node type {3}", new Object[]{combinedType, relationshipType, startNodeType, endNodeType});
+						logger.log(Level.FINE, "Combined relationship type {0} found for rel type {1}, start node type {2}, end node type {3}", new Object[]{combinedType, relationshipType, startNodeType, endNodeType});
 						
 						rel.setProperty(GraphObject.type.dbName(), combinedType);
 					}
@@ -475,21 +471,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 	private static String getCombinedType(final String startNodeType, final String relationshipType, final String endNodeType) {
 		
 		return startNodeType.concat(relationshipType).concat(endNodeType);
-		
-	}
-	
-	private static void printNodeTypes(final Set<NodeInfo> nodeTypes) {
-		
-		for (final NodeInfo nodeInfo : nodeTypes) {
-			
-			for (final String type : nodeInfo.getTypes()) {
-				
-				System.out.println("#### "  + type);
-				
-			}
-			
-		}
-		
 		
 	}
 	

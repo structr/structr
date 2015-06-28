@@ -21,7 +21,6 @@ package org.structr.schema.importer;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
