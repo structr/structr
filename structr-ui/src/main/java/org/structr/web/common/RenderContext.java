@@ -104,6 +104,7 @@ public class RenderContext extends ActionContext {
 		this.resourceProvider = other.resourceProvider;
 		this.result = other.result;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
+		this.locale = other.locale;
 
 	}
 
