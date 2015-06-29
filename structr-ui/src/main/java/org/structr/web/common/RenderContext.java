@@ -104,6 +104,7 @@ public class RenderContext extends ActionContext {
 		this.resourceProvider = other.resourceProvider;
 		this.result = other.result;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
+		this.locale = other.locale;
 
 	}
 
@@ -436,6 +437,9 @@ public class RenderContext extends ActionContext {
 
 					case "path_info":
 						return securityContext.getRequest().getPathInfo();
+
+					case "locale":
+						return locale != null ? locale.toString() : null;
 
 					case "result_count":
 					case "result_size":
