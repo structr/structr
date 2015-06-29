@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
+import gnu.trove.map.hash.THashMap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -224,6 +225,10 @@ public class Functions {
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS = "Usage: ${Structr.unlock_readonly_properties_once(node)}. Example ${Structr.unlock_readonly_properties_once, Structr.get('this')}";
 	public static final String ERROR_MESSAGE_CALL = "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
 	public static final String ERROR_MESSAGE_CALL_JS = "Usage: ${Structr.call(key [, payloads...]}. Example ${Structr.call('myEvent')}";
+	public static final String ERROR_MESSAGE_IS_LOCALE = "Usage: ${is_locale(locales...)}";
+	public static final String ERROR_MESSAGE_IS_LOCALE_JS = "Usage: ${Structr.isLocale(locales...}. Example ${Structr.isLocale('de_DE', 'de_AT', 'de_CH')}";
+	public static final String ERROR_MESSAGE_CYPHER = "Usage: ${cypher('MATCH (n) RETURN n')}";
+	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${Structr.cypher(query)}. Example ${Structr.cypher('MATCH (n) RETURN n')}";
 
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
@@ -3797,6 +3802,32 @@ public class Functions {
 							entity.setSecurityContext(previousSecurityContext);
 						}
 					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_SET_PRIVILEGED_JS : ERROR_MESSAGE_SET_PRIVILEGED);
+			}
+		});
+		functions.put("cypher", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					final Map<String, Object> params = new THashMap<>();
+					final String query               = sources[0].toString();
+
+					// parameters?
+					if (sources.length > 1 && sources[1] != null && sources[1] instanceof Map) {
+						params.putAll((Map)sources[1]);
+					}
+
+					return StructrApp.getInstance(ctx.getSecurityContext()).cypher(query, params);
 				}
 
 				return "";
