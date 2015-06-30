@@ -140,22 +140,19 @@ function StructrApp(baseUrl) {
 			}
 		});
 	},
-	this.getPossibleFields = function(form, container, suffix, type, key) {
+	this.getPossibleFields = function(container, suffix, type, key) {
 		var possibleFields;
 		if (typeof suffix === 'string' && suffix.length) {
 			// if a suffix is given, use only input elements with that suffix
 			possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
-		} else if (form && form.length) {
-			// if we are in a form, try to find input elements in form only
-			possibleFields = form.find('[data-structr-name="' + key + '"]');
+		} else if (container.length) {
+			// exactly one container
+			possibleFields = container.find('[data-structr-name="' + key + '"]');
 		} else {
-			if (container.length) {
-				possibleFields = $('[data-structr-name="' + key + '"]', container);
-			} else {
-				possibleFields = $('[data-structr-name="' + key + '"]');
-			}
+			// fallback: all fields by name
+			possibleFields = $('[data-structr-name="' + key + '"]');
 		}
-		var val;
+
 		if (possibleFields.length !== 1) {
 			// none, or more than one field: try with type prefix
 			if (container.length) {
@@ -172,14 +169,23 @@ function StructrApp(baseUrl) {
 				possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
 			}
 		}
+
 		return possibleFields;
+	},
+	this.container = function(btn, id) {
+	    var form = btn.parents('form');
+	    var container;
+	    if (form.length === 1) {
+		container = form;
+	    } else {
+		container = btn.parents('[data-structr-id="' + id + '"]');
+	    }
+	    return container;
 	},
 	this.collectData = function(btn, id, attrs, type, suffix) {
 		var data = {};
-		var form = btn.closest('form');
-		var container = $('[data-structr-id="' + id + '"]');
 		$.each(attrs, function(i, key) {
-			var field = s.getPossibleFields(form, container, suffix, type, key);
+			var field = s.getPossibleFields(s.container(btn, id), suffix, type, key);
 			var val;
 			if (field.attr('type') === 'checkbox') {
 				val = field.prop('checked');
@@ -194,7 +200,7 @@ function StructrApp(baseUrl) {
 		return data;
 	},
 	this.editAction = function(btn, id, attrs, reload) {
-		var container = $('[data-structr-id="' + id + '"]');
+		var container = s.container(btn, id);
 
 		//show edit elements and hide non-edit elements
 		s.hideEdit(container);
@@ -335,7 +341,7 @@ function StructrApp(baseUrl) {
 	},
 
 	this.saveAction = function(btn, id, attrs, reload, successMsg, errorMsg, onSuccess, onError) {
-		var container = $('[data-structr-id="' + id + '"]');
+		var container = s.container(btn, id);
 		if (!s.data[id]) s.data[id] = {};
 		$.each(attrs, function(i, key) {
 
@@ -782,7 +788,7 @@ function StructrApp(baseUrl) {
 					inp.attr('name', type + '.' + key);
 					inp.attr('required', 'required');
 					inp.attr('data-validate', 'required');
-					form = inp.closest('form');
+					form = inp.parents('form');
 				});
 			});
 			form.validate();
