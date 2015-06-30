@@ -61,6 +61,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
@@ -169,8 +171,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			exportToStream(
 				new FileOutputStream(fileName),
-				app.nodeQuery(NodeInterface.class).includeDeletedAndHidden().getAsList(),
-				app.relationshipQuery(RelationshipInterface.class).includeDeletedAndHidden().getAsList(),
+				app.nodeQuery(AbstractNode.class).includeDeletedAndHidden().getAsList(),
+				app.relationshipQuery(AbstractRelationship.class).includeDeletedAndHidden().getAsList(),
 				null,
 				includeFiles
 			);
@@ -782,7 +784,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			case 14:
 			case 15:
-				return inputStream.readUTF();
+				return new String(deserializeData(inputStream), "UTF-8");
+
+				// this doesn't work with very long strings
+				//return inputStream.readUTF();
 
 			case 16:
 			case 17:
@@ -833,7 +838,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			case 14:
 			case 15:
-				outputStream.writeUTF((String)value);
+				serializeData(outputStream, ((String)value).getBytes("UTF-8"));
+
+				// this doesn't work with very long strings
+				//outputStream.writeUTF((String)value);
 				break;
 
 			case 16:

@@ -76,6 +76,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private static final Map<String, Set<String>> subtypeMapForType = new THashMap<>();
 	private static final Set<Character> specialCharsExact           = new LinkedHashSet<>();
 	private static final Set<Character> specialChars                = new LinkedHashSet<>();
+	private static final Set<String> baseTypes                      = new LinkedHashSet<>();
 
 	public static final String LOCATION_SEARCH_KEYWORD    = "location";
 	public static final String STATE_SEARCH_KEYWORD       = "state";
@@ -109,6 +110,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		specialChars.add(';');
 		specialCharsExact.add('"');
 		specialCharsExact.add('\\');
+
+		baseTypes.add(RelationshipInterface.class.getSimpleName());
+		baseTypes.add(AbstractRelationship.class.getSimpleName());
+		baseTypes.add(NodeInterface.class.getSimpleName());
+		baseTypes.add(AbstractNode.class.getSimpleName());
 	}
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(BooleanClause.Occur.MUST);
@@ -876,7 +882,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public static Set<String> getAllSubtypesAsStringSet(final String type) {
 
 		Set<String> allSubtypes = subtypeMapForType.get(type);
-		if (allSubtypes == null) {
+		if (allSubtypes == null || baseTypes.contains(type)) {
 
 			allSubtypes = new TLinkedHashSet<>();
 			subtypeMapForType.put(type, allSubtypes);
@@ -908,9 +914,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			// scan all relationship entities for subtypes
 			for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
 
-				final Class entityType = entity.getClass();
+				final Class entityType     = entity.getValue();
+				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
 
-				for (final Class superClass : typeAndAllSupertypes(entityType)) {
+				for (final Class superClass : ancestors) {
 
 					final String superClassName = superClass.getSimpleName();
 					if (superClass.getName().startsWith("org.structr.") && superClassName.equals(type)) {
@@ -941,10 +948,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		// remove base types
-		allSupertypes.remove(RelationshipInterface.class);
-		allSupertypes.remove(AbstractRelationship.class);
-		allSupertypes.remove(NodeInterface.class);
-		allSupertypes.remove(AbstractNode.class);
+		allSupertypes.removeAll(baseTypes);
 
 		return allSupertypes;
 	}

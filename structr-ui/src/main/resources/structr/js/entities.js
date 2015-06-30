@@ -501,7 +501,7 @@ var _Entities = {
 
 					// reset id for each object group
 					id = entity.id;
-					var keys = Object.keys(res);
+					var keys = Object.keys(res).sort();
 					tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
 
 					var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
