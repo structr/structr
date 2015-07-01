@@ -62,7 +62,7 @@ public class TypePropertyTest extends StructrTest {
 			assertNotNull(testEntity);
 
 			// check labels before type change
-			assertTrue(labelsBefore.containsAll(Iterables.toSet(testEntity.getNode().getLabels())));
+			assertTrue(Iterables.toSet(testEntity.getNode().getLabels()).containsAll(labelsBefore));
 
 			// save ID for later use
 			id = testEntity.getUuid();
@@ -74,7 +74,8 @@ public class TypePropertyTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-
+			
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -86,10 +87,11 @@ public class TypePropertyTest extends StructrTest {
 			assertNotNull(testEntity);
 
 			// check labels after type change
-			assertTrue(labelsAfter.containsAll(Iterables.toSet(testEntity.getNode().getLabels())));
+			assertTrue(Iterables.toSet(testEntity.getNode().getLabels()).containsAll(labelsAfter));
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}

@@ -96,8 +96,8 @@ public class TestBulkCommands extends StructrTest {
 
 					final Set<Label> labels = Iterables.toSet(group.getNode().getLabels());
 
-					assertEquals(4, labels.size());
-					assertTrue(expectedLabels.containsAll(labels));
+					assertEquals(6, labels.size());
+					assertTrue(labels.containsAll(expectedLabels));
 				}
 
 
