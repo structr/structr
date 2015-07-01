@@ -124,7 +124,7 @@ public class TypedIdResource extends FilterableResource {
 
 			String type = SchemaHelper.normalizeEntityName(typeResource.getRawType());
 
-			if (SearchCommand.getAllSubtypesAsStringSet(entity.getType()).contains(type)) {
+			if (SearchCommand.getAllSubtypesAsStringSet(entity.getClass().getSimpleName()).contains(type)) {
 			//if (parentClass.isAssignableFrom(entityClass)) {
 				return entity;
 			}
