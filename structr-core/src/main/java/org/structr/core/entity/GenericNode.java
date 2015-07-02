@@ -20,26 +20,19 @@ package org.structr.core.entity;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.neo4j.function.Function;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.LruMap;
-import org.structr.common.CaseHelper;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.notion.ObjectNotion;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StartNodes;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -98,47 +91,13 @@ public class GenericNode extends AbstractNode {
 			Set<PropertyKey> keys = propertyKeys.get(id);
 			if (keys == null) {
 
-				keys                       = new TreeSet<>(new PropertyKeyComparator());
-				final Set<String> outgoing = new LinkedHashSet<>();
-				final Set<String> incoming = new LinkedHashSet<>();
+				keys = new TreeSet<>(new PropertyKeyComparator());
 
 				// add all properties from a schema entity (if existing)
 				keys.addAll(Iterables.toList(super.getPropertyKeys(propertyView)));
 
 				// add properties that are physically present on the node
 				keys.addAll(Iterables.toList(Iterables.map(new GenericPropertyKeyMapper(), dbNode.getPropertyKeys())));
-
-				final boolean examineRelationships = false;
-				if (examineRelationships) {
-					
-					// examine incoming relationships
-					for (final Relationship in : node.getRelationships(Direction.INCOMING)) {
-						incoming.add(in.getType().name());
-					}
-
-					// create properties for incoming relationships
-					for (final String incomingRelType : incoming) {
-
-						final String propertyName  = CaseHelper.toLowerCamelCase(incomingRelType);
-						final PropertyKey property = new StartNodes(propertyName + "In", new GenericRelation(incomingRelType), new ObjectNotion());
-
-						keys.add(property);
-					}
-
-					// examine outgoing relationships
-					for (final Relationship out : node.getRelationships(Direction.OUTGOING)) {
-						outgoing.add(out.getType().name());
-					}
-
-					// create properties for outgoing relationships
-					for (final String outgoingRelType : outgoing) {
-
-						final String propertyName  = CaseHelper.toLowerCamelCase(outgoingRelType);
-						final PropertyKey property = new EndNodes(propertyName + "Out", new GenericRelation(outgoingRelType), new ObjectNotion());
-
-						keys.add(property);
-					}
-				}
 
 				propertyKeys.put(id, keys);
 			}

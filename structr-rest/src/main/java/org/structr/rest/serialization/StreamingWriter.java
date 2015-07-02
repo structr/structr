@@ -23,7 +23,6 @@ import java.util.List;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -32,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -64,7 +64,7 @@ public abstract class StreamingWriter {
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
-	private final Set<Integer> visitedObjects            = new HashSet<>();
+	private final Set<Integer> visitedObjects            = new ConcurrentHashSet<>();
 	private final DecimalFormat decimalFormat            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private String resultKeyName                         = "result";
 	private boolean renderSerializationTime              = true;
@@ -354,7 +354,6 @@ public abstract class StreamingWriter {
 
 		public void serializeRoot(RestWriter writer, Object value, String localPropertyView, int depth) throws IOException {
 
-
 			if (value != null) {
 
 				Serializer serializer = getSerializerForType(value.getClass());
@@ -410,9 +409,12 @@ public abstract class StreamingWriter {
 		@Override
 		public void serialize(RestWriter writer, GraphObject source, String localPropertyView, int depth) throws IOException {
 
-			if (reduceRedundancy && source != null) {
+			int hashCode = -1;
 
-				final int hashCode = source.hashCode();
+			// mark object as visited
+			if (source != null) {
+
+				hashCode = source.hashCode();
 				visitedObjects.add(hashCode);
 			}
 
@@ -436,10 +438,13 @@ public abstract class StreamingWriter {
 						final Object value         = source.getProperty(key, predicate);
 						final PropertyKey localKey = key;
 
-						if (value != null && !visitedObjects.contains(value.hashCode())) {
+						if (value != null) {
 
-							writer.name(localKey.jsonName());
-							serializeProperty(writer, key, value, localPropertyView, depth+1);
+							if (!(reduceRedundancy && visitedObjects.contains(value.hashCode()))) {
+
+								writer.name(localKey.jsonName());
+								serializeProperty(writer, key, value, localPropertyView, depth+1);
+							}
 
 						} else {
 
@@ -450,6 +455,9 @@ public abstract class StreamingWriter {
 			}
 
 			writer.endObject(source);
+
+			// unmark (visiting only counts for children)
+			visitedObjects.remove(hashCode);
 		}
 	}
 
