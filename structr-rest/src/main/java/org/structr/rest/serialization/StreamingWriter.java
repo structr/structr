@@ -60,20 +60,20 @@ public abstract class StreamingWriter {
 		idNameOnly.add(AbstractNode.name);
 	}
 
-	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<>();
-	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
-	private final Serializer<GraphObject> root           = new RootSerializer();
-	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
-	private final Set<Integer> visitedObjects            = new ConcurrentHashSet<>();
-	private final DecimalFormat decimalFormat            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private String resultKeyName                         = "result";
-	private boolean renderSerializationTime              = true;
-	private boolean renderResultCount                    = true;
-	private boolean reduceRedundancy                     = false;
-	private int outputNestingDepth                       = 3;
-	private Value<String> propertyView                   = null;
-	protected boolean indent                             = true;
-	protected boolean compactNestedProperties            = true;
+	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
+	private final Map<String, Serializer> serializers     = new LinkedHashMap<>();
+	private final Serializer<GraphObject> root            = new RootSerializer();
+	private final Set<String> nonSerializerClasses        = new LinkedHashSet<>();
+	private final Set<Integer> visitedObjects             = new ConcurrentHashSet<>();
+	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private String resultKeyName                          = "result";
+	private boolean renderSerializationTime               = true;
+	private boolean renderResultCount                     = true;
+	private boolean reduceRedundancy                      = false;
+	private int outputNestingDepth                        = 3;
+	private Value<String> propertyView                    = null;
+	protected boolean indent                              = true;
+	protected boolean compactNestedProperties             = true;
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
@@ -83,21 +83,21 @@ public abstract class StreamingWriter {
 		this.propertyView       = propertyView;
 		this.indent             = indent;
 
-		serializers.put(GraphObject.class, root);
-		serializers.put(PropertyMap.class, new PropertyMapSerializer());
-		serializers.put(Iterable.class,    new IterableSerializer());
-		serializers.put(Map.class,         new MapSerializer());
+		serializers.put(GraphObject.class.getName(), root);
+		serializers.put(PropertyMap.class.getName(), new PropertyMapSerializer());
+		serializers.put(Iterable.class.getName(),    new IterableSerializer());
+		serializers.put(Map.class.getName(),         new MapSerializer());
 
-		nonSerializerClasses.add(Object.class);
-		nonSerializerClasses.add(String.class);
-		nonSerializerClasses.add(Integer.class);
-		nonSerializerClasses.add(Long.class);
-		nonSerializerClasses.add(Double.class);
-		nonSerializerClasses.add(Float.class);
-		nonSerializerClasses.add(Byte.class);
-		nonSerializerClasses.add(Character.class);
-		nonSerializerClasses.add(StringBuffer.class);
-		nonSerializerClasses.add(Boolean.class);
+		nonSerializerClasses.add(Object.class.getName());
+		nonSerializerClasses.add(String.class.getName());
+		nonSerializerClasses.add(Integer.class.getName());
+		nonSerializerClasses.add(Long.class.getName());
+		nonSerializerClasses.add(Double.class.getName());
+		nonSerializerClasses.add(Float.class.getName());
+		nonSerializerClasses.add(Byte.class.getName());
+		nonSerializerClasses.add(Character.class.getName());
+		nonSerializerClasses.add(StringBuffer.class.getName());
+		nonSerializerClasses.add(Boolean.class.getName());
 
 		try {
 			this.reduceRedundancy = Boolean.valueOf(Services.getInstance().getConfigurationValue(Services.JSON_REDUNDANCY_REDUCTION, "false"));
@@ -276,12 +276,12 @@ public abstract class StreamingWriter {
 	private Serializer getSerializerForType(Class type) {
 
 		Class localType       = type;
-		Serializer serializer = serializerCache.get(type);
+		Serializer serializer = serializerCache.get(type.getName());
 
-		if (serializer == null && !nonSerializerClasses.contains(type)) {
+		if (serializer == null && !nonSerializerClasses.contains(type.getName())) {
 
 			do {
-				serializer = serializers.get(localType);
+				serializer = serializers.get(localType.getName());
 
 				if (serializer == null) {
 
@@ -290,7 +290,7 @@ public abstract class StreamingWriter {
 
 					for (Class interfaceType : interfaces) {
 
-						serializer = serializers.get(interfaceType);
+						serializer = serializers.get(interfaceType.getName());
 
 						if (serializer != null) {
 							break;
@@ -305,7 +305,7 @@ public abstract class StreamingWriter {
 
 			// cache found serializer
 			if (serializer != null) {
-				serializerCache.put(type, serializer);
+				serializerCache.put(type.getName(), serializer);
 			}
 		}
 

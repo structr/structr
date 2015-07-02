@@ -53,12 +53,12 @@ public class AgentService extends Thread implements RunnableService {
 
 	//~--- fields ---------------------------------------------------------
 
-	private int maxAgents                               = 4;    // TODO: make configurable
-	private final Map<Class, List<Agent>> runningAgents = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Map<Class, Class> agentClassCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Queue<Task> taskQueue                 = new ConcurrentLinkedQueue<>();
-	private Set<Class> supportedCommands                = null;
-	private boolean run                                 = false;
+	private int maxAgents                                = 4;    // TODO: make configurable
+	private final Map<String, List<Agent>> runningAgents = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<String, Class> agentClassCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Queue<Task> taskQueue                  = new ConcurrentLinkedQueue<>();
+	private Set<Class> supportedCommands                 = null;
+	private boolean run                                  = false;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -264,7 +264,7 @@ public class AgentService extends Thread implements RunnableService {
 		// FIXME: superuser security context
 		Class taskClass  = task.getClass();
 		Agent agent      = null;
-		Class agentClass = agentClassCache.get(taskClass);
+		Class agentClass = agentClassCache.get(taskClass.getName());
 
 		// cache miss
 		if (agentClass == null) {
@@ -286,7 +286,7 @@ public class AgentService extends Thread implements RunnableService {
 							agentClass = supportedAgentClass;
 						}
 
-						agentClassCache.put(supportedTaskClass, supportedAgentClass);
+						agentClassCache.put(supportedTaskClass.getName(), supportedAgentClass);
 
 					} catch (Throwable ignore) {}
 				}
@@ -320,20 +320,20 @@ public class AgentService extends Thread implements RunnableService {
 	 * Returns the current collection of running agents.
 	 * @return agents
 	 */
-	public Map<Class, List<Agent>> getRunningAgents() {
+	public Map<String, List<Agent>> getRunningAgents() {
 		return (runningAgents);
 	}
 
 	private List<Agent> getRunningAgentsForTask(Class taskClass) {
 
-		List<Agent> agents = runningAgents.get(taskClass);
+		List<Agent> agents = runningAgents.get(taskClass.getName());
 
 		if (agents == null) {
 
 			agents = Collections.synchronizedList(new LinkedList<Agent>());
 
 			// Hashtable is synchronized
-			runningAgents.put(taskClass, agents);
+			runningAgents.put(taskClass.getName(), agents);
 		}
 
 		return (agents);

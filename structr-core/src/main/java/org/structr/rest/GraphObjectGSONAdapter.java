@@ -52,14 +52,14 @@ public class GraphObjectGSONAdapter {
 	private static final Logger logger                   = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
 
-	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<>();
-	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
-	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
-	private final Serializer<GraphObject> root           = new RootSerializer();
-	private int outputNestingDepth                       = 3;
-	private SecurityContext securityContext              = null;
-	private Value<String> propertyView                   = null;
-	private JsonWriter writer                            = null;
+	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>(100);
+	private final Map<String, Serializer> serializers     = new LinkedHashMap<>();
+	private final Set<String> nonSerializerClasses        = new LinkedHashSet<>();
+	private final Serializer<GraphObject> root            = new RootSerializer();
+	private int outputNestingDepth                        = 3;
+	private SecurityContext securityContext               = null;
+	private Value<String> propertyView                    = null;
+	private JsonWriter writer                             = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -69,21 +69,21 @@ public class GraphObjectGSONAdapter {
 		this.propertyView       = propertyView;
 		this.outputNestingDepth = outputNestingDepth;
 
-		serializers.put(GraphObject.class, root);
-		serializers.put(PropertyMap.class, new PropertyMapSerializer());
-		serializers.put(Iterable.class,    new IterableSerializer());
-		serializers.put(Map.class,         new MapSerializer());
+		serializers.put(GraphObject.class.getName(), root);
+		serializers.put(PropertyMap.class.getName(), new PropertyMapSerializer());
+		serializers.put(Iterable.class.getName(),    new IterableSerializer());
+		serializers.put(Map.class.getName(),         new MapSerializer());
 
-		nonSerializerClasses.add(Object.class);
-		nonSerializerClasses.add(String.class);
-		nonSerializerClasses.add(Integer.class);
-		nonSerializerClasses.add(Long.class);
-		nonSerializerClasses.add(Double.class);
-		nonSerializerClasses.add(Float.class);
-		nonSerializerClasses.add(Byte.class);
-		nonSerializerClasses.add(Character.class);
-		nonSerializerClasses.add(StringBuffer.class);
-		nonSerializerClasses.add(Boolean.class);
+		nonSerializerClasses.add(Object.class.getName());
+		nonSerializerClasses.add(String.class.getName());
+		nonSerializerClasses.add(Integer.class.getName());
+		nonSerializerClasses.add(Long.class.getName());
+		nonSerializerClasses.add(Double.class.getName());
+		nonSerializerClasses.add(Float.class.getName());
+		nonSerializerClasses.add(Byte.class.getName());
+		nonSerializerClasses.add(Character.class.getName());
+		nonSerializerClasses.add(StringBuffer.class.getName());
+		nonSerializerClasses.add(Boolean.class.getName());
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -138,12 +138,12 @@ public class GraphObjectGSONAdapter {
 	private Serializer getSerializerForType(Class type) {
 
 		Class localType       = type;
-		Serializer serializer = serializerCache.get(type);
+		Serializer serializer = serializerCache.get(type.getName());
 
-		if (serializer == null && !nonSerializerClasses.contains(type)) {
+		if (serializer == null && !nonSerializerClasses.contains(type.getName())) {
 
 			do {
-				serializer = serializers.get(localType);
+				serializer = serializers.get(localType.getName());
 
 				if (serializer == null) {
 
@@ -152,7 +152,7 @@ public class GraphObjectGSONAdapter {
 
 					for (Class interfaceType : interfaces) {
 
-						serializer = serializers.get(interfaceType);
+						serializer = serializers.get(interfaceType.getName());
 
 						if (serializer != null) {
 							break;
@@ -167,7 +167,7 @@ public class GraphObjectGSONAdapter {
 
 			// cache found serializer
 			if (serializer != null) {
-				serializerCache.put(type, serializer);
+				serializerCache.put(type.getName(), serializer);
 			}
 		}
 
