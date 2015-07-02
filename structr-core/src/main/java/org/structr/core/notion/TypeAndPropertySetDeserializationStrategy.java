@@ -170,9 +170,9 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 	private T getTypedResult(Result<T> result, Class<T> type) throws FrameworkException {
 
-		GraphObject obj = result.get(0);
+		final GraphObject obj = result.get(0);
 
-		if(!type.isAssignableFrom(obj.getClass())) {
+		if (!type.isAssignableFrom(obj.getClass())) {
 			throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
 		}
 
