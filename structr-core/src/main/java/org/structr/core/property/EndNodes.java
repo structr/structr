@@ -97,6 +97,27 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
+	/**
+	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
+	 *
+	 * @param name
+	 * @param relation
+	 * @param notion
+	 */
+	public EndNodes(final String name, final Relation<S, T, ? extends Source, ManyEndpoint<T>> relation, final Notion notion) {
+
+		super(name);
+
+		this.relation = relation;
+		this.notion   = notion;
+		this.destType = relation.getTargetType();
+
+		this.notion.setType(destType);
+		this.notion.setRelationProperty(this);
+
+		StructrApp.getConfiguration().registerConvertedProperty(this);
+	}
+
 	@Override
 	public String typeName() {
 		return "collection";

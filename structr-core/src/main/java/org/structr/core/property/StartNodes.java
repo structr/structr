@@ -97,6 +97,27 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
+	/**
+	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
+	 *
+	 * @param name
+	 * @param relation
+	 * @param notion
+	 */
+	public StartNodes(final String name, final Relation<S, T, ManyStartpoint<S>, ? extends Target> relation, final Notion notion) {
+
+		super(name);
+
+		this.relation = relation;
+		this.notion   = notion;
+		this.destType = relation.getSourceType();
+
+		this.notion.setType(destType);
+		this.notion.setRelationProperty(this);
+
+		StructrApp.getConfiguration().registerConvertedProperty(this);
+	}
+
 	@Override
 	public String typeName() {
 		return "collection";
