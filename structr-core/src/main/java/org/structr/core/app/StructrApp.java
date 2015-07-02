@@ -140,8 +140,17 @@ public class StructrApp implements App {
 
 	@Override
 	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException {
-
-		return (T) get(uuid);
+		
+		final GraphObject entity = get(uuid);
+		
+		if (type.isAssignableFrom(entity.getClass())) {
+			
+			return (T) entity;
+			
+		} else {
+			
+			return null;
+		}
 	}
 
 	@Override

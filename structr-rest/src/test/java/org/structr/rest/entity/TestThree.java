@@ -32,7 +32,7 @@ import org.structr.rest.common.TestEnum;
  */
 public class TestThree extends AbstractNode {
 
-	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<String>("stringArrayProperty", String.class).indexedWhenEmpty();
+	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class).indexedWhenEmpty();
 	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();
 	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty").indexed().indexedWhenEmpty();
 	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty").indexed().indexedWhenEmpty();
