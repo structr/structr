@@ -18,12 +18,11 @@
  */
 package org.structr.core.graph.search;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.TLinkedHashSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -73,7 +72,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
 	protected static final boolean PUBLIC_ONLY		  = false;
 
-	private static final Map<String, Set<String>> subtypeMapForType = new THashMap<>();
+	private static final Map<String, Set<String>> subtypeMapForType = new LinkedHashMap<>();
 	private static final Set<Character> specialCharsExact           = new LinkedHashSet<>();
 	private static final Set<Character> specialChars                = new LinkedHashSet<>();
 	private static final Set<String> baseTypes                      = new LinkedHashSet<>();
@@ -875,7 +874,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		Set<String> allSubtypes = subtypeMapForType.get(type);
 		if (allSubtypes == null || baseTypes.contains(type)) {
 
-			allSubtypes = new TLinkedHashSet<>();
+			allSubtypes = new LinkedHashSet<>();
 			subtypeMapForType.put(type, allSubtypes);
 
 			final ConfigurationProvider configuration                             = StructrApp.getConfiguration();

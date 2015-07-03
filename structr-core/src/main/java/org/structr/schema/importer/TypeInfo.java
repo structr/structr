@@ -18,10 +18,10 @@
  */
 package org.structr.schema.importer;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,8 +33,8 @@ public class TypeInfo {
 
 	private static final String userHome = System.getProperty("user.home");
 
-	private final Map<String, Class> propertySet = new THashMap<>();
-	private final Set<String> otherTypes         = new THashSet<>();
+	private final Map<String, Class> propertySet = new LinkedHashMap<>();
+	private final Set<String> otherTypes         = new LinkedHashSet<>();
 	private Collection<Long> nodeIds             = null;
 	private String primaryType                   = null;
 	private int hierarchyLevel                   = 0;
@@ -84,7 +84,7 @@ public class TypeInfo {
 
 	public String getSuperclass(final Map<String, TypeInfo> typeInfos) {
 
-		final Map<Integer, TypeInfo> hierarchyMap = new THashMap<>();
+		final Map<Integer, TypeInfo> hierarchyMap = new LinkedHashMap<>();
 
 		for (final TypeInfo info : typeInfos.values()) {
 

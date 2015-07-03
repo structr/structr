@@ -18,9 +18,9 @@
  */
 package org.structr.schema.importer;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,8 +35,8 @@ import org.neo4j.graphdb.Node;
 
 public class NodeInfo {
 
-	private final Map<String, Class> properties = new THashMap<>();
-	private final Set<String> types             = new THashSet<>();
+	private final Map<String, Class> properties = new LinkedHashMap<>();
+	private final Set<String> types             = new LinkedHashSet<>();
 	private int hashCode                        = 0;
 
 	public NodeInfo(final Node node) {
