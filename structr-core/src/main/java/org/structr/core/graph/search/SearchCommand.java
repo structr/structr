@@ -269,15 +269,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					LayerNodeIndex spatialIndex = this.getSpatialIndex();
 					if (spatialIndex != null) {
 
-						synchronized (spatialIndex) {
+						try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
 
-							try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
+							// instantiate spatial search results without paging,
+							// as the results must be filtered by type anyway
+							intermediateResult = new NodeFactory(securityContext).instantiate(hits);
 
-								// instantiate spatial search results without paging,
-								// as the results must be filtered by type anyway
-								intermediateResult = new NodeFactory(securityContext).instantiate(hits);
-
-							}
 						}
 					}
 				}
@@ -286,22 +283,19 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				index = getKeywordIndex();
 
-				synchronized (index) {
+				try (final IndexHits hits = index.query(queryContext)) {
 
-					try (final IndexHits hits = index.query(queryContext)) {
+					// all luecene query, do not filter results
+					filterResults = hasEmptySearchFields;
+					intermediateResult = factory.instantiate(hits);
 
-						// all luecene query, do not filter results
-						filterResults = hasEmptySearchFields;
-						intermediateResult = factory.instantiate(hits);
+				} catch (NumberFormatException nfe) {
 
-					} catch (NumberFormatException nfe) {
+					logger.log(Level.SEVERE, "Could not sort results", nfe);
 
-						logger.log(Level.SEVERE, "Could not sort results", nfe);
-
-						// retry without sorting
-						//queryContext.sort(null);
-						//hits = index.query(queryContext);
-					}
+					// retry without sorting
+					//queryContext.sort(null);
+					//hits = index.query(queryContext);
 				}
 
 			} else {
@@ -309,23 +303,20 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				// Default: Mixed or fulltext-only search: Use fulltext index
 				index = getFulltextIndex();
 
-				synchronized (index) {
+				try (final IndexHits hits = index.query(queryContext)) {
 
-					try (final IndexHits hits = index.query(queryContext)) {
+					// all luecene query, do not filter results
+					filterResults = hasEmptySearchFields;
+					intermediateResult = factory.instantiate(hits);
 
-						// all luecene query, do not filter results
-						filterResults = hasEmptySearchFields;
-						intermediateResult = factory.instantiate(hits);
+				} catch (NumberFormatException nfe) {
 
-					} catch (NumberFormatException nfe) {
+					logger.log(Level.SEVERE, "Could not sort results", nfe);
 
-						logger.log(Level.SEVERE, "Could not sort results", nfe);
+					// retry without sorting
+					//queryContext.sort(null);
+					//hits = index.query(queryContext);
 
-						// retry without sorting
-						//queryContext.sort(null);
-						//hits = index.query(queryContext);
-
-					}
 				}
 			}
 		}
