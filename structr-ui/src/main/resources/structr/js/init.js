@@ -247,12 +247,21 @@ var Structr = {
 	key_icon: 'icon/key.png',
 	msgCount: 0,
 	reconnect: function() {
-		ws.close();
+		log('deactivated ping')
+		Structr.stopPing();
 		log('activating reconnect loop');
+		Structr.stopReconnect();
 		reconn = window.setInterval(function() {
 			wsConnect();
 		}, 1000);
+		wsConnect();
 		log('activated reconnect loop', reconn);
+	},
+	stopReconnect: function() {
+		if (reconn) {
+			window.clearInterval(reconn);
+			reconn = undefined;
+		}
 	},
 	init: function() {
 		log('###################### Initialize UI ####################');
@@ -264,8 +273,15 @@ var Structr = {
 		log('######## Expanded IDs after reload ##########', Structr.expanded);
 	},
 	ping: function(callback) {
+		
+		if (ws.readyState !== 1) {
+			Structr.reconnect();
+		}
+		
 		sessionId = Structr.getSessionId();
+		
 		if (sessionId) {
+			log('sending ping')
 			sendObj({command: 'PING', sessionId: sessionId}, callback);
 		}
 	},
@@ -288,10 +304,18 @@ var Structr = {
 	},
 	startPing: function() {
 		log('Starting PING');
+		Structr.stopPing();
+		log('ping', ping);
 		if (!ping) {
 			ping = window.setInterval(function() {
 				Structr.ping();
 			}, 1000);
+		}
+	},
+	stopPing: function() {
+		if (ping) {
+			window.clearInterval(ping);
+			ping = undefined;
 		}
 	},
 	getSessionId: function() {
