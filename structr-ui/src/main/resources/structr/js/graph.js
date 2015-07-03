@@ -880,7 +880,7 @@ var _Graph = {
 		var nodeTypesBox = $('#node-types');
 		nodeTypesBox.empty();
 		//nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
-		Command.getByType('SchemaNode', 1000, 1, null, null, null, function(node) {
+		Command.getByType('SchemaNode', 1000, 1, null, null, null, true, function(node) {
 
 			schemaNodes[node.name] = node;
 			schemaNodesById[node.id] = node;
