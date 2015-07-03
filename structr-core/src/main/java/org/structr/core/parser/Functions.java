@@ -144,6 +144,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_CLEAN = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
 	public static final String ERROR_MESSAGE_URLENCODE = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
 	public static final String ERROR_MESSAGE_ESCAPE_JS = "Usage: ${escape_javascript(string)}. Example: ${escape_javascript(this.name)}";
+	public static final String ERROR_MESSAGE_ESCAPE_JSON = "Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}";
 	public static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
 	public static final String ERROR_MESSAGE_EMPTY = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 	public static final String ERROR_MESSAGE_EQUAL = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
@@ -225,6 +226,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_CALL_JS = "Usage: ${Structr.call(key [, payloads...]}. Example ${Structr.call('myEvent')}";
 	public static final String ERROR_MESSAGE_IS_LOCALE = "Usage: ${is_locale(locales...)}";
 	public static final String ERROR_MESSAGE_IS_LOCALE_JS = "Usage: ${Structr.isLocale(locales...}. Example ${Structr.isLocale('de_DE', 'de_AT', 'de_CH')}";
+	public static final String ERROR_MESSAGE_CYPHER = "Usage: ${cypher('MATCH (n) RETURN n')}";
+	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${Structr.cypher(query)}. Example ${Structr.cypher('MATCH (n) RETURN n')}";
 
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
@@ -1027,6 +1030,23 @@ public class Functions {
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ESCAPE_JS;
+			}
+
+		});
+		functions.put("escape_json", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
+					? StringEscapeUtils.escapeJson(sources[0].toString())
+					: "";
+
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_ESCAPE_JSON;
 			}
 
 		});
@@ -3781,6 +3801,32 @@ public class Functions {
 							entity.setSecurityContext(previousSecurityContext);
 						}
 					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_SET_PRIVILEGED_JS : ERROR_MESSAGE_SET_PRIVILEGED);
+			}
+		});
+		functions.put("cypher", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					final Map<String, Object> params = new LinkedHashMap<>();
+					final String query               = sources[0].toString();
+
+					// parameters?
+					if (sources.length > 1 && sources[1] != null && sources[1] instanceof Map) {
+						params.putAll((Map)sources[1]);
+					}
+
+					return StructrApp.getInstance(ctx.getSecurityContext()).cypher(query, params);
 				}
 
 				return "";

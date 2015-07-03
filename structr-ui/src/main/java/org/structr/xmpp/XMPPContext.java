@@ -3,6 +3,7 @@ package org.structr.xmpp;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -25,6 +26,7 @@ import org.jivesoftware.smack.roster.packet.RosterPacket;
 import org.jivesoftware.smack.sm.predicates.ForEveryStanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.structr.common.error.FrameworkException;
@@ -47,15 +49,15 @@ public class XMPPContext {
 
 	private static final Logger logger                                 = Logger.getLogger(XMPPContext.class.getName());
 	private static final Map<String, XMPPClientConnection> connections = new HashMap<>();
-	private static final Map<Class, TypeHandler> typeHandlers          = new HashMap<>();
+	private static final Map<String, TypeHandler> typeHandlers         = new HashMap<>();
 
 	static {
 
-		typeHandlers.put(Bind.class,          new BindTypeHandler());
-		typeHandlers.put(RosterPacket.class,  new RosterPacketTypeHandler());
-		typeHandlers.put(Presence.class,      new PresenceTypeHandler());
-		typeHandlers.put(Message.class,       new MessageTypeHandler());
-		typeHandlers.put(EmptyResultIQ.class, new EmptyResultIQTypeHandler());
+		typeHandlers.put(Bind.class.getName(),          new BindTypeHandler());
+		typeHandlers.put(RosterPacket.class.getName(),  new RosterPacketTypeHandler());
+		typeHandlers.put(Presence.class.getName(),      new PresenceTypeHandler());
+		typeHandlers.put(Message.class.getName(),       new MessageTypeHandler());
+		typeHandlers.put(EmptyResultIQ.class.getName(), new EmptyResultIQTypeHandler());
 	}
 
 	static {
@@ -209,13 +211,19 @@ public class XMPPContext {
 						final MultiUserChat chat = manager.getMultiUserChat(chatRoom);
 						if (chat != null) {
 
+							final DiscussionHistory history = new DiscussionHistory();
+							final long timeout              = TimeUnit.SECONDS.toMillis(10);
+
+							history.setMaxChars(0);
+							history.setMaxStanzas(0);
+
 							if (password != null) {
 
-								chat.join(nickname, password);
+								chat.join(nickname, password, history, timeout);
 
 							} else {
 
-								chat.join(nickname);
+								chat.join(nickname, "", history, timeout);
 							}
 						}
 
@@ -427,14 +435,14 @@ public class XMPPContext {
 		@Override
 		public void processPacket(final Stanza packet) throws NotConnectedException {
 
-			final TypeHandler handler = typeHandlers.get(packet.getClass());
+			final TypeHandler handler = typeHandlers.get(packet.getClass().getName());
 			if (handler != null) {
 
 				handler.handle(this, packet);
 
 			} else {
 
-				logger.log(Level.WARNING, "No type handler for type {0}", packet.getClass());
+				logger.log(Level.WARNING, "No type handler for type {0}", packet.getClass().getName());
 			}
 		}
 	}

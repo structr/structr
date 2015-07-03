@@ -44,6 +44,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.ResourceAccess;
@@ -54,6 +55,8 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionEntry;
@@ -231,6 +234,26 @@ public class SchemaHelper {
 		// store type but only if it exists!
 		if (type != null) {
 			normalizedEntityNameCache.put(rawType, type.getSimpleName());
+		}
+
+		// fallback to support generic queries on all types
+		if (type == null) {
+
+			if (AbstractNode.class.getSimpleName().equals(rawType)) {
+				return AbstractNode.class;
+			}
+
+			if (NodeInterface.class.getSimpleName().equals(rawType)) {
+				return NodeInterface.class;
+			}
+
+			if (AbstractRelationship.class.getSimpleName().equals(rawType)) {
+				return AbstractRelationship.class;
+			}
+
+			if (RelationshipInterface.class.getSimpleName().equals(rawType)) {
+				return RelationshipInterface.class;
+			}
 		}
 
 		return type;

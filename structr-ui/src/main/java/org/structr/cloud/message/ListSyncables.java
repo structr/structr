@@ -51,7 +51,7 @@ public class ListSyncables extends Message<List<SyncableInfo>> {
 	@Override
 	public void onRequest(CloudConnection serverConnection) throws IOException, FrameworkException {
 
-		final String[] rawTypes = StringUtils.split(type, ",");
+		final String[] rawTypes = StringUtils.split(type, ", ");
 
 		final Set<Class<? extends GraphObject>> types = new HashSet();
 

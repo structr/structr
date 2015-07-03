@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -25,8 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -36,12 +38,17 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaNodeLocalization;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaPropertyLocalization;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.core.property.UuidProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
@@ -82,10 +89,19 @@ public class SchemaTypeResource extends Resource {
 		Class type = typeResource.getEntityClass();
 		if (type != null) {
 
+			SchemaNode schemaNode = null;
+			try {
+
+				schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
+
+			} catch (FrameworkException ex) {
+
+				Logger.getLogger(SchemaTypeResource.class.getName()).log(Level.SEVERE, "Error looking up SchemaNode - cannot display labels for properties!", ex);
+			}
 
 			if (propertyView != null) {
 
-				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView).entrySet()) {
+				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView, schemaNode).entrySet()) {
 
 					final GraphObjectMap property = new GraphObjectMap();
 
@@ -103,13 +119,30 @@ public class SchemaTypeResource extends Resource {
 
 				resultList.add(schema);
 
-				String url = "/".concat(CaseHelper.toUnderscore(rawType, false));
+				String url = "/".concat(rawType);
 
 				schema.setProperty(new StringProperty("url"), url);
 				schema.setProperty(new StringProperty("type"), type.getSimpleName());
 				schema.setProperty(new StringProperty("className"), type.getName());
 				schema.setProperty(new BooleanProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
+
+				if (schemaNode != null) {
+					final List<SchemaNodeLocalization> nodeLocalizations = schemaNode.localizations.getProperty(securityContext, schemaNode, false);
+					final List<GraphObjectMap> localizationsMap = new ArrayList<>(nodeLocalizations.size());
+
+					for (final SchemaNodeLocalization loc : nodeLocalizations) {
+
+						final GraphObjectMap tmpMap = new GraphObjectMap();
+						tmpMap.setProperty(new UuidProperty(), loc.getProperty(SchemaNodeLocalization.id));
+						tmpMap.setProperty(new StringProperty("locale"), loc.getProperty(SchemaNodeLocalization.locale));
+						tmpMap.setProperty(new StringProperty("name"), loc.getProperty(SchemaNodeLocalization.name));
+						localizationsMap.add(tmpMap);
+
+					}
+
+					schema.setProperty(new GenericProperty("localizations"), localizationsMap);
+				}
 
 				Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
 
@@ -119,7 +152,7 @@ public class SchemaTypeResource extends Resource {
 
 				for (String view : propertyViews) {
 
-					views.put(view, getPropertiesForView(type, view));
+					views.put(view, getPropertiesForView(type, view, schemaNode));
 
 				}
 
@@ -184,7 +217,7 @@ public class SchemaTypeResource extends Resource {
 
 	}
 
-	private Map<String, Object> getPropertiesForView(final Class type, final String view) {
+	private Map<String, Object> getPropertiesForView(final Class type, final String view, final SchemaNode schemaNode) throws FrameworkException {
 
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
@@ -212,6 +245,46 @@ public class SchemaTypeResource extends Resource {
 			propProperties.put("unique", property.isUnique());
 			propProperties.put("notNull", property.isNotNull());
 			propProperties.put("dynamic", property.isDynamic());
+			
+			if (property.isDynamic()) {
+
+				final List<SchemaProperty> effectiveSchemaProperties;
+				
+				if (type.equals(declaringClass)) {
+
+					effectiveSchemaProperties = getSchemaProperties(schemaNode);
+
+				} else {
+
+					effectiveSchemaProperties = getSchemaProperties(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst());
+
+				}
+
+				for (final SchemaProperty sProp : effectiveSchemaProperties) {
+
+					if (sProp.getName().equals(property.jsonName())) {
+
+						final List<SchemaPropertyLocalization> propertyLocalizations = sProp.localizations.getProperty(securityContext, sProp, false);
+						final List<GraphObjectMap> localizationsMap = new ArrayList<>(propertyLocalizations.size());
+
+						for (final SchemaPropertyLocalization loc : propertyLocalizations) {
+
+							final GraphObjectMap tmpMap = new GraphObjectMap();
+							tmpMap.setProperty(new UuidProperty(), loc.getProperty(SchemaPropertyLocalization.id));
+							tmpMap.setProperty(new StringProperty("locale"), loc.getProperty(SchemaPropertyLocalization.locale));
+							tmpMap.setProperty(new StringProperty("name"), loc.getProperty(SchemaPropertyLocalization.name));
+							localizationsMap.add(tmpMap);
+
+						}
+
+						propProperties.put("localizations", localizationsMap);
+						break;
+
+					}
+
+				}
+
+			}
 
 			final Class<? extends GraphObject> relatedType = property.relatedType();
 			if (relatedType != null) {
@@ -246,11 +319,25 @@ public class SchemaTypeResource extends Resource {
 
 					propProperties.put("relationshipType", relation.name());
 				}
+
 			}
 
 			propertyConverterMap.put(property.jsonName(), propProperties);
 		}
 
 		return propertyConverterMap;
+	}
+	
+	private List<SchemaProperty> getSchemaProperties(final SchemaNode schemaNode) {
+
+		final List<SchemaProperty> schemaProperties = new LinkedList<>();
+
+		if (schemaNode != null) {
+
+			schemaProperties.addAll(schemaNode.schemaProperties.getProperty(SecurityContext.getSuperUserInstance(), schemaNode, false));
+
+		}
+
+		return schemaProperties;
 	}
 }

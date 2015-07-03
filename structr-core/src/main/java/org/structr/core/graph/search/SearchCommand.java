@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -72,8 +73,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
 	protected static final boolean PUBLIC_ONLY		  = false;
 
-	private static final Set<Character> specialCharsExact = new LinkedHashSet<>();
-	private static final Set<Character> specialChars      = new LinkedHashSet<>();
+	private static final Map<String, Set<String>> subtypeMapForType = new LinkedHashMap<>();
+	private static final Set<Character> specialCharsExact           = new LinkedHashSet<>();
+	private static final Set<Character> specialChars                = new LinkedHashSet<>();
+	private static final Set<String> baseTypes                      = new LinkedHashSet<>();
 
 	public static final String LOCATION_SEARCH_KEYWORD    = "location";
 	public static final String STATE_SEARCH_KEYWORD       = "state";
@@ -107,6 +110,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		specialChars.add(';');
 		specialCharsExact.add('"');
 		specialCharsExact.add('\\');
+
+		baseTypes.add(RelationshipInterface.class.getSimpleName());
+		baseTypes.add(AbstractRelationship.class.getSimpleName());
+		baseTypes.add(NodeInterface.class.getSimpleName());
+		baseTypes.add(AbstractNode.class.getSimpleName());
 	}
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(BooleanClause.Occur.MUST);
@@ -262,15 +270,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					LayerNodeIndex spatialIndex = this.getSpatialIndex();
 					if (spatialIndex != null) {
 
-						synchronized (spatialIndex) {
+						try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
 
-							try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
+							// instantiate spatial search results without paging,
+							// as the results must be filtered by type anyway
+							intermediateResult = new NodeFactory(securityContext).instantiate(hits);
 
-								// instantiate spatial search results without paging,
-								// as the results must be filtered by type anyway
-								intermediateResult = new NodeFactory(securityContext).instantiate(hits);
-
-							}
 						}
 					}
 				}
@@ -279,22 +284,19 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				index = getKeywordIndex();
 
-				synchronized (index) {
+				try (final IndexHits hits = index.query(queryContext)) {
 
-					try (final IndexHits hits = index.query(queryContext)) {
+					// all luecene query, do not filter results
+					filterResults = hasEmptySearchFields;
+					intermediateResult = factory.instantiate(hits);
 
-						// all luecene query, do not filter results
-						filterResults = hasEmptySearchFields;
-						intermediateResult = factory.instantiate(hits);
+				} catch (NumberFormatException nfe) {
 
-					} catch (NumberFormatException nfe) {
+					logger.log(Level.SEVERE, "Could not sort results", nfe);
 
-						logger.log(Level.SEVERE, "Could not sort results", nfe);
-
-						// retry without sorting
-						//queryContext.sort(null);
-						//hits = index.query(queryContext);
-					}
+					// retry without sorting
+					//queryContext.sort(null);
+					//hits = index.query(queryContext);
 				}
 
 			} else {
@@ -302,23 +304,20 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				// Default: Mixed or fulltext-only search: Use fulltext index
 				index = getFulltextIndex();
 
-				synchronized (index) {
+				try (final IndexHits hits = index.query(queryContext)) {
 
-					try (final IndexHits hits = index.query(queryContext)) {
+					// all luecene query, do not filter results
+					filterResults = hasEmptySearchFields;
+					intermediateResult = factory.instantiate(hits);
 
-						// all luecene query, do not filter results
-						filterResults = hasEmptySearchFields;
-						intermediateResult = factory.instantiate(hits);
+				} catch (NumberFormatException nfe) {
 
-					} catch (NumberFormatException nfe) {
+					logger.log(Level.SEVERE, "Could not sort results", nfe);
 
-						logger.log(Level.SEVERE, "Could not sort results", nfe);
+					// retry without sorting
+					//queryContext.sort(null);
+					//hits = index.query(queryContext);
 
-						// retry without sorting
-						//queryContext.sort(null);
-						//hits = index.query(queryContext);
-
-					}
 				}
 			}
 		}
@@ -563,13 +562,25 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return this;
 	}
 
+	public org.structr.core.app.Query<T> andType(final String type) {
+
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.MUST, exactSearch));
+		return this;
+	}
+
+	public org.structr.core.app.Query<T> orType(final String type) {
+
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.SHOULD, exactSearch));
+		return this;
+	}
+
 	@Override
 	public org.structr.core.app.Query<T> andTypes(final Class type) {
 
 		// create a new search group
 		and();
 
-		for (final Class subtype : allSubtypes(type)) {
+		for (final String subtype : getAllSubtypesAsStringSet(type.getSimpleName())) {
 			orType(subtype);
 		}
 
@@ -585,7 +596,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// create a new search group
 		or();
 
-		for (final Class subtype : allSubtypes(type)) {
+		for (final String subtype : getAllSubtypesAsStringSet(type.getSimpleName())) {
 			orType(subtype);
 		}
 
@@ -893,6 +904,62 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return allSubtypes;
 	}
 
+	public static void clearInheritanceMap() {
+		subtypeMapForType.clear();
+	}
+
+	public static Set<String> getAllSubtypesAsStringSet(final String type) {
+
+		Set<String> allSubtypes = subtypeMapForType.get(type);
+		if (allSubtypes == null || baseTypes.contains(type)) {
+
+			allSubtypes = new LinkedHashSet<>();
+			subtypeMapForType.put(type, allSubtypes);
+
+			final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
+			final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
+			final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
+
+			// add type first (this is neccesary because two class objects of the same dynamic type node are not equal
+			// to each other and not assignable, if the schema node was modified in the meantime)
+			allSubtypes.add(type);
+
+			// scan all node entities for subtypes
+			for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
+
+				final Class entityType     = entity.getValue();
+				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
+
+				for (final Class superClass : ancestors) {
+
+					final String superClassName = superClass.getSimpleName();
+					if (superClass.getName().startsWith("org.structr.") && superClassName.equals(type)) {
+
+						allSubtypes.add(entityType.getSimpleName());
+					}
+				}
+			}
+
+			// scan all relationship entities for subtypes
+			for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
+
+				final Class entityType     = entity.getValue();
+				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
+
+				for (final Class superClass : ancestors) {
+
+					final String superClassName = superClass.getSimpleName();
+					if (superClass.getName().startsWith("org.structr.") && superClassName.equals(type)) {
+
+						allSubtypes.add(entityType.getSimpleName());
+					}
+				}
+			}
+		}
+
+		return allSubtypes;
+	}
+
 	public static Set<Class> typeAndAllSupertypes(final Class type) {
 
 		final ConfigurationProvider configuration = StructrApp.getConfiguration();
@@ -910,10 +977,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		// remove base types
-		allSupertypes.remove(RelationshipInterface.class);
-		allSupertypes.remove(AbstractRelationship.class);
-		allSupertypes.remove(NodeInterface.class);
-		allSupertypes.remove(AbstractNode.class);
+		allSupertypes.removeAll(baseTypes);
 
 		return allSupertypes;
 	}

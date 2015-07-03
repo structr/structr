@@ -71,7 +71,7 @@ public class EnvResource extends Resource {
 		final Pattern outerPattern = Pattern.compile("(structr-.+?(?=.jar))");
 		Matcher outerMatcher = outerPattern.matcher(classPath);
 		
-		List<Map<String, String>> modules = new LinkedList<>();
+		Map<String, Map<String, String>> modules = new HashMap<>();
 		
 		while (outerMatcher.find()) {
 			
@@ -84,14 +84,13 @@ public class EnvResource extends Resource {
 			
 			if (innerMatcher.matches()) {
 			
-				module.put("module", innerMatcher.group(1));
 				module.put("version", innerMatcher.group(2));
 				module.put("date", innerMatcher.group(3));
 				module.put("build", innerMatcher.group(4));
-				
-			}
 
-			modules.add(module);
+				modules.put(innerMatcher.group(1), module);
+
+			}
 		}
 
 		info.setProperty(new GenericProperty("modules"), modules);

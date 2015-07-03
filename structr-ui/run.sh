@@ -17,7 +17,7 @@ JAVA=`which java`
 LATEST=`ls target/structr-ui-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
 VERSION=${LATEST#target/structr-ui-};VERSION=${VERSION%%.jar}
 STRUCTR="-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -cp target/lib/*:$LATEST org.structr.Server"
-STRUCTR_ARGS="-server -d64 -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:MaxPermSize=128m -XX:+UseNUMA -XX:+UseG1GC -Dinstance=$NAME"
+STRUCTR_ARGS="-server -d64 -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:MaxPermSize=128m -XX:+UseNUMA -XX:+UseConcMarkSweepGC -Dinstance=$NAME"
 
 PIDFILE=$BASE_DIR/structr-ui.pid
 LOGS_DIR=$BASE_DIR/logs
@@ -36,7 +36,7 @@ fi
 STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
 echo "Starting Structr instance '$NAME' with config file $STRUCTR_CONF"
 
-nohup $JAVA $STRUCTR $STRUCTR_ARGS > $SERVER_LOG 2>&1 &
+nohup $JAVA $STRUCTR_ARGS $STRUCTR > $SERVER_LOG 2>&1 &
 echo $! >$PIDFILE
 
 ( tail -q -n0 -F $SERVER_LOG 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q'

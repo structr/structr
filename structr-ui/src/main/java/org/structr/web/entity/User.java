@@ -74,7 +74,7 @@ public class User extends AbstractUser {
 
 	static {
 
-	// register this type as an overridden builtin type
+		// register this type as an overridden builtin type
 		SchemaService.registerBuiltinTypeOverride("User", User.class.getName());
 
 		User.eMail.addValidator(new LowercaseTypeUniquenessValidator(User.class));

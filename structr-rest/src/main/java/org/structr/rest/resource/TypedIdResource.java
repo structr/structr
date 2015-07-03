@@ -25,6 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.schema.SchemaHelper;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -118,13 +119,15 @@ public class TypedIdResource extends FilterableResource {
 	// ----- public methods -----
 	public GraphObject getEntity() throws FrameworkException {
 
-		GraphObject entity = idResource.getEntity();
-		String type        = SchemaHelper.normalizeEntityName(typeResource.getRawType());
-		Class parentClass  = SchemaHelper.getEntityClassForRawType(type);
-		Class entityClass  = entity.getClass();
+		final GraphObject entity = idResource.getEntity();
+		if (entity != null) {
 
-		if (parentClass.isAssignableFrom(entityClass)) {
-			return entity;
+			String type = SchemaHelper.normalizeEntityName(typeResource.getRawType());
+
+			if (SearchCommand.getAllSubtypesAsStringSet(entity.getClass().getSimpleName()).contains(type)) {
+			//if (parentClass.isAssignableFrom(entityClass)) {
+				return entity;
+			}
 		}
 
 		throw new NotFoundException();

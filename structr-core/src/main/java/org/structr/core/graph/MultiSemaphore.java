@@ -31,13 +31,13 @@ import java.util.logging.Logger;
 public class MultiSemaphore {
 
 	private static final Logger logger = Logger.getLogger(MultiSemaphore.class.getName());
-	
-	private Map<String, Semaphore> semaphoreMap = new ConcurrentHashMap<String, Semaphore>();
-	
+
+	private Map<String, Semaphore> semaphoreMap = new ConcurrentHashMap<>();
+
 	public void acquire(final Set<String> types) throws InterruptedException {
-	
+
 		if (types != null && !types.isEmpty()) {
-			
+
 //			logger.log(Level.INFO, "Acquiring permit(s) for {0}", types);
 
 			for (Semaphore semaphore : getSemaphores(types)) {
@@ -45,11 +45,11 @@ public class MultiSemaphore {
 			}
 		}
 	}
-	
+
 	public void release(final Set<String> types) {
 
 		if (types != null && !types.isEmpty()) {
-			
+
 //			logger.log(Level.INFO, "Releasing permit(s) for {0}", types);
 
 			for (Semaphore semaphore : getSemaphores(types)) {
@@ -57,17 +57,17 @@ public class MultiSemaphore {
 			}
 		}
 	}
-	
+
 	private Set<Semaphore> getSemaphores(final Set<String> types) {
-		
-		Set<Semaphore> semaphores = new LinkedHashSet<Semaphore>();
-		
+
+		Set<Semaphore> semaphores = new LinkedHashSet<>();
+
 		if (types != null) {
-			
+
 			for (String type : types) {
 
 				if (type != null) {
-					
+
 					Semaphore semaphore = semaphoreMap.get(type);
 					if (semaphore == null) {
 
@@ -79,7 +79,7 @@ public class MultiSemaphore {
 				}
 			}
 		}
-		
+
 		return semaphores;
 	}
 }

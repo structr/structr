@@ -24,10 +24,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 import java.util.logging.Logger;
+import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.graph.NodeInterface;
@@ -69,6 +71,10 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				if (map.containsKey(GraphObject.id)) {
 
 					relatedNode = (T) app.get(map.get(GraphObject.id));
+
+					if (relatedNode != null && !type.isAssignableFrom(relatedNode.getClass())) {
+						throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
+					}
 
 				} else {
 
@@ -159,7 +165,14 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 			} else {
 
 				// interpret source as a raw ID string and fetch entity
-				return (T) app.get(source.toString());
+				final GraphObject obj = app.get(source.toString());
+				
+				if (obj != null && !type.isAssignableFrom(obj.getClass())) {
+					throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
+				}
+				
+				return (T) obj;
+				
 			}
 		}
 

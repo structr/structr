@@ -59,13 +59,6 @@ public class Group extends AbstractUser implements Principal {
 		SchemaService.registerBuiltinTypeOverride("Group", Group.class.getName());
 	}
 
-	@Override
-	public String getEncryptedPassword() {
-
-		// A group has no password
-		return null;
-	}
-
 	public void addMember(final Principal user) throws FrameworkException {
 
 		List<Principal> _users = getProperty(members);

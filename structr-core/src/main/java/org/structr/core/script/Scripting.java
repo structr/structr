@@ -111,7 +111,6 @@ public class Scripting {
 	 * Evaluate the given script according to the parsing conventions: ${} will try to evaluate
 	 * Structr script, ${{}} means Javascript.
 	 *
-	 * @param securityContext the security context
 	 * @param actionContext the action context
 	 * @param entity the entity - may not be null because internal functions will fetch the security context from it
 	 * @param expression the scripting expression
@@ -153,6 +152,10 @@ public class Scripting {
 			// This must be done before scripts can be executed.
 			Scriptable scope = scriptingContext.initStandardObjects();
 
+			// set optimization level to interpreter mode to avoid
+			// class loading / PermGen space bug in Rhino
+			//scriptingContext.setOptimizationLevel(-1);
+			
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity);
 			scriptable.setParentScope(scope);
 
@@ -192,6 +195,7 @@ public class Scripting {
 		} catch (final Throwable t) {
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
+			t.printStackTrace();
 			throw new FrameworkException(422, t.getMessage());
 
 		} finally {

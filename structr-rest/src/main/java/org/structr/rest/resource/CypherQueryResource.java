@@ -18,13 +18,13 @@
  */
 package org.structr.rest.resource;
 
+import java.util.Collections;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -60,8 +60,30 @@ public class CypherQueryResource extends Resource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
-		throw new IllegalMethodException();
+		// Admins only
+		if (!securityContext.isSuperUser()) {
 
+			throw new NotAllowedException();
+
+		}
+
+		try {
+
+			Object queryObject = securityContext.getRequest().getParameter("query");
+			if (queryObject != null) {
+
+				String query                 = queryObject.toString();
+				List<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, Collections.EMPTY_MAP);
+
+				return new Result(resultList, resultList.size(), true, false);
+			}
+
+		} catch (org.neo4j.graphdb.NotFoundException nfe) {
+
+			throw new NotFoundException();
+		}
+
+		return new Result(Collections.EMPTY_LIST, 0, false, false);
 	}
 
 	@Override

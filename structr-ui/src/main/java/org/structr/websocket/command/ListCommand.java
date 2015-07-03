@@ -63,7 +63,7 @@ public class ListCommand extends AbstractCommand {
 		final Map<String, Object> nodeData    = webSocketData.getNodeData();
 		final String rawType                  = (String) nodeData.get("type");
 		final String properties               = (String) webSocketData.getNodeData().get("properties");
-		
+
 		final boolean rootOnly = Boolean.TRUE.equals((Boolean) nodeData.get("rootOnly"));
 		Class type = SchemaHelper.getEntityClassForRawType(rawType);
 
@@ -81,7 +81,7 @@ public class ListCommand extends AbstractCommand {
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
 		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
-		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
+		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type)/*.includeDeletedAndHidden()*/.sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
 		// important
 		if (AbstractFile.class.isAssignableFrom(type) && rootOnly) {

@@ -18,8 +18,10 @@
  */
 package org.structr.schema.importer;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -33,8 +35,8 @@ import org.neo4j.graphdb.Node;
 
 public class NodeInfo {
 
-	private final Map<String, Class> properties = new THashMap<>();
-	private final Set<String> types             = new THashSet<>();
+	private final Map<String, Class> properties = new LinkedHashMap<>();
+	private final Set<String> types             = new LinkedHashSet<>();
 	private int hashCode                        = 0;
 
 	public NodeInfo(final Node node) {
@@ -95,10 +97,16 @@ public class NodeInfo {
 
 	private void extractTypes(final Node node) {
 
-		// first try: label
+		// first try: labels
+		// AM 2015-06-26: Changed the behaviour here: In case of multiple labels, don't put them all
+		// into the set of potential types but rather create a combined type.
+		// E.g. a node with the two labels 'Person' and 'Entity' will get a type 'EntityPerson'
+		final List<String> labelStrings = new ArrayList<>();
 		for (final Label label : node.getLabels()) {
-			types.add(label.name());
+			labelStrings.add(label.name());
 		}
+		//Collections.sort(labelStrings);
+		types.add(StringUtils.join(labelStrings, ""));
 
 		// second try: type attribute
 		if (node.hasProperty("type")) {
