@@ -47,7 +47,7 @@ public class FrameworkException extends Exception {
 
 		this.errorBuffer = errorBuffer;
 		this.status      = status;
-
+		this.message     = toString();
 	}
 
 	public FrameworkException(int status, String message) {
@@ -60,10 +60,10 @@ public class FrameworkException extends Exception {
 	public FrameworkException(String type, ErrorToken errorToken) {
 
 		this.errorBuffer = new ErrorBuffer();
-
 		this.errorBuffer.add(type, errorToken);
 
-		this.status = errorToken.getStatus();
+		this.status  = errorToken.getStatus();
+		this.message = toString();
 
 	}
 
@@ -81,9 +81,9 @@ public class FrameworkException extends Exception {
 
 		StringBuilder out                                = new StringBuilder();
 		ErrorBuffer buf                                  = getErrorBuffer();
-		
+
 		if (buf != null) {
-			
+
 			Map<String, Map<String, Set<ErrorToken>>> tokens = buf.getErrorTokens();
 
 			for (Map.Entry<String, Map<String, Set<ErrorToken>>> token : tokens.entrySet()) {
@@ -112,9 +112,9 @@ public class FrameworkException extends Exception {
 				}
 
 			}
-			
+
 		} else {
-			
+
 			out.append("FrameworkException(").append(status).append("): ").append(message);
 		}
 
@@ -146,16 +146,16 @@ public class FrameworkException extends Exception {
 					Map<String, Set<ErrorToken>> map = tokensEntry.getValue();
 					JsonObject typeEntry = new JsonObject();
 					String type = tokensEntry.getKey();
-					
+
 					error.add(type, typeEntry);
-					
+
 					for(Map.Entry<String, Set<ErrorToken>> mapEntry : map.entrySet()) {
-						
+
 						Set<ErrorToken> list = mapEntry.getValue();
 						String key = mapEntry.getKey();
 
 						if(!list.isEmpty()) {
-							
+
 //							if(list.size() == 1) {
 //
 //								ErrorToken token = list.iterator().next();
@@ -167,11 +167,11 @@ public class FrameworkException extends Exception {
 								for(ErrorToken token : list) {
 									array.add(token.getContent());
 								}
-								
+
 								typeEntry.add(key, array);
 //							}
 						}
-						
+
 					}
 				}
 
@@ -180,9 +180,9 @@ public class FrameworkException extends Exception {
 		}
 
 		return container;
-		
+
 	}
-	
+
 	//~--- get methods ----------------------------------------------------
 
 	public ErrorBuffer getErrorBuffer() {
