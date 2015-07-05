@@ -458,20 +458,17 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 					try {
 
-						synchronized (index) {
+						index.remove(dbNode, dbName);
 
-							index.remove(dbNode, dbName);
+						if (value != null && !StringUtils.isBlank(value.toString())) {
+								index.add(dbNode, dbName, value);
 
-							if (value != null && !StringUtils.isBlank(value.toString())) {
-									index.add(dbNode, dbName, value);
+						} else if (isIndexedWhenEmpty()) {
 
-							} else if (isIndexedWhenEmpty()) {
+							value = getValueForEmptyFields();
+							if (value != null) {
 
-								value = getValueForEmptyFields();
-								if (value != null) {
-
-									index.add(dbNode, dbName, value);
-								}
+								index.add(dbNode, dbName, value);
 							}
 						}
 
@@ -495,21 +492,18 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 					try {
 
-						synchronized (index) {
+						index.remove(dbRel, dbName);
 
-							index.remove(dbRel, dbName);
+						if (value != null && !StringUtils.isBlank(value.toString())) {
 
-							if (value != null && !StringUtils.isBlank(value.toString())) {
+							index.add(dbRel, dbName, value);
+
+						} else if (isIndexedWhenEmpty()) {
+
+							value = getValueForEmptyFields();
+							if (value != null) {
 
 								index.add(dbRel, dbName, value);
-
-							} else if (isIndexedWhenEmpty()) {
-
-								value = getValueForEmptyFields();
-								if (value != null) {
-
-									index.add(dbRel, dbName, value);
-								}
 							}
 						}
 

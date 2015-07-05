@@ -120,22 +120,15 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			// 2. fetch all types of entities modified in this tx
 			Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
 
-			System.out.println("Waiting for semaphore on " + synchronizationKeys);
-
 			// we need to protect the validation and indexing part of every transaction
 			// from being entered multiple times in the presence of validators
 			// 3. acquire semaphores for each modified type
 			try { semaphore.acquire(synchronizationKeys); } catch (InterruptedException iex) { return; }
 
-			System.out.println("Got semaphore on " + synchronizationKeys);
-
 			// finally, do validation under the protection of the semaphores for each type
 			if (!modificationQueue.doValidation(securityContext, errorBuffer, doValidation)) {
 
 				tx.failure();
-
-				// release semaphores as the transaction is now finished
-				semaphore.release(synchronizationKeys);	// careful: this can be null
 
 				// create error
 				throw new FrameworkException(422, errorBuffer);
@@ -147,9 +140,6 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
-
-			// release semaphores as the transaction is now finished
-			semaphore.release(synchronizationKeys);	// careful: this can be null
 		}
 	}
 
@@ -164,6 +154,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 				modificationQueue = queues.get();
 
+				final Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
+
 				// cleanup
 				queues.remove();
 				buffers.remove();
@@ -175,6 +167,11 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 				} catch (Throwable t) {
 					t.printStackTrace();
+
+				} finally {
+
+					// release semaphores as the transaction is now finished
+					semaphore.release(synchronizationKeys);	// careful: this can be null
 				}
 
 			} else {

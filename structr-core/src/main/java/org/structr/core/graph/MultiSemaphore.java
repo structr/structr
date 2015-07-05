@@ -34,11 +34,9 @@ public class MultiSemaphore {
 
 	private final Map<String, Semaphore> semaphoreMap = new ConcurrentHashMap<>();
 
-	public void acquire(final Set<String> types) throws InterruptedException {
+	public synchronized void acquire(final Set<String> types) throws InterruptedException {
 
 		if (types != null && !types.isEmpty()) {
-
-//			logger.log(Level.INFO, "Acquiring permit(s) for {0}", types);
 
 			for (Semaphore semaphore : getSemaphores(types)) {
 				semaphore.acquire();
@@ -49,8 +47,6 @@ public class MultiSemaphore {
 	public void release(final Set<String> types) {
 
 		if (types != null && !types.isEmpty()) {
-
-//			logger.log(Level.INFO, "Releasing permit(s) for {0}", types);
 
 			for (Semaphore semaphore : getSemaphores(types)) {
 				semaphore.release();

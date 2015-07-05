@@ -539,6 +539,7 @@ public class ValidationHelper {
 			if (exists) {
 
 				GraphObject foundNode = result.get(0);
+
 				if (foundNode.getId() != object.getId()) {
 
 					id = ((AbstractNode) result.get(0)).getUuid();

@@ -268,7 +268,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					LayerNodeIndex spatialIndex = this.getSpatialIndex();
 					if (spatialIndex != null) {
 
-						try (final IndexHits hits = synchronizedSpatialQuery(spatialIndex, params)) {
+						try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
 
 							// instantiate spatial search results without paging,
 							// as the results must be filtered by type anyway
@@ -280,7 +280,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			} else if (allExactMatch) {
 
-				try (final IndexHits hits = synchronizedLuceneQuery(getKeywordIndex(), query)) {
+//				try (final IndexHits hits = synchronizedLuceneQuery(getKeywordIndex(), queryContext)) {
+				try (final IndexHits hits = getKeywordIndex().query(queryContext)) {
 
 					filterResults      = hasEmptySearchFields;
 					intermediateResult = factory.instantiate(hits);
@@ -293,7 +294,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			} else {
 
 				// Default: Mixed or fulltext-only search: Use fulltext index
-				try (final IndexHits hits = synchronizedLuceneQuery(getFulltextIndex(), query)) {
+				try (final IndexHits hits = getFulltextIndex().query(queryContext)) {
 
 					filterResults      = hasEmptySearchFields;
 					intermediateResult = factory.instantiate(hits);
@@ -789,24 +790,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public SearchAttributeGroup getRootAttributeGroup() {
 		return rootGroup;
 	}
-
-	// ----- private methods ----
-	private IndexHits synchronizedSpatialQuery(final LayerNodeIndex index, final Map<String, Object> params) {
-
-		synchronized (index) {
-
-			return index.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
-		}
-	}
-
-	private IndexHits synchronizedLuceneQuery(final Index index, final Object query) {
-
-		synchronized (index) {
-
-			return index.query(query);
-		}
-	}
-
 
 	// ----- static methods -----
 	public static String escapeForLucene(String input) {
