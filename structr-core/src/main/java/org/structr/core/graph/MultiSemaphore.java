@@ -32,7 +32,7 @@ public class MultiSemaphore {
 
 	private static final Logger logger = Logger.getLogger(MultiSemaphore.class.getName());
 
-	private Map<String, Semaphore> semaphoreMap = new ConcurrentHashMap<>();
+	private final Map<String, Semaphore> semaphoreMap = new ConcurrentHashMap<>();
 
 	public void acquire(final Set<String> types) throws InterruptedException {
 

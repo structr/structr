@@ -144,7 +144,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		boolean filterResults        = true;
 		boolean hasGraphSources      = false;
 		boolean hasSpatialSource     = false;
-		final Index<S> index;
 
 		if (securityContext.getUser(false) == null) {
 
@@ -269,7 +268,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					LayerNodeIndex spatialIndex = this.getSpatialIndex();
 					if (spatialIndex != null) {
 
-						try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
+						try (final IndexHits hits = synchronizedSpatialQuery(spatialIndex, params)) {
 
 							// instantiate spatial search results without paging,
 							// as the results must be filtered by type anyway
@@ -281,42 +280,27 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			} else if (allExactMatch) {
 
-				index = getKeywordIndex();
+				try (final IndexHits hits = synchronizedLuceneQuery(getKeywordIndex(), query)) {
 
-				try (final IndexHits hits = index.query(queryContext)) {
-
-					// all luecene query, do not filter results
-					filterResults = hasEmptySearchFields;
+					filterResults      = hasEmptySearchFields;
 					intermediateResult = factory.instantiate(hits);
 
 				} catch (NumberFormatException nfe) {
 
 					logger.log(Level.SEVERE, "Could not sort results", nfe);
-
-					// retry without sorting
-					//queryContext.sort(null);
-					//hits = index.query(queryContext);
 				}
 
 			} else {
 
 				// Default: Mixed or fulltext-only search: Use fulltext index
-				index = getFulltextIndex();
+				try (final IndexHits hits = synchronizedLuceneQuery(getFulltextIndex(), query)) {
 
-				try (final IndexHits hits = index.query(queryContext)) {
-
-					// all luecene query, do not filter results
-					filterResults = hasEmptySearchFields;
+					filterResults      = hasEmptySearchFields;
 					intermediateResult = factory.instantiate(hits);
 
 				} catch (NumberFormatException nfe) {
 
 					logger.log(Level.SEVERE, "Could not sort results", nfe);
-
-					// retry without sorting
-					//queryContext.sort(null);
-					//hits = index.query(queryContext);
-
 				}
 			}
 		}
@@ -805,6 +789,24 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public SearchAttributeGroup getRootAttributeGroup() {
 		return rootGroup;
 	}
+
+	// ----- private methods ----
+	private IndexHits synchronizedSpatialQuery(final LayerNodeIndex index, final Map<String, Object> params) {
+
+		synchronized (index) {
+
+			return index.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
+		}
+	}
+
+	private IndexHits synchronizedLuceneQuery(final Index index, final Object query) {
+
+		synchronized (index) {
+
+			return index.query(query);
+		}
+	}
+
 
 	// ----- static methods -----
 	public static String escapeForLucene(String input) {

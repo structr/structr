@@ -140,7 +140,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> unique() {
-		this.unique = true;
+		this.unique                  = true;
+		this.requiresSynchronization = true;
 		return this;
 	}
 
@@ -457,17 +458,20 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 					try {
 
-						index.remove(dbNode, dbName);
+						synchronized (index) {
 
-						if (value != null && !StringUtils.isBlank(value.toString())) {
-								index.add(dbNode, dbName, value);
+							index.remove(dbNode, dbName);
 
-						} else if (isIndexedWhenEmpty()) {
+							if (value != null && !StringUtils.isBlank(value.toString())) {
+									index.add(dbNode, dbName, value);
 
-							value = getValueForEmptyFields();
-							if (value != null) {
+							} else if (isIndexedWhenEmpty()) {
 
-								index.add(dbNode, dbName, value);
+								value = getValueForEmptyFields();
+								if (value != null) {
+
+									index.add(dbNode, dbName, value);
+								}
 							}
 						}
 
@@ -491,18 +495,21 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 					try {
 
-						index.remove(dbRel, dbName);
+						synchronized (index) {
 
-						if (value != null && !StringUtils.isBlank(value.toString())) {
+							index.remove(dbRel, dbName);
 
-							index.add(dbRel, dbName, value);
-
-						} else if (isIndexedWhenEmpty()) {
-
-							value = getValueForEmptyFields();
-							if (value != null) {
+							if (value != null && !StringUtils.isBlank(value.toString())) {
 
 								index.add(dbRel, dbName, value);
+
+							} else if (isIndexedWhenEmpty()) {
+
+								value = getValueForEmptyFields();
+								if (value != null) {
+
+									index.add(dbRel, dbName, value);
+								}
 							}
 						}
 

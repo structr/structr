@@ -1049,14 +1049,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public void removeFromIndex() {
 
 		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
-			index.remove(dbNode);
+
+			synchronized (index) {
+
+				index.remove(dbNode);
+
+			}
 		}
 	}
 
 	public void removeFromIndex(PropertyKey key) {
 
 		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
-			index.remove(dbNode, key.dbName());
+
+			synchronized (index) {
+				
+				index.remove(dbNode, key.dbName());
+			}
 		}
 	}
 

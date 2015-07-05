@@ -464,30 +464,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 				valid &= validator.isValid(securityContext, object, key, value, errorBuffer);
 			}
 		}
-//
-//		for (PropertyKey key : modifiedProperties.keySet()) {
-//
-//			List<PropertyValidator> validators = key.getValidators();
-//			for (PropertyValidator validator : validators) {
-//
-//				Object value = object.getProperty(key);
-//
-//				valid &= validator.isValid(securityContext, object, key, value, errorBuffer);
-//			}
-//		}
-//
-//		for (PropertyKey key : newProperties.keySet()) {
-//
-//			List<PropertyValidator> validators = key.getValidators();
-//			for (PropertyValidator validator : validators) {
-//
-//				Object value = object.getProperty(key);
-//
-//				valid &= validator.isValid(securityContext, object, key, value, errorBuffer);
-//			}
-//		}
 
-		// explicitly call isValid() here
+		// explicitly call isValid()
 		return valid && object.isValid(errorBuffer);
 	}
 }

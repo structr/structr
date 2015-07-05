@@ -623,14 +623,22 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public void removeFromIndex() {
 
 		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
-			index.remove(dbRelationship);
+
+			synchronized (index) {
+
+				index.remove(dbRelationship);
+			}
 		}
 	}
 
 	public void removeFromIndex(PropertyKey key) {
 
 		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
-			index.remove(dbRelationship, key.dbName());
+
+			synchronized (index) {
+
+				index.remove(dbRelationship, key.dbName());
+			}
 		}
 	}
 
