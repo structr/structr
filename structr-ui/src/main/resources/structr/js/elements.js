@@ -267,7 +267,7 @@ var _Elements = {
 		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
 		components = $('#componentsArea', componentsSlideout);
 
-		Command.getByType('ShadowDocument', 1, 1, null, null, null, function(entity) {
+		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entity) {
 			shadowPage = entity;
 		});
 		components.droppable({
@@ -292,8 +292,9 @@ var _Elements = {
 
 		Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
 
-			if (!entity)
+			if (!entity) {
 				return false;
+			}
 
 			var obj = StructrModel.create(entity, null, false);
 			var el;

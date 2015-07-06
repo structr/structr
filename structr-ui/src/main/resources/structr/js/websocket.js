@@ -39,38 +39,46 @@ var userKey = 'structrUser_' + port;
 
 function wsConnect() {
 
-	log('################ Global connect() ################');
+	log('################ Global connect() ################', ws, ws ? ws.readyState : '');
 
 	try {
 
-		if (ws) {
-			ws.close();
-			ws.length = 0;
+		if (!ws || ws.readyState > 1) {
+			// closed websocket
+			
+			if (ws) {
+				ws.onopen    = undefined;
+				ws.onclose   = undefined;
+				ws.onmessage = undefined;
+				ws = undefined;
+			}
+
+			localStorage.removeItem(userKey);
+
+			var isEnc = (window.location.protocol === 'https:');
+			var host = document.location.host;
+			var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
+
+			log(wsUrl);
+			if ('WebSocket' in window) {
+
+				try {
+					ws = new WebSocket(wsUrl, 'structr');
+				} catch (e) {}
+
+			} else if ('MozWebSocket' in window) {
+
+				try {
+					ws = new MozWebSocket(wsUrl, 'structr');
+				} catch (e) {}
+
+			} else {
+
+				alert('Your browser doesn\'t support WebSocket.');
+				return false;
+
+			}
 		}
-
-		localStorage.removeItem(userKey);
-
-		var isEnc = (window.location.protocol === 'https:');
-		var host = document.location.host;
-		var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
-
-		log(wsUrl);
-		if ('WebSocket' in window) {
-
-			ws = new WebSocket(wsUrl, 'structr');
-
-		} else if ('MozWebSocket' in window) {
-
-			ws = new MozWebSocket(wsUrl, 'structr');
-
-		} else {
-
-			alert('Your browser doesn\'t support WebSocket.');
-			return false;
-
-		}
-
-		log('WebSocket.readyState: ' + ws.readyState, ws);
 
 		ws.onopen = function () {
 
@@ -83,8 +91,7 @@ function wsConnect() {
 			}
 
 			log('de-activating reconnect loop', reconn);
-			window.clearInterval(reconn);
-			reconn = undefined;
+			Structr.stopReconnect();
 
 			Structr.init();
 

@@ -47,17 +47,17 @@ import org.structr.core.property.PropertyKey;
 public class ValidationHelper {
 
 	private static final PropertyKey UnknownType = new GenericProperty("unknown type");
-	
+
 	// ----- public static methods -----
 	/**
 	 * Checks whether the value for the given property key of the given node
 	 * has at least the given length.
-	 * 
+	 *
 	 * @param node the node
 	 * @param key the property key whose value should be checked
 	 * @param minLength the min length
 	 * @param errorBuffer the error buffer
-	 * 
+	 *
 	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringMinLength(final GraphObject node, final PropertyKey<String> key, final int minLength, final ErrorBuffer errorBuffer) {
@@ -87,11 +87,11 @@ public class ValidationHelper {
 	/**
 	 * Checks whether the value for the given property key of the given node
 	 * is a non-empty string.
-	 * 
+	 *
 	 * @param node the node
 	 * @param key the property key
 	 * @param errorBuffer the error buffer
-	 * 
+	 *
 	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringNotBlank(final GraphObject node, final PropertyKey<String> key, final ErrorBuffer errorBuffer) {
@@ -112,15 +112,15 @@ public class ValidationHelper {
 	/**
 	 * Checks whether the value for the given property key of the given node
 	 * is a non-empty string.
-	 * 
+	 *
 	 * @param node the node
 	 * @param key the property key
 	 * @param errorBuffer the error buffer
-	 * 
+	 *
 	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkPropertyNotNull(final GraphObject node, final PropertyKey key, final ErrorBuffer errorBuffer) {
-		
+
 		String type  = node.getType();
 
 		if (key == null) {
@@ -156,11 +156,11 @@ public class ValidationHelper {
 	/**
 	 * Checks whether the value for the given property key of the given node
 	 * is non null and of type Date.
-	 * 
+	 *
 	 * @param node the node
 	 * @param key the property key
 	 * @param errorBuffer the error buffer
-	 * 
+	 *
 	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkDate(final GraphObject node, final PropertyKey<Date> key, final ErrorBuffer errorBuffer) {
@@ -184,12 +184,12 @@ public class ValidationHelper {
 	 * Checks whether the Date values for the two given property keys are
 	 * in chronological order, i.e. the Date of key1 lies before the one of
 	 * key2.
-	 * 
+	 *
 	 * @param node the node
 	 * @param key1 the first Date key
 	 * @param key2 the second Date key
 	 * @param errorBuffer the error buffer
-	 * 
+	 *
 	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkDatesChronological(final GraphObject node, final PropertyKey<Date> key1, final PropertyKey<Date> key2, final ErrorBuffer errorBuffer) {
@@ -216,12 +216,12 @@ public class ValidationHelper {
 	/**
 	 * Checks whether the value for the given property key of the given node
 	 * is one of the values array.
-	 * 
+	 *
 	 * @param node the node
 	 * @param key the property key
 	 * @param values the values to check against
 	 * @param errorBuffer the error buffer
-	 * 
+	 *
 	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringInArray(final GraphObject node, final PropertyKey<String> key, final String[] values, final ErrorBuffer errorBuffer) {
@@ -246,23 +246,23 @@ public class ValidationHelper {
 	/**
 	 * Checks whether the value for the given property key of the given node
 	 * is a valid enum value of the given type.
-	 * 
+	 *
 	 * @param node the node
 	 * @param key the property key
 	 * @param enumType the enum type to check against
 	 * @param errorBuffer the error buffer
-	 * 
+	 *
 	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringInEnum(final GraphObject node, final PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, final ErrorBuffer errorBuffer) {
-		
+
 		return checkStringInEnum(node.getType(), node, key, enumType, errorBuffer);
 	}
-	
+
 	/**
 	 * Checks whether the value of the given property key of the given node
 	 * if not null and matches the given regular expression.
-	 * 
+	 *
 	 * @param node
 	 * @param key
 	 * @param expression
@@ -273,26 +273,26 @@ public class ValidationHelper {
 
 		String value = node.getProperty(key);
 		boolean matches = value != null && value.matches(expression);
-		
+
 		if (!matches) {
 			errorBuffer.add(node.getType(), new MatchToken(key, value, expression));
 		}
-		
+
 		return matches;
-		
+
 	}
-	
+
 	/**
 	 * Checks whether the value for the given property key of the given node
 	 * is a valid enum value of the given type. In case of an error, the
 	 * type identifiery in typeString is used for the error message.
-	 * 
+	 *
 	 * @param typeString
 	 * @param node the node
 	 * @param key the property key
 	 * @param enumType the enum type to check against
 	 * @param errorBuffer the error buffer
-	 * 
+	 *
 	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringInEnum(final String typeString, final GraphObject node, final PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, final ErrorBuffer errorBuffer) {
@@ -316,12 +316,12 @@ public class ValidationHelper {
 	/**
 	 * Checks whether the value for the given property key of the given node
 	 * is null OR one of the values given in the values array.
-	 * 
+	 *
 	 * @param node the node
 	 * @param key the property key
 	 * @param values the values array
 	 * @param errorBuffer the error buffer
-	 * 
+	 *
 	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkNullOrStringInArray(final GraphObject node, final PropertyKey<String> key, String[] values, final ErrorBuffer errorBuffer) {
@@ -347,7 +347,7 @@ public class ValidationHelper {
 
 		return true;
 	}
-	
+
 	public static boolean checkIntegerInRangeError(final GraphObject node, final PropertyKey<Integer> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
@@ -388,7 +388,7 @@ public class ValidationHelper {
 				}
 
 				if (!inRange) {
-					
+
 					errorBuffer.add(type, new RangeToken(key, range));
 				}
 
@@ -396,11 +396,11 @@ public class ValidationHelper {
 			}
 
 		}
-		
+
 		// no error
 		return false;
 	}
-	
+
 	public static boolean checkLongInRangeError(final GraphObject node, final PropertyKey<Long> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
@@ -441,19 +441,19 @@ public class ValidationHelper {
 				}
 
 				if (!inRange) {
-					
+
 					errorBuffer.add(type, new RangeToken(key, range));
 				}
 
 				return !inRange;
 			}
-			
+
 		}
-		
+
 		// no error
 		return false;
 	}
-	
+
 	public static boolean checkDoubleInRangeError(final GraphObject node, final PropertyKey<Double> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
@@ -494,20 +494,20 @@ public class ValidationHelper {
 				}
 
 				if (!inRange) {
-					
+
 					errorBuffer.add(type, new RangeToken(key, range));
 				}
-				
+
 				return !inRange;
 			}
-			
+
 		}
-		
+
 		// no error
 		return false;
 	}
-	
-	public static boolean checkPropertyUniquenessError(final GraphObject object, final PropertyKey key, final ErrorBuffer errorBuffer) {
+
+	public static synchronized boolean checkPropertyUniquenessError(final GraphObject object, final PropertyKey key, final ErrorBuffer errorBuffer) {
 
 		if (key != null) {
 
@@ -519,14 +519,15 @@ public class ValidationHelper {
 			try {
 
 				if (object instanceof NodeInterface) {
-					
+
 					result = StructrApp.getInstance().nodeQuery(((NodeInterface)object).getClass()).and(key, value).getResult();
-					
+
 				} else {
-					
+
 					result = StructrApp.getInstance().relationshipQuery(((RelationshipInterface)object).getClass()).and(key, value).getResult();
-					
+
 				}
+
 				exists = !result.isEmpty();
 
 			} catch (FrameworkException fex) {
@@ -538,6 +539,7 @@ public class ValidationHelper {
 			if (exists) {
 
 				GraphObject foundNode = result.get(0);
+
 				if (foundNode.getId() != object.getId()) {
 
 					id = ((AbstractNode) result.get(0)).getUuid();

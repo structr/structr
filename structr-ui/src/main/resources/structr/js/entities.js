@@ -851,7 +851,7 @@ var _Entities = {
 				var select = $('#newPrincipal');
 				select.chosen({width: '90%'});
 				var i = 0, n = 10000;
-				Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', function (group, size) {
+				Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', false, function (group, size) {
 					select.append('<option value="' + group.id + '">' + group.name + '</option>');
 					if (++i >= size) {
 						select.trigger("chosen:updated");
@@ -859,7 +859,7 @@ var _Entities = {
 				});
 				i = 0;
 				var al2 = Structr.loaderIcon(select.parent(), {float: 'right'});
-				Command.getByType('User', n, 1, 'name', 'asc', 'id,name', function (user, size) {
+				Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function (user, size) {
 					select.append('<option value="' + user.id + '">' + user.name + '</option>');
 					if (++i >= size) {
 						select.trigger("chosen:updated");
@@ -948,7 +948,7 @@ var _Entities = {
 		var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
 		var al = Structr.loaderIcon(el, {position: 'absolute', left: '416px', top: '32px'});
 		var i = 0, n = 10000;
-		Command.getByType(type, n, 1, 'name', 'asc', 'id,name', function (result, size) {
+		Command.getByType(type, n, 1, 'name', 'asc', 'id,name', false, function (result, size) {
 			var selected = (id === result.id ? 'selected' : '');
 			selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
 			if (++i >= size) {

@@ -49,15 +49,15 @@ public class XMPPContext {
 
 	private static final Logger logger                                 = Logger.getLogger(XMPPContext.class.getName());
 	private static final Map<String, XMPPClientConnection> connections = new HashMap<>();
-	private static final Map<Class, TypeHandler> typeHandlers          = new HashMap<>();
+	private static final Map<String, TypeHandler> typeHandlers         = new HashMap<>();
 
 	static {
 
-		typeHandlers.put(Bind.class,          new BindTypeHandler());
-		typeHandlers.put(RosterPacket.class,  new RosterPacketTypeHandler());
-		typeHandlers.put(Presence.class,      new PresenceTypeHandler());
-		typeHandlers.put(Message.class,       new MessageTypeHandler());
-		typeHandlers.put(EmptyResultIQ.class, new EmptyResultIQTypeHandler());
+		typeHandlers.put(Bind.class.getName(),          new BindTypeHandler());
+		typeHandlers.put(RosterPacket.class.getName(),  new RosterPacketTypeHandler());
+		typeHandlers.put(Presence.class.getName(),      new PresenceTypeHandler());
+		typeHandlers.put(Message.class.getName(),       new MessageTypeHandler());
+		typeHandlers.put(EmptyResultIQ.class.getName(), new EmptyResultIQTypeHandler());
 	}
 
 	static {
@@ -435,14 +435,14 @@ public class XMPPContext {
 		@Override
 		public void processPacket(final Stanza packet) throws NotConnectedException {
 
-			final TypeHandler handler = typeHandlers.get(packet.getClass());
+			final TypeHandler handler = typeHandlers.get(packet.getClass().getName());
 			if (handler != null) {
 
 				handler.handle(this, packet);
 
 			} else {
 
-				logger.log(Level.WARNING, "No type handler for type {0}", packet.getClass());
+				logger.log(Level.WARNING, "No type handler for type {0}", packet.getClass().getName());
 			}
 		}
 	}

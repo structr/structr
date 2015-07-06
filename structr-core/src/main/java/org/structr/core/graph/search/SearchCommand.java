@@ -18,12 +18,11 @@
  */
 package org.structr.core.graph.search;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.TLinkedHashSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -73,7 +72,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
 	protected static final boolean PUBLIC_ONLY		  = false;
 
-	private static final Map<String, Set<String>> subtypeMapForType = new THashMap<>();
+	private static final Map<String, Set<String>> subtypeMapForType = new LinkedHashMap<>();
 	private static final Set<Character> specialCharsExact           = new LinkedHashSet<>();
 	private static final Set<Character> specialChars                = new LinkedHashSet<>();
 	private static final Set<String> baseTypes                      = new LinkedHashSet<>();
@@ -145,7 +144,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		boolean filterResults        = true;
 		boolean hasGraphSources      = false;
 		boolean hasSpatialSource     = false;
-		final Index<S> index;
 
 		if (securityContext.getUser(false) == null) {
 
@@ -270,63 +268,40 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					LayerNodeIndex spatialIndex = this.getSpatialIndex();
 					if (spatialIndex != null) {
 
-						synchronized (spatialIndex) {
+						try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
 
-							try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
+							// instantiate spatial search results without paging,
+							// as the results must be filtered by type anyway
+							intermediateResult = new NodeFactory(securityContext).instantiate(hits);
 
-								// instantiate spatial search results without paging,
-								// as the results must be filtered by type anyway
-								intermediateResult = new NodeFactory(securityContext).instantiate(hits);
-
-							}
 						}
 					}
 				}
 
 			} else if (allExactMatch) {
 
-				index = getKeywordIndex();
+//				try (final IndexHits hits = synchronizedLuceneQuery(getKeywordIndex(), queryContext)) {
+				try (final IndexHits hits = getKeywordIndex().query(queryContext)) {
 
-				synchronized (index) {
+					filterResults      = hasEmptySearchFields;
+					intermediateResult = factory.instantiate(hits);
 
-					try (final IndexHits hits = index.query(queryContext)) {
+				} catch (NumberFormatException nfe) {
 
-						// all luecene query, do not filter results
-						filterResults = hasEmptySearchFields;
-						intermediateResult = factory.instantiate(hits);
-
-					} catch (NumberFormatException nfe) {
-
-						logger.log(Level.SEVERE, "Could not sort results", nfe);
-
-						// retry without sorting
-						//queryContext.sort(null);
-						//hits = index.query(queryContext);
-					}
+					logger.log(Level.SEVERE, "Could not sort results", nfe);
 				}
 
 			} else {
 
 				// Default: Mixed or fulltext-only search: Use fulltext index
-				index = getFulltextIndex();
+				try (final IndexHits hits = getFulltextIndex().query(queryContext)) {
 
-				synchronized (index) {
+					filterResults      = hasEmptySearchFields;
+					intermediateResult = factory.instantiate(hits);
 
-					try (final IndexHits hits = index.query(queryContext)) {
+				} catch (NumberFormatException nfe) {
 
-						// all luecene query, do not filter results
-						filterResults = hasEmptySearchFields;
-						intermediateResult = factory.instantiate(hits);
-
-					} catch (NumberFormatException nfe) {
-
-						logger.log(Level.SEVERE, "Could not sort results", nfe);
-
-						// retry without sorting
-						//queryContext.sort(null);
-						//hits = index.query(queryContext);
-
-					}
+					logger.log(Level.SEVERE, "Could not sort results", nfe);
 				}
 			}
 		}
@@ -884,7 +859,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		Set<String> allSubtypes = subtypeMapForType.get(type);
 		if (allSubtypes == null || baseTypes.contains(type)) {
 
-			allSubtypes = new TLinkedHashSet<>();
+			allSubtypes = new LinkedHashSet<>();
 			subtypeMapForType.put(type, allSubtypes);
 
 			final ConfigurationProvider configuration                             = StructrApp.getConfiguration();

@@ -55,19 +55,19 @@ var _Dashboard = {
 
 		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
 		myPages.append('<div class="dashboard-info">You own the following <a class="internal-link" href="javascript:void(0)">pages</a>:</div>');
-		Command.getByType('Page', 5, 1, 'version', 'desc', null, function(p) {
+		Command.getByType('Page', 5, 1, 'version', 'desc', null, false, function(p) {
 			myPages.append('<div class="dashboard-info"><a href="/' + p.name + '" target="_blank"><img class="icon" src="icon/page.png"></a> <a href="/' + p.name + '" target="_blank">' + _Dashboard.displayName(p) + '</a>' + _Dashboard.displayVersion(p) + '</div>');
 		});
 
 		var myFiles = _Dashboard.appendBox('My Files', 'my-files');
 		myFiles.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">files</a> are:</div>');
-		Command.getByType('File', 5, 1, 'version', 'desc', null, function(f) {
+		Command.getByType('File', 5, 1, 'version', 'desc', null, false, function(f) {
 			myFiles.append('<div class="dashboard-info"><a href="/' + f.name + '" target="_blank"><img class="icon" src="' + _Files.getIcon(f) + '"></a> <a href="/' + f.id + '" target="_blank">' + _Dashboard.displayName(f) + '</a>' + _Dashboard.displayVersion(f) + '</div>');
 		});
 
 		var myImages = _Dashboard.appendBox('My Images', 'my-images');
 		myImages.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">images</a> are:</div>');
-		Command.getByType('Image', 5, 1, 'version', 'desc', null, function(i) {
+		Command.getByType('Image', 5, 1, 'version', 'desc', null, false, function(i) {
 			myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><img class="icon" src="' + _Images.getIcon(i) + '"></a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
 		});
 

@@ -77,7 +77,7 @@ import org.structr.schema.action.ActionContext;
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
-	private static final Map<Class, Object> relationshipTemplateInstanceCache = new LruMap<>(1000);
+	private static final Map<String, Object> relationshipTemplateInstanceCache = new LruMap<>(1000);
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
@@ -1049,22 +1049,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public void removeFromIndex() {
 
 		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
-
-			synchronized (index) {
-
-				index.remove(dbNode);
-			}
+			index.remove(dbNode);
 		}
 	}
 
 	public void removeFromIndex(PropertyKey key) {
 
 		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
-
-			synchronized (index) {
-
-				index.remove(dbNode, key.dbName());
-			}
+			index.remove(dbNode, key.dbName());
 		}
 	}
 
@@ -1082,13 +1074,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
 
-		R instance = (R) relationshipTemplateInstanceCache.get(type);
+		R instance = (R) relationshipTemplateInstanceCache.get(type.getName());
 		if (instance == null) {
 
 			try {
 
 				instance = type.newInstance();
-				relationshipTemplateInstanceCache.put(type, instance);
+				relationshipTemplateInstanceCache.put(type.getName(), instance);
 
 			} catch (Throwable t) {
 

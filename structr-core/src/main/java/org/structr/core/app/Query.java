@@ -51,7 +51,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public Query<T> exact(final boolean exact);
 	public Query<T> includeDeletedAndHidden();
 	public Query<T> publicOnly(final boolean publicOnly);
-	public Query<T> includeDeletedAndHidden(final boolean publicOnly);
+	public Query<T> includeDeletedAndHidden(final boolean includeDeletedAndHidden);
 	public Query<T> offsetId(final String offsetId);
 	public Query<T> uuid(final String uuid);
 	public Query<T> andType(final Class<T> type);

@@ -18,12 +18,16 @@
  */
 package org.structr.common;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.function.Function;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -103,7 +107,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 		} else {
 
-			if (externalNodeTypeName == null) {
+ 			if (externalNodeTypeName == null) {
 
 				// try to determine external node
 				// type name from configuration
@@ -130,20 +134,20 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			}
 
 			final Iterable<Label> labels = node.getLabels();
-			if (labels != null && labels.iterator().hasNext()) {
-				final Label firstLabel = labels.iterator().next();
+			if (labels != null) {
+
+				final List<String> sortedLabels = Iterables.toList(Iterables.map(new LabelExtractor(), labels));
+				Collections.sort(sortedLabels);
+
+				final String typeName = StringUtils.join(sortedLabels, "");
 
 				// return dynamic type
-				final Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(firstLabel.name());
+				final Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(typeName);
 				if (dynamicType != null) {
 
 					return dynamicType;
 				}
-
-
 			}
-
-
 		}
 
 		return getGenericNodeType();
@@ -220,5 +224,13 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
 		return StructrApp.getConfiguration().getRelationClassForCombinedType(sourceType, relType, targetType);
+	}
+
+	private class LabelExtractor implements Function<Label, String> {
+
+		@Override
+		public String apply(final Label from) throws RuntimeException {
+			return from.name();
+		}
 	}
 }

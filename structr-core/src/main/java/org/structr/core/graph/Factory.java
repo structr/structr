@@ -348,6 +348,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			SecurityContext securityContext = factoryProfile.getSecurityContext();
 
 			// In case of superuser or in public context, don't check the overall result count
+			// (SearchCommand adds visibleToPublicUsers: true in case of an anonymous user)
 			boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
 
 			if(dontCheckCount){

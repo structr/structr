@@ -130,9 +130,6 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 				tx.failure();
 
-				// release semaphores as the transaction is now finished
-				semaphore.release(synchronizationKeys);	// careful: this can be null
-
 				// create error
 				throw new FrameworkException(422, errorBuffer);
 			}
@@ -143,9 +140,6 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
-
-			// release semaphores as the transaction is now finished
-			semaphore.release(synchronizationKeys);	// careful: this can be null
 		}
 	}
 
@@ -160,6 +154,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 				modificationQueue = queues.get();
 
+				final Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
+
 				// cleanup
 				queues.remove();
 				buffers.remove();
@@ -171,6 +167,11 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 				} catch (Throwable t) {
 					t.printStackTrace();
+
+				} finally {
+
+					// release semaphores as the transaction is now finished
+					semaphore.release(synchronizationKeys);	// careful: this can be null
 				}
 
 			} else {

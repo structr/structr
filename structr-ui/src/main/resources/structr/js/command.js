@@ -63,7 +63,7 @@ var Command = {
 	 *
 	 * The optional callback function will be executed for each node in the result set.
 	 */
-	getByType: function(type, pageSize, page, sort, order, properties, callback) {
+	getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
 		var obj = {};
 		obj.command = 'GET_BY_TYPE';
 		var data = {};
@@ -73,6 +73,7 @@ var Command = {
 		if (sort) obj.sort = sort;
 		if (order) obj.order = order;
 		if (properties) data.properties = properties;
+		data.includeDeletedAndHidden = includeDeletedAndHidden;
 		obj.data = data;
 		log('getByType()', obj, callback);
 		return sendObj(obj, callback);

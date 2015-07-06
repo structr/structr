@@ -18,8 +18,6 @@
  */
 package org.structr.schema.importer;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -165,10 +165,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		final FileBasedHashLongMap<NodeInfo> nodeIdMap      = new FileBasedHashLongMap<>(userHome + File.separator + ".structrSchemaAnalyzer");
 		final GraphDatabaseService graphDb                  = app.command(GraphDatabaseCommand.class).execute();
 		final ConfigurationProvider configuration           = Services.getInstance().getConfigurationProvider();
-		final Set<NodeInfo> nodeTypes                       = new THashSet<>();
-		final Set<RelationshipInfo> relationships           = new THashSet<>();
-		final Map<String, SchemaNode> schemaNodes           = new THashMap<>();
-		final Map<String, List<TypeInfo>> typeInfoTypeMap   = new THashMap<>();
+		final Set<NodeInfo> nodeTypes                       = new LinkedHashSet<>();
+		final Set<RelationshipInfo> relationships           = new LinkedHashSet<>();
+		final Map<String, SchemaNode> schemaNodes           = new LinkedHashMap<>();
+		final Map<String, List<TypeInfo>> typeInfoTypeMap   = new LinkedHashMap<>();
 		final List<TypeInfo> reducedTypeInfos               = new LinkedList<>();
 		final List<TypeInfo> typeInfos                      = new LinkedList<>();
 		Iterator<Relationship> relIterator                  = null;
@@ -268,7 +268,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			fex.printStackTrace();
 		}
 
-		final Map<String, TypeInfo> reducedTypeInfoMap = new THashMap<>();
+		final Map<String, TypeInfo> reducedTypeInfoMap = new LinkedHashMap<>();
 
 		for (final TypeInfo info : reducedTypeInfos) {
 
@@ -342,7 +342,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		logger.log(Level.INFO, "Grouping relationships..");
 
 		// group relationships by type
-		final Map<String, List<RelationshipInfo>> relTypeInfoMap = new THashMap<>();
+		final Map<String, List<RelationshipInfo>> relTypeInfoMap = new LinkedHashMap<>();
 		for (final RelationshipInfo relInfo : relationships) {
 
 			//final String relType         = relInfo.getRelType();
@@ -571,8 +571,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 	private static List<RelationshipInfo> reduceNodeTypes(final List<RelationshipInfo> sourceList, Map<String, TypeInfo> typeInfos) {
 
 		final List<RelationshipInfo> reducedList = new ArrayList<>();
-		final Set<String> startNodeTypes         = new THashSet<>();
-		final Set<String> endNodeTypes           = new THashSet<>();
+		final Set<String> startNodeTypes         = new LinkedHashSet<>();
+		final Set<String> endNodeTypes           = new LinkedHashSet<>();
 		String relType                           = null;
 
 		for (final RelationshipInfo info : sourceList) {
@@ -639,7 +639,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		// iterate types
 		for (String type : types) {
 
-			final Set<TypeInfo> listOfTypes = new THashSet<>();
+			final Set<TypeInfo> listOfTypes = new LinkedHashSet<>();
 			String currentType              = type;
 
 			listOfSetsOfTypes.add(listOfTypes);
@@ -662,7 +662,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		}
 
 		// try to find a common element in all the sets
-		final Set<TypeInfo> intersection = new THashSet<>();
+		final Set<TypeInfo> intersection = new LinkedHashSet<>();
 		boolean first                    = true;
 
 		for (final Set<TypeInfo> set : listOfSetsOfTypes) {

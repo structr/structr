@@ -270,10 +270,12 @@ public class AdvancedPagingTest extends PagingTest {
 
 					node.setProperty(AbstractNode.name, _name);
 				}
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
+
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());
@@ -283,9 +285,12 @@ public class AdvancedPagingTest extends PagingTest {
 				int pageSize        = 10;
 				int page            = 1;
 
+
 				// now with offsetId
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(3).getUuid()).getResult();
+
+
 
 				assertEquals(7, result.size());
 				assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
@@ -295,6 +300,8 @@ public class AdvancedPagingTest extends PagingTest {
 				assertEquals("TestOne-7", result.get(4).getProperty(AbstractNode.name));
 				assertEquals("TestOne-8", result.get(5).getProperty(AbstractNode.name));
 				assertEquals("TestOne-9", result.get(6).getProperty(AbstractNode.name));
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {

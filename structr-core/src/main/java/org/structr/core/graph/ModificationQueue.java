@@ -154,8 +154,6 @@ public class ModificationQueue {
 
 	public void create(NodeInterface node) {
 		getState(node).create();
-
-//		synchronizationKeys.add(node.getType());
 	}
 
 	public <S extends NodeInterface, T extends NodeInterface> void create(final RelationshipInterface relationship) {

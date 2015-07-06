@@ -23,7 +23,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
-import gnu.trove.map.hash.THashMap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -3819,7 +3818,7 @@ public class Functions {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
-					final Map<String, Object> params = new THashMap<>();
+					final Map<String, Object> params = new LinkedHashMap<>();
 					final String query               = sources[0].toString();
 
 					// parameters?
