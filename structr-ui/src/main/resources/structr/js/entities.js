@@ -448,7 +448,7 @@ var _Entities = {
 		return content;
 	},
 	appendViews: function (entity, views, texts, tabs, activeView) {
-
+console.log(views);
 		$(views).each(function (i, view) {
 
 			var tabText = texts[view];
@@ -501,11 +501,15 @@ var _Entities = {
 
 					// reset id for each object group
 					id = entity.id;
-					var keys = Object.keys(res).sort();
+					var keys = Object.keys(res);
 					tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
 
 					var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
 					var focusAttr = 'class';
+
+					if (view === '_html_') {
+						keys.sort();
+					}
 
 					$(keys).each(function (i, key) {
 
