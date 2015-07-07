@@ -408,11 +408,8 @@ public class RenderContext extends ActionContext {
 
 						if (entity instanceof DOMNode) {
 
-							final Template template = ((DOMNode) entity).getClosestTemplate(getPage());
-							if (template != null) {
+							return ((DOMNode) entity).getChildNodes();
 
-								return template.getChildNodes();
-							}
 						}
 						break;
 
