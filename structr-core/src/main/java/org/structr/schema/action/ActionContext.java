@@ -242,9 +242,13 @@ public class ActionContext {
 					case "element":
 					case "this":
 						return entity;
+
+					case "locale":
+						return locale != null ? locale.toString() : null;
 				}
 
 			}
+
 		}
 
 		if (value == null && defaultValue != null) {

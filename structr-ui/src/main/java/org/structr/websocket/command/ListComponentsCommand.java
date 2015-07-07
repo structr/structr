@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command;
 
+import java.text.Collator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -99,6 +100,34 @@ public class ListComponentsCommand extends AbstractCommand {
 				}
 
 			}
+
+			// Sort the components by name
+			Collections.sort(filteredResults, new Comparator<AbstractNode>() {
+				@Override
+				public int compare(AbstractNode node1, AbstractNode node2) {
+					final String nameNode1 = node1.getProperty(AbstractNode.name);
+					final String nameNode2 = node2.getProperty(AbstractNode.name);
+
+					if (nameNode1 != null && nameNode2 != null) {
+
+						return nameNode1.compareTo(nameNode2);
+
+					} else if (nameNode1 == null && nameNode2 == null) {
+
+						return 0;
+
+					} else if (nameNode1 == null) {
+
+						return -1;
+
+					} else {
+
+						return 1;
+
+					}
+
+				}
+			});
 
 			// save raw result count
 			int resultCountBeforePaging = filteredResults.size();

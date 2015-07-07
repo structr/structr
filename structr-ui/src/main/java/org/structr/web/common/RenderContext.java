@@ -408,11 +408,8 @@ public class RenderContext extends ActionContext {
 
 						if (entity instanceof DOMNode) {
 
-							final Template template = ((DOMNode) entity).getClosestTemplate(getPage());
-							if (template != null) {
+							return ((DOMNode) entity).getChildNodes();
 
-								return template.getChildNodes();
-							}
 						}
 						break;
 
@@ -437,9 +434,6 @@ public class RenderContext extends ActionContext {
 
 					case "path_info":
 						return securityContext.getRequest().getPathInfo();
-
-					case "locale":
-						return locale != null ? locale.toString() : null;
 
 					case "result_count":
 					case "result_size":
