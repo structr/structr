@@ -506,14 +506,26 @@ public class UiAuthenticator implements Authenticator {
 
 				if (session.getId().equals(requestedSessionId)) {
 
-					sessionValid = !AuthHelper.isSessionTimedOut(session);
+					if (AuthHelper.isSessionTimedOut(session)) {
 
+						sessionValid = false;
+
+						// remove invalid session ID from user
+						invalidateSessionId(requestedSessionId);
+
+					} else {
+
+						sessionValid = true;
+					}
 				}
 
 			} else {
 
 				// No existing session, create new
 				session = AuthHelper.newSession(request);
+
+				// remove invalid session ID from user
+				invalidateSessionId(requestedSessionId);
 
 			}
 
@@ -625,4 +637,14 @@ public class UiAuthenticator implements Authenticator {
 
 	}
 
+	// ----- private methods -----
+	private void invalidateSessionId(final String sessionId) {
+
+		// find user with given session ID and remove ID from list of valid sessions
+		final Principal userWithInvalidSession = AuthHelper.getPrincipalForSessionId(sessionId);
+		if (userWithInvalidSession != null) {
+
+			userWithInvalidSession.removeSessionId(sessionId);
+		}
+	}
 }
