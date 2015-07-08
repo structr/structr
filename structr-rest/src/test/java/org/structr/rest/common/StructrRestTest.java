@@ -244,6 +244,28 @@ public class StructrRestTest extends TestCase {
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
 	}
 
+	protected String createEntityAsSuperUser(String resource, String... body) {
+
+		StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		final StructrConf config = Services.getBaseConfiguration();
+		
+		return getUuidFromLocation(
+			RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.header("X-User", config.getProperty(Services.SUPERUSER_USERNAME))
+			.header("X-Password", config.getProperty(Services.SUPERUSER_PASSWORD))
+			.body(buf.toString())
+			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	/**
