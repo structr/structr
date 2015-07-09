@@ -193,11 +193,12 @@ input[type="checkbox"] {
     border: 1px solid #333;
     border-radius: 3px;
     background-color: #81ce25;
+    cursor: default;
 }
 
 .menu ul li a.disabled {
    /*pointer-events: none;*/
-   cursor: wait;
+   cursor: default;
 }
 
 img.disabled {
@@ -2249,4 +2250,18 @@ input.bitmask {
     background: #f1f1f1;
     border: 1px solid #d1d1d1;
     opacity: 0.95;
+}
+
+#structr-loading-spinner {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 99999;
+}
+
+#structr-loading-spinner img {
+    display: block;
+    margin: 100px auto;
 }

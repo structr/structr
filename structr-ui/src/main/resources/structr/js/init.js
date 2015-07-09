@@ -286,12 +286,11 @@ var Structr = {
 		}
 	},
 	refreshUi: function() {
+		showLoadingSpinner();
+
 		if (user) {
 			localStorage.setItem(userKey, user);
 		}
-		$.unblockUI({
-			fadeOut: 25
-		});
 		Structr.clearMain();
 		$('#logout_').html('Logout <span class="username">' + user + '</span>');
 		Structr.loadInitialModule();
@@ -301,6 +300,7 @@ var Structr = {
 		if (dialogData) {
 			Structr.restoreDialog(dialogData);
 		}
+		hideLoadingSpinner();
 	},
 	startPing: function() {
 		log('Starting PING');
@@ -766,15 +766,17 @@ var Structr = {
 	blockMenu: function() {
 		menuBlocked = true;
 		$('#menu > ul > li > a').attr('disabled', 'disabled').addClass('disabled');
-		
 	},
-	unblockMenu: function() {
-		menuBlocked = false;
-		$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
+	unblockMenu: function(ms) {
+		var ms = ms || 0;
+		// Wait ms before releasing the main menu	
+		window.setTimeout(function() {
+			menuBlocked = false;
+			$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
+		}, ms);
 	},
 	activateModule: function(event, name) {
 		if (menuBlocked) return;
-		Structr.blockMenu();
 		event.stopPropagation();
 		if (localStorage.getItem(lastMenuEntryKey) !== name || main.children().length === 0) {
 			Structr.clearMain();
@@ -783,11 +785,15 @@ var Structr = {
 		}
 	},
 	activateMenuEntry: function(name) {
+		Structr.blockMenu();
+		var menuEntry = $('#' + name + '_');
+		if (menuEntry.hasClass('active')) {
+			return false;
+		}
 		lastMenuEntry = name;
 		$('.menu a').each(function(i, v) {
 			$(this).removeClass('active').addClass('inactive');
 		});
-		var menuEntry = $('#' + name + '_');
 		menuEntry.addClass('active').removeClass('inactive');
 		$('#title').text('Structr ' + menuEntry.text());
 		window.location.hash = lastMenuEntry;
@@ -1554,3 +1560,27 @@ $(window).unload(function() {
 	localStorage.removeItem(dialogDataKey);
 	Structr.saveLocalStorage();
 });
+
+function showLoadingSpinner() {
+	var msg = '<div id="structr-loading-spinner"><img src="/structr/img/ajax-loader.gif"></div>';
+	$.blockUI.defaults.overlayCSS.opacity = .2;
+	$.blockUI.defaults.applyPlatformOpacityRules = false;
+	$.blockUI({
+		fadeIn: 0,
+		fadeOut: 0,
+		message: msg,
+		forceInput: true,
+		css: {
+			border: 'none',
+			backgroundColor: 'transparent'
+		}
+	});
+//	main.append('<div id="structr-loading-spinner"><img src="/structr/img/ajax-loader.gif"></div>');
+}
+
+function hideLoadingSpinner() {
+	$.unblockUI({
+		fadeOut: 0
+	});
+//	main.remove('#structr-loading-spinner');
+}

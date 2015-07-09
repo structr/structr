@@ -310,41 +310,12 @@ function fitStringToWidth(str, width, className) {
 	document.body.removeChild(span);
 	return result;
 }
-//
-//function getShortLink(str,len,url)
-//{
-//    return '<a title="' + str.replace("\"","&#34;") + '" href="'+ url +'">' + fitStringToSize(str,len) + '<\/a>';
-//}
-//
-//function getShortAbbr(str,len)
-//{
-//    return '<abbr title="' + str.replace("\"","&#34;") + '">' + fitStringToSize(str,len) + '<\/abbr>';
-//}
-
-function showAjaxLoader(el) {
-
-	//    if (el) {
-	//        el.after($('#ajaxLoader'));
-	//    }
-
-	$('#ajaxLoader').show();
-}
-
-function hideAjaxLoader() {
-	$('#ajaxLoader').hide();
-}
 
 function formatValue(value) {
-
-	//console.log('formatValue: ', value);
 
 	if (value === undefined || value === null) {
 		return '';
 	}
-
-	//console.log('is String? ', value.constructor === String);
-	//console.log('is Object? ', value.constructor === Object);
-	//console.log('is Array? ', value.constructor === Array);
 
 	if (value.constructor === Object) {
 
