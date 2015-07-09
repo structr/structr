@@ -80,8 +80,7 @@ var _Dashboard = {
 			Structr.resize();
 		});
 
-		// Wait 1 second before releasing the main menu
-		window.setTimeout(function() { Structr.unblockMenu(); }, 1000);
+		Structr.unblockMenu(100);
 
 	},
 	appendBox: function(heading, id) {
