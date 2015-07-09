@@ -1981,7 +1981,9 @@ var _Crud = {
 
 					var objects = _Crud.extractIds(data.result[key]);
 					var relatedId = (typeof relatedObj === 'object' ? relatedObj.id : relatedObj);
-					objects.splice(objects.indexOf(relatedId), 1);
+					objects = objects.filter(function(obj) {
+						return obj.id !== relatedId;
+					});
 					var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
 					_Crud.crudUpdateObj(id, json, function() {
 						_Crud.crudRefresh(id, key);
