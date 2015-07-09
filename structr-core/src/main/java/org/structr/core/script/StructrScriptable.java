@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -89,7 +90,7 @@ public class StructrScriptable extends ScriptableObject {
 
 						try {
 
-							return wrap(thisObject, null, actionContext.evaluate(entity, parameters[0].toString(), null, null));
+							return wrap(context, thisObject, null, actionContext.evaluate(entity, parameters[0].toString(), null, null));
 
 						} catch (FrameworkException ex) {
 							exception = ex;
@@ -150,13 +151,13 @@ public class StructrScriptable extends ScriptableObject {
 
 		if ("this".equals(name)) {
 
-			return wrap(start, null, entity);
+			return wrap(null, start, null, entity);
 
 		}
 
 		if ("me".equals(name)) {
 
-			return wrap(start, null, actionContext.getSecurityContext().getUser(false));
+			return wrap(null, start, null, actionContext.getSecurityContext().getUser(false));
 
 		}
 
@@ -265,14 +266,14 @@ public class StructrScriptable extends ScriptableObject {
 	}
 
 	// ----- private methods -----
-	private Object wrap(final Scriptable scope, final String key, final Object value) {
+	private Object wrap(final Context context, final Scriptable scope, final String key, final Object value) {
 
 		if (value instanceof Collection) {
-			return new StructrArray(scope, key, wrapCollection(scope, key, (Collection)value));
+			return new StructrArray(scope, key, wrapCollection(context, scope, key, (Collection)value));
 		}
 
 		if (value instanceof GraphObject) {
-			return new GraphObjectWrapper(scope, (GraphObject)value);
+			return new GraphObjectWrapper(context, scope, (GraphObject)value);
 		}
 
 		if (value instanceof HttpServletRequest) {
@@ -284,17 +285,22 @@ public class StructrScriptable extends ScriptableObject {
 			return ((Enum)value).name();
 		}
 
+		if (value instanceof Date) {
+
+			return context.newObject(scope, "Date", new Object[] {((Date)value).getTime()});
+		}
+
 		return value;
 	}
 
-	private Object[] wrapCollection(final Scriptable scope, final String key, final Collection collection) {
+	private Object[] wrapCollection(final Context context, final Scriptable scope, final String key, final Collection collection) {
 
 		final int size       = collection.size();
 		final Object[] array = new Object[size];
 		int i                = 0;
 
 		for (final Object obj : collection) {
-			array[i++] = wrap(scope, key, obj);
+			array[i++] = wrap(context, scope, key, obj);
 		}
 
 		return array;
@@ -348,7 +354,7 @@ public class StructrScriptable extends ScriptableObject {
 					unwrappedParameters[i++] = unwrap(param);
 				}
 
-				return wrap(scope, null, function.apply(actionContext, entity, unwrappedParameters));
+				return wrap(context, scope, null, function.apply(actionContext, entity, unwrappedParameters));
 
 			} catch (FrameworkException fex) {
 				exception = fex;
@@ -446,12 +452,14 @@ public class StructrScriptable extends ScriptableObject {
 
 	public class GraphObjectWrapper implements Scriptable, Wrapper {
 
+		private Context context      = null;
 		private Scriptable prototype = null;
 		private Scriptable scope     = null;
 		private GraphObject obj      = null;
 
-		public GraphObjectWrapper(final Scriptable scope, final GraphObject obj) {
+		public GraphObjectWrapper(final Context context, final Scriptable scope, final GraphObject obj) {
 
+			this.context = context;
 			this.scope = scope;
 			this.obj   = obj;
 		}
@@ -473,11 +481,11 @@ public class StructrScriptable extends ScriptableObject {
 			final PropertyKey key = getKey(name);
 			if (key != null) {
 
-				return wrap(this, name, obj.getProperty(key));
+				return wrap(context, this, name, obj.getProperty(key));
 			}
 
 			// second try, methods
-			final Object value = wrap(this, null, checkEntityMethods(name));
+			final Object value = wrap(context, this, null, checkEntityMethods(name));
 			if (value != null) {
 
 				return value;
@@ -492,7 +500,7 @@ public class StructrScriptable extends ScriptableObject {
 
 			// default: direct evaluation of object
 			try {
-				return wrap(this, null, obj.evaluate(actionContext.getSecurityContext(), name, null));
+				return wrap(context, this, null, obj.evaluate(actionContext.getSecurityContext(), name, null));
 
 			} catch (FrameworkException fex) {
 				exception = fex;
