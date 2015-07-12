@@ -448,7 +448,7 @@ var _Entities = {
 		return content;
 	},
 	appendViews: function (entity, views, texts, tabs, activeView) {
-console.log(views);
+
 		$(views).each(function (i, view) {
 
 			var tabText = texts[view];

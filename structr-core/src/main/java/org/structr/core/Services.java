@@ -20,6 +20,7 @@ package org.structr.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -644,13 +645,17 @@ public class Services {
 				try {
 
 					// try to load class and find source code origin
-					final Class candidate = Class.forName(value.toString());
+					final Class candidate = Class.forName(value);
 					if (!candidate.getName().startsWith("org.structr")) {
 
 						final String codeLocation = candidate.getProtectionDomain().getCodeSource().getLocation().toString();
 						if (codeLocation.startsWith("file:") && codeLocation.endsWith(".jar") || codeLocation.endsWith(".war")) {
 
-							resources.add(codeLocation.substring(5));
+							final File file = new File(URI.create(codeLocation));
+							if (file.exists()) {
+
+								resources.add(file.getAbsolutePath());
+							}
 						}
 					}
 
