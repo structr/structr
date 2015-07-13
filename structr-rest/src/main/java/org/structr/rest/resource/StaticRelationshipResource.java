@@ -196,7 +196,7 @@ public class StaticRelationshipResource extends SortableResource {
 					// Now add new relationships for any new id: This should be the rest of the property set
 					for (final Object obj : propertySet.values()) {
 
-						nodes.add(app.get(obj.toString()));
+						nodes.add(app.getNodeById(obj.toString()));
 					}
 
 					// set property on source node

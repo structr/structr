@@ -280,7 +280,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 				try {
 
-					final GraphObject node = StructrApp.getInstance().get(uuid);
+					final GraphObject node = StructrApp.getInstance().getNodeById(uuid);
 
 					if (node == null) {
 

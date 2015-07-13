@@ -107,7 +107,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 
 					// fetch property key for "id", may be different for AbstractNode and AbstractRelationship!
 					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), GraphObject.id.dbName());
-					result = new Result(app.get(obj.getProperty(idProperty)), false);
+					result = new Result(app.getNodeById(obj.getProperty(idProperty)), false);
 				}
 
 			} else {

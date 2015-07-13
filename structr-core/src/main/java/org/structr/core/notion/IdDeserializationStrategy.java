@@ -70,7 +70,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				// If property map contains the uuid, search only for uuid
 				if (map.containsKey(GraphObject.id)) {
 
-					relatedNode = (T) app.get(map.get(GraphObject.id));
+					relatedNode = (T) app.getNodeById(map.get(GraphObject.id));
 
 					if (relatedNode != null && !type.isAssignableFrom(relatedNode.getClass())) {
 						throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
@@ -165,14 +165,14 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 			} else {
 
 				// interpret source as a raw ID string and fetch entity
-				final GraphObject obj = app.get(source.toString());
-				
+				final GraphObject obj = app.getNodeById(source.toString());
+
 				if (obj != null && !type.isAssignableFrom(obj.getClass())) {
 					throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
 				}
-				
+
 				return (T) obj;
-				
+
 			}
 		}
 

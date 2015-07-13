@@ -103,7 +103,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.id)) {
 
-				result = new Result(app.get(attributes.get(GraphObject.id)), false);
+				result = new Result(app.getNodeById(attributes.get(GraphObject.id)), false);
 
 			} else {
 

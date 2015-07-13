@@ -78,7 +78,6 @@
                 <version>2.18.1</version>
                 <configuration>
                     <argLine>-Xmx1g -XX:MaxPermSize=256m -Duser.timezone=UTC</argLine>
-                    <reuseForks>false</reuseForks>
                 </configuration>
             </plugin>
             <plugin>
