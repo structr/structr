@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.Collections;
 import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.SecurityContext;
@@ -30,7 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.helpers.collection.LruMap;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -45,7 +48,8 @@ import org.structr.core.app.StructrApp;
  */
 public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {
 
-	private static final Logger logger = Logger.getLogger(RelationshipFactory.class.getName());
+	private static final Map<Long, Class> idTypeMap = Collections.synchronizedMap(new LruMap<Long, Class>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_REL_CACHE_SIZE), 10000)));
+	private static final Logger logger              = Logger.getLogger(RelationshipFactory.class.getName());
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 	public RelationshipFactory(final SecurityContext securityContext) {
@@ -63,10 +67,25 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	public RelationshipFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId) {
 		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 	}
-	
+
 	@Override
 	public T instantiate(final Relationship relationship) throws FrameworkException {
-		return (T) instantiateWithType(relationship, factoryDefinition.determineRelationshipType(relationship), false);
+
+		if (TransactionCommand.isDeleted(relationship)) {
+			return (T) instantiateWithType(relationship, null, false);
+		}
+
+		Class type = idTypeMap.get(relationship.getId());
+		if (type == null) {
+
+			type = factoryDefinition.determineRelationshipType(relationship);
+			if (type != null) {
+
+				idTypeMap.put(relationship.getId(), type);
+			}
+		}
+
+		return (T) instantiateWithType(relationship, type, false);
 	}
 
 	@Override
@@ -96,12 +115,15 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		newRel.init(securityContext, relationship, relClass);
 
-		// try to set correct type property on relationship entity
-		final String type = newRel.getProperty(GraphObject.type);
-		if (type == null || (type != null && !type.equals(relClass.getSimpleName()))) {
+		if (!TransactionCommand.isDeleted(relationship)) {
 
-			newRel.unlockReadOnlyPropertiesOnce();
-			newRel.setProperty(GraphObject.type, relClass.getSimpleName());
+			// try to set correct type property on relationship entity
+			final String type = newRel.getProperty(GraphObject.type);
+			if (type == null || (type != null && !type.equals(relClass.getSimpleName()))) {
+
+				newRel.unlockReadOnlyPropertiesOnce();
+				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
+			}
 		}
 
 		newRel.onRelationshipInstantiation();
@@ -184,5 +206,9 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		return newRel;
 
+	}
+
+	public static void invalidateCache() {
+		idTypeMap.clear();
 	}
 }

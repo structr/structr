@@ -113,6 +113,8 @@ public class Services {
 	public static final String APPLICATION_SESSION_TIMEOUT          = "application.session.timeout";
 	public static final String APPLICATION_SECURITY_OWNERLESS_NODES = "application.security.ownerless.nodes";
 	public static final String APPLICATION_UUID_CACHE_SIZE          = "application.cache.uuid.size";
+	public static final String APPLICATION_NODE_CACHE_SIZE          = "application.cache.node.size";
+	public static final String APPLICATION_REL_CACHE_SIZE           = "application.cache.relationship.size";
 	public static final String SNAPSHOT_PATH                        = "snapshot.path";
 	public static final String WEBSOCKET_FRONTEND_ACCESS            = "WebSocketServlet.frontendAccess";
 

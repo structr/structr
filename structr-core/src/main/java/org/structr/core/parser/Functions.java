@@ -73,6 +73,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.mail.EmailException;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.MailHelper;
 import org.structr.common.Permission;
@@ -94,6 +95,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
@@ -230,6 +232,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${Structr.cypher(query)}. Example ${Structr.cypher('MATCH (n) RETURN n')}";
 
 	// Special functions for relationships
+	public static final String ERROR_MESSAGE_INSTANTIATE = "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
 	public static final String ERROR_MESSAGE_INCOMING = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_INCOMING_JS = "Usage: ${Structr.incoming(entity [, relType])}. Example: ${Structr.incoming(Structr.this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
@@ -3100,6 +3103,23 @@ public class Functions {
 
 						return "Error: entity is not a node.";
 					}
+				}
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_INCOMING_JS : ERROR_MESSAGE_INCOMING);
+			}
+		});
+		functions.put("instantiate", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					return new NodeFactory<>(ctx.getSecurityContext()).instantiate((Node)sources[0]);
 				}
 				return "";
 			}

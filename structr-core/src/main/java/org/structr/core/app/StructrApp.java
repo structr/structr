@@ -169,13 +169,11 @@ public class StructrApp implements App {
 				nodeUuidMap.put(uuid, entity.getId());
 				return (NodeInterface)entity;
 			}
-		}
-
-		if (nodeId != null) {
+			
+		} else {
 
 			try {
-				final GraphDatabaseService graphDb = getGraphDatabaseService();
-				return nodeFactory.instantiate(graphDb.getNodeById(nodeId));
+				return nodeFactory.instantiate(getGraphDatabaseService().getNodeById(nodeId));
 
 			} catch (NotFoundException ignore) {
 				nodeUuidMap.remove(uuid);
@@ -197,19 +195,15 @@ public class StructrApp implements App {
 				relUuidMap.put(uuid, entity.getId());
 				return (RelationshipInterface)entity;
 			}
-		}
-
-		if (id != null) {
-
-			try {
-				final GraphDatabaseService graphDb = getGraphDatabaseService();
-				return relFactory.instantiate(graphDb.getRelationshipById(id));
-
-			} catch (NotFoundException ignore) { }
 
 		} else {
 
-			relUuidMap.remove(uuid);
+			try {
+				return relFactory.instantiate(getGraphDatabaseService().getRelationshipById(id));
+
+			} catch (NotFoundException ignore) {
+				relUuidMap.remove(uuid);
+			}
 		}
 
 		return null;
