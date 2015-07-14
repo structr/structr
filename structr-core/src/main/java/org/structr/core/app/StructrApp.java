@@ -169,7 +169,7 @@ public class StructrApp implements App {
 				nodeUuidMap.put(uuid, entity.getId());
 				return (NodeInterface)entity;
 			}
-			
+
 		} else {
 
 			try {
@@ -214,7 +214,7 @@ public class StructrApp implements App {
 
 		final GraphObject entity = get(uuid);
 
-		if (type.isAssignableFrom(entity.getClass())) {
+		if (type != null && entity != null && type.isAssignableFrom(entity.getClass())) {
 
 			return (T) entity;
 
