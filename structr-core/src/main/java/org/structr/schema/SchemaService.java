@@ -42,6 +42,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.schema.compiler.NodeExtender;
@@ -139,6 +141,8 @@ public class SchemaService implements Service {
 
 					// prevent inheritance map from leaking
 					SearchCommand.clearInheritanceMap();
+					NodeFactory.invalidateCache();
+					RelationshipFactory.invalidateCache();
 
 					success = !errorBuffer.hasError();
 

@@ -657,7 +657,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeInterface newStartNode = (NodeInterface)app.get(startNodeId);
+		final NodeInterface newStartNode = app.getNodeById(startNodeId);
 		final NodeInterface endNode      = getTargetNode();
 		final Class relationType         = getClass();
 		final PropertyMap _props         = getProperties();
@@ -684,7 +684,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeInterface newTargetNode = (NodeInterface)app.get(targetIdNode);
+		final NodeInterface newTargetNode = app.getNodeById(targetIdNode);
 		final NodeInterface startNode     = getSourceNode();
 		final Class relationType          = getClass();
 		final PropertyMap _props          = getProperties();

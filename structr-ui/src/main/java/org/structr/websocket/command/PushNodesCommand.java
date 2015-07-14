@@ -62,7 +62,7 @@ public class PushNodesCommand extends AbstractCommand {
 			final App app    = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				final GraphObject root = app.get(sourceId);
+				final GraphObject root = app.getNodeById(sourceId);
 				if (root != null) {
 
 					boolean recursive = false;

@@ -65,14 +65,12 @@ public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T
 
 				// UUID is globally unique
 				if (key.equals(GraphObject.id)) {
-					
-					
+
 					//return true; // trust uniqueness
-					existingNode = StructrApp.getInstance().get(value.toString());
-					//existingNode = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getFirst();
-					
+					existingNode = StructrApp.getInstance().getNodeById(value.toString());
+
 				} else {
-					
+
 					existingNode = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getFirst();
 				}
 
@@ -98,7 +96,7 @@ public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T
 		return true;
 
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return true;

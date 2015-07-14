@@ -44,7 +44,6 @@ import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.LocaleUtils;
@@ -126,7 +125,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		String customResponseHeadersString = Services.getBaseConfiguration().getProperty(CUSTOM_RESPONSE_HEADERS);
 
 		if (StringUtils.isBlank(customResponseHeadersString)) {
-			
+
 			customResponseHeadersString = defaultCustomResponseHeaders;
 		}
 
@@ -166,7 +165,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
-			
+
 			app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
@@ -811,7 +810,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			logger.log(Level.FINE, "Requested id: {0}", uuid);
 
-			return (AbstractNode) StructrApp.getInstance(securityContext).get(uuid);
+			return (AbstractNode) StructrApp.getInstance(securityContext).getNodeById(uuid);
 		}
 
 		return null;
@@ -1142,7 +1141,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
 		}
-		
+
 		final int numberOfParts = PathHelper.getParts(path).length;
 
 		if (numberOfParts > 0) {

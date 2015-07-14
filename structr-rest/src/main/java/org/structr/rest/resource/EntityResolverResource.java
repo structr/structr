@@ -60,7 +60,7 @@ public class EntityResolverResource extends SortableResource {
 
 				String id = (String)o;
 
-				AbstractNode node = (AbstractNode) StructrApp.getInstance().get(id);
+				AbstractNode node = (AbstractNode) StructrApp.getInstance().getNodeById(id);
 				if (node != null) {
 					result.addContent(node);
 				}

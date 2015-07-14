@@ -25,12 +25,14 @@ import org.structr.common.error.FrameworkException;
 
 
 import java.util.*;
-import java.util.logging.Logger;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.helpers.collection.LruMap;
 import org.structr.common.AccessControllable;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.relationship.NodeHasLocation;
 
 //~--- classes ----------------------------------------------------------------
@@ -38,12 +40,14 @@ import org.structr.core.entity.relationship.NodeHasLocation;
 /**
  * A factory for structr nodes.
  *
+ * @param <T>
+ *
  * @author Christian Morgner
  * @author Axel Morgner
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
-	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
+	private static final Map<Long, Class> idTypeMap = Collections.synchronizedMap(new LruMap<Long, Class>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_NODE_CACHE_SIZE), 10000)));
 
 	public NodeFactory(final SecurityContext securityContext) {
 		super(securityContext);
@@ -63,7 +67,22 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	@Override
 	public T instantiate(final Node node) throws FrameworkException {
-		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), false);
+
+		if (TransactionCommand.isDeleted(node)) {
+			return (T)instantiateWithType(node, null, false);
+		}
+
+		Class type = idTypeMap.get(node.getId());
+		if (type == null) {
+
+			type = factoryDefinition.determineNodeType(node);
+			if (type != null && !GenericNode.class.equals(type)) {
+
+				idTypeMap.put(node.getId(), type);
+			}
+		}
+
+		return (T) instantiateWithType(node, type, false);
 	}
 
 	@Override
@@ -139,6 +158,10 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 		return newNode;
 
+	}
+
+	public static void invalidateCache() {
+		idTypeMap.clear();
 	}
 
 	private Result resultFromSpatialRecords(final SpatialRecordHits spatialRecordHits) throws FrameworkException {

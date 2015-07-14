@@ -84,47 +84,55 @@ public class CypherQueryCommand extends NodeServiceCommand {
 		while (result.hasNext()) {
 
 			final Map<String, Object> row = result.next();
-			GraphObjectMap dummyObject    = null;
-
 			for (Entry<String, Object> entry : row.entrySet()) {
 
 				String key   = entry.getKey();
 				Object value = entry.getValue();
 
-				if (value instanceof Node) {
-
-					NodeInterface node = nodeFactory.instantiate((Node) value, includeHiddenAndDeleted, publicOnly);
-
-					if (node != null) {
-
-						resultList.add(node);
-					}
-
-				} else if (value instanceof Relationship) {
-
-					RelationshipInterface rel = relFactory.instantiate((Relationship) value);
-
-					if (rel != null) {
-
-						resultList.add(rel);
-					}
-
-				} else {
-
-					if (dummyObject == null) {
-
-						dummyObject = new GraphObjectMap();
-						resultList.add(dummyObject);
-					}
-
-					dummyObject.setProperty(new GenericProperty(key), value);
-				}
-
+				resultList.add((GraphObject)handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0));
 			}
 
 		}
 
 		return resultList;
+	}
+
+	final Object handleObject(final NodeFactory nodeFactory, final RelationshipFactory relFactory, final String key, final Object value, boolean includeHiddenAndDeleted, boolean publicOnly, int level) throws FrameworkException {
+
+		GraphObject graphObject = null;
+
+		if (value instanceof Node) {
+
+			graphObject = nodeFactory.instantiate((Node) value, includeHiddenAndDeleted, publicOnly);
+
+		} else if (value instanceof Relationship) {
+
+			graphObject = relFactory.instantiate((Relationship) value);
+
+		} else if (value instanceof Map) {
+
+			final Map<String, Object> valueMap = (Map<String, Object>)value;
+			graphObject = new GraphObjectMap();
+
+			for (final Entry<String, Object> valueEntry : valueMap.entrySet()) {
+
+				final String valueKey   = valueEntry.getKey();
+				final Object valueValue = valueEntry.getValue();
+
+				graphObject.setProperty(new GenericProperty(valueKey), handleObject(nodeFactory, relFactory, valueKey, valueValue, includeHiddenAndDeleted, publicOnly, level + 1));
+			}
+
+		} else if (level == 0) {
+
+			graphObject = new GraphObjectMap();
+			graphObject.setProperty(new GenericProperty(key), value);
+
+		} else {
+
+			return value;
+		}
+
+		return graphObject;
 	}
 
 }

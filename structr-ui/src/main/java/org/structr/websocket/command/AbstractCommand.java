@@ -142,7 +142,7 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = (AbstractNode) app.get(id);
+			final AbstractNode node = (AbstractNode) app.getNodeById(id);
 
 			tx.success();
 
@@ -173,7 +173,7 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractRelationship rel = (AbstractRelationship) app.get(id);
+			final AbstractRelationship rel = (AbstractRelationship) app.getRelationshipById(id);
 
 			tx.success();
 

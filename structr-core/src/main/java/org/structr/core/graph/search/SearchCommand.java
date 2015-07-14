@@ -132,6 +132,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public abstract Index<S> getFulltextIndex();
 	public abstract Index<S> getKeywordIndex();
 	public abstract LayerNodeIndex getSpatialIndex();
+	public abstract boolean isRelationshipSearch();
 
 	private Result<T> doSearch() throws FrameworkException {
 
@@ -149,6 +150,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, BooleanClause.Occur.MUST, true));
 
+		}
+
+		// special handling of deleted and hidden flags
+		if (!includeDeletedAndHidden && !isRelationshipSearch()) {
+
+			rootGroup.add(new PropertySearchAttribute(NodeInterface.hidden,  true, BooleanClause.Occur.MUST_NOT, true));
+			rootGroup.add(new PropertySearchAttribute(NodeInterface.deleted, true, BooleanClause.Occur.MUST_NOT, true));
 		}
 
 		// At this point, all search attributes are ready

@@ -231,12 +231,12 @@ public class StructrTest extends TestCase {
 	}
 
 	protected void assertNodeExists(final String nodeId) throws FrameworkException {
-		assertNotNull(app.get(nodeId));
+		assertNotNull(app.getNodeById(nodeId));
 
 	}
 
 	protected void assertNodeNotFound(final String nodeId) throws FrameworkException {
-		assertNull(app.get(nodeId));
+		assertNull(app.getNodeById(nodeId));
 	}
 
 	protected <T> List<T> toList(T... elements) {

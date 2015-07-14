@@ -72,6 +72,11 @@ public class Result<T extends GraphObject> {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "Result(" + (results != null ? results.size() : 0) + ")";
+	}
+
 	public T get(final int i) {
 		return results.get(i);
 	}

@@ -21,6 +21,7 @@ package org.structr.core.app;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +30,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.helpers.collection.LruMap;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.impl.core.GraphProperties;
 import org.neo4j.kernel.impl.core.NodeManager;
@@ -50,8 +53,10 @@ import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -66,13 +71,21 @@ import org.structr.schema.ConfigurationProvider;
  */
 public class StructrApp implements App {
 
-	private static final Logger logger           = Logger.getLogger(StructrApp.class.getName());
-	private static final URI schemaBaseURI       = URI.create("https://structr.org/v1.1/#");
-	private static final Object globalConfigLock = new Object();
-	private static GraphProperties config        = null;
-	private SecurityContext securityContext      = null;
+	private static final int cacheSize                 = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 10000);
+	private static final Map<String, Long> nodeUuidMap = Collections.synchronizedMap(new LruMap<String, Long>(cacheSize));
+	private static final Map<String, Long> relUuidMap  = Collections.synchronizedMap(new LruMap<String, Long>(cacheSize));
+	private static final Logger logger                 = Logger.getLogger(StructrApp.class.getName());
+	private static final URI schemaBaseURI             = URI.create("https://structr.org/v1.1/#");
+	private static final Object globalConfigLock       = new Object();
+	private static GraphProperties config              = null;
+	private GraphDatabaseService graphDb               = null;
+	private SecurityContext securityContext            = null;
+	private RelationshipFactory relFactory             = null;
+	private NodeFactory nodeFactory                    = null;
 
 	private StructrApp(final SecurityContext securityContext) {
+		this.relFactory      = new RelationshipFactory(securityContext);
+		this.nodeFactory     = new NodeFactory(securityContext);
 		this.securityContext = securityContext;
 	}
 
@@ -129,26 +142,84 @@ public class StructrApp implements App {
 	@Override
 	public GraphObject get(final String uuid) throws FrameworkException {
 
-		GraphObject entity = nodeQuery().uuid(uuid).includeDeletedAndHidden().getFirst();
-		if (entity == null) {
+		final NodeInterface node = getNodeById(uuid);
+		if (node != null) {
 
-			entity = relationshipQuery().uuid(uuid).getFirst();
+			return node;
 		}
 
-		return entity;
+		final RelationshipInterface rel = getRelationshipById(uuid);
+		if (rel != null) {
+
+			return rel;
+		}
+
+		return null;
+	}
+
+	@Override
+	public NodeInterface getNodeById(final String uuid) throws FrameworkException {
+
+		final Long nodeId = nodeUuidMap.get(uuid);
+		if (nodeId == null) {
+
+			GraphObject entity = nodeQuery().uuid(uuid).includeDeletedAndHidden().getFirst();
+			if (entity != null && uuid.equals(entity.getUuid())) {
+
+				nodeUuidMap.put(uuid, entity.getId());
+				return (NodeInterface)entity;
+			}
+
+		} else {
+
+			try {
+				return nodeFactory.instantiate(getGraphDatabaseService().getNodeById(nodeId));
+
+			} catch (NotFoundException ignore) {
+				nodeUuidMap.remove(uuid);
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException {
+
+		final Long id = relUuidMap.get(uuid);
+		if (id == null) {
+
+			GraphObject entity = relationshipQuery().uuid(uuid).getFirst();
+			if (entity != null && uuid.equals(entity.getUuid())) {
+
+				relUuidMap.put(uuid, entity.getId());
+				return (RelationshipInterface)entity;
+			}
+
+		} else {
+
+			try {
+				return relFactory.instantiate(getGraphDatabaseService().getRelationshipById(id));
+
+			} catch (NotFoundException ignore) {
+				relUuidMap.remove(uuid);
+			}
+		}
+
+		return null;
 	}
 
 	@Override
 	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException {
-		
+
 		final GraphObject entity = get(uuid);
-		
-		if (type.isAssignableFrom(entity.getClass())) {
-			
+
+		if (type != null && entity != null && type.isAssignableFrom(entity.getClass())) {
+
 			return (T) entity;
-			
+
 		} else {
-			
+
 			return null;
 		}
 	}
@@ -265,26 +336,32 @@ public class StructrApp implements App {
 
 	@Override
 	public GraphDatabaseService getGraphDatabaseService() {
-		return Services.getInstance().command(securityContext, GraphDatabaseCommand.class).execute();
+
+		// cache graphdb instance
+		if (graphDb == null) {
+			graphDb = Services.getInstance().command(securityContext, GraphDatabaseCommand.class).execute();
+		}
+
+		return graphDb;
 	}
-	
+
 	private GraphProperties getOrCreateGraphProperties() {
-		
+
 		GraphProperties graphProperties = null;
-		
+
 		try (final Tx tx = StructrApp.getInstance().tx()) {
-			
+
 			final NodeManager mgr = ((GraphDatabaseAPI)getGraphDatabaseService()).getDependencyResolver().resolveDependency(NodeManager.class);
-			
+
 			tx.success();
-			
+
 			graphProperties = mgr.newGraphProperties();
-			
+
 		} catch (Throwable t) {
 			logger.log(Level.WARNING, t.getMessage());
 			t.printStackTrace();
 		}
-		
+
 		return graphProperties;
 	}
 
@@ -305,9 +382,9 @@ public class StructrApp implements App {
 		} catch (Throwable t) {
 			logger.log(Level.WARNING, t.getMessage());
 			t.printStackTrace();
-			
+
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-			
+
 				config = getOrCreateGraphProperties();
 				config.setProperty(key, value);
 
@@ -341,9 +418,9 @@ public class StructrApp implements App {
 		} catch (Throwable t) {
 			logger.log(Level.WARNING, t.getMessage());
 			t.printStackTrace();
-			
+
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-			
+
 				config = getOrCreateGraphProperties();
 				config.setProperty(key, value);
 
@@ -372,6 +449,8 @@ public class StructrApp implements App {
 			return instanceId;
 		}
 	}
+
+
 
 	// ----- public static methods ----
 	/**

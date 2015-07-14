@@ -27,7 +27,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.search.SearchCommand;
 
 /**
@@ -50,6 +52,9 @@ public class TypeProperty extends StringProperty {
 
 		super.setProperty(securityContext, obj, value);
 
+		RelationshipFactory.invalidateCache();
+		NodeFactory.invalidateCache();
+
 		if (obj instanceof NodeInterface) {
 
 			final Class type              = StructrApp.getConfiguration().getNodeEntityClass(value);
@@ -65,7 +70,12 @@ public class TypeProperty extends StringProperty {
 
 			// collect new labels
 			for (final Class supertype : SearchCommand.typeAndAllSupertypes(type)) {
-				toAdd.add(DynamicLabel.label(supertype.getSimpleName()));
+
+				final String supertypeName = supertype.getName();
+
+				if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
+					toAdd.add(DynamicLabel.label(supertype.getSimpleName()));
+				}
 			}
 
 			// calculate intersection

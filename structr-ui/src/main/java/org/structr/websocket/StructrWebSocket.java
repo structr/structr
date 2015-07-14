@@ -348,7 +348,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try {
 
-			File file = (File) StructrApp.getInstance(securityContext).get(uuid);
+			File file = (File) StructrApp.getInstance(securityContext).getNodeById(uuid);
 
 			if (file != null) {
 

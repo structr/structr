@@ -158,7 +158,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				GraphObject  searchRes = app.get(testSix.getUuid());
+				GraphObject  searchRes = app.getNodeById(testSix.getUuid());
 				assertNotNull(searchRes);
 			}
 
