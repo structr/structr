@@ -131,8 +131,22 @@ public class AdvancedPagingTest extends PagingTest {
 
 				props.put(sortKey, "TestOne-09");
 				this.createTestNode(type, props);
+
+				tx.success();
+			}
+
+
+			try (final Tx tx = app.tx()) {
+
+				PropertyKey sortKey = AbstractNode.name;
+				boolean sortDesc    = false;
+				int pageSize        = 2;
+				int page            = 1;
+
 				testPaging(type, pageSize, page + 1, number + 1, offset - 1, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
 				System.out.println("paging test finished");
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -500,5 +514,54 @@ public class AdvancedPagingTest extends PagingTest {
 		} catch (Throwable t) {
 			fail("Requesting a page beyond the number of existing elements should not throw an exception.");
 		}
+	}
+
+	public void testPagingWithHiddenOrDeletedElements() {
+
+		try {
+
+			// create 20 nodes
+			createTestNodes(TestOne.class, 10);
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<TestOne> testOnes = app.nodeQuery(TestOne.class).getAsList();
+
+			final TestOne test1 = testOnes.get(3);
+			final TestOne test2 = testOnes.get(4);
+			final TestOne test3 = testOnes.get(7);
+
+			test1.setProperty(AbstractNode.hidden, true);
+
+			test2.setProperty(AbstractNode.deleted, true);
+
+			test3.setProperty(AbstractNode.hidden, true);
+			test3.setProperty(AbstractNode.deleted, true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Result<TestOne> result = app.nodeQuery(TestOne.class).getResult();
+
+			assertEquals("Result count should not include deleted or hidden nodes", 7, (int)result.getRawResultCount());
+			assertEquals("Actual result size should be equal to result count", 7, (int)result.getResults().size());
+
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+
 	}
 }

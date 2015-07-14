@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.Query;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
@@ -110,7 +111,7 @@ public class PagingTest extends StructrTest {
               } catch (FrameworkException ex) {
 
 		      ex.printStackTrace();
-		      
+
                       logger.log(Level.SEVERE, ex.toString());
                       fail("Unexpected exception");
 
@@ -135,7 +136,7 @@ public class PagingTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 
 				int i                           = offset;
 				for (NodeInterface node : nodes) {
@@ -151,7 +152,7 @@ public class PagingTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());
@@ -173,7 +174,7 @@ public class PagingTest extends StructrTest {
 			}
 
 		} catch (FrameworkException ex) {
-			
+
 			ex.printStackTrace();
 
 			logger.log(Level.SEVERE, ex.toString());
@@ -185,7 +186,13 @@ public class PagingTest extends StructrTest {
 
 	protected void testPaging(final Class type, final int pageSize, final int page, final int number, final int offset, final boolean includeDeletedAndHidden, final boolean publicOnly, final PropertyKey sortKey, final boolean sortDesc) throws FrameworkException {
 
-		Result result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+		final Query query = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize);
+
+		if (includeDeletedAndHidden) {
+			query.includeDeletedAndHidden();
+		}
+
+		final Result result = query.getResult();
 
 		logger.log(Level.INFO, "Raw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
 		assertTrue(result.getRawResultCount() == ((pageSize == 0 || page == 0) ? 0 : number));

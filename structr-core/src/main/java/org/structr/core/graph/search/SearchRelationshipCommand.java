@@ -53,4 +53,9 @@ public class SearchRelationshipCommand<T extends RelationshipInterface> extends 
 	public LayerNodeIndex getSpatialIndex() {
 		return null;
 	}
+
+	@Override
+	public boolean isRelationshipSearch() {
+		return true;
+	}
 }
