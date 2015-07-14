@@ -524,9 +524,18 @@ var _Elements = {
 
 						var div = $('.' + page.id + '_', pagesToLink);
 
+						if (isIn(entity.id, page.linkingElements)) {
+							div.addClass('nodeActive');
+						}
+
 						div.on('click', function(e) {
 							e.stopPropagation();
-							Command.link(entity.id, page.id);
+							if (div.hasClass('nodeActive')) {
+								Command.setProperty(entity.id, 'linkableId', null);
+							} else {
+								Command.link(entity.id, page.id);
+							}
+							_Entities.reloadChildren(entity.parent.id);
 							$('#dialogBox .dialogText').empty();
 							_Pages.reloadPreviews();
 							$.unblockUI({
@@ -539,10 +548,6 @@ var _Elements = {
 						}, function() {
 							$(this).removeClass('nodeHover');
 						});
-
-						if (isIn(entity.id, page.linkingElements)) {
-							div.addClass('nodeActive');
-						}
 
 					});
 
@@ -584,9 +589,18 @@ var _Elements = {
 
 						var div = $('.' + file.id + '_', filesToLink);
 
+						if (isIn(entity.id, file.linkingElements)) {
+							div.addClass('nodeActive');
+						}
+
 						div.on('click', function(e) {
 							e.stopPropagation();
-							Command.link(entity.id, file.id);
+							if (div.hasClass('nodeActive')) {
+								Command.setProperty(entity.id, 'linkableId', null);
+							} else {
+								Command.link(entity.id, file.id);
+							}
+							_Entities.reloadChildren(entity.parent.id);
 							$('#dialogBox .dialogText').empty();
 							_Pages.reloadPreviews();
 							$.unblockUI({
@@ -599,11 +613,6 @@ var _Elements = {
 						}, function() {
 							$(this).removeClass('nodeHover');
 						});
-
-						if (isIn(entity.id, file.linkingElements)) {
-							//console.log(entity.id, file.linkingElements);
-							div.addClass('nodeActive');
-						}
 
 					});
 
@@ -622,9 +631,19 @@ var _Elements = {
 
 						var div = $('.' + image.id + '_', imagesToLink);
 
+						if (isIn(entity.id, image.linkingElements)) {
+							div.addClass('nodeActive');
+						}
+
 						div.on('click', function(e) {
 							e.stopPropagation();
-							Command.link(entity.id, image.id);
+							if (div.hasClass('nodeActive')) {
+								console.log('removing')
+								Command.setProperty(entity.id, 'linkableId', null);
+							} else {
+								Command.link(entity.id, image.id);
+							}
+							_Entities.reloadChildren(entity.parent.id);
 							$('#dialogBox .dialogText').empty();
 							_Pages.reloadPreviews();
 							$.unblockUI({
@@ -637,11 +656,6 @@ var _Elements = {
 						}, function() {
 							$(this).removeClass('nodeHover');
 						});
-
-						if (isIn(entity.id, image.linkingElements)) {
-							//console.log(entity.id, file.linkingElements);
-							div.addClass('nodeActive');
-						}
 
 					});
 
@@ -694,27 +708,42 @@ var _Elements = {
 
 		});
 
-		$.each(folder.files, function(i, file) {
-			$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
-					+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
-			var div = $('.' + file.id + '_');
-			div.on('click', function(e) {
-				e.stopPropagation();
-				Command.link(entity.id, file.id);
-				$('#dialogBox .dialogText').empty();
-				_Pages.reloadPreviews();
-				$.unblockUI({
-					fadeOut: 25
-				});
-			}).css({
-				cursor: 'pointer'
-			}).hover(function() {
-				$(this).addClass('nodeHover');
-			}, function() {
-				$(this).removeClass('nodeHover');
-			});
-		});
+		$.each(folder.files, function(i, f) {
+			
+			Command.get(f.id, function(file) {
+			
+				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
+				var div = $('.' + file.id + '_');
 
-		return false;
+				if (isIn(entity.id, file.linkingElements)) {
+					div.addClass('nodeActive');
+				}
+
+				div.on('click', function(e) {
+					e.stopPropagation();
+					if (div.hasClass('nodeActive')) {
+						Command.setProperty(entity.id, 'linkableId', null);
+					} else {
+						Command.link(entity.id, file.id);
+					}
+					_Entities.reloadChildren(entity.parent.id);
+					$('#dialogBox .dialogText').empty();
+					_Pages.reloadPreviews();
+					$.unblockUI({
+						fadeOut: 25
+					});
+				}).css({
+					cursor: 'pointer'
+				}).hover(function() {
+					$(this).addClass('nodeHover');
+				}, function() {
+					$(this).removeClass('nodeHover');
+				});
+			});
+
+			return false;
+		
+		});
 	}
 };
