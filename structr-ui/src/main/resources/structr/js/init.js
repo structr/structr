@@ -136,17 +136,6 @@ $(function() {
 		Structr.activateModule(e, 'security');
 	});
 
-	$('#usernameField').keyup(function(e) {
-		if (e.which === 13) {
-			loginButton.click();
-		}
-	});
-	$('#passwordField').keyup(function(e) {
-		if (e.which === 13) {
-			loginButton.click();
-		}
-	});
-
 	Structr.connect();
 	Structr.updateVersionInfo();
 
