@@ -474,7 +474,7 @@ var Command = {
 		var data = {};
 		data.localStorageString = JSON.stringify(localStorage);
 		obj.data = data;
-		log('saveLocalStorage()', obj);
+		//log('saveLocalStorage()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
