@@ -72,4 +72,9 @@ public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<No
 	public LayerNodeIndex getSpatialIndex() {
 		 return (LayerNodeIndex) arguments.get(NodeService.NodeIndex.layer.name());
 	}
+
+	@Override
+	public boolean isRelationshipSearch() {
+		return false;
+	}
 }

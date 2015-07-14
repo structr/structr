@@ -158,7 +158,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 		if (occur.equals(Occur.MUST_NOT)) {
 
-			if ((nodeValue != null) && compare(nodeValue, searchValue) != 0) {
+			if ((nodeValue != null) && compare(nodeValue, searchValue) == 0) {
 
 				// don't add, do not check other results
 				return false;
@@ -169,7 +169,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 			if (nodeValue != null) {
 
 				if (!isExactMatch) {
-					
+
 					if (nodeValue instanceof String && searchValue instanceof String) {
 
 						String n = (String) nodeValue;
@@ -178,9 +178,9 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 						return StringUtils.containsIgnoreCase(n, s);
 
 					}
-					
+
 				}
-				
+
 				if (compare(nodeValue, searchValue) != 0) {
 					return false;
 				}
