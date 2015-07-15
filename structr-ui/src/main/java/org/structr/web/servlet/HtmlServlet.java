@@ -28,9 +28,11 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,10 +68,12 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.dynamic.File;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -102,7 +106,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String ERROR_PAGE_KEY = "onerror";
 	public static final String LOCALE_KEY = "locale";
 
-	private static final String CUSTOM_RESPONSE_HEADERS = "HtmlServlet.customResponseHeaders";
+	private static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
+	private static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
+
 	private static final String defaultCustomResponseHeaders = "Strict-Transport-Security:max-age=60,"
 				+ "X-Content-Type-Options:nosniff,"
 				+ "X-Frame-Options:SAMEORIGIN,"
@@ -113,6 +119,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
 
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+	private final Set<String> possiblePropertyNamesForEntityResolving   = new LinkedHashSet<>();
 
 
 	@Override
@@ -131,6 +138,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (StringUtils.isNotBlank(customResponseHeadersString)) {
 			customResponseHeaders = Arrays.asList(customResponseHeadersString.split("[ ,]+"));
+		}
+
+		// resolving properties
+		final String resolvePropertiesSource = StructrApp.getConfigurationValue(OBJECT_RESOLUTION_PROPERTIES, "AbstractNode.name");
+		for (final String src : resolvePropertiesSource.split("[, ]+")) {
+
+			final String name = src.trim();
+			if (StringUtils.isNotBlank(name)) {
+
+				possiblePropertyNamesForEntityResolving.add(name);
+			}
 		}
 	}
 
@@ -784,7 +802,18 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
-			final Result results = StructrApp.getInstance(securityContext).nodeQuery().and(AbstractNode.name, name).getResult();
+			final Query query                  = StructrApp.getInstance(securityContext).nodeQuery();
+			final ConfigurationProvider config = StructrApp.getConfiguration();
+
+			if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
+
+				query.and();
+				resolvePossiblePropertyNamesForObjectResolution(config, query, name);
+				query.parent();
+			}
+
+
+			final Result results = query.getResult();
 
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
@@ -1402,5 +1431,48 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		return true;
 
+	}
+
+	private void resolvePossiblePropertyNamesForObjectResolution(final ConfigurationProvider config, final Query query, final String name) {
+
+		for (final String possiblePropertyName : possiblePropertyNamesForEntityResolving) {
+
+			final String[] parts = possiblePropertyName.split("\\.");
+			String className     = AbstractNode.class.getSimpleName();
+			String keyName       = AbstractNode.name.jsonName();
+
+			switch (parts.length) {
+
+				case 2:
+					className = parts[0];
+					keyName = parts[1];
+					break;
+
+				default:
+					logger.log(Level.WARNING, "Unable to process key for object resolution {0}.", possiblePropertyName);
+					break;
+			}
+
+			if (StringUtils.isNoneBlank(className, keyName)) {
+
+				final Class type = config.getNodeEntityClass(className);
+				if (type != null) {
+
+					final PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, false);
+					if (key != null) {
+
+						query.or(key, name);
+
+					} else {
+
+						logger.log(Level.WARNING, "Unable to find property key {0} of type {1} defined in key {2} used for object resolution.", new Object[] { keyName, className, possiblePropertyName } );
+					}
+
+				} else {
+
+					logger.log(Level.WARNING, "Unable to find type {0} defined in key {1} used for object resolution.", new Object[] { className, possiblePropertyName } );
+				}
+			}
+		}
 	}
 }
