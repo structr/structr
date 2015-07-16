@@ -38,7 +38,6 @@ import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.relation.ResourceLink;
 
 /**
