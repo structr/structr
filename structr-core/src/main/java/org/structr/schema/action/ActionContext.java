@@ -25,7 +25,6 @@ import java.util.Locale;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.LocaleHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -63,7 +62,7 @@ public class ActionContext {
 
 		this.securityContext = securityContext;
 
-		this.locale = LocaleHelper.getEffectiveLocale(securityContext.getRequest());
+		this.locale = securityContext.getEffectiveLocale();
 	}
 
 	public ActionContext(final ActionContext other) {
@@ -87,7 +86,7 @@ public class ActionContext {
 
 		this.securityContext = securityContext;
 
-		this.locale = LocaleHelper.getEffectiveLocale(securityContext.getRequest());
+		this.locale = securityContext.getEffectiveLocale();
 
 		init(data);
 	}
