@@ -77,7 +77,7 @@ public class CloudService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(StructrConf config) {
+	public void initialize(final Services services, final StructrConf config) {
 
 		tcpPort       = Integer.parseInt(config.getProperty(Services.TCP_PORT, "54555"));
 		DEBUG         = Boolean.parseBoolean(config.getProperty("sync.debug", "false"));

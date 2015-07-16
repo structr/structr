@@ -37,12 +37,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.SchemaNodeLocalizationRel;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
 import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
@@ -65,8 +63,6 @@ import org.structr.schema.parser.Validator;
  */
 public class SchemaNode extends AbstractSchemaNode {
 
-	public static final Property<List<SchemaNodeLocalization>>  localizations   = new EndNodes<>("localizations", SchemaNodeLocalizationRel.class, new PropertySetNotion(true, AbstractNode.id, AbstractNode.name, SchemaNodeLocalization.locale));
-
 	public static final Property<List<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
 	public static final Property<List<SchemaRelationshipNode>> relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
 	public static final Property<String>                       extendsClass     = new StringProperty("extendsClass").indexed();
@@ -82,19 +78,19 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, localizations
+		extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, localizations
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
 	public static final View schemaView = new View(SchemaMethod.class, "schema",
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, localizations
+		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		extendsClass, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, localizations
+		extendsClass, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();

@@ -153,7 +153,7 @@ public class AgentService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrConf config) {}
+	public void initialize(final Services services, final StructrConf config) {}
 
 	@Override
 	public void initialized() {}

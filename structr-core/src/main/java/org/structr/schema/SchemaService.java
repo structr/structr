@@ -38,6 +38,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Service;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
@@ -63,8 +64,15 @@ public class SchemaService implements Service {
 	}
 
 	@Override
-	public void initialize(final StructrConf config) {
-		reloadSchema(new ErrorBuffer());
+	public void initialize(final Services services, final StructrConf config) {
+
+		services.registerInitializationCallback(new Services.InitializationCallback() {
+
+			@Override
+			public void initializationDone() {
+				reloadSchema(new ErrorBuffer());
+			}
+		});
 	}
 
 	public static void registerBuiltinTypeOverride(final String type, final String fqcn) {

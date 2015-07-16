@@ -94,7 +94,7 @@ public class FtpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrConf config) {
+	public void initialize(final Services services, final StructrConf config) {
 
 		final StructrConf finalConfig = new StructrConf();
 

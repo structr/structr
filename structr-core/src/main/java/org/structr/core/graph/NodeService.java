@@ -131,7 +131,7 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(final StructrConf config) {
+	public void initialize(final Services services, final StructrConf config) {
 
 		final String dbPath                = config.getProperty(Services.DATABASE_PATH);
 		final GraphDatabaseBuilder builder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath);
@@ -155,8 +155,8 @@ public class NodeService implements SingletonService {
 		// neo4j remote shell configuration
 		builder.setConfig(ShellSettings.remote_shell_enabled, config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"));
 		builder.setConfig(ShellSettings.remote_shell_port,    config.getProperty(Services.NEO4J_SHELL_PORT, "1337"));
-		
-		// Neo4j page cache memory, default 64m 
+
+		// Neo4j page cache memory, default 64m
 		builder.setConfig(GraphDatabaseSettings.pagecache_memory, config.getProperty(Services.NEO4J_PAGE_CACHE_MEMORY, Long.toString(1024*1024*64L)));
 
 		// create graph database instance

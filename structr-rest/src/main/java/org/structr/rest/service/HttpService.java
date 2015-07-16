@@ -152,7 +152,7 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrConf additionalConfig) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public void initialize(final Services services, final StructrConf additionalConfig) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
 		final StructrConf finalConfig = new StructrConf();
 
@@ -263,14 +263,14 @@ public class HttpService implements RunnableService {
 		// this is needed for the filters to work on the root context "/"
 		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
-		
+
 		final HashSessionManager sessionManager = new HashSessionManager();
 		try {
 			sessionManager.setStoreDirectory(new File(baseDir + "/sessions"));
 		} catch (IOException ex) {
 			logger.log(Level.WARNING, "Could not set custom session manager with session store directory {0}/sessions", baseDir);
 		}
-		
+
 		servletContext.getSessionHandler().setSessionManager(sessionManager);
 
 		if (enableRewriteFilter) {
