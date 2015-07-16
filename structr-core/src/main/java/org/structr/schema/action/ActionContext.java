@@ -70,6 +70,7 @@ public class ActionContext {
 		this.errorBuffer     = other.errorBuffer;
 		this.constants       = other.constants;
 		this.securityContext = other.securityContext;
+		this.locale          = other.locale;
 	}
 
 	public ActionContext(final ActionContext other, final Object data) {
