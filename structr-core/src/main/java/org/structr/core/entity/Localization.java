@@ -13,12 +13,13 @@ public class Localization extends AbstractNode {
 
 	public static final Property<String> localizedName = new StringProperty("localizedName").indexed();
 	public static final Property<String> domain        = new StringProperty("domain").indexed();
+	public static final Property<String> locale        = new StringProperty("locale").indexed();
 
 	public static final View defaultView = new View(Localization.class, PropertyView.Public,
-		domain, name, localizedName
+		domain, name, locale, localizedName
 	);
 
 	public static final View uiView = new View(Localization.class, PropertyView.Ui,
-		domain, name, localizedName
+		domain, name, locale, localizedName
 	);
 }

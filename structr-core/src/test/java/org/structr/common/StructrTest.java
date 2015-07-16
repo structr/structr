@@ -395,11 +395,6 @@ public class StructrTest extends TestCase {
 
 		final Services services = Services.getInstance(config);
 
-		securityContext = SecurityContext.getSuperUserInstance();
-		app = StructrApp.getInstance(securityContext);
-
-		graphDbCommand = app.command(GraphDatabaseCommand.class);
-
 		// wait for service layer to be initialized
 		do {
 			try {
@@ -408,5 +403,10 @@ public class StructrTest extends TestCase {
 			}
 
 		} while (!services.isInitialized());
+
+		securityContext = SecurityContext.getSuperUserInstance();
+		app = StructrApp.getInstance(securityContext);
+
+		graphDbCommand = app.command(GraphDatabaseCommand.class);
 	}
 }
