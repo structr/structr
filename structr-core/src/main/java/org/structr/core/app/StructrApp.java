@@ -142,6 +142,10 @@ public class StructrApp implements App {
 	@Override
 	public GraphObject get(final String uuid) throws FrameworkException {
 
+		if (uuid == null) {
+			return null;
+		}
+
 		final NodeInterface node = getNodeById(uuid);
 		if (node != null) {
 
@@ -159,6 +163,10 @@ public class StructrApp implements App {
 
 	@Override
 	public NodeInterface getNodeById(final String uuid) throws FrameworkException {
+
+		if (uuid == null) {
+			return null;
+		}
 
 		final Long nodeId = nodeUuidMap.get(uuid);
 		if (nodeId == null) {
@@ -185,6 +193,10 @@ public class StructrApp implements App {
 
 	@Override
 	public RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException {
+
+		if (uuid == null) {
+			return null;
+		}
 
 		final Long id = relUuidMap.get(uuid);
 		if (id == null) {
