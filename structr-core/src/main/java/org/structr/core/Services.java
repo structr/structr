@@ -549,7 +549,7 @@ public class Services {
 		try {
 
 			service = (Service) serviceClass.newInstance();
-			service.initialize(getCurrentConfig());
+			service.initialize(this, getCurrentConfig());
 
 			if (service instanceof RunnableService) {
 
