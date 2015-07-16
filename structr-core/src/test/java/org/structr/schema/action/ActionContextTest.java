@@ -1195,9 +1195,10 @@ public class ActionContextTest extends StructrTest {
 
 			final SecurityContext userContext     = SecurityContext.getInstance(user, AccessMode.Frontend);
 			final App userApp                     = StructrApp.getInstance(userContext);
-			final ActionContext userActionContext = new ActionContext(userContext, null);
 
 			try (final Tx tx = userApp.tx()) {
+
+				final ActionContext userActionContext = new ActionContext(userContext, null);
 
 				assertEquals("node should be of type TestOne", "TestOne", Scripting.replaceVariables(userActionContext, t1, "${(get(this, 'type'))}"));
 
