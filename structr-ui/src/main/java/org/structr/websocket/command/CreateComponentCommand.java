@@ -54,7 +54,7 @@ public class CreateComponentCommand extends AbstractCommand {
 
 			try {
 
-				DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+				final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 				
 				// Child nodes of a template must stay in page tree
 				if (!(clonedNode instanceof Template)) {
@@ -63,7 +63,7 @@ public class CreateComponentCommand extends AbstractCommand {
 				
 				}
 
-				ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
+				final ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
 				clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
 
 				// Change page (owner document) of all children recursively
