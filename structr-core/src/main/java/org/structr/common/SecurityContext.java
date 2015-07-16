@@ -597,26 +597,47 @@ public class SecurityContext {
 	/**
 	 * Determine the effective locale for this request.
 	 *
-	 * Priority 1: URL parameter "locale" Priority 2: Browser locale
+	 * Priority 1: URL parameter "locale" Priority 2: User locale  3: Browser locale  4: Default locale
 	 *
-	 * @param request
 	 * @return locale
 	 */
 	public Locale getEffectiveLocale() {
 
-		if (request == null) {
-			return Locale.getDefault();
+		Locale locale = Locale.getDefault();
+		boolean userHasLocaleString = false;
+
+		if (cachedUser != null) {
+
+			final String userLocaleString = cachedUser.getProperty(Principal.locale);
+
+			if (userLocaleString != null) {
+				userHasLocaleString = true;
+
+				try {
+					locale = LocaleUtils.toLocale(userLocaleString);
+				} catch (IllegalArgumentException e) {
+					locale = Locale.forLanguageTag(userLocaleString);
+				}
+			}
+
 		}
 
-		// Overwrite locale if requested by URL parameter
-		String requestedLocaleString = request.getParameter(LOCALE_KEY);
-		Locale locale = request.getLocale();
-		if (StringUtils.isNotBlank(requestedLocaleString)) {
-			try {
-				locale = LocaleUtils.toLocale(requestedLocaleString);
-			} catch (IllegalArgumentException e) {
-				locale = Locale.forLanguageTag(requestedLocaleString);
+		if (request != null) {
+
+			if (!userHasLocaleString) {
+				locale = request.getLocale();
 			}
+
+			// Overwrite locale if requested by URL parameter
+			String requestedLocaleString = request.getParameter(LOCALE_KEY);
+			if (StringUtils.isNotBlank(requestedLocaleString)) {
+				try {
+					locale = LocaleUtils.toLocale(requestedLocaleString);
+				} catch (IllegalArgumentException e) {
+					locale = Locale.forLanguageTag(requestedLocaleString);
+				}
+			}
+
 		}
 
 		return locale;
