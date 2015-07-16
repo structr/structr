@@ -104,7 +104,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String CONFIRM_KEY_KEY = "key";
 	public static final String TARGET_PAGE_KEY = "target";
 	public static final String ERROR_PAGE_KEY = "onerror";
-	public static final String LOCALE_KEY = "locale";
 
 	private static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
 	private static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
@@ -213,7 +212,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response, getEffectiveLocale(request));
+				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
 
 				renderContext.setResourceProvider(config.getResourceProvider());
 
@@ -542,7 +541,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response, getEffectiveLocale(request));
+				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
 
 				renderContext.setResourceProvider(config.getResourceProvider());
 
@@ -1361,31 +1360,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				}
 			}
 		}
-	}
-
-	/**
-	 * Determine the effective locale for this request.
-	 *
-	 * Priority 1: URL parameter "locale" Priority 2: Browser locale
-	 *
-	 * @param request
-	 * @return locale
-	 */
-	private Locale getEffectiveLocale(final HttpServletRequest request) {
-
-		// Overwrite locale if requested by URL parameter
-		String requestedLocaleString = request.getParameter(LOCALE_KEY);
-		Locale locale = request.getLocale();
-		if (StringUtils.isNotBlank(requestedLocaleString)) {
-			try {
-				locale = LocaleUtils.toLocale(requestedLocaleString);
-			} catch (IllegalArgumentException e) {
-				locale = Locale.forLanguageTag(requestedLocaleString);
-			}
-		}
-
-		return locale;
-
 	}
 
 	/**

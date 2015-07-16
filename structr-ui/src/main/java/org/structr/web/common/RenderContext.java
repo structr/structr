@@ -107,7 +107,7 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public RenderContext(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
+	public RenderContext(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final EditMode editMode) {
 
 		super(securityContext);
 
@@ -115,15 +115,14 @@ public class RenderContext extends ActionContext {
 		this.response = response;
 
 		this.editMode = editMode;
-		this.locale = locale;
 
 	}
 
-	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
+	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response) {
 
 		final String editString = StringUtils.defaultString(request.getParameter("edit"));
 
-		return new RenderContext(securityContext, request, response, editMode(editString), locale);
+		return new RenderContext(securityContext, request, response, editMode(editString));
 
 	}
 
