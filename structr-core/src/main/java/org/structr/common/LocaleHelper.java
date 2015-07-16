@@ -41,6 +41,10 @@ public class LocaleHelper {
 	 */
 	public static Locale getEffectiveLocale(final HttpServletRequest request) {
 
+		if (request == null) {
+			return Locale.getDefault();
+		}
+
 		// Overwrite locale if requested by URL parameter
 		String requestedLocaleString = request.getParameter(LOCALE_KEY);
 		Locale locale = request.getLocale();
