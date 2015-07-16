@@ -599,7 +599,6 @@ public class SecurityContext {
 	 *
 	 * Priority 1: URL parameter "locale" Priority 2: Browser locale
 	 *
-	 * @param request
 	 * @return locale
 	 */
 	public Locale getEffectiveLocale() {
