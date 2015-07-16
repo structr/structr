@@ -769,7 +769,7 @@ var _Schema = {
 
 		$('.add-local-attribute', el).on('click', function() {
 			var rowClass = 'new' + (_Schema.cnt++);
-			propertiesTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name"></td>'
+			propertiesTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>'
 					+ '<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>'
 					+ '<td>' + typeOptions + '</td>'
 					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
@@ -778,13 +778,13 @@ var _Schema = {
 					+ '<td><input class="property-default" size="10" type="text"></td>'
 					+ '<td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">'
 					+ '</td></div>');
-
+			
 			$('.' + rowClass + ' .remove-property', propertiesTable).on('click', function() {
 				var self = $(this);
 				self.closest('tr').remove();
 			});
 
-			$('.' + rowClass + ' .property-name', propertiesTable).on('blur', function() {
+			$('.' + rowClass + ' .property-name', propertiesTable).focus().on('blur', function() {
 				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
 			});
 
