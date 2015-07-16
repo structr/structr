@@ -571,7 +571,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 */
 	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
 
-		final RenderContext ctx = new RenderContext(securityContext, null, null, editMode, Locale.GERMAN);
+		final RenderContext ctx = new RenderContext(securityContext, null, null, editMode);
 		final StringRenderBuffer buffer = new StringRenderBuffer();
 		ctx.setBuffer(buffer);
 		render(ctx, 0);

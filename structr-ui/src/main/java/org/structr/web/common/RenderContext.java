@@ -19,7 +19,6 @@
 package org.structr.web.common;
 
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -38,12 +37,11 @@ import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.relation.ResourceLink;
 
 /**
  * Holds information about the context in which a resource is rendered, like
- * f.e. edit mode, language
+ * f.e. edit mode
  *
  * @author Axel Morgner
  */
@@ -108,7 +106,7 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public RenderContext(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
+	public RenderContext(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final EditMode editMode) {
 
 		super(securityContext);
 
@@ -116,15 +114,14 @@ public class RenderContext extends ActionContext {
 		this.response = response;
 
 		this.editMode = editMode;
-		this.locale = locale;
 
 	}
 
-	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
+	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response) {
 
 		final String editString = StringUtils.defaultString(request.getParameter("edit"));
 
-		return new RenderContext(securityContext, request, response, editMode(editString), locale);
+		return new RenderContext(securityContext, request, response, editMode(editString));
 
 	}
 
