@@ -717,6 +717,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
+	public org.structr.core.app.Query<T> blank(final PropertyKey key) {
+
+		currentGroup.getSearchAttributes().add(new EmptySearchAttribute(key, null));
+		return this;
+	}
+
+	@Override
 	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
 
 		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, BooleanClause.Occur.MUST));
