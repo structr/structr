@@ -41,6 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.AsyncContext;
+import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServlet;
@@ -64,6 +65,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
@@ -104,8 +106,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String TARGET_PAGE_KEY = "target";
 	public static final String ERROR_PAGE_KEY = "onerror";
 
-	private static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
-	private static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
+	public static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
+	public static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
 
 	private static final String defaultCustomResponseHeaders = "Strict-Transport-Security:max-age=60,"
 				+ "X-Content-Type-Options:nosniff,"
@@ -492,6 +494,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
+	}
+
+	@Override
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
+		// TODO: implement POST to be able to handle large request bodies
+
+		throw new IllegalStateException("Method not allowed");
+
 	}
 
 	@Override
@@ -1434,7 +1445,23 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					final PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, false);
 					if (key != null) {
 
-						query.or(key, name);
+						try {
+
+							final PropertyConverter converter = key.inputConverter(SecurityContext.getSuperUserInstance());
+							if (converter != null) {
+
+								// try converted value, fail silenty
+								query.or(key, converter.convert(name));
+
+							} else {
+
+								// try unconverted value, fail silently if it doesn't work
+								query.or(key, name);
+							}
+
+						} catch (FrameworkException fex) {
+						}
+
 
 					} else {
 
