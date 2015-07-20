@@ -1,7 +1,10 @@
 package org.structr.core.entity;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 
@@ -22,4 +25,14 @@ public class Localization extends AbstractNode {
 	public static final View uiView = new View(Localization.class, PropertyView.Ui,
 		domain, name, locale, localizedName
 	);
+
+	@Override
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		setProperty(visibleToPublicUsers, true);
+
+		setProperty(visibleToAuthenticatedUsers, true);
+
+		return true;
+	}
 }
