@@ -19,6 +19,8 @@
 
 var buttonClicked;
 var activeElements = {};
+var activeQueryTabPrefix = 'structrActiveQueryTab_' + port;
+var activeEditTabPrefix = 'structrActiveEditTab_' + port;
 
 var _Entities = {
 	numberAttrs: ['position', 'size'],
@@ -169,7 +171,7 @@ var _Entities = {
 		//_Entities.appendInput(dialog, entity, 'partialUpdateKey', 'Types to trigger partial update', '');
 
 	},
-	activateTabs: function (elId, activeId) {
+	activateTabs: function (nodeId, elId, activeId) {
 		var el = $(elId);
 		var tabs = $('li', el);
 		$.each(tabs, function (i, tab) {
@@ -181,10 +183,11 @@ var _Entities = {
 				var id = tab.prop('id').substring(4);
 				var content = $('#content-tab-' + id);
 				content.show();
+				localStorage.setItem(activeQueryTabPrefix  + '_' + nodeId, id);
 			});
 		});
-		var id = activeId.substring(9);
-		var tab = $('#' + id);
+		var id = localStorage.getItem(activeQueryTabPrefix  + '_' + nodeId) || activeId.substring(13);
+		var tab = $('#tab-' + id);
 		tab.click();
 	},
 	editSource: function (entity) {
@@ -403,12 +406,12 @@ var _Entities = {
 
 				if (hasHtmlAttributes) {
 
-					_Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function (c) {
+					_Entities.appendPropTab(entity, mainTabs, 'query', 'Query and Data Binding', true, function (c) {
 						_Entities.queryDialog(entity, c);
-						_Entities.activateTabs('#data-tabs', '#content-tab-rest');
+						_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 					});
 
-					_Entities.appendPropTab(mainTabs, 'editBinding', 'Edit Mode Binding', false, function (c) {
+					_Entities.appendPropTab(entity, mainTabs, 'editBinding', 'Edit Mode Binding', false, function (c) {
 						_Entities.dataBindingDialog(entity, c);
 					});
 				}
@@ -418,7 +421,7 @@ var _Entities = {
 
 		});
 	},
-	appendPropTab: function (el, name, label, active, callback) {
+	appendPropTab: function (entity, el, name, label, active, callback) {
 		var ul = el.children('ul');
 		ul.append('<li id="tab-' + name + '">' + label + '</li>');
 		var tab = $('#tab-' + name + '');
@@ -436,6 +439,7 @@ var _Entities = {
 				callback(c);
 			}
 			self.addClass('active');
+			localStorage.setItem(activeEditTabPrefix  + '_' + entity.id, name);
 		});
 		el.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
 		var content = $('#tabView-' + name);
@@ -468,7 +472,8 @@ var _Entities = {
 				var tabView = $('#tabView-' + view);
 				tabView.empty();
 				tabView.show();
-
+				localStorage.setItem(activeEditTabPrefix  + '_' + entity.id, view);
+				
 				$.ajax({
 					url: rootUrl + '_schema/' + entity.type + '/ui',
 					dataType: 'json',
@@ -483,14 +488,14 @@ var _Entities = {
 				});
 			});
 		});
-
+		activeView = localStorage.getItem(activeEditTabPrefix  + '_' + entity.id) || activeView;
 		$('#tab-' + activeView).click();
 
 	},
 	listProperties: function (entity, view, tabView, typeInfo) {
 		var null_prefix = 'null_attr_';
 		$.ajax({
-			url: rootUrl + entity.id + (view ? '/' + view : ''),
+			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10', // TODO: Implement paging or scroll-into-view here
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
 			success: function (data) {
@@ -1430,13 +1435,13 @@ var _Entities = {
 			_Entities.queryDialog(entity, dialogText);
 
 			if (entity.restQuery) {
-				_Entities.activateTabs('#data-tabs', '#content-tab-rest');
+				_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 			} else if (entity.cypherQuery) {
-				_Entities.activateTabs('#data-tabs', '#content-tab-cypher');
+				_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-cypher');
 			} else if (entity.xpathQuery) {
-				_Entities.activateTabs('#data-tabs', '#content-tab-xpath');
+				_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-xpath');
 			} else {
-				_Entities.activateTabs('#data-tabs', '#content-tab-rest');
+				_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 			}
 		});
 	},

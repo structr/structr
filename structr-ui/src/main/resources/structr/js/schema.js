@@ -608,25 +608,25 @@ var _Schema = {
 
 		var mainTabs = $('#tabs', div);
 
-		_Entities.appendPropTab(mainTabs, 'local', 'Local Attributes', targetView === 'local', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'local', 'Local Attributes', targetView === 'local', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendLocalProperties(c, e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'views', 'Views', targetView === 'views', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'views', 'Views', targetView === 'views', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendViews(c, 'schema_nodes', e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'methods', 'Methods', targetView === 'methods', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'methods', 'Methods', targetView === 'methods', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendMethods(c, e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'remote', 'Remote Attributes', targetView === 'remote', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'remote', 'Remote Attributes', targetView === 'remote', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendRemoteProperties(c, e);
 			});
@@ -678,19 +678,19 @@ var _Schema = {
 
 		var mainTabs = $('#tabs', div);
 
-		_Entities.appendPropTab(mainTabs, 'local', 'Local Attributes', true, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'local', 'Local Attributes', true, function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendLocalProperties(c, e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'views', 'Views', false, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'views', 'Views', false, function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendViews(c, 'schema_relationship_nodes', e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'methods', 'Methods', false, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'methods', 'Methods', false, function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendMethods(c, e);
 			});
