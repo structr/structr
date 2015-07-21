@@ -155,7 +155,7 @@ public class Scripting {
 			// set optimization level to interpreter mode to avoid
 			// class loading / PermGen space bug in Rhino
 			//scriptingContext.setOptimizationLevel(-1);
-			
+
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity);
 			scriptable.setParentScope(scope);
 
@@ -165,7 +165,7 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(script), "script source [" + entityDescription + "], line ", 1, null);
+			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(actionContext, script), "script source [" + entityDescription + "], line ", 1, null);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();
@@ -205,14 +205,21 @@ public class Scripting {
 
 	}
 
-	private static String embedInFunction(final String source) {
+	private static String embedInFunction(final ActionContext actionContext, final String source) {
 
 		final StringBuilder buf = new StringBuilder();
 
 		buf.append("function main() { ");
 		buf.append(source);
 		buf.append("\n}\n");
-		buf.append("var _structrMainResult = main();");
+
+		final String javascriptLibraryCode = actionContext.getJavascriptLibraryCode();
+		if (javascriptLibraryCode != null) {
+
+			buf.append(javascriptLibraryCode);
+		}
+
+		buf.append("\n\nvar _structrMainResult = main();");
 
 		return buf.toString();
 	}
