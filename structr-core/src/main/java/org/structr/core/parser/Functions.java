@@ -3857,7 +3857,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_SET_PRIVILEGED_JS : ERROR_MESSAGE_SET_PRIVILEGED);
+				return (inJavaScriptContext ? ERROR_MESSAGE_CYPHER_JS : ERROR_MESSAGE_CYPHER);
 			}
 		});
 		functions.put("localize", new Function<Object, Object>() {
