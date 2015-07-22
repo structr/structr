@@ -29,8 +29,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.websocket.StructrWebSocket;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,7 +46,7 @@ public class CreateSimplePage extends AbstractCommand {
 		StructrWebSocket.addCommand(CreateSimplePage.class);
 
 	}
-	
+
 	//~--- methods --------------------------------------------------------
 
 	@Override
@@ -58,51 +56,13 @@ public class CreateSimplePage extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		try {
-			
-			Page newPage = Page.createNewPage(securityContext, pageName);
-			if (newPage != null) {
-				
-				Element html  = newPage.createElement("html");
-				Element head  = newPage.createElement("head");
-				Element body  = newPage.createElement("body");
-				Element title = newPage.createElement("title");
-				Element h1    = newPage.createElement("h1");
-				Element div   = newPage.createElement("div");
-				
-				try {
-					// add HTML element to page
-					newPage.appendChild(html);
-					
-					// add HEAD and BODY elements to HTML
-					html.appendChild(head);
-					html.appendChild(body);
-					
-					// add TITLE element to HEAD
-					head.appendChild(title);
-					
-					// add H1 element to BODY
-					body.appendChild(h1);
 
-					// add DIV element to BODY
-					body.appendChild(div);
-					
-					// add text nodes
-					title.appendChild(newPage.createTextNode("${capitalize(page.name)}"));					
-					h1.appendChild(newPage.createTextNode("${capitalize(page.name)}"));
-					div.appendChild(newPage.createTextNode("Initial body text"));
-					
-				} catch (DOMException dex) {
-					
-					dex.printStackTrace();
-					
-					throw new FrameworkException(422, dex.getMessage());
-				}
-			}
-			
+			Page.createSimplePage(securityContext, pageName);
+
 		} catch (FrameworkException fex) {
-		
+
 			fex.printStackTrace();
-			
+
 			logger.log(Level.WARNING, "Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).build(), true);
 		}

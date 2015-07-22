@@ -26,7 +26,6 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
@@ -135,7 +134,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		docTypeNode = new Html5DocumentType(this);
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public boolean contentEquals(DOMNode otherNode) {
 		return false;
@@ -192,6 +190,59 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		properties.put(Page.contentType, "text/html");
 
 		return app.create(Page.class, properties);
+	}
+
+	/**
+	 * Creates a default simple page for the Structr backend "add page" button.
+	 *
+	 * @param securityContext
+	 * @param name
+	 * @return
+	 * @throws FrameworkException
+	 */
+	public static Page createSimplePage(final SecurityContext securityContext, final String name) throws FrameworkException {
+
+		final Page page = Page.createNewPage(securityContext, name);
+		if (page != null) {
+
+			Element html  = page.createElement("html");
+			Element head  = page.createElement("head");
+			Element body  = page.createElement("body");
+			Element title = page.createElement("title");
+			Element h1    = page.createElement("h1");
+			Element div   = page.createElement("div");
+
+			try {
+				// add HTML element to page
+				page.appendChild(html);
+
+				// add HEAD and BODY elements to HTML
+				html.appendChild(head);
+				html.appendChild(body);
+
+				// add TITLE element to HEAD
+				head.appendChild(title);
+
+				// add H1 element to BODY
+				body.appendChild(h1);
+
+				// add DIV element to BODY
+				body.appendChild(div);
+
+				// add text nodes
+				title.appendChild(page.createTextNode("${capitalize(page.name)}"));
+				h1.appendChild(page.createTextNode("${capitalize(page.name)}"));
+				div.appendChild(page.createTextNode("Initial body text"));
+
+			} catch (DOMException dex) {
+
+				dex.printStackTrace();
+
+				throw new FrameworkException(422, dex.getMessage());
+			}
+		}
+
+		return page;
 	}
 
 	@Override

@@ -33,6 +33,7 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -58,8 +59,9 @@ public class ClearDatabase extends NodeServiceCommand {
 		if (graphDb != null) {
 
 			Iterator<AbstractNode> nodeIterator = null;
+			final App app = StructrApp.getInstance();
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 
 				nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes())).iterator();
 				tx.success();
@@ -78,7 +80,7 @@ public class ClearDatabase extends NodeServiceCommand {
 					if (node.getProperty(GraphObject.id) != null) {
 
 						try {
-							StructrApp.getInstance(securityContext).delete(node);
+							app.delete(node);
 
 						} catch (FrameworkException fex) {
 							logger.log(Level.WARNING, "Unable to delete node {0}: {1}", new Object[] { node.getUuid(), fex.getMessage() } );
