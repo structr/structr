@@ -543,7 +543,7 @@ var _Files = {
 
 			});
 
-			_Entities.activateTabs('#files-tabs', '#content-tab-' + file.id);
+			_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id);
 		});
 	},
 	editContent: function(button, file, element) {

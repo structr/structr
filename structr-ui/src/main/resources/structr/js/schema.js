@@ -595,7 +595,10 @@ var _Schema = {
 		el.append('<div id="' + id + '" class="schema-details"></div>');
 
 		var div = $('#' + id);
-		div.append('<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png"> <b>' + entity.name + '</b>');
+		div.append(
+			//'<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png"> ' +
+			'<b>' + entity.name + '</b>'
+		);
 
 		$('#' + id + ' .edit-localizations', el).on('click', function() {
 			_Schema.openLocalizationDialog(entity.id);
@@ -608,25 +611,25 @@ var _Schema = {
 
 		var mainTabs = $('#tabs', div);
 
-		_Entities.appendPropTab(mainTabs, 'local', 'Local Attributes', targetView === 'local', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'local', 'Local Attributes', targetView === 'local', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendLocalProperties(c, e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'views', 'Views', targetView === 'views', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'views', 'Views', targetView === 'views', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendViews(c, 'schema_nodes', e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'methods', 'Methods', targetView === 'methods', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'methods', 'Methods', targetView === 'methods', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendMethods(c, e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'remote', 'Remote Attributes', targetView === 'remote', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'remote', 'Remote Attributes', targetView === 'remote', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendRemoteProperties(c, e);
 			});
@@ -678,19 +681,19 @@ var _Schema = {
 
 		var mainTabs = $('#tabs', div);
 
-		_Entities.appendPropTab(mainTabs, 'local', 'Local Attributes', true, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'local', 'Local Attributes', true, function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendLocalProperties(c, e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'views', 'Views', false, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'views', 'Views', false, function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendViews(c, 'schema_relationship_nodes', e);
 			});
 		});
 
-		_Entities.appendPropTab(mainTabs, 'methods', 'Methods', false, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, 'methods', 'Methods', false, function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendMethods(c, e);
 			});
@@ -1114,7 +1117,9 @@ var _Schema = {
 				+ (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
 				+ (property.unique ? ' checked="checked"' : '') + '</td><td>'
 				+ '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td>'
-				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"><img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png">')
+				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">'
+					// + '<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png">'
+					)
 				+ '</td></tr>');
 
 		_Schema.bindEvents(property);

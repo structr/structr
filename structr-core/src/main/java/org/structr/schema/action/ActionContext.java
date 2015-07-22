@@ -23,6 +23,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
@@ -30,6 +32,9 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.schema.parser.DatePropertyParser;
@@ -39,6 +44,8 @@ import org.structr.schema.parser.DatePropertyParser;
  * @author Christian Morgner
  */
 public class ActionContext {
+
+	private static final Logger logger = Logger.getLogger(ActionContext.class.getName());
 
 	protected SecurityContext securityContext = null;
 	protected Map<String, String> headers     = new HashMap<>();
@@ -298,5 +305,42 @@ public class ActionContext {
 
 	public Locale getLocale() {
 		return locale;
+	}
+
+	public String getJavascriptLibraryCode() {
+
+		final StringBuilder buf = new StringBuilder();
+		final App app           = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final JavaScriptSource jsLibraryFile : app.nodeQuery(JavaScriptSource.class).and(JavaScriptSource.useAsJavascriptLibrary, true).getAsList()) {
+
+				final String contentType = jsLibraryFile.getContentType();
+				if (contentType != null) {
+
+					final String lowerCaseContentType = contentType.toLowerCase();
+					if ("text/javascript".equals(lowerCaseContentType) || "application/javascript".equals(lowerCaseContentType)) {
+
+						buf.append(jsLibraryFile.getJavascriptLibraryCode());
+
+					} else {
+
+						logger.log(Level.INFO, "Ignoring file {0} for use as a Javascript library, content type {1} not allowed. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+					}
+
+				} else {
+
+					logger.log(Level.INFO, "Ignoring file {0} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		return buf.toString();
 	}
 }

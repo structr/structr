@@ -93,6 +93,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Localization;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
@@ -230,6 +231,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_IS_LOCALE_JS = "Usage: ${Structr.isLocale(locales...}. Example ${Structr.isLocale('de_DE', 'de_AT', 'de_CH')}";
 	public static final String ERROR_MESSAGE_CYPHER = "Usage: ${cypher('MATCH (n) RETURN n')}";
 	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${Structr.cypher(query)}. Example ${Structr.cypher('MATCH (n) RETURN n')}";
+	public static final String ERROR_MESSAGE_LOCALIZE = "Usage: ${localize(key[, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}";
+	public static final String ERROR_MESSAGE_LOCALIZE_JS = "Usage: ${Structr.localize(key[, domain])}. Example ${Structr.localize('HELLO_WORLD', 'myDomain')}";
 
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INSTANTIATE = "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
@@ -3854,7 +3857,61 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_SET_PRIVILEGED_JS : ERROR_MESSAGE_SET_PRIVILEGED);
+				return (inJavaScriptContext ? ERROR_MESSAGE_CYPHER_JS : ERROR_MESSAGE_CYPHER);
+			}
+		});
+		functions.put("localize", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length >= 1) {
+
+					final SecurityContext securityContext = ctx.getSecurityContext();
+					Query query = StructrApp.getInstance(securityContext).nodeQuery(Localization.class).and(Localization.name, sources[0].toString());
+					List<Localization> localizations;
+
+					if (sources.length == 2) {
+
+						query.and(Localization.domain, sources[1].toString());
+
+						localizations = query.getAsList();
+
+						if (localizations.isEmpty()) {
+
+							// no domain-specific localization found. fall back to no domain
+							query = StructrApp.getInstance(securityContext).nodeQuery(Localization.class).blank(Localization.domain).and(Localization.name, sources[0].toString()).blank(Localization.domain);
+
+							localizations = query.getAsList();
+
+						}
+
+					} else {
+
+						query.blank(Localization.domain);
+
+						localizations = query.getAsList();
+
+					}
+
+					if (!localizations.isEmpty()) {
+						return localizations.get(0).getProperty(Localization.localizedName);
+					}
+
+					// no localization found - return the key
+					return sources[0];
+
+				} else {
+
+					return usage(ctx.isJavaScriptContext());
+
+				}
+
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_LOCALIZE_JS : ERROR_MESSAGE_LOCALIZE);
 			}
 		});
 	}

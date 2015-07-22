@@ -300,6 +300,13 @@ public interface GraphObject {
 
 
 	// ----- Cloud synchronization and replication -----
+	/**
+	 * Returns a list of objects that are part of this GraphObject's synchronization set.
+	 * Caution: most implementations of this method may add null objects to the list.
+	 * 
+	 * @return
+	 * @throws FrameworkException
+	 */
 	public List<GraphObject> getSyncData() throws FrameworkException;
 
 	public boolean isNode();

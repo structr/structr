@@ -27,7 +27,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -120,10 +119,9 @@ public abstract class StructrUiTest extends TestCase {
 
 		config = Services.getBaseConfiguration();
 
-		final Date now = new Date();
-		final long timestamp = now.getTime();
+		final long timestamp = System.currentTimeMillis();
 
-		basePath = "/tmp/structr-test-" + timestamp;
+		basePath = "/tmp/structr-test-" + timestamp + "-" + System.nanoTime();
 
 		// enable "just testing" flag to avoid JAR resource scanning
 		config.setProperty(Services.TESTING, "true");
