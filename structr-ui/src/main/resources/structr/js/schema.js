@@ -595,7 +595,10 @@ var _Schema = {
 		el.append('<div id="' + id + '" class="schema-details"></div>');
 
 		var div = $('#' + id);
-		div.append('<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png"> <b>' + entity.name + '</b>');
+		div.append(
+			//'<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png"> ' +
+			'<b>' + entity.name + '</b>'
+		);
 
 		$('#' + id + ' .edit-localizations', el).on('click', function() {
 			_Schema.openLocalizationDialog(entity.id);
@@ -1114,7 +1117,9 @@ var _Schema = {
 				+ (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
 				+ (property.unique ? ' checked="checked"' : '') + '</td><td>'
 				+ '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td>'
-				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png"><img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png">')
+				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">'
+					// + '<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png">'
+					)
 				+ '</td></tr>');
 
 		_Schema.bindEvents(property);
