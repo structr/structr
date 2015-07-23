@@ -89,11 +89,13 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// collect folders that are marked for export
 			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.includeInFrontendExport, true).getAsList()) {
+
 				collectDataRecursively(app, folder, nodes, rels, filePaths);
 			}
 
 			// collect pages (including files, shared components etc.)
 			for (final Page page : app.nodeQuery(Page.class).getAsList()) {
+
 				collectDataRecursively(app, page, nodes, rels, filePaths);
 			}
 
