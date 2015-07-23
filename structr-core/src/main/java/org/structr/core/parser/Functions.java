@@ -3868,19 +3868,19 @@ public class Functions {
 				if (sources != null && sources.length >= 1) {
 
 					final SecurityContext securityContext = ctx.getSecurityContext();
-					Query query = StructrApp.getInstance(securityContext).nodeQuery(Localization.class).and(Localization.name, sources[0].toString());
+					Query query = StructrApp.getInstance(securityContext).nodeQuery(Localization.class).and(Localization.locale, ctx.getLocale().toString()).and(Localization.name, sources[0].toString());
 					List<Localization> localizations;
 
-					if (sources.length == 2) {
+					if (sources.length > 1) {
 
 						query.and(Localization.domain, sources[1].toString());
 
 						localizations = query.getAsList();
 
 						if (localizations.isEmpty()) {
-
 							// no domain-specific localization found. fall back to no domain
-							query = StructrApp.getInstance(securityContext).nodeQuery(Localization.class).blank(Localization.domain).and(Localization.name, sources[0].toString()).blank(Localization.domain);
+
+							query = StructrApp.getInstance(securityContext).nodeQuery(Localization.class).blank(Localization.domain).and(Localization.locale, ctx.getLocale().toString()).and(Localization.name, sources[0].toString()).blank(Localization.domain);
 
 							localizations = query.getAsList();
 
@@ -3894,8 +3894,24 @@ public class Functions {
 
 					}
 
-					if (!localizations.isEmpty()) {
+					if (localizations.size() > 1) {
+						// Ambiguous localization found
+
+						if (sources.length > 1) {
+
+							return "Ambiguous localization for key '" + sources[0] + "' and domain '" + sources[1] + "' found. Please fix.";
+
+						} else {
+
+							return "Ambiguous localization for key '" + sources[0] + "' found. Please fix.";
+
+						}
+
+					} else if (localizations.size() == 1) {
+						// The desired outcome: Exactly one localization found
+
 						return localizations.get(0).getProperty(Localization.localizedName);
+
 					}
 
 					// no localization found - return the key
