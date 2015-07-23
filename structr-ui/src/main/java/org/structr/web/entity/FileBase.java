@@ -358,7 +358,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	// ----- interface JavaScriptSource -----
 	@Override
 	public String getJavascriptLibraryCode() {
-		
+
 		try (final InputStream is = getInputStream()) {
 
 			return IOUtils.toString(is);

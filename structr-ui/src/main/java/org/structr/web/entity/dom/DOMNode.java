@@ -278,14 +278,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					 * These nodes MUST:
 					 * 1. be unique in name
 					 * 2. NOT be in the trash => have an ownerDocument AND a parent   (public users are not allowed to see the __ShadowDocument__ ==> this check must either be made in a superuser-context OR the __ShadowDocument could be made public?)
-					 * 
+					 *
 					 * These nodes can be:
 					 * 1. somewhere in the pages tree
 					 * 2. in the shared components
 					 * 3. both  ==> causes a problem because we now have multiple nodes with the same name (one shared component and multiple linking instances of that component)
-					 * 
+					 *
 					 * INFOS:
-					 * 
+					 *
 					 * - If a DOMNode has "syncedNodes" it MUST BE a shared component
 					 * - If a DOMNodes "sharedComponent" is set it MUST BE AN INSTANCE of a shared component      => Can we safely ignore these? I THINK SO!
 					 */
@@ -2142,9 +2142,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		data.add(getProperty(DOMNode.sharedComponent));
 		data.add(getIncomingRelationship(Sync.class));
 
-		// add parent
+		// add parent page
 		data.add(getProperty(ownerDocument));
 		data.add(getOutgoingRelationship(PageLink.class));
+
+		// add parent element
+		data.add(getProperty(DOMNode.parent));
+		data.add(getIncomingRelationship(DOMChildren.class));
 
 		return data;
 	}
