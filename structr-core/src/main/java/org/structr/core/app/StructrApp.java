@@ -71,17 +71,16 @@ import org.structr.schema.ConfigurationProvider;
  */
 public class StructrApp implements App {
 
-	private static final int cacheSize                 = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 10000);
-	private static final Map<String, Long> nodeUuidMap = Collections.synchronizedMap(new LruMap<String, Long>(cacheSize));
-	private static final Map<String, Long> relUuidMap  = Collections.synchronizedMap(new LruMap<String, Long>(cacheSize));
-	private static final Logger logger                 = Logger.getLogger(StructrApp.class.getName());
-	private static final URI schemaBaseURI             = URI.create("https://structr.org/v1.1/#");
-	private static final Object globalConfigLock       = new Object();
-	private static GraphProperties config              = null;
-	private GraphDatabaseService graphDb               = null;
-	private SecurityContext securityContext            = null;
-	private RelationshipFactory relFactory             = null;
-	private NodeFactory nodeFactory                    = null;
+	private static Map<String, Long> nodeUuidMap  = null;
+	private static Map<String, Long> relUuidMap   = null;
+	private static final Logger logger            = Logger.getLogger(StructrApp.class.getName());
+	private static final URI schemaBaseURI        = URI.create("https://structr.org/v1.1/#");
+	private static final Object globalConfigLock  = new Object();
+	private static GraphProperties config         = null;
+	private GraphDatabaseService graphDb          = null;
+	private SecurityContext securityContext       = null;
+	private RelationshipFactory relFactory        = null;
+	private NodeFactory nodeFactory               = null;
 
 	private StructrApp(final SecurityContext securityContext) {
 		this.relFactory      = new RelationshipFactory(securityContext);
@@ -142,6 +141,10 @@ public class StructrApp implements App {
 	@Override
 	public GraphObject get(final String uuid) throws FrameworkException {
 
+		if (uuid == null) {
+			return null;
+		}
+
 		final NodeInterface node = getNodeById(uuid);
 		if (node != null) {
 
@@ -160,7 +163,11 @@ public class StructrApp implements App {
 	@Override
 	public NodeInterface getNodeById(final String uuid) throws FrameworkException {
 
-		final Long nodeId = nodeUuidMap.get(uuid);
+		if (uuid == null) {
+			return null;
+		}
+
+		final Long nodeId = getNodeFromCache(uuid);
 		if (nodeId == null) {
 
 			GraphObject entity = nodeQuery().uuid(uuid).includeDeletedAndHidden().getFirst();
@@ -186,7 +193,11 @@ public class StructrApp implements App {
 	@Override
 	public RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException {
 
-		final Long id = relUuidMap.get(uuid);
+		if (uuid == null) {
+			return null;
+		}
+
+		final Long id = getRelFromCache(uuid);
 		if (id == null) {
 
 			GraphObject entity = relationshipQuery().uuid(uuid).getFirst();
@@ -450,8 +461,6 @@ public class StructrApp implements App {
 		}
 	}
 
-
-
 	// ----- public static methods ----
 	/**
 	 * Constructs a new stateful App instance, initialized with the given
@@ -500,6 +509,7 @@ public class StructrApp implements App {
 		return schemaBaseURI;
 	}
 
+	// ----- private static methods -----
 	private static void initializeSchemaIds() {
 
 		if (schemaIdMap.isEmpty()) {
@@ -524,4 +534,27 @@ public class StructrApp implements App {
 
 	private static final Map<URI, Class> schemaIdMap = new LinkedHashMap<>();
 	private static final Map<Class, URI> typeIdMap   = new LinkedHashMap<>();
+
+	// ---------- private methods -----
+	private synchronized Long getNodeFromCache(final String uuid) {
+
+		if (nodeUuidMap == null) {
+
+			final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 10000);
+			nodeUuidMap = Collections.synchronizedMap(new LruMap<String, Long>(cacheSize));
+		}
+
+		return nodeUuidMap.get(uuid);
+	}
+
+	private synchronized Long getRelFromCache(final String uuid) {
+
+		if (relUuidMap == null) {
+
+			final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 10000);
+			relUuidMap = Collections.synchronizedMap(new LruMap<String, Long>(cacheSize));
+		}
+
+		return relUuidMap.get(uuid);
+	}
 }

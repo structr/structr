@@ -931,7 +931,7 @@ var _Pages = {
 		_Entities.appendTextarea($('#content-tab-binding-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
 		_Entities.appendTextarea($('#content-tab-binding-xpath'), entity, 'xpathQuery', 'XPath Query', '');
 
-		_Entities.activateTabs('#data-binding-tabs', '#content-tab-binding-rest');
+		_Entities.activateTabs(id, '#data-binding-tabs', '#content-tab-binding-rest');
 
 		_Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
 

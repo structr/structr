@@ -42,11 +42,12 @@ import org.structr.schema.json.JsonType;
  * @author Christian Morgner
  */
 public class StructrSchemaTest extends StructrTest {
-	
+
 	@Override
 	public void test00DbAvailable() {
 
 	}
+
 
 //	public void testSimpleProperties() {
 //
@@ -133,6 +134,9 @@ public class StructrSchemaTest extends StructrTest {
 
 	public void testInheritance() {
 
+		// we need to wait for the schema service to be initialized here.. :(
+		try { Thread.sleep(1000); } catch (Throwable t) {}
+
 		try {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
@@ -163,6 +167,9 @@ public class StructrSchemaTest extends StructrTest {
 	}
 
 	public void testSimpleSymmetricReferences() {
+
+		// we need to wait for the schema service to be initialized here.. :(
+		try { Thread.sleep(1000); } catch (Throwable t) {}
 
 		try {
 
@@ -213,6 +220,9 @@ public class StructrSchemaTest extends StructrTest {
 	}
 
 	public void testSchemaBuilder() {
+
+		// we need to wait for the schema service to be initialized here.. :(
+		try { Thread.sleep(1000); } catch (Throwable t) {}
 
 		try {
 

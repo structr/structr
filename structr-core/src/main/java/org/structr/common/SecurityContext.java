@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.helpers.collection.LruMap;
 import org.structr.core.GraphObject;
@@ -50,6 +52,8 @@ import org.structr.schema.SchemaHelper;
  * @author Christian Morgner
  */
 public class SecurityContext {
+
+	public static final String LOCALE_KEY = "locale";
 
 	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new LruMap<>(10000);
@@ -588,6 +592,55 @@ public class SecurityContext {
 
 	public QueryRange getRange(final String key) {
 		return ranges.get(key);
+	}
+
+	/**
+	 * Determine the effective locale for this request.
+	 *
+	 * Priority 1: URL parameter "locale" Priority 2: User locale  3: Browser locale  4: Default locale
+	 *
+	 * @return locale
+	 */
+	public Locale getEffectiveLocale() {
+
+		Locale locale = Locale.getDefault();
+		boolean userHasLocaleString = false;
+
+		if (cachedUser != null) {
+
+			final String userLocaleString = cachedUser.getProperty(Principal.locale);
+
+			if (userLocaleString != null) {
+				userHasLocaleString = true;
+
+				try {
+					locale = LocaleUtils.toLocale(userLocaleString);
+				} catch (IllegalArgumentException e) {
+					locale = Locale.forLanguageTag(userLocaleString);
+				}
+			}
+
+		}
+
+		if (request != null) {
+
+			if (!userHasLocaleString) {
+				locale = request.getLocale();
+			}
+
+			// Overwrite locale if requested by URL parameter
+			String requestedLocaleString = request.getParameter(LOCALE_KEY);
+			if (StringUtils.isNotBlank(requestedLocaleString)) {
+				try {
+					locale = LocaleUtils.toLocale(requestedLocaleString);
+				} catch (IllegalArgumentException e) {
+					locale = Locale.forLanguageTag(requestedLocaleString);
+				}
+			}
+
+		}
+
+		return locale;
 	}
 
 	// ----- nested classes -----

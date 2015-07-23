@@ -413,11 +413,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	private static void exportDirectory(ZipOutputStream zos, File dir, String path, Set<String> filesToInclude) throws IOException {
 
-		String nestedPath = path + dir.getName() + "/";
-		ZipEntry dirEntry = new ZipEntry(nestedPath);
+		final String nestedPath = path + dir.getName() + "/";
+		final ZipEntry dirEntry = new ZipEntry(nestedPath);
 		zos.putNextEntry(dirEntry);
 
-		File[] contents = dir.listFiles();
+		final File[] contents = dir.listFiles();
 		if (contents != null) {
 
 			for (File file : contents) {
@@ -428,18 +428,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				} else {
 
-					String relativePath = nestedPath + file.getName();
+					final String fileName     = file.getName();
+					final String relativePath = nestedPath + fileName;
 					boolean includeFile = true;
 
 					if (filesToInclude != null) {
 
 						includeFile = false;
 
-						if  (filesToInclude.contains(relativePath)) {
+						if  (filesToInclude.contains(fileName)) {
 
 							includeFile = true;
 						}
-
 					}
 
 					if (includeFile) {

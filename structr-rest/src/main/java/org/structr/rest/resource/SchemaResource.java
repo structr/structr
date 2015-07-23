@@ -18,12 +18,9 @@
  */
 package org.structr.rest.resource;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,13 +28,9 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaNodeLocalization;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.core.property.UuidProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
@@ -88,35 +81,6 @@ public class SchemaResource extends Resource {
 				schema.setProperty(new StringProperty("className"), type.getName());
 				schema.setProperty(new StringProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
-
-				try {
-
-					SchemaNode schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
-
-					if (schemaNode != null) {
-
-						final List<SchemaNodeLocalization> nodeLocalizations = schemaNode.localizations.getProperty(securityContext, schemaNode, false);
-						final List<GraphObjectMap> localizationsMap = new ArrayList<>(nodeLocalizations.size());
-
-						for (final SchemaNodeLocalization loc : nodeLocalizations) {
-
-							final GraphObjectMap tmpMap = new GraphObjectMap();
-							tmpMap.setProperty(new UuidProperty(), loc.getProperty(SchemaNodeLocalization.id));
-							tmpMap.setProperty(new StringProperty("locale"), loc.getProperty(SchemaNodeLocalization.locale));
-							tmpMap.setProperty(new StringProperty("name"), loc.getProperty(SchemaNodeLocalization.name));
-							localizationsMap.add(tmpMap);
-
-						}
-
-						schema.setProperty(new GenericProperty("localizations"), localizationsMap);
-
-
-					}
-
-				} catch (FrameworkException ex) {
-
-					Logger.getLogger(SchemaTypeResource.class.getName()).log(Level.SEVERE, "Error looking up SchemaNode - cannot display labels for properties!", ex);
-				}
 			}
 
 

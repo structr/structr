@@ -38,6 +38,7 @@ import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
+import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.TransactionSource;
 import org.structr.core.app.App;
@@ -79,7 +80,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	}
 
 	@Override
-	public void initialize(final StructrConf config) {
+	public void initialize(final Services services, final StructrConf config) {
 
 		active = "true".equals(config.getProperty("sync.enabled", "false"));
 

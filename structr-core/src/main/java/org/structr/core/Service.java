@@ -42,13 +42,14 @@ public interface Service {
 	 * Called {@link Services} after the service is instantiated to initialize
 	 * service-specific resources etc.
 	 *
+	 * @param services
 	 * @param config
 	 *
 	 * @throws ClassNotFoundException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	public void initialize(final StructrConf config) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
+	public void initialize(final Services services, final StructrConf config) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called

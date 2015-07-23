@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -39,16 +38,13 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaNodeLocalization;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaPropertyLocalization;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
-import org.structr.core.property.UuidProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
@@ -126,23 +122,6 @@ public class SchemaTypeResource extends Resource {
 				schema.setProperty(new StringProperty("className"), type.getName());
 				schema.setProperty(new BooleanProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
-
-				if (schemaNode != null) {
-					final List<SchemaNodeLocalization> nodeLocalizations = schemaNode.localizations.getProperty(securityContext, schemaNode, false);
-					final List<GraphObjectMap> localizationsMap = new ArrayList<>(nodeLocalizations.size());
-
-					for (final SchemaNodeLocalization loc : nodeLocalizations) {
-
-						final GraphObjectMap tmpMap = new GraphObjectMap();
-						tmpMap.setProperty(new UuidProperty(), loc.getProperty(SchemaNodeLocalization.id));
-						tmpMap.setProperty(new StringProperty("locale"), loc.getProperty(SchemaNodeLocalization.locale));
-						tmpMap.setProperty(new StringProperty("name"), loc.getProperty(SchemaNodeLocalization.name));
-						localizationsMap.add(tmpMap);
-
-					}
-
-					schema.setProperty(new GenericProperty("localizations"), localizationsMap);
-				}
 
 				Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
 
@@ -245,11 +224,11 @@ public class SchemaTypeResource extends Resource {
 			propProperties.put("unique", property.isUnique());
 			propProperties.put("notNull", property.isNotNull());
 			propProperties.put("dynamic", property.isDynamic());
-			
+
 			if (property.isDynamic()) {
 
 				final List<SchemaProperty> effectiveSchemaProperties;
-				
+
 				if (type.equals(declaringClass)) {
 
 					effectiveSchemaProperties = getSchemaProperties(schemaNode);
@@ -259,31 +238,6 @@ public class SchemaTypeResource extends Resource {
 					effectiveSchemaProperties = getSchemaProperties(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst());
 
 				}
-
-				for (final SchemaProperty sProp : effectiveSchemaProperties) {
-
-					if (sProp.getName().equals(property.jsonName())) {
-
-						final List<SchemaPropertyLocalization> propertyLocalizations = sProp.localizations.getProperty(securityContext, sProp, false);
-						final List<GraphObjectMap> localizationsMap = new ArrayList<>(propertyLocalizations.size());
-
-						for (final SchemaPropertyLocalization loc : propertyLocalizations) {
-
-							final GraphObjectMap tmpMap = new GraphObjectMap();
-							tmpMap.setProperty(new UuidProperty(), loc.getProperty(SchemaPropertyLocalization.id));
-							tmpMap.setProperty(new StringProperty("locale"), loc.getProperty(SchemaPropertyLocalization.locale));
-							tmpMap.setProperty(new StringProperty("name"), loc.getProperty(SchemaPropertyLocalization.name));
-							localizationsMap.add(tmpMap);
-
-						}
-
-						propProperties.put("localizations", localizationsMap);
-						break;
-
-					}
-
-				}
-
 			}
 
 			final Class<? extends GraphObject> relatedType = property.relatedType();
@@ -327,7 +281,7 @@ public class SchemaTypeResource extends Resource {
 
 		return propertyConverterMap;
 	}
-	
+
 	private List<SchemaProperty> getSchemaProperties(final SchemaNode schemaNode) {
 
 		final List<SchemaProperty> schemaProperties = new LinkedList<>();

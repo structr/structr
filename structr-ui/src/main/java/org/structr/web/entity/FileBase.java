@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.parboiled.common.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -46,6 +47,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import static org.structr.web.entity.AbstractFile.parent;
@@ -56,19 +58,19 @@ import org.structr.web.property.PathProperty;
  *
  * @author Christian Morgner
  */
-public class FileBase extends AbstractFile implements Linkable {
+public class FileBase extends AbstractFile implements Linkable, JavaScriptSource {
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
-	public static final Property<String> contentType      = new StringProperty("contentType").indexedWhenEmpty();
-	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath").readOnly();
-	public static final Property<Long> size               = new LongProperty("size").indexed().readOnly();
-	public static final Property<String> url              = new StringProperty("url");
-	public static final Property<Long> checksum           = new LongProperty("checksum").unvalidated().readOnly();
-	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
-	public static final Property<Integer> version         = new IntProperty("version").indexed().readOnly();
-	public static final Property<String> path             = new PathProperty("path").indexed().readOnly();
-	public static final Property<Boolean> isFile          = new BooleanProperty("isFile").defaultValue(true).readOnly();
+	public static final Property<String> contentType             = new StringProperty("contentType").indexedWhenEmpty();
+	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").readOnly();
+	public static final Property<Long> size                      = new LongProperty("size").indexed().readOnly();
+	public static final Property<String> url                     = new StringProperty("url");
+	public static final Property<Long> checksum                  = new LongProperty("checksum").unvalidated().readOnly();
+	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds");
+	public static final Property<Integer> version                = new IntProperty("version").indexed().readOnly();
+	public static final Property<String> path                    = new PathProperty("path").indexed().readOnly();
+	public static final Property<Boolean> isFile                 = new BooleanProperty("isFile").defaultValue(true).readOnly();
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile);
@@ -351,5 +353,20 @@ public class FileBase extends AbstractFile implements Linkable {
 		data.add(getIncomingRelationship(Folders.class));
 
 		return data;
+	}
+
+	// ----- interface JavaScriptSource -----
+	@Override
+	public String getJavascriptLibraryCode() {
+		
+		try (final InputStream is = getInputStream()) {
+
+			return IOUtils.toString(is);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+
+		return null;
 	}
 }

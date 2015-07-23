@@ -151,7 +151,7 @@ public class Services {
 				public void run() {
 
 					// wait a second
-					try { Thread.sleep(1000); } catch (Throwable ignore) {}
+					try { Thread.sleep(100); } catch (Throwable ignore) {}
 
 					// call initialization callbacks from a different thread
 					for (final InitializationCallback callback : singletonInstance.callbacks) {
@@ -172,6 +172,23 @@ public class Services {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize(properties);
+//
+//			new Thread(new Runnable() {
+//
+//				@Override
+//				public void run() {
+//
+//					// wait a second
+//					try { Thread.sleep(100); } catch (Throwable ignore) {}
+
+					// call initialization callbacks from a different thread
+					for (final InitializationCallback callback : singletonInstance.callbacks) {
+						callback.initializationDone();
+					}
+//				}
+//
+//			}).start();
+//
 		}
 
 		return singletonInstance;
@@ -549,7 +566,7 @@ public class Services {
 		try {
 
 			service = (Service) serviceClass.newInstance();
-			service.initialize(getCurrentConfig());
+			service.initialize(this, getCurrentConfig());
 
 			if (service instanceof RunnableService) {
 

@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.Collection;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
@@ -121,6 +122,18 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 				graphObject.setProperty(new GenericProperty(valueKey), handleObject(nodeFactory, relFactory, valueKey, valueValue, includeHiddenAndDeleted, publicOnly, level + 1));
 			}
+
+		} else if (value instanceof Collection) {
+
+			final Collection<Object> valueCollection = (Collection<Object>)value;
+			final List<Object> collection            = new LinkedList<>();
+
+			for (final Object valueEntry : valueCollection) {
+
+				collection.add(handleObject(nodeFactory, relFactory, null, valueEntry, includeHiddenAndDeleted, publicOnly, level + 1));
+			}
+
+			return collection;
 
 		} else if (level == 0) {
 

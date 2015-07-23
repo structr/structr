@@ -49,7 +49,7 @@ public class Neo4jService implements RunnableService {
 	@Override
 	public void startService() {
 
-		
+
 
 		try {
 			GraphDatabaseAPI api = (GraphDatabaseAPI) StructrApp.getInstance().getGraphDatabaseService();
@@ -61,7 +61,7 @@ public class Neo4jService implements RunnableService {
 
 			config.configuration()
 				.addProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY, port);
-			
+
 			logger.log(Level.INFO, "Starting Neo4j server on port {0}", new Object[] { String.valueOf(port) });
 
 			neoServerBootstrapper = new WrappingNeoServerBootstrapper(api, config);
@@ -70,7 +70,7 @@ public class Neo4jService implements RunnableService {
 		} catch (Exception e) {
 
 			logger.log(Level.SEVERE, e.getMessage());
-			
+
 		}
 
 	}
@@ -98,7 +98,7 @@ public class Neo4jService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrConf config) {
+	public void initialize(final Services services, final StructrConf config) {
 
 		final StructrConf finalConfig = new StructrConf();
 
