@@ -106,8 +106,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String TARGET_PAGE_KEY = "target";
 	public static final String ERROR_PAGE_KEY = "onerror";
 
-	private static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
-	private static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
+	public static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
+	public static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
 
 	private static final String defaultCustomResponseHeaders = "Strict-Transport-Security:max-age=60,"
 				+ "X-Content-Type-Options:nosniff,"
