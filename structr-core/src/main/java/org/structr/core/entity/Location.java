@@ -46,6 +46,10 @@ public class Location extends AbstractNode {
 		latitude, longitude, altitude
 	);
 
+	public static final View uiView = new View(Location.class, PropertyView.Ui,
+		latitude, longitude, altitude
+	);
+
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return isValid(errorBuffer);
