@@ -1445,7 +1445,21 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					final PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, false);
 					if (key != null) {
 
-						query.or(key, name);
+						try {
+
+							final PropertyConverter converter = key.inputConverter(SecurityContext.getSuperUserInstance());
+							if (converter != null) {
+
+								// try converted value, fail silenty
+								query.or(key, converter.convert(name));
+
+							} else {
+
+								// try unconverted value, fail silently if it doesn't work
+								query.or(key, name);
+							}
+
+						} catch (FrameworkException ignore) { }
 
 					} else {
 

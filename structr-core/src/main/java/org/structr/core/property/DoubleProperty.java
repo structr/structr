@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
@@ -164,8 +163,6 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 					return Double.valueOf(source.toString());
 
 				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to convert {0} to Double.", source);
 
 					throw new FrameworkException(declaringClass.getSimpleName(), new NumberToken(DoubleProperty.this));
 				}

@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
@@ -47,30 +46,6 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	public LongProperty(final String name) {
 		super(name);
 	}
-
-//	public LongProperty(final String jsonName, final String dbName) {
-//		this(jsonName, dbName, null);
-//	}
-//
-//	public LongProperty(final String name, final Long defaultValue) {
-//		this(name, name, defaultValue);
-//	}
-//
-//	public LongProperty(final String name, final PropertyValidator<Long>... validators) {
-//		this(name, name, null, validators);
-//	}
-//
-//	public LongProperty(final String name, final Long defaultValue, final PropertyValidator<Long>... validators) {
-//		this(name, name, defaultValue, validators);
-//	}
-//
-//	public LongProperty(final String jsonName, final String dbName, final Long defaultValue, final PropertyValidator<Long>... validators) {
-//		super(jsonName, dbName, defaultValue);
-//
-//		for (PropertyValidator<Long> validator : validators) {
-//			addValidator(validator);
-//		}
-//	}
 
 	@Override
 	public String typeName() {
@@ -140,8 +115,6 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 					return Long.valueOf(source.toString());
 
 				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to convert {0} to Long.", source);
 
 					throw new FrameworkException(declaringClass.getSimpleName(), new NumberToken(LongProperty.this));
 				}
