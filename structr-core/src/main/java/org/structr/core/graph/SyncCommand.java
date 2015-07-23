@@ -624,7 +624,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 						if (objectType == 'N') {
 
-							// break look after 200 objects, commit and restart afterwards
+							// break loop after 200 objects, commit and restart afterwards
 							 if(nodeCount + relCount >= 200) {
 								 dis.reset();
 								 break;

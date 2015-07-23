@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
@@ -47,30 +46,6 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	public IntProperty(final String name) {
 		super(name);
 	}
-
-//	public IntProperty(final String jsonName, final String dbName) {
-//		this(jsonName, dbName, null);
-//	}
-//
-//	public IntProperty(final String name, final Integer defaultValue) {
-//		this(name, name, defaultValue);
-//	}
-//
-//	public IntProperty(final String name, final PropertyValidator<Integer>... validators) {
-//		this(name, name, null, validators);
-//	}
-//
-//	public IntProperty(final String name, final Integer defaultValue, final PropertyValidator<Integer>... validators) {
-//		this(name, name, defaultValue, validators);
-//	}
-//
-//	public IntProperty(final String jsonName, final String dbName, final Integer defaultValue, final PropertyValidator<Integer>... validators) {
-//		super(jsonName, dbName, defaultValue);
-//
-//		for (PropertyValidator<Integer> validator : validators) {
-//			addValidator(validator);
-//		}
-//	}
 
 	@Override
 	public String typeName() {
@@ -139,8 +114,6 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 					return Double.valueOf(source.toString()).intValue();
 
 				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to convert {0} to Integer.", source);
 
 					throw new FrameworkException(declaringClass.getSimpleName(), new NumberToken(IntProperty.this));
 				}

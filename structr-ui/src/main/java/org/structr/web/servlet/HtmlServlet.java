@@ -1459,8 +1459,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 								query.or(key, name);
 							}
 
-						} catch (FrameworkException fex) {
-						}
+						} catch (FrameworkException ignore) { }
 
 
 					} else {

@@ -45,26 +45,6 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	public BooleanProperty(final String jsonName, final String dbName) {
 		super(jsonName, dbName);
 	}
-//
-//	public BooleanProperty(final String name, final Boolean defaultValue) {
-//		this(name, name, defaultValue);
-//	}
-//
-//	public BooleanProperty(final String name, final PropertyValidator<Boolean>... validators) {
-//		this(name, name, null, validators);
-//	}
-//
-//	public BooleanProperty(final String name, final Boolean defaultValue, final PropertyValidator<Boolean>... validators) {
-//		this(name, name, defaultValue, validators);
-//	}
-//
-//	public BooleanProperty(final String jsonName, final String dbName, final Boolean defaultValue, final PropertyValidator<Boolean>... validators) {
-//		super(jsonName, dbName, defaultValue);
-//
-//		for (PropertyValidator<Boolean> validator : validators) {
-//			addValidator(validator);
-//		}
-//	}
 
 	@Override
 	public Property<Boolean> indexed() {
