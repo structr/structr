@@ -60,6 +60,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	private boolean hasName                 = false;
 	private String lastName                 = null;
 	private final String restPath    = "/structr/rest";
+	private String propertyView	     = "";
 
 	static {
 
@@ -88,6 +89,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException {
 
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
+
+		if (!propertyView.equals("public")) {
+			this.propertyView = "/" + propertyView;
+		}
 
 		Tag head = doc.block("head");
 //		head.empty("link").attr(new Rel("stylesheet"), new Type("text/css"), new Href("/structr/css/rest.css"));
@@ -239,7 +244,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		if ("id".equals(lastName)) {
 
-			currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value)).text("\"", value, "\"");
+			currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value + propertyView)).text("\"", value, "\"");
 
 		} else {
 
