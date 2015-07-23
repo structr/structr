@@ -1116,6 +1116,7 @@ var _Entities = {
 
 		if (!allowClick) {
 			node.on('click', function (e) {
+				e.stopPropagation();
 				return false;
 			});
 		}
@@ -1267,13 +1268,12 @@ var _Entities = {
 
 	},
 	makeNameEditable: function (element, width) {
-
 		var w = width || 200;
 		//element.off('dblclick');
-		element.off('hover');
+		//element.off('hover');
 		var oldName = $.trim(element.children('b.name_').attr('title'));
 		element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
-		element.find('.button').hide();
+		//element.find('.button').hide();
 
 		var input = $('input', element);
 
@@ -1282,12 +1282,12 @@ var _Entities = {
 		input.on('blur', function () {
 			var self = $(this);
 			var newName = self.val();
-			Command.setProperty(getId(element), "name", newName);
 			self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
-			$('.name_', element).on('click', function (e) {
+			element.children('b.name_').on('click', function (e) {
 				e.stopPropagation();
 				_Entities.makeNameEditable(element, w);
 			});
+			Command.setProperty(getId(element), "name", newName);
 			_Pages.reloadPreviews();
 		});
 
@@ -1295,17 +1295,17 @@ var _Entities = {
 			if (e.keyCode === 13) {
 				var self = $(this);
 				var newName = self.val();
-				Command.setProperty(getId(element), "name", newName);
 				self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
-				$('.name_', element).on('click', function (e) {
+				element.children('b.name_').on('click', function (e) {
 					e.stopPropagation();
 					_Entities.makeNameEditable(element, w);
 				});
+				Command.setProperty(getId(element), "name", newName);
 				_Pages.reloadPreviews();
 			}
 		});
 
-		element.off('click');
+		//element.off('click');
 
 	},
 	handleActiveElement: function (entity) {

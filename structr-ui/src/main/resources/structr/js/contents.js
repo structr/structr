@@ -54,7 +54,7 @@ var _Contents = {
 		var icon = isComment ? _Contents.comment_icon : ((isTemplate && isComponent) ? _Contents.comp_templ_icon : (isTemplate ? _Contents.template_icon : (isComponent ? _Contents.comp_icon : _Contents.icon)));
 		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
 				+ '<img class="typeIcon" src="' + icon + '">'
-				+ (name ? ('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
+				+ (name ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
 				+ '<span class="id">' + entity.id + '</span>'
 				+ '</div>';
 

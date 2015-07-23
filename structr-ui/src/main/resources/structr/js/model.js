@@ -402,13 +402,22 @@ var StructrModel = {
 			// Did name change from null?
 			if ((obj.type === 'Template' || obj.isContent)) {
 				if (obj.name) {
-					$(element).children('.content_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
-					$(element).children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+					element.children('.content_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+					element.children('.content_').on('click', function (e) {
+						e.stopPropagation();
+						_Entities.makeNameEditable(element, 200);
+					});
+					
+					element.children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+					element.children('b.name_').on('click', function (e) {
+						e.stopPropagation();
+						_Entities.makeNameEditable(element, 200);
+					});
 				} else {
-					$(element).children('.name_').replaceWith('<div class="content_">' + escapeTags(obj.content) + '</div>');
+					element.children('.name_').html(escapeTags(obj.content));
 				}
 			} else {
-				$(element).children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+				element.children('.name_').attr('title', displayName).html(fitStringToWidth(displayName, 200));
 			}
 
 		}

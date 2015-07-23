@@ -649,6 +649,13 @@ ul#previewTabs {
     display: none;
 }
 
+.node .name_ {
+    max-width: 75%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 .node .name_:hover {
     cursor: text;
 }
@@ -689,7 +696,7 @@ ul#previewTabs {
 .content .content_ {
     margin: 4px 0 -2px 0;
     display: inline-block;
-    width: 40%;
+    max-width: 75%;
     font-weight: normal;
     text-overflow: ellipsis;
     overflow: hidden;
