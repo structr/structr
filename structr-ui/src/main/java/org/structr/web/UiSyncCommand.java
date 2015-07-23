@@ -1,6 +1,5 @@
 package org.structr.web;
 
-import java.net.URI;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -10,9 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -26,7 +22,7 @@ import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.FileBase;
-import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -91,6 +87,11 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
+			// collect folders that are marked for export
+			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.includeInFrontendExport, true).getAsList()) {
+				collectDataRecursively(app, folder, nodes, rels, filePaths);
+			}
+
 			// collect pages (including files, shared components etc.)
 			for (final Page page : app.nodeQuery(Page.class).getAsList()) {
 				collectDataRecursively(app, page, nodes, rels, filePaths);
@@ -146,8 +147,6 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void collectDataRecursively(final App app, final GraphObject root, final Set<NodeInterface> nodes, final Set<RelationshipInterface> rels, final Set<String> files) throws FrameworkException {
 
-		System.out.println("                                                                               nodes: " + nodes.size());
-
 		if (root.isNode()) {
 
 			final NodeInterface node = root.getSyncNode();
@@ -156,13 +155,6 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 				final String fileUuid = node.getUuid();
 				files.add(fileUuid);
 			}
-
-			// try to identify local files that are referenced inline, but not linked in the database
-			if (node instanceof Content) {
-
-				extractInlinedFiles(app, ((Content)node).getProperty(Content.content), nodes, files);
-			}
-
 
 			// add node to set, recurse if not already present
 			if (nodes.add(node)) {
@@ -209,58 +201,6 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 					logger.log(Level.WARNING, "Relationship {0} returned null syncData!", rel);
 				}
-			}
-		}
-
-	}
-
-	private void extractInlinedFiles(final App app, final String content, final Set<NodeInterface> nodes, final Set<String> files) {
-
-		final Set<String> possibleNames = new LinkedHashSet<>();
-		final Document document         = Jsoup.parse(content);
-
-		// script, img
-		for (final Element element : document.getElementsByAttribute("src")) {
-
-			possibleNames.add(element.attr("src"));
-		}
-
-		// link
-		for (final Element element : document.getElementsByTag("link")) {
-
-			switch (element.attr("rel")) {
-
-				case "stylesheet":
-				case "icon":
-					possibleNames.add(element.attr("href"));
-					break;
-
-			}
-		}
-
-		for (final String possibleName : possibleNames) {
-
-			try {
-
-				final URI url       = URI.create(possibleName.replace("/..", "").replace("..", ""));
-				final String path   = url.getPath();
-				final FileBase file = app.nodeQuery(FileBase.class).and(FileBase.path, path).getFirst();
-
-				System.out.println("Looking for file " + path + "..");
-
-				if (file != null) {
-
-					System.out.println("        " + file.getUuid());
-					System.out.println("                                                                                     nodes: " + nodes.size());
-
-					files.add(file.getUuid());
-					nodes.add(file);
-
-					System.out.println("                                                                                     nodes: " + nodes.size());
-				}
-
-			} catch (Throwable ignore) {
-				ignore.printStackTrace();
 			}
 		}
 	}

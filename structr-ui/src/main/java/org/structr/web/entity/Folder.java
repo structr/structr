@@ -51,17 +51,18 @@ import org.structr.web.entity.relation.Images;
  */
 public class Folder extends AbstractFile {
 
-	public static final Property<List<Folder>> folders   = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
-	public static final Property<List<File>>   files     = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
-	public static final Property<List<Image>>  images    = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>      isFolder  = new BooleanProperty("isFolder").defaultValue(true).readOnly();
+	public static final Property<List<Folder>> folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
+	public static final Property<List<File>>   files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
+	public static final Property<List<Image>>  images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
+	public static final Property<Boolean>      isFolder                = new BooleanProperty("isFolder").defaultValue(true).readOnly();
+	public static final Property<Boolean>      includeInFrontendExport = new BooleanProperty("includeInFrontendExport").indexed();
 
 	public static final Property<Integer>		position     = new IntProperty("position").indexed();
 
 	public static final View defaultView = new View(Folder.class, PropertyView.Public, id, type, name, isFolder);
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
-		parent, folders, files, images, isFolder
+		parent, folders, files, images, isFolder, includeInFrontendExport
 	);
 
 	// register this type as an overridden builtin type
