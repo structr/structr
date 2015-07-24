@@ -1461,7 +1461,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						} catch (FrameworkException ignore) { }
 
-
 					} else {
 
 						logger.log(Level.WARNING, "Unable to find property key {0} of type {1} defined in key {2} used for object resolution.", new Object[] { keyName, className, possiblePropertyName } );

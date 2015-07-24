@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# restore - restore a full backup of a structrdb instance.
+#
+# 20141005 chm
+#
+
+# set java home
+export JAVA_HOME="/opt/jdk1.7.0_45"
+
+# constants
+BASE_DIR=/opt/structrdb
+LOGS_DIR=$BASE_DIR/logs
+SERVER_LOG=$BASE_DIR/logs/server.log
+NEO_HOME=/opt/neo4j-enterprise-2.0.1
+NEO_BACKUP=$NEO_HOME/bin/neo4j-backup
+
+# offsite backup settings
+BACKUP_PORT=222
+BACKUP_LOCATION=structrdb-backup@server2.morgner.de
+BACKUP_DIR=/data/backup/structrdb/instances
+
+# set mode and desired backup name
+LOCATION=$1
+TIMESTAMP=$2
+
+function usage() {
+	echo 
+	echo "usage: restore [location] [timestamp]"
+	echo "    restore a backup for the given name"
+	echo "    - name is 'instanceID/serverID'"
+	echo "    - timestamp is 'yyyyMMdd-HHmm'"
+	echo
+	
+	exit 0
+}
+
+# no location set? => usage
+if [ -z $LOCATION ]; then
+
+	usage
+	
+fi
+
+# no timestamp set? => usage
+if [ -z $TIMESTAMP ]; then
+
+	usage
+	
+fi
+
+echo "Restoring backup from $TIMESTAMP at $LOCATION"
+
+# create tmp dir
+if [ ! -d tmp ]; then
+	mkdir tmp
+fi
+
+# copy from remote server
+scp -P $BACKUP_PORT $BACKUP_LOCATION:$BACKUP_DIR/$LOCATION/$TIMESTAMP.zip .
+
+# unzip archive
+unzip $TIMESTAMP.zip -d tmp
+
+# do consistency check
+$JAVA_HOME/bin/java -cp "$NEO_HOME/lib/*:$NEO_HOME/system/lib/*" org.neo4j.consistency.ConsistencyCheckTool tmp/backup/$TIMESTAMP/db
+
+if [ $? -eq 0 ]; then
+
+	echo "Consistency check sucessful."
+	
+else
+
+	echo "Consistency check failed, aborting."
+	exit 1
+
+fi
+
+PIDFILE=$BASE_DIR/structrdb-default.pid
+if [ -e $PIDFILE ]; then
+
+	# waiting for Structr to stop..
+	PID=`cat $PIDFILE`
+
+	# stop Structr
+	$BASE_DIR/stop
+
+	{ tail -q --pid=$PID -n0 -F $SERVER_LOG & } | sed -n '/Shutdown complete/q'
+
+	echo "Stopped.."
+
+fi
+
+# move existing db and files out of the way
+echo "Moving directories out of the way.."
+mv db db.before-restore
+mv files files.before-restore
+
+# move db and files from backup to "live" location
+echo "Installing from backup.."
+mv tmp/backup/$TIMESTAMP/db db
+mv tmp/backup/$TIMESTAMP/files files
+
+# start Structr
+$BASE_DIR/start
+
+# wait a second for Structr to start
+echo "Waiting for Structr to start"
+sleep 3
+
+# waiting for Structr to start
+PID=`cat $PIDFILE`
+{ tail -q --pid=$PID -n0 -F $SERVER_LOG 2>/dev/null & } | sed -n '/Initialization complete/q'
+
+echo "Started"
+
+# remove old db and files dirs
+echo "Cleaning up old db and files directories.."
+rm -rf db.before-restore
+rm -rf files.before-restore
+rm $TIMESTAMP.zip
+rm -rf tmp
+
+echo "Restore done."

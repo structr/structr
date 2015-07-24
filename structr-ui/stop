@@ -8,7 +8,7 @@ fi
 
 BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $BASE_DIR
-PIDFILE=./structr-ui.pid
+PIDFILE=./structrdb-$NAME.pid
 LOGS_DIR=./logs
 SERVER_LOG=./logs/server.log
 

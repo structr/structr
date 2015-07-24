@@ -1,0 +1,108 @@
+#!/bin/bash
+#
+# backup - create full or incremental backup of running structrdb instances.
+#
+# 20140603 chm
+#
+
+# set java home
+export JAVA_HOME="/opt/jdk1.7.0_45"
+
+# constants
+NEO_BACKUP=/opt/neo4j-enterprise-2.0.1/bin/neo4j-backup
+
+# offsite backup settings
+BACKUP_PORT=222
+BACKUP_LOCATION=structrdb-backup@server2.morgner.de
+BACKUP_DIR=/data/backup/structrdb/instances
+
+FILES=/opt/structrdb/files
+FROM=single://localhost
+
+# set mode and desired backup name
+PREFIX=$1
+MODE=$2
+NAME=$3
+
+function usage() {
+	echo 
+	echo "usage: backup [remote directory] [full|incremental] [name]"
+	echo "    create a full or incremental backup for the given UUID"
+	echo "    - incremental backup needs backup name"
+	echo "    - remote directory is 'instanceID/serverID'"
+	echo
+	
+	exit 0
+}
+
+function panic() {
+	echo "Will not delete $1, leaving backup directory intact!"
+	exit 42
+}
+
+# no uuid set? => usage
+if [ -z $PREFIX ]; then
+
+	usage
+	
+fi
+
+# no mode set? => usage
+if [ -z $MODE ]; then
+
+	usage
+	
+fi
+
+# mode == "incremental"? => name must be set
+if [ "$MODE" == "incremental" ]; then
+
+	if [ -z "$NAME" ]; then
+	
+		usage
+		
+	fi
+	
+else
+
+	# set to yyyymmdd-HHMM
+	NAME=$(date +%Y%m%d-%H%M)
+	
+fi
+
+echo "Creating $MODE backup to $NAME"
+
+# set destination
+TO=/backup/$NAME
+
+# perform backup of database
+$NEO_BACKUP -from $FROM -to $TO/db
+
+# performa backup of files
+cp -a $FILES $TO/files
+
+# zip backup
+zip -r9 $TO.zip $TO
+
+# delete backup directory only in full mode
+if [ "$MODE" == "full" ]; then
+
+	# delete backup directory (be extra cautious here..)
+	if [ -z "$TO" ]; then
+
+		panic $TO;
+	
+	elif [ "$TO" == "/" ]; then
+
+		panic $TO;
+	
+	fi
+
+	# delete dir
+	rm -rf $TO
+	
+fi
+
+# copy archive to backup server
+ssh -p $BACKUP_PORT $BACKUP_LOCATION mkdir -p $PREFIX
+scp -P $BACKUP_PORT $TO.zip $BACKUP_LOCATION:$PREFIX
