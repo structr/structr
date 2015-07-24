@@ -1094,6 +1094,11 @@ var _Entities = {
 			return;
 		log('removeExpandIcon', el);
 		var button = $(el.children('.expand_icon').first());
+
+		// unregister click handlers
+		$(el).off('click');
+		$(button).off('click');
+
 		button.remove();
 		el.children('.typeIcon').css({
 			paddingRight: 11 + 'px'
