@@ -272,6 +272,10 @@ public class StructrScriptable extends ScriptableObject {
 			return new StructrArray(scope, key, wrapCollection(context, scope, key, (Collection)value));
 		}
 
+		if (value instanceof Object[]) {
+			return new StructrArray(scope, key, (Object[])value);
+		}
+
 		if (value instanceof GraphObject) {
 			return new GraphObjectWrapper(context, scope, (GraphObject)value);
 		}
