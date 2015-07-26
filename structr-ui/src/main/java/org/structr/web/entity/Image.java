@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.PropertyView;
-import org.structr.common.ThumbnailParameters;
 import org.structr.common.error.FrameworkException;
 import static org.structr.core.GraphObject.type;
 import org.structr.core.app.App;
@@ -65,14 +64,14 @@ public class Image extends File {
 
 		SchemaService.registerBuiltinTypeOverride("Image", Image.class.getName());
 	}
-	
+
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
 	public static final Property<Integer> height = new IntProperty("height");
 	public static final Property<Integer> width  = new IntProperty("width");
 
-	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall", new ThumbnailParameters(100, 100, false));
-	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid", new ThumbnailParameters(300, 300, false));
+	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall").format("100, 100, false");
+	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid").format("300, 300, false");
 
 	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").indexed().unvalidated().readOnly();
 	public static final ImageDataProperty imageData   = new ImageDataProperty("imageData");

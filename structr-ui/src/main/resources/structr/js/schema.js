@@ -183,7 +183,7 @@ var _Schema = {
 
 					_Schema.setZoom(zoomLevel, instance, [0,0], $('#schema-graph')[0]);
 					_Schema.resize();
-			
+
 					Structr.unblockMenu(500);
 
 				});
@@ -364,7 +364,7 @@ var _Schema = {
 					} else {
 						Structr.error('Could not restore dialog - unsupported entity type', true);
 					}
-					
+
 				}, 250);
 			});
 
@@ -603,7 +603,7 @@ var _Schema = {
 		$('#' + id + ' .edit-localizations', el).on('click', function() {
 			_Schema.openLocalizationDialog(entity.id);
 		}).prop('disabled', null);
-		
+
 		if (!entity.isBuiltinType) {
 			div.append(' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractNode">org.structr.core.entity.AbstractNode</option></select>');
 		}
@@ -781,7 +781,7 @@ var _Schema = {
 					+ '<td><input class="property-default" size="10" type="text"></td>'
 					+ '<td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">'
 					+ '</td></div>');
-			
+
 			$('.' + rowClass + ' .remove-property', propertiesTable).on('click', function() {
 				var self = $(this);
 				self.closest('tr').remove();
@@ -1068,9 +1068,9 @@ var _Schema = {
 
 	},
 	resize: function() {
-		
+
 		Structr.resize();
-		
+
 		var zoom = (instance ? instance.getZoom() : 1);
 
 		var headerHeight = $('#header').outerHeight() + $('.schema-input-container').outerHeight() + 14;
@@ -2427,4 +2427,5 @@ var typeOptions = '<select class="property-type"><option value="">--Select--</op
 		+ '<option value="Function">Function</option>'
 		+ '<option value="Notion">Notion</option>'
 		+ '<option value="Join">Join</option>'
-		+ '<option value="Cypher">Cypher</option>';
+		+ '<option value="Cypher">Cypher</option>'
+		+ '<option value="Thumbnail">Thumbnail</option>';

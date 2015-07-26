@@ -186,6 +186,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_AND = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_OR = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_GET = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
+	public static final String ERROR_MESSAGE_GET_OR_NULL = "Usage: ${get_or_null(entity, propertyKey)}. Example: ${get_or_null(this, \"children\")}";
 	public static final String ERROR_MESSAGE_GET_ENTITY = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";
 	public static final String ERROR_MESSAGE_SIZE = "Usage: ${size(collection)}. Example: ${size(this.children)}";
 	public static final String ERROR_MESSAGE_FIRST = "Usage: ${first(collection)}. Example: ${first(this.children)}";
@@ -254,6 +255,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS = "Usage: ${Structr.get_incoming_relationships(from, to [, relType])}. Example: ${Structr.get_incoming_relationships(Structr.get('me'), user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP = "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
 	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP_JS = "Usage: ${Structr.create_relationship(from, to, relType)}. Example: ${Structr.create_relationship(Structr.get('me'), user, 'FOLLOWS')} (Relationshiptype has to exist)";
+	public static final String ERROR_MESSAGE_GET_OR_NULL_JS = "Usage: ${getOrNull(entity, propertyKey)}. Example: ${getOrNull(this, \"children\")}";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -2138,6 +2140,58 @@ public class Functions {
 				return ERROR_MESSAGE_GET;
 			}
 		});
+		functions.put("get_or_null", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					GraphObject dataObject = null;
+
+					if (sources[0] instanceof GraphObject) {
+						dataObject = (GraphObject) sources[0];
+					}
+
+					if (sources[0] instanceof List) {
+
+						final List list = (List) sources[0];
+						if (list.size() == 1 && list.get(0) instanceof GraphObject) {
+
+							dataObject = (GraphObject) list.get(0);
+						}
+					}
+
+					if (dataObject != null) {
+
+						final String keyName = sources[1].toString();
+						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(dataObject.getClass(), keyName);
+
+						if (key != null) {
+
+							final PropertyConverter inputConverter = key.inputConverter(securityContext);
+							Object value = dataObject.getProperty(key);
+
+							if (inputConverter != null) {
+								return inputConverter.revert(value);
+							}
+
+							return dataObject.getProperty(key);
+						}
+
+						return "";
+					}
+				}
+
+				return null;
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_GET;
+			}
+		});
 		functions.put("size", new Function<Object, Object>() {
 
 			@Override
@@ -2827,12 +2881,22 @@ public class Functions {
 
 					if (sources.length >= 1 && sources[0] != null) {
 
-						type = config.getNodeEntityClass(sources[0].toString());
+						final String typeString = sources[0].toString();
+						type = config.getNodeEntityClass(typeString);
 
 						if (type != null) {
 
 							query.andTypes(type);
+
+						} else {
+
+							return "Error in find(): type " + typeString + " not found.";
 						}
+					}
+
+					// exit gracefully instead of crashing..
+					if (type == null) {
+						return "Error in find(): no type specified.";
 					}
 
 					// extension for native javascript objects

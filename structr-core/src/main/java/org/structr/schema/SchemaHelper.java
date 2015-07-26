@@ -20,6 +20,7 @@ package org.structr.schema;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -27,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
@@ -89,11 +91,11 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join
+		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join, Thumbnail;
 	}
 
+	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
 	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
-	private static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new LinkedHashMap<>();
 
 	static {
 
@@ -736,12 +738,17 @@ public class SchemaHelper {
 		src.append("import ").append(List.class.getName()).append(";\n");
 		src.append("import ").append(Map.class.getName()).append(";\n");
 
-		if (hasUiClasses()) {
+		if (hasRestClasses()) {
 			src.append("import org.structr.rest.RestMethodResult;\n");
 		}
 
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
+
+		if (hasUiClasses()) {
+			src.append("import org.structr.web.property.*;\n");
+		}
+
 		src.append("import org.structr.core.notion.*;\n");
 		src.append("import org.structr.core.entity.*;\n\n");
 
@@ -943,7 +950,7 @@ public class SchemaHelper {
 		throw new FrameworkException(422, errorBuffer);
 	}
 
-	private static boolean hasUiClasses() {
+	private static boolean hasRestClasses() {
 
 		try {
 
@@ -956,5 +963,28 @@ public class SchemaHelper {
 		}
 
 		return false;
+	}
+
+	private static boolean hasUiClasses() {
+
+		try {
+
+			Class.forName("org.structr.web.property.ThumbnailProperty");
+
+			// success
+			return true;
+
+		} catch (Throwable t) {
+		}
+
+		return false;
+	}
+
+	private static class ReverseTypeComparator implements Comparator<Type> {
+
+		@Override
+		public int compare(final Type o1, final Type o2) {
+			return o2.name().compareTo(o1.name());
+		}
 	}
 }

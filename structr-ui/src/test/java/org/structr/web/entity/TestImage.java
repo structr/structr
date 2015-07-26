@@ -18,18 +18,17 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.ThumbnailParameters;
+import org.structr.core.property.Property;
 import org.structr.web.property.ThumbnailProperty;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Image with a 200x100 thumbnail
- * 
+ *
  * @author Axel Morgner
  */
 public class TestImage extends Image {
 
-	public static final ThumbnailProperty thumbnail = new ThumbnailProperty("thumbnail", new ThumbnailParameters(200, 100, false));
-	
+	public static final Property<Image> thumbnail = new ThumbnailProperty("thumbnail").format("200, 100, false");
 }

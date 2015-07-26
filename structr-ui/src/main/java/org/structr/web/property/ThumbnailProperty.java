@@ -18,12 +18,11 @@
  */
 package org.structr.web.property;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
-import org.structr.common.ThumbnailParameters;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.AbstractReadOnlyProperty;
-import org.structr.web.converter.ThumbnailConverter;
+import org.structr.core.property.Property;
 import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
@@ -35,22 +34,16 @@ import org.structr.web.entity.Image;
  */
 public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 
-	private ThumbnailParameters tnParams = null;
+	private int width    = 0;
+	private int height   = 0;
+	private boolean crop = false;
 
-	//~--- constructors ---------------------------------------------------
 
-	public ThumbnailProperty(final String name, final ThumbnailParameters tnParams) {
+	public ThumbnailProperty(final String name) {
 
 		super(name);
 
 		this.unvalidated = true;
-		this.tnParams    = tnParams;
-
-	}
-
-	@Override
-	public PropertyConverter<Image, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new ThumbnailConverter(securityContext, entity, tnParams);
 
 	}
 
@@ -62,14 +55,11 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	@Override
 	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, org.neo4j.helpers.Predicate<GraphObject> predicate) {
 
-		try {
-			return databaseConverter(securityContext, obj).revert(null);
-
-		} catch (Throwable t) {
-
+		if (obj.getProperty(Image.isThumbnail)) {
+			return null;
 		}
 
-		return null;
+		return ((Image)obj).getScaledImage(width, height, crop);
 	}
 
 	@Override
@@ -90,5 +80,22 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	@Override
 	public Integer getSortType() {
 		return null;
+	}
+
+	@Override
+	public Property<Image> format(final String format) {
+
+		if (StringUtils.isNotBlank(format) && format.contains(",")) {
+
+			final String[] parts = format.split("[, ]+");
+			if (parts.length == 3) {
+
+				width    = Integer.parseInt(parts[0].trim());
+				height   = Integer.parseInt(parts[1].trim());
+				crop = Boolean.parseBoolean(parts[2].trim());
+			}
+		}
+
+		return this;
 	}
 }
