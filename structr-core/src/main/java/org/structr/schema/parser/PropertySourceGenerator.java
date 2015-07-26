@@ -140,6 +140,7 @@ public abstract class PropertySourceGenerator {
 				new NodeAttribute<>(SchemaProperty.defaultValue, source.getDefaultValue()),
 				new NodeAttribute<>(SchemaProperty.format, source.getFormat()),
 				new NodeAttribute<>(SchemaProperty.unique, source.isUnique()),
+				new NodeAttribute<>(SchemaProperty.indexed, source.isIndexed()),
 				new NodeAttribute<>(SchemaProperty.notNull, source.isNotNull())
 			);
 
@@ -183,10 +184,16 @@ public abstract class PropertySourceGenerator {
 			buf.append(".notNull()");
 		}
 
-		if (StringUtils.isNotBlank(source.getDefaultValue())) {
-			buf.append(".indexedWhenEmpty()");
-		} else {
-			buf.append(".indexed()");
+		if (source.isIndexed()) {
+
+			if (StringUtils.isNotBlank(source.getDefaultValue())) {
+				
+				buf.append(".indexedWhenEmpty()");
+
+			} else {
+
+				buf.append(".indexed()");
+			}
 		}
 
 		buf.append(".dynamic()");

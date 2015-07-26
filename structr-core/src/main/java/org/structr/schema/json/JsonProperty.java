@@ -38,10 +38,12 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 
 	public boolean isRequired();
 	public boolean isUnique();
+	public boolean isIndexed();
 
 	public JsonProperty setFormat(final String format);
 	public JsonProperty setName(final String name);
 	public JsonProperty setRequired(final boolean isRequired);
 	public JsonProperty setUnique(final boolean isUnique);
+	public JsonProperty setIndexed(final boolean isIndexed);
 	public JsonProperty setDefaultValue(final String defaultValue);
 }

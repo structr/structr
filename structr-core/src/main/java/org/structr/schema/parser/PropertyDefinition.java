@@ -34,6 +34,7 @@ public interface PropertyDefinition {
 	public String getFormat();
 	public boolean isNotNull();
 	public boolean isUnique();
+	public boolean isIndexed();
 	public String getDefaultValue();
 	public String getContentType();
 }

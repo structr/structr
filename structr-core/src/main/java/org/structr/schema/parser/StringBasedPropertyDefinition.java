@@ -37,6 +37,7 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	private String contentType  = null;
 	private boolean notNull     = false;
 	private boolean unique      = false;
+	private boolean indexed     = true;
 
 	public StringBasedPropertyDefinition(final String propertyName, final String rawSource) {
 
@@ -135,6 +136,11 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	@Override
 	public boolean isUnique() {
 		return unique;
+	}
+
+	@Override
+	public boolean isIndexed() {
+		return indexed;
 	}
 
 	@Override

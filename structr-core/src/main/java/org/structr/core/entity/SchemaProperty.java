@@ -62,6 +62,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             format            = new StringProperty("format");
 	public static final Property<Boolean>            notNull           = new BooleanProperty("notNull");
 	public static final Property<Boolean>            unique            = new BooleanProperty("unique");
+	public static final Property<Boolean>            indexed           = new BooleanProperty("indexed").defaultValue(true);	// 
 	public static final Property<Boolean>            isDynamic         = new BooleanProperty("isDynamic");
 	public static final Property<Boolean>            isBuiltinProperty = new BooleanProperty("isBuiltinProperty");
 	public static final Property<Boolean>            isDefaultInUi     = new BooleanProperty("isDefaultInUi");
@@ -69,19 +70,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             contentHash       = new StringProperty("contentHash");
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, declaringClass, isDynamic
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
 	);
 
 	private NotionPropertyParser notionPropertyParser = null;
@@ -138,6 +139,18 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		final Boolean isUnique = getProperty(unique);
 		if (isUnique != null && isUnique) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isIndexed() {
+
+		final Boolean isIndexed = getProperty(indexed);
+		if (isIndexed != null && isIndexed) {
 
 			return true;
 		}
@@ -212,6 +225,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(format,            _contentHash);
 		_contentHash = addContentHash(notNull,           _contentHash);
 		_contentHash = addContentHash(unique,            _contentHash);
+		_contentHash = addContentHash(indexed,           _contentHash);
 		_contentHash = addContentHash(isDynamic,         _contentHash);
 		_contentHash = addContentHash(isBuiltinProperty, _contentHash);
 		_contentHash = addContentHash(isDefaultInUi,     _contentHash);

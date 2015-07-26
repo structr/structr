@@ -48,6 +48,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	protected String defaultValue = null;
 	protected boolean required    = false;
 	protected boolean unique      = false;
+	protected boolean indexed     = false;
 
 	StructrPropertyDefinition(final JsonType parent, final String name) {
 		this.parent = parent;
@@ -103,6 +104,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public boolean isIndexed() {
+		return indexed;
+	}
+
+	@Override
 	public JsonProperty setFormat(final String format) {
 
 		this.format = format;
@@ -131,6 +137,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public JsonProperty setIndexed(boolean indexed) {
+
+		this.indexed = indexed;
+		return this;
+	}
+
+	@Override
 	public JsonProperty setDefaultValue(final String defaultValue) {
 
 		this.defaultValue = defaultValue;
@@ -154,6 +167,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			new NodeAttribute(SchemaProperty.name, getName()),
 			new NodeAttribute(SchemaProperty.schemaNode, schemaNode),
 			new NodeAttribute(SchemaProperty.unique, isUnique()),
+			new NodeAttribute(SchemaProperty.indexed, isIndexed()),
 			new NodeAttribute(SchemaProperty.notNull, isRequired()),
 			new NodeAttribute(SchemaProperty.defaultValue, defaultValue)
 		);
@@ -164,6 +178,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (source.containsKey(JsonSchema.KEY_UNIQUE)) {
 			this.unique = (Boolean)source.get(JsonSchema.KEY_UNIQUE);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_INDEXED)) {
+			this.indexed = (Boolean)source.get(JsonSchema.KEY_INDEXED);
 		}
 
 		final Object _defaultValue = source.get(JsonSchema.KEY_DEFAULT);
@@ -178,6 +196,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		setDefaultValue(property.getDefaultValue());
 		setRequired(property.isRequired());
 		setUnique(property.isUnique());
+		setIndexed(property.isIndexed());
 	}
 
 	Map<String, Object> serialize() {
@@ -188,6 +207,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (unique) {
 			map.put(JsonSchema.KEY_UNIQUE, true);
+		}
+
+		if (indexed) {
+			map.put(JsonSchema.KEY_INDEXED, true);
 		}
 
 		if (format != null) {
