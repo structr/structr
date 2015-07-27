@@ -49,7 +49,7 @@ public class InvalidPropertySchemaToken extends SemanticErrorToken {
 		if (source != null) {
 	                obj.add(getErrorToken(), new JsonPrimitive(source));
 		}
-		
+
                 obj.add("reason", new JsonPrimitive(reason));
 
 		return obj;

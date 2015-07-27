@@ -85,7 +85,7 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 
 				final String element = enumTypes[i];
 
-				if (element.matches("[a-zA-Z_]+")) {
+				if (element.matches("[a-zA-Z_]{1}[a-zA-Z0-9_]*")) {
 
 					buf.append(element);
 
@@ -96,7 +96,7 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 
 				} else {
 
-					reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_definition", "Invalid enum type name, must match [a-zA-Z_]+."));
+					reportError(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_definition", "Invalid enum type name, must match [a-zA-Z_]{1}[a-zA-Z0-9_]*."));
 
 				}
 			}

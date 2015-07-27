@@ -28,10 +28,15 @@ import org.structr.core.property.StringProperty;
  * @author Christian Morgner
  */
 public abstract class SemanticErrorToken extends ErrorToken {
-	
+
 	protected static final Property<String> base = new StringProperty("base");
-	
+
 	public SemanticErrorToken(PropertyKey propertyKey) {
 		super(422, propertyKey);
+	}
+
+	@Override
+	public String toString() {
+		return getContent().toString();
 	}
 }
