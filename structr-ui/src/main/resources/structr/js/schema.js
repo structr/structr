@@ -762,7 +762,7 @@ var _Schema = {
 						isBuiltinProperty: true,
 						notNull: prop.notNull,
 						unique: prop.unique,
-                        indexed: indexed
+                        indexed: prop.indexed
 					};
 
 					_Schema.appendLocalProperty(propertiesTable, property);
