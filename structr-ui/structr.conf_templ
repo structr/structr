@@ -135,6 +135,7 @@ HtmlServlet.path = /structr/html/*
 HtmlServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 HtmlServlet.user.autocreate = true
 HtmlServlet.user.class = org.structr.web.entity.User
+HtmlServlet.resolveProperties = AbstractNode.name
 
 # Websocket servlet
 WebSocketServlet.authenticator = org.structr.web.auth.UiAuthenticator
