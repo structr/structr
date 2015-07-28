@@ -42,7 +42,7 @@ import org.structr.core.property.StringProperty;
  *
  * @author Christian Morgner
  */
-public interface NodeInterface extends GraphObject, Comparable<NodeInterface>, AccessControllable {
+public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
 	// properties
 	public static final Property<String>          name             = new StringProperty("name").indexed();

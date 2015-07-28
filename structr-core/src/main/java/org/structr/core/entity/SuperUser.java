@@ -350,7 +350,7 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public int compareTo(NodeInterface o) {
+	public int compareTo(Object o) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

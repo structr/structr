@@ -165,25 +165,41 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public int compareTo(final NodeInterface node) {
+	public int compareTo(final Object other) {
 
-		if (node == null) {
-			return -1;
+		if (other instanceof AbstractNode) {
+
+			final AbstractNode node = (AbstractNode)other;
+			if (node == null) {
+				return -1;
+			}
+
+			String name = getName();
+
+			if (name == null) {
+				return -1;
+			}
+
+			String nodeName = node.getName();
+
+			if (nodeName == null) {
+				return -1;
+			}
+
+			return name.compareTo(nodeName);
 		}
 
-		String name = getName();
+		if (other instanceof String) {
 
-		if (name == null) {
-			return -1;
+			return getUuid().compareTo((String)other);
+
 		}
 
-		String nodeName = node.getName();
-
-		if (nodeName == null) {
-			return -1;
+		if (other == null) {
+			throw new NullPointerException();
 		}
 
-		return name.compareTo(nodeName);
+		throw new IllegalStateException("Cannot compare " + this + " to " + other);
 	}
 
 	/**
