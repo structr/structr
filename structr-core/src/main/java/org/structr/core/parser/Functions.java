@@ -3929,13 +3929,13 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length >= 1) {
+				if ( arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2) ) {
 
-					final SecurityContext securityContext = ctx.getSecurityContext();
-					Query query = StructrApp.getInstance(securityContext).nodeQuery(Localization.class).and(Localization.locale, ctx.getLocale().toString()).and(Localization.name, sources[0].toString());
+					final SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
+					Query query = StructrApp.getInstance(superUserSecurityContext).nodeQuery(Localization.class).and(Localization.locale, ctx.getLocale().toString()).and(Localization.name, sources[0].toString());
 					List<Localization> localizations;
 
-					if (sources.length > 1) {
+					if (sources.length == 2) {
 
 						query.and(Localization.domain, sources[1].toString());
 
@@ -3944,7 +3944,7 @@ public class Functions {
 						if (localizations.isEmpty()) {
 							// no domain-specific localization found. fall back to no domain
 
-							query = StructrApp.getInstance(securityContext).nodeQuery(Localization.class).blank(Localization.domain).and(Localization.locale, ctx.getLocale().toString()).and(Localization.name, sources[0].toString()).blank(Localization.domain);
+							query = StructrApp.getInstance(superUserSecurityContext).nodeQuery(Localization.class).and(Localization.locale, ctx.getLocale().toString()).and(Localization.name, sources[0].toString()).blank(Localization.domain);
 
 							localizations = query.getAsList();
 
