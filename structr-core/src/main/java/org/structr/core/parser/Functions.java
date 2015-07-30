@@ -4006,20 +4006,47 @@ public class Functions {
 	 */
 	public static boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
 
-		if (array == null) {
-			return false;
-		}
+		if (array != null && minLength != null && array.length >= minLength) {
 
-		for (final Object element : array) {
+			for (final Object element : array) {
 
-			if (element == null) {
-				return false;
+				if (element == null) {
+					return false;
+				}
+
 			}
 
+			return true;
 		}
 
-		return minLength != null ? array.length >= minLength : true;
+		return false;
+	}
 
+	/**
+	 * Test if the given object array has a minimum length and all its
+	 * elements are not null.
+	 *
+	 * @param array
+	 * @param minLength
+	 * @param maxLength
+	 * @return true if array has min length and all elements are not null
+	 */
+	public static boolean arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(final Object[] array, final int minLength, final int maxLength) {
+
+		if (array != null && array.length >= minLength && array.length <= maxLength) {
+
+			for (final Object element : array) {
+
+				if (element == null) {
+					return false;
+				}
+
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -4027,25 +4054,25 @@ public class Functions {
 	 * elements are not null.
 	 *
 	 * @param array
-	 * @param length If null, don't do length check
+	 * @param length
 	 * @return true if array has exact length and all elements are not null
 	 */
-	public static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) {
+	public static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final int length) {
 
-		if (array == null) {
-			return false;
-		}
+		if (array != null && array.length == length) {
 
-		for (final Object element : array) {
+			for (final Object element : array) {
 
-			if (element == null) {
-				return false;
+				if (element == null) {
+					return false;
+				}
+
 			}
 
+			return true;
 		}
 
-		return length != null ? array.length == length : true;
-
+		return false;
 	}
 
 	protected static String serialize(final Gson gson, final Map<String, Object> map) {
