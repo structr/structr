@@ -58,6 +58,7 @@ public class SecurityContext {
 	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new LruMap<>(10000);
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
+	private boolean doTransactionNotifications           = true;
 
 	//~--- fields ---------------------------------------------------------
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
@@ -641,6 +642,14 @@ public class SecurityContext {
 		}
 
 		return locale;
+	}
+
+	public boolean isDoTransactionNotifications() {
+		return doTransactionNotifications;
+	}
+
+	public void setDoTransactionNotifications(boolean doTransactionNotifications) {
+		this.doTransactionNotifications = doTransactionNotifications;
 	}
 
 	// ----- nested classes -----

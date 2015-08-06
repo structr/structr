@@ -52,6 +52,9 @@ public class Tx implements AutoCloseable {
 	public Tx(final SecurityContext securityContext, final StructrApp app, final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {
 
 		this.securityContext = securityContext;
+		if (securityContext != null) {
+			securityContext.setDoTransactionNotifications(doNotifications);
+		}
 		this.doNotifications = doNotifications;
 		this.doValidation    = doValidation;
 		this.doCallbacks     = doCallbacks;
@@ -85,7 +88,7 @@ public class Tx implements AutoCloseable {
 					modificationQueue.doOuterCallbacks(securityContext);
 
 					// notify listeners if desired
-					if (doNotifications) {
+					if ( (securityContext == null) ? doNotifications : securityContext.isDoTransactionNotifications() ) {
 
 						final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
 						for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {

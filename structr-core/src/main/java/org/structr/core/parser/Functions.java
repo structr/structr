@@ -3994,6 +3994,36 @@ public class Functions {
 				return (inJavaScriptContext ? ERROR_MESSAGE_LOCALIZE_JS : ERROR_MESSAGE_LOCALIZE);
 			}
 		});
+		functions.put("disable_notifications", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				ctx.getSecurityContext().setDoTransactionNotifications(false);
+
+				return  "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return "";
+			}
+		});
+		functions.put("enable_notifications", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				ctx.getSecurityContext().setDoTransactionNotifications(true);
+
+				return  "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return "";
+			}
+		});
 	}
 
 	/**
