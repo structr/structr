@@ -2501,9 +2501,12 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof String) {
+				if (sources.length > 0 && sources[0] != null && sources[0] instanceof String) {
 
-					ctx.store(sources[0].toString(), sources[1]);
+					if (sources[1] != null) {
+						
+						ctx.store(sources[0].toString(), sources[1]);
+					}
 
 				} else {
 
