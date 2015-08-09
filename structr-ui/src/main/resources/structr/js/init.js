@@ -1306,17 +1306,17 @@ function MessageBuilder () {
 	};
 
 	this.error = function (text) {
-		this.params.text = '<img src="icon/exclamation.png"> ' + text;
+		this.params.text = text;
 		return this.className('error');
 	}
 
 	this.warning = function (text) {
-		this.params.text = '<img src="icon/error.png"> ' + text;
+		this.params.text = text;
 		return this.className('warning');
 	}
 
 	this.info = function (text) {
-		this.params.text = '<img src="icon/information.png"> ' + text;
+		this.params.text = text;
 		return this.className('info');
 	}
 
@@ -1351,7 +1351,7 @@ function MessageBuilder () {
 		$('#info-area').append(
 			'<div class="message' + (this.params.className ? ' ' + this.params.className : '') +  '" id="' + this.params.msgId + '"">' +
 				(this.params.title ? '<h2>' + this.params.title + '</h2>' : '') +
-				'<p>' + this.params.text + '</p>' +
+				this.params.text +
 				(this.params.requiresConfirmation ? '<button>Confirm</button>' : '') +
 			'</div>'
 		);
