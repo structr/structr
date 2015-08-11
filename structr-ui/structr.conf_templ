@@ -299,7 +299,7 @@ oauth.linkedin.user_details_resource_uri = https://api.linkedin.com/v1/people/~/
 oauth.linkedin.error_uri = /login
 oauth.linkedin.return_uri = /
 
-# See https://developer.linkedin.com/documents/authentication
+# See https://developers.google.com/identity/protocols/OAuth2
 oauth.google.authorization_location = https://accounts.google.com/o/oauth2/auth
 oauth.google.token_location = https://accounts.google.com/o/oauth2/token
 oauth.google.client_id = 
