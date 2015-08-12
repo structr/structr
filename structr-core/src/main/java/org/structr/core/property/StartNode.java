@@ -145,11 +145,11 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, S value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, S value) throws FrameworkException {
 
 		OneStartpoint<S> startpoint = relation.getSource();
 
-		startpoint.set(securityContext, (NodeInterface)obj, value);
+		return startpoint.set(securityContext, (NodeInterface)obj, value);
 	}
 
 	@Override

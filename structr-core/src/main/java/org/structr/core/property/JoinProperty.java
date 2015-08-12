@@ -95,7 +95,7 @@ public class JoinProperty extends StringProperty {
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, final GraphObject obj, String value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, final GraphObject obj, String value) throws FrameworkException {
 
 		final MessageFormat formatter = new MessageFormat(format, Locale.GERMAN);
 		Object[] values                   = null;
@@ -123,5 +123,7 @@ public class JoinProperty extends StringProperty {
 				key.setProperty(securityContext, obj, values[i]);
 			}
 		}
+
+		return null;
 	}
 }

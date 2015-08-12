@@ -155,15 +155,15 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 
 		if (value != null) {
 
-			entityProperty.setProperty(securityContext, obj, notion.getAdapterForSetter(securityContext).adapt(value));
+			return entityProperty.setProperty(securityContext, obj, notion.getAdapterForSetter(securityContext).adapt(value));
 
 		} else {
 
-			entityProperty.setProperty(securityContext, obj, null);
+			return entityProperty.setProperty(securityContext, obj, null);
 		}
 	}
 

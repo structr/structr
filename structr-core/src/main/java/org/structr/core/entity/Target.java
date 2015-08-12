@@ -32,8 +32,8 @@ import org.structr.core.graph.NodeInterface;
 public interface Target<R, T> {
 
 	public T get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate);
-	
-	public void set(final SecurityContext securityContext, final NodeInterface node, final T value) throws FrameworkException;
+
+	public Object set(final SecurityContext securityContext, final NodeInterface node, final T value) throws FrameworkException;
 
 	public R getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);
 	public boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);

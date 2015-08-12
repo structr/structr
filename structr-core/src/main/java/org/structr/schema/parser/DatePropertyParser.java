@@ -21,8 +21,6 @@ package org.structr.schema.parser;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -110,9 +108,7 @@ public class DatePropertyParser extends PropertySourceGenerator {
 
 				return new SimpleDateFormat(pattern).parse(source);
 
-			} catch (ParseException ex) {
-				Logger.getLogger(DatePropertyParser.class.getName()).log(Level.WARNING, "Unable to parse " + source + " with primary pattern " + pattern, ex.getMessage());
-			}
+			} catch (ParseException ignore) { }
 
 			// try to parse as ISO8601 date (supports multiple formats)
 			return parseISO8601DateString(source);

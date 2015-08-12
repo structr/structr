@@ -159,15 +159,15 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, List<T> value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, List<T> value) throws FrameworkException {
 
 		if (value != null) {
 
-			collectionProperty.setProperty(securityContext, obj, notion.getCollectionAdapterForSetter(securityContext).adapt(value));
+			return collectionProperty.setProperty(securityContext, obj, notion.getCollectionAdapterForSetter(securityContext).adapt(value));
 
 		} else {
 
-			collectionProperty.setProperty(securityContext, obj, null);
+			return collectionProperty.setProperty(securityContext, obj, null);
 		}
 	}
 

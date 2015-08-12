@@ -169,11 +169,11 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, List<S> collection) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, List<S> collection) throws FrameworkException {
 
 		ManyStartpoint<S> startpoint = relation.getSource();
 
-		startpoint.set(securityContext, (NodeInterface)obj, collection);
+		return startpoint.set(securityContext, (NodeInterface)obj, collection);
 	}
 
 	@Override

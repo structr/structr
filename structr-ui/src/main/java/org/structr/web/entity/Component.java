@@ -248,7 +248,7 @@ public class Component extends DOMElement {
 	//~--- set methods ----------------------------------------------------
 
 	@Override
-	public <T> void setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
 
 		if (contentNodes.containsKey(key.dbName())) {
 
@@ -256,15 +256,17 @@ public class Component extends DOMElement {
 
 			if (node != null) {
 
-				node.setProperty(Content.content, value.toString());
+				return node.setProperty(Content.content, value.toString());
 
 			}
 
 		} else {
 
-			super.setProperty(key, value);
+			return super.setProperty(key, value);
 
 		}
+
+		return null;
 	}
 
 	@Override

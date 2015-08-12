@@ -55,7 +55,7 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 	}
 
 	@Override
-	public void set(final SecurityContext securityContext, final NodeInterface targetNode, final S sourceNode) throws FrameworkException {
+	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final S sourceNode) throws FrameworkException {
 
 		// let relation check multiplicity
 		relation.ensureCardinality(securityContext, sourceNode, targetNode);
@@ -64,8 +64,10 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 
 			final String storageKey = sourceNode.getName() + relation.name() + targetNode.getName();
 
-			StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
+			return StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
 		}
+
+		return null;
 	}
 
 	@Override

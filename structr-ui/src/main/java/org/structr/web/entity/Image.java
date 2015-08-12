@@ -82,7 +82,7 @@ public class Image extends File {
 	public static final org.structr.common.View publicView          = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
 
 	@Override
-	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
+	public Object setProperty(final PropertyKey key, final Object value) throws FrameworkException {
 
 		// Copy visibility properties and owner to all thumbnails
 		if (AbstractNode.visibleToPublicUsers.equals(key)
@@ -99,8 +99,7 @@ public class Image extends File {
 
 		}
 
-		super.setProperty(key, value);
-
+		return super.setProperty(key, value);
 	}
 
 	//~--- get methods ----------------------------------------------------

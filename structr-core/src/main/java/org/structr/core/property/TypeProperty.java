@@ -48,7 +48,7 @@ public class TypeProperty extends StringProperty {
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, final GraphObject obj, String value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, final GraphObject obj, String value) throws FrameworkException {
 
 		super.setProperty(securityContext, obj, value);
 
@@ -96,5 +96,7 @@ public class TypeProperty extends StringProperty {
 				dbNode.addLabel(add);
 			}
 		}
+
+		return null;
 	}
 }

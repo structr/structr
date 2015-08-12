@@ -37,17 +37,17 @@ import org.structr.core.entity.Principal;
 public class PasswordProperty extends StringProperty {
 
 	private ValidationInfo validationInfo = null;
-	
+
 	public PasswordProperty(String name) {
 		this(name, null);
 	}
-	
+
 	public PasswordProperty(String name, ValidationInfo info) {
 		super(name);
-		
+
 		this.validationInfo = info;
 	}
-	
+
 	@Override
 	public void registrationCallback(Class entityType) {
 
@@ -55,17 +55,17 @@ public class PasswordProperty extends StringProperty {
 			validationInfo.setErrorKey(this);
 		}
 	}
-	
+
 	@Override
 	public String typeName() {
 		return "String";
 	}
-	
+
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, String clearTextPassword) throws FrameworkException {
-		
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, String clearTextPassword) throws FrameworkException {
+
 		if (clearTextPassword != null) {
-			
+
 			if (validationInfo != null) {
 
 				String errorType     = validationInfo.getErrorType();
@@ -77,15 +77,15 @@ public class PasswordProperty extends StringProperty {
 					throw new FrameworkException(errorType, new TooShortToken(errorKey, minLength));
 				}
 			}
-			
+
 			String salt = RandomStringUtils.randomAlphanumeric(16);
-			
+
 			obj.setProperty(Principal.salt, salt);
-			super.setProperty(securityContext, obj, AuthHelper.getHash(clearTextPassword, salt));
-			
+			return super.setProperty(securityContext, obj, AuthHelper.getHash(clearTextPassword, salt));
+
 		} else {
-			
-			super.setProperty(securityContext, obj, null);
+
+			return super.setProperty(securityContext, obj, null);
 		}
 	}
 }

@@ -992,7 +992,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * @throws org.structr.common.error.FrameworkException
 	 */
 	@Override
-	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
+	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		try {
 			if (!isGranted(Permission.write, securityContext)) {
@@ -1004,7 +1004,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			// no old value exists  OR  old value exists and is NOT equal => set property
 			if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && !oldValue.equals(value)) ) {
 
-				setPropertyInternal(key, value);
+				return setPropertyInternal(key, value);
 
 			}
 
@@ -1016,9 +1016,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		}
 
+		return null;
 	}
 
-	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
+	private <T> Object setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		if (key == null) {
 
@@ -1039,7 +1040,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		}
 
-		key.setProperty(securityContext, this, value);
+		return key.setProperty(securityContext, this, value);
 	}
 
 	@Override

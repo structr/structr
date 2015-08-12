@@ -230,8 +230,10 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
+		
 		setGroupedProperties(securityContext, value, obj);
+		return null;
 	}
 
 	@Override

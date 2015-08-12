@@ -20,6 +20,8 @@ package org.structr.core.entity;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -73,7 +75,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 	}
 
 	@Override
-	public void set(final SecurityContext securityContext, final NodeInterface targetNode, final Iterable<S> collection) throws FrameworkException {
+	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final Iterable<S> collection) throws FrameworkException {
 
 		final App app            = StructrApp.getInstance(securityContext);
 		final Set<S> toBeDeleted = new LinkedHashSet<>(Iterables.toList(get(securityContext, targetNode, null)));
@@ -113,6 +115,8 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 			}
 		}
 
+		final List<Relation> createdRelationship = new LinkedList<>();
+
 		// create new relationships
 		for (S sourceNode : toBeCreated) {
 
@@ -121,9 +125,13 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 				final String storageKey = sourceNode.getName() + relation.name() + targetNode.getName();
 
 				relation.ensureCardinality(securityContext, sourceNode, targetNode);
-				app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
+
+				final Relation newRelation = app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
+				createdRelationship.add(newRelation);
 			}
 		}
+
+		return createdRelationship;
 	}
 
 	@Override

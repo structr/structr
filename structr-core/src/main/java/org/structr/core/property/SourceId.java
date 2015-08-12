@@ -72,7 +72,7 @@ public class SourceId extends Property<String> {
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, String value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, String value) throws FrameworkException {
 
 		if (obj instanceof RelationshipInterface) {
 
@@ -88,6 +88,8 @@ public class SourceId extends Property<String> {
 				t.printStackTrace();
 			}
 		}
+
+		return null;
 	}
 
 	@Override

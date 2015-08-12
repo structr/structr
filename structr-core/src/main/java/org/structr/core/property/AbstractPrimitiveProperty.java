@@ -107,7 +107,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public void setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException {
+	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException {
 
 		final PropertyConverter converter = databaseConverter(securityContext, obj);
 		final Object convertedValue;
@@ -200,6 +200,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			}
 		}
 
+		return null;
 	}
 
 	@Override

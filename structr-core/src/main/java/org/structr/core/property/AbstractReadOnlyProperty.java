@@ -26,7 +26,7 @@ import org.structr.core.converter.PropertyConverter;
 
 /**
  * Abstract base class for read-only properties.
- * 
+ *
  * @author Christian Morgner
  */
 public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
@@ -34,40 +34,40 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	public AbstractReadOnlyProperty(String name) {
 		this(name, name);
 	}
-	
+
 	public AbstractReadOnlyProperty(String name, T defaultValue) {
 		this(name, name, defaultValue);
 	}
-	
+
 	public AbstractReadOnlyProperty(String jsonName, String dbName) {
 		this(jsonName, dbName, null);
 	}
-	
+
 	public AbstractReadOnlyProperty(String jsonName, String dbName, T defaultValue) {
 		super(jsonName, dbName, defaultValue);
 	}
-	
+
 	@Override
 	public Property<T> indexed() {
-		
+
 		// related node properties are always passively indexed
 		// (because they can change without setProperty())
 		super.passivelyIndexed();
 		return this;
 	}
-	
+
 	@Override
 	public String typeName() {
 		return ""; // read-only
 	}
-	
+
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return value;
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 		throw new FrameworkException(obj.getClass().getSimpleName(), new ReadOnlyPropertyToken(this));
 	}
 

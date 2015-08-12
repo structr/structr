@@ -241,7 +241,9 @@ public class SuperUser implements Principal, AccessControllable {
 	public void setBackendUser(boolean isBackendUser) throws FrameworkException {}
 
 	@Override
-	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
+	public Object setProperty(PropertyKey key, Object value) throws FrameworkException {
+		return null;
+	}
 
 	@Override
 	public Object getPropertyForIndexing(PropertyKey key) {

@@ -208,8 +208,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
-		propertyKey.setProperty(securityContext, obj, value);
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+		return propertyKey.setProperty(securityContext, obj, value);
 	}
 
 	@Override

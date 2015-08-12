@@ -115,9 +115,10 @@ public interface GraphObject {
 	 * @param <T>
 	 * @param key the property key to set
 	 * @param value the value to set
+	 * @return the relationship(s), if one or more are created
 	 * @throws FrameworkException
 	 */
-	public <T> void setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
+	public <T> Object setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
 
 	/**
 	 * Returns the (converted, validated, transformed, etc.) property for the given
@@ -303,7 +304,7 @@ public interface GraphObject {
 	/**
 	 * Returns a list of objects that are part of this GraphObject's synchronization set.
 	 * Caution: most implementations of this method may add null objects to the list.
-	 * 
+	 *
 	 * @return
 	 * @throws FrameworkException
 	 */

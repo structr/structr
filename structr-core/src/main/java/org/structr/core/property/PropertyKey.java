@@ -194,7 +194,7 @@ public interface PropertyKey<T> {
 
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate);
-	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
 
 	public void registrationCallback(Class<GraphObject> entityType);
 

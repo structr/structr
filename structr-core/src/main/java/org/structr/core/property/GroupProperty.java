@@ -312,8 +312,10 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
+		
 		setGroupedProperties(securityContext, value, obj);
+		return null;
 	}
 
 	@Override

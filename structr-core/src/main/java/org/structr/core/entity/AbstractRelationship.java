@@ -564,7 +564,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
+	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		if (key == null) {
 
@@ -588,7 +588,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 			}
 
-			key.setProperty(securityContext, this, value);
+			return key.setProperty(securityContext, this, value);
 
 		} finally {
 
@@ -597,7 +597,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			this.readOnlyPropertiesUnlocked = false;
 
 		}
-
 	}
 
 	@Override
