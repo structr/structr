@@ -69,7 +69,9 @@ public class ActionContext {
 
 		this.securityContext = securityContext;
 
-		this.locale = securityContext.getEffectiveLocale();
+		if (securityContext != null) {
+			this.locale = securityContext.getEffectiveLocale();
+		}
 	}
 
 	public ActionContext(final ActionContext other) {
