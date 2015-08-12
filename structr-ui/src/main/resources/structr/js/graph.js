@@ -19,7 +19,7 @@
 
 var win = $(window);
 var engine, mode, colors = [], color = 0;
-var nodeIds = [], relIds = [];
+var nodeIds = [], relIds = [], removedRel;
 var activeTabRightGraphKey = 'structrActiveTabRightGraph_' + port;
 var activeTabLeftGraphKey = 'structrActiveTabLeftGraph_' + port;
 var activeTabLeftGraph, activeTabRightGraph;
@@ -211,29 +211,49 @@ var _Graph = {
 				var d = _Graph.distance(node, n);
 
 				if (shiftKey && d < 200) {
-
-					var sourceSchemaNode = schemaNodes[node.type];
-					if (!sourceSchemaNode) {
+					
+					var draggedNodeSchemaNode = schemaNodes[node.type];
+					//console.log('shift and in radius', n, node, sourceSchemaNode);
+					if (!draggedNodeSchemaNode) {
 						return;
 					}
-					sourceSchemaNode.relatedTo.forEach(function(toRel) {
 
-						var edgeId = node.id + '-[:' + toRel.relationshipType + ']->' + n.id;
+					// outgoing schema rels
+					draggedNodeSchemaNode.relatedTo.forEach(function(toRel) {
+
+						var edgeId = node.id + '-[:' + toRel.id + ']->' + n.id;
 						var possibleTargetType = schemaNodesById[toRel.targetId].name;
+						
+						//console.log('possible target type:', possibleTargetType, 'edge exists?', engine.graph.edges(edgeId));
+						
 						if (possibleTargetType === n.type && !engine.graph.edges(edgeId)) {
 
-							var hiddenEdge;
+							//console.log('toRel, target multi', toRel.targetMultiplicity, toRel);
 
 							if (toRel.sourceMultiplicity === '1') {
 								engine.graph.edges().forEach(function(edge) {
-									log(edge);
+									//console.log(edge, n, node, toRel);
 									if (edge.target === n.id && edge.relType === toRel.relationshipType) {
 										edge.hidden = true;
+										edge.removed = true;	
 										//console.log('outgoing rel found, will be removed', edge);
-										hiddenEdge = edge.id;
+										removedRel = edge.id;
 									}
 								});
 							}
+							
+							if (toRel.targetMultiplicity === '1') {
+								engine.graph.edges().forEach(function(edge) {
+									//console.log(edge, n, node, toRel);
+									if (edge.source === node.id && edge.relType === toRel.relationshipType) {
+										edge.hidden = true;
+										edge.removed = true;	
+										//console.log('outgoing rel found, will be removed', edge);
+										removedRel = edge.id;
+									}
+								});
+							}
+
 							engine.graph.addEdge({
 								id: edgeId,
 								label: toRel.relationshipType,
@@ -243,28 +263,51 @@ var _Graph = {
 								color: '#81ce25',
 								type: 'curvedArrow',
 								added: true,
-								replaced: hiddenEdge,
+								replaced: removedRel,
 								relType: toRel.relationshipType
 							});
 
 						}
 					});
 
-					sourceSchemaNode.relatedFrom.forEach(function(fromRel) {
+					// incoming schema rels
+					draggedNodeSchemaNode.relatedFrom.forEach(function(fromRel) {
 
-						var edgeId = node.id + '<-[:' + fromRel.relationshipType + ']-' + n.id;
+						var edgeId = node.id + '<-[:' + fromRel.id + ']-' + n.id;
 						var possibleSourceType = schemaNodesById[fromRel.sourceId].name;
+
+						//console.log('possible source type:', possibleSourceType, 'edge exists?', edgeId, engine.graph.edges(edgeId));
+						
 						if (possibleSourceType === n.type && !engine.graph.edges(edgeId)) {
 
-							var hiddenEdge;
+							//console.log('fromRel source multi', fromRel.sourceMultiplicity, fromRel);
 
 							if (fromRel.sourceMultiplicity === '1') {
+								
+								// loop over all edges if they fit the schema rel
 								engine.graph.edges().forEach(function(edge) {
-									log(edge);
+									//console.log(edge, n, node, fromRel);
+									//if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
 									if (edge.target === node.id && edge.relType === fromRel.relationshipType) {
 										edge.hidden = true;
+										edge.removed = true;
 										//console.log('outgoing rel found, will be removed', edge);
-										hiddenEdge = edge.id;
+										removedRel = edge.id;
+									}
+								});
+							}
+
+							if (fromRel.targetMultiplicity === '1') {
+								
+								// loop over all edges if they fit the schema rel
+								engine.graph.edges().forEach(function(edge) {
+									//console.log(edge, n, node, fromRel);
+									//if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
+									if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
+										edge.hidden = true;
+										edge.removed = true;
+										//console.log('outgoing rel found, will be removed', edge);
+										removedRel = edge.id;
 									}
 								});
 							}
@@ -278,7 +321,7 @@ var _Graph = {
 								color: '#81ce25',
 								type: 'curvedArrow',
 								added: true,
-								replaced: hiddenEdge,
+								replaced: removedRel,
 								relType: fromRel.relationshipType
 							});
 						}
@@ -298,6 +341,7 @@ var _Graph = {
 								engine.graph.dropEdge(edge.id);
 								if (replaced && engine.graph.edges(replaced)) {
 									engine.graph.edges(replaced).hidden = false;
+									removedRel = undefined;
 								}
 							}
 						}
@@ -307,13 +351,16 @@ var _Graph = {
 
 		});
 		dragListener.bind('dragend', function(e) {
+			
+			console.log('dragend', removedRel);
+			
+			if (removedRel) {
+				Command.deleteRelationship(removedRel);
+				removedRel = undefined;
+			}
+			
 			engine.graph.edges().forEach(function(edge) {
 
-				if (edge.removed) {
-					Command.deleteRelationship(edge.id, function() {
-						engine.graph.dropEdge(edge.id);
-					});
-				}
 
 				if (edge.added) {
 					// Create new relationship
@@ -323,10 +370,18 @@ var _Graph = {
 						relType: edge.relType
 					};
 					Command.createRelationship(relData, function(rel) {
+						
+						//console.log('created new rel', rel.id, 'to replace', edge.id);
+						var ref = edge.id;
+						
 						edge.color = defaultRelColor;
 						edge.id = rel.id;
 						edge.added = false;
 						_Graph.scheduleRefreshEngine();
+						
+						engine.graph.dropEdge(ref);
+						
+						//console.log('reference still valid', engine.graph.edges(ref));
 					});
 				}
 			});

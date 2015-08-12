@@ -454,6 +454,7 @@ function wsConnect() {
 
 				var obj = StructrModel.obj(data.id);
 				if (obj) {
+					console.log(command, 'Remove object from model', obj);
 					obj.remove();
 				}
 
