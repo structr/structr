@@ -87,7 +87,27 @@ var _Crud = {
 	init: function() {
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
-		main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
+		main.append('<div id="resourceTabs">'
+			+ '<div id="resourceTabsSettings"><button id="resourceTabsHideButton">Hide inactive tabs</button>'
+				+ '<button id="resourceTabsShowButton">Show all tabs</button>'
+				+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox">'
+				+ '<label for="resourceTabsAutoHideCheckbox">auto-hide inactive tabs</label>'
+			+ '</div>'
+			+ '<ul id="resourceTabsMenu"></ul></div>');
+
+		$('#resourceTabsHideButton').click(function () {
+			Structr.setHideInactiveTabs(true);
+		});
+		$('#resourceTabsShowButton').click(function () {
+			Structr.setHideInactiveTabs(false);
+		});
+
+		if (Structr.getAutoHideInactiveTabs()) {
+			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
+		}
+		$('#resourceTabsAutoHideCheckbox').change(function () {
+			Structr.setAutoHideInactiveTabs($(this).prop('checked'));
+		});
 
 		Structr.ensureIsAdmin($('#resourceTabs'), function() {
 
@@ -185,7 +205,6 @@ var _Crud = {
 				_Crud.updateUrl(newType);
 			}
 		});
-
 	},
 	isSchemaLoaded: function() {
 		var all = true;
@@ -207,6 +226,10 @@ var _Crud = {
 			_Crud.storePagerData();
 			//window.history.pushState('', '', _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]) + '&view=' + _Crud.view[type] + '&type=' + type + '#crud');
 			window.location.hash = 'crud';
+
+			if (Structr.getAutoHideInactiveTabs() || Structr.getHideInactiveTabs()) {
+				Structr.doHideInactiveTabs();
+			}
 		}
 		searchField.focus();
 
@@ -2174,7 +2197,7 @@ var _Crud = {
 		});
 
 		$('#resourceTabs .resourceBox table').css({
-			height: h - ($('#resourceTabsMenu').height() + 196) + 'px',
+			height: h - ($('#resourceTabsMenu').height() + 225) + 'px',
 			width:  w - 59 + 'px'
 		});
 

@@ -36,6 +36,8 @@ var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var pushConfigKey = 'structrPushConfigKey_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
+var hideInactiveTabsKey = 'structrHideInactiveTabs_' + port;
+var autoHideInactiveTabsKey = 'structrAutoHideInactiveTabs_' + port;
 
 
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
@@ -235,6 +237,9 @@ var Structr = {
 	link_icon: 'icon/link.png',
 	key_icon: 'icon/key.png',
 	msgCount: 0,
+	hideInactiveTabs: false,
+	autoHideInactiveTabs: undefined,
+
 	reconnect: function() {
 		log('deactivated ping')
 		Structr.stopPing();
@@ -1279,6 +1284,52 @@ var Structr = {
 
 			}
 		});
+	},
+	getAutoHideInactiveTabs: function () {
+		if (this.autoHideInactiveTabs) {
+			return this.autoHideInactiveTabs;
+		} else {
+			this.autoHideInactiveTabs = (localStorage.getItem(autoHideInactiveTabsKey) == "true");
+			if (!this.autoHideInactiveTabs) {
+				this.setAutoHideInactiveTabs(false);
+			}
+			return this.autoHideInactiveTabs;
+		}
+	},
+	setAutoHideInactiveTabs: function (val) {
+		this.autoHideInactiveTabs = val;
+		localStorage.setItem(autoHideInactiveTabsKey, val);
+
+		if (val) {
+			this.doHideInactiveTabs();
+		}
+	},
+	getHideInactiveTabs: function () {
+		if (this.hideInactiveTabs) {
+			return this.hideInactiveTabs;
+		} else {
+			this.hideInactiveTabs = (localStorage.getItem(hideInactiveTabsKey) == "true");
+			if (!this.hideInactiveTabs) {
+				this.setHideInactiveTabs(false);
+			}
+			return this.hideInactiveTabs;
+		}
+	},
+	setHideInactiveTabs: function (val) {
+		this.hideInactiveTabs = val;
+		localStorage.setItem(hideInactiveTabsKey, val);
+
+		if (val) {
+			this.doHideInactiveTabs();
+		} else {
+			this.doShowAllTabs();
+		}
+	},
+	doHideInactiveTabs: function () {
+		$('.ui-state-default.ui-corner-top:not(.ui-tabs-active.ui-state-active)').hide();
+	},
+	doShowAllTabs: function () {
+		$('.ui-state-default.ui-corner-top:not(.ui-tabs-active.ui-state-active)').show();
 	},
 };
 

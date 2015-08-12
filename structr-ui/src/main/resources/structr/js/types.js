@@ -57,7 +57,27 @@ var _Types = {
 	pageSize: [],
 	init: function() {
 
-		main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
+		main.append('<div id="resourceTabs">'
+			+ '<div id="resourceTabsSettings"><button id="resourceTabsHideButton">Hide inactive tabs</button>'
+				+ '<button id="resourceTabsShowButton">Show all tabs</button>'
+				+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox">'
+				+ '<label for="resourceTabsAutoHideCheckbox">auto-hide inactive tabs</label>'
+			+ '</div>'
+			+ '<ul id="resourceTabsMenu"></ul></div>');
+
+		$('#resourceTabsHideButton').click(function () {
+			Structr.setHideInactiveTabs(true);
+		});
+		$('#resourceTabsShowButton').click(function () {
+			Structr.setHideInactiveTabs(false);
+		});
+
+		if (Structr.getAutoHideInactiveTabs()) {
+			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
+		}
+		$('#resourceTabsAutoHideCheckbox').change(function () {
+			Structr.setAutoHideInactiveTabs($(this).prop('checked'));
+		});
 
 		Structr.ensureIsAdmin($('#resourceTabs'), function() {
 
@@ -70,6 +90,7 @@ var _Types = {
 				_Types.initTabs();
 				_Types.resize();
 				Structr.unblockMenu(500);
+				_Types.updateUrl(_Types.type);
 			});
 
 		});
@@ -314,6 +335,10 @@ var _Types = {
 		if (type) {
 			_Types.storeType();
 			window.location.hash = '#types';
+
+			if (Structr.getAutoHideInactiveTabs() || Structr.getHideInactiveTabs()) {
+				Structr.doHideInactiveTabs();
+			}
 		}
 		//searchField.focus();
 	},
