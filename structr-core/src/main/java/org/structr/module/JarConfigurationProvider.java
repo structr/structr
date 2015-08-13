@@ -31,7 +31,6 @@ import java.lang.reflect.Method;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 import java.util.Enumeration;
@@ -845,8 +844,20 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			propertyViewMap.put(propertyView, properties);
 		}
 
-		// add all properties from set
-		properties.addAll(Arrays.asList(propertySet));
+		// allow properties to override existing ones as they
+		// are most likely from a more concrete class.
+		for (final PropertyKey key : propertySet) {
+
+			// property keys are referenced by their names,
+			// that's why we seemingly remove the existing
+			// key, but the set does not differentiate
+			// between different keys
+			if (properties.contains(key)) {
+				properties.remove(key);
+			}
+
+			properties.add(key);
+		}
 	}
 
 	@Override

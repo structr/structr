@@ -46,7 +46,7 @@ public class UiResourceProvider implements ResourceProvider {
 
 		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 
-		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"), UuidResource.class);        // matches a UUID without dashes
+		resourceMap.put(Pattern.compile("[a-fA-F0-9]{32}"), UuidResource.class);        // matches a UUID without dashes
 		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);          // cypher query
 		resourceMap.put(Pattern.compile("login"), LoginResource.class);                 // login
 		resourceMap.put(Pattern.compile("logout"), LogoutResource.class);               // logout
@@ -58,7 +58,7 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("out"), RelationshipResource.class);            // outgoing relationship
 		resourceMap.put(Pattern.compile("start"), RelationshipNodeResource.class);      // start node
 		resourceMap.put(Pattern.compile("end"), RelationshipNodeResource.class);        // end node
- 
+
 		// FIXME: are views needed here?
 		resourceMap.put(Pattern.compile("public"), ViewFilterResource.class);                 // public view (default)
 		resourceMap.put(Pattern.compile("protected"), ViewFilterResource.class);              // protected view

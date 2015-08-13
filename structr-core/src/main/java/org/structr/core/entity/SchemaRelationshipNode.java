@@ -85,10 +85,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public static final Property<Long>       cascadingDeleteFlag = new LongProperty("cascadingDeleteFlag");
 	public static final Property<Long>       autocreationFlag    = new LongProperty("autocreationFlag");
 
-	// internal, do not use externally
-	public static final Property<String>  sourceTypeName      = new StringProperty("__internal_Structr_sourceTypeName");
-
-
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag
