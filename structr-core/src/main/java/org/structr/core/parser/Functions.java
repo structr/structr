@@ -3984,6 +3984,16 @@ public class Functions {
 					// no localization found - return the key
 					return sources[0];
 
+				} else if (sources.length == 1 && sources[0] == null) {
+
+					// silently ignore null values for keys
+					return "";
+
+				} else if (sources.length == 2 && sources[0] == null && sources[1] == null) {
+
+					// silently ignore null values for key AND domain
+					return "";
+
 				} else {
 
 					return usage(ctx.isJavaScriptContext());
