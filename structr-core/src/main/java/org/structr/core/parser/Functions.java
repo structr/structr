@@ -3984,18 +3984,14 @@ public class Functions {
 					// no localization found - return the key
 					return sources[0];
 
-				} else if (sources.length == 1 && sources[0] == null) {
+				} else if (sources.length == 1 || sources.length == 2) {
 
-					// silently ignore null values for keys
-					return "";
-
-				} else if (sources.length == 2 && sources[0] == null && sources[1] == null) {
-
-					// silently ignore null values for key AND domain
+					// silently ignore null values
 					return "";
 
 				} else {
 
+					// only show the error message for wrong parameter count
 					return usage(ctx.isJavaScriptContext());
 
 				}
