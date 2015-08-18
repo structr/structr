@@ -2097,6 +2097,10 @@ var _Crud = {
 				var newData = {};
 				var curVal = data.result[key];
 
+				if (curVal === null) {
+					curVal = [];
+				}
+
 				if (curVal[pos] === obj) {
 					// string is at expected position => just remove that position/element
 					curVal.splice(pos, 1);
