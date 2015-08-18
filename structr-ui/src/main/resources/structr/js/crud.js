@@ -2097,10 +2097,6 @@ var _Crud = {
 				var newData = {};
 				var curVal = data.result[key];
 
-				if (curVal === null) {
-					curVal = [];
-				}
-
 				if (curVal[pos] === obj) {
 					// string is at expected position => just remove that position/element
 					curVal.splice(pos, 1);
@@ -2138,7 +2134,11 @@ var _Crud = {
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
 				var curVal = data.result[key];
-				curVal.push(obj);
+				if (curVal === null) {
+					curVal = [obj];
+				} else {
+					curVal.push(obj);
+				}
 
 				var data = {};
 				data[key] = curVal;
