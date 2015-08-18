@@ -1603,6 +1603,31 @@ var _Crud = {
 						_Crud.appendEnumSelect(cell, id, key, format);
 					}
 				}
+
+			} else if (propertyType === 'String[]') {
+
+				if (value && value.length) {
+					value.forEach(function (v, i) {
+						cell.append('<div title="' + v + '" class="node stringarray">' + fitStringToWidth(v, 80) + '<img class="remove" src="icon/cross_small_grey.png" data-string-element="' + escape(v) + '" data-string-position="' + i + '"></div>');
+					});
+
+					$('.stringarray .remove', cell).on('click', function(e) {
+						e.preventDefault();
+						_Crud.removeStringFromArray(type, id, key, $(this).data('string-element'), $(this).data('string-position'));
+						return false;
+					});
+
+				}
+
+				cell.append('<img class="add" src="icon/add_grey.png">');
+				$('.add', cell).on('click', function() {
+					var newStringElement = window.prompt("Enter new string");
+
+					if (newStringElement !== null) {
+						_Crud.addStringToArray(type, id, key, newStringElement);
+					}
+				});
+
 			} else {
 				cell.text(nvl(formatValue(value), ''));
 				if (!readOnly) {
@@ -1656,7 +1681,7 @@ var _Crud = {
 
 		}
 
-		if (!isSourceOrTarget && !readOnly && propertyType !== 'Boolean' && !relatedType) {
+		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean' && propertyType !== 'String[]') {
 			cell.append('<img class="crud-clear-value" alt="Clear value" title="Clear value" src="icon/cross_small_grey.png">');
 			$('.crud-clear-value', cell).on('mouseup', function(e) {
 				e.preventDefault();
@@ -2058,6 +2083,69 @@ var _Crud = {
 				dialogCancelButton.click();
 			});
 		}
+	},
+	removeStringFromArray: function(type, id, key, obj, pos, callback) {
+		var view = _Crud.view[_Crud.type];
+		var url = rootUrl + '/' + id + '/' + view;
+		$.ajax({
+			url: url,
+			type: 'GET',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			success: function(data) {
+				obj = unescape(obj);
+				var newData = {};
+				var curVal = data.result[key];
+
+				if (curVal[pos] === obj) {
+					// string is at expected position => just remove that position/element
+					curVal.splice(pos, 1);
+					newData[key] = curVal;
+				} else {
+					// obj is not at position. it seems the crud is not up to date => remove the first occurence of the string (if any)
+					var newVal = [];
+					var found = false;
+					curVal.forEach(function (v) {
+						if (v === obj && !found) {
+							found = true;
+						} else {
+							newVal.push(v);
+						}
+					});
+					newData[key] = newVal;
+				}
+
+				_Crud.crudUpdateObj(id, JSON.stringify(newData), function() {
+					_Crud.crudRefresh(id, key);
+					if (callback) {
+						callback();
+					}
+				});
+			}
+		});
+	},
+	addStringToArray: function(type, id, key, obj, callback) {
+		var view = _Crud.view[_Crud.type];
+		var url = rootUrl + '/' + id + '/' + view;
+		$.ajax({
+			url: url,
+			type: 'GET',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			success: function(data) {
+				var curVal = data.result[key];
+				curVal.push(obj);
+
+				var data = {};
+				data[key] = curVal;
+				_Crud.crudUpdateObj(id, JSON.stringify(data), function() {
+					_Crud.crudRefresh(id, key);
+					if (callback) {
+						callback();
+					}
+				});
+			}
+		});
 	},
 	extractIds: function(result) {
 		var objects = [];
