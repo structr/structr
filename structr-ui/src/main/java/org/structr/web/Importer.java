@@ -81,6 +81,7 @@ import org.structr.web.diff.DeleteOperation;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.diff.MoveOperation;
 import org.structr.web.diff.UpdateOperation;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.LinkSource;
@@ -99,12 +100,9 @@ import org.structr.web.entity.dom.Page;
  */
 public class Importer {
 
-	private static String[] hrefElements = new String[]{"link"};
-	//private static String[] ignoreElementNames = new String[]{"#declaration", "#comment", "#doctype"};
-	private static String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
-	private static String[] srcElements = new String[]{
-		"img", "script", "audio", "video", "input", "source", "track"
-	};
+	private static final String[] hrefElements = new String[] {"link"};
+	private static final String[] ignoreElementNames = new String[] {"#declaration", "#doctype"};
+	private static final String[] srcElements = new String[] { "img", "script", "audio", "video", "input", "source", "track" };
 	private static final Logger logger = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
@@ -112,7 +110,6 @@ public class Importer {
 
 	private final static String DATA_META_PREFIX = "data-structr-meta-";
 
-	//~--- static initializers --------------------------------------------
 	static {
 
 		contentTypeForExtension.put("css", "text/css");
@@ -122,35 +119,16 @@ public class Importer {
 
 	}
 
-	//~--- fields ---------------------------------------------------------
-	private StringBuilder commentSource = new StringBuilder();
-	private String code;
+	private final StringBuilder commentSource = new StringBuilder();
+	private final SecurityContext securityContext;
+	private final boolean publicVisible;
+	private final boolean authVisible;
+	private Document parsedDocument;
+	private final String name;
 	private URL originalUrl;
 	private String address;
-	private final boolean authVisible;
-	private final String name;
-	private Document parsedDocument;
-	private final boolean publicVisible;
-	private final SecurityContext securityContext;
+	private String code;
 
-	//~--- constructors ---------------------------------------------------
-//      public static void main(String[] args) throws Exception {
-//
-//              String css = "background: url(\"/images/common/menu-bg.png\") repeat-x;\nbackground: url('/images/common/menu-bg.png') repeat-x;\nbackground: url(/images/common/menu-bg.png) repeat-x;";
-//
-//              Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
-//              Matcher matcher = pattern.matcher(css);
-//
-//              while (matcher.find()) {
-//
-//
-//                      String url = matcher.group(2);
-//                      logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
-//
-//
-//              }
-//
-//      }
 	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
 
 		this.code = code;
@@ -162,15 +140,12 @@ public class Importer {
 
 	}
 
-	//~--- methods --------------------------------------------------------
 	private void init() {
 		app = StructrApp.getInstance(securityContext);
 	}
 
 	public boolean parse() throws FrameworkException {
-
 		return parse(false);
-
 	}
 
 	public boolean parse(final boolean fragment) throws FrameworkException {
@@ -228,6 +203,11 @@ public class Importer {
 
 					final String newLocation = new URL(originalUrl, location.getValue()).toString();
 					address = newLocation;
+
+					// fix address to never contain trailing slash
+					if (address.endsWith("/")) {
+						address = address.substring(0, address.length() - 1);
+					}
 
 					logger.log(Level.INFO, "New location: {0}", new Object[]{ newLocation });
 
@@ -725,10 +705,8 @@ public class Importer {
 	/**
 	 * Check whether a file with given name and checksum already exists
 	 */
-	private boolean fileExists(final String name, final long checksum) throws FrameworkException {
-
-		return app.nodeQuery(File.class).andName(name).and(File.checksum, checksum).getFirst() != null;
-
+	private FileBase fileExists(final String name, final long checksum) throws FrameworkException {
+		return app.nodeQuery(FileBase.class).andName(name).and(File.checksum, checksum).getFirst();
 	}
 
 	private Linkable downloadFile(String downloadAddress, final URL base) {
@@ -769,15 +747,20 @@ public class Importer {
 
 			try {
 				// Try alternative baseUrl with trailing "/"
+				if (address.endsWith("/")) {
 
-				logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[] { originalUrl, address.concat("/"), downloadAddress });
+					// don't append a second slash!
+					logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[] { originalUrl, address, downloadAddress });
+					downloadUrl = new URL(new URL(originalUrl, address), downloadAddress);
 
-				downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
+				} else {
+
+					// append a slash
+					logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[] { originalUrl, address.concat("/"), downloadAddress });
+					downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
+				}
+
 				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
-
-				// If successful, change address
-//				address = address.concat("/");
-//				originalUrl = new URL(originalUrl, address);
 
 			} catch (MalformedURLException ex) {
 				logger.log(Level.SEVERE, "Could not resolve address {0}", address.concat("/"));
@@ -833,9 +816,8 @@ public class Importer {
 
 		try {
 
-			if (!(fileExists(fileName, checksum))) {
-
-				File fileNode;
+			FileBase fileNode = fileExists(fileName, checksum);
+			if (fileNode == null) {
 
 				if (ImageHelper.isImageType(fileName)) {
 
@@ -866,6 +848,7 @@ public class Importer {
 			} else {
 
 				fileOnDisk.delete();
+				return fileNode;
 			}
 
 		} catch (FrameworkException | IOException fex) {
@@ -914,7 +897,7 @@ public class Importer {
 
 	}
 
-	private void processCssFileNode(final File fileNode, final URL base) throws IOException {
+	private void processCssFileNode(final FileBase fileNode, final URL base) throws IOException {
 
 		StringWriter sw = new StringWriter();
 

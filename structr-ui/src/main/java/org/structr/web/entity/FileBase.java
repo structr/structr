@@ -66,7 +66,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").readOnly();
 	public static final Property<Long> size                      = new LongProperty("size").indexed().readOnly();
 	public static final Property<String> url                     = new StringProperty("url");
-	public static final Property<Long> checksum                  = new LongProperty("checksum").unvalidated().readOnly();
+	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
 	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds");
 	public static final Property<Integer> version                = new IntProperty("version").indexed().readOnly();
 	public static final Property<String> path                    = new PathProperty("path").indexed().readOnly();
