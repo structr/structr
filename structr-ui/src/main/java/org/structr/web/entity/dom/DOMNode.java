@@ -44,6 +44,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpClientParams;
@@ -155,7 +156,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";;
 	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";;
 	public static final String ERROR_MESSAGE_GET    = "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
-	public static final String ERROR_MESSAGE_GET_JS = "Usage: ${{Structr.GET(URL[, contentType[, selector]])}}. Example: ${{Structr.GET('http://structr.org', 'text/html')}}";
+	public static final String ERROR_MESSAGE_GET_JS = "Usage: ${{Structr.GET(URL[, contentType[, selector]])}}. Example: ${{Structr.HEAD('http://structr.org', 'text/html')}}";
+	public static final String ERROR_MESSAGE_HEAD   = "Usage: ${HEAD(URL[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}";
+	public static final String ERROR_MESSAGE_HEAD_JS = "Usage: ${{Structr.HEAD(URL[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}";
 	public static final String ERROR_MESSAGE_PARSE    = "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
 	public static final String ERROR_MESSAGE_PARSE_JS = "Usage: ${{Structr.parse(URL, selector)}}. Example: ${{Structr.parse('http://structr.org', 'li.data')}}";
 	public static final String ERROR_MESSAGE_TO_JSON    = "Usage: ${to_json(obj [, view])}. Example: ${to_json(this)}";
@@ -528,6 +531,45 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_GET_JS : ERROR_MESSAGE_GET);
+			}
+		});
+
+		Functions.functions.put("HEAD", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+
+				if (sources != null && sources.length > 0) {
+
+					try {
+
+						String address = sources[0].toString();
+						String username    = null;
+						String password    = null;
+
+						if (sources.length > 1) {
+							username = sources[1].toString();
+						}
+
+						if (sources.length > 2) {
+							password = sources[2].toString();
+						}
+
+						return headFromUrl(ctx, address, username, password);
+
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+
+					return "";
+				}
+
+				return usage(ctx.isJavaScriptContext());
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_HEAD_JS : ERROR_MESSAGE_HEAD);
 			}
 		});
 
@@ -2021,8 +2063,36 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	// ----- static methods -----
-	private static String getFromUrl(final ActionContext ctx, final String requestUrl) throws IOException {
-		return getFromUrl(ctx, requestUrl, null, null);
+	private static GraphObjectMap headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
+
+		final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
+		final HttpClient client       = new HttpClient(params);
+		final HeadMethod headMethod   = new HeadMethod(requestUrl);
+
+		if (username != null && password != null) {
+
+			Credentials defaultcreds = new UsernamePasswordCredentials(username, password);
+			client.getState().setCredentials(AuthScope.ANY, defaultcreds);
+			client.getParams().setAuthenticationPreemptive(true);
+
+			headMethod.setDoAuthentication(true);
+		}
+
+		headMethod.addRequestHeader("Connection", "close");
+
+		// add request headers from context
+		for (final Entry<String, String> header : ctx.getHeaders().entrySet()) {
+			headMethod.addRequestHeader(header.getKey(), header.getValue());
+		}
+
+		client.executeMethod(headMethod);
+
+		final GraphObjectMap response = new GraphObjectMap();
+		response.setProperty(new IntProperty("status"), headMethod.getStatusCode());
+		response.setProperty(new StringProperty("headers"), extractHeaders(headMethod.getResponseHeaders()));
+
+		return response;
+
 	}
 
 	private static String getFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException {
