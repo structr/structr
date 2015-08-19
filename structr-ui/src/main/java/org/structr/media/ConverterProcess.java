@@ -75,7 +75,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 	@Override
 	public StringBuilder getCommandLine() {
 
-		final StringBuilder commandLine = new StringBuilder("avconv -y -i ");
+		final StringBuilder commandLine = new StringBuilder("avconv -y -strict experimental -i ");
 
 		// build command line from builder options
 		commandLine.append(inputFile.getDiskFilePath(securityContext));
