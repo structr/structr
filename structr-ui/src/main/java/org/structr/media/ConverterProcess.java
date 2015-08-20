@@ -21,34 +21,46 @@ package org.structr.media;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import org.apache.commons.lang3.StringUtils;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.VideoFile;
 
 /**
+ * A video converter process that calls a predefined script with a given
+ * set of parameters. The script(s) can be declared in the structr.conf
+ * configuration file. Each script represents a single conversion
+ * process. The script must take two parameters: the input file name
+ * on disk and the output file name on disk, e.g.
+ *
+ * transcode.sh [input] [output]
  *
  * @author Christian Morgner
  */
 
 public class ConverterProcess extends AbstractProcess<VideoFile> {
 
+	private static final Logger logger = Logger.getLogger(ConverterProcess.class.getName());
+
 	private VideoFile newFile     = null;
 	private VideoFile inputFile   = null;
 	private String outputFileName = null;
-	private String outputSize     = null;
+	private String scriptName     = null;
 	private String fileExtension  = null;
 
-	public ConverterProcess(final SecurityContext securityContext, final VideoFile inputFile, final String outputFileName, final String outputSize) {
+	public ConverterProcess(final SecurityContext securityContext, final VideoFile inputFile, final String outputFileName, final String scriptName) {
 
 		super(securityContext);
 
 		this.inputFile      = inputFile;
 		this.outputFileName = outputFileName;
-		this.outputSize     = outputSize;
+		this.scriptName     = scriptName;
+		this.fileExtension  = ".tmp-" + System.currentTimeMillis();
 	}
 
 	@Override
@@ -58,9 +70,6 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 
 			// create an empty file to store the converted video
 			newFile = FileHelper.createFile(securityContext, new byte[0], null, VideoFile.class, outputFileName);
-
-			// extract file extension
-			fileExtension = StringUtils.substringAfterLast(outputFileName, ".");
 
 			// obtain destination path of new file
 			outputFileName = newFile.getFileOnDisk().getAbsolutePath();
@@ -75,51 +84,65 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 	@Override
 	public StringBuilder getCommandLine() {
 
-		final StringBuilder commandLine = new StringBuilder("avconv -y -strict experimental -i ");
+		final String scriptNameFromConfig = StructrApp.getConfigurationValue("VideoFile." + scriptName);
+		if (scriptNameFromConfig != null) {
 
-		// build command line from builder options
-		commandLine.append(inputFile.getDiskFilePath(securityContext));
+			final StringBuilder commandLine = new StringBuilder(scriptNameFromConfig);
 
-		if (outputSize != null) {
 
-			commandLine.append(" -s ");
-			commandLine.append(outputSize);
+			// build command line from builder options
 			commandLine.append(" ");
+			commandLine.append(inputFile.getDiskFilePath(securityContext));
+			commandLine.append(" ");
+			commandLine.append(outputFileName);
+			commandLine.append(fileExtension);
+
+			return commandLine;
 
 		} else {
 
-			commandLine.append(" -vcodec copy ");
+			logger.log(Level.WARNING, "No VideoFile.{0} registered in structr.conf.", scriptName);
 		}
 
-		commandLine.append(outputFileName);
-
-		if (!fileExtension.isEmpty()) {
-			commandLine.append(".");
-			commandLine.append(fileExtension);
-		}
-
-		return commandLine;
+		return null;
 	}
 
 	@Override
 	public VideoFile processExited(int exitCode) {
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		if (exitCode == 0) {
 
-			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+			try (final Tx tx = app.tx()) {
 
 				// move converted file into place
-				final java.io.File diskFile = new java.io.File(outputFileName + "." + fileExtension);
+				final java.io.File diskFile = new java.io.File(outputFileName + fileExtension);
 				final java.io.File dstFile  = new java.io.File(outputFileName);
 				if (diskFile.exists()) {
 
 					Files.move(diskFile.toPath(), dstFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 					FileHelper.updateMetadata(newFile);
+
+					// create link between the two videos
+					newFile.setProperty(VideoFile.originalVideo, inputFile);
 				}
 
 				tx.success();
 
 			} catch (FrameworkException | IOException fex) {
+				fex.printStackTrace();
+			}
+
+		} else {
+
+			// delete file, conversion has failed
+			try (final Tx tx = app.tx()) {
+
+				app.delete(newFile);
+				tx.success();
+
+			} catch (FrameworkException fex) {
 				fex.printStackTrace();
 			}
 

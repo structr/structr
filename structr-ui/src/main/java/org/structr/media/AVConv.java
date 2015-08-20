@@ -33,11 +33,10 @@ import org.structr.web.entity.VideoFile;
 
 public class AVConv implements VideoHelper {
 
-	private SecurityContext securityContext = null;
-	private VideoFile inputVideo            = null;
-	private String outputFileName           = null;
-	private int exitCode                    = -1;
-	private String outputSize               = null;
+	private static final ExecutorService service = Executors.newCachedThreadPool();
+	private SecurityContext securityContext      = null;
+	private VideoFile inputVideo                 = null;
+	private String outputFileName                = null;
 
 	private AVConv(final SecurityContext securityContext, final VideoFile inputVideo, final String outputFileName) {
 		this.securityContext = securityContext;
@@ -54,36 +53,9 @@ public class AVConv implements VideoHelper {
 		return new AVConv(securityContext, inputVideo, outputFileName);
 	}
 
-	// ----- methods from VideoConverter -----
 	@Override
-	public VideoHelper scale(final VideoFormat format) {
-
-		this.outputSize = format.name();
-		return this;
-	}
-
-	@Override
-	public VideoHelper scale(final int width, final int height) {
-
-		this.outputSize = width + ":" + height;
-		return this;
-	}
-
-	@Override
-	public VideoHelper scale(final String customFormat) {
-
-		this.outputSize = customFormat;
-		return this;
-	}
-
-	@Override
-	public Future<VideoFile> doConversion() {
-
-		final ExecutorService service  = Executors.newSingleThreadExecutor();
-		final Future<VideoFile> future = service.submit(new ConverterProcess(securityContext, inputVideo, outputFileName, outputSize));
-		service.shutdown();
-
-		return future;
+	public Future<VideoFile> doConversion(final String scriptName) {
+		return service.submit(new ConverterProcess(securityContext, inputVideo, outputFileName, scriptName));
 	}
 
 	@Override
@@ -91,11 +63,7 @@ public class AVConv implements VideoHelper {
 
 		try {
 
-			final ExecutorService service    = Executors.newSingleThreadExecutor();
-			final Map<String, String> result = service.submit(new GetMetadataProcess(securityContext, inputVideo)).get();
-			service.shutdown();
-
-			return result;
+			return service.submit(new GetMetadataProcess(securityContext, inputVideo)).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
 			ex.printStackTrace();
@@ -109,9 +77,7 @@ public class AVConv implements VideoHelper {
 
 		try {
 
-			final ExecutorService service = Executors.newSingleThreadExecutor();
 			service.submit(new SetMetadataProcess(securityContext, inputVideo, key, value)).get();
-			service.shutdown();
 
 		} catch (InterruptedException | ExecutionException ex) {
 			ex.printStackTrace();
@@ -123,9 +89,7 @@ public class AVConv implements VideoHelper {
 
 		try {
 
-			final ExecutorService service = Executors.newSingleThreadExecutor();
 			service.submit(new SetMetadataProcess(securityContext, inputVideo, metadata)).get();
-			service.shutdown();
 
 		} catch (InterruptedException | ExecutionException ex) {
 			ex.printStackTrace();
@@ -137,11 +101,7 @@ public class AVConv implements VideoHelper {
 
 		try {
 
-			final ExecutorService service  = Executors.newSingleThreadExecutor();
-			final Map<String, Object> info = service.submit(new GetVideoInfoProcess(securityContext, inputVideo.getDiskFilePath(securityContext))).get();
-			service.shutdown();
-
-			return info;
+			return service.submit(new GetVideoInfoProcess(securityContext, inputVideo.getDiskFilePath(securityContext))).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
 			ex.printStackTrace();

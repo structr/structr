@@ -28,11 +28,7 @@ import org.structr.web.entity.VideoFile;
  */
 public interface VideoHelper {
 
-	public VideoHelper scale(final VideoFormat format);
-	public VideoHelper scale(final int width, final int height);
-	public VideoHelper scale(final String customFormat);
-
-	public Future<VideoFile> doConversion();
+	public Future<VideoFile> doConversion(final String scriptName);
 
 	public Map<String, String> getMetadata();
 	public void setMetadata(final String key, final String value);

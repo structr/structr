@@ -22,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -37,8 +36,10 @@ import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.media.AVConv;
@@ -47,6 +48,7 @@ import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
 import static org.structr.web.entity.FileBase.relativeFilePath;
 import static org.structr.web.entity.FileBase.size;
+import org.structr.web.entity.relation.VideoFileHasConvertedVideoFile;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,24 +66,32 @@ public class VideoFile extends File {
 		SchemaService.registerBuiltinTypeOverride("VideoFile", VideoFile.class.getName());
 	}
 
-	private static final Logger logger = Logger.getLogger(VideoFile.class.getName());
+	public static final Property<List<VideoFile>> convertedVideos = new EndNodes<>("convertedVideos", VideoFileHasConvertedVideoFile.class);
+	public static final Property<VideoFile> originalVideo         = new StartNode<>("originalVideo", VideoFileHasConvertedVideoFile.class);
+	public static final Property<Boolean> isVideo                 = new BooleanProperty("isVideo").defaultValue(true).readOnly();
+	public static final Property<String>  videoCodecName          = new StringProperty("videoCodecName");
+	public static final Property<String>  videoCodec              = new StringProperty("videoCodec");
+	public static final Property<String>  pixelFormat             = new StringProperty("pixelFormat");
+	public static final Property<String>  audioCodecName          = new StringProperty("audioCodecName");
+	public static final Property<String>  audioCodec              = new StringProperty("audioCodec");
+	public static final Property<Integer> audioChannels           = new IntProperty("audioChannels");
 
-	public static final Property<Boolean> isVideo        = new BooleanProperty("isVideo").defaultValue(true).readOnly();
-	public static final Property<String>  videoCodecName = new StringProperty("videoCodecName");
-	public static final Property<String>  videoCodec     = new StringProperty("videoCodec");
-	public static final Property<String>  pixelFormat    = new StringProperty("pixelFormat");
-	public static final Property<String>  audioCodecName = new StringProperty("audioCodecName");
-	public static final Property<String>  audioCodec     = new StringProperty("audioCodec");
-	public static final Property<Integer> audioChannels  = new IntProperty("audioChannels");
+	public static final Property<Double>  sampleRate              = new DoubleProperty("sampleRate").indexed();
+	public static final Property<Double>  duration                = new DoubleProperty("duration").indexed();
 
-	public static final Property<Double>  sampleRate     = new DoubleProperty("sampleRate").indexed();
-	public static final Property<Double>  duration       = new DoubleProperty("duration").indexed();
+	public static final Property<Integer> width                   = new IntProperty("width").indexed();
+	public static final Property<Integer> height                  = new IntProperty("height").indexed();
 
-	public static final Property<Integer> width          = new IntProperty("width").indexed();
-	public static final Property<Integer> height         = new IntProperty("height").indexed();
+	public static final org.structr.common.View uiView = new org.structr.common.View(VideoFile.class, PropertyView.Ui,
+		type, name, contentType, size, relativeFilePath, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
+		audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height, originalVideo, convertedVideos
+	);
 
-	public static final org.structr.common.View uiView              = new org.structr.common.View(VideoFile.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat, audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height);
-	public static final org.structr.common.View publicView          = new org.structr.common.View(VideoFile.class, PropertyView.Public, type, name, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat, audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height);
+	public static final org.structr.common.View publicView = new org.structr.common.View(VideoFile.class, PropertyView.Public,
+		type, name, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
+		audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height,
+		convertedVideos
+	);
 
 
 	@Override
@@ -118,18 +128,8 @@ public class VideoFile extends File {
 	}
 
 	@Export
-	public void scale(final String resolution) throws FrameworkException {
-		AVConv.newInstance(securityContext, this).scale(resolution).doConversion();
-	}
-
-	@Export
-	public void convert(final String newName) throws FrameworkException {
-		AVConv.newInstance(securityContext, this, newName).doConversion();
-	}
-
-	@Export
-	public void convertAndScale(final String newName, final String resolution) throws FrameworkException {
-		AVConv.newInstance(securityContext, this, newName).scale(resolution).doConversion();
+	public void convert(final String scriptName, final String newFileName) throws FrameworkException {
+		AVConv.newInstance(securityContext, this, newFileName).doConversion(scriptName);
 	}
 
 	@Export
@@ -221,7 +221,12 @@ public class VideoFile extends File {
 
 		if (value instanceof String) {
 
-			return Integer.valueOf((String)value);
+			try {
+				return Integer.valueOf((String)value);
+
+			} catch (Throwable t) {
+				return null;
+			}
 		}
 
 		return null;
@@ -235,7 +240,12 @@ public class VideoFile extends File {
 
 		if (value instanceof String) {
 
-			return Double.valueOf((String)value);
+			try {
+				return Double.valueOf((String)value);
+
+			} catch (Throwable t) {
+				return null;
+			}
 		}
 
 		return null;

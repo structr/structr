@@ -33,8 +33,8 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 
 	private static final Logger logger = Logger.getLogger(AbstractProcess.class.getName());
 
-	protected SecurityContext securityContext = null;
 	private final AtomicBoolean running       = new AtomicBoolean(true);
+	protected SecurityContext securityContext = null;
 	private StreamReader stdOut               = null;
 	private StreamReader stdErr               = null;
 	private String cmd                        = null;
@@ -85,7 +85,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 
 		// debugging output
 		if (exitCode != 0) {
-			logger.log(Level.WARNING, "Process {0} exited with exit code {1}, error stream:{2}\n", new Object[] { cmd, exitCode, stdErr.getBuffer() } );
+			logger.log(Level.WARNING, "Process {0} exited with exit code {1}, error stream:\n{2}\n", new Object[] { cmd, exitCode, stdErr.getBuffer() } );
 		}
 
 		return processExited(exitCode);

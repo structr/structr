@@ -19,6 +19,8 @@
 package org.structr.media;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
@@ -54,7 +56,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 
 		this.outputFileName = inputVideo.getDiskFilePath(securityContext);
 		this.inputVideo     = inputVideo;
-		
+
 		this.metadata.putAll(values);
 	}
 
@@ -85,11 +87,16 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 
 		for (final Entry<String, String> meta : metadata.entrySet()) {
 
-			commandLine.append(" -metadata ");
-			commandLine.append(meta.getKey());
-			commandLine.append("=\"");
-			commandLine.append(meta.getValue());
-			commandLine.append("\"");
+			try {
+				commandLine.append(" -metadata ");
+				commandLine.append(clean(meta.getKey()));
+				commandLine.append("=\"");
+				commandLine.append(escape(meta.getValue()));
+				commandLine.append("\"");
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
 		}
 
 		commandLine.append(" -codec copy ");
@@ -132,6 +139,14 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 
 	protected boolean accept(final String key, final String value) {
 		return key != null && !key.startsWith(";");
+	}
+
+	private String clean(final String input) {
+		return input.replaceAll("[\\W]+", "");
+	}
+
+	private String escape(final String input) throws UnsupportedEncodingException {
+		return URLEncoder.encode(input, "UTF-8");
 	}
 
 	private static final Map<String, String> toMap(final String key, final String value) {
