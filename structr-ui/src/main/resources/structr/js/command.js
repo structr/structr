@@ -237,7 +237,7 @@ var Command = {
 			data.recursive = recursive;
 		}
 		obj.data = data;
-		console.log('deleteRelationship()', obj);
+		log('deleteRelationship()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -728,7 +728,7 @@ var Command = {
 		var obj = {};
 		obj.command = 'CREATE_RELATIONSHIP';
 		obj.relData = relData;
-		console.log('createRelationship()', obj);
+		log('createRelationship()', obj);
 		return sendObj(obj, callback);
 	},
 	/**

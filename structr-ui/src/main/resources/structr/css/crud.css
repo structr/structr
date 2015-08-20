@@ -115,6 +115,15 @@
     padding: 0;
 }
 
+#resourceTabsMenu li input[type="checkbox"] {
+    margin: 0 0 2px 4px;
+    padding: 0;
+}
+#resourceTabsMenu li.last {
+    margin-top: 8px;
+    color: #333;
+}
+
 #addResourceTab {
     cursor: pointer;
 }

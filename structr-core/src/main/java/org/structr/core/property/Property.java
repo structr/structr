@@ -96,7 +96,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.dbName = dbName;
 	}
 
-	public abstract Object fixDatabaseProperty(Object value);
+	public abstract Object fixDatabaseProperty(final Object value);
 	public abstract Object getValueForEmptyFields();
 
 	/**
@@ -194,7 +194,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Property<T> indexed(RelationshipIndex relIndex) {
+	public Property<T> indexed(final RelationshipIndex relIndex) {
 
 		this.indexed = true;
 		this.searchable = true;
@@ -221,7 +221,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Property<T> passivelyIndexed(NodeIndex nodeIndex) {
+	public Property<T> passivelyIndexed(final NodeIndex nodeIndex) {
 
 		this.indexedPassively = true;
 		this.indexed = true;
@@ -232,7 +232,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Property<T> passivelyIndexed(RelationshipIndex relIndex) {
+	public Property<T> passivelyIndexed(final RelationshipIndex relIndex) {
 
 		this.indexedPassively = true;
 		this.indexed = true;
@@ -252,7 +252,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void addValidator(PropertyValidator<T> validator) {
+	public void addValidator(final PropertyValidator<T> validator) {
 
 		validators.add(validator);
 
@@ -262,7 +262,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		}
 	}
 
-	public Property<T> validator(PropertyValidator<T> validator) {
+	public Property<T> validator(final PropertyValidator<T> validator) {
 		addValidator(validator);
 		return this;
 	}
@@ -283,12 +283,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void setDeclaringClass(Class declaringClass) {
+	public void setDeclaringClass(final Class declaringClass) {
 		this.declaringClass = declaringClass;
 	}
 
 	@Override
-	public void registrationCallback(Class type) {
+	public void registrationCallback(final Class type) {
 	}
 
 	@Override
@@ -382,7 +382,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 
 		if (o instanceof PropertyKey) {
 
@@ -443,7 +443,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void index(GraphObject entity, Object value) {
+	public void index(final GraphObject entity, Object value) {
 
 		if (entity instanceof AbstractNode) {
 
@@ -518,12 +518,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final BooleanClause.Occur occur, final T searchValue, final boolean exactMatch, final Query query) {
 		return new PropertySearchAttribute(this, searchValue, occur, exactMatch);
 	}
 
 	@Override
-	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
+	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final Query query) throws FrameworkException {
 
 		String searchValue = request.getParameter(jsonName());
 		if (searchValue != null) {
@@ -543,7 +543,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public T convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
 
 		PropertyConverter inputConverter = inputConverter(securityContext);
 		Object convertedSearchValue      = requestParameter;
