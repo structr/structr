@@ -31,19 +31,19 @@ import org.structr.core.converter.PropertyConverter;
  */
 public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 
-	public AbstractReadOnlyProperty(String name) {
+	public AbstractReadOnlyProperty(final String name) {
 		this(name, name);
 	}
 
-	public AbstractReadOnlyProperty(String name, T defaultValue) {
+	public AbstractReadOnlyProperty(final String name, final T defaultValue) {
 		this(name, name, defaultValue);
 	}
 
-	public AbstractReadOnlyProperty(String jsonName, String dbName) {
+	public AbstractReadOnlyProperty(final String jsonName, final String dbName) {
 		this(jsonName, dbName, null);
 	}
 
-	public AbstractReadOnlyProperty(String jsonName, String dbName, T defaultValue) {
+	public AbstractReadOnlyProperty(final String jsonName, final String dbName, final T defaultValue) {
 		super(jsonName, dbName, defaultValue);
 	}
 
@@ -62,27 +62,27 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public Object fixDatabaseProperty(final Object value) {
 		return value;
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, final T value) throws FrameworkException {
 		throw new FrameworkException(obj.getClass().getSimpleName(), new ReadOnlyPropertyToken(this));
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
 		return null;
 	}
 

@@ -60,7 +60,7 @@ public interface PropertyKey<T> {
 	 *
 	 * @param jsonName
 	 */
-	public void jsonName(String jsonName);
+	public void jsonName(final String jsonName);
 
 	/**
 	 * Sets the name of this property in the database context. This
@@ -69,7 +69,7 @@ public interface PropertyKey<T> {
 	 *
 	 * @param dbName
 	 */
-	public void dbName(String dbName);
+	public void dbName(final String dbName);
 
 	/**
 	 * Use this method to mark a property for indexing. This
@@ -96,7 +96,7 @@ public interface PropertyKey<T> {
 	 * @param nodeIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
-	public Property<T> indexed(NodeService.NodeIndex nodeIndex);
+	public Property<T> indexed(final NodeService.NodeIndex nodeIndex);
 
 	/**
 	 * Use this method to mark a property for indexing
@@ -105,7 +105,7 @@ public interface PropertyKey<T> {
 	 * @param relIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
-	public Property<T> indexed(NodeService.RelationshipIndex relIndex);
+	public Property<T> indexed(final NodeService.RelationshipIndex relIndex);
 
 	/**
 	 * Use this method to indicate that a property key can change its value
@@ -128,7 +128,7 @@ public interface PropertyKey<T> {
 	 * @param nodeIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
-	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex);
+	public Property<T> passivelyIndexed(final NodeService.NodeIndex nodeIndex);
 
 	/**
 	 * Use this method to indicate that a property key can change its value
@@ -139,7 +139,7 @@ public interface PropertyKey<T> {
 	 * @param relIndex
 	 * @return the Property to satisfy the builder pattern
 	 */
-	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex);
+	public Property<T> passivelyIndexed(final NodeService.RelationshipIndex relIndex);
 
 	public Property<T> indexedWhenEmpty();
 
@@ -180,23 +180,23 @@ public interface PropertyKey<T> {
 	 */
 	public String format();
 
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext);
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity);
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext);
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
 
-	public void addValidator(PropertyValidator<T> validator);
+	public void addValidator(final PropertyValidator<T> validator);
 	public List<PropertyValidator<T>> getValidators();
 	public boolean requiresSynchronization();
 	public String getSynchronizationKey();
 
-	public void setDeclaringClass(Class declaringClass);
+	public void setDeclaringClass(final Class declaringClass);
 	public Class getDeclaringClass();
 
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate);
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate);
+	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
 
-	public void registrationCallback(Class<GraphObject> entityType);
+	public void registrationCallback(final Class<GraphObject> entityType);
 
 	/**
 	 * Indicates whether this property is an unvalidated property or not.
@@ -301,9 +301,9 @@ public interface PropertyKey<T> {
 
 	public void index(GraphObject entity, Object value);
 
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch, final Query query);
-	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, Query query) throws FrameworkException;
-	public T convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException;
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final BooleanClause.Occur occur, final T searchValue, final boolean exactMatch, final Query query);
+	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final Query query) throws FrameworkException;
+	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException;
 
 	/**
 	 * Returns the desired position of this property key type
