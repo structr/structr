@@ -60,7 +60,7 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Exception while evaluating function property {0}.", jsonName());
+				logger.log(Level.WARNING, "Exception while evaluating function property '{0}'.", jsonName());
 
 				t.printStackTrace();
 			}
