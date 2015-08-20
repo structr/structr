@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
@@ -45,25 +44,23 @@ public class FunctionProperty<T> extends AbstractReadOnlyProperty<T> {
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (obj instanceof AbstractNode) {
 
-			try {
+		try {
 
-				return (T)Scripting.evaluate(new ActionContext(securityContext), obj, "${".concat(format).concat("}"));
+			return (T)Scripting.evaluate(new ActionContext(securityContext), obj, "${".concat(format).concat("}"));
 
-			} catch (Throwable t) {
+		} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Exception while evaluating function property '{0}'.", jsonName());
+			logger.log(Level.WARNING, "Exception while evaluating function property '{0}'.", jsonName());
 
-				t.printStackTrace();
-			}
+			t.printStackTrace();
 		}
 
 		return null;
