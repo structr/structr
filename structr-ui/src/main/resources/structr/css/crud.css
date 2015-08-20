@@ -154,6 +154,10 @@ input.readonly {
     float: left;
 }
 
+.resourceBox div.node.stringarray {
+    border: 1px solid #6464FF;
+}
+
 .resourceBox div.node:hover,
 #relatedNodesList .node:hover,
 .props .node:hover {
