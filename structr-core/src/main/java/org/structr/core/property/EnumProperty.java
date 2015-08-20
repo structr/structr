@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
@@ -32,7 +34,8 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
-	private Class<T> enumType = null;
+	private static final Logger logger = Logger.getLogger(EnumProperty.class.getName());
+	private Class<T> enumType          = null;
 
 	public EnumProperty(final String name, final Class<T> enumType, final PropertyValidator<T>... validators) {
 		this(name, enumType, null, validators);
@@ -116,7 +119,13 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 			if (source != null) {
 
-				return (T) Enum.valueOf(enumType, source);
+				try {
+					return (T) Enum.valueOf(enumType, source);
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Cannot convert database value {0} to enum of type {1}, ignoring.", new Object[] { source, enumType.getSimpleName() } );
+				}
 			}
 
 			return null;
@@ -159,7 +168,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 			if (source != null) {
 
 				try {
-					return (T) Enum.valueOf(enumType, source.toString());
+					return (T) Enum.valueOf(enumType, source);
 
 				} catch (Throwable t) {
 

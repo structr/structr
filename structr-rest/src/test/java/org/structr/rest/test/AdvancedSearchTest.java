@@ -20,17 +20,24 @@ package org.structr.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.structr.rest.common.StructrRestTest;
 import static org.hamcrest.Matchers.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.rest.common.TestEnum;
+import org.structr.rest.entity.TestThree;
+import org.structr.rest.entity.TestUser;
 
 /**
  *
@@ -764,6 +771,285 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 				tx.success();
 			}
+
+
+
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
+		}
+	}
+
+	public void testSearchWithOwnerAndEnum() {
+
+		try {
+
+			final List<TestUser> users       = createTestNodes(TestUser.class, 3);
+			final List<TestThree> testThrees = new LinkedList<>();
+			final Random random              = new Random();
+			int count                        = 0;
+
+			try (final Tx tx = app.tx()) {
+
+				for (final TestUser user : users) {
+
+					// create 20 entities for every user
+					for (int i=0; i<20; i++) {
+
+						testThrees.add(app.create(TestThree.class,
+							new NodeAttribute(AbstractNode.name, "test" + count++),
+							new NodeAttribute(AbstractNode.owner, user),
+							new NodeAttribute(TestThree.enumProperty, TestEnum.values()[random.nextInt(TestEnum.values().length)])
+						));
+					}
+				}
+
+				tx.success();
+			}
+
+			// test with core API
+			try (final Tx tx = app.tx()) {
+
+				for (final TestUser user : users) {
+
+					for (final TestThree test : app.nodeQuery(TestThree.class).and(AbstractNode.owner, user).and(TestThree.enumProperty, TestEnum.Status1).getAsList()) {
+						assertEquals("Invalid enum query result", TestEnum.Status1, test.getProperty(TestThree.enumProperty));
+					}
+				}
+
+				tx.success();
+			}
+
+			// test via REST
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+					.statusCode(200)
+
+				.when()
+					.get(concat("/test_threes?sort=createdDate&owner=" + users.get(0).getUuid()  + "&enumProperty=" + TestEnum.Status1));
+
+
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
+		}
+	}
+
+	public void testSearchWithOwnerAndEnumOnDynamicNodes() {
+
+		try {
+
+			// create 3 users
+			final String user1 = createEntity("/test_users", "{ name: user1 }");
+			final String user2 = createEntity("/test_users", "{ name: user2 }");
+			final String user3 = createEntity("/test_users", "{ name: user3 }");
+
+			SchemaNode node = null;
+
+			// setup schema
+			try (final Tx tx = app.tx()) {
+
+				node = app.create(SchemaNode.class, new NodeAttribute(SchemaNode.name, "TestType"));
+				node.setProperty(new StringProperty("_status"), "Enum(one, two, three)");
+				node.setProperty(new StringProperty("___ui"), "status");
+
+				tx.success();
+			}
+
+			// create 9 test entities
+			final String test1 = createEntity("/test_types", "{ name: test1, owner: " + user1 + ", status: one }");
+			final String test2 = createEntity("/test_types", "{ name: test2, owner: " + user2 + ", status: two }");
+			final String test3 = createEntity("/test_types", "{ name: test3, owner: " + user3 + ", status: one }");
+			final String test4 = createEntity("/test_types", "{ name: test4, owner: " + user1 + ", status: two }");
+			final String test5 = createEntity("/test_types", "{ name: test5, owner: " + user2 + ", status: three }");
+			final String test6 = createEntity("/test_types", "{ name: test6, owner: " + user3 + ", status: one }");
+			final String test7 = createEntity("/test_types", "{ name: test7, owner: " + user1 + ", status: two }");
+			final String test8 = createEntity("/test_types", "{ name: test8, owner: " + user2 + ", status: three }");
+			final String test9 = createEntity("/test_types", "{ name: test9, owner: " + user3 + ", status: one }");
+
+			// check that all entities are there
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+					.statusCode(200)
+					.body("result",	              hasSize(9))
+					.body("result_count",         equalTo(9))
+					.body("result[0].id",         equalTo(test1))
+					.body("result[1].id",         equalTo(test2))
+					.body("result[2].id",         equalTo(test3))
+					.body("result[3].id",         equalTo(test4))
+					.body("result[4].id",         equalTo(test5))
+					.body("result[5].id",         equalTo(test6))
+					.body("result[6].id",         equalTo(test7))
+					.body("result[7].id",         equalTo(test8))
+					.body("result[8].id",         equalTo(test9))
+
+				.when()
+					.get("/test_types/ui?sort=name");
+
+
+
+			// check entities of user1 are there
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+					.statusCode(200)
+					.body("result",	              hasSize(3))
+					.body("result_count",         equalTo(3))
+					.body("result[0].id",         equalTo(test1))
+					.body("result[1].id",         equalTo(test4))
+					.body("result[2].id",         equalTo(test7))
+
+				.when()
+					.get("/test_types/ui?sort=createdDate&owner=" + user1);
+
+
+
+			// check entities of user2 are there
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+					.statusCode(200)
+					.body("result",	              hasSize(3))
+					.body("result_count",         equalTo(3))
+					.body("result[0].id",         equalTo(test2))
+					.body("result[1].id",         equalTo(test5))
+					.body("result[2].id",         equalTo(test8))
+
+				.when()
+					.get("/test_types/ui?sort=createdDate&owner=" + user2);
+
+
+
+			// check entities of user3 are there
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+					.statusCode(200)
+					.body("result",	              hasSize(3))
+					.body("result_count",         equalTo(3))
+					.body("result[0].id",         equalTo(test3))
+					.body("result[1].id",         equalTo(test6))
+					.body("result[2].id",         equalTo(test9))
+
+				.when()
+					.get("/test_types/ui?sort=createdDate&owner=" + user3);
+
+
+			// check entities of user1 with a given enum are there
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+					.statusCode(200)
+					.body("result",	              hasSize(1))
+					.body("result_count",         equalTo(1))
+					.body("result[0].id",         equalTo(test1))
+
+				.when()
+					.get("/test_types/ui?sort=createdDate&owner=" + user1 + "&status=one");
+
+
+			// check entities of user1 with a given enum are there
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+					.statusCode(200)
+					.body("result",	              hasSize(2))
+					.body("result_count",         equalTo(2))
+					.body("result[0].id",         equalTo(test4))
+					.body("result[1].id",         equalTo(test7))
+
+				.when()
+					.get("/test_types/ui?sort=createdDate&owner=" + user1 + "&status=two");
+
+
+			// check entities of user1 with a given enum are there
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+					.statusCode(200)
+					.body("result",	              hasSize(2))
+					.body("result_count",         equalTo(2))
+					.body("result[0].id",         equalTo(test5))
+					.body("result[1].id",         equalTo(test8))
+
+				.when()
+					.get("/test_types/ui?sort=createdDate&owner=" + user2 + "&status=three");
+
 
 
 
