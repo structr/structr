@@ -115,6 +115,14 @@ public class ActionContext {
 		return false;
 	}
 
+	public Object getConstant(final String name) {
+		return constants.get(name);
+	}
+
+	public void setConstant(final String name, final Object data) {
+		constants.put(name, data);
+	}
+
 	public Object getReferencedProperty(final GraphObject entity, final String refKey, final Object initialData) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";

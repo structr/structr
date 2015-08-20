@@ -71,11 +71,13 @@ public class FilterExpression extends Expression {
 
 		if (listSource != null && listSource instanceof List) {
 
-			final List source = (List)listSource;
+			final List source         = (List)listSource;
+			final Object oldDataValue = ctx.getConstant("data");
 
 			for (Object obj : source) {
 
-				final Object result = filterExpression.evaluate(new ActionContext(ctx, obj), entity);
+				ctx.setConstant("data", obj);
+				final Object result = filterExpression.evaluate(ctx, entity);
 				if (result instanceof Boolean) {
 
 					if ((Boolean)result) {
@@ -84,6 +86,8 @@ public class FilterExpression extends Expression {
 					}
 				}
 			}
+
+			ctx.setConstant("data", oldDataValue);
 		}
 
 		return target;

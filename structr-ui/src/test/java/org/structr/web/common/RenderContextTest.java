@@ -534,7 +534,7 @@ public class RenderContextTest extends StructrUiTest {
 			// locale
 			final String localeString = ctx.getLocale().toString();
 			assertEquals("Invalid locale result", localeString, Scripting.replaceVariables(ctx, page, "${locale}"));
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -542,6 +542,34 @@ public class RenderContextTest extends StructrUiTest {
 			fex.printStackTrace();
 
 			fail("Unexpected exception");
+		}
+	}
+
+	public void testFiltering() {
+
+		final List<TestOne> testOnes = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			testOnes.addAll(createTestNodes(TestOne.class, 20));
+
+			final RenderContext ctx = new RenderContext(securityContext);
+			final TestOne testOne   = testOnes.get(0);
+
+			// test filtering
+			ctx.setDetailsDataObject(testOnes.get(5));
+			final Object value = Scripting.evaluate(ctx, testOne, "${filter(find('TestOne'), not(equal(data.id, current.id)))}");
+
+			assertNotNull("Invalid filter result", value);
+			assertTrue("Invalid filter result", value instanceof List);
+			assertEquals("Invalid filter result", 19, ((List)value).size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 }
