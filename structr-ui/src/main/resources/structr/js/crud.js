@@ -20,11 +20,12 @@
 var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
 var searchField;
 var defaultCollectionPageSize = 10;
-
+var hiddenTabs = [];
 var browser = (typeof document === 'object');
 var crudPagerDataKey = 'structrCrudPagerData_' + port + '_';
 var crudTypeKey = 'structrCrudType_' + port;
 var crudHiddenColumnsKey = 'structrCrudHiddenColumns_' + port;
+var crudHiddenTabsKey = 'structrCrudHiddenTabs_' + port;
 
 if (browser) {
 
@@ -88,25 +89,30 @@ var _Crud = {
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 		main.append('<div id="resourceTabs">'
-			+ '<div id="resourceTabsSettings"><button id="resourceTabsHideButton">Hide inactive tabs</button>'
-				+ '<button id="resourceTabsShowButton">Show all tabs</button>'
-				+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox">'
-				+ '<label for="resourceTabsAutoHideCheckbox">auto-hide inactive tabs</label>'
+			+ '<div id="resourceTabsSettings">'
+	        //+ '<button id="resourceTabsHideButton">Hide inactive tabs</button>'
+			//+ '<button id="resourceTabsShowButton">Show all tabs</button>'
 			+ '</div>'
-			+ '<ul id="resourceTabsMenu"></ul></div>');
+			+ '<ul id="resourceTabsMenu"><li class="last">'
+			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"> <label for="resourceTabsAutoHideCheckbox">show selected tabs only</label>'
+			+ '</li></ul>'
+	        + '</div>');
 
-		$('#resourceTabsHideButton').click(function () {
-			Structr.setHideInactiveTabs(true);
-		});
-		$('#resourceTabsShowButton').click(function () {
-			Structr.setHideInactiveTabs(false);
-		});
+//		$('#resourceTabsHideButton').click(function () {
+//			Structr.setHideInactiveTabs(true);
+//		});
+//		$('#resourceTabsShowButton').click(function () {
+//			Structr.setHideInactiveTabs(false);
+//		});
 
 		if (Structr.getAutoHideInactiveTabs()) {
 			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
 		}
 		$('#resourceTabsAutoHideCheckbox').change(function () {
-			Structr.setAutoHideInactiveTabs($(this).prop('checked'));
+			var checked = $(this).prop('checked');
+			Structr.setAutoHideInactiveTabs(checked);
+			Structr.setHideInactiveTabs(checked);
+			//location.reload();
 		});
 
 		Structr.ensureIsAdmin($('#resourceTabs'), function() {
@@ -181,12 +187,35 @@ var _Crud = {
 		$(window).on('resize', function() {
 			_Crud.resize();
 		});
+		
+		hiddenTabs = JSON.parse(localStorage.getItem(crudHiddenTabsKey)) || hiddenTabs;
+		//console.log('########## Hidden tabs ##############', hiddenTabs);
 
 	},
 	initTabs: function() {
 
 		$.each(_Crud.types, function(t, type) {
 			_Crud.addTab(type);
+		});
+
+		$('#resourceTabsMenu input[type="checkbox"]').on('click', function(e) {
+			e.stopPropagation();
+			//e.preventDefault();
+			
+			var inp = $(this);
+
+			var key = inp.parent().find('span').text();
+			
+			if (!inp.is(':checked')) {
+				hiddenTabs.push(key);
+			} else {
+				if (hiddenTabs.indexOf(key) > -1) {
+					hiddenTabs.splice(hiddenTabs.indexOf(key), 1);
+				}
+			}
+			
+			 localStorage.setItem(crudHiddenTabsKey, JSON.stringify(hiddenTabs));
+
 		});
 
 		$('#resourceTabs').tabs({
@@ -401,7 +430,8 @@ var _Crud = {
 	},
 	addTab: function(type) {
 		var res = _Crud.schema[type];
-		$('#resourceTabsMenu').append('<li><a href="#' + type + '"><span>' + _Crud.formatKey(type) + '</span></a></li>');
+		var hidden = hiddenTabs.indexOf(type) > -1;
+		$('#resourceTabsMenu li.last').before('<li' + (hidden ? ' class="hidden"' : '') + '><a href="#' + type + '"><span>' + _Crud.formatKey(type) + '</span><input type="checkbox"' + (!hidden ? ' checked="checked"' : '') + '></a></li>');
 		$('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + res.url + '"></div>');
 		var typeNode = $('#' + type);
 		var pagerNode = _Crud.addPager(type, typeNode);
@@ -575,7 +605,7 @@ var _Crud = {
 			if (key === "_action_header") {
 
 				th.empty();
-				th.append('Actions <img src="icon/application_view_detail.png" alt="Configure columns" title="Configure columns">');
+				th.append('Actions <img style="margin-left: 4px" src="icon/application_view_detail.png" alt="Configure columns" title="Configure columns">');
 				$('img', th).on('click', function(event) {
 
 					_Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {
@@ -792,6 +822,10 @@ var _Crud = {
 			},
 			error: function(a, b, c) {
 				console.log(a, b, c);
+				// something went really wrong, probably a network issue, so reload the whole page
+				window.setTimeout(function() {
+					location.reload();
+				}, 1000);
 			}
 		});
 	},

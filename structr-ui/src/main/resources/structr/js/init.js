@@ -1326,9 +1326,11 @@ var Structr = {
 		}
 	},
 	doHideInactiveTabs: function () {
-		$('.ui-state-default.ui-corner-top:not(.ui-tabs-active.ui-state-active)').hide();
+		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]').hide();
+		$('.ui-state-default.ui-corner-top:not(.ui-tabs-active.ui-state-active):not(.last) input[type="checkbox"]:not(:checked)').closest('li').hide();
 	},
 	doShowAllTabs: function () {
+		$('#resourceTabsMenu input[type="checkbox"]').show();
 		$('.ui-state-default.ui-corner-top:not(.ui-tabs-active.ui-state-active)').show();
 	},
 };

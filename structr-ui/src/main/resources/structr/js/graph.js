@@ -352,7 +352,7 @@ var _Graph = {
 		});
 		dragListener.bind('dragend', function(e) {
 			
-			console.log('dragend', removedRel);
+			//console.log('dragend', removedRel);
 			
 			if (removedRel) {
 				Command.deleteRelationship(removedRel);
