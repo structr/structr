@@ -2079,6 +2079,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		headMethod.addRequestHeader("Connection", "close");
+		// Don't follow redirects automatically, return status code 302 etc. instead
+		headMethod.setFollowRedirects(false);
 
 		// add request headers from context
 		for (final Entry<String, String> header : ctx.getHeaders().entrySet()) {
