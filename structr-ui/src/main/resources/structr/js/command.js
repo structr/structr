@@ -1086,5 +1086,18 @@ var Command = {
 		obj.command = 'SNAPSHOTS';
 		log('snapshots()', obj, callback);
 		return sendObj(obj, callback);
-	}
+	},
+	/**
+	 * Send an AUTOCOMPLETE command to the server.
+	 *
+	 * No broadcast.
+	 */
+	autocomplete: function(id, type, currentToken, previousToken, line, cursorPosition, callback) {
+		var obj  = {};
+		obj.command = 'AUTOCOMPLETE';
+        obj.id      = id;
+		obj.data    = { type: type, currentToken: currentToken, previousToken: previousToken, contentType: contentType, line: line, cursorPosition: cursorPosition };
+		log('autocomplete()', obj, callback);
+		return sendObj(obj, callback);
+	},
 }

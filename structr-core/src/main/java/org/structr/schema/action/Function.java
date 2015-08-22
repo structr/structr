@@ -25,8 +25,8 @@ import org.structr.core.GraphObject;
  *
  * @author Christian Morgner
  */
-public interface Function<S, T> {
+public abstract class Function<S, T> extends Hint {
 
-	public T apply(ActionContext ctx, GraphObject entity, S[] sources) throws FrameworkException;
-	public String usage(boolean inJavaScriptContext);
+	public abstract T apply(ActionContext ctx, GraphObject entity, S[] sources) throws FrameworkException;
+	public abstract String usage(boolean inJavaScriptContext);
 }

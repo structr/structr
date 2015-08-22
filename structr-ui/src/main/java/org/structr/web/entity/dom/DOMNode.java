@@ -223,6 +223,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("render", new Function<Object, Object>() {
 
 			@Override
+			public String getName() {
+				return "render()";
+			}
+
+			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null && sources.length == 1) {
@@ -252,8 +257,18 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_RENDER_JS : ERROR_MESSAGE_RENDER);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Renders the children of the current node";
 			}
 		});
 
@@ -263,6 +278,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		 * is not allowed and can result in unexpected behavior (instead of including the node).
 		 */
 		Functions.functions.put("include", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "include()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -385,9 +405,24 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_INCLUDE_JS : ERROR_MESSAGE_INCLUDE);
 			}
+
+			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Includes the content of the node with the given name";
+			}
 		});
 
 		Functions.functions.put("strip_html", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "strip_html()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -399,13 +434,28 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_STRIP_HTML_JS : ERROR_MESSAGE_STRIP_HTML);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "";
 			}
 
 		});
 
 		Functions.functions.put("POST", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "POST()";
+			}
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -463,12 +513,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "address";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_POST_JS : ERROR_MESSAGE_POST);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Sends an HTTP POST request to the given URL and returns the response body";
 			}
 		});
 
 		Functions.functions.put("GET", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "GET()";
+			}
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
@@ -529,12 +594,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "address";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_GET_JS : ERROR_MESSAGE_GET);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Sends an HTTP GET request to the given URL and returns the response headers and body";
 			}
 		});
 
 		Functions.functions.put("HEAD", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "HEAD()";
+			}
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
@@ -568,12 +648,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "address";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_HEAD_JS : ERROR_MESSAGE_HEAD);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Sends an HTTP HEAD request to the given URL and returns the response headers";
 			}
 		});
 
 		Functions.functions.put("parse", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "parse()";
+			}
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
@@ -608,12 +703,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_JS : ERROR_MESSAGE_PARSE);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Parses the given string and returns an object";
 			}
 		});
 
 		Functions.functions.put("to_json", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "to_json()";
+			}
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
@@ -656,12 +766,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_TO_JSON_JS : ERROR_MESSAGE_TO_JSON);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Serializes the given entity to JSON";
 			}
 		});
 
 		Functions.functions.put("from_json", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "from_json()";
+			}
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
@@ -718,12 +843,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_FROM_JSON_JS : ERROR_MESSAGE_FROM_JSON);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Parses the given JSON string and returns an object";
 			}
 		});
 
 		Functions.functions.put("add_header", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "add_header()";
+			}
 
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
@@ -742,12 +882,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "key, value";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_ADD_HEADER_JS : ERROR_MESSAGE_ADD_HEADER);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Adds the given header field and value to the next request";
 			}
 		});
 
 		Functions.functions.put("log_event", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "log_event()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -800,12 +955,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "action, message";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Logs an event to the Structr log";
 			}
 		});
 
 		Functions.functions.put("is_locale", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "is_locale()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -830,8 +1000,18 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_IS_LOCALE_JS : ERROR_MESSAGE_IS_LOCALE);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns true if the current user locale is equal to the given argument";
 			}
 		});
 

@@ -2274,3 +2274,12 @@ input.bitmask {
     display: block;
     margin: 100px auto;
 }
+
+.CodeMirror-hints {
+    z-index: 10000 !important;
+    font-size: 100%;
+}
+
+.CodeMirror-hint {
+    max-width: 480px;
+}

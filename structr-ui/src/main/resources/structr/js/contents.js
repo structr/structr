@@ -18,7 +18,7 @@
  */
 
 var lineWrappingKey = 'structrEditorLineWrapping_' + port;
-var contents, editor, contentType;
+var contents, editor, contentType, currentEntity;
 
 var _Contents = {
 	icon: 'icon/page_white.png',
@@ -114,9 +114,34 @@ var _Contents = {
 			log('cancelled')
 		});
 		Command.getProperty(entity.id, 'content', function(text) {
+            currentEntity = entity;
 			_Contents.editContent(this, entity, text, dialogText);
 		});
 	},
+    autoComplete: function(cm, pred) {
+      if (!pred || pred()) setTimeout(function() {
+        if (!cm.state.completionActive)
+            CodeMirror.showHint(cm, _Contents.hint, { async: true } );
+
+      }, 100);
+      return CodeMirror.Pass;
+    },
+    hint: function(cm, callback) {
+
+        var cursor        = cm.getCursor();
+        var currentToken  = cm.getTokenAt(cursor);
+        var previousToken = cm.getTokenAt( { line: cursor.line, ch: currentToken.start - 1 } );
+        var id            = "";
+
+        if (currentEntity && currentEntity.id) {
+            id = currentEntity.id;
+        }
+
+        Command.autocomplete(id, currentToken.type, currentToken.string, previousToken.string, cursor.line, cursor.ch, function(data) {
+            callback( { from: { line: cursor.line, ch: currentToken.end } , to: { line: cursor.line, ch: currentToken.end } , list: data } );
+        });
+
+    },
 	editContent: function(button, entity, text, element) {
 		if (isDisabled(button)) {
 			return;
@@ -134,8 +159,13 @@ var _Contents = {
 			value: text,
 			mode: contentType,
 			lineNumbers: true,
-			lineWrapping: lineWrapping
-		});
+			lineWrapping: lineWrapping,
+            extraKeys: {
+               "'.'":        _Contents.autoComplete,
+               "Ctrl-Space": _Contents.autoComplete
+            }
+        });
+
 		Structr.resize();
 
 		dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');

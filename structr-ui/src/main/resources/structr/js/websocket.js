@@ -45,7 +45,7 @@ function wsConnect() {
 
 		if (!ws || ws.readyState > 1) {
 			// closed websocket
-			
+
 			if (ws) {
 				ws.onopen    = undefined;
 				ws.onclose   = undefined;
@@ -524,6 +524,11 @@ function wsConnect() {
 			} else if (command === 'FINISHED') { /*********************** FINISHED ************************/
 
 				StructrModel.callCallback(data.callback);
+				StructrModel.clearCallback(data.callback);
+
+            } else if (command === 'AUTOCOMPLETE') { /*********************** AUTOCOMPLETE ************************/
+
+				StructrModel.callCallback(data.callback, result);
 				StructrModel.clearCallback(data.callback);
 
 			} else {

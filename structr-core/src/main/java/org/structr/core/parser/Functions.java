@@ -445,6 +445,11 @@ public class Functions {
 		functions.put("error", new Function<Object, Object>() {
 
 			@Override
+			public String getName() {
+				return "error()";
+			}
+
+			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 				final Class entityType;
@@ -515,11 +520,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ERROR;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Signals an error to the caller";
+			}
 		});
 		functions.put("md5", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "md5()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -531,11 +551,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MD5;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the MD5 hash of its parameter";
+			}
 		});
 		functions.put("upper", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "upper()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -547,12 +582,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_UPPER;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns the uppercase value of its parameter";
+			}
 		});
 		functions.put("lower", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "lower()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -564,12 +613,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LOWER;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns the lowercase value of its parameter";
+			}
+
 		});
 		functions.put("join", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "join()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -591,12 +655,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_JOIN;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Joins all its parameters to a single string";
+			}
+
 		});
 		functions.put("concat", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "concat()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -626,12 +705,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CONCAT;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Concatenates all its parameters to a single string with the given separator";
+			}
+
 		});
 		functions.put("split", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "split()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -652,12 +746,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SPLIT;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Splits the given string";
+			}
+
 		});
 		functions.put("abbr", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "abbr()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -689,12 +798,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ABBR;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Abbreviates the given string";
+			}
+
 		});
 		functions.put("capitalize", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "capitalize()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -706,11 +830,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CAPITALIZE;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Capitalizes the given string";
+			}
 		});
 		functions.put("titleize", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "titleize()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -740,12 +879,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_TITLEIZE;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Titleizes the given string";
+			}
+
 		});
 		functions.put("num", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "num()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -764,11 +918,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_NUM;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Converts the given string to a flaoting-point number";
+			}
 		});
 		functions.put("int", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "int()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -791,11 +960,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INT;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Converts the given string to an integer";
+			}
 		});
 		functions.put("random", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "random()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -814,11 +998,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_RANDOM;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns a random alphanumeric string of the given length";
+			}
 		});
 		functions.put("rint", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "rint()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -837,11 +1036,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_RINT;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns a random integer in the given range";
+			}
 		});
 		functions.put("index_of", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "index_of()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -858,11 +1072,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INDEX_OF;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the position of string in a string, or -1";
+			}
 		});
 		functions.put("contains", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "contains()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -893,11 +1122,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CONTAINS;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns true if the given string or collection contains an element";
+			}
 		});
 		functions.put("substring", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "substring()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -920,11 +1164,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SUBSTRING;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the substring of the given string";
+			}
 		});
 		functions.put("length", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "length()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -938,11 +1197,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SUBSTRING;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the length of the given string";
+			}
 		});
 		functions.put("replace", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "replace()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -979,11 +1253,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_REPLACE;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "";
+			}
 		});
 		functions.put("clean", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "clean()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1002,12 +1291,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CLEAN;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Cleans the given string";
+			}
+
 		});
 		functions.put("urlencode", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "urlencode()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1019,12 +1323,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_URLENCODE;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "URL-encodes the given string";
+			}
+
 		});
 		functions.put("escape_javascript", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "escape_javascript()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1036,12 +1355,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ESCAPE_JS;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Escapes the given string for use with Javascript";
+			}
+
 		});
 		functions.put("escape_json", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "escape_json()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1053,12 +1387,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ESCAPE_JSON;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Escapes the given string for use within JSON";
+			}
+
 		});
 		functions.put("if", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "if()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1080,12 +1429,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "condition, exp1, exp2";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IF;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Conditional expression";
+			}
+
 		});
 		functions.put("empty", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "empty()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1101,12 +1465,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_EMPTY;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns true if the given string or collection is null or empty";
+			}
+
 		});
 		functions.put("equal", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "equal()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1132,12 +1511,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_EQUAL;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns true if the given arguments are equal";
+			}
+
 		});
 		functions.put("eq", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "eq()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1146,13 +1540,28 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 
 				return functions.get("equal").usage(inJavaScriptContext);
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns true if the given arguments are equal";
+			}
+
 		});
 		functions.put("add", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "add()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1188,12 +1597,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ADD;
 			}
 
+
+			@Override
+			public String shortDescription() {
+				return "Returns the sum of the given arguments";
+			}
 		});
 		functions.put("double_sum", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "double_sum()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1216,12 +1640,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_DOUBLE_SUM;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns the sum of the given arguments as a floating-point number";
+			}
+
 		});
 		functions.put("int_sum", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "int_sum()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1244,12 +1683,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INT_SUM;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns the sum of the given arguments as an integer";
+			}
+
 		});
 		functions.put("is_collection", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "is_collection()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1263,12 +1717,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IS_COLLECTION;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns true if the given argument is a collection";
+			}
+
 		});
 		functions.put("is_entity", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "is_entity()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1282,12 +1751,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IS_ENTITY;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns true if the given argument is a Structr entity";
+			}
+
 		});
 		functions.put("extract", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "extract()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1340,12 +1824,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_EXTRACT;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns a collection of all the elements with a given name from a collection";
+			}
 		});
 		functions.put("merge", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "merge()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1374,12 +1872,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MERGE;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Merges the given collections / objects into a single collection";
+			}
+
 		});
 		functions.put("complement", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "complement()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1413,12 +1926,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_COMPLEMENT;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "";
+			}
+
 		});
 		functions.put("unwind", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "unwind()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1459,12 +1987,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_UNWIND;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "";
+			}
+
 		});
 		functions.put("sort", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "sort()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1503,12 +2046,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SORT;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Sorts the given collection according to the given property key";
+			}
+
 		});
 		functions.put("lt", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "lt()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1525,11 +2083,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LT;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns true if the first argument is less than the second argument";
+			}
 		});
 		functions.put("gt", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "gt()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1546,11 +2119,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GT;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns true if the first argument is greater than the second argument";
+			}
 		});
 		functions.put("lte", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "lte()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1567,11 +2155,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LTE;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns true if the first argument is less or equal to the second argument";
+			}
 		});
 		functions.put("gte", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "gte()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1589,11 +2192,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GTE;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns true if the first argument is greater or equal to the second argument";
+			}
 		});
 		functions.put("subt", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "subt()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1624,11 +2242,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SUBT;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Substracts the second argument from the first argument";
+			}
 		});
 		functions.put("mult", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "mult()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1657,11 +2290,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MULT;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Multiplies the first argument by the second argument";
+			}
 		});
 		functions.put("quot", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "quot()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1694,11 +2342,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_QUOT;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Divides the first argument by the second argument";
+			}
 		});
 		functions.put("round", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "round()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1730,11 +2393,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_ROUND;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Rounds the given argument to an integer";
+			}
 		});
 		functions.put("max", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "max()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1763,11 +2441,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MAX;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the larger value of the given arguments";
+			}
 		});
 		functions.put("min", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "min()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1796,11 +2489,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MIN;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the smaller value of the given arguments";
+			}
 		});
 		functions.put("config", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "config()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1817,11 +2525,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "key, [defaultValue]";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_CONFIG_JS : ERROR_MESSAGE_CONFIG);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the structr.conf value with the given key";
+			}
 		});
 		functions.put("date_format", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "date_format()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1863,11 +2586,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "value[, pattern]";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_DATE_FORMAT_JS : ERROR_MESSAGE_DATE_FORMAT);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Formats the given value as a date string with the given format string";
+			}
 		});
 		functions.put("parse_date", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "parse_date()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1900,11 +2638,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "value, pattern";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_DATE_JS : ERROR_MESSAGE_PARSE_DATE);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Parses the given date string using the given format string";
+			}
 		});
 		functions.put("number_format", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "number_format()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1935,11 +2688,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "value, pattern, language";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_NUMBER_FORMAT_JS : ERROR_MESSAGE_NUMBER_FORMAT);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Formats the given value using the given number format string";
+			}
 		});
 		functions.put("template", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "template()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1971,11 +2739,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_TEMPLATE_JS : ERROR_MESSAGE_TEMPLATE);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns a MailTemplate object with the given name, replaces the placeholders with values from the given entity";
+			}
 		});
 		functions.put("not", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "not()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -1990,12 +2773,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_NOT;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Negates the given arguments";
+			}
+
 		});
 		functions.put("and", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "and()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2035,12 +2833,27 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_AND;
 			}
 
+			@Override
+			public String shortDescription() {
+				return "Returns the conjunction of the given arguments";
+			}
+
 		});
 		functions.put("or", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "or()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2080,11 +2893,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_OR;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the disjunction of the given arguments";
+			}
 		});
 		functions.put("get", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "get()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2136,11 +2964,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "entity, key";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the value with the given name of the given entity, or an empty string";
+			}
 		});
 		functions.put("get_or_null", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "get_or_null()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2188,11 +3031,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "entity, key";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the value with the given name of the given entity, or null";
+			}
 		});
 		functions.put("size", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "size()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2229,11 +3087,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SIZE;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the size of the given collection";
+			}
 		});
 		functions.put("first", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "first()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2258,11 +3131,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_FIRST;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the first element of the given collection";
+			}
 		});
 		functions.put("last", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "last()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2290,11 +3178,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_LAST;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the last element of the given collection";
+			}
 		});
 		functions.put("nth", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "nth()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2331,11 +3234,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_NTH;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the element with the given index of the given collection";
+			}
 		});
 		functions.put("get_counter", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "get_counter()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2349,11 +3267,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET_COUNTER;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the value of the counter with the given index";
+			}
 		});
 		functions.put("inc_counter", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "inc_counter()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2378,11 +3311,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_INC_COUNTER;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Increases the value of the counter with the given index";
+			}
 		});
 		functions.put("reset_counter", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "reset_counter()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2396,11 +3344,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_RESET_COUNTER;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Resets the value of the counter with the given index";
+			}
 		});
 		functions.put("merge_properties", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "merge_properties()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2436,11 +3399,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_MERGE_PROPERTIES;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "";
+			}
 		});
 		functions.put("keys", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "keys()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2470,13 +3448,28 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_KEYS;
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the property keys of the given entity";
 			}
 		});
 
 		// ----- BEGIN functions with side effects -----
 		functions.put("retrieve", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "retrieve()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2492,11 +3485,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_RETRIEVE_JS : ERROR_MESSAGE_RETRIEVE);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the value associated with the given key from the temporary store";
+			}
 		});
 		functions.put("store", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "store()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2504,7 +3512,7 @@ public class Functions {
 				if (sources.length > 0 && sources[0] != null && sources[0] instanceof String) {
 
 					if (sources[1] != null) {
-						
+
 						ctx.store(sources[0].toString(), sources[1]);
 					}
 
@@ -2517,11 +3525,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_STORE_JS : ERROR_MESSAGE_STORE);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Stores the given value with the given key in the temporary store";
+			}
 		});
 		functions.put("print", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "print()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2540,11 +3563,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_PRINT;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Prints the given string to the Structr logfile";
+			}
 		});
 		functions.put("read", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "read()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2574,11 +3612,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_READ;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Reads and returns the contents of the given file from the exchange directoy";
+			}
 		});
 		functions.put("write", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "write()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2618,11 +3671,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_WRITE;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Writes to the given file in the exchange directoy";
+			}
 		});
 		functions.put("append", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "append()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2654,11 +3722,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_APPEND;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Appends to the given file in the exchange directoy";
+			}
 		});
 		functions.put("xml", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "xml()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2686,11 +3769,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_XML;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Parses the given string to an XML DOM";
+			}
 		});
 		functions.put("xpath", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "xpath()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2711,11 +3809,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_XPATH;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the value of the given XPath expression from the given XML DOM";
+			}
 		});
 		functions.put("set", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "set()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2766,11 +3879,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "entity, key, value";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SET;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Sets a value on an entity";
+			}
 		});
 		functions.put("send_plaintext_mail", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "send_plaintext_mail()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2796,11 +3924,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "fromAddress, fromName, toAddress, toName, subject, text";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SEND_PLAINTEXT_MAIL;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Sends a plaintext e-mail";
+			}
 		});
 		functions.put("send_html_mail", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "send_html_mail()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2831,11 +3974,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "fromAddress, fromName, toAddress, toName, subject, html[, text]";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SEND_HTML_MAIL;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Sends an HTML e-mail";
+			}
 		});
 		functions.put("geocode", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "geocode()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2864,11 +4022,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "street, city, country";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GEOCODE;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the geolocation (latitude, longitude) for the given street address using the configured geocoding provider";
+			}
 		});
 		functions.put("find", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "find()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -2948,11 +4121,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "type[, key, value, ...]";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_FIND;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns a collection of entities of the given type from the database, takes optional key/value pairs";
+			}
 		});
 		functions.put("search", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "search()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3028,11 +4216,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SEARCH;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "";
+			}
 		});
 		functions.put("create", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "create()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3106,11 +4309,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "type[, key, value, ...]";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_CREATE;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Creates a new entity with the given key/value pairs in the database";
+			}
 		});
 		functions.put("delete", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "delete()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3138,11 +4356,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_DELETE;
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Deletes the given entity from the database";
+			}
 		});
 		functions.put("incoming", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "incoming()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3178,11 +4411,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_INCOMING_JS : ERROR_MESSAGE_INCOMING);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the incoming relationships of the given entity";
+			}
 		});
 		functions.put("instantiate", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "instantiate()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3195,11 +4443,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_INCOMING_JS : ERROR_MESSAGE_INCOMING);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Instantiates the given Neo4j nodes into Structr nodes";
+			}
 		});
 		functions.put("outgoing", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "outgoing()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3236,11 +4499,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_OUTGOING_JS : ERROR_MESSAGE_OUTGOING);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the outgoing relationships of the given entity";
+			}
 		});
 		functions.put("has_relationship", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "has_relationship()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3300,14 +4578,29 @@ public class Functions {
 				}
 
 				return false;
+			}
+
+			@Override
+			public String getSignature() {
+				return "";
 			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_HAS_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_RELATIONSHIP);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns true if the given entity has relationships of the given type";
+			}
 		});
 		functions.put("has_outgoing_relationship", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "has_outgoing_relationship()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3367,14 +4660,29 @@ public class Functions {
 				}
 
 				return false;
+			}
+
+			@Override
+			public String getSignature() {
+				return "";
 			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns true if the given entity has outgoing relationships of the given type";
+			}
 		});
 		functions.put("has_incoming_relationship", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "has_incoming_relationship()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3437,11 +4745,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns true if the given entity has incoming relationships of the given type";
+			}
 		});
 		functions.put("get_relationships", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "get_relationships()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3505,11 +4828,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_GET_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_RELATIONSHIPS);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the relationships of the given entity with an optional relationship type";
+			}
 		});
 		functions.put("get_outgoing_relationships", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "get_outgoing_relationships()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3570,14 +4908,29 @@ public class Functions {
 				}
 
 				return list;
+			}
+
+			@Override
+			public String getSignature() {
+				return "";
 			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the outgoing relationships of the given entity with an optional relationship type";
+			}
 		});
 		functions.put("get_incoming_relationships", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "get_incoming_relationships()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3641,11 +4994,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the incoming relationships of the given entity with an optional relationship type";
+			}
 		});
 		functions.put("create_relationship", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "create_relationship()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3686,11 +5054,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_RELATIONSHIP_JS : ERROR_MESSAGE_CREATE_RELATIONSHIP);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Creates a relationship of the given type between two entities";
+			}
 		});
 		functions.put("grant", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "grant()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3749,11 +5132,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "user, entity, permissions";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_GRANT_JS : ERROR_MESSAGE_GRANT);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Grants the given permissions on the given entity to a user";
+			}
 		});
 		functions.put("revoke", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "revoke()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3812,11 +5210,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "user, entity, permissions";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_REVOKE_JS : ERROR_MESSAGE_REVOKE);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Revokes the given permissions on the given entity from a user";
+			}
 		});
 		functions.put("unlock_readonly_properties_once", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "unlock_readonly_properties_once()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3838,11 +5251,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Unlocks any read-only property for a single access";
+			}
 		});
 		functions.put("call", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "call()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3865,11 +5293,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Calls the given exported / dynamic method on the given entity";
+			}
 		});
 		functions.put("set_privileged", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "set_privileged()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3897,11 +5340,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_SET_PRIVILEGED_JS : ERROR_MESSAGE_SET_PRIVILEGED);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Sets the given key/value pair on the given entity with super-user privileges";
+			}
 		});
 		functions.put("cypher", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "cypher()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3923,11 +5381,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_CYPHER_JS : ERROR_MESSAGE_CYPHER);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the result of the given Cypher query";
+			}
 		});
 		functions.put("localize", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "localize()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -3999,11 +5472,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_LOCALIZE_JS : ERROR_MESSAGE_LOCALIZE);
 			}
+
+			@Override
+			public String shortDescription() {
+				return "";
+			}
 		});
 		functions.put("disable_notifications", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "disable_notifications()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -4014,11 +5502,26 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return "";
 			}
+
+			@Override
+			public String shortDescription() {
+				return "Disables the Websocket notifications in the Structr Ui for the current transaction";
+			}
 		});
 		functions.put("enable_notifications", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "enable_notifications()";
+			}
 
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -4029,8 +5532,18 @@ public class Functions {
 			}
 
 			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return "";
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Enables the Websocket notifications in the Structr Ui for the current transaction";
 			}
 		});
 	}
