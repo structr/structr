@@ -1279,6 +1279,26 @@ public class Functions {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
+					if (sources[0] instanceof Collection) {
+
+						final List<String> cleanList = new LinkedList<>();
+
+						for (final Object obj : (Collection) sources[0]) {
+
+							if (StringUtils.isBlank(obj.toString())) {
+
+								cleanList.add("");
+
+							} else {
+
+								cleanList.add(cleanString(obj));
+
+							}
+						}
+
+						return cleanList;
+					}
+
 					if (StringUtils.isBlank(sources[0].toString())) {
 						return "";
 					}

@@ -494,8 +494,18 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						final String responseBody = postMethod.getResponseBodyAsString();
 
 						final GraphObjectMap response = new GraphObjectMap();
+						
+						if ("application/json".equals(contentType)) {
+							
+							response.setProperty(new StringProperty("body"), Functions.functions.get("from_json").apply(ctx, entity, new Object[] { responseBody }));
+							
+						} else {
+							
+							response.setProperty(new StringProperty("body"), responseBody);
+							
+						}
+
 						response.setProperty(new IntProperty("status"), statusCode);
-						response.setProperty(new StringProperty("body"), Functions.functions.get("from_json").apply(ctx, entity, new Object[] { responseBody }));
 						response.setProperty(new StringProperty("headers"), extractHeaders(postMethod.getResponseHeaders()));
 
 						return response;
