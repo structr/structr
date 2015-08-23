@@ -73,13 +73,14 @@ public class AutocompleteCommand extends AbstractCommand {
 
 				final String currentToken  = getAndTrim(data.get("currentToken"));
 				final String previousToken = getAndTrim(data.get("previousToken"));
+				final String thirdToken    = getAndTrim(data.get("thirdToken"));
 				final String type          = getAndTrim(data.get("type"));
 				final int cursorPosition   = getInt(data.get("cursorPosition"));
 				final int line             = getInt(data.get("line"));
 
 				try {
 
-					final List<GraphObject> hints = hintProvider.getHints(StructrApp.getInstance().get(id), type, currentToken, previousToken, line, cursorPosition);
+					final List<GraphObject> hints = hintProvider.getHints(StructrApp.getInstance().get(id), type, currentToken, previousToken, thirdToken, line, cursorPosition);
 					result.addAll(hints);
 
 				} catch(FrameworkException fex) {

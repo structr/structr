@@ -16,13 +16,14 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 	}
 
 	@Override
-	public List<GraphObject> getHints(final GraphObject currentEntity, final String type, final String mainToken, final String secondaryToken, final int line, final int cursorPosition) {
+	public List<GraphObject> getHints(final GraphObject currentEntity, final String type, final String mainToken, final String secondaryToken, final String otherToken, final int line, final int cursorPosition) {
 
 		final List<String> tokens     = parseTokens(mainToken, cursorPosition);
 		final String currentToken     = getTokenOrBlank(tokens, 0);
 		final String previousToken    = getTokenOrBlank(tokens, 1);
+		final String thirdToken       = getTokenOrBlank(tokens, 2);
 
-		return super.getHints(currentEntity, type, currentToken, previousToken, line, cursorPosition);
+		return super.getHints(currentEntity, type, currentToken, previousToken, thirdToken, line, cursorPosition);
 	}
 
 	private List<String> parseTokens(final String source, final int cursorPosition) {

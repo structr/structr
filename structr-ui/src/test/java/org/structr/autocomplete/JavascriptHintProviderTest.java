@@ -16,9 +16,9 @@ public class JavascriptHintProviderTest {
 
 		final JavascriptHintProvider instance = new JavascriptHintProvider();
 
-		assertEquals("Invalid hint for javascript mode", "current", getHint(0, instance.getHints(null, null, "", "", 0, -1)));
-		assertEquals("Invalid hint for javascript mode", "request", getHint(1, instance.getHints(null, null, "", "", 0, -1)));
-		assertEquals("Invalid hint for javascript mode", "this",    getHint(2, instance.getHints(null, null, "", "", 0, -1)));
+		assertEquals("Invalid hint for javascript mode", "current", getHint(0, instance.getHints(null, null, "", "", "", 0, -1)));
+		assertEquals("Invalid hint for javascript mode", "request", getHint(1, instance.getHints(null, null, "", "", "", 0, -1)));
+		assertEquals("Invalid hint for javascript mode", "this",    getHint(2, instance.getHints(null, null, "", "", "", 0, -1)));
 	}
 
 

@@ -6,7 +6,8 @@ package org.structr.schema.action;
  */
 public abstract class Hint {
 
-	private boolean dontModify = false;
+	private boolean dontModify     = false;
+	private boolean isDynamic      = false;
 
 	public abstract String shortDescription();
 	public abstract String getSignature();
@@ -16,11 +17,19 @@ public abstract class Hint {
 		return getName();
 	}
 
-	public void preventModification() {
-		this.dontModify = true;
+	public void allowNameModification(final boolean allowModification) {
+		this.dontModify = !allowModification;
 	}
 
 	public boolean mayModify() {
 		return !dontModify;
+	}
+
+	public void setIsDynamic(final boolean isDynamic) {
+		this.isDynamic = isDynamic;
+	}
+
+	public boolean isDynamic() {
+		return isDynamic;
 	}
 }

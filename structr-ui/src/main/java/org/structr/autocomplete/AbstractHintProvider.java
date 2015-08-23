@@ -15,17 +15,23 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.Hint;
+import org.structr.web.entity.User;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 
 
 
@@ -73,17 +79,18 @@ public abstract class AbstractHintProvider {
 	private final Comparator comparator = new HintComparator();
 
 
-	public List<GraphObject> getHints(final GraphObject currentEntity, final String type, final String currentToken, final String previousToken, final int cursorLine, final int cursorPosition) {
+	public List<GraphObject> getHints(final GraphObject currentEntity, final String type, final String currentToken, final String previousToken, final String thirdToken, final int cursorLine, final int cursorPosition) {
 
+		final List<Hint> allHints     = getAllHints(currentEntity, currentToken, previousToken, thirdToken);
 		final List<GraphObject> hints = new LinkedList<>();
 		int maxNameLength             = 0;
 
-		// System.out.println("currentToken: " + currentToken + ", previousToken: " + previousToken);
+		System.out.println(currentToken + ", " + previousToken + ", " + thirdToken);
 
 		if (StringUtils.isBlank(currentToken) || startChars.contains(currentToken)) {
 
 			// display all possible hints
-			for (final Hint hint : getAllHints(currentEntity, currentToken, previousToken)) {
+			for (final Hint hint : allHints) {
 
 				final GraphObjectMap item = new GraphObjectMap();
 				String functionName       = getFunctionName(hint.getReplacement());
@@ -111,7 +118,7 @@ public abstract class AbstractHintProvider {
 
 			final int currentTokenLength = currentToken.length();
 
-			for (final Hint hint : getAllHints(currentEntity, currentToken, previousToken)) {
+			for (final Hint hint : allHints) {
 
 				final String functionName = getFunctionName(hint.getName());
 				final String replacement  = hint.getReplacement();
@@ -206,17 +213,22 @@ public abstract class AbstractHintProvider {
 
 		if (StringUtils.isBlank(source)) {
 
-			return "No description available yet.";
+			return "   (no description available yet)";
 		}
 
 		return source;
 	}
 
-	protected List<Hint> getAllHints(final GraphObject currentNode, final String currentToken, final String previousToken) {
+	protected List<Hint> getAllHints(final GraphObject currentNode, final String currentToken, final String previousToken, final String thirdToken) {
 
+		final boolean isDeclaration         = isJavascript() && "var".equals(previousToken);
+		final boolean isAssignment          = isJavascript() && "=".equals(previousToken);
+		final boolean isDotNotationRequest  = ".".equals(currentToken);
+		final ConfigurationProvider config  = StructrApp.getConfiguration();
 		final Map<String, DataKey> dataKeys = new TreeMap<>();
 		final List<Hint> hints              = new LinkedList<>();
 		final List<Hint> local              = new LinkedList<>();
+		Class currentObjectType             = null;
 
 		// data key etc. hints
 		if (currentNode != null) {
@@ -226,63 +238,64 @@ public abstract class AbstractHintProvider {
 		switch (previousToken) {
 
 			case "current":
-				local.add(createHint("id",    "", "ID of current entity"));
+				currentObjectType = AbstractNode.class;
 				break;
 
 			case "this":
-				local.add(createHint("id",    "", "ID of current node"));
+				currentObjectType = DOMNode.class;
 				break;
 
 			case "me":
-				local.add(createHint("id",     "", "ID of current user"));
-				local.add(createHint("name",   "", "Name of current user"));
+				currentObjectType = User.class;
 				break;
 
 			case "page":
-				local.add(createHint("id",     "", "ID of current page"));
-				local.add(createHint("name",   "", "Name of current page"));
+				currentObjectType = Page.class;
 				break;
 
 			case "link":
-				local.add(createHint("id",      "", "ID of current link"));
-				local.add(createHint("name",    "", "Name of current link"));
-				local.add(createHint("version", "", "Version of current link"));
+				currentObjectType = File.class;
+				break;
+
+			case "template":
+				currentObjectType = Template.class;
+				break;
+
+			case "parent":
+				currentObjectType = DOMElement.class;
 				break;
 
 			default:
 
-				final ConfigurationProvider config = StructrApp.getConfiguration();
-				final DataKey key                  = dataKeys.get(previousToken);
-
+				DataKey key = dataKeys.get(previousToken);
 				if (key != null) {
 
-					final Class type = key.identifyType(config);
-					if (type != null) {
+					currentObjectType = key.identifyType(config);
 
-						final List<Hint> propertyHints = new LinkedList<>();
+				} else if (StringUtils.isNotBlank(thirdToken)) {
 
-						// create hints based on schema type information
-						for (final PropertyKey propertyKey : config.getPropertySet(type, PropertyView.All)) {
+					key = dataKeys.get(thirdToken);
+					if (key != null) {
 
-							final Hint propertyHint = createHint(propertyKey.jsonName(), "", type.getSimpleName() + " property");
-							propertyHint.preventModification();
+						currentObjectType = key.identifyType(config);
+						final PropertyKey nestedKey = config.getPropertyKeyForJSONName(currentObjectType, previousToken, false);
+						if (nestedKey != null) {
 
-							propertyHints.add(propertyHint);
+							currentObjectType = nestedKey.relatedType();
 						}
-
-						Collections.sort(propertyHints, comparator);
-						hints.addAll(0, propertyHints);
 					}
 				}
 
 				break;
-
 		}
 
-		if (!keywords.contains(previousToken) && !".".equals(currentToken) && !dataKeys.containsKey(previousToken)) {
+		if (!keywords.contains(previousToken) && !isDotNotationRequest && !dataKeys.containsKey(previousToken)) {
 
-			for (final Function<Object, Object> func : Functions.functions.values()) {
-				hints.add(func);
+			if (!isAssignment) {
+
+				for (final Function<Object, Object> func : Functions.functions.values()) {
+					hints.add(func);
+				}
 			}
 
 			Collections.sort(hints, comparator);
@@ -310,13 +323,23 @@ public abstract class AbstractHintProvider {
 		hints.addAll(0, local);
 
 		// prepend data keys
-		if (!dataKeys.containsKey(previousToken)) {
+		if (currentObjectType == null && !dataKeys.containsKey(previousToken) && !isDotNotationRequest || isAssignment) {
 
 			for (final DataKey dataKey : dataKeys.values()) {
 
-				hints.add(0, createHint(dataKey.getDataKey(), "", dataKey.getDescription(),  isJavascript() ? "get('" + dataKey.getDataKey() + "')" : null));
+				final String replacement = isJavascript() && !isDeclaration ? "get('" + dataKey.getDataKey() + "')" : null;
+				final Hint dataKeyHint   = createHint(dataKey.getDataKey(), "", dataKey.getDescription(), replacement);
+
+				// disable replacement with "Structr.get(...)" when in Javascript declaration
+				dataKeyHint.allowNameModification(!isDeclaration);
+
+				hints.add(0, dataKeyHint);
 			}
 		}
+
+		// prepend property keys of current object type
+		collectHintsForType(hints, config, currentObjectType);
+
 
 		return hints;
 	}
@@ -352,11 +375,51 @@ public abstract class AbstractHintProvider {
 		}
 	}
 
+	private void collectHintsForType(final List<Hint> hints, final ConfigurationProvider config, final Class type) {
+
+		if (type != null) {
+
+			final List<Hint> propertyHints = new LinkedList<>();
+
+			// create hints based on schema type information
+			for (final PropertyKey propertyKey : config.getPropertySet(type, PropertyView.All)) {
+
+				final String keyName = propertyKey.jsonName();
+				if (!keyName.startsWith(PropertyView.Html) && !keyName.startsWith("data-structr-")) {
+
+					final Hint propertyHint = createHint(keyName, "", type.getSimpleName() + " property");
+
+					// allow sorting by dynamic / static properties
+					propertyHint.setIsDynamic(propertyKey.isDynamic());
+					propertyHint.allowNameModification(false);
+
+					propertyHints.add(propertyHint);
+				}
+			}
+
+			Collections.sort(propertyHints, comparator);
+
+			hints.addAll(0, propertyHints);
+		}
+	}
+
 	// ----- nested classes -----
 	protected static class HintComparator implements Comparator<Hint> {
 
 		@Override
 		public int compare(final Hint o1, final Hint o2) {
+
+			final boolean firstIsDynamic  = o1.isDynamic();
+			final boolean secindIsDynamic = o2.isDynamic();
+
+			if (firstIsDynamic && !secindIsDynamic) {
+				return -1;
+			}
+
+			if (!firstIsDynamic && secindIsDynamic) {
+				return 1;
+			}
+
 			return o1.getName().compareTo(o2.getName());
 		}
 	}

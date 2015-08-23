@@ -17,26 +17,26 @@ public class PlaintextHintProviderTest {
 
 		final PlaintextHintProvider instance = new PlaintextHintProvider();
 
-		assertEquals("Invalid hint for plaintext mode", "current", getHint(0, instance.getHints(null, null, "", "", 0, -1)));
-		assertEquals("Invalid hint for plaintext mode", "request", getHint(1, instance.getHints(null, null, "", "", 0, -1)));
-		assertEquals("Invalid hint for plaintext mode", "this",    getHint(2, instance.getHints(null, null, "", "", 0, -1)));
+		assertEquals("Invalid hint for plaintext mode", "current", getHint(0, instance.getHints(null, null, "", "", "", 0, -1)));
+		assertEquals("Invalid hint for plaintext mode", "request", getHint(1, instance.getHints(null, null, "", "", "", 0, -1)));
+		assertEquals("Invalid hint for plaintext mode", "this",    getHint(2, instance.getHints(null, null, "", "", "", 0, -1)));
 
-		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "", "", 0, -1).size());
-		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, ".", "", 0, -1).size());
-		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "(", "", 0, -1).size());
-		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "((", "", 0, -1).size());
-		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "((((((", "", 0, -1).size());
-		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "${", "", 0, -1).size());
+		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "", "", "", 0, -1).size());
+		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, ".", "", "", 0, -1).size());
+		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "(", "", "", 0, -1).size());
+		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "((", "", "", 0, -1).size());
+		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "((((((", "", "", 0, -1).size());
+		assertEquals("Invalid hints for plaintext mode", 104, instance.getHints(null, null, "${", "", "", 0, -1).size());
 
-		assertEquals("Invalid hints for plaintext mode", 11, instance.getHints(null, null, "${c", "", 0, -1).size());
-		assertEquals("Invalid hints for plaintext mode", 1,  instance.getHints(null, null, "${cl", "", 0, -1).size());
+		assertEquals("Invalid hints for plaintext mode", 11, instance.getHints(null, null, "${c", "", "", 0, -1).size());
+		assertEquals("Invalid hints for plaintext mode", 1,  instance.getHints(null, null, "${cl", "", "", 0, -1).size());
 
-		assertEquals("Invalid hint for plaintext mode", "his", getFirstHint(instance.getHints(null, null, "t", "", 0, -1)));
-		assertEquals("Invalid hint for plaintext mode", "urrent", getFirstHint(instance.getHints(null, null, "c", "", 0, -1)));
+		assertEquals("Invalid hint for plaintext mode", "his", getFirstHint(instance.getHints(null, null, "t", "", "", 0, -1)));
+		assertEquals("Invalid hint for plaintext mode", "urrent", getFirstHint(instance.getHints(null, null, "c", "", "", 0, -1)));
 
-		assertEquals("Invalid hint for plaintext mode", 104, instance.getHints(null, null, "${this.", "", 0, -1).size());
+		assertEquals("Invalid hint for plaintext mode", 104, instance.getHints(null, null, "${this.", "", "", 0, -1).size());
 
-		assertEquals("Invalid hint for plaintext mode", 104, instance.getHints(null, null, "clean()", "", 0, 6).size());
+		assertEquals("Invalid hint for plaintext mode", 104, instance.getHints(null, null, "clean()", "", "", 0, 6).size());
 
 	}
 

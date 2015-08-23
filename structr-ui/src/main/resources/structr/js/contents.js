@@ -131,13 +131,14 @@ var _Contents = {
         var cursor        = cm.getCursor();
         var currentToken  = cm.getTokenAt(cursor);
         var previousToken = cm.getTokenAt( { line: cursor.line, ch: currentToken.start - 1 } );
+        var thirdToken    = cm.getTokenAt( { line: cursor.line, ch: previousToken.start - 1 } );
         var id            = "";
 
         if (currentEntity && currentEntity.id) {
             id = currentEntity.id;
         }
 
-        Command.autocomplete(id, currentToken.type, currentToken.string, previousToken.string, cursor.line, cursor.ch, function(data) {
+        Command.autocomplete(id, currentToken.type, currentToken.string, previousToken.string, thirdToken.string, cursor.line, cursor.ch, function(data) {
             callback( { from: { line: cursor.line, ch: currentToken.end } , to: { line: cursor.line, ch: currentToken.end } , list: data } );
         });
 

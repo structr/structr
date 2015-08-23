@@ -1092,11 +1092,21 @@ var Command = {
 	 *
 	 * No broadcast.
 	 */
-	autocomplete: function(id, type, currentToken, previousToken, line, cursorPosition, callback) {
+	autocomplete: function(id, type, currentToken, previousToken, thirdToken, line, cursorPosition, callback) {
 		var obj  = {};
 		obj.command = 'AUTOCOMPLETE';
         obj.id      = id;
-		obj.data    = { type: type, currentToken: currentToken, previousToken: previousToken, contentType: contentType, line: line, cursorPosition: cursorPosition };
+
+		obj.data = {
+            type: type,
+            currentToken: currentToken,
+            previousToken: previousToken,
+            thirdToken: thirdToken,
+            contentType: contentType,
+            line: line,
+            cursorPosition: cursorPosition
+        };
+
 		log('autocomplete()', obj, callback);
 		return sendObj(obj, callback);
 	},
