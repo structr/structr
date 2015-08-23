@@ -22,7 +22,7 @@ var debug = false;
 var sessionId, user;
 var lastMenuEntry, activeTab, menuBlocked;
 var dmp;
-var editorCursor;
+var editorCursor, hintsJustClosed;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
@@ -165,6 +165,10 @@ $(function() {
 			cmdKey = false;
 
 		if (e.keyCode === 27) {
+			if (hintsJustClosed) {
+				hintsJustClosed = false;
+				return false;
+			}
 			if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				var saveBeforeExit = confirm('Save changes?');
 				if (saveBeforeExit) {

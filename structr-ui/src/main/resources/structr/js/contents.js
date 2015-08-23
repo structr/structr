@@ -121,8 +121,18 @@ var _Contents = {
     autoComplete: function(cm, pred) {
       if (!pred || pred()) setTimeout(function() {
         if (!cm.state.completionActive)
-            CodeMirror.showHint(cm, _Contents.hint, { async: true } );
-
+			CodeMirror.showHint(cm, _Contents.hint, {
+				async: true,
+				extraKeys: {
+				   "Esc": function(cm, e) {
+					   if (cm.state.completionActive) {
+						   cm.state.completionActive.close();
+						   hintsJustClosed = true;
+					   }
+				   }
+				}
+				
+			});
       }, 100);
       return CodeMirror.Pass;
     },
@@ -138,7 +148,7 @@ var _Contents = {
             id = currentEntity.id;
         }
 
-        Command.autocomplete(id, currentToken.type, currentToken.string, previousToken.string, thirdToken.string, cursor.line, cursor.ch, function(data) {
+		Command.autocomplete(id, currentToken.type, currentToken.string, previousToken.string, thirdToken.string, cursor.line, cursor.ch, function(data) {
             callback( { from: { line: cursor.line, ch: currentToken.end } , to: { line: cursor.line, ch: currentToken.end } , list: data } );
         });
 
