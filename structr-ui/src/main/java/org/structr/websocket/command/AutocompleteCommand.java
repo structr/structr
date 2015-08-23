@@ -64,7 +64,7 @@ public class AutocompleteCommand extends AbstractCommand {
 		final Map<String, Object> data    = webSocketData.getNodeData();
 		final String id                   = webSocketData.getId();
 		final List<GraphObject> result    = new LinkedList<>();
-		final String contentType          = (String)data.get("contentType");
+		final String contentType          = getOrDefault(data.get("contentType"), "text/plain");
 
 		if (contentType != null) {
 
@@ -117,6 +117,15 @@ public class AutocompleteCommand extends AbstractCommand {
 		}
 
 		return "";
+	}
+
+	private String getOrDefault(final Object source, final String defaultValue) {
+
+		if (source != null && source instanceof String) {
+			return ((String)source).trim();
+		}
+
+		return defaultValue;
 	}
 
 	private int getInt(final Object source) {
