@@ -58,7 +58,7 @@ var StructrModel = {
 		log("StructrModel.create", data);
 		if (!data) return;
 
-		var type = data.type;
+		var type = data.type; // not used?
 
 		var obj;
 
@@ -529,6 +529,10 @@ StructrFolder.prototype.append = function(refNode) {
 	StructrModel.expand(_Files.appendFolderElement(this, refNode), this);
 }
 
+StructrFolder.prototype.exists = function() {
+	var el = Structr.node(this.id);
+	return el && el.length > 0;
+}
 
 /**************************************
  * Structr File
