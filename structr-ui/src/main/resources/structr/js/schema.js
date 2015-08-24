@@ -2345,7 +2345,7 @@ var _Schema = {
 						var obj = properties[key];
 						var simpleClassName = obj.className.split('.')[obj.className.split('.').length - 1];
 						if (obj.relatedType && obj.relationshipType) {
-							if (obj.relatedType.endsWith(relatedType) && obj.relationshipType === relationshipType && ((simpleClassName.startsWith('EndNode') && out)
+							if (/*obj.relatedType.endsWith(relatedType) &&*/ obj.relationshipType === relationshipType && ((simpleClassName.startsWith('EndNode') && out)
 									|| (simpleClassName.startsWith('StartNode') && !out))) {
 								callback(key, obj.isCollection);
 							}

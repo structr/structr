@@ -193,6 +193,13 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			final String _relType    = SchemaHelper.cleanPropertyName(getRelationshipType());
 
 			name = _sourceType + _relType + _targetType;
+
+			try {
+				setProperty(AbstractNode.name, name);
+
+			} catch (FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to set relationship name tp {0}.", name);
+			}
 		}
 
 		return name;

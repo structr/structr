@@ -59,6 +59,10 @@ public abstract class AbstractHintProvider {
 		keywords.add("locale");
 	}
 
+	private enum QueryType {
+		REST, Cypher, XPath, Function
+	}
+
 	public static final Property<String> displayText = new StringProperty("displayText");
 	public static final Property<String> text        = new StringProperty("text");
 	public static final Property<GraphObject> from   = new GenericProperty("from");
@@ -123,7 +127,7 @@ public abstract class AbstractHintProvider {
 				final String functionName = getFunctionName(hint.getName());
 				final String replacement  = hint.getReplacement();
 
-				if (functionName.startsWith(currentToken)) {
+				if (functionName.startsWith(currentToken) || (currentToken.length() > 2 && functionName.contains(currentToken))) {
 
 					final GraphObjectMap item = new GraphObjectMap();
 
@@ -426,9 +430,9 @@ public abstract class AbstractHintProvider {
 
 	private static class DataKey implements Comparable<DataKey> {
 
-		private String queryType = "REST";
-		private String dataKey   = null;
-		private String query     = null;
+		private QueryType queryType = QueryType.REST;
+		private String dataKey      = null;
+		private String query        = null;
 
 		public DataKey(final GraphObject entity) {
 
@@ -437,17 +441,17 @@ public abstract class AbstractHintProvider {
 
 			if (query == null) {
 				query = entity.getProperty(DOMNode.cypherQuery);
-				queryType = "Cypher";
+				queryType = QueryType.Cypher;
 			}
 
 			if (query == null) {
 				query = entity.getProperty(DOMNode.xpathQuery);
-				queryType = "XPath";
+				queryType = QueryType.XPath;
 			}
 
 			if (query == null) {
 				query = entity.getProperty(DOMNode.functionQuery);
-				queryType = "Function";
+				queryType = QueryType.Function;
 			}
 		}
 
@@ -475,26 +479,42 @@ public abstract class AbstractHintProvider {
 		public Class identifyType(final ConfigurationProvider config) {
 
 			// only for REST right now
-			if ("REST".equals(queryType)) {
+			switch (queryType) {
 
-				// remove template expressions
-				String cleanedQuery = query.replaceAll("\\$\\{.*\\}", "");
+				case REST:
+					return identifyRestQueryType();
 
-				// remove optional / for REST
-				if (cleanedQuery.startsWith("/")) {
-					cleanedQuery = cleanedQuery.substring(1);
-				}
+				case Cypher:
+					break;
 
-				final int queryStart = cleanedQuery.indexOf("?");
-				if (queryStart >= 0 && queryStart < cleanedQuery.length()) {
+				case XPath:
+					// the result is very likely to be a DOMNode
+					return DOMNode.class;
 
-					cleanedQuery = cleanedQuery.substring(0, queryStart);
-				}
-
-				return SchemaHelper.getEntityClassForRawType(cleanedQuery);
+				case Function:
+					break;
 			}
 
 			return null;
+		}
+
+		private Class identifyRestQueryType() {
+
+			// remove template expressions
+			String cleanedQuery = query.replaceAll("\\$\\{.*\\}", "");
+
+			// remove optional / for REST
+			if (cleanedQuery.startsWith("/")) {
+				cleanedQuery = cleanedQuery.substring(1);
+			}
+
+			final int queryStart = cleanedQuery.indexOf("?");
+			if (queryStart >= 0 && queryStart < cleanedQuery.length()) {
+
+				cleanedQuery = cleanedQuery.substring(0, queryStart);
+			}
+
+			return SchemaHelper.getEntityClassForRawType(cleanedQuery);
 		}
 	}
 }

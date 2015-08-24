@@ -961,15 +961,15 @@ var _Pages = {
 		if (!id) {
 			return;
 		}
-		Command.get(id, function(t) {
+		Command.get(id, function(sourceSchemaNode) {
 
-			var typeKey = t.name.toLowerCase();
+			var typeKey = sourceSchemaNode.name.toLowerCase();
 			localStorage.setItem(selectedTypeKey, id);
 
 			$('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page.'
 					+ 'The type will be bound to the block which will loop over the result set.</p>');
 
-			$('#data-wizard-attributes').append('<div class="data-binding-type draggable">:' + t.name + '</div>');
+			$('#data-wizard-attributes').append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>');
 			$('.data-binding-type').draggable({
 				iframeFix: true,
 				revert: 'invalid',
@@ -985,20 +985,21 @@ var _Pages = {
 			var subkey = 'name';
 
 			var endNodes = [];
-			$.each(t.relatedTo, function(i, endNode) {
 
-				if (isIn(endNode.id, endNodes))
+			$.each(sourceSchemaNode.relatedTo, function(i, schemaRelationshipNode) {
+
+				if (isIn(schemaRelationshipNode.id, endNodes))
 					return;
-				endNodes.push(endNode.id);
+				endNodes.push(schemaRelationshipNode.id);
 
 				$.ajax({
-					url: rootUrl + '/schema_relationships?sourceId=' + id + '&targetId=' + endNode.id,
+					url: rootUrl + 'schema_relationship_nodes?sourceId=' + id + '&targetId=' + schemaRelationshipNode.targetId,
 					type: 'GET',
 					contentType: 'application/json',
 					statusCode: {
 						200: function(data) {
 							$.each(data.result, function(i, r) {
-								_Schema.getPropertyName(t.name, r.relationshipType, endNode.name, true, function(key, isCollection) {
+								_Schema.getPropertyName(sourceSchemaNode.name, r.relationshipType, schemaRelationshipNode.name, true, function(key, isCollection) {
 									$('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
 									$('#data-wizard-attributes .custom').children('.' + key).draggable({
 										iframeFix: true,
@@ -1019,7 +1020,7 @@ var _Pages = {
 			});
 
 			var startNodes = [];
-			$.each(t.relatedFrom, function(i, startNode) {
+			$.each(sourceSchemaNode.relatedFrom, function(i, startNode) {
 
 				if (isIn(startNode.id, startNodes))
 					return;
@@ -1032,7 +1033,7 @@ var _Pages = {
 					statusCode: {
 						200: function(data) {
 							$.each(data.result, function(i, r) {
-								_Schema.getPropertyName(t.name, r.relationshipType, startNode.name, false, function(key, isCollection) {
+								_Schema.getPropertyName(sourceSchemaNode.name, r.relationshipType, startNode.name, false, function(key, isCollection) {
 									$('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
 									$('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
 										iframeFix: true,
@@ -1050,7 +1051,7 @@ var _Pages = {
 				});
 			});
 
-			$.each(Object.keys(t), function(i, key) {
+			$.each(Object.keys(sourceSchemaNode), function(i, key) {
 				var type = 'system';
 				if (key.substring(0,1) === '_' && key.substring(0,2) !== '__') {
 
