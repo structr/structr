@@ -19,6 +19,8 @@
 
 var propertyDefinitions, types, dynamicTypes = [];
 var typesTypeKey = 'structrTypesType_' + port;
+var hiddenTypesTabs = [];
+var typesHiddenTabsKey = 'structrTypesHiddenTabs_' + port;
 
 $(document).ready(function() {
 	Structr.registerModule('types', _Types);
@@ -58,25 +60,20 @@ var _Types = {
 	init: function() {
 
 		main.append('<div id="resourceTabs">'
-			+ '<div id="resourceTabsSettings"><button id="resourceTabsHideButton">Hide inactive tabs</button>'
-				+ '<button id="resourceTabsShowButton">Show all tabs</button>'
-				+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox">'
-				+ '<label for="resourceTabsAutoHideCheckbox">auto-hide inactive tabs</label>'
-			+ '</div>'
-			+ '<ul id="resourceTabsMenu"></ul></div>');
-
-		$('#resourceTabsHideButton').click(function () {
-			Structr.setHideInactiveTabs(true);
-		});
-		$('#resourceTabsShowButton').click(function () {
-			Structr.setHideInactiveTabs(false);
-		});
+			+ '<div id="resourceTabsSettings"></div>'
+			+ '<ul id="resourceTabsMenu"><li class="last hidden">'
+			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"> <label for="resourceTabsAutoHideCheckbox">show selected tabs only</label>'
+			+ '</li></ul></div>');
 
 		if (Structr.getAutoHideInactiveTabs()) {
 			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
 		}
+
 		$('#resourceTabsAutoHideCheckbox').change(function () {
-			Structr.setAutoHideInactiveTabs($(this).prop('checked'));
+			var checked = $(this).prop('checked');
+			Structr.setAutoHideInactiveTabs(checked);
+			Structr.setHideInactiveTabs(checked);
+			//location.reload();
 		});
 
 		Structr.ensureIsAdmin($('#resourceTabs'), function() {
@@ -113,6 +110,26 @@ var _Types = {
 
 		$.each(_Types.types, function(t, type) {
 			_Types.addTab(type);
+		});
+
+		$('#resourceTabsMenu input[type="checkbox"]').on('click', function(e) {
+			e.stopPropagation();
+			//e.preventDefault();
+			
+			var inp = $(this);
+
+			var key = inp.parent().find('span').text();
+			
+			if (!inp.is(':checked')) {
+				hiddenTypesTabs.push(key);
+			} else {
+				if (hiddenTypesTabs.indexOf(key) > -1) {
+					hiddenTypesTabs.splice(hiddenTypesTabs.indexOf(key), 1);
+				}
+			}
+			
+			 localStorage.setItem(typesHiddenTabsKey, JSON.stringify(hiddenTypesTabs));
+
 		});
 
 		$('#resourceTabs').tabs({
@@ -272,7 +289,8 @@ var _Types = {
 	},
 	addTab: function(type) {
 		var res = _Types.schema[type];
-		$('#resourceTabsMenu').append('<li><a href="#' + type + '"><span>' + _Crud.formatKey(type) + '</span></a></li>');
+		var hidden = hiddenTypesTabs.indexOf(type) > -1;
+		$('#resourceTabsMenu li.last').before('<li' + (hidden ? ' class="hidden"' : '') + '><a href="#' + type + '"><span>' + _Crud.formatKey(type) + '</span><input type="checkbox"' + (!hidden ? ' checked="checked"' : '') + '></a></li>');
 		$('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + res.url + '"></div>');
 		var typeNode = $('#' + type);
 		typeNode.append('<div>Type: ' + res.type + '</div>');
@@ -322,6 +340,8 @@ var _Types = {
 		}
 
 		_Types.resize();
+		
+		$('#resourceTabsMenu li.last').removeClass('hidden');
 
 	},
 	addGrants: function(type) {

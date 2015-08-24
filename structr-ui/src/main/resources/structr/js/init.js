@@ -1293,7 +1293,7 @@ var Structr = {
 		if (this.autoHideInactiveTabs) {
 			return this.autoHideInactiveTabs;
 		} else {
-			this.autoHideInactiveTabs = (localStorage.getItem(autoHideInactiveTabsKey) == "true");
+			this.autoHideInactiveTabs = (localStorage.getItem(autoHideInactiveTabsKey) === "true");
 			if (!this.autoHideInactiveTabs) {
 				this.setAutoHideInactiveTabs(false);
 			}
@@ -1312,7 +1312,7 @@ var Structr = {
 		if (this.hideInactiveTabs) {
 			return this.hideInactiveTabs;
 		} else {
-			this.hideInactiveTabs = (localStorage.getItem(hideInactiveTabsKey) == "true");
+			this.hideInactiveTabs = (localStorage.getItem(hideInactiveTabsKey) === "true");
 			if (!this.hideInactiveTabs) {
 				this.setHideInactiveTabs(false);
 			}

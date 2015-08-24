@@ -89,21 +89,11 @@ var _Crud = {
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 		main.append('<div id="resourceTabs">'
-			+ '<div id="resourceTabsSettings">'
-	        //+ '<button id="resourceTabsHideButton">Hide inactive tabs</button>'
-			//+ '<button id="resourceTabsShowButton">Show all tabs</button>'
-			+ '</div>'
-			+ '<ul id="resourceTabsMenu"><li class="last">'
+			+ '<div id="resourceTabsSettings"></div>'
+			+ '<ul id="resourceTabsMenu"><li class="last hidden">'
 			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"> <label for="resourceTabsAutoHideCheckbox">show selected tabs only</label>'
 			+ '</li></ul>'
 	        + '</div>');
-
-//		$('#resourceTabsHideButton').click(function () {
-//			Structr.setHideInactiveTabs(true);
-//		});
-//		$('#resourceTabsShowButton').click(function () {
-//			Structr.setHideInactiveTabs(false);
-//		});
 
 		if (Structr.getAutoHideInactiveTabs()) {
 			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
@@ -465,6 +455,11 @@ var _Crud = {
 			_Crud.activateList(_Crud.type);
 			_Crud.activatePagerElements(_Crud.type, pagerNode);
 		}
+		
+		$('#resourceTabsMenu li.last').removeClass('hidden');
+		
+		_Crud.resize();
+
 
 	},
 	/**
