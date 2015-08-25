@@ -124,7 +124,6 @@ JsonRestServlet.outputdepth = 3
 JsonRestServlet.path = /structr/rest/*
 JsonRestServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 JsonRestServlet.user.autocreate = true
-JsonRestServlet.user.class = org.structr.web.entity.User
 
 # HTML servlet
 HtmlServlet.authenticator = org.structr.web.auth.UiAuthenticator
@@ -134,7 +133,6 @@ HtmlServlet.outputdepth = 3
 HtmlServlet.path = /structr/html/*
 HtmlServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 HtmlServlet.user.autocreate = true
-HtmlServlet.user.class = org.structr.web.entity.User
 HtmlServlet.resolveProperties = AbstractNode.name
 
 # Websocket servlet
@@ -144,7 +142,6 @@ WebSocketServlet.defaultview = public
 WebSocketServlet.path = /structr/ws/*
 WebSocketServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 WebSocketServlet.user.autocreate = false
-WebSocketServlet.user.class = org.structr.web.entity.User
 
 # Uncomment this if you want to use WebSocket functionality for frontend users
 # WebSocketServlet.frontendAccess = true
@@ -157,7 +154,6 @@ CsvServlet.outputdepth = 3
 CsvServlet.path = /structr/csv/*
 CsvServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 CsvServlet.user.autocreate = false
-CsvServlet.user.class = org.structr.web.entity.User
 
 # Upload servlet
 UploadServlet.authenticator = org.structr.web.auth.UiAuthenticator
@@ -167,7 +163,6 @@ UploadServlet.outputdepth = 3
 UploadServlet.path = /structr/upload
 UploadServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 UploadServlet.user.autocreate = false
-UploadServlet.user.class = org.structr.web.entity.User
 UploadServlet.allowAnonymousUploads = false
 
 
@@ -203,6 +198,8 @@ Registration.customUserAttributes = eMail
 # was received, typically when the password was set on the registration POST request
 #Registration.allowLoginBeforeConfirmation = false
 
+# Use this class to create new user entities upon registration (supports dynamic types).
+#Registration.customUserClass = org.structr.dynamic.User
 
 #############################################################################
 # Resource handler for static resources

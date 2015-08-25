@@ -159,15 +159,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public Class getNodeEntityClass(final String name) {
+	public Class getNodeEntityClass(final String simpleName) {
 
 		Class nodeEntityClass = GenericNode.class;
 
-		if ((name != null) && (!name.isEmpty())) {
+		if ((simpleName != null) && (!simpleName.isEmpty())) {
 
 			synchronized (SchemaService.class) {
 
-				nodeEntityClass = nodeEntityClassCache.get(name);
+				nodeEntityClass = nodeEntityClassCache.get(simpleName);
 
 				if (nodeEntityClass == null) {
 
@@ -177,11 +177,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 							try {
 
-								Class nodeClass = Class.forName(possiblePath + "." + name);
+								Class nodeClass = Class.forName(possiblePath + "." + simpleName);
 
 								if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
-									nodeEntityClassCache.put(name, nodeClass);
+									nodeEntityClassCache.put(simpleName, nodeClass);
 									nodeEntityClass = nodeClass;
 
 									// first match wins

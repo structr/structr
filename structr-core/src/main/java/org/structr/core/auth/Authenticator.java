@@ -44,9 +44,8 @@ public interface Authenticator {
 	 * automatically on registration and after successful authentification.
 	 *
 	 * @param userAutoCreate
-	 * @param userClass
 	 */
-	public void setUserAutoCreate(final boolean userAutoCreate, final Class userClass);
+	public void setUserAutoCreate(final boolean userAutoCreate);
 
 	/**
 	 * Return boolean flag that indicates that a user should be created
@@ -60,9 +59,8 @@ public interface Authenticator {
 	 * automatically on successful registration.
 	 *
 	 * @param userAutoLogin
-	 * @param userClass
 	 */
-	public void setUserAutoLogin(final boolean userAutoLogin, final Class userClass);
+	public void setUserAutoLogin(final boolean userAutoLogin);
 
 	/**
 	 * Return boolean flag that indicates that a user should be logged in

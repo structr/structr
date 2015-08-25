@@ -185,17 +185,15 @@ public class RestAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void setUserAutoCreate(final boolean userAutoCreate, final Class userClass) {
+	public void setUserAutoCreate(final boolean userAutoCreate) {
 
 		RestAuthenticator.userAutoCreate = userAutoCreate;
-		RestAuthenticator.userClass      = userClass;
 	}
 
 	@Override
-	public void setUserAutoLogin(boolean userAutoLogin, Class userClass) {
+	public void setUserAutoLogin(final boolean userAutoLogin) {
 
 		RestAuthenticator.userAutoLogin = userAutoLogin;
-		RestAuthenticator.userClass     = userClass;
 	}
 
 	@Override
