@@ -592,22 +592,6 @@ public class SchemaHelper {
 
 						schemaNode.removeProperty(new StringProperty(rawActionName));
 					}
-
-//				} else {
-//
-//
-//					final ActionEntry entry      = new ActionEntry(rawActionName, value);
-//					List<ActionEntry> actionList = actions.get(entry.getType());
-//
-//					if (actionList == null) {
-//
-//						actionList = new LinkedList<>();
-//						actions.put(entry.getType(), actionList);
-//					}
-//
-//					actionList.add(entry);
-//
-//					Collections.sort(actionList);
 				}
 			}
 		}
