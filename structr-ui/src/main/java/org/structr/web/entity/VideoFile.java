@@ -137,8 +137,8 @@ public class VideoFile extends File {
 	}
 
 	@Export
-	public void grab(final String scriptName, final String imageName, final long frameIndex) throws FrameworkException {
-		AVConv.newInstance(securityContext, this, imageName).grabFrame(scriptName, imageName, frameIndex);
+	public void grab(final String scriptName, final String imageName, final long timeIndex) throws FrameworkException {
+		AVConv.newInstance(securityContext, this, imageName).grabFrame(scriptName, imageName, timeIndex);
 	}
 
 	@Export

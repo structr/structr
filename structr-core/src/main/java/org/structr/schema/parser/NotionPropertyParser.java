@@ -188,9 +188,6 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 
 		parameters = buf.toString();
-
-		//propertyType = CollectionNotionProperty.class.getSimpleName();
-		//propertyType = EntityNotionProperty.class.getSimpleName();
 	}
 
 	public boolean isPropertySet() {

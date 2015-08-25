@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -54,6 +55,7 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.json.JsonSchema;
@@ -81,6 +83,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public static final Property<String>     targetNotion        = new StringProperty("targetNotion");
 	public static final Property<String>     sourceJsonName      = new StringProperty("sourceJsonName");
 	public static final Property<String>     targetJsonName      = new StringProperty("targetJsonName");
+	public static final Property<String>     previousSourceJsonName   = new StringProperty("oldSourceJsonName");
+	public static final Property<String>     previousTargetJsonName   = new StringProperty("oldTargetJsonName");
 	public static final Property<String>     extendsClass        = new StringProperty("extendsClass").indexed();
 	public static final Property<Long>       cascadingDeleteFlag = new LongProperty("cascadingDeleteFlag");
 	public static final Property<Long>       autocreationFlag    = new LongProperty("autocreationFlag");
@@ -134,6 +138,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		if (super.onCreation(securityContext, errorBuffer)) {
 
+			// store old property names
+			setProperty(previousSourceJsonName, getProperty(sourceJsonName));
+			setProperty(previousTargetJsonName, getProperty(targetJsonName));
+
 			// register transaction post processing that recreates the schema information
 			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 
@@ -147,6 +155,12 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public boolean onModification(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (super.onModification(securityContext, errorBuffer)) {
+
+			checkAndRenameSourceAndTargetJsonNames();
+
+			// store old property names
+			setProperty(previousSourceJsonName, getProperty(sourceJsonName));
+			setProperty(previousTargetJsonName, getProperty(targetJsonName));
 
 			// register transaction post processing that recreates the schema information
 			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -306,7 +320,30 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		final String _sourceJsonName      = getProperty(sourceJsonName);
 		final String _sourceMultiplicity  = getProperty(sourceMultiplicity);
 
-		return SchemaRelationshipNode.getPropertyName(relatedClassName, existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
+		final String propertyName = SchemaRelationshipNode.getPropertyName(relatedClassName, existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
+
+		try {
+			if (outgoing) {
+
+				if (_targetJsonName == null) {
+
+					setProperty(previousTargetJsonName, propertyName);
+				}
+
+			} else {
+
+				if (_sourceJsonName == null) {
+
+					setProperty(previousSourceJsonName, propertyName);
+				}
+			}
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+
+		return propertyName;
 	}
 
 	public static String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
@@ -832,6 +869,68 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			}
 
 			src.append("\t}\n\n");
+		}
+	}
+
+	private void checkAndRenameSourceAndTargetJsonNames() throws FrameworkException {
+
+		final String _previousSourceJsonName = getProperty(previousSourceJsonName);
+		final String _previousTargetJsonName = getProperty(previousTargetJsonName);
+		final String _currentSourceJsonName  = getProperty(sourceJsonName);
+		final String _currentTargetJsonName  = getProperty(targetJsonName);
+		final SchemaNode _sourceNode         = getProperty(sourceNode);
+		final SchemaNode _targetNode         = getProperty(targetNode);
+
+		if (_previousSourceJsonName != null && _currentSourceJsonName != null && !_currentSourceJsonName.equals(_previousSourceJsonName)) {
+
+			removeNameFromNonGraphProperties(getProperty(sourceNode), _previousSourceJsonName, _currentSourceJsonName);
+
+			renameNotionPropertyReferences(_sourceNode, _previousSourceJsonName, _currentSourceJsonName);
+			renameNotionPropertyReferences(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
+		}
+
+		if (_previousTargetJsonName != null && _currentTargetJsonName != null && !_currentTargetJsonName.equals(_previousTargetJsonName)) {
+
+			removeNameFromNonGraphProperties(getProperty(targetNode), _previousTargetJsonName, _currentTargetJsonName);
+
+			renameNotionPropertyReferences(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
+			renameNotionPropertyReferences(_targetNode, _previousTargetJsonName, _currentTargetJsonName);
+		}
+	}
+
+	private void renameNotionPropertyReferences(final SchemaNode schemaNode, final String previousValue, final String currentValue) throws FrameworkException {
+
+		// examine properties of other node
+		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
+
+			if (Type.Notion.equals(property.getPropertyType())) {
+
+				// try to rename
+				final String basePropertyName = property.getNotionBaseProperty();
+				if (basePropertyName.equals(previousValue)) {
+
+					property.setProperty(SchemaProperty.format, property.getFormat().replace(previousValue, currentValue));
+				}
+			}
+
+		}
+
+	}
+
+	private void removeNameFromNonGraphProperties(final AbstractSchemaNode schemaNode, final String toRemove, final String newValue) throws FrameworkException {
+
+		// examine all views
+		for (final SchemaView view : schemaNode.getSchemaViews()) {
+
+			final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
+			if (nonGraphProperties != null) {
+
+				final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
+
+				properties.remove(toRemove);
+
+				view.setProperty(SchemaView.nonGraphProperties, StringUtils.join(properties, ", "));
+			}
 		}
 	}
 

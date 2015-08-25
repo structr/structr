@@ -54,17 +54,17 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 	private String imageName      = null;
 	private String scriptName     = null;
 	private String fileExtension  = null;
-	private long frameIndex       = -1;
+	private long timeIndex        = -1;
 
-	public FrameGrabberProcess(final SecurityContext securityContext, final VideoFile inputFile, final String imageName, final long frameIndex, final String scriptName) {
+	public FrameGrabberProcess(final SecurityContext securityContext, final VideoFile inputFile, final String imageName, final long timeIndex, final String scriptName) {
 
 		super(securityContext);
 
-		this.inputFile      = inputFile;
-		this.scriptName     = scriptName;
-		this.fileExtension  = ".tmp-" + System.currentTimeMillis();
-		this.frameIndex     = frameIndex;
-		this.imageName      = imageName;
+		this.inputFile     = inputFile;
+		this.scriptName    = scriptName;
+		this.fileExtension = ".tmp-" + System.currentTimeMillis();
+		this.timeIndex     = timeIndex;
+		this.imageName     = imageName;
 	}
 
 	@Override
@@ -100,7 +100,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 			commandLine.append(outputFileName);
 			commandLine.append(fileExtension);
 			commandLine.append(" ");
-			commandLine.append(frameIndex);
+			commandLine.append(timeIndex);
 
 			return commandLine;
 

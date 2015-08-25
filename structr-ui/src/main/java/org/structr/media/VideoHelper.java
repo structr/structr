@@ -30,7 +30,7 @@ import org.structr.web.entity.VideoFile;
 public interface VideoHelper {
 
 	public Future<VideoFile> doConversion(final String scriptName);
-	public Future<Image> grabFrame(final String scriptName, final String imageName, final long frameIndex);
+	public Future<Image> grabFrame(final String scriptName, final String imageName, final long timeIndex);
 
 	public Map<String, String> getMetadata();
 	public void setMetadata(final String key, final String value);
