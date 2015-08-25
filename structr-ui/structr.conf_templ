@@ -199,7 +199,7 @@ Registration.customUserAttributes = eMail
 #Registration.allowLoginBeforeConfirmation = false
 
 # Use this class to create new user entities upon registration (supports dynamic types).
-#Registration.customUserClass = org.structr.dynamic.User
+#Registration.customUserClass = User
 
 #############################################################################
 # Resource handler for static resources
