@@ -36,6 +36,7 @@ import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
@@ -49,6 +50,7 @@ import org.structr.web.common.FileHelper;
 import static org.structr.web.entity.FileBase.relativeFilePath;
 import static org.structr.web.entity.FileBase.size;
 import org.structr.web.entity.relation.VideoFileHasConvertedVideoFile;
+import org.structr.web.entity.relation.VideoFileHasPosterImage;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,6 +70,7 @@ public class VideoFile extends File {
 
 	public static final Property<List<VideoFile>> convertedVideos = new EndNodes<>("convertedVideos", VideoFileHasConvertedVideoFile.class);
 	public static final Property<VideoFile> originalVideo         = new StartNode<>("originalVideo", VideoFileHasConvertedVideoFile.class);
+	public static final Property<Image> posterImage               = new EndNode<>("posterImage", VideoFileHasPosterImage.class);
 	public static final Property<Boolean> isVideo                 = new BooleanProperty("isVideo").defaultValue(true).readOnly();
 	public static final Property<String>  videoCodecName          = new StringProperty("videoCodecName");
 	public static final Property<String>  videoCodec              = new StringProperty("videoCodec");
@@ -84,13 +87,14 @@ public class VideoFile extends File {
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(VideoFile.class, PropertyView.Ui,
 		type, name, contentType, size, relativeFilePath, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
-		audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height, originalVideo, convertedVideos
+		audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height, originalVideo, convertedVideos,
+		posterImage
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(VideoFile.class, PropertyView.Public,
 		type, name, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
 		audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height,
-		convertedVideos
+		convertedVideos, posterImage
 	);
 
 
@@ -130,6 +134,11 @@ public class VideoFile extends File {
 	@Export
 	public void convert(final String scriptName, final String newFileName) throws FrameworkException {
 		AVConv.newInstance(securityContext, this, newFileName).doConversion(scriptName);
+	}
+
+	@Export
+	public void grab(final String scriptName, final String imageName, final long frameIndex) throws FrameworkException {
+		AVConv.newInstance(securityContext, this, imageName).grabFrame(scriptName, imageName, frameIndex);
 	}
 
 	@Export

@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.structr.common.SecurityContext;
+import org.structr.web.entity.Image;
 import org.structr.web.entity.VideoFile;
 
 /**
@@ -56,6 +57,11 @@ public class AVConv implements VideoHelper {
 	@Override
 	public Future<VideoFile> doConversion(final String scriptName) {
 		return service.submit(new ConverterProcess(securityContext, inputVideo, outputFileName, scriptName));
+	}
+
+	@Override
+	public Future<Image> grabFrame(final String scriptName, final String imageName, final long frameIndex) {
+		return service.submit(new FrameGrabberProcess(securityContext, inputVideo, imageName, frameIndex, scriptName));
 	}
 
 	@Override
