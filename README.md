@@ -1,6 +1,6 @@
 # The Structr Project
 
-[![Build Status](https://secure.travis-ci.org/structr/structr.png)](http://travis-ci.org/structr/structr)
+[![Build Status](http://ci.structr.org:59398/buildStatus/icon?job=Structr&style=plastic)](http://ci.structr.org:59398/job/Structr)
 
 Structr (pronounce it like 'structure') is a Java framework for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive Java API and a set of features common to most use cases. This enables developers to build a sophisticated web or mobile app based on Neo4j within hours.
 
