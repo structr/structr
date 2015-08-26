@@ -132,7 +132,15 @@ public class Scripting {
 
 		} else {
 
-			return Functions.evaluate(actionContext, entity, source);
+			Object extractedValue = Functions.evaluate(actionContext, entity, source);
+			final String value    = extractedValue != null ? extractedValue.toString() : "";
+			final String output   = actionContext.getOutput();
+
+			if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
+				extractedValue = output;
+			}
+
+			return extractedValue;
 		}
 	}
 

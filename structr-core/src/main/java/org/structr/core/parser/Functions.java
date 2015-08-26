@@ -3573,10 +3573,8 @@ public class Functions {
 
 					for (Object i : sources) {
 
-						System.out.print(i);
+						ctx.print(i);
 					}
-
-					System.out.println();
 				}
 
 				return "";
@@ -3594,7 +3592,7 @@ public class Functions {
 
 			@Override
 			public String shortDescription() {
-				return "Prints the given string to the Structr logfile";
+				return "Prints the given string to the output buffer";
 			}
 		});
 		functions.put("read", new Function<Object, Object>() {
