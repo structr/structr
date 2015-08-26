@@ -40,7 +40,6 @@ public class StructrHttpServiceConfig {
 	private String defaultPropertyView                = PropertyView.Public;
 	private ResourceProvider resourceProvider         = null;
 	private Class authenticatorClass                  = null;
-	private Class userClass                           = null;
 	private boolean userAutoCreate                    = false;
 	private boolean userAutoLogin                     = false;
 	private int outputNestingDepth                    = 3;
@@ -65,7 +64,6 @@ public class StructrHttpServiceConfig {
 
 		final String resourceProviderKeyName = servletName.concat(".resourceprovider");
 		final String authenticatorKeyName    = servletName.concat(".authenticator");
-		final String userClassKeyName        = servletName.concat(".user.class");
 		final String userAutoCreateKeyName   = servletName.concat(".user.autocreate");
 		final String userAutoLoginKeyName    = servletName.concat(".user.autologin");
 		final String defaultPropertyKeyName  = servletName.concat(".defaultview");
@@ -73,7 +71,6 @@ public class StructrHttpServiceConfig {
 
 		final String resourceProviderValue   = properties.getProperty(resourceProviderKeyName);
 		final String authenticatorValue      = properties.getProperty(authenticatorKeyName);
-		final String userClassValue          = properties.getProperty(userClassKeyName);
 		final String userAutoCreateValue     = properties.getProperty(userAutoCreateKeyName);
 		final String userAutoLoginValue      = properties.getProperty(userAutoLoginKeyName);
 		final String defaultPropertyKeyValue = properties.getProperty(defaultPropertyKeyName);
@@ -115,15 +112,6 @@ public class StructrHttpServiceConfig {
 
 		}
 
-		if (StringUtils.isNotBlank(userClassValue)) {
-
-			userClass = loadClass(userClassValue);
-
-			if (userClass == null) {
-				logger.log(Level.SEVERE, "Unable to instantiate user class for authenticator {0}", userClassValue );
-			}
-		}
-
 		if (StringUtils.isNotBlank(userAutoCreateValue)) {
 			userAutoCreate = Services.parseBoolean(userAutoCreateValue, false);
 		}
@@ -147,8 +135,8 @@ public class StructrHttpServiceConfig {
 
 		try {
 			authenticator = (Authenticator) authenticatorClass.newInstance();
-			authenticator.setUserAutoCreate(userAutoCreate, userClass);
-			authenticator.setUserAutoLogin(userAutoLogin, userClass);
+			authenticator.setUserAutoCreate(userAutoCreate);
+			authenticator.setUserAutoLogin(userAutoLogin);
 
 		} catch (InstantiationException | IllegalAccessException t) {
 

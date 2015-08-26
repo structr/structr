@@ -32,6 +32,7 @@ import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -53,13 +54,13 @@ import org.structr.web.servlet.HtmlServlet;
  * @author Axel Morgner
  */
 public class UiAuthenticator implements Authenticator {
-
+	
 	private static final Logger logger       = Logger.getLogger(UiAuthenticator.class.getName());
 
 	protected boolean examined = false;
 	protected static boolean userAutoCreate;
 	protected static boolean userAutoLogin;
-	protected static Class   userClass;
+	private static Class userClass;
 
 	private enum Method { GET, PUT, POST, DELETE, HEAD, OPTIONS }
 	private static final Map<String, Method> methods = new LinkedHashMap();
@@ -110,6 +111,9 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
+		// Initialize custom user class
+		getUserClass();
+		
 		SecurityContext securityContext;
 
 		Principal user = checkSessionAuthentication(request);
@@ -196,17 +200,15 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void setUserAutoCreate(final boolean userAutoCreate, final Class userClass) {
+	public void setUserAutoCreate(final boolean userAutoCreate) {
 
 		UiAuthenticator.userAutoCreate = userAutoCreate;
-		UiAuthenticator.userClass      = userClass;
 	}
 
 	@Override
-	public void setUserAutoLogin(boolean userAutoLogin, Class userClass) {
+	public void setUserAutoLogin(boolean userAutoLogin) {
 
 		UiAuthenticator.userAutoLogin = userAutoLogin;
-		UiAuthenticator.userClass     = userClass;
 	}
 
 	@Override
@@ -594,7 +596,19 @@ public class UiAuthenticator implements Authenticator {
 
 	@Override
 	public Class getUserClass() {
+		
+		if (userClass == null) {
+		
+			String configuredCustomClassName = StructrApp.getConfigurationValue("Registration.customUserClass");
+			if (StringUtils.isEmpty(configuredCustomClassName)) {
+				configuredCustomClassName = User.class.getSimpleName();
+			}
+			userClass = StructrApp.getConfiguration().getNodeEntityClass(configuredCustomClassName);
+
+		}
+		
 		return userClass;
+
 	}
 
 	@Override
