@@ -170,66 +170,80 @@ public abstract class ImageHelper extends FileHelper {
 				int sourceWidth  = source.getWidth();
 				int sourceHeight = source.getHeight();
 
-				// Update image dimensions
-				originalImage.setProperty(Image.width, sourceWidth);
-				originalImage.setProperty(Image.height, sourceHeight);
+				if (sourceWidth > 0 && sourceHeight > 0) {
 
-				// float aspectRatio = sourceWidth/sourceHeight;
-				float scaleX = 1.0f * sourceWidth / maxWidth;
-				float scaleY = 1.0f * sourceHeight / maxHeight;
-				float scale;
+					// Update image dimensions
+					originalImage.setProperty(Image.width, sourceWidth);
+					originalImage.setProperty(Image.height, sourceHeight);
 
-				if (crop) {
-
-					scale = Math.min(scaleX, scaleY);
-				} else {
-
-					scale = Math.max(scaleX, scaleY);
-				}
-
-//                              System.out.println("Source (w,h): " + sourceWidth + ", " + sourceHeight + ", Scale (x,y,res): " + scaleX + ", " + scaleY + ", " + scale);
-				// Don't scale up
-				if (scale > 1.0000f) {
-
-					int destWidth  = Math.max(3, Math.round(sourceWidth / scale));
-					int destHeight = Math.max(3, Math.round(sourceHeight / scale));
-
-//                                      System.out.println("Dest (w,h): " + destWidth + ", " + destHeight);
-					ResampleOp resampleOp = new ResampleOp(destWidth, destHeight);
-
-					// resampleOp.setUnsharpenMask(AdvancedResizeOp.UnsharpenMask.Soft);
-					BufferedImage resampled = resampleOp.filter(source, null);
-					BufferedImage result    = null;
+					// float aspectRatio = sourceWidth/sourceHeight;
+					float scaleX = 1.0f * sourceWidth / maxWidth;
+					float scaleY = 1.0f * sourceHeight / maxHeight;
+					float scale;
 
 					if (crop) {
 
-						int offsetX = Math.abs(maxWidth - destWidth) / 2;
-						int offsetY = Math.abs(maxHeight - destHeight) / 2;
+						scale = Math.min(scaleX, scaleY);
+					} else {
 
-						logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
+						scale = Math.max(scaleX, scaleY);
+					}
 
-						result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
+	//                              System.out.println("Source (w,h): " + sourceWidth + ", " + sourceHeight + ", Scale (x,y,res): " + scaleX + ", " + scaleY + ", " + scale);
+					// Don't scale up
+					if (scale > 1.0000f) {
 
-						tn.setWidth(maxWidth);
-						tn.setHeight(maxHeight);
+						int destWidth  = Math.max(3, Math.round(sourceWidth / scale));
+						int destHeight = Math.max(3, Math.round(sourceHeight / scale));
+
+						if (destWidth > 0 && destHeight > 0) {
+
+		//                                      System.out.println("Dest (w,h): " + destWidth + ", " + destHeight);
+							ResampleOp resampleOp = new ResampleOp(destWidth, destHeight);
+
+							// resampleOp.setUnsharpenMask(AdvancedResizeOp.UnsharpenMask.Soft);
+							BufferedImage resampled = resampleOp.filter(source, null);
+							BufferedImage result    = null;
+
+							if (crop) {
+
+								int offsetX = Math.abs(maxWidth - destWidth) / 2;
+								int offsetY = Math.abs(maxHeight - destHeight) / 2;
+
+								logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
+
+								result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
+
+								tn.setWidth(maxWidth);
+								tn.setHeight(maxHeight);
+
+							} else {
+
+								result = resampled;
+
+								tn.setWidth(destWidth);
+								tn.setHeight(destHeight);
+
+							}
+
+							ImageIO.write(result, Thumbnail.FORMAT, baos);
+
+						} else {
+
+							logger.log(Level.WARNING, "Unable to create thumbnail for image width ID {0}, invalid width/height.", originalImage.getUuid());
+						}
 
 					} else {
 
-						result = resampled;
-
-						tn.setWidth(destWidth);
-						tn.setHeight(destHeight);
-
+						// Thumbnail is source image
+						ImageIO.write(source, Thumbnail.FORMAT, baos);
+						tn.setWidth(sourceWidth);
+						tn.setHeight(sourceHeight);
 					}
-
-					ImageIO.write(result, Thumbnail.FORMAT, baos);
 
 				} else {
 
-					// Thumbnail is source image
-					ImageIO.write(source, Thumbnail.FORMAT, baos);
-					tn.setWidth(sourceWidth);
-					tn.setHeight(sourceHeight);
+					logger.log(Level.WARNING, "Unable to create thumbnail for image width ID {0}, invalid width/height.", originalImage.getUuid());
 				}
 
 			} else {
@@ -245,7 +259,8 @@ public abstract class ImageHelper extends FileHelper {
 			tn.setBytes(baos.toByteArray());
 
 			return tn;
-		} catch (IOException | FrameworkException t) {
+
+		} catch (Throwable t) {
 
 			logger.log(Level.SEVERE, "Error creating thumbnail", t);
 
