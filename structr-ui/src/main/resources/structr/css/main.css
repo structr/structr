@@ -1170,14 +1170,6 @@ button img {
 
 }
 
-#folders .selected, #folders .selected:hover {
-    color: #81ce25;
-}
-
-.jstree-anchor {
-    font-family: sans-serif;
-}
-
 #files .selected, #files .selected:hover {
     color: #333 ! important;
     border: 1px solid #a5a5a5;
@@ -2311,4 +2303,73 @@ input.bitmask {
 
 .CodeMirror-hint {
     max-width: 480px;
+}
+
+.jstree-anchor {
+  font-family: sans-serif;
+  font-size: 9pt;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+#filesystem-main {
+  display: table-row;
+}
+
+#file-tree-container {
+  display: table-cell;
+  vertical-align: top;
+  padding: 12px;
+  padding-right: 0px;
+  padding-top: 36px;
+}
+
+#file-tree {
+  width: 400px;
+  min-width: 400px;
+  overflow: auto;
+  vertical-align: top;
+  background-color: #fff;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border: 1px solid #a5a5a5;
+}
+
+#folder-contents-container {
+  display: table-cell;
+  vertical-align: top;
+  padding: 12px;
+  padding-top: 36px;
+}
+
+#folder-contents {
+  vertical-align: top;
+  background-color: #fff;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border: 1px solid #a5a5a5;
+  padding: 12px;
+}
+
+#folder-contents table {
+  margin: 0px;
+  font-size: 9pt;
+  font-family: sans-serif;
+  width: 100%;
+}
+
+#folder-contents table th {
+  text-align: left;
+  padding-left: 8px;
+}
+
+.jstree-hovered {
+    background-color: #e7e7e7 !important;
+    border-color: #a5a5a5;
+}
+
+.jstree-clicked {
+    background-color: #81ce25 !important;
 }
