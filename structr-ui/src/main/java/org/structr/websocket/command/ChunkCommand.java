@@ -99,8 +99,12 @@ public class ChunkCommand extends AbstractCommand {
 				final long checksum = FileHelper.getChecksum(file);
 				final long size     = FileHelper.getSize(file);
 
+				file.unlockReadOnlyPropertiesOnce();
 				file.setProperty(File.checksum, checksum);
+
+				file.unlockReadOnlyPropertiesOnce();
 				file.setProperty(File.size, size);
+
 				file.increaseVersion();
 
 				getWebSocket().removeFileUploadHandler(uuid);

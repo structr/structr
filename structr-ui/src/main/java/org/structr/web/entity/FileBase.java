@@ -84,6 +84,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		try {
 			unlockReadOnlyPropertiesOnce();
 			setProperty(relativeFilePath, filePath);
+			
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Exception while trying to set relative file path {0}: {1}", new Object[]{filePath, t});

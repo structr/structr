@@ -240,11 +240,12 @@ public class Image extends File {
 
 		try {
 
+			originalImage.unlockReadOnlyPropertiesOnce();
 			originalImage.setProperty(File.checksum, newChecksum);
 
 			// check size requirements for thumbnail
 			if (origWidth != null && origHeight != null) {
-				
+
 				if (origWidth <= maxWidth && origHeight <= maxHeight) {
 
 					return originalImage;
@@ -284,6 +285,7 @@ public class Image extends File {
 					// thumbnailRelationships.add(thumbnailRelationship);
 					long size = data.length;
 
+					thumbnail.unlockReadOnlyPropertiesOnce();
 					thumbnail.setProperty(File.size, size);
 					thumbnail.setProperty(Image.width, tnWidth);
 					thumbnail.setProperty(Image.height, tnHeight);
@@ -295,12 +297,12 @@ public class Image extends File {
 
 					thumbnailRelationship.setProperty(Image.width, tnWidth);
 					thumbnailRelationship.setProperty(Image.height, tnHeight);
+
 					thumbnailRelationship.unlockReadOnlyPropertiesOnce();
 					thumbnailRelationship.setProperty(Image.checksum, newChecksum);
 
 					// Delete outdated thumbnails
 					for (final Image tn : oldThumbnails) {
-
 						app.delete(tn);
 					}
 				}

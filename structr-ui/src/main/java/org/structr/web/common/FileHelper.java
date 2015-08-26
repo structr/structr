@@ -209,11 +209,15 @@ public class FileHelper {
 		throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
+
 		file.setProperty(org.structr.dynamic.File.contentType, contentType != null ? contentType : getContentMimeType(file));
+
 		file.unlockReadOnlyPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
+
 		file.unlockReadOnlyPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
+
 		file.unlockReadOnlyPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.version, 1);
 
@@ -229,7 +233,13 @@ public class FileHelper {
 	public static void updateMetadata(final org.structr.dynamic.File file) throws FrameworkException, IOException {
 
 		file.setProperty(org.structr.dynamic.File.contentType, getContentMimeType(file));
+
+		// checksum is read-only
+		file.unlockReadOnlyPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
+
+		// size is read-only
+		file.unlockReadOnlyPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
 
 	}
