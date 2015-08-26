@@ -83,12 +83,16 @@ public class EachExpression extends Expression {
 		final Object listSource = listExpression.evaluate(ctx, entity);
 		if (listSource != null && listSource instanceof List) {
 
-			final List source = (List)listSource;
+			final List source         = (List)listSource;
+			final Object oldDataValue = ctx.getConstant("data");
 
 			for (Object obj : source) {
 
-				eachExpression.evaluate(new ActionContext(ctx, obj), entity);
+				ctx.setConstant("data", obj);
+				eachExpression.evaluate(ctx, entity);
 			}
+
+			ctx.setConstant("data", oldDataValue);
 		}
 
 		return null;
