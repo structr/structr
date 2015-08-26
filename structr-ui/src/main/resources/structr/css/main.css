@@ -1170,6 +1170,14 @@ button img {
 
 }
 
+#folders .selected, #folders .selected:hover {
+    color: #81ce25;
+}
+
+.jstree-anchor {
+    font-family: sans-serif;
+}
+
 #files .selected, #files .selected:hover {
     color: #333 ! important;
     border: 1px solid #a5a5a5;

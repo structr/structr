@@ -353,12 +353,13 @@ var _Files = {
 			parentFolderElement = Structr.node(parentId);
 		}
 
-		var parent = parentFolderElement ? parentFolderElement : folders;
+		var parent     = parentFolderElement ? parentFolderElement : folders;
+        var isSelected = folder.isCurrentWorkingDir;
 
 		if (!parent)
 			return false;
 
-		parent.append('<div id="id_' + folder.id + '" structr_type="folder" class="node folder">'
+		parent.append('<div id="id_' + folder.id + '" structr_type="folder" class="node folder' + (isSelected ? ' selected' : '') + '">'
 				+ '<img class="typeIcon" src="' + _Files.folder_icon + '">'
 				+ '<b title="' + folder.name + '" class="name_">' + fitStringToWidth(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
 				+ '</div>');

@@ -33,11 +33,13 @@ import org.parboiled.common.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import static org.structr.core.GraphObject.type;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
@@ -74,6 +76,27 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile);
+
+	@Override
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.onCreation(securityContext, errorBuffer)) {
+
+			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
+
+				final Folder workingOrHomeDir = getCurrentWorkingDir();
+				if (workingOrHomeDir != null && getProperty(FileBase.parent) == null) {
+
+					setProperty(FileBase.parent, workingOrHomeDir);
+				}
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
 
 	@Override
 	public void onNodeCreation() {
@@ -341,6 +364,29 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		}
 
 		return null;
+	}
+
+	// ----- private methods -----
+	/**
+	 * Returns the Folder entity for the current working directory,
+	 * or the user's home directory as a fallback.
+	 * @return
+	 */
+	private Folder getCurrentWorkingDir() {
+
+		final Principal _owner  = getProperty(owner);
+		Folder workingOrHomeDir = null;
+
+		if (_owner != null && _owner instanceof User) {
+
+			workingOrHomeDir = _owner.getProperty(User.workingDirectory);
+			if (workingOrHomeDir == null) {
+
+				workingOrHomeDir = _owner.getProperty(User.homeDirectory);
+			}
+		}
+
+		return workingOrHomeDir;
 	}
 
 	// ----- interface Syncable -----

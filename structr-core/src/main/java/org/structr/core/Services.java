@@ -115,6 +115,7 @@ public class Services {
 	public static final String APPLICATION_UUID_CACHE_SIZE          = "application.cache.uuid.size";
 	public static final String APPLICATION_NODE_CACHE_SIZE          = "application.cache.node.size";
 	public static final String APPLICATION_REL_CACHE_SIZE           = "application.cache.relationship.size";
+	public static final String APPLICATION_FILESYSTEM_ENABLED       = "application.filesystem.enabled";
 	public static final String SNAPSHOT_PATH                        = "snapshot.path";
 	public static final String WEBSOCKET_FRONTEND_ACCESS            = "WebSocketServlet.frontendAccess";
 

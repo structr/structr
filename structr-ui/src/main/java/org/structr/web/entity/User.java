@@ -21,12 +21,20 @@ package org.structr.web.entity;
 import java.util.List;
 import org.structr.common.KeyAndClass;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.relationship.Groups;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
@@ -65,7 +73,7 @@ public class User extends AbstractUser {
 	public static final Property<String>      localStorage     = new StringProperty("localStorage");
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, eMail, isAdmin, password, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory, isUser, locale
+		type, name, eMail, isAdmin, password, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory, workingDirectory, isUser, locale
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
@@ -86,5 +94,86 @@ public class User extends AbstractUser {
 	@Override
 	public boolean canHaveOwner() {
 		return false;
+	}
+
+	@Override
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.onCreation(securityContext, errorBuffer)) {
+
+			checkAndCreateHomeDirectory(securityContext);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.onCreation(securityContext, errorBuffer)) {
+
+			checkAndCreateHomeDirectory(securityContext);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+		if (super.onDeletion(securityContext, errorBuffer, properties)) {
+
+			checkAndRemoveHomeDirectory(securityContext);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	// ----- private methods -----
+	private void checkAndCreateHomeDirectory(final SecurityContext securityContext) throws FrameworkException {
+
+		if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
+
+			Folder homeDir = getProperty(User.homeDirectory);
+			if (homeDir == null) {
+
+				// create home directory
+				final App app     = StructrApp.getInstance(securityContext);
+				Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").getFirst();
+
+				if (homeFolder == null) {
+
+					homeFolder = app.create(Folder.class,
+						new NodeAttribute(Folder.name, "home"),
+						new NodeAttribute(Folder.owner, null)
+					);
+				}
+
+				app.create(Folder.class,
+					new NodeAttribute(Folder.name, getUuid()),
+					new NodeAttribute(Folder.parent, homeFolder),
+					new NodeAttribute(Folder.homeFolderOfUser, this)
+				);
+			}
+		}
+	}
+
+	private void checkAndRemoveHomeDirectory(final SecurityContext securityContext) throws FrameworkException {
+
+		if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
+
+			final Folder homeDir = getProperty(User.homeDirectory);
+			if (homeDir != null) {
+
+				StructrApp.getInstance(securityContext).delete(homeDir);
+			}
+
+		}
 	}
 }
