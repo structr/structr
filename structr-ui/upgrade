@@ -27,9 +27,10 @@ rm db/index/lucene.log.v*
 date=`date +%Y%m%d%H%M%S`
 cp -a db db-$date
 cp -a files files-$date
+
+# start before archiving saves time
+./start
+
 tar cvfj db_files-$date.tar.bz2 db-$date files-$date
 #mv db_files-$date.tar.bz2 /data/backup/structrdb/
 rm -rf db-$date files-$date
-
-./start
-
