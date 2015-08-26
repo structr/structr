@@ -1401,12 +1401,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return false;
 		}
 
-		Integer sitePort = site.getProperty(Site.port);
-		if (sitePort == null) {
-			sitePort = 80;
-		}
+		final Integer sitePort = site.getProperty(Site.port);
 
-		if (serverPort != sitePort) {
+		if (sitePort != null && serverPort != sitePort) {
 			logger.log(Level.FINE, "Server port {0} does not match site port {1}", new Object[]{serverPort, sitePort});
 			return false;
 		}
