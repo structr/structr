@@ -130,6 +130,10 @@ $(function() {
 		Structr.activateModule(e, 'files');
 	});
 
+	$('#filesystem_').on('click', function(e) {
+		Structr.activateModule(e, 'filesystem');
+	});
+
 	$('#images_').on('click', function(e) {
 		Structr.activateModule(e, 'images');
 	});
@@ -271,13 +275,13 @@ var Structr = {
 		log('######## Expanded IDs after reload ##########', Structr.expanded);
 	},
 	ping: function(callback) {
-		
+
 		if (ws.readyState !== 1) {
 			Structr.reconnect();
 		}
-		
+
 		sessionId = Structr.getSessionId();
-		
+
 		if (sessionId) {
 			log('sending ping')
 			sendObj({command: 'PING', sessionId: sessionId}, callback);
@@ -767,7 +771,7 @@ var Structr = {
 	},
 	unblockMenu: function(ms) {
 		var ms = ms || 0;
-		// Wait ms before releasing the main menu	
+		// Wait ms before releasing the main menu
 		window.setTimeout(function() {
 			menuBlocked = false;
 			$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
