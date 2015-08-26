@@ -130,47 +130,33 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 
-		// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		final Integer originalWidth  = originalImage.getProperty(Image.width);
+		final Integer originalHeight = originalImage.getProperty(Image.height);
 
-		Thumbnail tn        = new Thumbnail();
+		// create image only if width and height are not yet known
+		if (originalWidth == null && originalHeight == null) {
 
-		try {
+			// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
+			final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			final Thumbnail tn               = new Thumbnail();
 
-			// read image
-			long start           = System.nanoTime();
-			InputStream in       = originalImage.getInputStream();
+			try (final InputStream in = originalImage.getInputStream()) {
 
-			if (in == null) {
-				logger.log(Level.FINE, "InputStream of original image {0} ({1}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
-				return null;
-			}
+				if (in == null) {
 
-			BufferedImage source = null;
-
-			try {
-
-				source = ImageIO.read(in);
-
-			} catch (IOException t) {
-
-				t.printStackTrace();
-
-				logger.log(Level.WARNING, "Could not read original image {0} ({1})", new Object[] { originalImage.getName(), originalImage.getId() });
-				return null;
-
-			} finally {
-				if (in != null) {
-					in.close();
+					logger.log(Level.FINE, "InputStream of original image {0} ({1}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
+					return null;
 				}
-			}
 
-			if (source != null) {
+				final long start     = System.nanoTime();
+				BufferedImage source = null;
 
-				int sourceWidth  = source.getWidth();
-				int sourceHeight = source.getHeight();
+				// read image
+				source = ImageIO.read(in);
+				if (source != null) {
 
-				if (sourceWidth > 0 && sourceHeight > 0) {
+					int sourceWidth  = source.getWidth();
+					int sourceHeight = source.getHeight();
 
 					// Update image dimensions
 					originalImage.setProperty(Image.width, sourceWidth);
@@ -189,49 +175,40 @@ public abstract class ImageHelper extends FileHelper {
 						scale = Math.max(scaleX, scaleY);
 					}
 
-	//                              System.out.println("Source (w,h): " + sourceWidth + ", " + sourceHeight + ", Scale (x,y,res): " + scaleX + ", " + scaleY + ", " + scale);
 					// Don't scale up
-					if (scale > 1.0000f) {
+					if (scale > 1.0) {
 
-						int destWidth  = Math.max(3, Math.round(sourceWidth / scale));
-						int destHeight = Math.max(3, Math.round(sourceHeight / scale));
+						final int destWidth  = Math.max(4, Math.round(sourceWidth / scale));
+						final int destHeight = Math.max(4, Math.round(sourceHeight / scale));
 
-						if (destWidth > 0 && destHeight > 0) {
+						System.out.println(destWidth + " / " + destHeight);
 
-		//                                      System.out.println("Dest (w,h): " + destWidth + ", " + destHeight);
-							ResampleOp resampleOp = new ResampleOp(destWidth, destHeight);
+						ResampleOp resampleOp   = new ResampleOp(destWidth, destHeight);
+						BufferedImage resampled = resampleOp.filter(source, null);
+						BufferedImage result    = null;
 
-							// resampleOp.setUnsharpenMask(AdvancedResizeOp.UnsharpenMask.Soft);
-							BufferedImage resampled = resampleOp.filter(source, null);
-							BufferedImage result    = null;
+						if (crop) {
 
-							if (crop) {
+							int offsetX = Math.abs(maxWidth - destWidth) / 2;
+							int offsetY = Math.abs(maxHeight - destHeight) / 2;
 
-								int offsetX = Math.abs(maxWidth - destWidth) / 2;
-								int offsetY = Math.abs(maxHeight - destHeight) / 2;
+							logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
 
-								logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
+							result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
 
-								result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
-
-								tn.setWidth(maxWidth);
-								tn.setHeight(maxHeight);
-
-							} else {
-
-								result = resampled;
-
-								tn.setWidth(destWidth);
-								tn.setHeight(destHeight);
-
-							}
-
-							ImageIO.write(result, Thumbnail.FORMAT, baos);
+							tn.setWidth(maxWidth);
+							tn.setHeight(maxHeight);
 
 						} else {
 
-							logger.log(Level.WARNING, "Unable to create thumbnail for image width ID {0}, invalid width/height.", originalImage.getUuid());
+							result = resampled;
+
+							tn.setWidth(destWidth);
+							tn.setHeight(destHeight);
+
 						}
+
+						ImageIO.write(result, Thumbnail.FORMAT, baos);
 
 					} else {
 
@@ -243,38 +220,22 @@ public abstract class ImageHelper extends FileHelper {
 
 				} else {
 
-					logger.log(Level.WARNING, "Unable to create thumbnail for image width ID {0}, invalid width/height.", originalImage.getUuid());
+					logger.log(Level.FINE, "Thumbnail could not be created");
+					return null;
 				}
 
-			} else {
+				long end  = System.nanoTime();
+				long time = (end - start) / 1000000;
 
-				logger.log(Level.FINE, "Thumbnail could not be created");
-				return null;
+				logger.log(Level.FINE, "Thumbnail created. Reading, scaling and writing took {0} ms", time);
+				tn.setBytes(baos.toByteArray());
+
+				return tn;
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to create thumbnail for image with ID {0}.", originalImage.getUuid());
 			}
-
-			long end  = System.nanoTime();
-			long time = (end - start) / 1000000;
-
-			logger.log(Level.FINE, "Thumbnail created. Reading, scaling and writing took {0} ms", time);
-			tn.setBytes(baos.toByteArray());
-
-			return tn;
-
-		} catch (Throwable t) {
-
-			logger.log(Level.SEVERE, "Error creating thumbnail", t);
-
-		} finally {
-
-			try {
-
-				if (baos != null) {
-
-					baos.close();
-				}
-
-			} catch (Exception ignore) {}
-
 		}
 
 		return null;

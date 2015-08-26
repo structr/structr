@@ -31,7 +31,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
-import static org.structr.core.graph.NodeInterface.deleted;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.property.BooleanProperty;
@@ -67,8 +66,8 @@ public class Image extends File {
 
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
-	public static final Property<Integer> height = new IntProperty("height");
-	public static final Property<Integer> width  = new IntProperty("width");
+	public static final Property<Integer> height = new IntProperty("height").indexed();
+	public static final Property<Integer> width  = new IntProperty("width").indexed();
 
 	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall").format("100, 100, false");
 	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid").format("300, 300, false");
@@ -183,7 +182,7 @@ public class Image extends File {
 	public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
 		Iterable<Thumbnails> thumbnailRelationships = getThumbnailRelationships();
-		final List<Image> oldThumbnails             = new LinkedList();
+		final List<Image> oldThumbnails             = new LinkedList<>();
 		Image thumbnail                             = null;
 		final Image originalImage                   = this;
 		Integer origWidth                           = originalImage.getWidth();
@@ -194,28 +193,28 @@ public class Image extends File {
 		if (currentChecksum == null || currentChecksum == 0) {
 
 			newChecksum = FileHelper.getChecksum(originalImage);
+
 		} else {
 
 			newChecksum = currentChecksum;
 		}
 
-		if ((origWidth != null) && (origHeight != null) && thumbnailRelationships != null) {
+		if (origWidth != null && origHeight != null && thumbnailRelationships != null) {
 
 			for (final Thumbnails r : thumbnailRelationships) {
 
 				Integer w = r.getProperty(Image.width);
 				Integer h = r.getProperty(Image.height);
 
-				if ((w != null) && (h != null)) {
+				if (w != null && h != null) {
 
-					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight))
-					|| ((origWidth <= w) && (origHeight <= h)))    // orginal image is equal or smaller than requested size
-					{
+					// orginal image is equal or smaller than requested size
+					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight)) || ((origWidth <= w) && (origHeight <= h))) {
 
-						thumbnail = (Image) r.getTargetNode();
+						thumbnail = r.getTargetNode();
 
 						// Use thumbnail only if checksum of original image matches with stored checksum
-						Long storedChecksum = r.getProperty(Image.checksum);
+						final Long storedChecksum = r.getProperty(Image.checksum);
 
 						if (storedChecksum != null && storedChecksum.equals(newChecksum)) {
 
@@ -240,7 +239,17 @@ public class Image extends File {
 		final App app = StructrApp.getInstance(securityContext);
 
 		try {
+
 			originalImage.setProperty(File.checksum, newChecksum);
+
+			// check size requirements for thumbnail
+			if (origWidth != null && origHeight != null) {
+				
+				if (origWidth <= maxWidth && origHeight <= maxHeight) {
+
+					return originalImage;
+				}
+			}
 
 			Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 			if (thumbnailData != null) {
@@ -266,7 +275,7 @@ public class Image extends File {
 				if (thumbnail != null && data != null) {
 
 					// Create a thumbnail relationship
-					Thumbnails thumbnailRelationship = app.create(originalImage, thumbnail, Thumbnails.class);
+					final Thumbnails thumbnailRelationship = app.create(originalImage, thumbnail, Thumbnails.class);
 
 					// Thumbnails always have to be removed along with origin image
 					thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
@@ -279,8 +288,8 @@ public class Image extends File {
 					thumbnail.setProperty(Image.width, tnWidth);
 					thumbnail.setProperty(Image.height, tnHeight);
 
-					thumbnail.setProperty(AbstractNode.hidden,				originalImage.getProperty(AbstractNode.hidden));
-					thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers,		originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+					thumbnail.setProperty(AbstractNode.hidden,			originalImage.getProperty(AbstractNode.hidden));
+					thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
 					thumbnail.setProperty(AbstractNode.visibleToPublicUsers,		originalImage.getProperty(AbstractNode.visibleToPublicUsers));
 					thumbnail.setProperty(AbstractNode.owner,			originalImage.getProperty(AbstractNode.owner));
 
@@ -289,11 +298,10 @@ public class Image extends File {
 					thumbnailRelationship.unlockReadOnlyPropertiesOnce();
 					thumbnailRelationship.setProperty(Image.checksum, newChecksum);
 
-//                                                      System.out.println("Thumbnail ID: " + thumbnail.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", orig. image checksum: " + originalImage.getProperty(checksum));
-					// Soft-delete outdated thumbnails
-					for (Image tn : oldThumbnails) {
+					// Delete outdated thumbnails
+					for (final Image tn : oldThumbnails) {
 
-						tn.setProperty(deleted, true);
+						app.delete(tn);
 					}
 				}
 
