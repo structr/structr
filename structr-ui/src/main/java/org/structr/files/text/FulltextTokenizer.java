@@ -12,7 +12,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class FulltextTokenizer extends Writer {
 
-	private static final Set<Character> specialChars = new LinkedHashSet<>();
+	public static final Set<Character> SpecialChars = new LinkedHashSet<>();
 
 	final StringBuilder rawText    = new StringBuilder();
 	final StringBuilder wordBuffer = new StringBuilder();
@@ -20,25 +20,25 @@ public class FulltextTokenizer extends Writer {
 
 	static {
 
-		specialChars.add('_');
-		specialChars.add('ä');
-		specialChars.add('ö');
-		specialChars.add('ü');
-		specialChars.add('Ä');
-		specialChars.add('Ö');
-		specialChars.add('Ü');
-		specialChars.add('ß');
-		specialChars.add('§');
-		specialChars.add('-');
-		specialChars.add('%');
-		specialChars.add('/');
-		specialChars.add('@');
-		specialChars.add('$');
-		specialChars.add('€');
-		specialChars.add('æ');
-		specialChars.add('¢');
-		specialChars.add('.');
-		specialChars.add(',');
+		SpecialChars.add('_');
+		SpecialChars.add('ä');
+		SpecialChars.add('ö');
+		SpecialChars.add('ü');
+		SpecialChars.add('Ä');
+		SpecialChars.add('Ö');
+		SpecialChars.add('Ü');
+		SpecialChars.add('ß');
+		SpecialChars.add('§');
+		SpecialChars.add('-');
+		SpecialChars.add('%');
+		SpecialChars.add('/');
+		SpecialChars.add('@');
+		SpecialChars.add('$');
+		SpecialChars.add('€');
+		SpecialChars.add('æ');
+		SpecialChars.add('¢');
+		SpecialChars.add('.');
+		SpecialChars.add(',');
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class FulltextTokenizer extends Writer {
 
 			final char c = cbuf[i];
 
-			if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !specialChars.contains(c)) {
+			if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !SpecialChars.contains(c)) {
 
 				// split character
 				flush();

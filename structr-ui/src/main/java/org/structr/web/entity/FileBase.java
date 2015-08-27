@@ -24,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,6 +54,7 @@ import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
@@ -202,22 +204,185 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	}
 
 	@Export
-	public GraphObject grep(final String searchString, final int prefixLength) {
+	public GraphObject getSearchContext(final String searchString, final int contextLength) {
 
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
-			final int pos = text.toLowerCase().indexOf(searchString.toLowerCase());
-			if (pos >= 0) {
+			final GenericProperty contextKey   = new GenericProperty("context");
+			final String lowerCaseSearchString = searchString.toLowerCase();
+			final String lowerCaseText         = text.toLowerCase();
+			final GraphObjectMap contextObject = new GraphObjectMap();
+			final List<String> contextValues   = new LinkedList<>();
+			final StringBuilder wordBuffer     = new StringBuilder();
+			final StringBuilder lineBuffer     = new StringBuilder();
+			final int textLength               = text.length();
 
-				final int start = Math.max(0, pos - prefixLength);
-				final int end   = Math.min(text.length(), pos + prefixLength);
+			/*
+			 * we take an average word length of 8 characters, multiply
+			 * it by the desired prefix and suffix word count, add 20%
+			 * and try to extract up to prefixLength words.
+			 */
 
-				final GraphObjectMap obj = new GraphObjectMap();
-				obj.put(new StringProperty("context"), text.substring(start, end));
+			// modify these parameters to tune prefix and suffix word extraction
+			// loop variables
+			int newlineCount = 0;
+			int wordCount    = 1;	// wordCount starts at 1 because we include the matching word
+			int pos          = -1;
 
-				return obj;
-			}
+			do {
+
+				// find next occurrence
+				pos = lowerCaseText.indexOf(lowerCaseSearchString, pos + 1);
+				if (pos >= 0) {
+
+					lineBuffer.setLength(0);
+					wordBuffer.setLength(0);
+
+					wordCount    = 0;
+					newlineCount = 0;
+
+					// fetch context words before search hit
+					for (int i=pos-1; i>=0; i--) {
+
+						final char c = text.charAt(i);
+
+						// store character in buffer
+						wordBuffer.insert(0, c);
+
+						if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
+
+							lineBuffer.insert(0, wordBuffer.toString());
+							wordBuffer.setLength(0);
+
+							if (c == '\n') {
+
+								// increase newline count
+								newlineCount++;
+
+							} else {
+
+								// increase word count
+								wordCount++;
+
+								// reset newline count
+								newlineCount = 0;
+							}
+
+						} else {
+
+							// reset newline count
+							newlineCount = 0;
+						}
+
+						// paragraph boundary reached
+						if (newlineCount > 1) {
+							break;
+						}
+
+						// stop if we collected half of the desired word count
+						if (wordCount >= contextLength / 2) {
+							break;
+						}
+					}
+
+					// add remaining word from buffer
+					lineBuffer.insert(0, wordBuffer.toString());
+
+					wordBuffer.setLength(0);
+
+					// fetch context words after search hit
+					for (int i=pos; i<textLength; i++) {
+
+						final char c = text.charAt(i);
+
+						// store character in buffer
+						wordBuffer.append(c);
+
+						if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
+
+							lineBuffer.append(wordBuffer.toString());
+							wordBuffer.setLength(0);
+
+							if (c == '\n') {
+
+								// increase newline count
+								newlineCount++;
+
+							} else {
+
+								// increase word count
+								wordCount++;
+
+								// reset newline count
+								newlineCount = 0;
+							}
+
+						} else {
+
+							// reset newline count
+							newlineCount = 0;
+						}
+
+						// paragraph boundary reached
+						if (newlineCount > 1) {
+							break;
+						}
+
+						// stop if we collected enough words
+						if (wordCount > contextLength) {
+							break;
+						}
+					}
+
+					// add remaining word from buffer
+					lineBuffer.append(wordBuffer.toString());
+
+					contextValues.add(lineBuffer.toString());
+
+					/*
+					final int start     = Math.max(0, pos - prefixBasedSearchRange);
+					final int end       = Math.min(text.length(), pos + prefixBasedSearchRange);
+					final String prefix = text.substring(start, pos);
+					final String suffix = text.substring(pos, end);
+
+					final List<String> prefixWords = new LinkedList<>(Arrays.asList(prefix.split("[ ]+")));
+					final List<String> suffixWords = new LinkedList<>(Arrays.asList(suffix.split("[ ]+")));
+
+					// shrink prefix word list to desired length by removing words
+					while (prefixWords.size() > prefixLength) {
+						prefixWords.remove(0);
+					}
+
+					for (final String prefixWord : prefixWords) {
+
+						buf.append(prefixWord);
+						buf.append(" ");
+					}
+
+					// reset word counter
+					wordCount = 0;
+
+					for (final String suffixWord : suffixWords) {
+						buf.append(suffixWord);
+						buf.append(" ");
+
+						if (wordCount++ >= prefixLength) {
+							break;
+						}
+					}
+
+					contextValues.add(buf.toString());
+					buf.setLength(0);
+					*/
+				}
+
+			} while (pos >= 0);
+
+
+			contextObject.put(contextKey, contextValues);
+
+			return contextObject;
 		}
 
 		return null;
@@ -266,8 +431,8 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 				}
 			}
 
-//			// remove node from index (in case of previous indexing runs)
-//			fulltextIndex.remove(node);
+			// remove node from index (in case of previous indexing runs)
+			fulltextIndex.remove(node, indexKeyName);
 
 			// index document
 			for (final String word : tokenizer.getWords()) {
