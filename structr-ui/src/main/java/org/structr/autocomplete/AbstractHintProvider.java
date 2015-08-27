@@ -282,10 +282,13 @@ public abstract class AbstractHintProvider {
 					if (key != null) {
 
 						currentObjectType = key.identifyType(config);
-						final PropertyKey nestedKey = config.getPropertyKeyForJSONName(currentObjectType, previousToken, false);
-						if (nestedKey != null) {
+						if (currentObjectType != null) {
 
-							currentObjectType = nestedKey.relatedType();
+							final PropertyKey nestedKey = config.getPropertyKeyForJSONName(currentObjectType, previousToken, false);
+							if (nestedKey != null) {
+
+								currentObjectType = nestedKey.relatedType();
+							}
 						}
 					}
 				}
