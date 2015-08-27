@@ -24,18 +24,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
-import org.parboiled.common.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -43,14 +44,11 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import static org.structr.core.GraphObject.type;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
-import static org.structr.core.graph.NodeInterface.name;
-import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
@@ -63,7 +61,6 @@ import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import static org.structr.web.entity.AbstractFile.parent;
 import org.structr.web.entity.relation.Folders;
 import org.structr.web.property.PathProperty;
 
@@ -88,7 +85,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	public static final Property<Boolean> isFile                 = new BooleanProperty("isFile").defaultValue(true).readOnly();
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
-	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile, hasParent);
+	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile, hasParent, extractedContent);
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -204,181 +201,147 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	}
 
 	@Export
-	public GraphObject getSearchContext(final String searchString, final int contextLength) {
+	public GraphObject getSearchContext(final String searchTerm, final int contextLength) {
 
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
+			final String[] searchParts         = searchTerm.split("[\\W]+");
 			final GenericProperty contextKey   = new GenericProperty("context");
-			final String lowerCaseSearchString = searchString.toLowerCase();
-			final String lowerCaseText         = text.toLowerCase();
 			final GraphObjectMap contextObject = new GraphObjectMap();
-			final List<String> contextValues   = new LinkedList<>();
-			final StringBuilder wordBuffer     = new StringBuilder();
-			final StringBuilder lineBuffer     = new StringBuilder();
-			final int textLength               = text.length();
+			final Set<String> contextValues    = new LinkedHashSet<>();
 
-			/*
-			 * we take an average word length of 8 characters, multiply
-			 * it by the desired prefix and suffix word count, add 20%
-			 * and try to extract up to prefixLength words.
-			 */
+			for (final String searchString : searchParts) {
 
-			// modify these parameters to tune prefix and suffix word extraction
-			// loop variables
-			int newlineCount = 0;
-			int wordCount    = 1;	// wordCount starts at 1 because we include the matching word
-			int pos          = -1;
+				final String lowerCaseSearchString = searchString.toLowerCase();
+				final String lowerCaseText         = text.toLowerCase();
+				final StringBuilder wordBuffer     = new StringBuilder();
+				final StringBuilder lineBuffer     = new StringBuilder();
+				final int textLength               = text.length();
 
-			do {
+				/*
+				 * we take an average word length of 8 characters, multiply
+				 * it by the desired prefix and suffix word count, add 20%
+				 * and try to extract up to prefixLength words.
+				 */
 
-				// find next occurrence
-				pos = lowerCaseText.indexOf(lowerCaseSearchString, pos + 1);
-				if (pos >= 0) {
+				// modify these parameters to tune prefix and suffix word extraction
+				// loop variables
+				int newlineCount = 0;
+				int wordCount    = 0;	// wordCount starts at 1 because we include the matching word
+				int pos          = -1;
 
-					lineBuffer.setLength(0);
-					wordBuffer.setLength(0);
+				do {
 
-					wordCount    = 0;
-					newlineCount = 0;
+					// find next occurrence
+					pos = lowerCaseText.indexOf(lowerCaseSearchString, pos + 1);
+					if (pos > 0) {
 
-					// fetch context words before search hit
-					for (int i=pos-1; i>=0; i--) {
+						lineBuffer.setLength(0);
+						wordBuffer.setLength(0);
 
-						final char c = text.charAt(i);
+						wordCount    = 0;
+						newlineCount = 0;
 
-						// store character in buffer
-						wordBuffer.insert(0, c);
+						// fetch context words before search hit
+						for (int i=pos; i>=0; i--) {
 
-						if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
+							final char c = text.charAt(i);
 
-							lineBuffer.insert(0, wordBuffer.toString());
-							wordBuffer.setLength(0);
+							if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
 
-							if (c == '\n') {
+								wordCount += flushWordBuffer(lineBuffer, wordBuffer, true);
 
-								// increase newline count
-								newlineCount++;
+								// store character in buffer
+								wordBuffer.insert(0, c);
+
+								if (c == '\n') {
+
+									// increase newline count
+									newlineCount++;
+
+								} else {
+
+									// reset newline count
+									newlineCount = 0;
+								}
+
+								// paragraph boundary reached
+								if (newlineCount > 1) {
+									break;
+								}
+
+								// stop if we collected half of the desired word count
+								if (wordCount > contextLength / 2) {
+									break;
+								}
+
 
 							} else {
 
-								// increase word count
-								wordCount++;
+								// store character in buffer
+								wordBuffer.insert(0, c);
 
 								// reset newline count
 								newlineCount = 0;
 							}
-
-						} else {
-
-							// reset newline count
-							newlineCount = 0;
 						}
 
-						// paragraph boundary reached
-						if (newlineCount > 1) {
-							break;
-						}
+						wordCount += flushWordBuffer(lineBuffer, wordBuffer, true);
 
-						// stop if we collected half of the desired word count
-						if (wordCount >= contextLength / 2) {
-							break;
-						}
-					}
+						wordBuffer.setLength(0);
 
-					// add remaining word from buffer
-					lineBuffer.insert(0, wordBuffer.toString());
+						// fetch context words after search hit
+						for (int i=pos+1; i<textLength; i++) {
 
-					wordBuffer.setLength(0);
+							final char c = text.charAt(i);
 
-					// fetch context words after search hit
-					for (int i=pos; i<textLength; i++) {
+							if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
 
-						final char c = text.charAt(i);
+								wordCount += flushWordBuffer(lineBuffer, wordBuffer, false);
 
-						// store character in buffer
-						wordBuffer.append(c);
+								// store character in buffer
+								wordBuffer.append(c);
 
-						if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
+								if (c == '\n') {
 
-							lineBuffer.append(wordBuffer.toString());
-							wordBuffer.setLength(0);
+									// increase newline count
+									newlineCount++;
 
-							if (c == '\n') {
+								} else {
 
-								// increase newline count
-								newlineCount++;
+									// reset newline count
+									newlineCount = 0;
+								}
+
+								// paragraph boundary reached
+								if (newlineCount > 1) {
+									break;
+								}
+
+								// stop if we collected enough words
+								if (wordCount > contextLength) {
+									break;
+								}
 
 							} else {
 
-								// increase word count
-								wordCount++;
+								// store character in buffer
+								wordBuffer.append(c);
 
 								// reset newline count
 								newlineCount = 0;
 							}
-
-						} else {
-
-							// reset newline count
-							newlineCount = 0;
 						}
 
-						// paragraph boundary reached
-						if (newlineCount > 1) {
-							break;
-						}
+						wordCount += flushWordBuffer(lineBuffer, wordBuffer, false);
 
-						// stop if we collected enough words
-						if (wordCount > contextLength) {
-							break;
-						}
+						// replace single newlines with space
+						contextValues.add(lineBuffer.toString().trim());
 					}
 
-					// add remaining word from buffer
-					lineBuffer.append(wordBuffer.toString());
-
-					contextValues.add(lineBuffer.toString());
-
-					/*
-					final int start     = Math.max(0, pos - prefixBasedSearchRange);
-					final int end       = Math.min(text.length(), pos + prefixBasedSearchRange);
-					final String prefix = text.substring(start, pos);
-					final String suffix = text.substring(pos, end);
-
-					final List<String> prefixWords = new LinkedList<>(Arrays.asList(prefix.split("[ ]+")));
-					final List<String> suffixWords = new LinkedList<>(Arrays.asList(suffix.split("[ ]+")));
-
-					// shrink prefix word list to desired length by removing words
-					while (prefixWords.size() > prefixLength) {
-						prefixWords.remove(0);
-					}
-
-					for (final String prefixWord : prefixWords) {
-
-						buf.append(prefixWord);
-						buf.append(" ");
-					}
-
-					// reset word counter
-					wordCount = 0;
-
-					for (final String suffixWord : suffixWords) {
-						buf.append(suffixWord);
-						buf.append(" ");
-
-						if (wordCount++ >= prefixLength) {
-							break;
-						}
-					}
-
-					contextValues.add(buf.toString());
-					buf.setLength(0);
-					*/
-				}
-
-			} while (pos >= 0);
-
+				} while (pos >= 0);
+			}
 
 			contextObject.put(contextKey, contextValues);
 
@@ -386,6 +349,34 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		}
 
 		return null;
+	}
+
+	private int flushWordBuffer(final StringBuilder lineBuffer, final StringBuilder wordBuffer, final boolean prepend) {
+
+		int wordCount = 0;
+
+		if (wordBuffer.length() > 0) {
+
+			final String word = wordBuffer.toString().replaceAll("[\\n\\t]+", " ");
+			if (StringUtils.isNotBlank(word)) {
+
+				if (prepend) {
+
+					lineBuffer.insert(0, word);
+
+				} else {
+
+					lineBuffer.append(word);
+				}
+
+				// increase word count
+				wordCount = 1;
+			}
+
+			wordBuffer.setLength(0);
+		}
+
+		return wordCount;
 	}
 
 	public void notifyAsyncUploadCompletion() {

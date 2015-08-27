@@ -2346,10 +2346,10 @@ input.bitmask {
 
 #folder-contents {
   vertical-align: top;
-  background-color: #fff;
+/*  background-color: #fff;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
-  border: 1px solid #a5a5a5;
+  border: 1px solid #a5a5a5;*/
   padding: 12px;
   overflow: auto;
 }
@@ -2381,4 +2381,9 @@ table.dataTable thead th, table.dataTable thead td {
 
 #files-table {
   border-bottom: 1px solid #ccc !important;
+}
+
+.ui-tooltip {
+    white-space: pre-line;
+    width: 50%;
 }

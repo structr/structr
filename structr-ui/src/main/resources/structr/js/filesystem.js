@@ -24,76 +24,75 @@ var sizeLimit = 1024 * 1024 * 1024;
 var win = $(window);
 var selectedElements = [];
 
-$(document).ready(function() {
+$(document).ready(function () {
 
-	Structr.registerModule('filesystem', _Filesystem);
-	_Filesystem.resize();
+    Structr.registerModule('filesystem', _Filesystem);
+    _Filesystem.resize();
 });
 
 var _Filesystem = {
+    init: function () {
 
-	init: function() {
+        log('_Filesystem.init');
 
-		log('_Filesystem.init');
+        main = $('#main');
 
-		main = $('#main');
-
-		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Fulltext search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+        main.append('<div class="searchBox"><input class="search" name="search" placeholder="Fulltext search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 
         searchField = $('.search', main);
         searchField.focus();
 
-        searchField.keyup(function(e) {
+        searchField.keyup(function (e) {
 
             var searchString = $(this).val();
             if (searchString && searchString.length && e.keyCode === 13) {
 
-                $('.clearSearchIcon').show().on('click', function() {
+                $('.clearSearchIcon').show().on('click', function () {
                     _Filesystem.clearSearch();
                 });
 
                 _Filesystem.fulltextSearch(searchString);
 
             } else if (e.keyCode === 27 || searchString === '') {
-                    _Filesystem.clearSearch();
+                _Filesystem.clearSearch();
             }
 
         });
 
 
-	},
-	resize: function() {
+    },
+    resize: function () {
 
-		var windowWidth = win.width();
-		var windowHeight = win.height();
-		var headerOffsetHeight = 82 + 24;
+        var windowWidth = win.width();
+        var windowHeight = win.height();
+        var headerOffsetHeight = 82 + 24;
 
-		if (fileTree) {
-			fileTree.css({
+        if (fileTree) {
+            fileTree.css({
                 width: '400px',
-				height: windowHeight - headerOffsetHeight + 'px'
-			});
-		}
+                height: windowHeight - headerOffsetHeight + 'px'
+            });
+        }
 
-		if (folderContents) {
-			folderContents.css({
+        if (folderContents) {
+            folderContents.css({
                 width: windowWidth - 400 - 64 + 'px',
-				height: windowHeight - headerOffsetHeight - 24 + 'px'
-			});
-		}
+                height: windowHeight - headerOffsetHeight - 24 + 'px'
+            });
+        }
 
         Structr.resize();
-	},
-	onload: function() {
+    },
+    onload: function () {
 
-		_Filesystem.init();
+        _Filesystem.init();
 
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Files');
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Files');
 
-		main.append('<div id="filesystem-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
+        main.append('<div id="filesystem-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
 
         fileTree = $('#file-tree');
-		folderContents = $('#folder-contents');
+        folderContents = $('#folder-contents');
 
         $.jstree.defaults.core.themes.dots = false;
 
@@ -107,7 +106,7 @@ var _Filesystem = {
 
                         case '#':
                             var list = [];
-                            list.push({id: 'root', text: 'All files', children: true, icon: '/structr/icon/structr_icon_16x16.png', a_attr: { class: 'bold' } } );
+                            list.push({id: 'root', text: 'All files', children: true, icon: '/structr/icon/structr_icon_16x16.png', a_attr: {class: 'bold'}});
 
                             cb(list);
                             break;
@@ -130,30 +129,36 @@ var _Filesystem = {
 
         });
 
-		win.off('resize');
-		win.resize(function() {
-			_Filesystem.resize();
-		});
+        win.off('resize');
+        win.resize(function () {
+            _Filesystem.resize();
+        });
 
-		Structr.unblockMenu(100);
+        Structr.unblockMenu(100);
 
         _Filesystem.resize();
 
-	},
-	unload: function() {
-		$(main.children('table')).remove();
-	},
-    fulltextSearch: function(searchString) {
+    },
+    unload: function () {
+        $(main.children('table')).remove();
+    },
+    fulltextSearch: function (searchString) {
 
         var content = $('#folder-contents');
         content.empty();
 
-        var url = '/structr/rest/files?loose=1&indexedContent=' + searchString;
+        var url = '/structr/rest/files/ui?loose=1';
 
-        displayFolderContentsForURL(url);
+        searchString.split(' ').forEach(function(str, i) {
+            url = url + '&indexedContent=' + str;
+        });
+
+        console.log(url);
+
+        displaySearchResultsForURL(url);
 
     },
-    clearSearch: function() {
+    clearSearch: function () {
 
         $('.search', main).val('');
         var content = $('#folder-contents');
@@ -176,98 +181,151 @@ var _Filesystem = {
 
 function load(url, callback) {
 
-  $.ajax({
-    url: '/structr/rest/' + url,
-      statusCode: {
+    $.ajax({
+        url: '/structr/rest/' + url,
+        statusCode: {
+            200: function (data) {
 
-        200: function(data) {
+                var list = [];
 
-          var list = [];
+                $.each(data.result, function (i, d) {
 
-          $.each(data.result, function(i, d) {
+                    var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
 
-            var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
+                    list.push({
+                        id: d.id,
+                        text: d.name,
+                        children: d.isFolder && d.folders.length > 0,
+                        icon: icon
+                    });
+                });
 
-            list.push( {
-
-              id: d.id,
-                text: d.name,
-                children: d.isFolder && d.folders.length > 0,
-                icon: icon
-            });
-          });
-
-          callback(list);
+                callback(list);
+            }
         }
-      }
-  });
+    });
 }
 
 function setWorkingDirectory(id) {
 
-  var data = JSON.stringify( { 'workingDirectory': { 'id': id } } );
+    var data = JSON.stringify({'workingDirectory': {'id': id}});
 
-  $.ajax({
-
-    url: '/structr/rest/me',
-      dataType: 'application/json',
-      method: 'PUT',
-      type: 'PUT',
-      data: data
-  });
+    $.ajax({
+        url: '/structr/rest/me',
+        dataType: 'application/json',
+        method: 'PUT',
+        type: 'PUT',
+        data: data
+    });
 }
 
 function displayFolderContents(id) {
 
-  var url = '/structr/rest/folders/' + id + '/children/ui?sort=name';
+    var url = '/structr/rest/folders/' + id + '/children/ui?sort=name';
 
-  if (id === 'root') {
-    url = '/structr/rest/files/ui?sort=name&hasParent=false';
-  }
+    if (id === 'root') {
+        url = '/structr/rest/files/ui?sort=name&hasParent=false';
+    }
 
     displayFolderContentsForURL(url);
 }
 
 function displayFolderContentsForURL(url) {
 
-  var content = $('#folder-contents');
-  content.empty();
-  content.append('<table id="files-table" class="stripe"><thead><tr><th>Name</th><th>Type</th><th>Size</th></tr></thead><tbody id="files-table-body"></tbody></table>');
+    var content = $('#folder-contents');
+    content.empty();
+    content.append('<table id="files-table" class="stripe"><thead><tr><th>Name</th><th>Context</th><th>Size</th></tr></thead><tbody id="files-table-body"></tbody></table>');
 
-  var tableBody = $('#files-table-body');
+    var tableBody    = $('#files-table-body');
 
-  $.ajax({
-    url: url,
-      statusCode: {
+    $.ajax({
 
-        200: function(data) {
+        url: url,
 
-          $.each(data.result, function(i, d) {
+        statusCode: {
 
-            if (!d.isFolder) {
+            200: function (data) {
 
-              var rowId = 'row' + d.id;
-              tableBody.append('<tr id="' + rowId + '"></tr>');
-              var row = $('#' + rowId);
+                $.each(data.result, function (i, d) {
 
-              row.append('<td>' + d.name + '</td>');
-              row.append('<td>' + d.type + '</td>');
-              row.append('<td>' + d.size + '</td>');
+                    if (!d.isFolder) {
+
+                        var rowId = 'row' + d.id;
+                        tableBody.append('<tr id="' + rowId + '"></tr>');
+                        var row = $('#' + rowId);
+
+                        row.append('<td>' + d.name + '</td>');
+                        row.append('<td>' + d.type + '</td>');
+                        row.append('<td>' + d.size + '</td>');
+                    }
+
+                });
+
+                $('#files-table').DataTable({
+                    fixedHeader: true
+                });
+
             }
-
-          });
-
-          $('#files-table').DataTable({
-              fixedHeader: true
-          });
-
         }
-      }
-  });
+    });
 }
 
+function displaySearchResultsForURL(url) {
 
+    var content = $('#folder-contents');
+    content.empty();
+    content.append('<div id="search-results"></div>');
 
+    var searchString = $('.search', main).val();
+    var container    = $('#search-results');
 
+    $.ajax({
 
+        url: url,
 
+        statusCode: {
+
+            200: function (data) {
+
+                container.append('<h1>Search results</h1>');
+
+                $.each(data.result, function (i, d) {
+
+                    $.ajax({
+
+                        url: '/structr/rest/files/' + d.id + '/getSearchContext',
+                        contentType: 'application/json',
+                        method: 'POST',
+                        data: JSON.stringify({ searchString: searchString, contextLength: 30 }),
+
+                        statusCode: {
+
+                            200: function (data) {
+
+                                container.append('<div style="border: 1px solid #a5a5a5; padding: 12px; margin-bottom: 24px; background-color: #fff; border-radius: 3px;" id="results' + d.id + '"></div>');
+
+                                var div = $('#results' + d.id);
+
+                                div.append('<h2>' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" /></h2>');
+
+                                $.each(data.result.context, function(i, contextString) {
+
+                                    searchString.split(' ').forEach(function(str) {
+                                        contextString = contextString.replace(new RegExp('(' + str + ')', 'gi' ), "<span style='background-color: #c5ff69;'>$1</span>" );
+                                    });
+
+                                    div.append('<div style="font-size: 9pt; margin-right: 20px; margin-bottom: 20px; width: 300px; float: left;">' + contextString + '</div>');
+
+                                });
+
+                                div.append('<div style="clear: both;"></div>');
+                            }
+                        }
+                    });
+
+                });
+            }
+        }
+
+    });
+}

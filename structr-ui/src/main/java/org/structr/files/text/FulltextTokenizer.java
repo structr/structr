@@ -39,6 +39,15 @@ public class FulltextTokenizer extends Writer {
 		SpecialChars.add('¢');
 		SpecialChars.add('.');
 		SpecialChars.add(',');
+		SpecialChars.add('\'');
+		SpecialChars.add('\"');
+		SpecialChars.add('`');
+		SpecialChars.add('(');
+		SpecialChars.add(')');
+		SpecialChars.add('[');
+		SpecialChars.add(']');
+		SpecialChars.add('{');
+		SpecialChars.add('}');
 	}
 
 	@Override

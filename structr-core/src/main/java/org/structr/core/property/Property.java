@@ -525,19 +525,22 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final Query query) throws FrameworkException {
 
-		String searchValue = request.getParameter(jsonName());
-		if (searchValue != null) {
+		final String[] searchValues = request.getParameterValues(jsonName());
+		if (searchValues != null) {
 
-			if (!query.isExactSearch()) {
+			for (String searchValue : searchValues) {
 
-				// no quotes allowed in loose search queries!
-				searchValue = removeQuotes(searchValue);
+				if (!query.isExactSearch()) {
 
-				query.and(this, convertSearchValue(securityContext, searchValue), false);
+					// no quotes allowed in loose search queries!
+					searchValue = removeQuotes(searchValue);
 
-			} else {
+					query.and(this, convertSearchValue(securityContext, searchValue), false);
 
-				determineSearchType(securityContext, searchValue, query);
+				} else {
+
+					determineSearchType(securityContext, searchValue, query);
+				}
 			}
 		}
 	}
