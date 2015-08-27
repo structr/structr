@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var fileTree, folderContents;
+var main, fileTree, folderContents;
 var fileList;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
@@ -35,6 +35,31 @@ var _Filesystem = {
 	init: function() {
 
 		log('_Filesystem.init');
+
+		main = $('#main');
+
+		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Fulltext search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+
+        searchField = $('.search', main);
+        searchField.focus();
+
+        searchField.keyup(function(e) {
+
+            var searchString = $(this).val();
+            if (searchString && searchString.length && e.keyCode === 13) {
+
+                $('.clearSearchIcon').show().on('click', function() {
+                    _Filesystem.clearSearch();
+                });
+
+                _Filesystem.fulltextSearch(searchString);
+
+            } else if (e.keyCode === 27 || searchString === '') {
+                    _Filesystem.clearSearch();
+            }
+
+        });
+
 
 	},
 	resize: function() {
@@ -117,7 +142,26 @@ var _Filesystem = {
 	},
 	unload: function() {
 		$(main.children('table')).remove();
-	}
+	},
+    fulltextSearch: function(searchString) {
+
+        var content = $('#folder-contents');
+        content.empty();
+
+        var url = '/structr/rest/files?loose=1&indexedContent=' + searchString;
+
+        displayFolderContentsForURL(url);
+
+    },
+    clearSearch: function() {
+
+        $('.search', main).val('');
+        var content = $('#folder-contents');
+        content.empty();
+
+
+
+    }
 };
 
 
@@ -175,16 +219,22 @@ function setWorkingDirectory(id) {
 
 function displayFolderContents(id) {
 
+  var url = '/structr/rest/folders/' + id + '/children/ui?sort=name';
+
+  if (id === 'root') {
+    url = '/structr/rest/files/ui?sort=name&hasParent=false';
+  }
+
+    displayFolderContentsForURL(url);
+}
+
+function displayFolderContentsForURL(url) {
+
   var content = $('#folder-contents');
   content.empty();
   content.append('<table id="files-table" class="stripe"><thead><tr><th>Name</th><th>Type</th><th>Size</th></tr></thead><tbody id="files-table-body"></tbody></table>');
 
   var tableBody = $('#files-table-body');
-  var url   = '/structr/rest/folders/' + id + '/children/ui?sort=name';
-
-  if (id === 'root') {
-    url = '/structr/rest/files/ui?sort=name&hasParent=false';
-  }
 
   $.ajax({
     url: url,
@@ -207,12 +257,15 @@ function displayFolderContents(id) {
 
           });
 
-          $('#files-table').DataTable();
+          $('#files-table').DataTable({
+              fixedHeader: true
+          });
 
         }
       }
   });
 }
+
 
 
 

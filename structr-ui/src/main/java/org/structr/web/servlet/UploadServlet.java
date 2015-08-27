@@ -210,6 +210,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 						}
 
+						// upload trigger
+						newFile.notifyAsyncUploadCompletion();
+
 						// Just write out the uuids of the new files
 						out.write(newFile.getUuid());
 
@@ -296,6 +299,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							FileHelper.writeToFile(file, fileItem.getInputStream());
 							file.increaseVersion();
+
+							// upload trigger
+							file.notifyAsyncUploadCompletion();
 
 						} else {
 

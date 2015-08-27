@@ -2351,6 +2351,7 @@ input.bitmask {
   border-top-right-radius: 3px;
   border: 1px solid #a5a5a5;
   padding: 12px;
+  overflow: auto;
 }
 
 #folder-contents table {
@@ -2366,10 +2367,18 @@ input.bitmask {
 }
 
 .jstree-hovered {
-    background-color: #e7e7e7 !important;
-    border-color: #a5a5a5;
+  background-color: #e7e7e7 !important;
+  border-color: #a5a5a5;
 }
 
 .jstree-clicked {
-    background-color: #81ce25 !important;
+  background-color: #81ce25 !important;
+}
+
+table.dataTable thead th, table.dataTable thead td {
+  border-bottom: 1px solid #ccc !important;
+}
+
+#files-table {
+  border-bottom: 1px solid #ccc !important;
 }

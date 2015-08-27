@@ -29,26 +29,35 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.sax.BodyContentHandler;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.index.Index;
 import org.parboiled.common.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import static org.structr.core.GraphObject.type;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -64,6 +73,8 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
+	public static final Property<String> indexedContent          = new StringProperty("indexedContent").indexed(NodeService.NodeIndex.fulltext);
+	public static final Property<String> extractedContent        = new StringProperty("extractedContent");
 	public static final Property<String> contentType             = new StringProperty("contentType").indexedWhenEmpty();
 	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").readOnly();
 	public static final Property<Long> size                      = new LongProperty("size").indexed().readOnly();
@@ -97,7 +108,6 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		return false;
 	}
 
-
 	@Override
 	public void onNodeCreation() {
 
@@ -107,7 +117,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		try {
 			unlockReadOnlyPropertiesOnce();
 			setProperty(relativeFilePath, filePath);
-			
+
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Exception while trying to set relative file path {0}: {1}", new Object[]{filePath, t});
@@ -190,6 +200,87 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	public String getPath() {
 		return FileHelper.getFolderPath(this);
 	}
+
+	@Export
+	public GraphObject grep(final String searchString, final int prefixLength) {
+
+		final String text = getProperty(extractedContent);
+		if (text != null) {
+
+			final int pos = text.toLowerCase().indexOf(searchString.toLowerCase());
+			if (pos >= 0) {
+
+				final int start = Math.max(0, pos - prefixLength);
+				final int end   = Math.min(text.length(), pos + prefixLength);
+
+				final GraphObjectMap obj = new GraphObjectMap();
+				obj.put(new StringProperty("context"), text.substring(start, end));
+
+				return obj;
+			}
+		}
+
+		return null;
+	}
+
+	public void notifyAsyncUploadCompletion() {
+
+		try (final InputStream is = getInputStream()) {
+
+			final NodeService nodeService     = Services.getInstance().getService(NodeService.class);
+			final Index<Node> fulltextIndex   = nodeService.getNodeIndex(NodeService.NodeIndex.fulltext);
+			final FulltextTokenizer tokenizer = new FulltextTokenizer();
+			final String indexKeyName         = indexedContent.jsonName();
+			final AutoDetectParser parser     = new AutoDetectParser();
+			final Node node                   = getNode();
+
+			// parse data
+			parser.parse(is, new BodyContentHandler(tokenizer), new Metadata());
+
+			// save raw extracted text
+			setProperty(extractedContent, tokenizer.getRawText());
+
+			// tokenize name
+			tokenizer.write(getName());
+
+			// tokenize owner name
+			final Principal _owner = getProperty(owner);
+			if (_owner != null) {
+
+				final String ownerName = _owner.getName();
+				if (ownerName != null) {
+
+					tokenizer.write(ownerName);
+				}
+
+				final String eMail = _owner.getProperty(User.eMail);
+				if (eMail != null) {
+
+					tokenizer.write(eMail);
+				}
+
+				final String twitterName = _owner.getProperty(User.twitterName);
+				if (twitterName != null) {
+
+					tokenizer.write(twitterName);
+				}
+			}
+
+//			// remove node from index (in case of previous indexing runs)
+//			fulltextIndex.remove(node);
+
+			// index document
+			for (final String word : tokenizer.getWords()) {
+				fulltextIndex.add(node, indexKeyName, word);
+			}
+
+			System.out.println();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
 
 	public String getRelativeFilePath() {
 

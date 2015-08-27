@@ -47,7 +47,7 @@ public class FileUploadHandler {
 
 	//~--- constructors ---------------------------------------------------
 
-	public FileUploadHandler(FileBase file) {
+	public FileUploadHandler(final FileBase file) {
 
 		this.size = file.getProperty(File.size);
 		this.file = file;
@@ -134,6 +134,7 @@ public class FileUploadHandler {
 				this.privateFileChannel = null;
 
 				//file.increaseVersion();
+				file.notifyAsyncUploadCompletion();
 
 			}
 
