@@ -25,7 +25,7 @@ cd structr-ui
 mvn validate exec:exec
 ```
 
-To run Structr on Windows, check [https://docs.structr.org/installation-and-configuration-guide#Windows Manual Installation](windows installation instructrions).
+To run Structr on Windows, check the [guide for a manual Windows installation](https://github.com/structr/structr/blob/master/docs/markdown/installation-and-configuration-guide/00_installation/03_windows-manual-installation.md).
 
 Login with the credentials admin/admin at:
 
