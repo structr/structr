@@ -27,7 +27,7 @@ var Command = {
 	/**
 	 * Send a single GET command to the server.
 	 *
-	 * The server will return a single node with all properties
+	 * The server will return a list containing a single node with all properties
 	 * of the node with the given id to the sending client (no broadcast).
 	 */
 	get: function(id, callback) {

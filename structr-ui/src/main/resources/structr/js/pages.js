@@ -303,8 +303,10 @@ var _Pages = {
 		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>')
 		pages = $('#pagesTree', pagesSlideout);
 
-		Structr.addPager(pages, true, 'Page', function(entity) {
-			StructrModel.create(entity); _Pages.pagesTabResizeContent();
+		Structr.addPager(pages, true, 'Page', function(pages) {
+			pages.forEach(function(page) {
+				StructrModel.create(page); _Pages.pagesTabResizeContent();
+			});
 		});
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');

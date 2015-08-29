@@ -267,8 +267,8 @@ var _Elements = {
 		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
 		components = $('#componentsArea', componentsSlideout);
 
-		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entity) {
-			shadowPage = entity;
+		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
+			shadowPage = entities[0];
 		});
 		components.droppable({
 			drop: function(e, ui) {

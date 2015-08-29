@@ -105,9 +105,10 @@ public class RelationshipResource extends WrappingResource {
 
 				return new Result(resultList, null, isCollectionResource(), isPrimitiveArray());
 
-			} catch(Throwable t) {
+			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, "Exception while fetching relationships", t);
+				t.printStackTrace();
 			}
 
 		} else {

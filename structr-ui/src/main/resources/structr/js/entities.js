@@ -338,7 +338,7 @@ var _Entities = {
 	},
 	showProperties: function (obj) {
 
-		Command.get(obj.id, function (entity) {
+		Command.get(obj.id, function (entity) {console.log(entity)
 
 			var views, activeView = 'ui';
 //        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget']) || entity.isUser) {
@@ -492,7 +492,7 @@ var _Entities = {
 		$('#tab-' + activeView).click();
 
 	},
-	listProperties: function (entity, view, tabView, typeInfo) {
+	listProperties: function (entity, view, tabView, typeInfo) { console.log(entity)
 		var null_prefix = 'null_attr_';
 		$.ajax({
 			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10', // TODO: Implement paging or scroll-into-view here
@@ -860,21 +860,25 @@ var _Entities = {
 				var select = $('#newPrincipal');
 				select.chosen({width: '90%'});
 				var i = 0, n = 10000;
-				Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', false, function (group, size) {
-					select.append('<option value="' + group.id + '">' + group.name + '</option>');
-					if (++i >= size) {
-						select.trigger("chosen:updated");
-					}
+				Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', false, function (groups) {
+					groups.forEach(function(group) {
+						select.append('<option value="' + group.id + '">' + group.name + '</option>');
+						if (++i >= groups.size) {
+							select.trigger("chosen:updated");
+						}
+					});
 				});
 				i = 0;
 				var al2 = Structr.loaderIcon(select.parent(), {float: 'right'});
-				Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function (user, size) {
-					select.append('<option value="' + user.id + '">' + user.name + '</option>');
-					if (++i >= size) {
-						select.trigger("chosen:updated");
-						if (al2.length)
-							al2.remove();
-					}
+				Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function (users) {
+					users.forEach(function(user) {
+						select.append('<option value="' + user.id + '">' + user.name + '</option>');
+						if (++i >= users.size) {
+							select.trigger("chosen:updated");
+							if (al2.length)
+								al2.remove();
+						}
+					});
 				});
 				select.on('change', function () {
 					var sel = $(this);
@@ -957,14 +961,16 @@ var _Entities = {
 		var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
 		var al = Structr.loaderIcon(el, {position: 'absolute', left: '416px', top: '32px'});
 		var i = 0, n = 10000;
-		Command.getByType(type, n, 1, 'name', 'asc', 'id,name', false, function (result, size) {
-			var selected = (id === result.id ? 'selected' : '');
-			selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
-			if (++i >= size) {
-				selectElement.trigger("chosen:updated");
-				if (al.length)
-					al.remove();
-			}
+		Command.getByType(type, n, 1, 'name', 'asc', 'id,name', false, function (results) {
+			results.forEach(function(result) {
+				var selected = (id === result.id ? 'selected' : '');
+				selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
+				if (++i >= results.size) {
+					selectElement.trigger("chosen:updated");
+					if (al.length)
+						al.remove();
+				}
+			});
 		});
 
 		selectElement.on('change', function () {

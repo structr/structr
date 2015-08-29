@@ -39,8 +39,8 @@ var forceAtlas2Config = {
 	iterationsPerRender: 10,
 	barnesHutOptimize: false,
 	slowDown: 2
-			//outboundAttractionDistribution: true
-			//startingIterations: 1000
+		//outboundAttractionDistribution: true
+		//startingIterations: 1000
 };
 
 $(document).ready(function() {
@@ -144,7 +144,7 @@ var _Graph = {
 				defaultEdgeHoverColor: '#888',
 				//edgeLabelSize: 'proportional',
 				minArrowSize: 12
-						//sideMargin: 1,
+					//sideMargin: 1,
 			}
 		});
 
@@ -211,7 +211,7 @@ var _Graph = {
 				var d = _Graph.distance(node, n);
 
 				if (shiftKey && d < 200) {
-					
+
 					var draggedNodeSchemaNode = schemaNodes[node.type];
 					//console.log('shift and in radius', n, node, sourceSchemaNode);
 					if (!draggedNodeSchemaNode) {
@@ -223,9 +223,9 @@ var _Graph = {
 
 						var edgeId = node.id + '-[:' + toRel.id + ']->' + n.id;
 						var possibleTargetType = schemaNodesById[toRel.targetId].name;
-						
+
 						//console.log('possible target type:', possibleTargetType, 'edge exists?', engine.graph.edges(edgeId));
-						
+
 						if (possibleTargetType === n.type && !engine.graph.edges(edgeId)) {
 
 							//console.log('toRel, target multi', toRel.targetMultiplicity, toRel);
@@ -235,19 +235,19 @@ var _Graph = {
 									//console.log(edge, n, node, toRel);
 									if (edge.target === n.id && edge.relType === toRel.relationshipType) {
 										edge.hidden = true;
-										edge.removed = true;	
+										edge.removed = true;
 										//console.log('outgoing rel found, will be removed', edge);
 										removedRel = edge.id;
 									}
 								});
 							}
-							
+
 							if (toRel.targetMultiplicity === '1') {
 								engine.graph.edges().forEach(function(edge) {
 									//console.log(edge, n, node, toRel);
 									if (edge.source === node.id && edge.relType === toRel.relationshipType) {
 										edge.hidden = true;
-										edge.removed = true;	
+										edge.removed = true;
 										//console.log('outgoing rel found, will be removed', edge);
 										removedRel = edge.id;
 									}
@@ -277,13 +277,13 @@ var _Graph = {
 						var possibleSourceType = schemaNodesById[fromRel.sourceId].name;
 
 						//console.log('possible source type:', possibleSourceType, 'edge exists?', edgeId, engine.graph.edges(edgeId));
-						
+
 						if (possibleSourceType === n.type && !engine.graph.edges(edgeId)) {
 
 							//console.log('fromRel source multi', fromRel.sourceMultiplicity, fromRel);
 
 							if (fromRel.sourceMultiplicity === '1') {
-								
+
 								// loop over all edges if they fit the schema rel
 								engine.graph.edges().forEach(function(edge) {
 									//console.log(edge, n, node, fromRel);
@@ -298,7 +298,7 @@ var _Graph = {
 							}
 
 							if (fromRel.targetMultiplicity === '1') {
-								
+
 								// loop over all edges if they fit the schema rel
 								engine.graph.edges().forEach(function(edge) {
 									//console.log(edge, n, node, fromRel);
@@ -351,14 +351,14 @@ var _Graph = {
 
 		});
 		dragListener.bind('dragend', function(e) {
-			
+
 			//console.log('dragend', removedRel);
-			
+
 			if (removedRel) {
 				Command.deleteRelationship(removedRel);
 				removedRel = undefined;
 			}
-			
+
 			engine.graph.edges().forEach(function(edge) {
 
 
@@ -370,17 +370,17 @@ var _Graph = {
 						relType: edge.relType
 					};
 					Command.createRelationship(relData, function(rel) {
-						
+
 						//console.log('created new rel', rel.id, 'to replace', edge.id);
 						var ref = edge.id;
-						
+
 						edge.color = defaultRelColor;
 						edge.id = rel.id;
 						edge.added = false;
 						_Graph.scheduleRefreshEngine();
-						
+
 						engine.graph.dropEdge(ref);
-						
+
 						//console.log('reference still valid', engine.graph.edges(ref));
 					});
 				}
@@ -409,16 +409,16 @@ var _Graph = {
 		} else {
 
 			main.prepend(
-					'<div id="graph-box"><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
-					+ '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Display Options</div></div>'
-					+ '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
-					+ ' <div class="canvas" id="graph-canvas"></div>'
-					+ ' <div id="node-types" class="graph-object-types"> <button id="show-all-node-types">Show all</button></div>'
-					+ ' <div id="relationship-types" class="graph-object-types"></div>'
-					//+ '<div id="nodes" class="slideOut slideOutRight"><div class="compTab" id="nodesTab">Nodes</div></div>'
-					//+ '<div id="relationships" class="slideOut slideOutRight"><div class="compTab" id="relationshipsTab">Relationships</div></div>'
-					+ '</div>'
-					);
+				'<div id="graph-box"><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
+				+ '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Display Options</div></div>'
+				+ '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
+				+ ' <div class="canvas" id="graph-canvas"></div>'
+				+ ' <div id="node-types" class="graph-object-types"> <button id="show-all-node-types">Show all</button></div>'
+				+ ' <div id="relationship-types" class="graph-object-types"></div>'
+				//+ '<div id="nodes" class="slideOut slideOutRight"><div class="compTab" id="nodesTab">Nodes</div></div>'
+				//+ '<div id="relationships" class="slideOut slideOutRight"><div class="compTab" id="relationshipsTab">Relationships</div></div>'
+				+ '</div>'
+				);
 
 			queriesSlideout = $('#queries');
 			displaySlideout = $('#display');
@@ -533,10 +533,10 @@ var _Graph = {
 			}
 
 			queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><img class="clearSearchIcon" id="clear-rest" src="icon/cross_small_grey.png">'
-					+ '<button id="exec-rest">Execute REST query</button></div>');
+				+ '<button id="exec-rest">Execute REST query</button></div>');
 
 			queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="icon/cross_small_grey.png">'
-					+ '<button id="exec-cypher">Execute Cypher query</button></div>');
+				+ '<button id="exec-cypher">Execute Cypher query</button></div>');
 
 			queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><img id="add-cypher-parameter" src="icon/add.png">');
 			_Graph.appendCypherParameter($('#cypher-params'));
@@ -932,48 +932,52 @@ var _Graph = {
 		var nodeTypesBox = $('#node-types');
 		nodeTypesBox.empty();
 		//nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
-		Command.getByType('SchemaNode', 1000, 1, null, null, null, true, function(node) {
+		Command.getByType('SchemaNode', 1000, 1, null, null, null, true, function(nodes) {
 
-			schemaNodes[node.name] = node;
-			schemaNodesById[node.id] = node;
+			nodes.forEach(function(node) {
 
-			var nodeType = node.name;
+				schemaNodes[node.name] = node;
+				schemaNodesById[node.id] = node;
 
-			if (!isIn(nodeType, Object.keys(nodeColors))) {
-				nodeColors[nodeType] = colors[color++]
-			}
+				var nodeType = node.name;
 
-			//Object.keys(nodeColors).forEach(function (nodeType) {
-			nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type"><div class="circle" style="background-color: ' + nodeColors[nodeType] + '"></div>' + nodeType + '</div>');
-			var nt = $('#node-type-' + nodeType, nodeTypesBox);
-			if (isIn(nodeType, hiddenNodeTypes)) {
-				nt.attr('data-hidden', 1);
-				nt.addClass('hidden-node-type');
-				//console.log('nodeType is hidden', nodeType);
-			}
-			nt.on('mousedown', function() {
-				var nodeTypeEl = $(this);
-				nodeTypeEl.css({pointer: 'move'});
-				//_Graph.toggleNodeType(nodeType);
-			}).on('click', function() {
-				var n = $(this);
-				if (n.attr('data-hidden')) {
-					_Graph.showNodeType(nodeType, function() {
-						n.removeAttr('data-hidden', 1);
-						n.removeClass('hidden-node-type');
-					});
-				} else {
-					_Graph.hideNodeType(nodeType, function() {
-						n.attr('data-hidden', 1);
-						n.addClass('hidden-node-type');
-					});
+				if (!isIn(nodeType, Object.keys(nodeColors))) {
+					nodeColors[nodeType] = colors[color++]
 				}
-			}).on('mouseover', function() {
-				_Graph.highlightNodeType(nodeType);
-			}).on('mouseout', function() {
-				_Graph.unhighlightNodeType(nodeType);
-			}).draggable({
-				helper: 'clone'
+
+				//Object.keys(nodeColors).forEach(function (nodeType) {
+				nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type"><div class="circle" style="background-color: ' + nodeColors[nodeType] + '"></div>' + nodeType + '</div>');
+				var nt = $('#node-type-' + nodeType, nodeTypesBox);
+				if (isIn(nodeType, hiddenNodeTypes)) {
+					nt.attr('data-hidden', 1);
+					nt.addClass('hidden-node-type');
+					//console.log('nodeType is hidden', nodeType);
+				}
+				nt.on('mousedown', function() {
+					var nodeTypeEl = $(this);
+					nodeTypeEl.css({pointer: 'move'});
+					//_Graph.toggleNodeType(nodeType);
+				}).on('click', function() {
+					var n = $(this);
+					if (n.attr('data-hidden')) {
+						_Graph.showNodeType(nodeType, function() {
+							n.removeAttr('data-hidden', 1);
+							n.removeClass('hidden-node-type');
+						});
+					} else {
+						_Graph.hideNodeType(nodeType, function() {
+							n.attr('data-hidden', 1);
+							n.addClass('hidden-node-type');
+						});
+					}
+				}).on('mouseover', function() {
+					_Graph.highlightNodeType(nodeType);
+				}).on('mouseout', function() {
+					_Graph.unhighlightNodeType(nodeType);
+				}).draggable({
+					helper: 'clone'
+				});
+
 			});
 		});
 

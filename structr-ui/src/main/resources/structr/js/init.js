@@ -949,8 +949,10 @@ var Structr = {
 	addPager: function(el, rootOnly, type, callback) {
 		log('addPager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
 		if (!callback) {
-			callback = function(entity) {
-				StructrModel.create(entity);
+			callback = function(entities) {
+				entities.forEach(function(entity) {
+					StructrModel.create(entity);
+				});
 			}
 		}
 
