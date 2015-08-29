@@ -1,0 +1,268 @@
+package org.structr.files.ssh;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.sshd.server.Command;
+import org.apache.sshd.server.Environment;
+import org.apache.sshd.server.ExitCallback;
+import org.apache.sshd.server.Signal;
+import org.apache.sshd.server.SignalListener;
+import org.codehaus.plexus.util.StringUtils;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
+import org.structr.files.ssh.shell.InputCommand;
+import org.structr.files.ssh.shell.LogoutCommand;
+import org.structr.files.ssh.shell.LsCommand;
+import org.structr.files.ssh.shell.PasswordCommand;
+import org.structr.files.ssh.shell.ShellCommand;
+import org.structr.web.entity.User;
+
+/**
+ *
+ * @author Christian Morgner
+ */
+public class StructrShellCommand implements Command, SignalListener, TerminalHandler {
+
+	private static final Logger logger = Logger.getLogger(StructrShellCommand.class.getName());
+	private static final Map<String, Class<? extends ShellCommand>> commands = new LinkedHashMap<>();
+
+	static {
+
+		commands.put("logout",     LogoutCommand.class);
+		commands.put("exit",       LogoutCommand.class);
+		commands.put("ls",         LsCommand.class);
+		commands.put("input",      InputCommand.class);
+		commands.put("passwd",     PasswordCommand.class);
+	}
+
+	private final List<String> commandHistory = new LinkedList<>();
+	private TerminalEmulator term             = null;
+	private ExitCallback callback             = null;
+	private InputStream in                    = null;
+	private OutputStream out                  = null;
+	private OutputStream err                  = null;
+	private User user                         = null;
+
+	@Override
+	public void setInputStream(final InputStream in) {
+		this.in = in;
+	}
+
+	@Override
+	public void setOutputStream(final OutputStream out) {
+		this.out = out;
+	}
+
+	@Override
+	public void setErrorStream(final OutputStream err) {
+		this.err = err;
+	}
+
+	@Override
+	public void setExitCallback(final ExitCallback callback) {
+		this.callback = callback;
+	}
+
+	@Override
+	public void start(final Environment env) throws IOException {
+
+		env.addSignalListener(this);
+
+		final String userName = env.getEnv().get("USER");
+		if (userName != null) {
+
+			final App app = StructrApp.getInstance();
+			try (final Tx tx = app.tx()) {
+
+				user = app.nodeQuery(User.class).andName(userName).getFirst();
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Cannot start Structr shell, no username set!");
+
+			return;
+		}
+
+		// abort if no user was found
+		if (user == null) {
+
+			logger.log(Level.WARNING, "Cannot start Structr shell, user not found for name {0}!", userName);
+			return;
+		}
+
+		final String terminalType = env.getEnv().get("TERM");
+		if (terminalType != null) {
+
+			switch (terminalType) {
+
+				case "xterm":
+				case "vt100":
+				case "vt220":
+					term = new XTermTerminalEmulator(in, out, this);
+					break;
+
+				default:
+					logger.log(Level.WARNING, "Unsupported terminal type {0}, aborting.", terminalType);
+					break;
+
+
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "No terminal type provided, aborting.", terminalType);
+		}
+
+		if (term != null) {
+
+			term.start();
+
+			term.print("Welcome to ");
+			term.setBold(true);
+			term.print("Structr");
+			term.print(" 1.1");
+			term.setBold(false);
+			term.println();
+
+			// display first prompt
+			displayPrompt();
+
+		} else {
+
+			callback.onExit(1);
+		}
+	}
+
+	@Override
+	public void destroy() {
+		term.stopEmulator();
+	}
+
+	@Override
+	public void signal(final Signal signal) {
+		logger.log(Level.INFO, "Received signal {0}", signal.name());
+	}
+
+	@Override
+	public void handleLine(final String line) throws IOException {
+
+		if (StringUtils.isNotBlank(line)) {
+
+			final ShellCommand cmd = getCommandForLine(line);
+			if (cmd != null) {
+
+				cmd.setUser(user);
+				cmd.setTerminalEmulator(term);
+				cmd.execute(this);
+			}
+
+			commandHistory.add(line);
+		}
+	}
+
+	@Override
+	public void handleExit() {
+
+		if (callback != null) {
+
+			callback.onExit(0);
+		}
+	}
+
+	public String getPrompt() {
+
+		final App app           = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend));
+		final StringBuilder buf = new StringBuilder();
+
+		try (final Tx tx = app.tx()) {
+
+			buf.append(user.getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		buf.append("@structr:~$ ");
+
+		return buf.toString();
+	}
+
+	// ----- private methods -----
+	private ShellCommand getCommandForLine(final String line) {
+
+		final int pos                             = line.indexOf(" ");
+		final String commandString                = pos > 0 ? line.substring(0, pos) : line;
+		final Class<? extends ShellCommand> clazz = commands.get(commandString);
+
+		if (clazz != null) {
+
+			try {
+
+				return clazz.newInstance();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public List<String> getCommandHistory() {
+		return commandHistory;
+	}
+
+	@Override
+	public void displayPrompt() throws IOException {
+
+		// output prompt
+		term.print(getPrompt());
+	}
+
+	@Override
+	public void handleLogoutRequest() throws IOException {
+
+		// Ctrl-D is logout
+		term.println("logout");
+		term.stopEmulator();
+
+	}
+
+	@Override
+	public void handleCtrlC() throws IOException {
+
+		// Ctrl-C
+		term.print("^C");
+		term.clearLineBuffer();
+		term.handleNewline();
+	}
+
+	@Override
+	public void setUser(final User user) {
+		this.user = user;
+	}
+
+	@Override
+	public User getUser() {
+		return user;
+	}
+}

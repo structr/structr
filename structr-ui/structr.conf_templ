@@ -29,6 +29,9 @@ application.rest.path = /structr/rest
 # Listener port of built-in FTP server
 application.ftp.port = 8021
 
+# Listener port of built-in SSH server
+application.ssh.port = 8022
+
 # HTTPS settings
 # run this command to create a selfsigned certificate:
 # 'keytool -genkey -keyalg RSA -alias selfsigned -keystore [KEYSTORE_FILE] -storepass [KEYSTORE_PASSWORD] -validity 360 -keysize 2048'
