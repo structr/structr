@@ -2,9 +2,12 @@ package org.structr.files.text;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
+import org.apache.tika.language.LanguageIdentifier;
 
 /**
  *
@@ -14,9 +17,12 @@ public class FulltextTokenizer extends Writer {
 
 	public static final Set<Character> SpecialChars = new LinkedHashSet<>();
 
-	final StringBuilder rawText    = new StringBuilder();
-	final StringBuilder wordBuffer = new StringBuilder();
-	final Set<String> words        = new LinkedHashSet<>();
+	private final StringBuilder rawText      = new StringBuilder();
+	private final StringBuilder wordBuffer   = new StringBuilder();
+	private final Map<String, Integer> words = new LinkedHashMap<>();
+	private String language                  = "de";
+	private char lastCharacter               = 0;
+	private int consecutiveCharCount         = 0;
 
 	static {
 
@@ -42,19 +48,11 @@ public class FulltextTokenizer extends Writer {
 		SpecialChars.add('\'');
 		SpecialChars.add('\"');
 		SpecialChars.add('`');
-		SpecialChars.add('(');
-		SpecialChars.add(')');
-		SpecialChars.add('[');
-		SpecialChars.add(']');
-		SpecialChars.add('{');
-		SpecialChars.add('}');
 	}
 
 	@Override
 	public void write(final char[] cbuf, final int off, final int len) throws IOException {
 
-		// FIXME: we cannot be sure that the data in the buffer is not truncated
-		// so we need to collect the data of more than one write call.
 		final int limit  = off + len;
 		final int length = Math.min(limit, cbuf.length);
 
@@ -62,19 +60,43 @@ public class FulltextTokenizer extends Writer {
 
 			final char c = cbuf[i];
 
+			// remove occurrences of more than 10 identical chars in a row
+			if (c == lastCharacter) {
+
+				if (consecutiveCharCount++ >= 10) {
+					continue;
+				}
+
+			} else {
+
+				consecutiveCharCount = 0;
+			}
+
 			if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !SpecialChars.contains(c)) {
 
-				// split character
 				flush();
+
+				if (Character.isWhitespace(c)) {
+
+					rawText.append(c);
+
+				} else {
+
+					rawText.append(" ");
+				}
 
 			} else {
 
 				wordBuffer.append(c);
+				rawText.append(c);
 			}
-		}
 
-		// make raw text available
-		rawText.append(new String(cbuf, off, len));
+			lastCharacter = c;
+		}
+	}
+
+	public String getLanguage() {
+		return language;
 	}
 
 	public String getRawText() {
@@ -82,6 +104,10 @@ public class FulltextTokenizer extends Writer {
 	}
 
 	public Set<String> getWords() {
+		return words.keySet();
+	}
+
+	public Map<String, Integer> getWordsWithFrequency() {
 		return words;
 	}
 
@@ -89,7 +115,7 @@ public class FulltextTokenizer extends Writer {
 	public void flush() throws IOException {
 
 		final String word = wordBuffer.toString().trim();
-		if (StringUtils.isNotBlank(word) && word.length() > 4) {
+		if (StringUtils.isNotBlank(word)) {
 
 			// check for numbers
 			if (word.contains(".") || word.contains(",")) {
@@ -97,7 +123,7 @@ public class FulltextTokenizer extends Writer {
 				// try to separate numbers
 				if (word.matches("[\\-0-9\\.,]+")) {
 
-					words.add(word);
+					addWord(word);
 
 				} else {
 
@@ -110,14 +136,14 @@ public class FulltextTokenizer extends Writer {
 
 						if (StringUtils.isNotBlank(part)) {
 
-							words.add(part.toLowerCase());
+							addWord(part.toLowerCase());
 						}
 					}
 				}
 
 			} else {
 
-				words.add(word.toLowerCase());
+				addWord(word.toLowerCase());
 			}
 		}
 
@@ -126,6 +152,31 @@ public class FulltextTokenizer extends Writer {
 
 	@Override
 	public void close() throws IOException {
+
 		flush();
+
+		final LanguageIdentifier identifier = new LanguageIdentifier(rawText.toString());
+		if (identifier.isReasonablyCertain()) {
+
+			language = identifier.getLanguage();
+		}
+	}
+
+	// ----- private methods -----
+	private void addWord(final String word) {
+
+		final int length = word.length();
+		if (length > 3 && length < 40) {
+
+			final Integer count = words.get(word);
+			if (count == null) {
+
+				words.put(word, 1);
+
+			} else {
+
+				words.put(word, count+1);
+			}
+		}
 	}
 }

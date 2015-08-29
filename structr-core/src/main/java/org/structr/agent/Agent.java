@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
@@ -39,7 +40,7 @@ import org.structr.core.graph.Tx;
  *
  * @author Christian Morgner
  */
-public abstract class Agent extends Thread implements StatusInfo {
+public abstract class Agent<T extends AbstractNode> extends Thread implements StatusInfo {
 
 	public static final String AVERAGE_EXECUTION_TIME = "average_execution_time";
 	public static final String EXECUTION_STATUS       = "execution_status";
@@ -56,7 +57,7 @@ public abstract class Agent extends Thread implements StatusInfo {
 	private int maxAgents                      = 4;
 	private int maxQueueSize                   = 10;
 	private final AtomicBoolean suspended      = new AtomicBoolean(false);
-	private final Queue<Task> taskQueue        = new ConcurrentLinkedQueue<>();
+	private final Queue<Task<T>> taskQueue     = new ConcurrentLinkedQueue<>();
 
 	//~--- methods --------------------------------------------------------
 
@@ -103,7 +104,7 @@ public abstract class Agent extends Thread implements StatusInfo {
 							logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
 							t.printStackTrace();
 						}
-						
+
 					} else {
 
 						try {
@@ -158,7 +159,7 @@ public abstract class Agent extends Thread implements StatusInfo {
 		agentService.notifyAgentStop(this);
 	}
 
-	public final boolean assignTask(Task task) {
+	public final boolean assignTask(final Task<T> task) {
 
 		// TODO: do type check here
 		if (canHandleMore() && acceptingTasks.get()) {
@@ -259,19 +260,19 @@ public abstract class Agent extends Thread implements StatusInfo {
 	 * This method will be called by the AgentService
 	 * @param task
 	 */
-	public abstract ReturnValue processTask(Task task) throws Throwable;
+	public abstract ReturnValue processTask(final Task<T> task) throws Throwable;
 
 	public boolean createEnclosingTransaction() {
 		return true;
 	}
 
-	public final Task getCurrentTask() {
+	public final Task<T> getCurrentTask() {
 		return (currentTask);
 	}
 
-	public final List<Task> getTaskQueue() {
+	public final List<Task<T>> getTaskQueue() {
 
-		List<Task> ret = new LinkedList<Task>();
+		List<Task<T>> ret = new LinkedList<Task<T>>();
 
 		ret.addAll(taskQueue);
 

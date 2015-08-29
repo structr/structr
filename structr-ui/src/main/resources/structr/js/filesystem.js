@@ -306,7 +306,7 @@ function displaySearchResultsForURL(url) {
 
                                 var div = $('#results' + d.id);
 
-                                div.append('<h2>' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" /></h2>');
+                                div.append('<h2>' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 
                                 $.each(data.result.context, function(i, contextString) {
 

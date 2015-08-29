@@ -19,7 +19,7 @@
 package org.structr.agent;
 
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.Delayed;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -29,7 +29,7 @@ import org.structr.core.entity.Principal;
 
  * @author Christian Morgner
  */
-public interface Task extends Delayed, StatusInfo {
+public interface Task<T extends AbstractNode> extends Delayed, StatusInfo {
 
     /**
      * Principal to process the task as
@@ -41,11 +41,9 @@ public interface Task extends Delayed, StatusInfo {
     /**
      * Returns the nodes this task should operate on.
      *
-     * TODO: Set or List?
-     *
      * @return a set of nodes relevant to this task.
      */
-    public Set<AbstractNode> getNodes();
+    public List<T> getNodes();
 
     /**
      * Returns the priority of this task.

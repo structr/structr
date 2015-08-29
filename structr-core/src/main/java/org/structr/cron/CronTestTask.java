@@ -20,7 +20,7 @@ package org.structr.cron;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.structr.agent.Task;
@@ -29,10 +29,10 @@ import org.structr.core.entity.Principal;
 
 /**
  * A task for testing the CRON service.
- * 
+ *
  * @author Christian Morgner
  */
-public class CronTestTask implements Task {
+public class CronTestTask<T extends AbstractNode> implements Task<T> {
 
 	@Override
 	public Principal getUser() {
@@ -40,8 +40,8 @@ public class CronTestTask implements Task {
 	}
 
 	@Override
-	public Set<AbstractNode> getNodes() {
-		return Collections.emptySet();
+	public List<T> getNodes() {
+		return Collections.emptyList();
 	}
 
 	@Override

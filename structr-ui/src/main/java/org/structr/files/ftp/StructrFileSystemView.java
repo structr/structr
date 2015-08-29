@@ -73,12 +73,7 @@ public class StructrFileSystemView implements FileSystemView {
 	public FtpFile getWorkingDirectory() throws FtpException {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-//		org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
-//
-//		Folder workingDir = structrUser.getProperty(org.structr.web.entity.User.workingDirectory);
-//		if (workingDir == null) {
-//			workingDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
-//		}
+
 			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), workingDir);
 			if (structrWorkingDir == null || structrWorkingDir instanceof File) {
 				return new StructrFtpFolder(null);
@@ -100,21 +95,6 @@ public class StructrFileSystemView implements FileSystemView {
 
 			workingDir = newWorkingDirectory.getAbsolutePath();
 
-//		try {
-//			StructrApp.getInstance().command(TransactionCommand.class).execute(new StructrTransaction() {
-//
-//				@Override
-//				public Object execute() throws FrameworkException {
-//
-//					structrUser.setProperty(org.structr.web.entity.User.workingDirectory, (Folder) newWorkingDirectory.getStructrFile());
-//					return null;
-//				}
-//
-//			});
-//		} catch (FrameworkException ex) {
-//			logger.log(Level.SEVERE, null, ex);
-//			return false;
-//		}
 			return true;
 
 		} catch (FrameworkException fex) {
@@ -180,20 +160,6 @@ public class StructrFileSystemView implements FileSystemView {
 				return page;
 			}
 
-//		List<FtpFile> files = cur.listFiles();
-//		for (FtpFile file : files) {
-//
-//			String path = file.getAbsolutePath();
-//
-//			if (path.equals(requestedPath)) {
-//
-//				String type = file.isDirectory() ? "Directory" : (file.isFile() ? "File" : "unknown");
-//				logger.log(Level.INFO, "{0} found: {1}", new Object[] {type, file.getAbsolutePath()});
-//
-//				return file;
-//			}
-//
-//		}
 			logger.log(Level.WARNING, "No existing file found: {0}", requestedPath);
 
 			return new FileOrFolder(requestedPath, user);

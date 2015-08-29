@@ -682,5 +682,5 @@ var _Files = {
 		var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar'];
 
 		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
-	}
+    }
 };

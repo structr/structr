@@ -32,11 +32,6 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.sax.BodyContentHandler;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.index.Index;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -57,12 +52,12 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.files.ssh.FulltextIndexingTask;
 import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.relation.Folders;
-import org.structr.web.property.PathProperty;
 
 /**
  *
@@ -74,6 +69,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 	public static final Property<String> indexedContent          = new StringProperty("indexedContent").indexed(NodeService.NodeIndex.fulltext);
 	public static final Property<String> extractedContent        = new StringProperty("extractedContent");
+	public static final Property<String> indexedWords            = new StringProperty("indexedWords");
 	public static final Property<String> contentType             = new StringProperty("contentType").indexedWhenEmpty();
 	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").readOnly();
 	public static final Property<Long> size                      = new LongProperty("size").indexed().readOnly();
@@ -81,11 +77,10 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
 	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds");
 	public static final Property<Integer> version                = new IntProperty("version").indexed().readOnly();
-	public static final Property<String> path                    = new PathProperty("path").indexed().readOnly();
 	public static final Property<Boolean> isFile                 = new BooleanProperty("isFile").defaultValue(true).readOnly();
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
-	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path, isFile, hasParent, extractedContent);
+	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, extractedContent, indexedWords);
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -379,64 +374,9 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		return wordCount;
 	}
 
-	public void notifyAsyncUploadCompletion() {
-
-		try (final InputStream is = getInputStream()) {
-
-			final NodeService nodeService     = Services.getInstance().getService(NodeService.class);
-			final Index<Node> fulltextIndex   = nodeService.getNodeIndex(NodeService.NodeIndex.fulltext);
-			final FulltextTokenizer tokenizer = new FulltextTokenizer();
-			final String indexKeyName         = indexedContent.jsonName();
-			final AutoDetectParser parser     = new AutoDetectParser();
-			final Node node                   = getNode();
-
-			// parse data
-			parser.parse(is, new BodyContentHandler(tokenizer), new Metadata());
-
-			// save raw extracted text
-			setProperty(extractedContent, tokenizer.getRawText());
-
-			// tokenize name
-			tokenizer.write(getName());
-
-			// tokenize owner name
-			final Principal _owner = getProperty(owner);
-			if (_owner != null) {
-
-				final String ownerName = _owner.getName();
-				if (ownerName != null) {
-
-					tokenizer.write(ownerName);
-				}
-
-				final String eMail = _owner.getProperty(User.eMail);
-				if (eMail != null) {
-
-					tokenizer.write(eMail);
-				}
-
-				final String twitterName = _owner.getProperty(User.twitterName);
-				if (twitterName != null) {
-
-					tokenizer.write(twitterName);
-				}
-			}
-
-			// remove node from index (in case of previous indexing runs)
-			fulltextIndex.remove(node, indexKeyName);
-
-			// index document
-			for (final String word : tokenizer.getWords()) {
-				fulltextIndex.add(node, indexKeyName, word);
-			}
-
-			System.out.println();
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+	public void notifyUploadCompletion() {
+		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
 	}
-
 
 	public String getRelativeFilePath() {
 
@@ -537,7 +477,6 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	public OutputStream getOutputStream() {
 
 		final String path = getRelativeFilePath();
-
 		if (path != null) {
 
 			final String filePath = FileHelper.getFilePath(path);
@@ -545,9 +484,10 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 			try {
 
 				final java.io.File fileOnDisk = new java.io.File(filePath);
+				fileOnDisk.getParentFile().mkdirs();
 
 				// Return file output stream and save checksum and size after closing
-				FileOutputStream fos = new FileOutputStream(fileOnDisk) {
+				final FileOutputStream fos = new FileOutputStream(fileOnDisk) {
 
 					private boolean closed = false;
 
@@ -576,11 +516,11 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 							}
 
 							increaseVersion();
-
+							notifyUploadCompletion();
 
 							tx.success();
 
-						} catch (FrameworkException ex) {
+						} catch (Throwable ex) {
 
 							logger.log(Level.SEVERE, "Could not determine or save checksum and size after closing file output stream", ex);
 
@@ -593,6 +533,8 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 				return fos;
 
 			} catch (FileNotFoundException e) {
+
+				e.printStackTrace();
 				logger.log(Level.SEVERE, "File not found: {0}", new Object[]{path});
 			}
 

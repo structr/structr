@@ -134,7 +134,7 @@ public class FileUploadHandler {
 				this.privateFileChannel = null;
 
 				//file.increaseVersion();
-				file.notifyAsyncUploadCompletion();
+				file.notifyUploadCompletion();
 
 			}
 

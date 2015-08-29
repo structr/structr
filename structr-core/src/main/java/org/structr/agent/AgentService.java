@@ -53,7 +53,7 @@ public class AgentService extends Thread implements RunnableService {
 
 	//~--- fields ---------------------------------------------------------
 
-	private int maxAgents                                = 4;    // TODO: make configurable
+	private final int maxAgents                          = 4;    // TODO: make configurable
 	private final Map<String, List<Agent>> runningAgents = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<String, Class> agentClassCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Queue<Task> taskQueue                  = new ConcurrentLinkedQueue<>();
