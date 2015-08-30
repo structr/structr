@@ -18,14 +18,18 @@ import org.codehaus.plexus.util.StringUtils;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.files.ssh.shell.CdCommand;
 import org.structr.files.ssh.shell.InputCommand;
 import org.structr.files.ssh.shell.LogoutCommand;
 import org.structr.files.ssh.shell.LsCommand;
 import org.structr.files.ssh.shell.PasswordCommand;
 import org.structr.files.ssh.shell.ShellCommand;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
 /**
@@ -42,11 +46,13 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 		commands.put("logout",     LogoutCommand.class);
 		commands.put("exit",       LogoutCommand.class);
 		commands.put("ls",         LsCommand.class);
+		commands.put("cd",         CdCommand.class);
 		commands.put("input",      InputCommand.class);
 		commands.put("passwd",     PasswordCommand.class);
 	}
 
 	private final List<String> commandHistory = new LinkedList<>();
+	private Folder currentFolder              = null;
 	private TerminalEmulator term             = null;
 	private ExitCallback callback             = null;
 	private InputStream in                    = null;
@@ -86,6 +92,14 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 			try (final Tx tx = app.tx()) {
 
 				user = app.nodeQuery(User.class).andName(userName).getFirst();
+				if (user != null) {
+
+					// set home directory first
+					if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
+
+						currentFolder = user.getProperty(User.homeDirectory);
+					}
+				}
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -167,6 +181,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 			final ShellCommand cmd = getCommandForLine(line);
 			if (cmd != null) {
 
+				cmd.setCommand(line);
 				cmd.setUser(user);
 				cmd.setTerminalEmulator(term);
 				cmd.execute(this);
@@ -193,6 +208,31 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 		try (final Tx tx = app.tx()) {
 
 			buf.append(user.getName());
+			buf.append("@structr:");
+
+			if (currentFolder != null) {
+
+				String folderPart = currentFolder.getProperty(AbstractFile.path);
+
+				final Folder homeFolder = user.getProperty(User.homeDirectory);
+				if (homeFolder != null) {
+
+					// replace home directory with ~ if at the beginning of the full path
+					final String homeFolderPath = homeFolder.getProperty(AbstractFile.path);
+					if (folderPart.startsWith(homeFolderPath)) {
+
+						folderPart = "~" + folderPart.substring(homeFolderPath.length());
+					}
+				}
+
+				buf.append(folderPart);
+
+			} else {
+
+				buf.append("/");
+			}
+			buf.append(user.isAdmin() ? "#" : "$");
+			buf.append(" ");
 
 			tx.success();
 
@@ -200,9 +240,15 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 			fex.printStackTrace();
 		}
 
-		buf.append("@structr:~$ ");
-
 		return buf.toString();
+	}
+
+	public Folder getCurrentFolder() {
+		return currentFolder;
+	}
+
+	public void setCurrentFolder(final Folder folder) {
+		this.currentFolder = folder;
 	}
 
 	// ----- private methods -----
@@ -264,5 +310,21 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 	@Override
 	public User getUser() {
 		return user;
+	}
+
+	@Override
+	public void handleTab(final int tabCount) throws IOException {
+
+		final String line = term.getLineBuffer().toString();
+		if (StringUtils.isNotBlank(line)) {
+
+			final ShellCommand cmd = getCommandForLine(line);
+			if (cmd != null) {
+
+				cmd.setUser(user);
+				cmd.setTerminalEmulator(term);
+				cmd.handleTabCompletion(this, line, tabCount);
+			}
+		}
 	}
 }

@@ -25,6 +25,7 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 	protected int cursorPosition                  = 0;
 	protected int lineLength                      = 0;
 	protected int commandBufferIndex              = 0;
+	protected int tabCount                        = 0;
 
 	public AbstractTerminalEmulator(final InputStream in, final OutputStream out, final TerminalHandler rootTerminalHandler) {
 
@@ -122,7 +123,22 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 			try {
 
 				int c = reader.read();
+
+				// global tab count
+				if (c == 9) {
+
+					tabCount++;
+
+				} else {
+
+					tabCount = 0;
+				}
+
 				switch (c) {
+
+					case 9:
+						handleTab(tabCount);
+						break;
 
 					case 13:
 						handleNewline();
@@ -268,6 +284,11 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 		lineBuffer.setLength(0);
 		cursorPosition = 0;
 		lineLength = 0;
+	}
+
+	@Override
+	public StringBuilder getLineBuffer() {
+		return lineBuffer;
 	}
 
 	@Override

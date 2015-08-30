@@ -14,6 +14,7 @@ public interface TerminalEmulator {
 	public void stopEmulator();
 
 	public void clearLineBuffer();
+	public StringBuilder getLineBuffer();
 	public void handleCtrlKey(final int key) throws IOException;
 
 	public void handleCursorUp() throws IOException;
@@ -28,8 +29,9 @@ public interface TerminalEmulator {
 	public void handleBackspace() throws IOException;
 	public void handleDelete() throws IOException;
 	public void handleNewline() throws IOException;
-	public void handleTab() throws IOException;
+	public void handleTab(final int tabCount) throws IOException;
 
+	public void handleString(final String text) throws IOException;
 	public void handleCharacter(final int c) throws IOException;
 	public void setEcho(final boolean echo);
 
@@ -43,5 +45,7 @@ public interface TerminalEmulator {
 	public void setCursorColumnAbsolute(final int col) throws IOException;
 	public void setCursorColumnRelative(final int col) throws IOException;
 	public void setCursorPosition(final int x, final int y) throws IOException;
+	public void saveCursor() throws IOException;
+	public void restoreCursor() throws IOException;
 
 }

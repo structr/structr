@@ -160,7 +160,8 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 	}
 
 	@Override
-	public void handleTab() {
+	public void handleTab(final int tabCount) throws IOException {
+		terminalHandler.handleTab(tabCount);
 	}
 
 	@Override
@@ -190,6 +191,16 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write('4');
 		writer.write(Integer.toString(color));
 		writer.write('m');
+	}
+
+	@Override
+	public void handleString(final String text) throws IOException {
+
+		final int len = text.length();
+
+		for (int i=0; i<len; i++) {
+			handleCharacter(text.codePointAt(i));
+		}
 	}
 
 	@Override
@@ -245,6 +256,24 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write(Integer.toString(x));
 		writer.write(Integer.toString(y));
 		writer.write('H');
+
+	}
+
+	@Override
+	public void saveCursor() throws IOException {
+
+		writer.write(27);
+		writer.write('[');
+		writer.write('s');
+
+	}
+
+	@Override
+	public void restoreCursor() throws IOException {
+
+		writer.write(27);
+		writer.write('[');
+		writer.write('u');
 
 	}
 }
