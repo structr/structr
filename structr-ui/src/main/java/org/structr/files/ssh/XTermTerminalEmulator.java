@@ -171,6 +171,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write('[');
 		writer.write(bold ? '1' : '0');
 		writer.write('m');
+		writer.flush();
 	}
 
 	@Override
@@ -181,6 +182,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write('3');
 		writer.write(Integer.toString(color));
 		writer.write('m');
+		writer.flush();
 	}
 
 	@Override
@@ -191,6 +193,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write('4');
 		writer.write(Integer.toString(color));
 		writer.write('m');
+		writer.flush();
 	}
 
 	@Override
@@ -235,7 +238,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write('[');
 		writer.write(Integer.toString(col));
 		writer.write('`');
-
+		writer.flush();
 	}
 
 	@Override
@@ -245,7 +248,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write('[');
 		writer.write(Integer.toString(col));
 		writer.write('a');
-
+		writer.flush();
 	}
 
 	@Override
@@ -256,7 +259,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write(Integer.toString(x));
 		writer.write(Integer.toString(y));
 		writer.write('H');
-
+		writer.flush();
 	}
 
 	@Override
@@ -265,7 +268,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write(27);
 		writer.write('[');
 		writer.write('s');
-
+		writer.flush();
 	}
 
 	@Override
@@ -274,6 +277,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		writer.write(27);
 		writer.write('[');
 		writer.write('u');
+		writer.flush();
 
 	}
 }

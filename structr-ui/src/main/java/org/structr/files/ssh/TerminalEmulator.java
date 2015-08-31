@@ -48,4 +48,5 @@ public interface TerminalEmulator {
 	public void saveCursor() throws IOException;
 	public void restoreCursor() throws IOException;
 
+	public void flush() throws IOException;
 }

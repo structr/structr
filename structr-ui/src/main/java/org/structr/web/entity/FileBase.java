@@ -52,7 +52,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.files.ssh.FulltextIndexingTask;
+import org.structr.files.text.FulltextIndexingTask;
 import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.FileHelper;

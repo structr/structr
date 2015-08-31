@@ -10,6 +10,7 @@ import org.apache.sshd.common.Session;
 import org.apache.sshd.common.file.FileSystemFactory;
 import org.apache.sshd.common.file.FileSystemView;
 import org.apache.sshd.server.CommandFactory;
+import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.command.ScpCommandFactory;
@@ -134,7 +135,27 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	@Override
 	public org.apache.sshd.server.Command createCommand(final String command) {
-		return create();
+
+		final StructrShellCommand cmd = new StructrShellCommand() {
+
+			@Override
+			public void start(final Environment env) throws IOException {
+
+				super.start(env);
+
+				// non-interactively handle the command
+				this. handleLine(command);
+				this.flush();
+				this.handleExit();
+			}
+
+			@Override
+			public boolean isInteractive() {
+				return false;
+			}
+		};
+
+		return cmd;
 	}
 
 	@Override

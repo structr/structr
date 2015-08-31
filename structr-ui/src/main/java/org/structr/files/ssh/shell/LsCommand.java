@@ -2,8 +2,7 @@ package org.structr.files.ssh.shell;
 
 import java.io.IOException;
 import java.util.List;
-import org.structr.common.AccessMode;
-import org.structr.common.SecurityContext;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -23,18 +22,18 @@ public class LsCommand extends NonInteractiveShellCommand {
 	@Override
 	public void execute(final StructrShellCommand parent) throws IOException {
 
-		final App app = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend));
+		final App app = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			final Folder currentFolder = parent.getCurrentFolder();
 			if (currentFolder != null) {
 
-				listFolder(currentFolder.getProperty(AbstractFile.children));
+				listFolder(parent, currentFolder.getProperty(AbstractFile.children));
 
 			} else {
 
-				listFolder(app.nodeQuery(AbstractFile.class).and(AbstractFile.parent, null).getAsList());
+				listFolder(parent, app.nodeQuery(AbstractFile.class).and(AbstractFile.parent, null).getAsList());
 			}
 
 			tx.success();
@@ -46,21 +45,24 @@ public class LsCommand extends NonInteractiveShellCommand {
 	}
 
 	// ----- private methods -----
-	private void listFolder(final List<AbstractFile> folder) throws FrameworkException, IOException {
+	private void listFolder(final StructrShellCommand parent, final List<AbstractFile> folder) throws FrameworkException, IOException {
 
 		for (final AbstractFile child : folder) {
 
-			if (child instanceof Folder) {
+			if (parent.isAllowed(child, Permission.read, false)) {
 
-				term.setBold(true);
-				term.setTextColor(4);
-				term.print(child.getName() + "  ");
-				term.setTextColor(7);
-				term.setBold(false);
+				if (child instanceof Folder) {
 
-			} else {
+					term.setBold(true);
+					term.setTextColor(4);
+					term.print(child.getName() + "  ");
+					term.setTextColor(7);
+					term.setBold(false);
 
-				term.print(child.getName() + "  ");
+				} else {
+
+					term.print(child.getName() + "  ");
+				}
 			}
 		}
 

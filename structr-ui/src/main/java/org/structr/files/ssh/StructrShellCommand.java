@@ -16,16 +16,18 @@ import org.apache.sshd.server.Signal;
 import org.apache.sshd.server.SignalListener;
 import org.codehaus.plexus.util.StringUtils;
 import org.structr.common.AccessMode;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.files.ssh.shell.CatCommand;
 import org.structr.files.ssh.shell.CdCommand;
-import org.structr.files.ssh.shell.InputCommand;
 import org.structr.files.ssh.shell.LogoutCommand;
 import org.structr.files.ssh.shell.LsCommand;
+import org.structr.files.ssh.shell.MkdirCommand;
 import org.structr.files.ssh.shell.PasswordCommand;
 import org.structr.files.ssh.shell.ShellCommand;
 import org.structr.web.entity.AbstractFile;
@@ -43,11 +45,12 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 
 	static {
 
-		commands.put("logout",     LogoutCommand.class);
-		commands.put("exit",       LogoutCommand.class);
-		commands.put("ls",         LsCommand.class);
+		commands.put("cat",        CatCommand.class);
 		commands.put("cd",         CdCommand.class);
-		commands.put("input",      InputCommand.class);
+		commands.put("exit",       LogoutCommand.class);
+		commands.put("logout",     LogoutCommand.class);
+		commands.put("ls",         LsCommand.class);
+		commands.put("mkdir",      MkdirCommand.class);
 		commands.put("passwd",     PasswordCommand.class);
 	}
 
@@ -113,59 +116,68 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 			return;
 		}
 
-		// abort if no user was found
-		if (user == null) {
+		if (isInteractive()) {
 
-			logger.log(Level.WARNING, "Cannot start Structr shell, user not found for name {0}!", userName);
-			return;
-		}
+			// abort if no user was found
+			if (user == null) {
 
-		final String terminalType = env.getEnv().get("TERM");
-		if (terminalType != null) {
+				logger.log(Level.WARNING, "Cannot start Structr shell, user not found for name {0}!", userName);
+				return;
+			}
 
-			switch (terminalType) {
+			final String terminalType = env.getEnv().get("TERM");
+			if (terminalType != null) {
 
-				case "xterm":
-				case "vt100":
-				case "vt220":
-					term = new XTermTerminalEmulator(in, out, this);
-					break;
+				switch (terminalType) {
 
-				default:
-					logger.log(Level.WARNING, "Unsupported terminal type {0}, aborting.", terminalType);
-					break;
+					case "xterm":
+					case "vt100":
+					case "vt220":
+						term = new XTermTerminalEmulator(in, out, this);
+						break;
+
+					default:
+						logger.log(Level.WARNING, "Unsupported terminal type {0}, aborting.", terminalType);
+						break;
 
 
+				}
+
+				logger.log(Level.WARNING, "No terminal type provided, aborting.", terminalType);
+			}
+
+			if (term != null) {
+
+				term.start();
+
+				term.print("Welcome to ");
+				term.setBold(true);
+				term.print("Structr");
+				term.print(" 1.1");
+				term.setBold(false);
+				term.println();
+
+				// display first prompt
+				displayPrompt();
+
+			} else {
+
+				callback.onExit(1);
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "No terminal type provided, aborting.", terminalType);
-		}
-
-		if (term != null) {
-
-			term.start();
-
-			term.print("Welcome to ");
-			term.setBold(true);
-			term.print("Structr");
-			term.print(" 1.1");
-			term.setBold(false);
-			term.println();
-
-			// display first prompt
-			displayPrompt();
-
-		} else {
-
-			callback.onExit(1);
+			// create terminal emulation
+			term = new XTermTerminalEmulator(in, out, this);
 		}
 	}
 
 	@Override
 	public void destroy() {
-		term.stopEmulator();
+
+		if (term != null) {
+			term.stopEmulator();
+		}
 	}
 
 	@Override
@@ -202,7 +214,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 
 	public String getPrompt() {
 
-		final App app           = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend));
+		final App app           = StructrApp.getInstance();
 		final StringBuilder buf = new StringBuilder();
 
 		try (final Tx tx = app.tx()) {
@@ -249,6 +261,54 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 
 	public void setCurrentFolder(final Folder folder) {
 		this.currentFolder = folder;
+	}
+
+	public Folder findRelativeFolder(final Folder baseFolder, final String path) throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+		Folder folder = baseFolder;
+		boolean found = false;
+
+		for (final String part : path.split("[/]+")) {
+
+			if (folder == null) {
+
+				folder = app.nodeQuery(Folder.class).and(Folder.name, part).getFirst();
+
+			} else {
+
+				for (final Folder child : folder.getProperty(Folder.folders)) {
+
+					if (part.equals(child.getName())) {
+
+						folder = child;
+						found     = true;
+					}
+				}
+
+				if (!found) {
+					return null;
+				}
+			}
+		}
+
+		return folder;
+	}
+
+	public boolean isAllowed(final AbstractFile file, final Permission permission, final boolean explicit) {
+
+		if (file == null) {
+			return false;
+		}
+
+		final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+
+		if (Permission.read.equals(permission) && !explicit) {
+
+			return file.isVisibleToAuthenticatedUsers() || file.isVisibleToPublicUsers() || file.isGranted(permission, securityContext);
+		}
+
+		return file.isGranted(permission, securityContext);
 	}
 
 	// ----- private methods -----
@@ -325,6 +385,17 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				cmd.setTerminalEmulator(term);
 				cmd.handleTabCompletion(this, line, tabCount);
 			}
+		}
+	}
+
+	public boolean isInteractive() {
+		return true;
+	}
+
+	public void flush() throws IOException {
+
+		if (term != null) {
+			term.flush();
 		}
 	}
 }

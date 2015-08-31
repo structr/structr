@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import org.codehaus.plexus.util.StringUtils;
-import org.structr.common.AccessMode;
-import org.structr.common.SecurityContext;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -25,7 +24,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 	@Override
 	public void execute(final StructrShellCommand parent) throws IOException {
 
-		final App app = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend));
+		final App app = StructrApp.getInstance();
 		final Folder currentFolder = parent.getCurrentFolder();
 
 		try (final Tx tx = app.tx()) {
@@ -36,7 +35,19 @@ public class CdCommand extends NonInteractiveShellCommand {
 
 					case "..":
 						if (currentFolder != null) {
-							parent.setCurrentFolder(currentFolder.getProperty(Folder.parent));
+
+							final Folder parentFolder = currentFolder.getProperty(Folder.parent);
+							if (parentFolder != null) {
+
+								if (parent.isAllowed(parentFolder, Permission.read, true)) {
+									parent.setCurrentFolder(parentFolder);
+								}
+
+							} else {
+
+								parent.setCurrentFolder(null);
+							}
+
 						}
 						break;
 
@@ -98,7 +109,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 	@Override
 	public void handleTabCompletion(final StructrShellCommand parent, final String line, final int tabCount) throws IOException {
 
-		if (line.contains(" ") && line.length() > 3) {
+		if (line.contains(" ") && line.length() >= 3) {
 
 			String incompletePath = line.substring(line.indexOf(" ") + 1);
 			Folder baseFolder     = null;
@@ -109,7 +120,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 				incompletePath = incompletePath.substring(1);
 			}
 
-			final App app = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend));
+			final App app = StructrApp.getInstance();
 
 			if ("..".equals(incompletePath)) {
 
@@ -171,22 +182,35 @@ public class CdCommand extends NonInteractiveShellCommand {
 
 					// only display autocomplete suggestions after second tab
 					if (tabCount > 1) {
+
 						displayAutocompleteSuggestions(parent, folders, line);
 					}
 
-				} else {
+				} else if (!folders.isEmpty()) {
 
 					final Folder folder = folders.get(0);
-					if (lastPathPart.equals(folder.getName())) {
 
-						// only display autocomplete suggestions after second tab
-						if (tabCount > 1) {
-							displayAutocompleteSuggestions(parent, folder.getProperty(Folder.folders), line);
+					if (parent.isAllowed(folder, Permission.read, false)) {
+
+						if (lastPathPart.equals(folder.getName())) {
+
+							// only display autocomplete suggestions after second tab
+							if (tabCount > 1) {
+
+								displayAutocompleteSuggestions(parent, folder.getProperty(Folder.folders), line);
+
+							} else {
+
+								if (!line.endsWith("/")) {
+									term.handleCharacter('/');
+								}
+							}
+
+						} else {
+
+							displayAutocompleteFolder(folder, lastPathPart);
 						}
 
-					} else {
-
-						displayAutocompleteFolder(folder, lastPathPart);
 					}
 				}
 
@@ -203,7 +227,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 	// ----- private methods -----
 	private void setFolder(final StructrShellCommand parent, final Folder currentFolder, final String targetFolderName) throws IOException, FrameworkException {
 
-		final App app = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend));
+		final App app = StructrApp.getInstance();
 		String target = targetFolderName;
 
 		// remove trailing slash
@@ -216,7 +240,14 @@ public class CdCommand extends NonInteractiveShellCommand {
 			final Folder folder = app.nodeQuery(Folder.class).and(Folder.path, target).getFirst();
 			if (folder != null) {
 
-				parent.setCurrentFolder(folder);
+				if (parent.isAllowed(folder, Permission.read, true)) {
+
+					parent.setCurrentFolder(folder);
+
+				} else {
+
+				term.println("Permission denied");
+				}
 
 			} else {
 
@@ -225,36 +256,21 @@ public class CdCommand extends NonInteractiveShellCommand {
 
 		} else {
 
-			Folder newFolder = currentFolder;
-			boolean found    = false;
+			final Folder newFolder = parent.findRelativeFolder(currentFolder, target);
+			if (newFolder == null) {
 
-			for (final String part : target.split("[/]+")) {
+				term.println("Folder " + target + " does not exist");
 
-				if (newFolder == null) {
+			} else {
 
-					newFolder = app.nodeQuery(Folder.class).and(Folder.name, part).getFirst();
+				if (parent.isAllowed(newFolder, Permission.read, true)) {
+
+					parent.setCurrentFolder(newFolder);
 
 				} else {
 
-					for (final Folder folder : newFolder.getProperty(Folder.folders)) {
-
-						if (part.equals(folder.getName())) {
-
-							newFolder = folder;
-							found     = true;
-						}
-					}
-
-					if (!found) {
-
-						term.println("Folder " + target + " does not exist");
-						return;
-					}
+					term.println("Permission denied");
 				}
-			}
-
-			if (newFolder != null) {
-				parent.setCurrentFolder(newFolder);
 			}
 		}
 	}
@@ -277,16 +293,25 @@ public class CdCommand extends NonInteractiveShellCommand {
 
 		if (!folders.isEmpty()) {
 
-			term.println();
+			final StringBuilder buf = new StringBuilder();
 
 			for (final Folder folder : folders) {
-				term.print(folder.getName() + "/  ");
+
+				if (parent.isAllowed(folder, Permission.read, false)) {
+
+					buf.append(folder.getName()).append("/  ");
+				}
 			}
 
-			term.println();
+			if (buf.length() > 0) {
 
-			parent.displayPrompt();
-			term.print(line);
+				term.println();
+				term.print(buf.toString());
+				term.println();
+
+				parent.displayPrompt();
+				term.print(line);
+			}
 		}
 	}
 }

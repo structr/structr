@@ -2,8 +2,6 @@ package org.structr.files.ssh.shell;
 
 import java.io.IOException;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.AccessMode;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -26,7 +24,7 @@ public class PasswordCommand extends InteractiveShellCommand {
 		term.setEcho(false);
 		super.execute(parent);
 
-		try (final Tx tx = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend)).tx()) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			term.println("Changing password for " + user.getName());
 
@@ -42,7 +40,7 @@ public class PasswordCommand extends InteractiveShellCommand {
 
 		if (firstPassword == null) {
 
-			try (final Tx tx = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend)).tx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				term.print("Enter new password: ");
 
@@ -78,7 +76,7 @@ public class PasswordCommand extends InteractiveShellCommand {
 
 			if (firstPassword.equals(secondPassword)) {
 
-				try (final Tx tx = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend)).tx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 
 					user.setProperty(User.password, firstPassword);
 

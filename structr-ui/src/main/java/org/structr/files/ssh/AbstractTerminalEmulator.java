@@ -259,7 +259,23 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 				writer.flush();
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
+
+				if (writer != null) {
+
+					try {
+
+						writer.write('\n');
+						writer.write(t.getMessage());
+						writer.write('\n');
+
+					} catch (Throwable t2) {
+						t.printStackTrace();
+					}
+
+
+				}
 			}
 		}
 
@@ -294,6 +310,11 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 	@Override
 	public void setEcho(final boolean echo) {
 		this.echo = echo;
+	}
+
+	@Override
+	public void flush() throws IOException {
+		writer.flush();
 	}
 
 	// ----- protected methods -----

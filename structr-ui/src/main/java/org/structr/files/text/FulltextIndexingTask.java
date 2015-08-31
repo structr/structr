@@ -1,4 +1,4 @@
-package org.structr.files.ssh;
+package org.structr.files.text;
 
 import org.structr.agent.AbstractTask;
 import org.structr.web.entity.FileBase;

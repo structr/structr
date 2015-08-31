@@ -1,0 +1,136 @@
+package org.structr.files.ssh.shell;
+
+import java.io.IOException;
+import org.structr.common.Permission;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.Tx;
+import org.structr.files.ssh.StructrShellCommand;
+import org.structr.web.entity.Folder;
+
+/**
+ *
+ * @author Christian Morgner
+ */
+public class MkdirCommand extends CdCommand {
+
+	private String target = null;
+
+	@Override
+	public void execute(final StructrShellCommand parent) throws IOException {
+
+		final App app = StructrApp.getInstance();
+		final Folder currentFolder = parent.getCurrentFolder();
+
+		try (final Tx tx = app.tx()) {
+
+			if (target != null) {
+
+				switch (target) {
+
+					case "..":
+					case ".":
+					case "/":
+					case "~":
+						term.println("Folder " + target + " already exists");
+						break;
+
+					default:
+						createFolder(parent, currentFolder, target);
+						break;
+				}
+
+			} else {
+
+				term.println("mkdir needs parameter");
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+	}
+
+	@Override
+	public void setCommand(final String command) throws IOException {
+
+		if (command.contains(" ") && command.length() > 3) {
+
+			target = command.substring(command.indexOf(" ") + 1);
+
+			if (target.startsWith("\"")) {
+
+				if (target.endsWith("\"")) {
+
+					target = target.substring(1, target.length() - 2);
+
+				} else {
+
+					term.print("Unmatched quotes");
+				}
+			}
+
+			// remove trailing slash
+			if (target != null && target.endsWith("/") && target.length() > 1) {
+				target = target.substring(0, target.length() - 1);
+			}
+		}
+	}
+
+	// ----- private methods -----
+	private void createFolder(final StructrShellCommand parent, final Folder currentFolder, final String target) throws FrameworkException, IOException {
+
+		final App app = StructrApp.getInstance();
+		if (target.contains("/")) {
+
+			final int lastSlashIndex      = target.lastIndexOf("/");
+			final String targetFolderPath = target.substring(0, lastSlashIndex);
+			final String targetFolderName = target.substring(lastSlashIndex + 1);
+			final Folder parentFolder     = parent.findRelativeFolder(currentFolder, targetFolderPath);
+
+			if (parentFolder != null) {
+
+				checkAndCreateFolder(app, parent, parentFolder, targetFolderName);
+
+			} else {
+
+				term.println("Folder " + targetFolderPath + " does not exist");
+			}
+
+		} else {
+
+			checkAndCreateFolder(app, parent, currentFolder, target);
+		}
+	}
+
+	private void checkAndCreateFolder(final App app, final StructrShellCommand parent, final Folder parentFolder, final String name) throws FrameworkException, IOException {
+
+		final Folder checkFolder = app.nodeQuery(Folder.class).and(Folder.parent, parentFolder).and(Folder.name, name).getFirst();
+		if (checkFolder != null) {
+
+			term.println("Folder " + target + " already exists");
+
+		} else {
+
+			if (parentFolder != null) {
+
+				if (parent.isAllowed(parentFolder, Permission.write, true)) {
+
+					app.create(Folder.class,
+						new NodeAttribute(Folder.parent, parentFolder),
+						new NodeAttribute(Folder.owner, user),
+						new NodeAttribute(Folder.name, name)
+					);
+
+					return;
+				}
+			}
+
+			term.println("Permission denied");
+		}
+	}
+}

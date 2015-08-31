@@ -140,26 +140,45 @@ public class User extends AbstractUser {
 
 		if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
 
-			Folder homeDir = getProperty(User.homeDirectory);
-			if (homeDir == null) {
+			// use superuser context here
+			final SecurityContext storedContext = this.securityContext;
 
-				// create home directory
-				final App app     = StructrApp.getInstance(securityContext);
-				Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").getFirst();
+			try {
 
-				if (homeFolder == null) {
+				this.securityContext = SecurityContext.getSuperUserInstance();
+				Folder homeDir = getProperty(User.homeDirectory);
 
-					homeFolder = app.create(Folder.class,
-						new NodeAttribute(Folder.name, "home"),
-						new NodeAttribute(Folder.owner, null)
+				if (homeDir == null) {
+
+					// create home directory
+					final App app     = StructrApp.getInstance();
+					Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").getFirst();
+
+					if (homeFolder == null) {
+
+						homeFolder = app.create(Folder.class,
+							new NodeAttribute(Folder.name, "home"),
+							new NodeAttribute(Folder.owner, null),
+							new NodeAttribute(Folder.visibleToAuthenticatedUsers, true)
+						);
+					}
+
+					app.create(Folder.class,
+						new NodeAttribute(Folder.name, getUuid()),
+						new NodeAttribute(Folder.owner, this),
+						new NodeAttribute(Folder.parent, homeFolder),
+						new NodeAttribute(Folder.visibleToAuthenticatedUsers, true),
+						new NodeAttribute(Folder.homeFolderOfUser, this)
 					);
 				}
 
-				app.create(Folder.class,
-					new NodeAttribute(Folder.name, getUuid()),
-					new NodeAttribute(Folder.parent, homeFolder),
-					new NodeAttribute(Folder.homeFolderOfUser, this)
-				);
+			} catch (Throwable t) {
+
+
+			} finally {
+
+				// restore previous context
+				this.securityContext = storedContext;
 			}
 		}
 	}
@@ -168,10 +187,26 @@ public class User extends AbstractUser {
 
 		if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
 
-			final Folder homeDir = getProperty(User.homeDirectory);
-			if (homeDir != null) {
+			// use superuser context here
+			final SecurityContext storedContext = this.securityContext;
 
-				StructrApp.getInstance(securityContext).delete(homeDir);
+			try {
+
+				this.securityContext = SecurityContext.getSuperUserInstance();
+
+				final Folder homeDir = getProperty(User.homeDirectory);
+				if (homeDir != null) {
+
+					StructrApp.getInstance().delete(homeDir);
+				}
+
+			} catch (Throwable t) {
+
+
+			} finally {
+
+				// restore previous context
+				this.securityContext = storedContext;
 			}
 
 		}

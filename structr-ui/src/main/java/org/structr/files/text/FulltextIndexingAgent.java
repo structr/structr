@@ -1,4 +1,4 @@
-package org.structr.files.ssh;
+package org.structr.files.text;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -69,6 +69,7 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 	// ----- private methods -----
 	private void doIndexing(final FileBase file) {
 
+		final int maxWordsToIndex         = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_INDEXING_LIMIT), 100);
 		boolean parsingSuccessful         = false;
 		InputStream inputStream           = null;
 
@@ -143,6 +144,7 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 					// index document excluding stop words
 					final Set<String> stopWords = languageStopwordMap.get(tokenizer.getLanguage());
 					final StringBuilder buf     = new StringBuilder();
+					int indexedWords            = 0;
 
 					for (final String word : tokenizer.getWords()) {
 
@@ -150,6 +152,11 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 
 							buf.append(word + " ");
 							fulltextIndex.add(node, indexKeyName, word);
+						}
+
+						// do not index more than N words
+						if (indexedWords++ > maxWordsToIndex) {
+							break;
 						}
 					}
 
