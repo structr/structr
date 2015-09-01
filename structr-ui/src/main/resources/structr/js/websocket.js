@@ -322,12 +322,10 @@ function wsConnect() {
 				}
 
 				$(result).each(function (i, entity) {
-
 					StructrModel.create(entity);
-					StructrModel.callCallback(data.callback, entity);
-
 				});
 
+				StructrModel.callCallback(data.callback, result);
 				StructrModel.clearCallback(data.callback);
 
 			} else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/

@@ -2327,13 +2327,13 @@ input.bitmask {
 }
 
 #file-tree {
+  padding-top: 8px;
   width: 400px;
   min-width: 400px;
   overflow: auto;
   vertical-align: top;
   background-color: #fff;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
+  border-radius: 3px;
   border: 1px solid #a5a5a5;
 }
 
@@ -2346,10 +2346,9 @@ input.bitmask {
 
 #folder-contents {
   vertical-align: top;
-/*  background-color: #fff;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-  border: 1px solid #a5a5a5;*/
+  background-color: #fff;
+  border-radius: 3px;
+  border: 1px solid #a5a5a5;
   padding: 12px;
   overflow: auto;
 }
@@ -2359,6 +2358,10 @@ input.bitmask {
   font-size: 9pt;
   font-family: sans-serif;
   width: 100%;
+}
+
+#folder-contents td.file-type {
+    width: 24px;
 }
 
 #folder-contents table th {

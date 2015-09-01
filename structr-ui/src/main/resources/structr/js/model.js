@@ -58,10 +58,22 @@ var StructrModel = {
 		log("StructrModel.create", data);
 		if (!data) return;
 
-		var type = data.type; // not used?
+		var keys = Object.keys(data);
+		
+		if (keys.length === 1 && keys[0] === 'id') {
+			Command.get(data.id, function(data) {
+				return StructrModel.createFromData(data, refId, append);
+			});
+		} else {
+			return StructrModel.createFromData(data, refId, append);
+		}
 
+
+	},
+	createFromData: function(data, refId, append) {
+		
 		var obj;
-
+		
 		if (data.isPage) {
 
 			obj = new StructrPage(data);
@@ -127,7 +139,7 @@ var StructrModel = {
 		}
 
 		return obj;
-
+		
 	},
 	/**
 	 * Append and check expand status
@@ -452,13 +464,14 @@ var StructrModel = {
 	},
 
 	callCallback: function(callback, entity, resultSize) {
-		log('Calling callback', callback, 'on entity', entity, resultSize);
-		var callbackFunction = StructrModel.callbacks[callback];
-		if (callback && callbackFunction) {
-			log(callback, callbackFunction.toString());
-			StructrModel.callbacks[callback](entity, resultSize);
+		if (callback) {
+			log('Calling callback', callback, 'on entity', entity, resultSize);
+			var callbackFunction = StructrModel.callbacks[callback];
+			if (callback && callbackFunction) {
+				log(callback, callbackFunction.toString());
+				StructrModel.callbacks[callback](entity, resultSize);
+			}
 		}
-
 	},
 
 	clearCallback : function(callback) {

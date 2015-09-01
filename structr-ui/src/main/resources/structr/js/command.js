@@ -117,7 +117,7 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
-	 * Send a CHILDREN command to the server.
+	 * Send a CHILDREN or DOM_NODE_CHILDREN command to the server.
 	 *
 	 * The server will return a result set containing all children of the
 	 * node with the given id to the sending client (no broadcast).
@@ -130,7 +130,7 @@ var Command = {
 		var data = {};
 
 		var structrObj = StructrModel.obj(id);
-		if (structrObj instanceof StructrElement || structrObj.type === 'Template') {
+		if (structrObj && (structrObj instanceof StructrElement || structrObj.type === 'Template')) {
 			obj.command = 'DOM_NODE_CHILDREN';
 			log('children of DOM node requested', structrObj);
 		} else {
