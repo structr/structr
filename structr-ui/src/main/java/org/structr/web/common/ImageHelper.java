@@ -130,112 +130,105 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 
-		final Integer originalWidth  = originalImage.getProperty(Image.width);
-		final Integer originalHeight = originalImage.getProperty(Image.height);
+		// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		final Thumbnail tn               = new Thumbnail();
 
-		// create image only if width and height are not yet known
-		if (originalWidth == null && originalHeight == null) {
+		try (final InputStream in = originalImage.getInputStream()) {
 
-			// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
-			final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			final Thumbnail tn               = new Thumbnail();
+			if (in == null) {
 
-			try (final InputStream in = originalImage.getInputStream()) {
+				logger.log(Level.FINE, "InputStream of original image {0} ({1}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
+				return null;
+			}
 
-				if (in == null) {
+			final long start     = System.nanoTime();
+			BufferedImage source = null;
 
-					logger.log(Level.FINE, "InputStream of original image {0} ({1}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
-					return null;
+			// read image
+			source = ImageIO.read(in);
+			if (source != null) {
+
+				int sourceWidth  = source.getWidth();
+				int sourceHeight = source.getHeight();
+
+				// Update image dimensions
+				originalImage.setProperty(Image.width, sourceWidth);
+				originalImage.setProperty(Image.height, sourceHeight);
+
+				// float aspectRatio = sourceWidth/sourceHeight;
+				float scaleX = 1.0f * sourceWidth / maxWidth;
+				float scaleY = 1.0f * sourceHeight / maxHeight;
+				float scale;
+
+				if (crop) {
+
+					scale = Math.min(scaleX, scaleY);
+				} else {
+
+					scale = Math.max(scaleX, scaleY);
 				}
 
-				final long start     = System.nanoTime();
-				BufferedImage source = null;
+				// Don't scale up
+				if (scale > 1.0) {
 
-				// read image
-				source = ImageIO.read(in);
-				if (source != null) {
+					final int destWidth  = Math.max(4, Math.round(sourceWidth / scale));
+					final int destHeight = Math.max(4, Math.round(sourceHeight / scale));
 
-					int sourceWidth  = source.getWidth();
-					int sourceHeight = source.getHeight();
+					System.out.println(destWidth + " / " + destHeight);
 
-					// Update image dimensions
-					originalImage.setProperty(Image.width, sourceWidth);
-					originalImage.setProperty(Image.height, sourceHeight);
-
-					// float aspectRatio = sourceWidth/sourceHeight;
-					float scaleX = 1.0f * sourceWidth / maxWidth;
-					float scaleY = 1.0f * sourceHeight / maxHeight;
-					float scale;
+					ResampleOp resampleOp   = new ResampleOp(destWidth, destHeight);
+					BufferedImage resampled = resampleOp.filter(source, null);
+					BufferedImage result    = null;
 
 					if (crop) {
 
-						scale = Math.min(scaleX, scaleY);
-					} else {
+						int offsetX = Math.abs(maxWidth - destWidth) / 2;
+						int offsetY = Math.abs(maxHeight - destHeight) / 2;
 
-						scale = Math.max(scaleX, scaleY);
-					}
+						logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
 
-					// Don't scale up
-					if (scale > 1.0) {
+						result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
 
-						final int destWidth  = Math.max(4, Math.round(sourceWidth / scale));
-						final int destHeight = Math.max(4, Math.round(sourceHeight / scale));
-
-						System.out.println(destWidth + " / " + destHeight);
-
-						ResampleOp resampleOp   = new ResampleOp(destWidth, destHeight);
-						BufferedImage resampled = resampleOp.filter(source, null);
-						BufferedImage result    = null;
-
-						if (crop) {
-
-							int offsetX = Math.abs(maxWidth - destWidth) / 2;
-							int offsetY = Math.abs(maxHeight - destHeight) / 2;
-
-							logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
-
-							result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
-
-							tn.setWidth(maxWidth);
-							tn.setHeight(maxHeight);
-
-						} else {
-
-							result = resampled;
-
-							tn.setWidth(destWidth);
-							tn.setHeight(destHeight);
-
-						}
-
-						ImageIO.write(result, Thumbnail.FORMAT, baos);
+						tn.setWidth(maxWidth);
+						tn.setHeight(maxHeight);
 
 					} else {
 
-						// Thumbnail is source image
-						ImageIO.write(source, Thumbnail.FORMAT, baos);
-						tn.setWidth(sourceWidth);
-						tn.setHeight(sourceHeight);
+						result = resampled;
+
+						tn.setWidth(destWidth);
+						tn.setHeight(destHeight);
+
 					}
+
+					ImageIO.write(result, Thumbnail.FORMAT, baos);
 
 				} else {
 
-					logger.log(Level.FINE, "Thumbnail could not be created");
-					return null;
+					// Thumbnail is source image
+					ImageIO.write(source, Thumbnail.FORMAT, baos);
+					tn.setWidth(sourceWidth);
+					tn.setHeight(sourceHeight);
 				}
 
-				long end  = System.nanoTime();
-				long time = (end - start) / 1000000;
+			} else {
 
-				logger.log(Level.FINE, "Thumbnail created. Reading, scaling and writing took {0} ms", time);
-				tn.setBytes(baos.toByteArray());
-
-				return tn;
-
-			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Unable to create thumbnail for image with ID {0}.", originalImage.getUuid());
+				logger.log(Level.FINE, "Thumbnail could not be created");
+				return null;
 			}
+
+			long end  = System.nanoTime();
+			long time = (end - start) / 1000000;
+
+			logger.log(Level.FINE, "Thumbnail created. Reading, scaling and writing took {0} ms", time);
+			tn.setBytes(baos.toByteArray());
+
+			return tn;
+
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING, "Unable to create thumbnail for image with ID {0}.", originalImage.getUuid());
 		}
 
 		return null;
