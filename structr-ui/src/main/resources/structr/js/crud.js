@@ -1819,8 +1819,8 @@ var _Crud = {
 
 				$('.remove', nodeEl).on('click', function(e) {
 					e.preventDefault();
-					Command.get(parentId, function(obj) {
-						_Crud.removeRelatedObject(obj, key, obj);
+					Command.get(parentId, function(parentObj) {
+						_Crud.removeRelatedObject(parentObj, key, obj);
 					});
 					return false;
 				});
@@ -2065,8 +2065,8 @@ var _Crud = {
 						return obj.id !== relatedId;
 					});
 					var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-					_Crud.crudUpdateObj(id, json, function() {
-						_Crud.crudRefresh(id, key);
+					_Crud.crudUpdateObj(obj.id, json, function() {
+						_Crud.crudRefresh(obj.id, key);
 						if (callback) {
 							callback();
 						}
@@ -2074,14 +2074,8 @@ var _Crud = {
 				}
 			});
 		} else {
-			$.ajax({
-				url: url,
-				type: 'GET',
-				dataType: 'json',
-				contentType: 'application/json; charset=utf-8',
-				success: function(data) {
-					_Crud.crudRemoveProperty(obj.id, key);
-				}
+			Command.get(obj.id, function(data) {
+				_Crud.crudRemoveProperty(data.id, key);
 			});
 		}
 	},
