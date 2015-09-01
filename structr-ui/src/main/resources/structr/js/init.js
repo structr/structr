@@ -542,7 +542,7 @@ var Structr = {
 				});
 			}
 
-			$.blockUI.defaults.overlayCSS.opacity = .6;
+			$.blockUI.defaults.overlayCSS.opacity = .4;
 			$.blockUI.defaults.applyPlatformOpacityRules = false;
 
 			var w = $(window).width();
