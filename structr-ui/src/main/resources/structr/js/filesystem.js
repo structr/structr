@@ -18,7 +18,7 @@
  */
 
 var main, fileTree, folderContents;
-var fileList, timeout;
+var fileList;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
 var win = $(window);
@@ -97,17 +97,41 @@ var _Filesystem = {
 		$.jstree.defaults.core.themes.dots = false;
 
 		$('#file-tree').jstree({
+			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
 			'core': {
 				'animation': 0,
-				'plugins': ["contextmenu", "dnd", "search", "state", "types", "wholerow"],
 				'state': { 'key' : 'structr-ui' },
+                'async': true,
 				'data': function(obj, cb) {
 
 					switch (obj.id) {
 
-						case '#':
+                        case '#':
+
+                            Command.list('Folder', true, 100, 1, 'name', 'asc', null, function(folders) {
+
+                                var children = [];
+                                var list     = [];
+
+                                folders.forEach(function(d) {
+
+                                    children.push({
+                                        id: d.id,
+                                        text: d.name,
+                                        children: d.isFolder && d.folders.length > 0,
+                                        icon: 'fa fa-folder'
+                                    });
+                                });
+
+                                list.push({ id: 'root', text: '/', children: true, icon: '/structr/icon/structr_icon_16x16.png', path: '/', state: { opened: true, selected: true } });
+                                cb(list);
+
+                            });
+                            break;
+
+                        case 'root':
 							load(null, cb);
-							break;
+                            break;
 
 						default:
 							load(obj.id, cb);
@@ -121,8 +145,10 @@ var _Filesystem = {
 
 		$('#file-tree').on('select_node.jstree', function(evt, data) {
 
+            console.log(data);
+
 			setWorkingDirectory(data.node.id);
-            displayFolderContents(data.node.id, data.node.parent);
+            displayFolderContents(data.node.id, data.node.parent, data.node.original.path);
 
 		});
 
@@ -180,18 +206,17 @@ function load(id, callback) {
 
 	if (!id) {
 
-        Command.list('Folder', true, 100, 1, 'name', 'desc', null, function(folders) {
+        Command.list('Folder', true, 100, 1, 'name', 'asc', null, function(folders) {
 
 			var list = [];
 
 			folders.forEach(function(d) {
-				var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
-
 				list.push({
 					id: d.id,
 					text: d.name,
 					children: d.isFolder && d.folders.length > 0,
-					icon: icon
+					icon: 'fa fa-folder',
+                    path: d.path
 				});
 			});
 
@@ -206,13 +231,12 @@ function load(id, callback) {
 			var list = [];
 
 			folders.forEach(function(d) {
-				var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
-
 				list.push({
 					id: d.id,
 					text: d.name,
 					children: d.isFolder && d.folders.length > 0,
-					icon: icon
+                    icon: 'fa fa-folder',
+                    path: d.path
 				});
 			});
 
@@ -236,53 +260,62 @@ function setWorkingDirectory(id) {
 	});
 }
 
-function displayFolderContents(id, parentId) {
+function displayFolderContents(id, parentId, name) {
 
 	var content = $('#folder-contents');
 	content.empty();
 	content.append(
-        '<table id="files-table" class="stripe"><thead><tr><th>Type</th><th>Name</th><th>Size</th><th>Content Type</th><th>Owner</th></tr></thead>'
-      + '<tbody id="files-table-body"><tr>'
-      + '<td class="file-type"><img src="/structr/icon/folder.png" /></td>'
-      + '<td><a href="#" id="parent_file_link">..</a></td>'
+        '<h1>' + name + '</h1>'
+      + '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Content Type</th><th>Owner</th></tr></thead>'
+      + '<tbody id="files-table-body">'
+      + '<tr id="parent-file-link">'
+      + '<td class="file-type"><i class="fa fa-folder"></i></td>'
+      + '<td><a href="#">..</a></td>'
       + '<td></td>'
       + '<td></td>'
       + '<td></td>'
       + '</tr></tbody></table>'
     );
 
-    $('#parent_file_link').on('click', function(e) {
+    $('#parent-file-link').on('click', function(e) {
 
-        if (!timeout && parentId !== '#') {
-            timeout = window.setTimeout(function() {
-                $('#' + parentId + '_anchor').click();
-                timeout = null;
-            }, 250);
+        if (parentId !== '#') {
+            $('#' + parentId + '_anchor').click();
         }
     });
 
+    if (id === 'root') {
 
+        Command.list('Folder', true, 1000, 1, 'name', 'asc', null, function(children) {
 
-	Command.query('Folder', 100, 1, 'name', 'asc', { parentId: id }, function(children) {
-
-        if (children && children.length) {
-            children.forEach(appendFileOrFolderRow);
-        }
-	});
-
-	Command.query('FileBase', 100, 1, 'name', 'asc', { parentId: id }, function(children) {
-
-        if (children && children.length) {
-    		children.forEach(appendFileOrFolderRow);
-        }
-
-        $('#files-table').DataTable({
-            fixedHeader: true,
-            deferRender: true,
-            bProcessing: true,
-            bDeferRender: true
+            if (children && children.length) {
+                children.forEach(appendFileOrFolderRow);
+            }
         });
-	});
+
+        Command.list('FileBase', true, 1000, 1, 'name', 'asc', null, function(children) {
+
+            if (children && children.length) {
+                children.forEach(appendFileOrFolderRow);
+            }
+        });
+
+    } else {
+
+        Command.query('Folder', 1000, 1, 'name', 'asc', { parentId: id }, function(children) {
+
+            if (children && children.length) {
+                children.forEach(appendFileOrFolderRow);
+            }
+        });
+
+        Command.query('FileBase', 1000, 1, 'name', 'asc', { parentId: id }, function(children) {
+
+            if (children && children.length) {
+                children.forEach(appendFileOrFolderRow);
+            }
+        });
+    }
 }
 
 function appendFileOrFolderRow(d) {
@@ -295,10 +328,9 @@ function appendFileOrFolderRow(d) {
     var rowId = 'row' + d.id;
     tableBody.append('<tr id="' + rowId + '"></tr>');
     var row = $('#' + rowId);
+    var icon     = d.isFolder ? 'fa-folder' : getIcon(d.name, d.contentType);
 
-    var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
-
-    row.append('<td class="file-type"><img src="' + icon + '" alt="' + d.type + '"></td>');
+    row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
 
     if (d.isFolder) {
         row.append('<td><a href="#" id="' + d.id + '_file_link">' + d.name + '</a></td>');
@@ -313,20 +345,20 @@ function appendFileOrFolderRow(d) {
     $('#' + d.id + '_file_link').on('click', function(e) {
 
         if (d.parent && d.parent.id) {
-            $("#file-tree").jstree("open_node", $('#' + d.parent.id));
-        }
 
-        if (!timeout) {
-
-            timeout = window.setTimeout(function() {
+            $("#file-tree").jstree("open_node", $('#' + d.parent.id), function() {
 
                 if (d.name === '..') {
                     $('#' + d.parent.id + '_anchor').click();
                 } else {
                     $('#' + d.id + '_anchor').click();
                 }
-                timeout = null;
-            }, 100);
+
+            });
+
+        } else {
+
+            $('#' + d.id + '_anchor').click();
         }
     });
 }
@@ -383,4 +415,88 @@ function displaySearchResultsForURL(url) {
 		}
 
 	});
+}
+
+function getIcon(fileName, contentType) {
+
+    var result = 'fa-file-o';
+
+    if (contentType) {
+
+        switch (contentType) {
+
+            case 'text/plain':
+                result = 'fa-file-text-o';
+                break;
+
+            case 'application/pdf':
+                result = 'fa-file-pdf-o';
+                break;
+
+            case 'application/x-pem-key':
+            case 'application/pkix-cert+pem':
+            case 'application/x-iwork-keynote-sffkey':
+                result = 'fa-key';
+                break;
+
+            case 'application/x-trash':
+                result = 'fa-trash-o';
+                break;
+
+            case 'application/octet-stream':
+                result = 'fa-terminal';
+                break;
+
+            case 'application/x-shellscript':
+            case 'application/javascript':
+            case 'application/xml':
+            case 'text/html':
+            case 'text/xml':
+                result = 'fa-file-code-o';
+                break;
+
+            case 'application/java-archive':
+            case 'application/zip':
+            case 'application/rar':
+            case 'application/x-bzip':
+                result = 'fa-file-archive-o';
+                break;
+
+            case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            case 'application/vnd.oasis.opendocument.text':
+            case 'application/msword':
+                result = 'fa-file-word-o';
+                break;
+
+            case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+            case 'application/vnd.oasis.opendocument.spreadsheet':
+            case 'application/vnd.ms-excel':
+                result = 'fa-file-excel-o';
+                break;
+
+            case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+                result = 'fa-file-powerpoint-o';
+                break;
+
+            case 'image/jpeg':
+                result = 'fa-picture-o';
+                break;
+
+            default:
+                if (contentType.startsWith('image/')) {
+                    result = 'fa-file-image-o';
+                }
+        }
+
+        if (fileName && fileName.contains('.')) {
+
+            var fileExtensionPosition = fileName.lastIndexOf('.') + 1;
+            var fileExtension         = fileName.substring(fileExtensionPosition);
+
+            // add file extension css class to control colors
+            result = fileExtension + ' ' + result;
+        }
+    }
+
+    return result;
 }

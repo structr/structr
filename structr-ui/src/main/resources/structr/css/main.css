@@ -2353,6 +2353,10 @@ input.bitmask {
   overflow: auto;
 }
 
+#folder-contents h1 {
+  margin: 0px;
+}
+
 #folder-contents table {
   margin: 0px;
   font-size: 9pt;
@@ -2367,15 +2371,6 @@ input.bitmask {
 #folder-contents table th {
   text-align: left;
   padding-left: 8px;
-}
-
-.jstree-hovered {
-  background-color: #e7e7e7 !important;
-  border-color: #a5a5a5;
-}
-
-.jstree-clicked {
-  background-color: #81ce25 !important;
 }
 
 table.dataTable thead th, table.dataTable thead td {
@@ -2406,10 +2401,77 @@ table.dataTable thead th, table.dataTable thead td {
   text-align: left;
 }
 
+i.fa {
+  font-size: 12pt;
+}
+
+#files-table td.file-type {
+  width: 16px;
+  padding: 4px 0px;
+}
+
+#files-table td.file-type i.fa {
+  width: 16px;
+  padding: 4px 0px;
+}
+
 #files-table td {
   text-align: left;
   padding: 4px;
   padding-left: 8px;
+}
+
+#files-table tr#parent-file-link {
+  cursor: pointer;
+}
+
+#files-table td a {
+  text-decoration: none;
+}
+
+#files-table td a:hover {
+  text-decoration: underline;
+}
+
+i.fa-file-archive-o {
+  color: orange;
+}
+
+i.fa-folder {
+  color: #eed562;
+}
+
+i.fa-file-o,
+i.fa-file-text-o {
+  color: #666;
+}
+
+i.fa-file-powerpoint-o,
+i.fa-file-pdf-o {
+  color: #ff5555;
+}
+
+i.fa-file-word-o {
+  color: #5555cc;
+}
+
+i.fa-file-image-o,
+i.fa-file-excel-o {
+  color: #559955;
+}
+
+i.fa-picture-o {
+  font-size: 10pt;
+  color: #559955;
+}
+
+i.fa-trash-o {
+  color: #888;
+  font-size: 14pt;
+}
+
+i.fa.jar {
+  color: #ff5555;
 }
 
 .ui-tooltip {
