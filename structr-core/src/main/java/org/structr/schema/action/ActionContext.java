@@ -296,7 +296,10 @@ public class ActionContext {
 	}
 
 	public String getOutput() {
-		return outputBuffer.toString();
+		final String out = outputBuffer.toString();
+		// clear buffer after fetching the output
+		clear();
+		return out;
 	}
 
 	/**
