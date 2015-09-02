@@ -18,11 +18,12 @@
  */
 
 var main, fileTree, folderContents;
-var fileList;
+var fileList, timeout;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
 var win = $(window);
 var selectedElements = [];
+var counter = 0;
 
 $(document).ready(function() {
 
@@ -61,7 +62,7 @@ var _Filesystem = {
 
 	},
 	resize: function() {
-		
+
 		var windowWidth = win.width();
 		var windowHeight = win.height();
 		var headerOffsetHeight = 82 + 48;
@@ -80,7 +81,7 @@ var _Filesystem = {
 			});
 		}
 		Structr.resize();
-		
+
 	},
 	onload: function() {
 
@@ -104,20 +105,11 @@ var _Filesystem = {
 
 					switch (obj.id) {
 
-//                        case '#':
-//                            var list = [];
-//                            list.push({id: 'root', text: 'All files', children: true, icon: '/structr/icon/structr_icon_16x16.png', a_attr: {class: 'bold'}});
-//
-//                            cb(list);
-//                            break;
-
 						case '#':
-							//load('folders/ui?sort=name&parent=()', cb);
 							load(null, cb);
 							break;
 
 						default:
-							//load('folders/' + obj.id + '/folders/ui?sort=name', cb);
 							load(obj.id, cb);
 							break;
 					}
@@ -130,7 +122,7 @@ var _Filesystem = {
 		$('#file-tree').on('select_node.jstree', function(evt, data) {
 
 			setWorkingDirectory(data.node.id);
-			displayFolderContents(data.node.id);
+            displayFolderContents(data.node.id, data.node.parent);
 
 		});
 
@@ -185,13 +177,13 @@ function loadAndSetWorkingDir() {
 }
 
 function load(id, callback) {
-	
+
 	if (!id) {
-		// list: function(type, rootOnly, pageSize, page, sort, order, properties, callback)
-		Command.list('Folder', true, 100, 1, 'name', 'desc', null, function(folders) {
+
+        Command.list('Folder', true, 100, 1, 'name', 'desc', null, function(folders) {
 
 			var list = [];
-			
+
 			folders.forEach(function(d) {
 				var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
 
@@ -204,15 +196,15 @@ function load(id, callback) {
 			});
 
 			callback(list);
-			
+
 		});
-		
+
 	} else {
 
-		Command.children(id, function(folders) {
+		Command.query('Folder', 100, 1, 'name', 'asc', { parent: id }, function(folders) {
 
 			var list = [];
-			
+
 			folders.forEach(function(d) {
 				var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
 
@@ -227,32 +219,8 @@ function load(id, callback) {
 			callback(list);
 
 		});
-		
-	}
 
-//	$.ajax({
-//		url: rootUrl + url,
-//		statusCode: {
-//			200: function(data) {
-//
-//				var list = [];
-//
-//				$.each(data.result, function(i, d) {
-//
-//					var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
-//
-//					list.push({
-//						id: d.id,
-//						text: d.name,
-//						children: d.isFolder && d.folders.length > 0,
-//						icon: icon
-//					});
-//				});
-//
-//				callback(list);
-//			}
-//		}
-//	});
+	}
 }
 
 function setWorkingDirectory(id) {
@@ -268,97 +236,99 @@ function setWorkingDirectory(id) {
 	});
 }
 
-function displayFolderContents(id) {
-	
-//	var url = rootUrl + 'folders/' + id + '/children/ui?sort=name';
-//
-//	if (id === 'root') {
-//		url = rootUrl + 'files/ui?sort=name&hasParent=false';
-//	}
-//
-//	displayFolderContentsForURL(url, id);
-//}
-//
-//function displayFolderContentsForURL(url, id) {
+function displayFolderContents(id, parentId) {
 
 	var content = $('#folder-contents');
 	content.empty();
-	content.append('<table id="files-table" class="stripe"><thead><tr><th>Type</th><th>Name</th><th>Size</th><th>Content Type</th><th>Owner</th></tr></thead><tbody id="files-table-body"></tbody></table>');
+	content.append(
+        '<table id="files-table" class="stripe"><thead><tr><th>Type</th><th>Name</th><th>Size</th><th>Content Type</th><th>Owner</th></tr></thead>'
+      + '<tbody id="files-table-body"><tr>'
+      + '<td class="file-type"><img src="/structr/icon/folder.png" /></td>'
+      + '<td><a href="#" id="parent_file_link">..</a></td>'
+      + '<td></td>'
+      + '<td></td>'
+      + '<td></td>'
+      + '</tr></tbody></table>'
+    );
+
+    $('#parent_file_link').on('click', function(e) {
+
+        if (!timeout && parentId !== '#') {
+            timeout = window.setTimeout(function() {
+                $('#' + parentId + '_anchor').click();
+                timeout = null;
+            }, 250);
+        }
+    });
+
+
+
+	Command.query('Folder', 100, 1, 'name', 'asc', { parentId: id }, function(children) {
+
+        if (children && children.length) {
+            children.forEach(appendFileOrFolderRow);
+        }
+	});
+
+	Command.query('FileBase', 100, 1, 'name', 'asc', { parentId: id }, function(children) {
+
+        if (children && children.length) {
+    		children.forEach(appendFileOrFolderRow);
+        }
+
+        $('#files-table').DataTable({
+            fixedHeader: true,
+            deferRender: true,
+            bProcessing: true,
+            bDeferRender: true
+        });
+	});
+}
+
+function appendFileOrFolderRow(d) {
 
 	var tableBody = $('#files-table-body');
-	
-	// list: function(type, rootOnly, pageSize, page, sort, order, properties, callback) {
-	
-	Command.children(id, function(children) {
-		
-		children.forEach(function(d) {
-			
-			var files = d.files || [];
-			var folders = d.folders || [];
-			var size = d.isFolder ? folders.length + files.length : d.size;
-			
-			var rowId = 'row' + d.id;
-			tableBody.append('<tr id="' + rowId + '"></tr>');
-			var row = $('#' + rowId);
-			
-			var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
-			
-			row.append('<td class="file-type"><img src="' + icon + '" alt="' + d.type + '"></td>');
-			row.append('<td><a href="' + d.path + '">' + d.name + '</a></td>');
-			row.append('<td>' + size + '</td>');
-			row.append('<td>' + (d.isFile ? d.contentType : '') + '</td>');
-			row.append('<td>' + (d.owner ? d.owner.name : '') + '</td>');
-		});
+    var files = d.files || [];
+    var folders = d.folders || [];
+    var size = d.isFolder ? folders.length + files.length : d.size;
 
-		$('#files-table').DataTable({
-			fixedHeader: true
-		});
-	});
-	
-//	Command.list('File', false, 10, 1, 'name', 'desc', null, function(files) {
-//
-//		files.forEach(function(d) {
-//			if (!d.isFolder) {
-//
-//				var rowId = 'row' + d.id;
-//				tableBody.append('<tr id="' + rowId + '"></tr>');
-//				var row = $('#' + rowId);
-//
-//				row.append('<td><a href="' + d.path + '">' + d.name + '</a></td>');
-//				row.append('<td>' + d.type + '</td>');
-//				row.append('<td>' + d.size + '</td>');
-//			}
-//		});
-//
-//	});
+    var rowId = 'row' + d.id;
+    tableBody.append('<tr id="' + rowId + '"></tr>');
+    var row = $('#' + rowId);
 
-//	$.ajax({
-//		url: url,
-//		statusCode: {
-//			200: function(data) {
-//
-//				$.each(data.result, function(i, d) {
-//
-//					if (!d.isFolder) {
-//
-//						var rowId = 'row' + d.id;
-//						tableBody.append('<tr id="' + rowId + '"></tr>');
-//						var row = $('#' + rowId);
-//
-//						row.append('<td><a href="' + d.path + '">' + d.name + '</a></td>');
-//						row.append('<td>' + d.type + '</td>');
-//						row.append('<td>' + d.size + '</td>');
-//					}
-//
-//				});
-//
-//				$('#files-table').DataTable({
-//					fixedHeader: true
-//				});
-//
-//			}
-//		}
-//	});
+    var icon = d.isFolder ? '/structr/icon/folder.png' : '/structr/icon/page_white.png';
+
+    row.append('<td class="file-type"><img src="' + icon + '" alt="' + d.type + '"></td>');
+
+    if (d.isFolder) {
+        row.append('<td><a href="#" id="' + d.id + '_file_link">' + d.name + '</a></td>');
+    } else {
+        row.append('<td><a href="' + d.path + '">' + d.name + '</a></td>');
+    }
+
+    row.append('<td>' + size + '</td>');
+    row.append('<td>' + (d.isFile ? d.contentType : '') + '</td>');
+    row.append('<td>' + (d.owner ? d.owner.name : '') + '</td>');
+
+    $('#' + d.id + '_file_link').on('click', function(e) {
+
+        if (d.parent && d.parent.id) {
+            $("#file-tree").jstree("open_node", $('#' + d.parent.id));
+        }
+
+        if (!timeout) {
+
+            timeout = window.setTimeout(function() {
+
+                if (d.name === '..') {
+                    $('#' + d.parent.id + '_anchor').click();
+                } else {
+                    $('#' + d.id + '_anchor').click();
+                }
+                timeout = null;
+            }, 100);
+        }
+    });
 }
 
 function displaySearchResultsForURL(url) {

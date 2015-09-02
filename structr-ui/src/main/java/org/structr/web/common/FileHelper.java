@@ -688,7 +688,7 @@ public class FileHelper {
 
 			if (parent != null) {
 
-				folder.setProperty(Folder.parent, parent);
+				folder.setProperty(AbstractFile.parent, parent);
 
 			}
 

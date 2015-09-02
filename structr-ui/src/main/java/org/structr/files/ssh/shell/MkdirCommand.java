@@ -8,6 +8,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.StructrShellCommand;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 
 /**
@@ -109,7 +110,7 @@ public class MkdirCommand extends CdCommand {
 
 	private void checkAndCreateFolder(final App app, final StructrShellCommand parent, final Folder parentFolder, final String name) throws FrameworkException, IOException {
 
-		final Folder checkFolder = app.nodeQuery(Folder.class).and(Folder.parent, parentFolder).and(Folder.name, name).getFirst();
+		final Folder checkFolder = app.nodeQuery(Folder.class).and(AbstractFile.parent, parentFolder).and(Folder.name, name).getFirst();
 		if (checkFolder != null) {
 
 			term.println("Folder " + target + " already exists");
@@ -121,7 +122,7 @@ public class MkdirCommand extends CdCommand {
 				if (parent.isAllowed(parentFolder, Permission.write, true)) {
 
 					app.create(Folder.class,
-						new NodeAttribute(Folder.parent, parentFolder),
+						new NodeAttribute(AbstractFile.parent, parentFolder),
 						new NodeAttribute(Folder.owner, user),
 						new NodeAttribute(Folder.name, name)
 					);

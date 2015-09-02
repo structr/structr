@@ -10,6 +10,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.StructrShellCommand;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
@@ -36,7 +37,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 					case "..":
 						if (currentFolder != null) {
 
-							final Folder parentFolder = currentFolder.getProperty(Folder.parent);
+							final Folder parentFolder = currentFolder.getProperty(AbstractFile.parent);
 							if (parentFolder != null) {
 
 								if (parent.isAllowed(parentFolder, Permission.read, true)) {
@@ -158,7 +159,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 						// skip empty path parts
 						if (StringUtils.isNotBlank(parts[i])) {
 
-							baseFolder = app.nodeQuery(Folder.class).and(Folder.parent, baseFolder).and(Folder.name, parts[i]).getFirst();
+							baseFolder = app.nodeQuery(Folder.class).and(AbstractFile.parent, baseFolder).and(Folder.name, parts[i]).getFirst();
 							if (baseFolder == null) {
 
 								return;
@@ -167,7 +168,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 					}
 				}
 
-				final List<Folder> allFolders = app.nodeQuery(Folder.class).and(Folder.parent, baseFolder).getAsList();
+				final List<Folder> allFolders = app.nodeQuery(Folder.class).and(AbstractFile.parent, baseFolder).getAsList();
 				final List<Folder> folders    = new LinkedList<>();
 
 				for (final Folder folder : allFolders) {

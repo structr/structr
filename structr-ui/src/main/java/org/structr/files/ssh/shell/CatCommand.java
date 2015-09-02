@@ -97,7 +97,7 @@ public class CatCommand extends NonInteractiveShellCommand {
 						// skip empty path parts
 						if (StringUtils.isNotBlank(parts[i])) {
 
-							baseFolder = app.nodeQuery(Folder.class).and(Folder.parent, baseFolder).and(Folder.name, parts[i]).getFirst();
+							baseFolder = app.nodeQuery(Folder.class).and(AbstractFile.parent, baseFolder).and(Folder.name, parts[i]).getFirst();
 							if (baseFolder == null) {
 
 								return;

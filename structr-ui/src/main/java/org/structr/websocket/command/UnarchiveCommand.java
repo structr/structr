@@ -150,7 +150,7 @@ public class UnarchiveCommand extends AbstractCommand {
 		Folder folder = null;
 		for (final Folder possibleRootFolder : app.nodeQuery(Folder.class).andName(parts[0])) {
 
-			if (possibleRootFolder.getProperty(Folder.parent) == null) {
+			if (possibleRootFolder.getProperty(AbstractFile.parent) == null) {
 				folder = possibleRootFolder;
 				break;
 			}
@@ -165,7 +165,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 			for (int i = 1; i < parts.length - 1; i++) {
 				Folder childFolder = app.create(Folder.class, parts[i]);
-				childFolder.setProperty(Folder.parent, folder);
+				childFolder.setProperty(AbstractFile.parent, folder);
 				logger.log(Level.INFO, "Created {0} {1} with path {2}", new Object[]{childFolder.getType(), childFolder, FileHelper.getFolderPath(childFolder)});
 				folder = childFolder;
 			}
@@ -192,7 +192,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 				// sub folder doesn't exist, so create it and all child folders
 				subFolder = app.create(Folder.class, parts[i]);
-				subFolder.setProperty(Folder.parent, folder);
+				subFolder.setProperty(AbstractFile.parent, folder);
 				logger.log(Level.INFO, "Created {0} {1} with path {2}", new Object[]{subFolder.getType(), subFolder, FileHelper.getFolderPath(subFolder)});
 
 			}

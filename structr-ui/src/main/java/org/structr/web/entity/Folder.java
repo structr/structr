@@ -21,6 +21,7 @@ package org.structr.web.entity;
 import java.util.List;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -34,9 +35,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.dynamic.File;
 import org.structr.schema.SchemaService;
-import static org.structr.web.entity.AbstractFile.parent;
 import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
 import org.structr.web.entity.relation.Images;
@@ -53,14 +52,14 @@ import org.structr.web.entity.relation.UserHomeDir;
  */
 public class Folder extends AbstractFile {
 
-	public static final Property<List<Folder>> folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
-	public static final Property<List<File>>   files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
-	public static final Property<List<Image>>  images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>      isFolder                = new BooleanProperty("isFolder").defaultValue(true).readOnly();
-	public static final Property<Boolean>      includeInFrontendExport = new BooleanProperty("includeInFrontendExport").indexed();
-	public static final Property<User>         homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
+	public static final Property<List<Folder>>   folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
+	public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
+	public static final Property<List<Image>>    images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
+	public static final Property<Boolean>        isFolder                = new BooleanProperty("isFolder").defaultValue(true).readOnly();
+	public static final Property<Boolean>        includeInFrontendExport = new BooleanProperty("includeInFrontendExport").indexed();
+	public static final Property<User>           homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
 
-	public static final Property<Integer>      position                = new IntProperty("position").indexed();
+	public static final Property<Integer>        position                = new IntProperty("position").indexed();
 
 	public static final View defaultView = new View(Folder.class, PropertyView.Public, id, type, name, isFolder);
 
@@ -79,10 +78,32 @@ public class Folder extends AbstractFile {
 		boolean valid = true;
 
 		valid &= nonEmpty(AbstractNode.name, errorBuffer);
-		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[:_a-zA-Z0-9\\s\\-\\.]+", errorBuffer);
+		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[:_a-zA-Z0-9\\s\\-\\.öäüÖÄÜß]+", errorBuffer);
 		valid &= super.isValid(errorBuffer);
 
 		return valid;
+	}
+
+	@Override
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.onCreation(securityContext, errorBuffer)) {
+			setProperty(hasParent, getProperty(parentId) != null);
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.onModification(securityContext, errorBuffer)) {
+			setProperty(hasParent, getProperty(parentId) != null);
+			return true;
+		}
+
+		return false;
 	}
 
 	// ----- interface Syncable -----

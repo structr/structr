@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  *
@@ -38,7 +39,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	private static final Logger logger = Logger.getLogger(StructrFtpFile.class.getName());
 
-	public StructrFtpFile(final File file) {
+	public StructrFtpFile(final FileBase file) {
 		super(file);
 	}
 

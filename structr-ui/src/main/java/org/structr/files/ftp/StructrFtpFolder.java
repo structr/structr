@@ -33,6 +33,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.Page;
 
@@ -167,9 +168,9 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 				ftpFiles.add(ftpFile);
 			}
 
-			List<File> files = ((Folder) structrFile).getProperty(Folder.files);
+			List<FileBase> files = ((Folder) structrFile).getProperty(Folder.files);
 
-			for (File f : files) {
+			for (FileBase f : files) {
 
 				FtpFile ftpFile = new StructrFtpFile(f);
 				logger.log(Level.INFO, "File found: {0}", ftpFile.getAbsolutePath());

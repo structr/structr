@@ -163,7 +163,7 @@ public class StructrSSHFile implements SshFile {
 				files.add(new StructrSSHFile(this, child.getName(), child));
 			}
 
-			for (final File child : getFiles()) {
+			for (final FileBase child : getFiles()) {
 				files.add(new StructrSSHFile(this, child.getName(), child));
 			}
 
@@ -211,7 +211,7 @@ public class StructrSSHFile implements SshFile {
 					}
 				}
 
-				for (final File file : getFiles()) {
+				for (final FileBase file : getFiles()) {
 
 					final String fileName = file.getName();
 					if (localPart.equals(fileName)) {
@@ -252,11 +252,11 @@ public class StructrSSHFile implements SshFile {
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery(Folder.class).and(Folder.parent, null).getAsList();
+			return StructrApp.getInstance(getSecurityContext()).nodeQuery(Folder.class).and(AbstractFile.parent, null).getAsList();
 		}
 	}
 
-	private List<File> getFiles() throws FrameworkException {
+	private List<FileBase> getFiles() throws FrameworkException {
 
 		if (actualFile != null && parent != null) {
 
@@ -264,7 +264,7 @@ public class StructrSSHFile implements SshFile {
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery(File.class).and(Folder.parent, null).getAsList();
+			return StructrApp.getInstance(getSecurityContext()).nodeQuery(FileBase.class).and(AbstractFile.parent, null).getAsList();
 		}
 	}
 

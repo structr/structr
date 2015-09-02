@@ -3,10 +3,13 @@ package org.structr.files.text;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.tika.io.IOUtils;
@@ -25,7 +28,6 @@ import org.structr.core.entity.Principal;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
-import org.structr.files.text.FulltextTokenizer;
 import org.structr.web.entity.FileBase;
 import static org.structr.web.entity.FileBase.extractedContent;
 import org.structr.web.entity.User;
@@ -36,6 +38,7 @@ import org.structr.web.entity.User;
  */
 public class FulltextIndexingAgent extends Agent<FileBase> {
 
+	private static final Logger logger = Logger.getLogger(FulltextIndexingAgent.class.getName());
 	private static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
 	public static final String TASK_NAME                              = "FulltextIndexing";
 
@@ -69,14 +72,14 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 	// ----- private methods -----
 	private void doIndexing(final FileBase file) {
 
-		final int maxWordsToIndex         = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_INDEXING_LIMIT), 100);
 		boolean parsingSuccessful         = false;
 		InputStream inputStream           = null;
+		String fileName                   = null;
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			System.out.println("Extracting content from " + file.getName() + "...");
 			inputStream = file.getInputStream();
+			fileName = file.getName();
 
 			tx.success();
 
@@ -86,11 +89,15 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 
 		if (inputStream != null) {
 
-			final FulltextTokenizer tokenizer = new FulltextTokenizer();
+			final FulltextTokenizer tokenizer = new FulltextTokenizer(fileName);
 
 			try (final InputStream is = inputStream) {
 
-				new AutoDetectParser().parse(is, new BodyContentHandler(tokenizer), new Metadata());
+				final AutoDetectParser parser = new AutoDetectParser();
+
+
+
+				parser.parse(is, new BodyContentHandler(tokenizer), new Metadata());
 				parsingSuccessful = true;
 
 			} catch (Throwable t) {
@@ -100,14 +107,7 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 			// only do indexing when parsing was successful
 			if (parsingSuccessful) {
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
-
-					System.out.println("Indexing " + file.getName() + "...");
-
-					final NodeService nodeService     = Services.getInstance().getService(NodeService.class);
-					final Index<Node> fulltextIndex   = nodeService.getNodeIndex(NodeService.NodeIndex.fulltext);
-					final String indexKeyName         = FileBase.indexedContent.jsonName();
-					final Node node                   = file.getNode();
+				try (Tx tx = StructrApp.getInstance().tx()) {
 
 					// save raw extracted text
 					file.setProperty(extractedContent, tokenizer.getRawText());
@@ -138,27 +138,56 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 						}
 					}
 
-					// remove node from index (in case of previous indexing runs)
-					fulltextIndex.remove(node, indexKeyName);
+					tx.success();
 
-					// index document excluding stop words
-					final Set<String> stopWords = languageStopwordMap.get(tokenizer.getLanguage());
-					final StringBuilder buf     = new StringBuilder();
-					int indexedWords            = 0;
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
 
-					for (final String word : tokenizer.getWords()) {
+				// index document excluding stop words
+				final NodeService nodeService       = Services.getInstance().getService(NodeService.class);
+				final Index<Node> fulltextIndex     = nodeService.getNodeIndex(NodeService.NodeIndex.fulltext);
+				final Set<String> stopWords         = languageStopwordMap.get(tokenizer.getLanguage());
+				final String indexKeyName           = FileBase.indexedContent.jsonName();
+				final Iterator<String> wordIterator = tokenizer.getWords().iterator();
+				final StringBuilder buf             = new StringBuilder();
+				final Node node                     = file.getNode();
+				int indexedWords                    = 0;
 
-						if (!stopWords.contains(word)) {
+				logger.log(Level.INFO, "Indexing {0}..", fileName);
 
-							buf.append(word + " ");
-							fulltextIndex.add(node, indexKeyName, word);
+				while (wordIterator.hasNext()) {
+
+					try (Tx tx = StructrApp.getInstance().tx()) {
+
+						// remove node from index (in case of previous indexing runs)
+						fulltextIndex.remove(node, indexKeyName);
+
+						while (wordIterator.hasNext()) {
+
+							final String word = wordIterator.next();
+
+							if (!stopWords.contains(word)) {
+
+								buf.append(word).append(" ");
+								fulltextIndex.add(node, indexKeyName, word);
+
+								if (indexedWords > 1000) {
+									indexedWords = 0;
+									break;
+								}
+							}
 						}
 
-						// do not index more than N words
-						if (indexedWords++ > maxWordsToIndex) {
-							break;
-						}
+						tx.success();
+
+					} catch (Throwable t) {
+						t.printStackTrace();
 					}
+				}
+
+				// store indexed words separately
+				try (Tx tx = StructrApp.getInstance().tx()) {
 
 					file.setProperty(FileBase.indexedWords, buf.toString());
 
@@ -167,6 +196,9 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 				} catch (Throwable t) {
 					t.printStackTrace();
 				}
+
+				logger.log(Level.INFO, "Indexing of {0} finished, {1} words extracted", new Object[] { fileName, tokenizer.getWordCount() } );
+
 			}
 		}
 	}

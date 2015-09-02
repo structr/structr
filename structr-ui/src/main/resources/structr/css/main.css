@@ -2384,6 +2384,32 @@ table.dataTable thead th, table.dataTable thead td {
 
 #files-table {
   border-bottom: 1px solid #ccc !important;
+  margin-bottom: 8px;
+}
+
+#files-table tbody {
+  border-top: 1px solid #ccc !important;
+  border-bottom: 1px solid #ccc !important;
+}
+
+#files-table tr:nth-child(even) {
+  background-color: #f6f6f6;
+}
+
+#files-table tr:nth-child(odd) {
+  background-color: #fff;
+}
+
+#files-table th {
+  padding: 8px;
+  padding-left: 0px;
+  text-align: left;
+}
+
+#files-table td {
+  text-align: left;
+  padding: 4px;
+  padding-left: 8px;
 }
 
 .ui-tooltip {

@@ -117,6 +117,28 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
+	 * Send a QUERY command to the server.
+	 *
+	 * The server will return a result set containing all query results that match the
+     * given type and property values.
+	 *
+	 * The optional callback function will be executed for each node in the result set.
+	 */
+	query: function(type, pageSize, page, sort, order, properties, callback) {
+		var obj = {};
+		obj.command = 'QUERY';
+		var data = {};
+		data.type = type;
+		if (properties) data.properties = JSON.stringify(properties);
+		obj.pageSize = pageSize;
+		obj.page = page;
+		obj.sort = sort;
+		obj.order = order;
+		obj.data = data;
+		log('query()', obj, callback);
+		return sendObj(obj, callback);
+	},
+	/**
 	 * Send a CHILDREN or DOM_NODE_CHILDREN command to the server.
 	 *
 	 * The server will return a result set containing all children of the

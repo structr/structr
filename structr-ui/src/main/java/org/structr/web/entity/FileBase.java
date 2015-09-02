@@ -87,15 +87,30 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 		if (super.onCreation(securityContext, errorBuffer)) {
 
+			setProperty(hasParent, getProperty(parentId) != null);
+
+
 			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
 
 				final Folder workingOrHomeDir = getCurrentWorkingDir();
-				if (workingOrHomeDir != null && getProperty(FileBase.parent) == null) {
+				if (workingOrHomeDir != null && getProperty(AbstractFile.parent) == null) {
 
-					setProperty(FileBase.parent, workingOrHomeDir);
+					setProperty(AbstractFile.parent, workingOrHomeDir);
 				}
 			}
 
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.onModification(securityContext, errorBuffer)) {
+
+			setProperty(hasParent, getProperty(parentId) != null);
 			return true;
 		}
 
@@ -201,7 +216,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
-			final String[] searchParts         = searchTerm.split("[\\W]+");
+			final String[] searchParts         = searchTerm.split("[\\s]+");
 			final GenericProperty contextKey   = new GenericProperty("context");
 			final GraphObjectMap contextObject = new GraphObjectMap();
 			final Set<String> contextValues    = new LinkedHashSet<>();

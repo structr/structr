@@ -291,9 +291,9 @@ function wsConnect() {
 				}
 
 			} else if (command === 'GET') { /*********************** GET ************************/
-				
+
 				StructrModel.callCallback(data.callback, result[0]);
-				
+
 			} else if (command.startsWith('GET') || command === 'GET_BY_TYPE' || command === 'CREATE_RELATIONSHIP') { /*********************** GET_BY_TYPE ************************/
 
 				log(command, data);
@@ -433,12 +433,19 @@ function wsConnect() {
 				Structr.updatePager(type, dialog.is(':visible') ? dialog : undefined);
 
 				$('.pageCount', $('.pager' + type)).val(pageCount[type]);
-				
+
 				StructrModel.callCallback(data.callback, result);
 //				$(result).each(function (i, entity) {
 //					StructrModel.callCallback(data.callback, entity, result.length);
 //				});
 
+				StructrModel.clearCallback(data.callback);
+
+			} else if (command.startsWith('QUERY')) { /*********************** QUERY ************************/
+
+				log('QUERY', result, data);
+
+				StructrModel.callCallback(data.callback, result);
 				StructrModel.clearCallback(data.callback);
 
 			} else if (command === 'DELETE') { /*********************** DELETE ************************/

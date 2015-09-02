@@ -21,11 +21,9 @@ package org.structr.web.entity;
 
 import java.util.List;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -36,7 +34,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.web.entity.relation.FileChildren;
 import org.structr.web.entity.relation.FileSiblings;
-import org.structr.web.entity.relation.Folders;
+import org.structr.web.entity.relation.FolderChildren;
 import org.structr.web.property.PathProperty;
 
 /**
@@ -46,15 +44,15 @@ import org.structr.web.property.PathProperty;
  */
 public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, AbstractFile> {
 
+	public static final Property<Folder> parent                = new StartNode<>("parent", FolderChildren.class);
 	public static final Property<List<AbstractFile>> children  = new EndNodes<>("children", FileChildren.class);
-	public static final Property<Folder> parent                = new StartNode<>("parent", Folders.class);
 	public static final Property<AbstractFile> previousSibling = new StartNode<>("previousSibling", FileSiblings.class);
 	public static final Property<AbstractFile> nextSibling     = new EndNode<>("nextSibling", FileSiblings.class);
 	public static final Property<List<String>> childrenIds     = new CollectionIdProperty("childrenIds", children);
 	public static final Property<String> nextSiblingId         = new EntityIdProperty("nextSiblingId", nextSibling);
+	public static final Property<String> path                  = new PathProperty("path").indexed().readOnly();
 	public static final Property<String> parentId              = new EntityIdProperty("parentId", parent);
 	public static final Property<Boolean> hasParent            = new BooleanProperty("hasParent").indexed();
-	public static final Property<String> path                  = new PathProperty("path").indexed().readOnly();
 
 	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path);
 	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path);
@@ -62,22 +60,6 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 		return (super.isValid(errorBuffer) && !ValidationHelper.checkStringNotBlank(this, name, errorBuffer));
-	}
-
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		setProperty(hasParent, getProperty(parentId) != null);
-
-		return super.onCreation(securityContext, errorBuffer);
-	}
-
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		setProperty(hasParent, getProperty(parentId) != null);
-
-		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override

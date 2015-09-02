@@ -166,7 +166,7 @@ public class User extends AbstractUser {
 					app.create(Folder.class,
 						new NodeAttribute(Folder.name, getUuid()),
 						new NodeAttribute(Folder.owner, this),
-						new NodeAttribute(Folder.parent, homeFolder),
+						new NodeAttribute(AbstractFile.parent, homeFolder),
 						new NodeAttribute(Folder.visibleToAuthenticatedUsers, true),
 						new NodeAttribute(Folder.homeFolderOfUser, this)
 					);

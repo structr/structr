@@ -372,10 +372,25 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
 
-					JsonElement obj = entry.getValue();
-					webSocketData.setNodeData(entry.getKey(),
-						(obj instanceof JsonNull ? null :
-						(obj instanceof JsonPrimitive ? JsonInputGSONAdapter.fromPrimitive(obj.getAsJsonPrimitive()) : obj.getAsString())));
+					final JsonElement obj = entry.getValue();
+					Object value          = null;
+
+					if (obj instanceof JsonPrimitive) {
+
+						value = JsonInputGSONAdapter.fromPrimitive(obj.getAsJsonPrimitive());
+
+					} else if (obj instanceof JsonObject) {
+
+						value = obj.toString();
+
+					} else {
+
+						value = obj.getAsString();
+					}
+
+
+
+					webSocketData.setNodeData(entry.getKey(), value);
 				}
 
 			}

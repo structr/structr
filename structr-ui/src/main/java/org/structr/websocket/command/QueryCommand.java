@@ -18,20 +18,22 @@
  */
 package org.structr.websocket.command;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.FileBase;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -47,13 +49,13 @@ import org.structr.websocket.message.WebSocketMessage;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class ListCommand extends AbstractCommand {
+public class QueryCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(ListCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(QueryCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(ListCommand.class);
+		StructrWebSocket.addCommand(QueryCommand.class);
 
 	}
 
@@ -62,19 +64,13 @@ public class ListCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final Map<String, Object> nodeData    = webSocketData.getNodeData();
-		final String rawType                  = (String) nodeData.get("type");
-		final String properties               = (String) webSocketData.getNodeData().get("properties");
-
-		final boolean rootOnly = Boolean.TRUE.equals((Boolean) nodeData.get("rootOnly"));
-		Class type = SchemaHelper.getEntityClassForRawType(rawType);
+		final String rawType                  = (String)nodeData.get("type");
+		final String properties               = (String)nodeData.get("properties");
+		final Class type                      = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 			return;
-		}
-
-		if (properties != null) {
-			securityContext.setCustomView(StringUtils.split(properties, ","));
 		}
 
 		final String sortOrder         = webSocketData.getSortOrder();
@@ -82,18 +78,35 @@ public class ListCommand extends AbstractCommand {
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
 		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
-		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type)/*.includeDeletedAndHidden()*/.sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
-		// important
-		if (FileBase.class.isAssignableFrom(type) && rootOnly) {
 
-			query.and(FileBase.hasParent, false);
-		}
+		final Query query = StructrApp.getInstance(securityContext)
+			.nodeQuery(type)
+			.sort(sortProperty)
+			.order("desc".equals(sortOrder))
+			.page(page)
+			.pageSize(pageSize);
 
-		// important
-		if (Folder.class.isAssignableFrom(type) && rootOnly) {
 
-			query.and(Folder.hasParent, false);
+		if (properties != null) {
+
+			try {
+				final Gson gson                       = new GsonBuilder().create();
+				final Map<String, Object> querySource = gson.fromJson(properties, new TypeToken<Map<String, Object>>() {}.getType());
+				final PropertyMap queryMap            = PropertyMap.inputTypeToJavaType(securityContext, type, querySource);
+
+				// add properties to query
+				for (final Entry<PropertyKey, Object> entry : queryMap.entrySet()) {
+					query.and(entry.getKey(), entry.getValue());
+				}
+
+			} catch (FrameworkException fex) {
+
+				logger.log(Level.WARNING, "Exception occured", fex);
+				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
+				return;
+			}
 		}
 
 		// for image lists, suppress thumbnails
@@ -135,7 +148,7 @@ public class ListCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 
-		return "LIST";
+		return "QUERY";
 
 	}
 
