@@ -156,6 +156,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		if (super.onModification(securityContext, errorBuffer)) {
 
+			checkClassName();
+			
 			checkAndRenameSourceAndTargetJsonNames();
 
 			// store old property names
@@ -212,7 +214,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				setProperty(AbstractNode.name, name);
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to set relationship name tp {0}.", name);
+				logger.log(Level.WARNING, "Unable to set relationship name to {0}.", name);
 			}
 		}
 
@@ -872,6 +874,31 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 	}
 
+	private void checkClassName() throws FrameworkException {
+		
+		final String className = getClassName();
+		final String potentialNewClassName = assembleNewClassName();
+		
+		if (!className.equals(potentialNewClassName)) {
+			
+			try {
+				setProperty(AbstractNode.name, potentialNewClassName);
+
+			} catch (FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to set relationship name to {0}.", potentialNewClassName);
+			}
+		}
+	}
+	
+	private String assembleNewClassName() {
+		
+		final String _sourceType = getSchemaNodeSourceType();
+		final String _targetType = getSchemaNodeTargetType();
+		final String _relType    = SchemaHelper.cleanPropertyName(getRelationshipType());
+
+		return _sourceType + _relType + _targetType;
+	}
+	
 	private void checkAndRenameSourceAndTargetJsonNames() throws FrameworkException {
 
 		final String _previousSourceJsonName = getProperty(previousSourceJsonName);

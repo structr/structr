@@ -20,6 +20,8 @@ package javatools.datatypes;
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 
 import javatools.administrative.D;
 /** 
@@ -88,4 +90,10 @@ public class FinalSet<T extends Comparable<?>> extends AbstractList<T> implement
     FinalSet<String> f=new FinalSet<String>("b","a","c");
     D.p(f.get(1));
   }
+  /** In Java 8, default methods have to be overriden explicitely */
+  @Override
+  public Spliterator<T> spliterator() {
+        return Spliterators.spliterator(this, Spliterator.DISTINCT);
+  }
 }
+

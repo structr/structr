@@ -137,7 +137,7 @@ public class SchemaHelper {
 
 		}
 
-		StringBuilder result = new StringBuilder();
+		final StringBuilder result = new StringBuilder();
 
 		if (possibleEntityString.contains("/")) {
 

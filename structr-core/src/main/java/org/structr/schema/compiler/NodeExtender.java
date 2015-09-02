@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.DiagnosticListener;
@@ -97,7 +98,7 @@ public class NodeExtender {
 
 		if (!jfiles.isEmpty()) {
 
-			logger.log(Level.INFO, "Compiling {0} dynamic entities", jfiles.size());
+			logger.log(Level.FINE, "Compiling {0} dynamic entities...", jfiles.size());
 
 			compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
 
@@ -132,6 +133,8 @@ public class NodeExtender {
 				for (final Class newType : newClasses) {
 					classes.put(newType.getName(), newType);
 				}
+				
+				logger.log(Level.INFO, "Successfully compiled {0} dynamic entities: {1}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 			}
 
 		}

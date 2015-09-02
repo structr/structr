@@ -71,7 +71,7 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 		if (sourceNode != null) {
 
 			// check existing relationships
-			final Iterable<Relation<S, ?, ?, ?>> outgoingRels = sourceNode.getOutgoingRelationships(clazz);
+			final Iterable<? extends Relation<S, ?, ?, ?>> outgoingRels = sourceNode.getOutgoingRelationships(clazz);
 
 			// check existing relationships
 			for (final RelationshipInterface rel : outgoingRels) {
