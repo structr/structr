@@ -624,7 +624,7 @@ public class Importer {
 
 				for (Attribute nodeAttr : node.attributes()) {
 
-					String key = nodeAttr.getKey();
+					final String key = nodeAttr.getKey();
 
 					// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 					if (!key.equals("text")) {
@@ -667,7 +667,7 @@ public class Importer {
 
 						} else {
 
-							String value =  nodeAttr.getValue();
+							final String value =  nodeAttr.getValue();
 
 							boolean isAnchor = StringUtils.isNotBlank(value) && value.startsWith("#");
 							boolean isLocal = StringUtils.isNotBlank(value) && !value.startsWith("http");
@@ -683,12 +683,21 @@ public class Importer {
 
 							} else {
 
-								newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), value);
+								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), value);
 							}
+							
 
 						}
 					}
 
+				}
+				
+				final StringProperty typeKey = new StringProperty(PropertyView.Html.concat("type"));
+				
+				if ("script".equals(tag) && newNode.getProperty(typeKey) == null) {
+
+					// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
+					newNode.setProperty(typeKey, "text/javascript");
 				}
 
 				parent.appendChild(newNode);
@@ -776,7 +785,14 @@ public class Importer {
 
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 		final String fileName = PathHelper.getName(downloadAddress);
-
+		
+		if (StringUtils.isBlank(fileName)) {
+			
+			logger.log(Level.WARNING, "Can't figure out filename from download address {0}, aborting.", downloadAddress);
+			
+			return null;
+		}
+		
 		// TODO: Add security features like null/integrity/virus checking before copying it to
 		// the files repo
 		try {
@@ -793,15 +809,15 @@ public class Importer {
 
 		String httpPrefix = "http://";
 
-		logger.log(Level.INFO, "Download URL: {0}, address: {1}, cleaned address: {2}",
-			new Object[] { downloadUrl, address, StringUtils.substringBeforeLast(address, "/") });
+		logger.log(Level.INFO, "Download URL: {0}, address: {1}, cleaned address: {2}, filename: {3}",
+			new Object[] { downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName });
 
 		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
 			relativePath = downloadAddress;
 		}
 
-		String path = StringUtils.substringBefore(((downloadAddress.contains(httpPrefix))
+		final String path = StringUtils.substringBefore(((downloadAddress.contains(httpPrefix))
 			? StringUtils.substringAfter(downloadAddress, "http://")
 			: relativePath), fileName);
 
