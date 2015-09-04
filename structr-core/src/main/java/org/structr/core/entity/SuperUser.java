@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
+import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -501,6 +502,11 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public RelationshipInterface getRelationshipPathSegment() {
+		return null;
+	}
+
+	@Override
+	public CMISInfo getCMISInfo() {
 		return null;
 	}
 }

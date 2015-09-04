@@ -29,9 +29,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.cmis.CMISInfo;
+import org.structr.cmis.info.CMISDocumentInfo;
+import org.structr.cmis.info.CMISFolderInfo;
+import org.structr.cmis.info.CMISItemInfo;
+import org.structr.cmis.info.CMISPolicyInfo;
+import org.structr.cmis.info.CMISRelationshipInfo;
+import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -63,7 +71,7 @@ import org.structr.web.entity.relation.Folders;
  *
  * @author Christian Morgner
  */
-public class FileBase extends AbstractFile implements Linkable, JavaScriptSource {
+public class FileBase extends AbstractFile implements Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo {
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
@@ -618,6 +626,57 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 			ioex.printStackTrace();
 		}
 
+		return null;
+	}
+
+	// ----- CMIS support -----
+	@Override
+	public CMISInfo getCMISInfo() {
+		return this;
+	}
+
+	@Override
+	public BaseTypeId getBaseTypeId() {
+		return BaseTypeId.CMIS_DOCUMENT;
+	}
+
+	@Override
+	public CMISFolderInfo getFolderInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISDocumentInfo getDocumentInfo() {
+		return this;
+	}
+
+	@Override
+	public CMISItemInfo geItemInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISRelationshipInfo getRelationshipInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISPolicyInfo getPolicyInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISSecondaryInfo getSecondaryInfo() {
+		return null;
+	}
+
+	@Override
+	public String getParentId() {
+		return getProperty(FileBase.parentId);
+	}
+
+	@Override
+	public String getDescription() {
 		return null;
 	}
 }

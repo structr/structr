@@ -32,6 +32,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.DispatcherType;
+import javax.servlet.http.HttpServlet;
+import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
+import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
+import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Connector;
@@ -263,6 +267,22 @@ public class HttpService implements RunnableService {
 		// this is needed for the filters to work on the root context "/"
 		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+
+		try {
+
+			// CMIS setup
+			servletContext.addEventListener(new CmisRepositoryContextListener());
+
+			final ServletHolder cmisAtomHolder = servletContext.addServlet(CmisAtomPubServlet.class.getName(), "/structr/cmis/atom/*");
+			cmisAtomHolder.setInitParameter("cmisVersion", "1.1");
+
+			final ServletHolder cmisBrowserHolder = servletContext.addServlet(CmisBrowserBindingServlet.class.getName(), "/structr/cmis/browser/*");
+			cmisBrowserHolder.setInitParameter("cmisVersion", "1.1");
+
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		final HashSessionManager sessionManager = new HashSessionManager();
 		try {
@@ -572,8 +592,11 @@ public class HttpService implements RunnableService {
 					final String servletPath = properties.getProperty(servletName.concat(".path"));
 					if (servletPath != null) {
 
-						final HttpServiceServlet servlet = (HttpServiceServlet) Class.forName(servletClassName).newInstance();
-						servlet.getConfig().initializeFromProperties(properties, servletName, resourceProviders);
+						final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).newInstance();
+						if (servlet instanceof HttpServiceServlet) {
+
+							((HttpServiceServlet)servlet).getConfig().initializeFromProperties(properties, servletName, resourceProviders);
+						}
 
 						if (servletPath.endsWith("*")) {
 

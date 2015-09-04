@@ -261,6 +261,28 @@
             <artifactId>sshd-core</artifactId>
             <version>0.14.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-bindings</artifactId>
+            <version>0.13.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-bridge</artifactId>
+            <version>0.13.0</version>
+            <classifier>classes</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-server-fileshare</artifactId>
+            <version>0.13.0</version>
+            <classifier>classes</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-test-tools</artifactId>
+            <version>0.13.0</version>
+        </dependency>
     </dependencies>
     <build>
         <resources>

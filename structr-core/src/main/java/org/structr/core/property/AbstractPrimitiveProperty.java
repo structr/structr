@@ -28,6 +28,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.TransactionCommand;
 
 
@@ -42,6 +44,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	private static final Logger logger = Logger.getLogger(AbstractPrimitiveProperty.class.getName());
 
 	public static final String STRING_EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
+
+	private boolean internalSystemProperty = false;
 
 	public AbstractPrimitiveProperty(final String name) {
 		super(name);
@@ -164,20 +168,18 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				} else {
 
-					// Setting last modified date explicetely is not allowed
-					if (!AbstractPrimitiveProperty.this.equals(AbstractNode.lastModifiedDate)) {
+					if (!internalSystemProperty) {
 
 						propertyContainer.setProperty(dbName(), convertedValue);
 
-						// set last modified date if not already happened
-						propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
-
 					} else {
 
-						logger.log(Level.FINE, "Tried to set lastModifiedDate explicitly (action was denied)");
+						logger.log(Level.FINE, "Tried to set internal system property (action was denied).");
 
 					}
 				}
+
+				updateAccessInformation(securityContext, propertyContainer);
 
 			} catch (Throwable t) {
 
@@ -216,5 +218,42 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	@Override
 	public String getValueForEmptyFields() {
 		return STRING_EMPTY_FIELD_VALUE;
+	}
+
+	public AbstractPrimitiveProperty<T> internalSystemProperty() {
+
+		this.internalSystemProperty = true;
+		return this;
+	}
+
+	// ----- private methods -----
+	private void updateAccessInformation(final SecurityContext securityContext, final PropertyContainer propertyContainer) throws FrameworkException {
+
+		try {
+
+			final Principal user = securityContext.getUser(false);
+			String modifiedById  = null;
+
+			if (user != null) {
+
+				if (user instanceof SuperUser) {
+
+					// "virtual" UUID of superuser
+					modifiedById = Principal.SUPERUSER_ID;
+
+				} else {
+
+					modifiedById = user.getUuid();
+				}
+			}
+
+			propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
+			propertyContainer.setProperty(AbstractNode.lastModifiedBy.dbName(),   modifiedById);
+
+		} catch (Throwable t) {
+
+			// fail without throwing an exception here
+			t.printStackTrace();
+		}
 	}
 }

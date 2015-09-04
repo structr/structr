@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.PropertyContainer;
+import org.structr.cmis.CMISInfo;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -52,7 +53,11 @@ public interface GraphObject {
 	public static final Property<String>  id                          = new UuidProperty();
 
 	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").indexed().unvalidated().readOnly().writeOnce();
-	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").passivelyIndexed().unvalidated().readOnly();
+	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated();
+
+	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").internalSystemProperty().passivelyIndexed().unvalidated().readOnly();
+	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").internalSystemProperty().unvalidated();
+
 	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed();
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed();
 	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
@@ -317,4 +322,15 @@ public interface GraphObject {
 	public RelationshipInterface getSyncRelationship();
 
 	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException;
+
+	// ----- CMIS support -----
+	/**
+	 * Returns information for CMIS support, may be null to signal that
+	 * this entity does not represent a supported CMIS type. Implementations
+	 * of this method can assume that all CMISInfo methods will be called
+	 * in a Neo4j transaction.
+	 *
+	 * @return a CMIS info object or null
+	 */
+	public CMISInfo getCMISInfo();
 }

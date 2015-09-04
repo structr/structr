@@ -19,7 +19,15 @@
 package org.structr.web.entity;
 
 import java.util.List;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.neo4j.helpers.collection.Iterables;
+import org.structr.cmis.CMISInfo;
+import org.structr.cmis.info.CMISDocumentInfo;
+import org.structr.cmis.info.CMISFolderInfo;
+import org.structr.cmis.info.CMISItemInfo;
+import org.structr.cmis.info.CMISPolicyInfo;
+import org.structr.cmis.info.CMISRelationshipInfo;
+import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -50,7 +58,7 @@ import org.structr.web.entity.relation.UserHomeDir;
  * @author Axel Morgner
  *
  */
-public class Folder extends AbstractFile {
+public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 	public static final Property<List<Folder>>   folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
 	public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
@@ -138,5 +146,61 @@ public class Folder extends AbstractFile {
 		//data.add(getIncomingRelationship(Folders.class));
 
 		return data;
+	}
+
+	// ----- CMIS support -----
+	@Override
+	public CMISInfo getCMISInfo() {
+		return this;
+	}
+
+	@Override
+	public BaseTypeId getBaseTypeId() {
+		return BaseTypeId.CMIS_FOLDER;
+	}
+
+	@Override
+	public CMISFolderInfo getFolderInfo() {
+		return this;
+	}
+
+	@Override
+	public CMISDocumentInfo getDocumentInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISItemInfo geItemInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISRelationshipInfo getRelationshipInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISPolicyInfo getPolicyInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISSecondaryInfo getSecondaryInfo() {
+		return null;
+	}
+
+	@Override
+	public String getParentId() {
+		return getProperty(FileBase.parentId);
+	}
+
+	@Override
+	public String getDescription() {
+		return null;
+	}
+
+	@Override
+	public String getPath() {
+		return getProperty(AbstractFile.path);
 	}
 }

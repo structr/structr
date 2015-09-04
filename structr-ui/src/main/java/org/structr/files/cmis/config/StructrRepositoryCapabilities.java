@@ -1,0 +1,196 @@
+package org.structr.files.cmis.config;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.data.CreatablePropertyTypes;
+import org.apache.chemistry.opencmis.commons.data.NewTypeSettableAttributes;
+import org.apache.chemistry.opencmis.commons.data.RepositoryCapabilities;
+import org.apache.chemistry.opencmis.commons.enums.CapabilityAcl;
+import org.apache.chemistry.opencmis.commons.enums.CapabilityChanges;
+import org.apache.chemistry.opencmis.commons.enums.CapabilityContentStreamUpdates;
+import org.apache.chemistry.opencmis.commons.enums.CapabilityJoin;
+import org.apache.chemistry.opencmis.commons.enums.CapabilityOrderBy;
+import org.apache.chemistry.opencmis.commons.enums.CapabilityQuery;
+import org.apache.chemistry.opencmis.commons.enums.CapabilityRenditions;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.structr.cmis.common.CMISExtensionsData;
+
+/**
+ *
+ * @author Christian Morgner
+ */
+public class StructrRepositoryCapabilities extends CMISExtensionsData implements RepositoryCapabilities, CreatablePropertyTypes, NewTypeSettableAttributes {
+
+	private static final Logger logger = Logger.getLogger(StructrRepositoryCapabilities.class.getName());
+
+	// ----- interface RepositoryCapabilities -----
+	@Override
+	public CapabilityContentStreamUpdates getContentStreamUpdatesCapability() {
+		return CapabilityContentStreamUpdates.NONE;
+	}
+
+	@Override
+	public CapabilityChanges getChangesCapability() {
+		return CapabilityChanges.NONE;
+	}
+
+	@Override
+	public CapabilityRenditions getRenditionsCapability() {
+		return CapabilityRenditions.NONE;
+	}
+
+	@Override
+	public Boolean isGetDescendantsSupported() {
+		return false;
+	}
+
+	@Override
+	public Boolean isGetFolderTreeSupported() {
+		return false;
+	}
+
+	@Override
+	public CapabilityOrderBy getOrderByCapability() {
+		return CapabilityOrderBy.NONE;
+	}
+
+	@Override
+	public Boolean isMultifilingSupported() {
+		return false;
+	}
+
+	@Override
+	public Boolean isUnfilingSupported() {
+		return false;
+	}
+
+	@Override
+	public Boolean isVersionSpecificFilingSupported() {
+		return false;
+	}
+
+	@Override
+	public Boolean isPwcSearchableSupported() {
+		return false;
+	}
+
+	@Override
+	public Boolean isPwcUpdatableSupported() {
+		return false;
+	}
+
+	@Override
+	public Boolean isAllVersionsSearchableSupported() {
+		return false;
+	}
+
+	@Override
+	public CapabilityQuery getQueryCapability() {
+		return CapabilityQuery.METADATAONLY;
+	}
+
+	@Override
+	public CapabilityJoin getJoinCapability() {
+		return CapabilityJoin.NONE;
+	}
+
+	@Override
+	public CapabilityAcl getAclCapability() {
+		return CapabilityAcl.NONE;
+	}
+
+	@Override
+	public CreatablePropertyTypes getCreatablePropertyTypes() {
+		return this;
+	}
+
+	@Override
+	public NewTypeSettableAttributes getNewTypeSettableAttributes() {
+		return this;
+	}
+
+	// ----- interface CreatablePropertyTypes -----
+	@Override
+	public Set<PropertyType> canCreate() {
+
+		final Set<PropertyType> properties = new LinkedHashSet<>();
+
+		properties.add(PropertyType.BOOLEAN);
+		properties.add(PropertyType.DATETIME);
+		properties.add(PropertyType.DECIMAL);
+		properties.add(PropertyType.HTML);
+		properties.add(PropertyType.ID);
+		properties.add(PropertyType.INTEGER);
+		properties.add(PropertyType.STRING);
+		properties.add(PropertyType.URI);
+
+		return properties;
+	}
+
+	// ----- interface NewTypeSettableAttributes -----
+	@Override
+	public Boolean canSetId() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetLocalName() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetLocalNamespace() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetDisplayName() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetQueryName() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetDescription() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetCreatable() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetFileable() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetQueryable() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetFulltextIndexed() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetIncludedInSupertypeQuery() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetControllablePolicy() {
+		return true;
+	}
+
+	@Override
+	public Boolean canSetControllableAcl() {
+		return true;
+	}
+}

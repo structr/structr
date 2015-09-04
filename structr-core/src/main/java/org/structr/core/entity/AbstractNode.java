@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,6 +40,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.LruMap;
+import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
@@ -1328,8 +1330,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		this.relationshipPathSegment = pathSegment;
 	}
 
+	@Override
 	public RelationshipInterface getRelationshipPathSegment() {
 		return relationshipPathSegment;
+	}
+
+	@Override
+	public CMISInfo getCMISInfo() {
+		return null;
 	}
 
 	// ----- Cloud synchronization and replication -----
@@ -1376,5 +1384,42 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				getNode().removeProperty(key);
 			}
 		}
+	}
+
+	// ----- CMIS support methods -----
+	public String getCreatedBy() {
+		return getProperty(AbstractNode.createdBy);
+	}
+
+	public String getLastModifiedBy() {
+		return getProperty(AbstractNode.lastModifiedBy);
+	}
+
+	public GregorianCalendar getLastModificationDate() {
+
+		final Date creationDate = getProperty(AbstractNode.lastModifiedDate);
+		if (creationDate != null) {
+
+			final GregorianCalendar calendar = new GregorianCalendar();
+			calendar.setTime(creationDate);
+
+			return calendar;
+		}
+
+		return null;
+	}
+
+	public GregorianCalendar getCreationDate() {
+
+		final Date creationDate = getProperty(AbstractNode.createdDate);
+		if (creationDate != null) {
+
+			final GregorianCalendar calendar = new GregorianCalendar();
+			calendar.setTime(creationDate);
+
+			return calendar;
+		}
+
+		return null;
 	}
 }

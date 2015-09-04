@@ -20,6 +20,7 @@ package org.structr.core;
 
 import java.util.*;
 import org.neo4j.graphdb.PropertyContainer;
+import org.structr.cmis.CMISInfo;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
@@ -238,6 +239,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method is not supported as this is a property map.");
+	}
+
+	@Override
+	public CMISInfo getCMISInfo() {
+		return null;
 	}
 
 	// ----- Cloud synchronization and replication -----

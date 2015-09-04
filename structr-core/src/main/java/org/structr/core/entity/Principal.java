@@ -38,6 +38,10 @@ import org.structr.core.property.StringProperty;
  */
 public interface Principal extends NodeInterface, AccessControllable {
 
+	public static final String SUPERUSER_ID =                    "00000000000000000000000000000000";
+	public static final String ANONYMOUS                         = "anonymous";
+	public static final String ANYONE                            = "anyone";
+
 	public static final Property<String[]> sessionIds            = new ArrayProperty("sessionIds", String.class).indexedWhenEmpty();
 	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
 	public static final Property<Boolean> blocked                = new BooleanProperty("blocked");

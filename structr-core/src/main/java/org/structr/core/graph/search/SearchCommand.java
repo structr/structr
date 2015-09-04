@@ -829,53 +829,65 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	// ----- public static methods -----
-	public static Set<Class> allSubtypes(final Class type) {
-
-		final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
-		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
-		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
-		final Set<Class> allSubtypes                                          = new LinkedHashSet<>();
-
-		// add type first (this is neccesary because two class objects of the same dynamic type node are not equal
-		// to each other and not assignable, if the schema node was modified in the meantime)
-		allSubtypes.add(type);
-
-		// scan all node entities for subtypes
-		for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
-
-			Class<? extends NodeInterface> entityClass = entity.getValue();
-
-			if (type.isAssignableFrom(entityClass)) {
-
-				allSubtypes.add(entityClass);
-			}
-		}
-
-		// scan all relationship entities for subtypes
-		for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
-
-			Class<? extends RelationshipInterface> entityClass = entity.getValue();
-
-			if (type.isAssignableFrom(entityClass)) {
-
-				allSubtypes.add(entityClass);
-			}
-		}
-
-		return allSubtypes;
-	}
+//	public static Set<Class> getAllSubtypes(final Class type) {
+//		return getAllSubtypes(type, false);
+//	}
+//
+//	public static Set<Class> getAllSubtypes(final Class type, final boolean directOnly) {
+//
+//		final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
+//		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
+//		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
+//		final Set<Class> allSubtypes                                          = new LinkedHashSet<>();
+//
+//		// add type first (this is neccesary because two class objects of the same dynamic type node are not equal
+//		// to each other and not assignable, if the schema node was modified in the meantime)
+//		allSubtypes.add(type);
+//
+//		// scan all node entities for subtypes
+//		for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
+//
+//			Class<? extends NodeInterface> entityClass = entity.getValue();
+//
+//			if (type.isAssignableFrom(entityClass)) {
+//
+//				allSubtypes.add(entityClass);
+//			}
+//		}
+//
+//		// scan all relationship entities for subtypes
+//		for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
+//
+//			Class<? extends RelationshipInterface> entityClass = entity.getValue();
+//
+//			if (type.isAssignableFrom(entityClass)) {
+//
+//				allSubtypes.add(entityClass);
+//			}
+//		}
+//
+//		return allSubtypes;
+//	}
 
 	public static void clearInheritanceMap() {
 		subtypeMapForType.clear();
 	}
 
 	public static Set<String> getAllSubtypesAsStringSet(final String type) {
+		return getAllSubtypesAsStringSet(type, false);
+	}
+
+	public static Set<String> getAllSubtypesAsStringSet(final String type, final boolean directOnly) {
 
 		Set<String> allSubtypes = subtypeMapForType.get(type);
-		if (allSubtypes == null || baseTypes.contains(type)) {
+		if (allSubtypes == null || baseTypes.contains(type) || directOnly) {
 
 			allSubtypes = new LinkedHashSet<>();
-			subtypeMapForType.put(type, allSubtypes);
+
+			// don't store temporary results
+			if (!directOnly) {
+				subtypeMapForType.put(type, allSubtypes);
+			}
 
 			final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
 			final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
@@ -889,7 +901,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
 
 				final Class entityType     = entity.getValue();
-				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
+				final Set<Class> ancestors = typeAndAllSupertypes(entityType, directOnly);
 
 				for (final Class superClass : ancestors) {
 
@@ -926,6 +938,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	public static Set<Class> typeAndAllSupertypes(final Class type) {
+		return typeAndAllSupertypes(type, false);
+	}
+
+	public static Set<Class> typeAndAllSupertypes(final Class type, final boolean directOnly) {
 
 		final ConfigurationProvider configuration = StructrApp.getConfiguration();
 		final Set<Class> allSupertypes            = new LinkedHashSet<>();
@@ -939,6 +955,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			localType = localType.getSuperclass();
 
+			// only one iteration for direct types..
+			if (directOnly) {
+				break;
+			}
 		}
 
 		// remove base types

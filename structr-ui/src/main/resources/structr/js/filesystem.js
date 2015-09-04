@@ -393,7 +393,7 @@ function displaySearchResultsForURL(url) {
 
 								var div = $('#results' + d.id);
 
-								div.append('<h2>' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
+								div.append('<h2>' + d.path + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 
 								$.each(data.result.context, function(i, contextString) {
 
@@ -430,6 +430,7 @@ function getIcon(fileName, contentType) {
                 break;
 
             case 'application/pdf':
+            case 'application/postscript':
                 result = 'fa-file-pdf-o';
                 break;
 
@@ -482,9 +483,15 @@ function getIcon(fileName, contentType) {
                 result = 'fa-picture-o';
                 break;
 
+            case 'application/vnd.oasis.opendocument.chart':
+                result = 'fa-line-chart';
+                break;
+
             default:
                 if (contentType.startsWith('image/')) {
                     result = 'fa-file-image-o';
+                } else if (contentType.startsWith('text/')) {
+                    result = 'fa-file-text-o';
                 }
         }
 

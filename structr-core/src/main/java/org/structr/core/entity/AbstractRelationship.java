@@ -21,6 +21,8 @@ package org.structr.core.entity;
 //~--- classes ----------------------------------------------------------------
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
+import org.structr.cmis.CMISInfo;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -759,6 +762,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return Direction.BOTH;
 	}
 
+	@Override
+	public CMISInfo getCMISInfo() {
+		return null;
+	}
+
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() {
@@ -792,5 +800,42 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		for (final Entry<String, Object> entry : properties.entrySet()) {
 			getRelationship().setProperty(entry.getKey(), entry.getValue());
 		}
+	}
+
+	// ----- CMIS support methods -----
+	public String getCreatedBy() {
+		return getProperty(AbstractNode.createdBy);
+	}
+
+	public String getLastModifiedBy() {
+		return getProperty(AbstractNode.lastModifiedBy);
+	}
+
+	public GregorianCalendar getLastModificationDate() {
+
+		final Date creationDate = getProperty(AbstractNode.lastModifiedDate);
+		if (creationDate != null) {
+
+			final GregorianCalendar calendar = new GregorianCalendar();
+			calendar.setTime(creationDate);
+
+			return calendar;
+		}
+
+		return null;
+	}
+
+	public GregorianCalendar getCreationDate() {
+
+		final Date creationDate = getProperty(AbstractNode.createdDate);
+		if (creationDate != null) {
+
+			final GregorianCalendar calendar = new GregorianCalendar();
+			calendar.setTime(creationDate);
+
+			return calendar;
+		}
+
+		return null;
 	}
 }
