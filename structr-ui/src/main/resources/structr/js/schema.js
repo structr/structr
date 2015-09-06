@@ -21,6 +21,8 @@ var radius = 20, stub = 30, offset = 0, maxZ = 0, reload = false;
 var connectorStyle = localStorage.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
 var zoomLevel = parseFloat(localStorage.getItem(localStorageSuffix + 'zoomLevel')) || 1.0;
 var remotePropertyKeys = [];
+var hiddenSchemaNodes = [];
+var hiddenSchemaNodesKey = 'structrHiddenSchemaNodes_' + port;
 
 $(document).ready(function() {
 
@@ -121,6 +123,11 @@ var _Schema = {
 			schemaContainer.append('<button class="btn" id="show-snapshots"><img src="icon/database.png"> Snapshots</button>');
 			$('#show-snapshots').on('click', function() {
 				_Schema.snapshotsDialog();
+			});
+
+			schemaContainer.append('<button class="btn" id="schema-display-options"><img src="icon/pencil.png"> Display Options</button>');
+			$('#schema-display-options').on('click', function() {
+				_Schema.openSchemaDisplayOptions();
 			});
 
 			$('#type-name').on('keyup', function(e) {
@@ -230,7 +237,8 @@ var _Schema = {
 		return _Schema.schemaLoaded;
 	},
 	loadNodes: function(callback) {
-		var url = rootUrl + 'schema_nodes';
+		var url = rootUrl + 'schema_nodes/ui';
+		hiddenSchemaNodes = JSON.parse(localStorage.getItem(hiddenSchemaNodesKey)) || [];
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -238,12 +246,15 @@ var _Schema = {
 			success: function(data) {
 
 				$.each(data.result, function(i, entity) {
-
+					
+					if (hiddenSchemaNodes.length > 0 && hiddenSchemaNodes.indexOf(entity.id) > -1) { return; }
+					
 					var isBuiltinType = entity.isBuiltinType;
 					var id = 'id_' + entity.id;
 					nodes[entity.id] = entity;
 					canvas.append('<div class="schema node compact'
 							+ (isBuiltinType ? ' light' : '')
+							//+ '" id="' + id + '">' + (entity.icon ? '<img class="type-icon" src="' + entity.icon + '">' : '') + '<b>' + entity.name + '</b>'
 							+ '" id="' + id + '"><b>' + entity.name + '</b>'
 							+ '<img class="icon delete" src="icon/delete' + (isBuiltinType ? '_gray' : '') + '.png">'
 							+ '<img class="icon edit" src="icon/pencil.png">'
@@ -444,9 +455,12 @@ var _Schema = {
 					stub   = 30 + 80 * relCnt[relIndex];
 					offset =     0.1 * relCnt[relIndex];
 
-
 					sId = res.sourceId;
 					tId = res.targetId;
+
+					if (!(nodes[sId] && nodes[tId])) {
+						return;
+					}
 
 					rels[res.id] = instance.connect({
 						source: nodes[sId + '_bottom'],
@@ -2332,6 +2346,79 @@ var _Schema = {
 			});
 		});
 
+	},
+	openSchemaDisplayOptions: function() {
+		Structr.dialog('Schema Display Options', function() {
+		}, function() {
+		});
+
+		dialogText.append('<h3>Visibility</h3><table class="props" id="schema-options-table"><tr><th>Type</th><th>Visible <input type="checkbox" id="toggle-all-types"><img class="invert-icon" src="icon/arrow_switch.png" id="invert-all-types"></button></th></table>');
+		var schemaOptionsTable = $('#schema-options-table');
+		
+		// list: function(type, rootOnly, pageSize, page, sort, order, properties, callback)
+		Command.list('SchemaNode', false, 1000, 1, 'name', 'desc', null, function(schemaNodes) {
+			schemaNodes.forEach(function(schemaNode) {
+				schemaOptionsTable.append('<tr><td>' + schemaNode.name + '</td><td><input class="toggle-type" data-structr-id="' + schemaNode.id + '" type="checkbox" ' + (hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td></tr>');
+			});
+		
+//			$('.toggle-type', schemaOptionsTable).closest('td').on('click', function(e) {
+//				e.stopPropagation();
+//				e.preventDefault();
+//				console.log('td clicked')
+//				var td = $(this);
+//				var inp = $('.toggle-type', td);
+//				inp.prop("checked", !inp.prop("checked"));
+//			});
+
+			$('#toggle-all-types', schemaOptionsTable).on('click', function() {
+				$('.toggle-type', schemaOptionsTable).each(function(i, checkbox) {
+					var inp = $(checkbox);
+					inp.prop("checked", $('#toggle-all-types', schemaOptionsTable).prop("checked"));
+					_Schema.checkIsHiddenSchemaNode(inp);
+				});
+			});
+
+			$('#invert-all-types', schemaOptionsTable).on('click', function() {
+				$('.toggle-type', schemaOptionsTable).each(function(i, checkbox) {
+					var inp = $(checkbox);
+					inp.prop("checked", !inp.prop("checked"));
+					_Schema.checkIsHiddenSchemaNode(inp);
+				});
+			});
+
+			$('#save-options', schemaOptionsTable).on('click', function() {
+				Structr.saveLocalStorage();
+			});
+
+			$('td input[type="checkbox"]', schemaOptionsTable).on('change', function(e) {
+//				e.stopPropagation();
+//				e.preventDefault();
+				var inp = $(this);
+				_Schema.checkIsHiddenSchemaNode(inp);
+			});
+
+		});
+
+	},
+	checkIsHiddenSchemaNode: function(inp) {
+		var key = inp.attr('data-structr-id');
+		//console.log(inp, key, inp.is(':checked'));
+		if (!inp.is(':checked')) {
+			hiddenSchemaNodes.push(key);
+			nodes[key] = undefined;
+			localStorage.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
+			_Schema.reload();
+		} else {
+			if (hiddenSchemaNodes.indexOf(key) > -1) {
+				hiddenSchemaNodes.splice(hiddenSchemaNodes.indexOf(key), 1);
+				Command.get(key, function(schemaNode) {
+					nodes[key] = schemaNode;
+					localStorage.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
+					_Schema.reload();
+				});
+			}
+		}
+		//window.location.reload();
 	},
 	getPropertyName: function(type, relationshipType, relatedType, out, callback) {
 		$.ajax({

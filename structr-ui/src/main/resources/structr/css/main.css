@@ -1620,6 +1620,10 @@ button.add_property {
     margin: -3px 0 -3px 0;
 }
 
+.schema .type-icon {
+    display: inline;
+}
+
 .schema .icon {
     position: absolute;
     right: 6px;
@@ -1639,7 +1643,7 @@ button.add_property {
     opacity: .7;
 }
 
-#admin-tools, #sync-schema, #show-snapshots {
+#admin-tools, #sync-schema, #show-snapshots, #schema-display-options {
     margin: 0 0 4px 12px;
 }
 
@@ -1649,6 +1653,22 @@ button.add_property {
 
 #admin-tools-table td:first-child {
     text-align: left;
+}
+
+#schema-options-table th {
+    position: relative;
+}
+
+#schema-options-table th .invert-icon {
+    position: absolute;
+    right: 26px;
+    top: 8px;
+}
+
+#schema-options-table th #toggle-all-types {
+    position: absolute;
+    right: 6px;
+    top: 6px;
 }
 
 #ggist-url {
