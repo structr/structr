@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -184,6 +185,13 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 		return this;
 	}
 
+	// ----- CMIS support -----
+	@Override
+	public PropertyType getDataType() {
+		return PropertyType.STRING;
+	}
+
+	// ----- private methods -----
 	private static ContentType parse(final String contentTypeString) {
 
 		try {

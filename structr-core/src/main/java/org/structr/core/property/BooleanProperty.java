@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -99,6 +100,13 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		return false;
 	}
 
+	// ----- CMIS support -----
+	@Override
+	public PropertyType getDataType() {
+		return PropertyType.BOOLEAN;
+	}
+
+	// ----- nested classes -----
 	protected class DatabaseConverter extends PropertyConverter<Boolean, Object> {
 
 		public DatabaseConverter(SecurityContext securityContext) {

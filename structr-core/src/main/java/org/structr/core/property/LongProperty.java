@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
@@ -165,5 +166,9 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		return LONG_EMPTY_FIELD_VALUE;
 	}
 
-
+	// ----- CMIS support -----
+	@Override
+	public PropertyType getDataType() {
+		return PropertyType.INTEGER;
+	}
 }

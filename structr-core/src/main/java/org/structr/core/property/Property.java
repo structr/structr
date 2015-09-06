@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.neo4j.graphdb.Node;
@@ -570,6 +571,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	public Set<RelationshipIndex> relationshipIndices() {
 		return relationshipIndices;
+	}
+
+	// ----- CMIS support -----
+	@Override
+	public PropertyType getDataType() {
+		return null;
 	}
 
 	// ----- protected methods -----

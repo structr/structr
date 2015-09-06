@@ -1,8 +1,12 @@
 package org.structr.cmis.wrapper;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -13,6 +17,7 @@ import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.data.RenditionData;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.BindingsObjectFactoryImpl;
 import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
 import org.structr.cmis.common.CMISExtensionsData;
@@ -23,6 +28,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 /**
  *
@@ -33,6 +40,7 @@ import org.structr.core.entity.Principal;
 public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISExtensionsData implements ObjectData {
 
 	private BaseTypeId baseTypeId                  = null;
+	private PropertyMap dynamicPropertyMap         = null;
 	private GregorianCalendar lastModificationDate = null;
 	private GregorianCalendar creationDate         = null;
 	private String lastModifiedBy                  = null;
@@ -141,6 +149,50 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		properties.add(objFactory.createPropertyDateTimeData(PropertyIds.CREATION_DATE, creationDate));
 		properties.add(objFactory.createPropertyDateTimeData(PropertyIds.LAST_MODIFICATION_DATE, lastModificationDate));
 
+		// add dynamic properties
+		if (dynamicPropertyMap != null) {
+
+			for (final Entry<PropertyKey, Object> entry : dynamicPropertyMap.entrySet()) {
+
+				final PropertyKey key       = entry.getKey();
+				final PropertyType dataType = key.getDataType();
+
+				if (dataType != null) {
+
+					switch (dataType) {
+
+						case BOOLEAN:
+							final Boolean booleanValue = (Boolean)entry.getValue();
+							properties.add(objFactory.createPropertyBooleanData(key.jsonName(), booleanValue));
+							break;
+
+						case DATETIME:
+							final GregorianCalendar dateValue = new GregorianCalendar();
+							dateValue.setTime((Date)entry.getValue());
+							properties.add(objFactory.createPropertyDateTimeData(key.jsonName(), dateValue));
+							break;
+
+						case DECIMAL:
+							final BigDecimal decimalValue = BigDecimal.valueOf((Double)entry.getValue());
+							properties.add(objFactory.createPropertyDecimalData(key.jsonName(), decimalValue));
+							break;
+
+						case INTEGER:
+							final BigInteger integerValue = BigInteger.valueOf((Long)entry.getValue());
+							properties.add(objFactory.createPropertyIntegerData(key.jsonName(), integerValue));
+							break;
+
+						case STRING:
+							final String stringValue = (String)entry.getValue();
+							properties.add(objFactory.createPropertyStringData(key.jsonName(), stringValue));
+							break;
+					}
+
+
+				}
+			}
+		}
+
 		// initialize type-dependent properties
 		createProperties(objFactory, properties);
 
@@ -192,6 +244,8 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		setLastModifiedBy(info.getLastModifiedBy());
 		setCreationDate(info.getCreationDate());
 		setLastModificationDate(info.getLastModificationDate());
+
+		dynamicPropertyMap = info.getDynamicProperties();
 	}
 
 	// ----- public static methods -----

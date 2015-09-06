@@ -9,11 +9,16 @@ import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.definitions.TypeMutability;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.structr.cmis.common.CMISExtensionsData;
+import org.structr.common.PropertyView;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.Folder;
 
@@ -135,6 +140,33 @@ public class StructrTypeWrapper extends CMISExtensionsData implements TypeDefini
 			case CMIS_FOLDER:
 				properties.putAll(factory.createFolderTypeDefinition(CmisVersion.CMIS_1_1, getParentTypeId()).getPropertyDefinitions());
 				break;
+		}
+
+		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
+
+			// include all dynamic keys in definition
+			if (key.isDynamic()) {
+
+				// only include primitives here
+				final PropertyType dataType = key.getDataType();
+				if (dataType != null) {
+
+					final String propertyId         = key.jsonName();
+					final String displayName        = propertyId;
+					final String description        = displayName + " property";
+					final Class declaringClass      = key.getDeclaringClass();
+					final boolean isInherited       = !type.getName().equals(declaringClass.getName());
+					final Cardinality cardinality   = Cardinality.SINGLE;
+					final Updatability updatability = Updatability.READWRITE;
+					final boolean required          = key.isNotNull();
+					final boolean queryable         = key.isIndexed();
+					final boolean orderable         = key.isIndexed();
+
+					final PropertyDefinition propertyDefinition = factory.createPropertyDefinition(propertyId, displayName, description, dataType, cardinality, updatability, isInherited, required, queryable, orderable);
+
+					properties.put(propertyId, propertyDefinition);
+				}
+			}
 		}
 
 		return properties;

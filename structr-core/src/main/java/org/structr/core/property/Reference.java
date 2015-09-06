@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -341,4 +342,8 @@ public class Reference<T> implements PropertyKey<T> {
 		return propertyKey.dynamic();
 	}
 
+	@Override
+	public PropertyType getDataType() {
+		return propertyKey.getDataType();
+	}
 }

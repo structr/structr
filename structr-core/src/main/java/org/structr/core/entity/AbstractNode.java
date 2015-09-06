@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -1421,5 +1422,29 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 		return null;
+	}
+
+	public PropertyMap getDynamicProperties() {
+
+		final PropertyMap propertyMap       = new PropertyMap();
+		final Class type                    = getClass();
+
+		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
+
+			// include all dynamic keys in definition
+			if (key.isDynamic()) {
+
+				// only include primitives here
+				final PropertyType dataType = key.getDataType();
+				if (dataType != null) {
+
+					propertyMap.put(key, getProperty(key));
+				}
+			}
+		}
+
+
+
+		return propertyMap;
 	}
 }

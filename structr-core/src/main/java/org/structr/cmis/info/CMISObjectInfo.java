@@ -2,6 +2,7 @@ package org.structr.cmis.info;
 
 import java.util.GregorianCalendar;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.structr.core.property.PropertyMap;
 
 /**
  * Optional interface for CMIS support in Structr core.
@@ -19,4 +20,6 @@ public interface CMISObjectInfo {
 	public String getLastModifiedBy();
 	public GregorianCalendar getCreationDate();
 	public GregorianCalendar getLastModificationDate();
+
+	public PropertyMap getDynamicProperties();
 }

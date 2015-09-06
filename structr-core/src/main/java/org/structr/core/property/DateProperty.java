@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.Date;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
@@ -209,7 +210,14 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	public String getValueForEmptyFields() {
 		return DATE_EMPTY_FIELD_VALUE;
 	}
-	
+
+	// ----- CMIS support -----
+	@Override
+	public PropertyType getDataType() {
+		return PropertyType.DATETIME;
+	}
+
+	// ----- static methods -----
 	public static String getDefaultFormat() {
 
 		final String configuredFormat = Services.getInstance().getConfigurationValue("DateProperty.defaultFormat");
@@ -218,7 +226,6 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		} else {
 			return DEFAULT_FORMAT;
 		}
-		
+
 	}
-	
 }

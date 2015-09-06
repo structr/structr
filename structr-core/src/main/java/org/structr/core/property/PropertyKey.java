@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.lucene.search.BooleanClause;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
@@ -317,4 +318,7 @@ public interface PropertyKey<T> {
 	public PropertyKey<T> unique(final boolean unique);
 	public PropertyKey<T> format(final String format);
 	public PropertyKey<T> dynamic();
+
+	// ----- CMIS support -----
+	public PropertyType getDataType();
 }
