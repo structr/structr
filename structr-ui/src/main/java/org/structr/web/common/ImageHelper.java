@@ -175,7 +175,7 @@ public abstract class ImageHelper extends FileHelper {
 					final int destWidth  = Math.max(4, Math.round(sourceWidth / scale));
 					final int destHeight = Math.max(4, Math.round(sourceHeight / scale));
 
-					System.out.println(destWidth + " / " + destHeight);
+					//System.out.println(destWidth + " / " + destHeight);
 
 					ResampleOp resampleOp   = new ResampleOp(destWidth, destHeight);
 					BufferedImage resampled = resampleOp.filter(source, null);
