@@ -2356,27 +2356,19 @@ var _Schema = {
 		var schemaOptionsTable = $('#schema-options-table');
 		
 		// list: function(type, rootOnly, pageSize, page, sort, order, properties, callback)
-		Command.list('SchemaNode', false, 1000, 1, 'name', 'desc', null, function(schemaNodes) {
+		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', null, function(schemaNodes) {
 			schemaNodes.forEach(function(schemaNode) {
-				schemaOptionsTable.append('<tr><td>' + schemaNode.name + '</td><td><input class="toggle-type" data-structr-id="' + schemaNode.id + '" type="checkbox" ' + (hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td></tr>');
+				schemaOptionsTable.append('<tr><td>' + schemaNode.name + '</td><td><input class="toggle-type" data-structr-id="' + schemaNode.id + '" type="checkbox" ' + (hiddenSchemaNodes.indexOf(schemaNode.id) > -1 ? '' : 'checked') + '></td></tr>');
 			});
 		
-//			$('.toggle-type', schemaOptionsTable).closest('td').on('click', function(e) {
-//				e.stopPropagation();
-//				e.preventDefault();
-//				console.log('td clicked')
-//				var td = $(this);
-//				var inp = $('.toggle-type', td);
-//				inp.prop("checked", !inp.prop("checked"));
-//			});
-
 			$('#toggle-all-types', schemaOptionsTable).on('click', function() {
 				$('.toggle-type', schemaOptionsTable).each(function(i, checkbox) {
 					var inp = $(checkbox);
 					inp.prop("checked", $('#toggle-all-types', schemaOptionsTable).prop("checked"));
 					_Schema.checkIsHiddenSchemaNode(inp);
 				});
-			});
+				_Schema.reload();
+		});
 
 			$('#invert-all-types', schemaOptionsTable).on('click', function() {
 				$('.toggle-type', schemaOptionsTable).each(function(i, checkbox) {
@@ -2384,17 +2376,30 @@ var _Schema = {
 					inp.prop("checked", !inp.prop("checked"));
 					_Schema.checkIsHiddenSchemaNode(inp);
 				});
+				_Schema.reload();
 			});
 
 			$('#save-options', schemaOptionsTable).on('click', function() {
 				Structr.saveLocalStorage();
 			});
 
-			$('td input[type="checkbox"]', schemaOptionsTable).on('change', function(e) {
-//				e.stopPropagation();
-//				e.preventDefault();
-				var inp = $(this);
+			// Suppress click action on checkbox, action is triggered by event bound to underlying td element
+			$('td .toggle-type', schemaOptionsTable).on('click', function(e) {
+				e.stopPropagation();
+				e.preventDefault();
+				return false;
+			});
+
+			$('td', schemaOptionsTable).on('mouseup', function(e) {
+				e.stopPropagation();
+				e.preventDefault();
+				console.log('td clicked')
+				var td = $(this);
+				var inp = $('.toggle-type', td);
+				inp.prop("checked", !inp.prop("checked"));
 				_Schema.checkIsHiddenSchemaNode(inp);
+				_Schema.reload();
+				return false;
 			});
 
 		});
@@ -2404,21 +2409,20 @@ var _Schema = {
 		var key = inp.attr('data-structr-id');
 		//console.log(inp, key, inp.is(':checked'));
 		if (!inp.is(':checked')) {
-			hiddenSchemaNodes.push(key);
+			if (hiddenSchemaNodes.indexOf(key) === -1) {
+				hiddenSchemaNodes.push(key);
+			}
 			nodes[key] = undefined;
 			localStorage.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
-			_Schema.reload();
 		} else {
 			if (hiddenSchemaNodes.indexOf(key) > -1) {
 				hiddenSchemaNodes.splice(hiddenSchemaNodes.indexOf(key), 1);
 				Command.get(key, function(schemaNode) {
 					nodes[key] = schemaNode;
 					localStorage.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
-					_Schema.reload();
 				});
 			}
 		}
-		//window.location.reload();
 	},
 	getPropertyName: function(type, relationshipType, relatedType, out, callback) {
 		$.ajax({
