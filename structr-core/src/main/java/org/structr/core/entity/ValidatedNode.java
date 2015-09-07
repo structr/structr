@@ -26,38 +26,38 @@ import org.structr.core.property.Property;
 /**
  * A node with validation. This is a convenience class that avoids having to
  * implement the validation methods for all types separately.
- * 
+ *
  * @author Christian Morgner
  */
 public abstract class ValidatedNode extends AbstractNode {
-	
+
 	protected boolean nonEmpty(Property<String> property, ErrorBuffer errorBuffer) {
-		
+
 		String value  = getProperty(property);
 		boolean valid = true;
-		
+
 		if (value == null) {
-			
-			errorBuffer.add(getClass().getSimpleName(), new NullPropertyToken(property));
+
+			errorBuffer.add(new NullPropertyToken(getClass().getSimpleName(), property));
 			valid = false;
-			
+
 		} else if (value.isEmpty()) {
-			
-			errorBuffer.add(getClass().getSimpleName(), new EmptyPropertyToken(property));
+
+			errorBuffer.add(new EmptyPropertyToken(getClass().getSimpleName(), property));
 			valid = false;
 		}
 
 		return valid;
 	}
-	
+
 	protected boolean nonNull(Property property, ErrorBuffer errorBuffer) {
-		
+
 		Object value  = getProperty(property);
 		boolean valid = true;
-		
+
 		if (value == null) {
-			
-			errorBuffer.add(getClass().getSimpleName(), new EmptyPropertyToken(property));
+
+			errorBuffer.add(new EmptyPropertyToken(getClass().getSimpleName(), property));
 			valid = false;
 		}
 

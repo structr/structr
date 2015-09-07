@@ -81,8 +81,8 @@ public class MailTemplate extends AbstractNode {
 			if (!res.isEmpty() && res.size() > 1) {
 
 				hasError = true;
-				errorBuffer.add(MailTemplate.class.getName(), new UniqueToken(_uuid, name, _name));
-				errorBuffer.add(MailTemplate.class.getName(), new UniqueToken(_uuid, locale, _locale));
+				errorBuffer.add(new UniqueToken(MailTemplate.class.getName(), name, _uuid));
+				errorBuffer.add(new UniqueToken(MailTemplate.class.getName(), locale, _uuid));
 			}
 
 

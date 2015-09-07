@@ -103,7 +103,7 @@ public class FtpService implements RunnableService {
 
 		Services.mergeConfiguration(finalConfig, config);
 
-		port = Services.parseInt(APPLICATION_FTP_PORT, 8021);
+		port = Services.parseInt(finalConfig.getProperty(APPLICATION_FTP_PORT), 8021);
 	}
 
 	@Override

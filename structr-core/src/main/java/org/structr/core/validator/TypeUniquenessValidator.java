@@ -68,7 +68,7 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 		if (value == null) {
 
-			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
+			errorBuffer.add(new EmptyPropertyToken(object.getType(), key));
 
 			return false;
 
@@ -98,7 +98,7 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 					id = ((AbstractNode) result.get(0)).getUuid();
 
-					errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
+					errorBuffer.add(new UniqueToken(object.getType(), key, id));
 
 					return false;
 				}

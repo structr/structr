@@ -1,7 +1,5 @@
 package org.structr.xmpp;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import org.structr.common.error.SemanticErrorToken;
 
 /**
@@ -10,17 +8,7 @@ import org.structr.common.error.SemanticErrorToken;
  */
 public class NotConnectedToken extends SemanticErrorToken {
 
-	public NotConnectedToken() {
-		super(base);
-	}
-
-	@Override
-	public JsonElement getContent() {
-		return new JsonPrimitive(getErrorToken());
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "not_connected";
+	public NotConnectedToken(final String type) {
+		super(type, null, "not_connected");
 	}
 }

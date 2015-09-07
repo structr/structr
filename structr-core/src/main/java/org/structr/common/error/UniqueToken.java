@@ -18,41 +18,16 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
  * Indicates that a specific property value already exists in the database.
- * 
+ *
  * @author Christian Morgner
  */
 public class UniqueToken extends SemanticErrorToken {
 
-	private Object value = null;
-        private String uuid = null;
-
-	public UniqueToken(String uuid, PropertyKey propertyKey, Object value) {
-		
-		super(propertyKey);
-                this.uuid = uuid;
-		this.value = value;
-	}
-
-	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-
-                obj.add(getErrorToken(), new JsonPrimitive(value.toString()));
-		obj.add("id", new JsonPrimitive(uuid.toString()));
-
-		return obj;
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "already_taken";
+	public UniqueToken(final String type, final PropertyKey propertyKey, final String uuid) {
+		super(type, propertyKey, "already_taken", uuid);
 	}
 }

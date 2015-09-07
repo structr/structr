@@ -40,16 +40,16 @@ public class SimpleMaxlengthValidator implements PropertyValidator<String> {
 
 	@Override
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<String> key, String value, ErrorBuffer errorBuffer) {
-		
+
 		if(value.length() <= maxLength) {
 			return true;
 		}
 
-		errorBuffer.add(object.getType(), new TooLongToken(key, maxLength));
+		errorBuffer.add(new TooLongToken(object.getType(), key, maxLength));
 
 		return false;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return false;

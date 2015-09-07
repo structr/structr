@@ -18,43 +18,35 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
  * Indicates that a property value was not in the expected set of values.
- * 
+ *
  * @author Christian Morgner
  */
 public class ValueToken extends SemanticErrorToken {
 
-	private Object[] values = null;
-
-	public ValueToken(PropertyKey propertyKey, Object[] values) {
-		super(propertyKey);
-		this.values = values;
+	public ValueToken(final String type, final PropertyKey propertyKey, final Object[] values) {
+		super(type, propertyKey, "must_be_one_of", ValueToken.getContent(values));
 	}
 
-	@Override
-	public JsonElement getContent() {
+	private static String getContent(final Object[] values) {
 
-		JsonObject obj = new JsonObject();
-		JsonArray array = new JsonArray();
-		
-		for(Object o : values) {
-			array.add(new JsonPrimitive(o.toString()));
+		final StringBuilder buf = new StringBuilder();
+		final int len           = values.length;
+
+		for (int i=0; i<len; i++) {
+
+			if (values[i] != null) {
+				buf.append(values[i].toString());
+			}
+
+			if (i < len-1) {
+				buf.append(", ");
+			}
 		}
 
-		obj.add(getErrorToken(), array);
-
-		return obj;
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "must_be_one_of";
+		return buf.toString();
 	}
 }

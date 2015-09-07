@@ -172,7 +172,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(declaringClass.getSimpleName(), new ValueToken(EnumProperty.this, enumType.getEnumConstants()));
+					throw new FrameworkException(422, new ValueToken(declaringClass.getSimpleName(), EnumProperty.this, enumType.getEnumConstants()));
 				}
 			}
 

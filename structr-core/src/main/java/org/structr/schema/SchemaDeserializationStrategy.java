@@ -195,7 +195,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 					break;
 			}
 
-			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
+			throw new FrameworkException(404, new PropertiesNotFoundToken(type.getSimpleName(), AbstractNode.base, attributes));
 		}
 
 		return null;
@@ -206,7 +206,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 		GraphObject obj = result.get(0);
 
 		if (!type.isAssignableFrom(obj.getClass())) {
-			throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
+			throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 		}
 
 		return result.get(0);

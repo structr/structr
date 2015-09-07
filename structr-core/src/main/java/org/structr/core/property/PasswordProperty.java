@@ -74,7 +74,7 @@ public class PasswordProperty extends StringProperty {
 
 				if (minLength > 0 && clearTextPassword.length() < minLength) {
 
-					throw new FrameworkException(errorType, new TooShortToken(errorKey, minLength));
+					throw new FrameworkException(422, new TooShortToken(errorType, errorKey, minLength));
 				}
 			}
 

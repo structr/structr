@@ -46,11 +46,11 @@ public class TypeValidator implements PropertyValidator<Class> {
 		}
 
 		// set error
-		errorBuffer.add(object.getType(), new TypeToken(key, type.getName()));
+		errorBuffer.add(new TypeToken(object.getClass(), key, type.getName()));
 
 		return false;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return false;

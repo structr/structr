@@ -18,12 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -32,45 +26,9 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-public class PropertiesNotFoundToken extends NotFoundToken {
+public class PropertiesNotFoundToken extends SemanticErrorToken {
 
-	private Map<PropertyKey, Object> attributes = null;
-
-	public PropertiesNotFoundToken(PropertyKey key, PropertyMap attributes) {
-		super(key);
-		this.attributes = attributes.getRawMap();
-	}
-
-	public PropertiesNotFoundToken(PropertyKey key, Map<PropertyKey, Object> attributes) {
-		super(key);
-		this.attributes = attributes;
-	}
-
-	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-		JsonObject vals = new JsonObject();
-
-		for(Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-
-			PropertyKey key = entry.getKey();
-			Object value    = entry.getValue();
-			
-			if (value == null) {
-				vals.add(key.jsonName(), null);
-			} else {
-				vals.add(key.jsonName(), new JsonPrimitive(value.toString()));
-			}
-		}
-
-		obj.add(getErrorToken(), vals);
-
-		return obj;
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "object_not_found";
+	public PropertiesNotFoundToken(final String type, final PropertyKey key, final PropertyMap attributes) {
+		super(type, key, "object_not_found", attributes);
 	}
 }

@@ -18,9 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import org.structr.core.property.PropertyKey;
-
 /**
  * Abstract base class for all error tokens.
  *
@@ -28,35 +25,63 @@ import org.structr.core.property.PropertyKey;
  */
 public abstract class ErrorToken {
 
-	private PropertyKey key = null;
-	private int status = 0;
+	private String property = null;
+	private String type     = null;
+	private Object detail   = null;
+	private String token    = null;
 
-	public abstract JsonElement getContent();
-	public abstract String getErrorToken();
+	public ErrorToken(final String type, final String property, final String token, final Object detail) {
 
-	public ErrorToken(int status, PropertyKey key) {
-		this.status = status;
-		this.key = key;
+		this.type     = type;
+		this.property = property;
+		this.token    = token;
+		this.detail   = detail;
 	}
 
-	public String getKey() {
-		return key.jsonName();
+	public String getProperty() {
+		return property;
 	}
 
-	public int getStatus() {
-		return status;
+	public String getType() {
+		return type;
+	}
+
+	public String getToken() {
+		return token;
+	}
+
+	public Object getDetail() {
+		return detail;
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if(o instanceof ErrorToken) {
-			return ((ErrorToken)o).getErrorToken().equals(getErrorToken());
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		if (type != null) {
+
+			buf.append(type);
 		}
-		return false;
-	}
 
-	@Override
-	public int hashCode() {
-		return getErrorToken().hashCode();
+		if (property != null) {
+
+			buf.append(".");
+			buf.append(property);
+		}
+
+		if (token != null) {
+
+			buf.append(" ");
+			buf.append(token);
+		}
+
+		if (detail != null) {
+
+			buf.append(" ");
+			buf.append(detail);
+		}
+
+		return buf.toString();
 	}
 }

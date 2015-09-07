@@ -18,9 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -28,31 +25,9 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Christian Morgner
  */
-public class PropertyNotFoundToken extends NotFoundToken {
+public class PropertyNotFoundToken extends SemanticErrorToken {
 
-	private Object value = null;
-
-	public PropertyNotFoundToken(PropertyKey key, Object value) {
-		super(key);
-		this.value = value;
-	}
-
-	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-		JsonObject vals = new JsonObject();
-
-		if (value != null) {
-			vals.add(getKey(), new JsonPrimitive(value.toString()));
-		}
-		obj.add(getErrorToken(), vals);
-
-		return obj;
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "object_not_found";
+	public PropertyNotFoundToken(final String type, final PropertyKey key, Object value) {
+		super(type, key, "object_not_found", value);
 	}
 }

@@ -149,19 +149,19 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 				T obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException("base", new TypeToken(propertyKey, type.getSimpleName()));
+					throw new FrameworkException(422, new TypeToken(obj.getClass(), propertyKey, type.getSimpleName()));
 				}
 				return obj;
 		}
 
 		if (convertedSource != null) {
 
-			Map<PropertyKey, Object> attributes = new LinkedHashMap<>();
+			PropertyMap attributes = new PropertyMap();
 
 			attributes.put(propertyKey,       convertedSource);
 			attributes.put(AbstractNode.type, type.getSimpleName());
 
-			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
+			throw new FrameworkException(404, new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
 		}
 
 		return null;

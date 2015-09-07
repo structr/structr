@@ -251,7 +251,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public void setGroupedProperties(SecurityContext securityContext, PropertyMap source, GraphObject destination) throws FrameworkException {
 
 		if (source.containsKey(nullValuesOnlyProperty)) {
-			throw new FrameworkException("base", new ReadOnlyPropertyToken(nullValuesOnlyProperty));
+			throw new FrameworkException(422, new ReadOnlyPropertyToken(destination.getClass().getSimpleName(), nullValuesOnlyProperty));
 		}
 
 		if (source.isEmpty()) {
@@ -313,7 +313,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
-		
+
 		setGroupedProperties(securityContext, value, obj);
 		return null;
 	}

@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSortKey;
+import org.structr.core.GraphObject;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.servlet.JsonRestServlet;
 
@@ -40,7 +41,7 @@ public class SortResource extends WrappingResource {
 
 	private String sortOrder = null;
 	private String sortKey = null;
-	
+
 	public SortResource(SecurityContext securityContext, String sortKey, String sortOrder) {
 		this.securityContext = securityContext;
 		this.sortKey = sortKey;
@@ -55,20 +56,20 @@ public class SortResource extends WrappingResource {
 
 		return sortKey != null;
 	}
-	
+
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		if(wrappedResource != null) {
-			
+
 			Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 
 			try {
 				Collections.sort(result.getResults(), new GraphObjectComparator(sortKey, sortOrder));
-				
+
 			} catch(Throwable t) {
-				
-				throw new FrameworkException("base", new InvalidSortKey(sortKey));
+
+				throw new FrameworkException(422, new InvalidSortKey(GraphObject.class.getSimpleName(), sortKey));
 			}
 
 			return result;
@@ -89,7 +90,7 @@ public class SortResource extends WrappingResource {
 	public String getSortKey() {
 		return sortKey;
 	}
-	
+
 	@Override
 	public void postProcessResultSet(Result result) {
 		result.setSortOrder(sortOrder);

@@ -25,29 +25,29 @@ import org.structr.core.property.Property;
 
 /**
  * A simple entity for the most basic tests.
- * 
+ *
  * This class has a not-null constraint on the TestOne object, so when
  * the TestOne object is deleted, this object should be deleted as well.
- * 
+ *
  * @author Axel Morgner
  */
 public class TestTwo extends AbstractNode {
-	
+
 	public static final Property<TestOne> testOne = new StartNode<>("testOne", OneTwoOneToOne.class);
-	
+
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
-		
+
 		if (getTestOne() == null) {
-			
-			errorBuffer.add(TestTwo.class.getSimpleName(), new EmptyPropertyToken(testOne));
-			
+
+			errorBuffer.add(new EmptyPropertyToken(TestTwo.class.getSimpleName(), testOne));
+
 			return false;
 		}
-		
+
 		return true;
 	}
-	
+
 	private TestOne getTestOne() {
 		return getProperty(testOne);
 	}

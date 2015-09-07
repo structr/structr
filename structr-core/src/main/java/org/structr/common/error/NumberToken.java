@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -28,19 +26,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class NumberToken extends SemanticErrorToken {
 
-	private String rangeDefinition = null;
-
-	public NumberToken(final PropertyKey key) {
-		super(key);
-	}
-
-	@Override
-	public JsonElement getContent() {
-		return new JsonPrimitive(getErrorToken());
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "must_be_numerical";
+	public NumberToken(final String type, final PropertyKey key) {
+		super(type, key, "must_be_numerical");
 	}
 }

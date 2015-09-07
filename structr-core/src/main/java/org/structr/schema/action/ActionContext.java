@@ -153,8 +153,9 @@ public class ActionContext {
 		return _data;
 	}
 
-	public void raiseError(final String type, final ErrorToken errorToken) {
-		errorBuffer.add(type, errorToken);
+	public void raiseError(final int code, final ErrorToken errorToken) {
+		errorBuffer.add(errorToken);
+		errorBuffer.setStatus(code);
 	}
 
 	public ErrorBuffer getErrorBuffer() {

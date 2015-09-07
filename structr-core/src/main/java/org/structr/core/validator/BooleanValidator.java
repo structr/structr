@@ -36,16 +36,16 @@ public class BooleanValidator implements PropertyValidator {
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, Object value, ErrorBuffer errorBuffer) {
 
 		String stringValue = value != null ? value.toString() : "";
-		
+
 		boolean valid = ("true".equalsIgnoreCase(stringValue) || "false".equalsIgnoreCase(stringValue));
-		
+
 		if(!valid) {
-			errorBuffer.add(object.getType(), new ValueToken(key, new Object[] { true, false } ));
+			errorBuffer.add(new ValueToken(object.getType(), key, new Object[] { true, false } ));
 		}
-		
+
 		return valid;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return false;

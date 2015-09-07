@@ -19,9 +19,6 @@ package org.structr.core.parser;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.io.FileInputStream;
@@ -79,7 +76,6 @@ import org.structr.common.MailHelper;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.geo.GeoCodingResult;
@@ -471,50 +467,12 @@ public class Functions {
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
-					ctx.raiseError(type, new ErrorToken(422, key) {
-
-						@Override
-						public JsonElement getContent() {
-							return new JsonPrimitive(getErrorToken());
-						}
-
-						@Override
-						public String getErrorToken() {
-							return sources[1].toString();
-						}
-					});
+					ctx.raiseError(422, new SemanticErrorToken(type, key, sources[1].toString()));
 
 				} else if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
 					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
-					ctx.raiseError(type, new SemanticErrorToken(key) {
-
-						@Override
-						public JsonElement getContent() {
-
-							JsonObject obj = new JsonObject();
-
-							if (sources[2] instanceof Number) {
-
-								obj.add(getErrorToken(), new JsonPrimitive((Number) sources[2]));
-
-							} else if (sources[2] instanceof Boolean) {
-
-								obj.add(getErrorToken(), new JsonPrimitive((Boolean) sources[2]));
-
-							} else {
-
-								obj.add(getErrorToken(), new JsonPrimitive(sources[2].toString()));
-							}
-
-							return obj;
-						}
-
-						@Override
-						public String getErrorToken() {
-							return sources[1].toString();
-						}
-					});
+					ctx.raiseError(422, new SemanticErrorToken(type, key, sources[1].toString(), sources[2]));
 				}
 
 				return null;

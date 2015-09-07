@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import java.util.Date;
 import org.structr.core.property.PropertyKey;
 
@@ -30,18 +28,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class FutureDateToken extends SemanticErrorToken {
 
-	public FutureDateToken(PropertyKey<Date> propertyKey) {
-		super(propertyKey);
-	}
-
-	@Override
-	public JsonElement getContent() {
-		return new JsonPrimitive(getErrorToken());
-	}
-
-
-	@Override
-	public String getErrorToken() {
-		return "must_lie_in_the_future";
+	public FutureDateToken(final String type, PropertyKey<Date> propertyKey) {
+		super(type, propertyKey, "must_lie_in_the_future");
 	}
 }

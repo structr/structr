@@ -573,7 +573,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
 
-			throw new FrameworkException(getClass().getSimpleName(), new NullArgumentToken(base));
+			throw new FrameworkException(422, new NullArgumentToken(getClass().getSimpleName(), base));
 
 		}
 
@@ -585,7 +585,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 				if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-					throw new FrameworkException(getClass().getSimpleName(), new ReadOnlyPropertyToken(key));
+					throw new FrameworkException(422, new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
 
 				}
 
@@ -666,7 +666,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		final String type                = this.getClass().getSimpleName();
 
 		if (newStartNode == null) {
-			throw new FrameworkException(type, new IdNotFoundToken(startNodeId));
+			throw new FrameworkException(404, new IdNotFoundToken(type, startNodeId));
 		}
 
 		// delete this as the new rel will be the container afterwards
@@ -693,7 +693,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		final String type                 = this.getClass().getSimpleName();
 
 		if (newTargetNode == null) {
-			throw new FrameworkException(type, new IdNotFoundToken(targetIdNode));
+			throw new FrameworkException(404, new IdNotFoundToken(type, targetIdNode));
 		}
 
 		// delete this as the new rel will be the container afterwards

@@ -117,7 +117,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(declaringClass.getSimpleName(), new NumberToken(LongProperty.this));
+					throw new FrameworkException(422, new NumberToken(declaringClass.getSimpleName(), LongProperty.this));
 				}
 			}
 

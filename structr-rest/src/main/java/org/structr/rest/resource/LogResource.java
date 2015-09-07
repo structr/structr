@@ -312,15 +312,15 @@ public class LogResource extends Resource {
 				final ErrorBuffer errorBuffer = new ErrorBuffer();
 
 				if (StringUtils.isEmpty(subjectId)) {
-					errorBuffer.add("LogFile", new EmptyPropertyToken(subjectProperty));
+					errorBuffer.add(new EmptyPropertyToken("LogFile", subjectProperty));
 				}
 
 				if (StringUtils.isEmpty(objectId)) {
-					errorBuffer.add("LogFile", new EmptyPropertyToken(objectProperty));
+					errorBuffer.add(new EmptyPropertyToken("LogFile", objectProperty));
 				}
 
 				if (StringUtils.isEmpty(action)) {
-					errorBuffer.add("LogFile", new EmptyPropertyToken(actionProperty));
+					errorBuffer.add(new EmptyPropertyToken("LogFile", actionProperty));
 				}
 
 				throw new FrameworkException(422, errorBuffer);

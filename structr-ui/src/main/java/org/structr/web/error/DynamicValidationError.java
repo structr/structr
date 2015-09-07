@@ -18,12 +18,7 @@
  */
 package org.structr.web.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import java.util.Map;
-import java.util.Map.Entry;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.SemanticErrorToken;
 
@@ -33,38 +28,7 @@ import org.structr.common.error.SemanticErrorToken;
  */
 public class DynamicValidationError extends SemanticErrorToken {
 
-	private Map<String, Object> attributes = null;
-
-	public DynamicValidationError(PropertyKey key, Map<String, Object> attributes) {
-		super(key);
-		this.attributes = attributes;
-	}
-
-	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-		JsonObject vals = new JsonObject();
-
-		for (Entry<String, Object> entry : attributes.entrySet()) {
-
-			String key = entry.getKey();
-			Object value = entry.getValue();
-			
-			if (value == null) {
-				vals.add(key, new JsonNull());
-			} else {
-				vals.add(key, new JsonPrimitive(value.toString()));
-			}
-		}
-
-		obj.add(getErrorToken(), vals);
-
-		return obj;
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "validation_error";
+	public DynamicValidationError(final String type, final PropertyKey key, final Map<String, Object> attributes) {
+		super(type, key, "validation_error", attributes);
 	}
 }

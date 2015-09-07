@@ -256,7 +256,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					readOnlyPropertiesUnlocked = false;
 				} else {
 
-					throw new FrameworkException(this.getType(), new ReadOnlyPropertyToken(key));
+					throw new FrameworkException(404, new ReadOnlyPropertyToken(getType(), key));
 				}
 
 			}
@@ -1028,7 +1028,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
 
-			throw new FrameworkException(getClass().getSimpleName(), new NullArgumentToken(base));
+			throw new FrameworkException(422, new NullArgumentToken(getClass().getSimpleName(), base));
 
 		}
 
@@ -1037,7 +1037,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-				throw new FrameworkException(getClass().getSimpleName(), new ReadOnlyPropertyToken(key));
+				throw new FrameworkException(422, new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
 
 			}
 

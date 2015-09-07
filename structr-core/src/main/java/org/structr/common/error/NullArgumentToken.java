@@ -18,9 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
-import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -28,19 +25,9 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Christian Morgner
  */
-public class NullArgumentToken extends ErrorToken {
+public class NullArgumentToken extends SemanticErrorToken {
 
-	public NullArgumentToken(PropertyKey key) {
-		super(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, key);
-	}
-
-	@Override
-	public JsonElement getContent() {
-		return new JsonPrimitive(getErrorToken());
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "may_not_be_null";
+	public NullArgumentToken(final String type, final PropertyKey key) {
+		super(type, key, "may_not_be_null");
 	}
 }

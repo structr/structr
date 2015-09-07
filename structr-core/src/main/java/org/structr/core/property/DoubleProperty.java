@@ -165,7 +165,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(declaringClass.getSimpleName(), new NumberToken(DoubleProperty.this));
+					throw new FrameworkException(422, new NumberToken(declaringClass.getSimpleName(), DoubleProperty.this));
 				}
 			}
 

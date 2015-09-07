@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import java.util.Date;
 import org.structr.core.property.PropertyKey;
 
@@ -30,18 +28,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class DateFormatToken extends SemanticErrorToken {
 
-	public DateFormatToken(PropertyKey<Date> propertyKey) {
-		super(propertyKey);
-	}
-
-	@Override
-	public JsonElement getContent() {
-		return new JsonPrimitive(getErrorToken());
-	}
-
-
-	@Override
-	public String getErrorToken() {
-		return "invalid_date_format";
+	public DateFormatToken(final String type, PropertyKey<Date> propertyKey) {
+		super(type, propertyKey, "invalid_date_format");
 	}
 }

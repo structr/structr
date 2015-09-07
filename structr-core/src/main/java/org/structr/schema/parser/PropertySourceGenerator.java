@@ -100,8 +100,8 @@ public abstract class PropertySourceGenerator {
 		return source.getPropertyName();
 	}
 
-	public void reportError(final String type, final ErrorToken error) {
-		errorBuffer.add(type, error);
+	public void reportError(final ErrorToken error) {
+		errorBuffer.add(error);
 	}
 
 	public ErrorBuffer getErrorBuffer() {
@@ -187,7 +187,7 @@ public abstract class PropertySourceGenerator {
 		if (source.isIndexed()) {
 
 			if (StringUtils.isNotBlank(source.getDefaultValue())) {
-				
+
 				buf.append(".indexedWhenEmpty()");
 
 			} else {

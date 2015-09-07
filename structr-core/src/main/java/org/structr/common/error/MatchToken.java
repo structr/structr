@@ -18,10 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -31,29 +27,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class MatchToken extends SemanticErrorToken {
 
-	private Object value      = null;
-	private String expression = null;
-
-	public MatchToken(PropertyKey propertyKey, Object value, String expression) {
-
-		super(propertyKey);
-		this.value      = value;
-		this.expression = expression;
-	}
-
-	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-
-		obj.add("value",         value != null ? new JsonPrimitive(value.toString()) : JsonNull.INSTANCE);
-		obj.add(getErrorToken(), new JsonPrimitive(expression));
-
-		return obj;
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "must_match";
+	public MatchToken(final String type, final PropertyKey propertyKey, String expression) {
+		super(type, propertyKey, "must_match", expression);
 	}
 }

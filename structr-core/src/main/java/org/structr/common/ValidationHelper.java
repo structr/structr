@@ -73,13 +73,13 @@ public class ValidationHelper {
 
 			}
 
-			errorBuffer.add(type, new TooShortToken(key, minLength));
+			errorBuffer.add(new TooShortToken(type, key, minLength));
 
 			return true;
 
 		}
 
-		errorBuffer.add(type, new EmptyPropertyToken(key));
+		errorBuffer.add(new EmptyPropertyToken(type, key));
 
 		return true;
 	}
@@ -104,7 +104,7 @@ public class ValidationHelper {
 
 		}
 
-		errorBuffer.add(type, new EmptyPropertyToken(key));
+		errorBuffer.add(new EmptyPropertyToken(type, key));
 
 		return true;
 	}
@@ -124,7 +124,7 @@ public class ValidationHelper {
 		String type  = node.getType();
 
 		if (key == null) {
-			errorBuffer.add(type, new EmptyPropertyToken(UnknownType));
+			errorBuffer.add(new EmptyPropertyToken(type, UnknownType));
 			return true;
 		}
 
@@ -148,7 +148,7 @@ public class ValidationHelper {
 
 		}
 
-		errorBuffer.add(type, new EmptyPropertyToken(key));
+		errorBuffer.add(new EmptyPropertyToken(type, key));
 
 		return true;
 	}
@@ -171,7 +171,7 @@ public class ValidationHelper {
 
 		if ((date == null) || ((date != null) && (date.getTime() == 0))) {
 
-			errorBuffer.add(type, new EmptyPropertyToken(key));
+			errorBuffer.add(new EmptyPropertyToken(type, key));
 			error = true;
 
 		}
@@ -204,7 +204,7 @@ public class ValidationHelper {
 
 		if ((date1 != null) && (date2 != null) &&!date1.before(date2)) {
 
-			errorBuffer.add(type, new ChronologicalOrderToken(key1, key2));
+			errorBuffer.add(new ChronologicalOrderToken(type, key1, key2));
 
 			error = true;
 
@@ -238,7 +238,7 @@ public class ValidationHelper {
 
 		}
 
-		errorBuffer.add(type, new ValueToken(key, values));
+		errorBuffer.add(new ValueToken(type, key, values));
 
 		return true;
 	}
@@ -275,7 +275,7 @@ public class ValidationHelper {
 		boolean matches = value != null && value.matches(expression);
 
 		if (!matches) {
-			errorBuffer.add(node.getType(), new MatchToken(key, value, expression));
+			errorBuffer.add(new MatchToken(node.getType(), key, expression));
 		}
 
 		return matches;
@@ -308,7 +308,7 @@ public class ValidationHelper {
 
 		}
 
-		errorBuffer.add(typeString, new ValueToken(key, values));
+		errorBuffer.add(new ValueToken(typeString, key, values));
 
 		return true;
 	}
@@ -343,7 +343,7 @@ public class ValidationHelper {
 
 		}
 
-		errorBuffer.add(type, new ValueToken(key, values));
+		errorBuffer.add(new ValueToken(type, key, values));
 
 		return true;
 	}
@@ -389,7 +389,7 @@ public class ValidationHelper {
 
 				if (!inRange) {
 
-					errorBuffer.add(type, new RangeToken(key, range));
+					errorBuffer.add(new RangeToken(type, key, range));
 				}
 
 				return !inRange;
@@ -442,7 +442,7 @@ public class ValidationHelper {
 
 				if (!inRange) {
 
-					errorBuffer.add(type, new RangeToken(key, range));
+					errorBuffer.add(new RangeToken(type, key, range));
 				}
 
 				return !inRange;
@@ -495,7 +495,7 @@ public class ValidationHelper {
 
 				if (!inRange) {
 
-					errorBuffer.add(type, new RangeToken(key, range));
+					errorBuffer.add(new RangeToken(type, key, range));
 				}
 
 				return !inRange;
@@ -544,7 +544,7 @@ public class ValidationHelper {
 
 					id = ((AbstractNode) result.get(0)).getUuid();
 
-					errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
+					errorBuffer.add(new UniqueToken(object.getType(), key, id));
 
 					return true;
 				}

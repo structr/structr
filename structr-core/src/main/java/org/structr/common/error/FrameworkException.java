@@ -20,10 +20,10 @@ package org.structr.common.error;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import java.util.Map;
-import java.util.Set;
+import java.util.Iterator;
 import javax.servlet.http.HttpServletResponse;
 
 //~--- classes ----------------------------------------------------------------
@@ -50,24 +50,23 @@ public class FrameworkException extends Exception {
 		this.message     = toString();
 	}
 
-	public FrameworkException(int status, String message) {
+	public FrameworkException(final int status, final String message) {
 
 		this.status  = status;
 		this.message = message;
 
 	}
 
-	public FrameworkException(String type, ErrorToken errorToken) {
+	public FrameworkException(final int status, final ErrorToken errorToken) {
 
 		this.errorBuffer = new ErrorBuffer();
-		this.errorBuffer.add(type, errorToken);
+		this.errorBuffer.add(errorToken);
 
-		this.status  = errorToken.getStatus();
+		this.status  = status;
 		this.message = toString();
-
 	}
 
-	public FrameworkException(int status, Throwable cause) {
+	public FrameworkException(final int status, final Throwable cause) {
 
 		super(cause);
 
@@ -79,53 +78,34 @@ public class FrameworkException extends Exception {
 	@Override
 	public String toString() {
 
-		StringBuilder out                                = new StringBuilder();
-		ErrorBuffer buf                                  = getErrorBuffer();
+		StringBuilder buf = new StringBuilder();
 
-		if (buf != null) {
+		if (errorBuffer != null) {
 
-			Map<String, Map<String, Set<ErrorToken>>> tokens = buf.getErrorTokens();
+			for (final Iterator<ErrorToken> it = errorBuffer.getErrorTokens().iterator(); it.hasNext();) {
 
-			for (Map.Entry<String, Map<String, Set<ErrorToken>>> token : tokens.entrySet()) {
+				final ErrorToken token = it.next();
 
-				String tokenKey = token.getKey();
+				buf.append(token);
 
-				out.append(tokenKey);
-
-				Map<String, Set<ErrorToken>> errors = token.getValue();
-
-				for (Map.Entry<String, Set<ErrorToken>> error : errors.entrySet()) {
-
-					String errorKey = error.getKey();
-
-					out.append("\n").append(errorKey).append(" => ");
-
-					Set<ErrorToken> singleErrors = error.getValue();
-
-					for (ErrorToken et : singleErrors) {
-
-						out.append(et.getStatus()).append(": ").append(et.getKey()).append(" ").append(et.getErrorToken()).append(", ");
-					}
-
-					out.delete(out.length()-2, out.length());
-
+				if (it.hasNext()) {
+					buf.append(", ");
 				}
-
 			}
 
 		} else {
 
-			out.append("FrameworkException(").append(status).append("): ").append(message);
+			buf.append("FrameworkException(").append(status).append("): ").append(message);
 		}
 
-		return out.toString();
+		return buf.toString();
 
 	}
 
 	public JsonElement toJSON() {
 
 		JsonObject container = new JsonObject();
-		JsonObject error = new JsonObject();
+		JsonArray errors     = new JsonArray();
 
 		container.add("code", new JsonPrimitive(getStatus()));
 
@@ -135,73 +115,113 @@ public class FrameworkException extends Exception {
 		}
 
 		// add errors if there are any
-		ErrorBuffer errorBuffer = getErrorBuffer();
 		if (errorBuffer != null) {
 
-			Map<String, Map<String, Set<ErrorToken>>> tokens = errorBuffer.getErrorTokens();
-			if (!tokens.isEmpty()) {
+			for (final ErrorToken errorToken : errorBuffer.getErrorTokens()) {
 
-				for(Map.Entry<String, Map<String, Set<ErrorToken>>> tokensEntry : tokens.entrySet()) {
+				final JsonObject token = new JsonObject();
 
-					Map<String, Set<ErrorToken>> map = tokensEntry.getValue();
-					JsonObject typeEntry = new JsonObject();
-					String type = tokensEntry.getKey();
+				token.add("type",     getStringOrNull(errorToken.getType()));
+				token.add("property", getStringOrNull(errorToken.getProperty()));
+				token.add("token",    getStringOrNull(errorToken.getToken()));
+				token.add("detail",   getObjectOrNull(errorToken.getDetail()));
 
-					error.add(type, typeEntry);
-
-					for(Map.Entry<String, Set<ErrorToken>> mapEntry : map.entrySet()) {
-
-						Set<ErrorToken> list = mapEntry.getValue();
-						String key = mapEntry.getKey();
-
-						if(!list.isEmpty()) {
-
-//							if(list.size() == 1) {
-//
-//								ErrorToken token = list.iterator().next();
-//								typeEntry.add(key, token.getContent());
-//
-//							} else {
-
-								JsonArray array = new JsonArray();
-								for(ErrorToken token : list) {
-									array.add(token.getContent());
-								}
-
-								typeEntry.add(key, array);
-//							}
-						}
-
-					}
-				}
-
-				container.add("errors", error);
+				errors.add(token);
 			}
+
+			container.add("errors", errors);
 		}
 
 		return container;
 
 	}
 
-	//~--- get methods ----------------------------------------------------
+	/*
+
+	new structure of an error result:
+
+	{
+	  "code": 422,
+	  "errors": [
+	    {
+	      "type": "Folder",
+	      "property": "name",
+	      "token": "must_not_be_empty",
+	      "detail": null
+	    },
+	    {
+	      "type": "Folder",
+	      "property": "name",
+	      "token": "must_match",
+	      "detail": "[:_a-zA-Z0-9\\s\\-\\.öäüÖÄÜß]+"
+	    },
+	    {
+	      "type": "Folder",
+	      "property": "name",
+	      "token": "must_not_be_empty",
+	      "detail": null
+	    }
+	  ]
+	}
+
+	{
+	  "code": 422,
+	  "errors": [
+	    {
+	      "type": "Folder",
+	      "property": null,
+	      "token": "already_taken",
+	      "detail": "732f69c4bea64d5d8b04250734e18948"
+	    }
+	  ]
+	}
+
+
+	*/
 
 	public ErrorBuffer getErrorBuffer() {
-
 		return errorBuffer;
-
 	}
 
 	public int getStatus() {
-
 		return status;
-
 	}
 
 	@Override
 	public String getMessage() {
-
 		return message;
-
 	}
 
+
+	// ----- private methods -----
+	private JsonElement getStringOrNull(final String source) {
+
+		if (source != null) {
+			return new JsonPrimitive(source);
+		}
+
+		return JsonNull.INSTANCE;
+	}
+
+	private JsonElement getObjectOrNull(final Object source) {
+
+		if (source != null) {
+
+			if (source instanceof String) {
+				return new JsonPrimitive((String)source);
+			}
+
+			if (source instanceof Number) {
+				return new JsonPrimitive((Number)source);
+			}
+
+			if (source instanceof Boolean) {
+				return new JsonPrimitive((Boolean)source);
+			}
+
+			return new JsonPrimitive(source.toString());
+		}
+
+		return JsonNull.INSTANCE;
+	}
 }

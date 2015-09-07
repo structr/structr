@@ -63,7 +63,7 @@ public class LongPropertyParser extends NumericalPropertyParser {
 
 		} catch (Throwable t) {
 
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Long."));
+			errorBuffer.add(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Long."));
 		}
 
 		return null;

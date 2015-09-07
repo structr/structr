@@ -29,7 +29,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.graph.NodeInterface;
@@ -73,7 +72,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 					relatedNode = (T) app.getNodeById(map.get(GraphObject.id));
 
 					if (relatedNode != null && !type.isAssignableFrom(relatedNode.getClass())) {
-						throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
+						throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 					}
 
 				} else {
@@ -168,7 +167,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				final GraphObject obj = app.getNodeById(source.toString());
 
 				if (obj != null && !type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
+					throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 				}
 
 				return (T) obj;

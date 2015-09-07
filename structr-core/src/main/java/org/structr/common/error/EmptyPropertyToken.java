@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -27,19 +25,9 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Christian Morgner
  */
-public class EmptyPropertyToken extends NullPropertyToken {
+public class EmptyPropertyToken extends SemanticErrorToken {
 
-	public EmptyPropertyToken(PropertyKey propertyKey) {
-		super(propertyKey);
-	}
-
-	@Override
-	public JsonElement getContent() {
-		return new JsonPrimitive(getErrorToken());
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "must_not_be_empty";
+	public EmptyPropertyToken(final String type, final PropertyKey propertyKey) {
+		super(type, propertyKey, "must_not_be_empty");
 	}
 }

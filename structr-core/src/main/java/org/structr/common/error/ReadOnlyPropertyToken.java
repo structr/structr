@@ -18,9 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
-import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -28,19 +25,9 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Christian Morgner
  */
-public class ReadOnlyPropertyToken extends ErrorToken {
+public class ReadOnlyPropertyToken extends SemanticErrorToken {
 
-	public ReadOnlyPropertyToken(PropertyKey propertyName) {
-		super(HttpServletResponse.SC_FORBIDDEN, propertyName);
-	}
-
-	@Override
-	public JsonElement getContent() {
-		return new JsonPrimitive(getErrorToken());
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "is_read_only_property";
+	public ReadOnlyPropertyToken(final String type, final PropertyKey propertyKey) {
+		super(type, propertyKey, "is_read_only_property");
 	}
 }

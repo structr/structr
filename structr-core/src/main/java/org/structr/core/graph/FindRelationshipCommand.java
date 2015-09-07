@@ -72,7 +72,7 @@ public class FindRelationshipCommand<T extends AbstractRelationship> extends Nod
 
 				logger.log(Level.WARNING, "Node with id {0} not found in database!", id);
 
-				throw new FrameworkException("FindRelationshipCommand", new IdNotFoundToken(id));
+				throw new FrameworkException(404, new IdNotFoundToken("FindRelationshipCommand", id));
 			}
 		}
 
@@ -82,7 +82,7 @@ public class FindRelationshipCommand<T extends AbstractRelationship> extends Nod
 	public T execute(String idString) throws FrameworkException {
 
 		GraphDatabaseService graphDb               = (GraphDatabaseService) arguments.get("graphDb");
-		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
+		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<>(securityContext);
 
 		if (graphDb != null) {
 

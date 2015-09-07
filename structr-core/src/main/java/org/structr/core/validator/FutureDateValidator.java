@@ -42,15 +42,15 @@ public class FutureDateValidator implements PropertyValidator {
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, Object value, ErrorBuffer errorBuffer) {
 
 		// FIXME: value should be of type Date, and the generic type of this class as well!
-		
-		
+
+
 		if(value != null) {
 
 			if(value instanceof Long) {
-				
+
 				if(((Long)value).longValue() < new Date().getTime()) {
 
-					errorBuffer.add(object.getType(), new FutureDateToken(key));
+					errorBuffer.add(new FutureDateToken(object.getType(), key));
 					return false;
 				}
 
@@ -58,17 +58,17 @@ public class FutureDateValidator implements PropertyValidator {
 
 			} else {
 
-				errorBuffer.add(object.getType(), new TypeToken(key, "long"));
+				errorBuffer.add(new TypeToken(object.getType(), key, "long"));
 			}
 
 		} else {
 
-			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
+			errorBuffer.add(new EmptyPropertyToken(object.getType(), key));
 		}
 
 		return false;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return false;

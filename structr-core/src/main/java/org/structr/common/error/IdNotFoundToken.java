@@ -18,8 +18,7 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
+import org.structr.core.GraphObject;
 
 /**
  * Indicates that a given ID could not be found.
@@ -28,10 +27,7 @@ import org.structr.core.property.StringProperty;
  */
 public class IdNotFoundToken extends PropertyNotFoundToken {
 
-	// FIXME: this needs to me modified when the uuid/id mess is resolved
-	private static final PropertyKey<String> id = new StringProperty("id");
-	
-	public IdNotFoundToken(Object value) {
-		super(id, value);
+	public IdNotFoundToken(final String type, final Object value) {
+		super(type, GraphObject.id, value);
 	}
 }

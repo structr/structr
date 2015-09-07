@@ -75,7 +75,7 @@ public class Widget extends AbstractNode implements Taggable {
 
 		if (_source == null) {
 
-			errorBuffer.add(Widget.class.getSimpleName(), new EmptyPropertyToken(source));
+			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), source));
 
 		} else {
 
@@ -99,11 +99,11 @@ public class Widget extends AbstractNode implements Taggable {
 
 					if (!options.isEmpty()) {
 
-						errorBuffer.add(Widget.class.getSimpleName(), new ValueToken(new StringProperty(key), options.toArray()));
+						errorBuffer.add(new ValueToken(Widget.class.getSimpleName(), new StringProperty(key), options.toArray()));
 
 					} else {
 
-						errorBuffer.add(Widget.class.getSimpleName(), new EmptyPropertyToken(new StringProperty(key)));
+						errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), new StringProperty(key)));
 					}
 
 				} else {

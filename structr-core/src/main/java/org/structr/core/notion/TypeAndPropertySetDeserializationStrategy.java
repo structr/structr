@@ -25,7 +25,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -162,7 +161,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 					break;
 			}
 
-			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
+			throw new FrameworkException(404, new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
 		}
 
 		return null;
@@ -173,7 +172,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		final GraphObject obj = result.get(0);
 
 		if (!type.isAssignableFrom(obj.getClass())) {
-			throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
+			throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 		}
 
 		return result.get(0);

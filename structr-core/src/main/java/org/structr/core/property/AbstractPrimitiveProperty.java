@@ -245,11 +245,13 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					modifiedById = user.getUuid();
 				}
+
+				propertyContainer.setProperty(AbstractNode.lastModifiedBy.dbName(),   modifiedById);
 			}
 
 			propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
-			propertyContainer.setProperty(AbstractNode.lastModifiedBy.dbName(),   modifiedById);
 
+			
 		} catch (Throwable t) {
 
 			// fail without throwing an exception here

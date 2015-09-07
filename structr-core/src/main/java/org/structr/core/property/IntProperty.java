@@ -116,7 +116,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(declaringClass.getSimpleName(), new NumberToken(IntProperty.this));
+					throw new FrameworkException(422, new NumberToken(declaringClass.getSimpleName(), IntProperty.this));
 				}
 			}
 

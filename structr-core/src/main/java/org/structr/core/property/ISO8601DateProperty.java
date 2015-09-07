@@ -37,7 +37,7 @@ import org.structr.schema.parser.DatePropertyParser;
  * @author Axel Morgner
  */
 public class ISO8601DateProperty extends DateProperty {
-	
+
 	public ISO8601DateProperty(final String name) {
 		super(name);
 	}
@@ -120,7 +120,7 @@ public class ISO8601DateProperty extends DateProperty {
 
 				} else {
 
-					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(ISO8601DateProperty.this));
+					throw new FrameworkException(422, new DateFormatToken(declaringClass.getSimpleName(), ISO8601DateProperty.this));
 
 				}
 
@@ -132,9 +132,9 @@ public class ISO8601DateProperty extends DateProperty {
 
 		@Override
 		public String revert(Date source) throws FrameworkException {
-			
+
 			return DatePropertyParser.format(source, null);
-			
+
 		}
 	}
 }

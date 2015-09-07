@@ -23,20 +23,12 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that a given property value is already present in the database and
  * may only occur once.
- * 
+ *
  * @author Bastian Knerr
  */
-public class LowercaseUniqueToken extends UniqueToken {
+public class LowercaseUniqueToken extends SemanticErrorToken {
 
-	public static final String ERROR_TOKEN = "already_taken_lowercase";
-
-	public LowercaseUniqueToken(final String id, final PropertyKey propKey, final String val) {
-		super(id, propKey, val);
+	public LowercaseUniqueToken(final String type, final PropertyKey key, final String val) {
+		super(type, key, "already_taken_lowercase", val);
 	}
-
-	@Override
-	public String getErrorToken() {
-		return ERROR_TOKEN;
-	}
-
 }

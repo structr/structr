@@ -78,7 +78,7 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 
 				if (rel.getTargetNode().equals(targetNode)) {
 
-					throw new FrameworkException(getClass().getSimpleName(), new DuplicateRelationshipToken("This relationship already exists"));
+					throw new FrameworkException(422, new DuplicateRelationshipToken(getClass().getSimpleName(), "Relationship already exists"));
 				}
 			}
 		}

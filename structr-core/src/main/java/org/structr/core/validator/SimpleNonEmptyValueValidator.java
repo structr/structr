@@ -60,10 +60,10 @@ public class SimpleNonEmptyValueValidator implements PropertyValidator<String> {
 			return true;
 		}
 
-		errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
+		errorBuffer.add(new EmptyPropertyToken(object.getType(), key));
 		return false;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return false;

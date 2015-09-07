@@ -178,7 +178,7 @@ var _Crud = {
 		$(window).on('resize', function() {
 			_Crud.resize();
 		});
-		
+
 		hiddenTabs = JSON.parse(localStorage.getItem(crudHiddenTabsKey)) || hiddenTabs;
 		//console.log('########## Hidden tabs ##############', hiddenTabs);
 
@@ -194,11 +194,11 @@ var _Crud = {
 		$('#resourceTabsMenu input[type="checkbox"]').on('click', function(e) {
 			e.stopPropagation();
 			//e.preventDefault();
-			
+
 			var inp = $(this);
 
 			var key = inp.parent().find('span').text();
-			
+
 			if (!inp.is(':checked')) {
 				hiddenTabs.push(key);
 			} else {
@@ -206,7 +206,7 @@ var _Crud = {
 					hiddenTabs.splice(hiddenTabs.indexOf(key), 1);
 				}
 			}
-			
+
 			 localStorage.setItem(crudHiddenTabsKey, JSON.stringify(hiddenTabs));
 
 		});
@@ -464,9 +464,9 @@ var _Crud = {
 			_Crud.activateList(_Crud.type);
 			_Crud.activatePagerElements(_Crud.type, pagerNode);
 		}
-		
+
 		$('#resourceTabsMenu li.last').removeClass('hidden');
-		
+
 		_Crud.resize();
 
 
@@ -1106,18 +1106,23 @@ var _Crud = {
 				borderColor: '#b5b5b5',
 			});
 
-			$.each(Object.keys(resp.errors[type]), function(i, key) {
-				var errorMsg = resp.errors[type][key][0];
+			$.each(resp.errors, function(i, error) {
+
+                var key = error.property;
+                var errorMsg = error.token;
+
 				var input = $('td [name="' + key + '"]', dialogText);
 				if (input.length) {
+
 					var errorText = '';
-					if (typeof errorMsg === 'object') {
-						$.each(Object.keys(errorMsg), function(l, k) {
-							errorText += '"' + key + '" ' + k.replace(/_/gi, ' ') + ': ' + errorMsg[k];
-						});
-					} else {
+
+//					if (typeof errorMsg === 'object') {
+//						$.each(Object.keys(errorMsg), function(l, k) {
+//							errorText += '"' + key + '" ' + k.replace(/_/gi, ' ') + ': ' + errorMsg[k];
+//						});
+//					} else {
 						errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
-					}
+//					}
 
 					dialogMsg.html('<div class="infoBox error">' + errorText + '</div>');
 					$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
@@ -1126,6 +1131,7 @@ var _Crud = {
 						backgroundColor: '#fee',
 						borderColor: '#933'
 					});
+
 				} else {
 //                    $('td.' + key + ' span', dialogText).remove();
 //                    $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
@@ -1135,7 +1141,40 @@ var _Crud = {
 //                    });
 				}
 			});
-			//_Crud.error('Error: ' + data.responseText, true);
+
+
+//			$.each(Object.keys(resp.errors[type]), function(i, key) {
+//				var errorMsg = resp.errors[type][key][0];
+//				var input = $('td [name="' + key + '"]', dialogText);
+//				if (input.length) {
+//					var errorText = '';
+//					if (typeof errorMsg === 'object') {
+//						$.each(Object.keys(errorMsg), function(l, k) {
+//							errorText += '"' + key + '" ' + k.replace(/_/gi, ' ') + ': ' + errorMsg[k];
+//						});
+//					} else {
+//						errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
+//					}
+//
+//					dialogMsg.html('<div class="infoBox error">' + errorText + '</div>');
+//					$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+//
+//					input.css({
+//						backgroundColor: '#fee',
+//						borderColor: '#933'
+//					});
+//				} else {
+////                    $('td.' + key + ' span', dialogText).remove();
+////                    $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
+////                        backgroundColor: '#fee',
+////                        borderColor: '#933',
+////                        color: '#a5a5a5'
+////                    });
+//				}
+//			});
+
+
+            //_Crud.error('Error: ' + data.responseText, true);
 		}
 	},
 	crudRefresh: function(id, key, oldValue) {

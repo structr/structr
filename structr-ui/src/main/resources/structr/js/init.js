@@ -687,24 +687,21 @@ var Structr = {
 	},
 	errorFromResponse: function(response, url) {
 		var errorText = '';
-		if (response.errors) {
-			$.each(Object.keys(response.errors), function(i, err) {
-				errorText += err + ': ';
-				$.each(Object.keys(response.errors[err]), function(j, attr) {
-					errorText += attr + ' ';
-					$.each(response.errors[err][attr], function(k, cond) {
-						if (typeof cond === 'object') {
-							$.each(Object.keys(cond), function(l, key) {
-								errorText += key + ' ' + cond[key] + ' ';
-							});
-						} else {
-							errorText += ' ' + cond;
-						}
-					});
-				});
+        
+		if (response.errors && response.errors.length) {
+
+			$.each(response.errors, function(i, err) {
+
+                errorText += err.type+ '.';
+                errorText += err.property + ' ';
+                errorText += err.token + ': ' ;
+                errorText += err.detail;
 				errorText += '\n';
+
 			});
+
 		} else {
+
 			errorText += url + ': ' + response.code + ' ' + response.message;
 		}
 

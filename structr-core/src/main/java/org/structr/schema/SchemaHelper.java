@@ -930,7 +930,7 @@ public class SchemaHelper {
 			t.printStackTrace();
 		}
 
-		errorBuffer.add(SchemaProperty.class.getSimpleName(), new InvalidPropertySchemaToken(propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
+		errorBuffer.add(new InvalidPropertySchemaToken(SchemaProperty.class.getSimpleName(), propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
 		throw new FrameworkException(422, errorBuffer);
 	}
 

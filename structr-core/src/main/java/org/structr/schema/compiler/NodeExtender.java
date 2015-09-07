@@ -162,7 +162,7 @@ public class NodeExtender {
 					name = ((CharSequenceJavaFileObject)obj).getClassName();
 				}
 
-				errorBuffer.add(name, new DiagnosticErrorToken(diagnostic));
+				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
 
                                 // log also to log file
                                 logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });

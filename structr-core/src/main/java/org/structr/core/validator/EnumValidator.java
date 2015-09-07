@@ -51,7 +51,7 @@ public class EnumValidator<T> implements PropertyValidator<T> {
 
 		if (value == null) {
 
-			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
+			errorBuffer.add(new EmptyPropertyToken(object.getType(), key));
 
 		} else {
 
@@ -60,14 +60,14 @@ public class EnumValidator<T> implements PropertyValidator<T> {
 				return true;
 
 			} else {
-				
-				errorBuffer.add(object.getType(), new ValueToken(key, values.toArray()));
+
+				errorBuffer.add(new ValueToken(object.getType(), key, values.toArray()));
 			}
 		}
 
 		return false;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return false;

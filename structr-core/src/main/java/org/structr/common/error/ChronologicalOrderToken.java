@@ -18,9 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import java.util.Date;
 import org.structr.core.property.PropertyKey;
 
@@ -31,25 +28,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class ChronologicalOrderToken extends SemanticErrorToken {
 
-	private PropertyKey<Date> propertyKey2 = null;
-
-	public ChronologicalOrderToken(PropertyKey<Date> propertyKey1, PropertyKey<Date> propertyKey2) {
-		super(propertyKey1);
-		this.propertyKey2 = propertyKey2;
-	}
-
-	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-
-		obj.add(getErrorToken(), new JsonPrimitive(propertyKey2.jsonName()));
-
-		return obj;
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "must_lie_before";
+	public ChronologicalOrderToken(final String type, final PropertyKey<Date> propertyKey1, final PropertyKey<Date> propertyKey2) {
+		super(type, propertyKey1, "must_lie_before", propertyKey2.jsonName());
 	}
 }

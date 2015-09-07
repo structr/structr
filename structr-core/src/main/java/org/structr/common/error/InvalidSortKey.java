@@ -18,9 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -30,22 +27,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class InvalidSortKey extends SemanticErrorToken {
 
-	public InvalidSortKey(PropertyKey propertyKey) {
-		super(propertyKey);
-	}
-
-	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-
-		obj.add(getErrorToken(), new JsonPrimitive(getKey() ));
-
-		return obj;
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "invalid_sort_key";
+	public InvalidSortKey(final String type, final PropertyKey propertyKey) {
+		super(type, propertyKey, "invalid_sort_key");
 	}
 }

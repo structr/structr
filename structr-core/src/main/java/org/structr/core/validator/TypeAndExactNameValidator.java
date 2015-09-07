@@ -52,13 +52,13 @@ public class TypeAndExactNameValidator implements PropertyValidator<String> {
 		}
 
 		if (!type.isAssignableFrom(object.getClass())) {
-			
+
 			// types are different
 			return true;
 		}
 
 		if(StringUtils.isBlank(value)) {
-			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
+			errorBuffer.add(new EmptyPropertyToken(object.getType(), key));
 			return false;
 		}
 
@@ -73,7 +73,7 @@ public class TypeAndExactNameValidator implements PropertyValidator<String> {
 
 			} else {
 
-				errorBuffer.add(object.getType(), new PropertyNotFoundToken(key, value));
+				errorBuffer.add(new PropertyNotFoundToken(object.getType(), key, value));
 				return false;
 			}
 
@@ -83,7 +83,7 @@ public class TypeAndExactNameValidator implements PropertyValidator<String> {
 
 		return false;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return true;

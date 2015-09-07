@@ -58,7 +58,7 @@ public class LowercaseTypeUniquenessValidator implements PropertyValidator<Strin
 	public boolean isValid(SecurityContext securityContext, final GraphObject object, final PropertyKey<String> key, final String value, final ErrorBuffer errorBuffer) {
 
 		if (!type.isAssignableFrom(object.getClass())) {
-			
+
 			// types are different
 			return true;
 		}
@@ -68,11 +68,11 @@ public class LowercaseTypeUniquenessValidator implements PropertyValidator<Strin
 
 
 			final String id = result.getUuid();
-			errorBuffer.add(object.getType(), new LowercaseUniqueToken(id, key, value));
+			errorBuffer.add(new LowercaseUniqueToken(object.getType(), key, id));
 
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -86,7 +86,7 @@ public class LowercaseTypeUniquenessValidator implements PropertyValidator<Strin
 		}
 		return null;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return true;

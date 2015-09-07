@@ -46,10 +46,10 @@ public class SimpleRegexValidator implements PropertyValidator<String> {
 			return true;
 		}
 
-		errorBuffer.add(object.getType(), new MatchToken(key, value, this.pattern.pattern()));
+		errorBuffer.add(new MatchToken(object.getType(), key, this.pattern.pattern()));
 		return false;
 	}
-	
+
 	@Override
 	public boolean requiresSynchronization() {
 		return false;

@@ -18,42 +18,14 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.Property;
-
 /**
  * Indicates that a specific property value already exists in the database.
- * 
+ *
  * @author Christian Morgner
  */
 public class CardinalityToken extends SemanticErrorToken {
 
-	private static final Property<String> baseProperty = new GenericProperty("base");
-	
-	private String errorMessage = null;
-	
-	public CardinalityToken(final String errorMessage) {
-		
-		super(baseProperty);
-		
-		this.errorMessage = errorMessage;
-	}
-
-	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-
-                obj.add(getErrorToken(), new JsonPrimitive(errorMessage));
-
-		return obj;
-	}
-
-	@Override
-	public String getErrorToken() {
-		return "cardinality_mismatch";
+	public CardinalityToken(final String type, final String errorMessage) {
+		super(type, null, "cardinality_mismatch", errorMessage);
 	}
 }
