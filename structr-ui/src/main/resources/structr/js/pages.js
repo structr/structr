@@ -943,8 +943,10 @@ var _Pages = {
 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
 		// Command.list(type, rootOnly, pageSize, page, sort, order, callback) {
 		var selectedType = localStorage.getItem(selectedTypeKey);
-		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNode) {
-			$('#type-selector').append('<option ' + (typeNode.id === selectedType ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>')
+		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
+			typeNodes.forEach(function(typeNode) {
+				$('#type-selector').append('<option ' + (typeNode.id === selectedType ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
+			});
 		});
 
 		$('#data-wizard-attributes').empty();
