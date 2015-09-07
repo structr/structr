@@ -348,7 +348,7 @@ var _Entities = {
 //            activeView = '_html_';
 //        }
 
-			var attrs = Object.keys(entity);
+			//var attrs = Object.keys(entity);
 
 			//console.log(entity);
 
@@ -359,7 +359,7 @@ var _Entities = {
 
 				isRelationship = true;
 
-				views = ['ui', 'sourceNode', 'targetNode'];
+				views = ['ui'];//, 'sourceNode', 'targetNode'];
 
 				tabTexts.ui = 'Relationship Properties';
 				tabTexts.sourceNode = 'Source Node Properties';
