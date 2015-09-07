@@ -863,22 +863,18 @@ var _Entities = {
 				Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', false, function (groups) {
 					groups.forEach(function(group) {
 						select.append('<option value="' + group.id + '">' + group.name + '</option>');
-						if (++i >= groups.size) {
-							select.trigger("chosen:updated");
-						}
 					});
+					select.trigger("chosen:updated");
 				});
 				i = 0;
 				var al2 = Structr.loaderIcon(select.parent(), {float: 'right'});
 				Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function (users) {
 					users.forEach(function(user) {
 						select.append('<option value="' + user.id + '">' + user.name + '</option>');
-						if (++i >= users.size) {
-							select.trigger("chosen:updated");
-							if (al2.length)
-								al2.remove();
-						}
 					});
+					select.trigger("chosen:updated");
+					if (al2.length)
+						al2.remove();
 				});
 				select.on('change', function () {
 					var sel = $(this);
@@ -960,17 +956,15 @@ var _Entities = {
 
 		var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
 		var al = Structr.loaderIcon(el, {position: 'absolute', left: '416px', top: '32px'});
-		var i = 0, n = 10000;
+		var n = 10000;
 		Command.getByType(type, n, 1, 'name', 'asc', 'id,name', false, function (results) {
 			results.forEach(function(result) {
 				var selected = (id === result.id ? 'selected' : '');
 				selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
-				if (++i >= results.size) {
-					selectElement.trigger("chosen:updated");
-					if (al.length)
-						al.remove();
-				}
 			});
+			selectElement.trigger("chosen:updated");
+			if (al.length)
+				al.remove();
 		});
 
 		selectElement.on('change', function () {
