@@ -674,9 +674,4 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	public String getParentId() {
 		return getProperty(FileBase.parentId);
 	}
-
-	@Override
-	public String getDescription() {
-		return null;
-	}
 }

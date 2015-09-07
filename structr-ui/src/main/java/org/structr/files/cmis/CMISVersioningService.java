@@ -9,12 +9,17 @@ import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.commons.spi.VersioningService;
+import org.structr.common.SecurityContext;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CMISVersioningService implements VersioningService {
+public class CMISVersioningService extends AbstractStructrCmisService implements VersioningService {
+
+	public CMISVersioningService(final SecurityContext securityContext) {
+		super(securityContext);
+	}
 
 	@Override
 	public void checkOut(String repositoryId, Holder<String> objectId, ExtensionsData extension, Holder<Boolean> contentCopied) {

@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServlet;
 import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
+import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Connector;
@@ -274,9 +275,11 @@ public class HttpService implements RunnableService {
 			servletContext.addEventListener(new CmisRepositoryContextListener());
 
 			final ServletHolder cmisAtomHolder = servletContext.addServlet(CmisAtomPubServlet.class.getName(), "/structr/cmis/atom/*");
+			cmisAtomHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
 			cmisAtomHolder.setInitParameter("cmisVersion", "1.1");
 
 			final ServletHolder cmisBrowserHolder = servletContext.addServlet(CmisBrowserBindingServlet.class.getName(), "/structr/cmis/browser/*");
+			cmisBrowserHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
 			cmisBrowserHolder.setInitParameter("cmisVersion", "1.1");
 
 

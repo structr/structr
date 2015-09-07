@@ -45,7 +45,6 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	private GregorianCalendar creationDate         = null;
 	private String lastModifiedBy                  = null;
 	private String createdBy                       = null;
-	private String description                     = null;
 	private String type                            = null;
 	private String name                            = null;
 	private String id                              = null;
@@ -98,14 +97,6 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		this.createdBy = translateIdToUsername(createdBy);
 	}
 
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
 	public String getType() {
 		return type;
 	}
@@ -141,7 +132,6 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		properties.add(objFactory.createPropertyIdData(PropertyIds.OBJECT_ID, id));
 
 		properties.add(objFactory.createPropertyStringData(PropertyIds.NAME, name));
-		properties.add(objFactory.createPropertyStringData(PropertyIds.DESCRIPTION, description));
 
 		properties.add(objFactory.createPropertyStringData(PropertyIds.CREATED_BY, createdBy));
 		properties.add(objFactory.createPropertyStringData(PropertyIds.LAST_MODIFIED_BY, lastModifiedBy));
@@ -239,7 +229,6 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		setName(info.getName());
 		setId(info.getUuid());
 		setType(info.getType());
-		setDescription(info.getDescription());
 		setCreatedBy(info.getCreatedBy());
 		setLastModifiedBy(info.getLastModifiedBy());
 		setCreationDate(info.getCreationDate());

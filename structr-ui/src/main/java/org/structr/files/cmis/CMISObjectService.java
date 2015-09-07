@@ -2,6 +2,7 @@ package org.structr.files.cmis;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -15,14 +16,20 @@ import org.apache.chemistry.opencmis.commons.data.RenditionData;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.commons.spi.ObjectService;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 
@@ -30,7 +37,11 @@ import org.structr.web.entity.FileBase;
  *
  * @author Christian Morgner
  */
-public class CMISObjectService implements ObjectService {
+public class CMISObjectService extends AbstractStructrCmisService implements ObjectService {
+
+	public CMISObjectService(final SecurityContext securityContext) {
+		super(securityContext);
+	}
 
 	private static final Logger logger = Logger.getLogger(CMISObjectService.class.getName());
 
@@ -172,7 +183,35 @@ public class CMISObjectService implements ObjectService {
 
 	@Override
 	public void updateProperties(String repositoryId, Holder<String> objectId, Holder<String> changeToken, Properties properties, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final App app   = StructrApp.getInstance();
+		final String id = objectId.getValue();
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject obj = app.get(id);
+			if (obj != null) {
+
+				final PropertyMap propertyMap = PropertyMap.cmisTypeToJavaType(securityContext, obj.getClass(), properties);
+				if (propertyMap != null) {
+
+					for (final Entry<PropertyKey, Object> entry : propertyMap.entrySet()) {
+
+						obj.setProperty(entry.getKey(), entry.getValue());
+					}
+				}
+
+			} else {
+
+				throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			throw new CmisConstraintException(fex.getMessage(), fex);
+		}
 	}
 
 	@Override

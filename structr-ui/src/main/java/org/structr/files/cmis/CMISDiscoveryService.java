@@ -7,12 +7,17 @@ import org.apache.chemistry.opencmis.commons.data.ObjectList;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.spi.DiscoveryService;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.structr.common.SecurityContext;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CMISDiscoveryService implements DiscoveryService {
+public class CMISDiscoveryService extends AbstractStructrCmisService implements DiscoveryService {
+
+	public CMISDiscoveryService(final SecurityContext securityContext) {
+		super(securityContext);
+	}
 
 	private static final Logger logger = Logger.getLogger(CMISDiscoveryService.class.getName());
 

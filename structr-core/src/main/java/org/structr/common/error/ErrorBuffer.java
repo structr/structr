@@ -51,7 +51,8 @@ public class ErrorBuffer {
 		Map<String, Set<ErrorToken>> map = getTypeSet(type);
 		Set<ErrorToken> list = map.get(key);
 		if(list == null) {
-			list = new LinkedHashSet<ErrorToken>();
+
+			list = new LinkedHashSet<>();
 			map.put(key, list);
 		}
 
@@ -62,7 +63,8 @@ public class ErrorBuffer {
 
 		Map<String, Set<ErrorToken>> map = tokens.get(type);
 		if(map == null) {
-			map = new LinkedHashMap<String, Set<ErrorToken>>();
+			
+			map = new LinkedHashMap<>();
 			tokens.put(type, map);
 		}
 

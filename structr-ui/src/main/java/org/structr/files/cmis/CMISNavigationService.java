@@ -11,11 +11,13 @@ import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
 import org.apache.chemistry.opencmis.commons.data.ObjectList;
 import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectParentDataImpl;
 import org.apache.chemistry.opencmis.commons.spi.NavigationService;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -30,9 +32,13 @@ import org.structr.web.entity.Folder;
  *
  * @author Christian Morgner
  */
-public class CMISNavigationService implements NavigationService {
+public class CMISNavigationService extends AbstractStructrCmisService implements NavigationService {
 
 	private static final Logger logger = Logger.getLogger(CMISNavigationService.class.getName());
+
+	public CMISNavigationService(final SecurityContext securityContext) {
+		super(securityContext);
+	}
 
 	@Override
 	public ObjectInFolderList getChildren(String repositoryId, String folderId, String filter, String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
@@ -96,12 +102,12 @@ public class CMISNavigationService implements NavigationService {
 
 	@Override
 	public List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId, BigInteger depth, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment, ExtensionsData extension) {
-		return null;
+		throw new CmisNotSupportedException();
 	}
 
 	@Override
 	public List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId, BigInteger depth, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment, ExtensionsData extension) {
-		return null;
+		throw new CmisNotSupportedException();
 	}
 
 	@Override
@@ -173,6 +179,6 @@ public class CMISNavigationService implements NavigationService {
 
 	@Override
 	public ObjectList getCheckedOutDocs(String repositoryId, String folderId, String filter, String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
-		return null;
+		throw new CmisNotSupportedException();
 	}
 }

@@ -19,6 +19,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionList
 import org.apache.chemistry.opencmis.commons.spi.RepositoryService;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -41,7 +42,9 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 	private final TypeDefinition documentDefinition;
 	private final TypeDefinition folderDefinition;
 
-	public CMISRepositoryService() {
+	public CMISRepositoryService(final SecurityContext securityContext) {
+
+		super(securityContext);
 
 		final TypeDefinitionFactory factory = TypeDefinitionFactory.newInstance();
 

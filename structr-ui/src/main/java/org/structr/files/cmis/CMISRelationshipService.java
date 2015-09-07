@@ -5,12 +5,17 @@ import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectList;
 import org.apache.chemistry.opencmis.commons.enums.RelationshipDirection;
 import org.apache.chemistry.opencmis.commons.spi.RelationshipService;
+import org.structr.common.SecurityContext;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CMISRelationshipService implements RelationshipService {
+public class CMISRelationshipService extends AbstractStructrCmisService implements RelationshipService {
+
+	public CMISRelationshipService(final SecurityContext securityContext) {
+		super(securityContext);
+	}
 
 	@Override
 	public ObjectList getObjectRelationships(String repositoryId, String objectId, Boolean includeSubRelationshipTypes, RelationshipDirection relationshipDirection, String typeId, String filter, Boolean includeAllowableActions, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {

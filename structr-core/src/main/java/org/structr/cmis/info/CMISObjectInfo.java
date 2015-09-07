@@ -14,7 +14,6 @@ public interface CMISObjectInfo {
 	public BaseTypeId getBaseTypeId();
 	public String getUuid();
 	public String getName();
-	public String getDescription();
 	public String getType();
 	public String getCreatedBy();
 	public String getLastModifiedBy();

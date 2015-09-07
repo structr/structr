@@ -195,11 +195,6 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	}
 
 	@Override
-	public String getDescription() {
-		return null;
-	}
-
-	@Override
 	public String getPath() {
 		return getProperty(AbstractFile.path);
 	}

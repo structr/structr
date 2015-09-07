@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
@@ -141,6 +142,13 @@ public class StructrTypeWrapper extends CMISExtensionsData implements TypeDefini
 				properties.putAll(factory.createFolderTypeDefinition(CmisVersion.CMIS_1_1, getParentTypeId()).getPropertyDefinitions());
 				break;
 		}
+
+		// remove optional properties that we don't support
+		properties.remove(PropertyIds.DESCRIPTION);
+		properties.remove("cmis:localNamespace");
+		properties.remove("cmis:displayName");
+		properties.remove("cmis:queryName");
+
 
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
 

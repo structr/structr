@@ -27,12 +27,16 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -43,7 +47,15 @@ import org.structr.schema.SchemaHelper;
  */
 public class PropertyMap {
 
-	private static final Logger logger = Logger.getLogger(PropertyMap.class.getName());
+	private static final Logger logger      = Logger.getLogger(PropertyMap.class.getName());
+	private static final Map<String, String> CMIS_PROPERTY_MAPPING = new LinkedHashMap<>();
+
+	static {
+
+		CMIS_PROPERTY_MAPPING.put(PropertyIds.OBJECT_ID,      "id");
+		CMIS_PROPERTY_MAPPING.put(PropertyIds.NAME,           "name");
+		CMIS_PROPERTY_MAPPING.put(PropertyIds.OBJECT_TYPE_ID, "type");
+	}
 
 	protected Map<PropertyKey, Object> properties = new LinkedHashMap<>();
 
@@ -367,6 +379,43 @@ public class PropertyMap {
 		}
 
 		return inputTypedProperties;
+	}
+
+	public static PropertyMap cmisTypeToJavaType(final SecurityContext securityContext, final Class type, final Properties properties) throws FrameworkException {
+
+		final ConfigurationProvider config    = StructrApp.getConfiguration();
+		final PropertyMap propertyMap         = new PropertyMap();
+		final Map<String, PropertyData<?>> map = properties.getProperties();
+
+		for (final Entry<String, PropertyData<?>> entry : map.entrySet()) {
+
+			final PropertyData<?> propertyValue = entry.getValue();
+			Object value                        = propertyValue.getFirstValue();
+			String key                          = entry.getKey();
+
+			// convert CMIS properties to Structr properties
+			if (CMIS_PROPERTY_MAPPING.containsKey(key)) {
+				key = CMIS_PROPERTY_MAPPING.get(key);
+			}
+
+			final PropertyKey propertyKey = config.getPropertyKeyForJSONName(type, key, false);
+			if (propertyKey != null) {
+
+				final PropertyConverter converter = propertyKey.inputConverter(securityContext);
+				if (converter != null) {
+
+					value = converter.convert(value);
+				}
+
+				propertyMap.put(propertyKey, value);
+
+			} else {
+
+				throw new FrameworkException(500, "Invalid property key " + key + " for type " + type.getSimpleName() + " provided.");
+			}
+		}
+
+		return propertyMap;
 	}
 
 	private static PropertyMap fallbackPropertyMap(Map<String, Object> source) {

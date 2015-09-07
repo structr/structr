@@ -28,10 +28,10 @@ import org.apache.chemistry.opencmis.commons.enums.RelationshipDirection;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.impl.server.AbstractCmisService;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfo;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.structr.cmis.CMISInfo;
+import org.structr.common.SecurityContext;
 import org.structr.files.cmis.repository.CMISRootFolder;
 
 /**
@@ -54,23 +54,23 @@ public class StructrCmisService extends AbstractCmisService {
 	private CMISObjectService objectService             = null;
 	private CMISNavigationService navigationService     = null;
 	private CMISRepositoryService repositoryService     = null;
-	private CallContext callContext                     = null;
 	private CMISRootFolder root                         = null;
+	private SecurityContext securityContext             = null;
 
-	public StructrCmisService(final CallContext callContext) {
+	public StructrCmisService(final SecurityContext securityContext) {
 
-		repositoryService      = new CMISRepositoryService();
-		navigationService      = new CMISNavigationService();
-		objectService          = new CMISObjectService();
-		versioningService      = new CMISVersioningService();
-		discoveryService       = new CMISDiscoveryService();
-		multiFilingService     = new CMISMultiFilingService();
-		relationshipService    = new CMISRelationshipService();
-		aclService             = new CMISAclService();
-		policyService          = new CMISPolicyService();
+		repositoryService      = new CMISRepositoryService(securityContext);
+		navigationService      = new CMISNavigationService(securityContext);
+		objectService          = new CMISObjectService(securityContext);
+		versioningService      = new CMISVersioningService(securityContext);
+		discoveryService       = new CMISDiscoveryService(securityContext);
+		multiFilingService     = new CMISMultiFilingService(securityContext);
+		relationshipService    = new CMISRelationshipService(securityContext);
+		aclService             = new CMISAclService(securityContext);
+		policyService          = new CMISPolicyService(securityContext);
 		root                   = new CMISRootFolder();
 
-		this.callContext       = callContext;
+		this.securityContext   = securityContext;
 	}
 
 	// ----- interface CmisService -----
@@ -112,19 +112,16 @@ public class StructrCmisService extends AbstractCmisService {
 
 	@Override
 	public void close() {
-		logger.log(Level.INFO, "...");
 	}
 
 	// ----- interface RepositoryService -----
 	@Override
 	public List<RepositoryInfo> getRepositoryInfos(ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return repositoryService.getRepositoryInfos(extension);
 	}
 
 	@Override
 	public RepositoryInfo getRepositoryInfo(String repositoryId, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return repositoryService.getRepositoryInfo(repositoryId, extension);
 	}
 
@@ -161,25 +158,21 @@ public class StructrCmisService extends AbstractCmisService {
 	// ----- interface NaviagationService -----
 	@Override
 	public ObjectInFolderList getChildren(String repositoryId, String folderId, String filter, String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return navigationService.getChildren(repositoryId, folderId, filter, orderBy, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment, maxItems, skipCount, extension);
 	}
 
 	@Override
 	public List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId, BigInteger depth, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return navigationService.getDescendants(repositoryId, folderId, depth, filter, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment, extension);
 	}
 
 	@Override
 	public List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId, BigInteger depth, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return navigationService.getFolderTree(repositoryId, folderId, depth, filter, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment, extension);
 	}
 
 	@Override
 	public List<ObjectParentData> getObjectParents(String repositoryId, String objectId, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includeRelativePathSegment, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return navigationService.getObjectParents(repositoryId, objectId, filter, includeAllowableActions, includeRelationships, renditionFilter, includeRelativePathSegment, extension);
 	}
 
@@ -197,7 +190,6 @@ public class StructrCmisService extends AbstractCmisService {
 
 	@Override
 	public ObjectList getCheckedOutDocs(String repositoryId, String folderId, String filter, String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return navigationService.getCheckedOutDocs(repositoryId, folderId, filter, orderBy, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, extension);
 	}
 

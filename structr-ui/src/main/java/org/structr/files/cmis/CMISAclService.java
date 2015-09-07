@@ -4,12 +4,17 @@ import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.spi.AclService;
+import org.structr.common.SecurityContext;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CMISAclService implements AclService {
+public class CMISAclService extends AbstractStructrCmisService implements AclService {
+
+	public CMISAclService(final SecurityContext securityContext) {
+		super(securityContext);
+	}
 
 	@Override
 	public Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions, ExtensionsData extension) {

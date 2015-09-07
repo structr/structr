@@ -2,12 +2,19 @@ package org.structr.files.cmis;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 /**
  *
  * @author Christian Morgner
  */
-public class AbstractStructrCmisService {
+public abstract class AbstractStructrCmisService {
+
+	protected SecurityContext securityContext = null;
+
+	public AbstractStructrCmisService(final SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
 
 	protected void log(final Logger logger, final Object... objects) {
 

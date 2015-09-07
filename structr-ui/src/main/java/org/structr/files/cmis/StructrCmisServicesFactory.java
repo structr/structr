@@ -4,10 +4,21 @@ import java.io.File;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.CmisService;
 import org.apache.chemistry.opencmis.commons.server.CmisServiceFactory;
 import org.apache.chemistry.opencmis.commons.server.TempStoreOutputStream;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.auth.AuthHelper;
+import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -16,7 +27,6 @@ import org.apache.chemistry.opencmis.commons.server.TempStoreOutputStream;
 public class StructrCmisServicesFactory implements CmisServiceFactory {
 
 	private static final Logger logger = Logger.getLogger(CmisServiceFactory.class.getName());
-	private StructrCmisService service = null;
 
 	@Override
 	public void init(final Map<String, String> config) {
@@ -30,19 +40,7 @@ public class StructrCmisServicesFactory implements CmisServiceFactory {
 
 	@Override
 	public CmisService getService(final CallContext cc) {
-
-		if (service == null) {
-
-			service = new StructrCmisService(cc);
-
-			logger.log(Level.INFO, "Returning new CMIS service");
-
-		} else {
-
-			logger.log(Level.INFO, "Returning existing CMIS service");
-		}
-
-		return service;
+		return new StructrCmisService(checkAuthentication(cc));
 	}
 
 	@Override
@@ -74,4 +72,46 @@ public class StructrCmisServicesFactory implements CmisServiceFactory {
 		return null;
 	}
 
+	// ----- private methods -----
+	private SecurityContext checkAuthentication(final CallContext callContext) {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final String username           = callContext.getUsername();
+			final String password           = callContext.getPassword();
+			final Principal principal       = AuthHelper.getPrincipalForPassword(Principal.name, username, password);
+			SecurityContext securityContext = null;
+
+			if (principal != null) {
+
+
+				if (principal instanceof SuperUser) {
+
+					securityContext = SecurityContext.getSuperUserInstance();
+
+				} else {
+
+					securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+				}
+			}
+
+			tx.success();
+
+			if (securityContext != null) {
+				return securityContext;
+			}
+
+		} catch (AuthenticationException aex) {
+
+			throw new CmisUnauthorizedException(aex.getMessage());
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+
+		throw new CmisUnauthorizedException();
+	}
 }
