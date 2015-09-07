@@ -1081,11 +1081,6 @@ var _Crud = {
 			//console.log(data, status, xhr);
 
 			if (!dialogBox.is(':visible')) {
-//                            _Crud.dialog('Create new ' + type, function() {
-//                                //console.log('ok')
-//                            }, function() {
-//                                //console.log('cancel')
-//                            });
 				_Crud.showCreate(null, type);
 			}
 			var resp = JSON.parse(data.responseText);
@@ -1115,14 +1110,11 @@ var _Crud = {
 				if (input.length) {
 
 					var errorText = '';
+                    errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
 
-//					if (typeof errorMsg === 'object') {
-//						$.each(Object.keys(errorMsg), function(l, k) {
-//							errorText += '"' + key + '" ' + k.replace(/_/gi, ' ') + ': ' + errorMsg[k];
-//						});
-//					} else {
-						errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
-//					}
+                    if (error.detail) {
+                        errorText += ' ' + error.detail;
+                    }
 
 					dialogMsg.html('<div class="infoBox error">' + errorText + '</div>');
 					$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
@@ -1131,50 +1123,8 @@ var _Crud = {
 						backgroundColor: '#fee',
 						borderColor: '#933'
 					});
-
-				} else {
-//                    $('td.' + key + ' span', dialogText).remove();
-//                    $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
-//                        backgroundColor: '#fee',
-//                        borderColor: '#933',
-//                        color: '#a5a5a5'
-//                    });
 				}
 			});
-
-
-//			$.each(Object.keys(resp.errors[type]), function(i, key) {
-//				var errorMsg = resp.errors[type][key][0];
-//				var input = $('td [name="' + key + '"]', dialogText);
-//				if (input.length) {
-//					var errorText = '';
-//					if (typeof errorMsg === 'object') {
-//						$.each(Object.keys(errorMsg), function(l, k) {
-//							errorText += '"' + key + '" ' + k.replace(/_/gi, ' ') + ': ' + errorMsg[k];
-//						});
-//					} else {
-//						errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
-//					}
-//
-//					dialogMsg.html('<div class="infoBox error">' + errorText + '</div>');
-//					$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
-//
-//					input.css({
-//						backgroundColor: '#fee',
-//						borderColor: '#933'
-//					});
-//				} else {
-////                    $('td.' + key + ' span', dialogText).remove();
-////                    $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
-////                        backgroundColor: '#fee',
-////                        borderColor: '#933',
-////                        color: '#a5a5a5'
-////                    });
-//				}
-//			});
-
-
-            //_Crud.error('Error: ' + data.responseText, true);
 		}
 	},
 	crudRefresh: function(id, key, oldValue) {
