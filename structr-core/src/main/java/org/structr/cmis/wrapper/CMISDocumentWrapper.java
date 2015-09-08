@@ -18,8 +18,8 @@ public class CMISDocumentWrapper extends CMISObjectWrapper<CMISDocumentInfo> {
 	private String contentType  = null;
 	private BigInteger fileSize = null;
 
-	public CMISDocumentWrapper() {
-		super(BaseTypeId.CMIS_DOCUMENT);
+	public CMISDocumentWrapper(final Boolean includeAllowableActions) {
+		super(BaseTypeId.CMIS_DOCUMENT, includeAllowableActions);
 	}
 
 	@Override

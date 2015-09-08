@@ -72,18 +72,18 @@ public class VideoFile extends File {
 	public static final Property<VideoFile> originalVideo         = new StartNode<>("originalVideo", VideoFileHasConvertedVideoFile.class);
 	public static final Property<Image> posterImage               = new EndNode<>("posterImage", VideoFileHasPosterImage.class);
 	public static final Property<Boolean> isVideo                 = new BooleanProperty("isVideo").defaultValue(true).readOnly();
-	public static final Property<String>  videoCodecName          = new StringProperty("videoCodecName");
-	public static final Property<String>  videoCodec              = new StringProperty("videoCodec");
-	public static final Property<String>  pixelFormat             = new StringProperty("pixelFormat");
-	public static final Property<String>  audioCodecName          = new StringProperty("audioCodecName");
-	public static final Property<String>  audioCodec              = new StringProperty("audioCodec");
-	public static final Property<Integer> audioChannels           = new IntProperty("audioChannels");
+	public static final Property<String>  videoCodecName          = new StringProperty("videoCodecName").cmis();
+	public static final Property<String>  videoCodec              = new StringProperty("videoCodec").cmis();
+	public static final Property<String>  pixelFormat             = new StringProperty("pixelFormat").cmis();
+	public static final Property<String>  audioCodecName          = new StringProperty("audioCodecName").cmis();
+	public static final Property<String>  audioCodec              = new StringProperty("audioCodec").cmis();
+	public static final Property<Integer> audioChannels           = new IntProperty("audioChannels").cmis();
 
-	public static final Property<Double>  sampleRate              = new DoubleProperty("sampleRate").indexed();
-	public static final Property<Double>  duration                = new DoubleProperty("duration").indexed();
+	public static final Property<Double>  sampleRate              = new DoubleProperty("sampleRate").cmis().indexed();
+	public static final Property<Double>  duration                = new DoubleProperty("duration").cmis().indexed();
 
-	public static final Property<Integer> width                   = new IntProperty("width").indexed();
-	public static final Property<Integer> height                  = new IntProperty("height").indexed();
+	public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
+	public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(VideoFile.class, PropertyView.Ui,
 		type, name, contentType, size, relativeFilePath, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,

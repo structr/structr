@@ -41,7 +41,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	}
 
 	@Override
-	public ObjectInFolderList getChildren(String repositoryId, String folderId, String filter, String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
+	public ObjectInFolderList getChildren(final String repositoryId, final String folderId, final String filter, final String orderBy, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePathSegment, final BigInteger maxItems, final BigInteger skipCount, final ExtensionsData extension) {
 
 		final App app = StructrApp.getInstance();
 
@@ -53,7 +53,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 					@Override
 					protected ObjectData wrap(final GraphObject item) throws FrameworkException {
-						return CMISObjectWrapper.wrap(item);
+						return CMISObjectWrapper.wrap(item, includeAllowableActions);
 					}
 				};
 
@@ -80,7 +80,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 						@Override
 						protected ObjectData wrap(final GraphObject item) throws FrameworkException {
-							return CMISObjectWrapper.wrap(item);
+							return CMISObjectWrapper.wrap(item, includeAllowableActions);
 						}
 					};
 
@@ -125,7 +125,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				final Folder parent = ((AbstractFile)graphObject).getProperty(AbstractFile.parent);
 				if (parent != null) {
 
-					final CMISObjectWrapper element = CMISObjectWrapper.wrap(parent);
+					final CMISObjectWrapper element = CMISObjectWrapper.wrap(parent, includeAllowableActions);
 					final ObjectParentDataImpl impl = new ObjectParentDataImpl(element);
 
 					impl.setRelativePathSegment(parent.getProperty(Folder.path));
@@ -160,7 +160,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				final Folder parent = ((AbstractFile)graphObject).getProperty(AbstractFile.parent);
 				if (parent != null) {
 
-					result = CMISObjectWrapper.wrap(parent);
+					result = CMISObjectWrapper.wrap(parent, false);
 				}
 			}
 

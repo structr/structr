@@ -39,20 +39,24 @@ import org.structr.core.property.PropertyMap;
  */
 public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISExtensionsData implements ObjectData {
 
-	private BaseTypeId baseTypeId                  = null;
+	private AllowableActions allowableActions      = null;
 	private PropertyMap dynamicPropertyMap         = null;
 	private GregorianCalendar lastModificationDate = null;
 	private GregorianCalendar creationDate         = null;
+	private BaseTypeId baseTypeId                  = null;
 	private String lastModifiedBy                  = null;
 	private String createdBy                       = null;
 	private String type                            = null;
 	private String name                            = null;
 	private String id                              = null;
+	private boolean includeActions                 = false;
 
 	public abstract void createProperties(final BindingsObjectFactory factory, final List<PropertyData<?>> properties);
 
-	public CMISObjectWrapper(final BaseTypeId baseTypeId) {
-		this.baseTypeId = baseTypeId;
+	public CMISObjectWrapper(final BaseTypeId baseTypeId, final Boolean includeActions) {
+
+		this.includeActions = includeActions != null && includeActions;
+		this.baseTypeId     = baseTypeId;
 	}
 
 	@Override
@@ -191,6 +195,11 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 
 	@Override
 	public AllowableActions getAllowableActions() {
+
+		if (includeActions) {
+			return allowableActions;
+		}
+
 		return null;
 	}
 
@@ -235,10 +244,11 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		setLastModificationDate(info.getLastModificationDate());
 
 		dynamicPropertyMap = info.getDynamicProperties();
+		allowableActions = info.getAllowableActions();
 	}
 
 	// ----- public static methods -----
-	public static CMISObjectWrapper wrap(final GraphObject source) throws FrameworkException {
+	public static CMISObjectWrapper wrap(final GraphObject source, final Boolean includeAllowableActions) throws FrameworkException {
 
 		CMISObjectWrapper wrapper = null;
 		if (source != null) {
@@ -252,32 +262,32 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 					switch (baseTypeId) {
 
 						case CMIS_DOCUMENT:
-							wrapper = new CMISDocumentWrapper();
+							wrapper = new CMISDocumentWrapper(includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getDocumentInfo());
 							break;
 
 						case CMIS_FOLDER:
-							wrapper = new CMISFolderWrapper();
+							wrapper = new CMISFolderWrapper(includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getFolderInfo());
 							break;
 
 						case CMIS_ITEM:
-							wrapper = new CMISItemWrapper();
+							wrapper = new CMISItemWrapper(includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.geItemInfo());
 							break;
 
 						case CMIS_POLICY:
-							wrapper = new CMISPolicyWrapper();
+							wrapper = new CMISPolicyWrapper(includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getPolicyInfo());
 							break;
 
 						case CMIS_RELATIONSHIP:
-							wrapper = new CMISRelationshipWrapper();
+							wrapper = new CMISRelationshipWrapper(includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getRelationshipInfo());
 							break;
 
 						case CMIS_SECONDARY:
-							wrapper = new CMISSecondaryWrapper();
+							wrapper = new CMISSecondaryWrapper(includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getSecondaryInfo());
 							break;
 					}

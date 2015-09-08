@@ -346,4 +346,14 @@ public class Reference<T> implements PropertyKey<T> {
 	public PropertyType getDataType() {
 		return propertyKey.getDataType();
 	}
+
+	@Override
+	public Property<T> cmis() {
+		return propertyKey.cmis();
+	}
+
+	@Override
+	public boolean isCMISProperty() {
+		return propertyKey.isCMISProperty();
+	}
 }

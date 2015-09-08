@@ -171,7 +171,6 @@ public class PropertyMap {
 	public static PropertyMap javaTypeToDatabaseType(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
 
 		PropertyMap resultMap = new PropertyMap();
-		Class entityType      = entity.getClass();
 
 		if (source != null) {
 
@@ -383,9 +382,9 @@ public class PropertyMap {
 
 	public static PropertyMap cmisTypeToJavaType(final SecurityContext securityContext, final Class type, final Properties properties) throws FrameworkException {
 
-		final ConfigurationProvider config    = StructrApp.getConfiguration();
-		final PropertyMap propertyMap         = new PropertyMap();
 		final Map<String, PropertyData<?>> map = properties.getProperties();
+		final ConfigurationProvider config     = StructrApp.getConfiguration();
+		final PropertyMap propertyMap          = new PropertyMap();
 
 		for (final Entry<String, PropertyData<?>> entry : map.entrySet()) {
 

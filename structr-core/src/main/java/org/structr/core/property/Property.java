@@ -74,6 +74,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean unique                               = false;
 	protected boolean notNull                              = false;
 	protected boolean dynamic                              = false;
+	protected boolean isCMISProperty                       = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -248,6 +249,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		passivelyIndexed();
 		this.indexedWhenEmpty = true;
+
+		return this;
+	}
+
+	@Override
+	public Property<T> cmis() {
+
+		this.isCMISProperty = true;
 
 		return this;
 	}
@@ -577,6 +586,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public PropertyType getDataType() {
 		return null;
+	}
+
+	@Override
+	public boolean isCMISProperty() {
+		return isCMISProperty;
 	}
 
 	// ----- protected methods -----

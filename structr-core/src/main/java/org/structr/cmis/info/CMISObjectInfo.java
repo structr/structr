@@ -1,6 +1,7 @@
 package org.structr.cmis.info;
 
 import java.util.GregorianCalendar;
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.structr.core.property.PropertyMap;
 
@@ -21,4 +22,5 @@ public interface CMISObjectInfo {
 	public GregorianCalendar getLastModificationDate();
 
 	public PropertyMap getDynamicProperties();
+	public AllowableActions getAllowableActions();
 }

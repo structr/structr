@@ -34,29 +34,29 @@ import org.structr.core.property.StringProperty;
  */
 public class Person extends AbstractNode {
 
-	public static final Property<String>  salutation          = new StringProperty("salutation");
-	public static final Property<String>  firstName           = new StringProperty("firstName").indexed();
-	public static final Property<String>  middleNameOrInitial = new StringProperty("middleNameOrInitial");
-	public static final Property<String>  lastName            = new StringProperty("lastName").indexed();
+	public static final Property<String>  salutation          = new StringProperty("salutation").cmis();
+	public static final Property<String>  firstName           = new StringProperty("firstName").cmis().indexed();
+	public static final Property<String>  middleNameOrInitial = new StringProperty("middleNameOrInitial").cmis();
+	public static final Property<String>  lastName            = new StringProperty("lastName").cmis().indexed();
 
-	public static final Property<String>  twitterName         = new StringProperty("twitterName").indexed();
-	public static final Property<String>  eMail               = new StringProperty("eMail").indexed();
-	public static final Property<String>  eMail2              = new StringProperty("eMail2");
+	public static final Property<String>  twitterName         = new StringProperty("twitterName").cmis().indexed();
+	public static final Property<String>  eMail               = new StringProperty("eMail").cmis().indexed();
+	public static final Property<String>  eMail2              = new StringProperty("eMail2").cmis();
 
-	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1");
-	public static final Property<String>  phoneNumber2        = new StringProperty("phoneNumber2");
-	public static final Property<String>  faxNumber1          = new StringProperty("faxNumber1");
-	public static final Property<String>  faxNumber2          = new StringProperty("faxNumber2");
+	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1").cmis();
+	public static final Property<String>  phoneNumber2        = new StringProperty("phoneNumber2").cmis();
+	public static final Property<String>  faxNumber1          = new StringProperty("faxNumber1").cmis();
+	public static final Property<String>  faxNumber2          = new StringProperty("faxNumber2").cmis();
 
-	public static final Property<String>  street              = new StringProperty("street").indexed();
-	public static final Property<String>  zipCode             = new StringProperty("zipCode").indexed();
-	public static final Property<String>  city                = new StringProperty("city").indexed();
-	public static final Property<String>  state               = new StringProperty("state").indexed();
-	public static final Property<String>  country             = new StringProperty("country").indexed();
+	public static final Property<String>  street              = new StringProperty("street").cmis().indexed();
+	public static final Property<String>  zipCode             = new StringProperty("zipCode").cmis().indexed();
+	public static final Property<String>  city                = new StringProperty("city").cmis().indexed();
+	public static final Property<String>  state               = new StringProperty("state").cmis().indexed();
+	public static final Property<String>  country             = new StringProperty("country").cmis().indexed();
 
-	public static final Property<Date>    birthday            = new ISO8601DateProperty("birthday");
-	public static final Property<String>  gender              = new StringProperty("gender");
-	public static final Property<Boolean> newsletter          = new BooleanProperty("newsletter");
+	public static final Property<Date>    birthday            = new ISO8601DateProperty("birthday").cmis();
+	public static final Property<String>  gender              = new StringProperty("gender").cmis();
+	public static final Property<Boolean> newsletter          = new BooleanProperty("newsletter").cmis();
 
 	public static final View publicView = new View(Person.class, PropertyView.Public,
 		name, salutation, firstName, middleNameOrInitial, lastName, twitterName, eMail, zipCode, city, state, country

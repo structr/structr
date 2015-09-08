@@ -68,8 +68,8 @@ public class User extends AbstractUser {
 	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
 	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new UiNotion());
 	public static final Property<Boolean>     isUser           = new BooleanProperty("isUser").defaultValue(true).readOnly();
-	public static final Property<String>      eMail            = new StringProperty("eMail").indexedCaseInsensitive();
-	public static final Property<String>      twitterName      = new StringProperty("twitterName").indexed();
+	public static final Property<String>      eMail            = new StringProperty("eMail").cmis().indexedCaseInsensitive();
+	public static final Property<String>      twitterName      = new StringProperty("twitterName").cmis().indexed();
 	public static final Property<String>      localStorage     = new StringProperty("localStorage");
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,

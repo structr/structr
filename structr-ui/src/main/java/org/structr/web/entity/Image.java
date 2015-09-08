@@ -66,8 +66,8 @@ public class Image extends File {
 
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
-	public static final Property<Integer> height = new IntProperty("height").indexed();
-	public static final Property<Integer> width  = new IntProperty("width").indexed();
+	public static final Property<Integer> height = new IntProperty("height").cmis().indexed();
+	public static final Property<Integer> width  = new IntProperty("width").cmis().indexed();
 
 	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall").format("100, 100, false");
 	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid").format("300, 300, false");

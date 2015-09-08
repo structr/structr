@@ -1,11 +1,13 @@
 package org.structr.files.cmis.repository;
 
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.definitions.MutableTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISFolderWrapper;
+import org.structr.files.cmis.config.StructrRootFolderActions;
 import org.structr.web.entity.Folder;
 
 /**
@@ -16,9 +18,9 @@ public class CMISRootFolder extends CMISFolderWrapper {
 
 	private MutableTypeDefinition typeDefinition = null;
 
-	public CMISRootFolder() {
+	public CMISRootFolder(final Boolean includeAllowableActions) {
 
-		super();
+		super(includeAllowableActions);
 
 		typeDefinition = TypeDefinitionFactory.newInstance().createBaseFolderTypeDefinition(CmisVersion.CMIS_1_1);
 
@@ -28,6 +30,12 @@ public class CMISRootFolder extends CMISFolderWrapper {
 
 		setPath(CMISInfo.ROOT_FOLDER_ID);
 		setParentId(null);
+	}
+
+
+	@Override
+	public AllowableActions getAllowableActions() {
+		return StructrRootFolderActions.getInstance();
 	}
 
 	// ----- public methods -----

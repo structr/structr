@@ -40,16 +40,16 @@ import org.structr.web.property.UiNotion;
 
 
 public class Site extends AbstractNode {
-	
+
 //	public static final Property<List<String>>  hostnames = new ArrayProperty("hostnames", String.class).indexedWhenEmpty();
 //	public static final Property<List<Integer>> ports     = new ArrayProperty("ports", Integer.class).indexedWhenEmpty();
-	public static final Property<String>  hostname = new StringProperty("hostname").indexedWhenEmpty();
-	public static final Property<Integer> port     = new IntProperty("port").indexedWhenEmpty();
-	
+	public static final Property<String>  hostname = new StringProperty("hostname").cmis().indexedWhenEmpty();
+	public static final Property<Integer> port     = new IntProperty("port").cmis().indexedWhenEmpty();
+
 	public static final Property<List<Page>>    pages     = new EndNodes<>("pages", Pages.class, new UiNotion());
-	
+
 	public static final View defaultView = new View(Site.class, PropertyView.Public, id, type, name, hostname, port, pages);
 
 	public static final View uiView = new View(Site.class, PropertyView.Ui,type, name, hostname, port, pages);
-	
+
 }

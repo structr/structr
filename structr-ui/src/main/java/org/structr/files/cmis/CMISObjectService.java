@@ -78,9 +78,13 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	@Override
 	public AllowableActions getAllowableActions(String repositoryId, String objectId, ExtensionsData extension) {
 
-		System.out.println("getAllowableActions");
+		final ObjectData obj = getObject(repositoryId, objectId, null, true, IncludeRelationships.NONE, null, false, false, extension);
+		if (obj != null) {
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+			return obj.getAllowableActions();
+		}
+
+		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
 	}
 
 	@Override
@@ -90,7 +94,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 		try (final Tx tx = app.tx()) {
 
-			final ObjectData data = CMISObjectWrapper.wrap(app.get(objectId));
+			final ObjectData data = CMISObjectWrapper.wrap(app.get(objectId), includeAllowableActions);
 
 			tx.success();
 
@@ -131,7 +135,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			final AbstractFile file = app.nodeQuery(AbstractFile.class).and(AbstractFile.path, path).getFirst();
 			if (file != null) {
 
-				result = CMISObjectWrapper.wrap(file);
+				result = CMISObjectWrapper.wrap(file, includeAllowableActions);
 			}
 
 			tx.success();

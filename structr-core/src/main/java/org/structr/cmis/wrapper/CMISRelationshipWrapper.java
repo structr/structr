@@ -13,8 +13,8 @@ import org.structr.common.error.FrameworkException;
  */
 public class CMISRelationshipWrapper extends CMISObjectWrapper<CMISRelationshipInfo> {
 
-	public CMISRelationshipWrapper() {
-		super(BaseTypeId.CMIS_RELATIONSHIP);
+	public CMISRelationshipWrapper(final Boolean includeAllowableActions) {
+		super(BaseTypeId.CMIS_RELATIONSHIP, includeAllowableActions);
 	}
 
 	@Override

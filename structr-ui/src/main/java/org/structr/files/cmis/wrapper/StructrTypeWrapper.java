@@ -4,7 +4,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
@@ -15,6 +14,7 @@ import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.common.PropertyView;
 import org.structr.core.app.StructrApp;
@@ -29,10 +29,13 @@ import org.structr.web.entity.Folder;
  */
 public class StructrTypeWrapper extends CMISExtensionsData implements TypeDefinition, TypeMutability, TypeDefinitionContainer {
 
-	private Class type = null;
+	private boolean includePropertyDefinitions = false;
+	private Class type                         = null;
 
-	public StructrTypeWrapper(final Class type) {
-		this.type = type;
+	public StructrTypeWrapper(final Class type, final boolean includePropertyDefinitions) {
+
+		this.includePropertyDefinitions = includePropertyDefinitions;
+		this.type                       = type;
 	}
 
 	@Override
@@ -43,6 +46,11 @@ public class StructrTypeWrapper extends CMISExtensionsData implements TypeDefini
 	@Override
 	public boolean equals(final Object other) {
 		return other != null && other.hashCode() == hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return getId();
 	}
 
 	@Override
@@ -129,6 +137,10 @@ public class StructrTypeWrapper extends CMISExtensionsData implements TypeDefini
 	@Override
 	public Map<String, PropertyDefinition<?>> getPropertyDefinitions() {
 
+		if (!includePropertyDefinitions) {
+			return null;
+		}
+
 		final Map<String, PropertyDefinition<?>> properties = new LinkedHashMap<>();
 		final TypeDefinitionFactory factory                 = TypeDefinitionFactory.newInstance();
 
@@ -144,7 +156,6 @@ public class StructrTypeWrapper extends CMISExtensionsData implements TypeDefini
 		}
 
 		// remove optional properties that we don't support
-		properties.remove(PropertyIds.DESCRIPTION);
 		properties.remove("cmis:localNamespace");
 		properties.remove("cmis:displayName");
 		properties.remove("cmis:queryName");
@@ -152,8 +163,8 @@ public class StructrTypeWrapper extends CMISExtensionsData implements TypeDefini
 
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
 
-			// include all dynamic keys in definition
-			if (key.isDynamic()) {
+			// include all dynamic and CMIS-enabled keys in definition
+			if (key.isDynamic() || key.isCMISProperty()) {
 
 				// only include primitives here
 				final PropertyType dataType = key.getDataType();
@@ -161,7 +172,7 @@ public class StructrTypeWrapper extends CMISExtensionsData implements TypeDefini
 
 					final String propertyId         = key.jsonName();
 					final String displayName        = propertyId;
-					final String description        = displayName + " property";
+					final String description        = StringUtils.capitalize(propertyId);
 					final Class declaringClass      = key.getDeclaringClass();
 					final boolean isInherited       = !type.getName().equals(declaringClass.getName());
 					final Cardinality cardinality   = Cardinality.SINGLE;
@@ -218,7 +229,7 @@ public class StructrTypeWrapper extends CMISExtensionsData implements TypeDefini
 			final Class subclass = config.getNodeEntityClass(subtype);
 			if (subclass != null && !subclass.getName().equals(type.getName())) {
 
-				children.add(new StructrTypeWrapper(subclass));
+				children.add(new StructrTypeWrapper(subclass, includePropertyDefinitions));
 			}
 		}
 

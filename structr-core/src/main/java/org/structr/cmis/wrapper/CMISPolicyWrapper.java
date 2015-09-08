@@ -13,8 +13,8 @@ import org.structr.common.error.FrameworkException;
  */
 public class CMISPolicyWrapper extends CMISObjectWrapper<CMISPolicyInfo> {
 
-	public CMISPolicyWrapper() {
-		super(BaseTypeId.CMIS_POLICY);
+	public CMISPolicyWrapper(final Boolean includeAllowableActions) {
+		super(BaseTypeId.CMIS_POLICY, includeAllowableActions);
 	}
 
 	@Override

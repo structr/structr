@@ -18,8 +18,8 @@ public class CMISFolderWrapper extends CMISObjectWrapper<CMISFolderInfo> {
 	private String parentId = null;
 	private String path     = null;
 
-	public CMISFolderWrapper() {
-		super(BaseTypeId.CMIS_FOLDER);
+	public CMISFolderWrapper(final Boolean includeAllowableActions) {
+		super(BaseTypeId.CMIS_FOLDER, includeAllowableActions);
 	}
 
 	public String getParentId() {

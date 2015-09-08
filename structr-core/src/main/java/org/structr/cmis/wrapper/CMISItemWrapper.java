@@ -13,8 +13,8 @@ import org.structr.common.error.FrameworkException;
  */
 public class CMISItemWrapper extends CMISObjectWrapper<CMISItemInfo> {
 
-	public CMISItemWrapper() {
-		super(BaseTypeId.CMIS_ITEM);
+	public CMISItemWrapper(final Boolean includeAllowableActions) {
+		super(BaseTypeId.CMIS_ITEM, includeAllowableActions);
 	}
 
 	@Override

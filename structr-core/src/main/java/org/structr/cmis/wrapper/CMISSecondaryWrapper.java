@@ -13,8 +13,8 @@ import org.structr.common.error.FrameworkException;
  */
 public class CMISSecondaryWrapper extends CMISObjectWrapper<CMISSecondaryInfo> {
 
-	public CMISSecondaryWrapper() {
-		super(BaseTypeId.CMIS_SECONDARY);
+	public CMISSecondaryWrapper(final Boolean includeAllowableActions) {
+		super(BaseTypeId.CMIS_SECONDARY, includeAllowableActions);
 	}
 
 	@Override

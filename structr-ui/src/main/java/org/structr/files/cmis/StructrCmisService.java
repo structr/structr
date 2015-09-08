@@ -30,6 +30,7 @@ import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.impl.server.AbstractCmisService;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfo;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.commons.io.FilenameUtils;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.SecurityContext;
 import org.structr.files.cmis.repository.CMISRootFolder;
@@ -54,7 +55,6 @@ public class StructrCmisService extends AbstractCmisService {
 	private CMISObjectService objectService             = null;
 	private CMISNavigationService navigationService     = null;
 	private CMISRepositoryService repositoryService     = null;
-	private CMISRootFolder root                         = null;
 	private SecurityContext securityContext             = null;
 
 	public StructrCmisService(final SecurityContext securityContext) {
@@ -68,7 +68,6 @@ public class StructrCmisService extends AbstractCmisService {
 		relationshipService    = new CMISRelationshipService(securityContext);
 		aclService             = new CMISAclService(securityContext);
 		policyService          = new CMISPolicyService(securityContext);
-		root                   = new CMISRootFolder();
 
 		this.securityContext   = securityContext;
 	}
@@ -100,7 +99,7 @@ public class StructrCmisService extends AbstractCmisService {
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
 
-			obj = root;
+			obj = new CMISRootFolder(false);
 
 		} else {
 
@@ -185,7 +184,7 @@ public class StructrCmisService extends AbstractCmisService {
 			return parent;
 		}
 
-		return root;
+		return new CMISRootFolder(false);
 	}
 
 	@Override
@@ -232,7 +231,11 @@ public class StructrCmisService extends AbstractCmisService {
 
 	@Override
 	public AllowableActions getAllowableActions(String repositoryId, String objectId, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
+
+		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
+			return new CMISRootFolder(true).getAllowableActions();
+		}
+
 		return objectService.getAllowableActions(repositoryId, objectId, extension);
 	}
 
@@ -240,7 +243,7 @@ public class StructrCmisService extends AbstractCmisService {
 	public ObjectData getObject(String repositoryId, String objectId, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension) {
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
-			return root;
+			return new CMISRootFolder(includeAllowableActions);
 		}
 
 		return objectService.getObject(repositoryId, objectId, filter, includeAllowableActions, includeRelationships, renditionFilter, includePolicyIds, includeAcl, extension);
@@ -248,29 +251,38 @@ public class StructrCmisService extends AbstractCmisService {
 
 	@Override
 	public Properties getProperties(String repositoryId, String objectId, String filter, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
+
+		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
+			return new CMISRootFolder(false).getProperties();
+		}
+
 		return objectService.getProperties(repositoryId, objectId, filter, extension);
 	}
 
 	@Override
 	public List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
+
+		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
+			return new CMISRootFolder(false).getRenditions();
+		}
+
 		return objectService.getRenditions(repositoryId, objectId, renditionFilter, maxItems, skipCount, extension);
 	}
 
 	@Override
-	public ObjectData getObjectByPath(String repositoryId, String path, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension) {
+	public ObjectData getObjectByPath(final String repositoryId, final String path, final String filter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePolicyIds, final Boolean includeAcl, final ExtensionsData extension) {
 
-		if (CMISInfo.ROOT_FOLDER_ID.equals(path)) {
-			return root;
+		final String cleanPath = FilenameUtils.normalize(path);
+
+		if (CMISInfo.ROOT_FOLDER_ID.equals(cleanPath) || path == null) {
+			return new CMISRootFolder(includeAllowableActions);
 		}
 
-		return objectService.getObjectByPath(repositoryId, path, filter, includeAllowableActions, includeRelationships, renditionFilter, includePolicyIds, includeAcl, extension);
+		return objectService.getObjectByPath(repositoryId, cleanPath, filter, includeAllowableActions, includeRelationships, renditionFilter, includePolicyIds, includeAcl, extension);
 	}
 
 	@Override
 	public ContentStream getContentStream(String repositoryId, String objectId, String streamId, BigInteger offset, BigInteger length, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return objectService.getContentStream(repositoryId, objectId, streamId, offset, length, extension);
 	}
 
@@ -357,7 +369,7 @@ public class StructrCmisService extends AbstractCmisService {
 	public List<ObjectData> getAllVersions(String repositoryId, String objectId, String versionSeriesId, String filter, Boolean includeAllowableActions, ExtensionsData extension) {
 
 		if (objectId != null && objectId.equals(CMISInfo.ROOT_FOLDER_ID)) {
-			return Arrays.asList(new ObjectData[] { root });
+			return Arrays.asList(new ObjectData[] { new CMISRootFolder(includeAllowableActions) });
 		}
 
 		logger.log(Level.INFO, "...");
@@ -425,7 +437,6 @@ public class StructrCmisService extends AbstractCmisService {
 
 	@Override
 	public List<ObjectData> getAppliedPolicies(String repositoryId, String objectId, String filter, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return policyService.getAppliedPolicies(repositoryId, objectId, filter, extension);
 	}
 }

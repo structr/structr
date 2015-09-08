@@ -76,9 +76,9 @@ public class ResourceAccess extends AbstractNode {
 	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<>();
 	private static final Logger logger                          = Logger.getLogger(ResourceAccess.class.getName());
 
-	public static final Property<String>               signature          = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).indexed();
-	public static final Property<Long>                 flags              = new LongProperty("flags").indexed();
-	public static final Property<Integer>              position           = new IntProperty("position").indexed();
+	public static final Property<String>               signature          = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).cmis().indexed();
+	public static final Property<Long>                 flags              = new LongProperty("flags").cmis().indexed();
+	public static final Property<Integer>              position           = new IntProperty("position").cmis().indexed();
 	public static final Property<List<PropertyAccess>> propertyAccess     = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
 	public static final Property<Boolean>              isResourceAccess   = new BooleanProperty("isResourceAccess").defaultValue(true).readOnly();
 

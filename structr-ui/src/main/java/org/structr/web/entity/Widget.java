@@ -49,9 +49,9 @@ public class Widget extends AbstractNode implements Taggable {
 
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[a-zA-Z:,]+\\]");
 
-	public static final Property<String>      source      = new StringProperty("source");
-	public static final Property<String>      description = new StringProperty("description");
-	public static final Property<String>      treePath    = new StringProperty("treePath").indexed();
+	public static final Property<String>      source      = new StringProperty("source").cmis();
+	public static final Property<String>      description = new StringProperty("description").cmis();
+	public static final Property<String>      treePath    = new StringProperty("treePath").cmis().indexed();
 	public static final Property<List<Image>> pictures    = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
 	public static final Property<Boolean>     isWidget    = new BooleanProperty("isWidget").defaultValue(true).readOnly();
 

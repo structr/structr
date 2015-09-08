@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -60,6 +61,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.files.text.FulltextIndexingTask;
 import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;
@@ -83,7 +85,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	public static final Property<Long> size                      = new LongProperty("size").indexed().readOnly();
 	public static final Property<String> url                     = new StringProperty("url");
 	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
-	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds");
+	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds").cmis();
 	public static final Property<Integer> version                = new IntProperty("version").indexed().readOnly();
 	public static final Property<Boolean> isFile                 = new BooleanProperty("isFile").defaultValue(true).readOnly();
 
@@ -673,5 +675,10 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	@Override
 	public String getParentId() {
 		return getProperty(FileBase.parentId);
+	}
+
+	@Override
+	public AllowableActions getAllowableActions() {
+		return StructrFileActions.getInstance();
 	}
 }

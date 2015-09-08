@@ -142,8 +142,16 @@ public interface PropertyKey<T> {
 	 */
 	public Property<T> passivelyIndexed(final NodeService.RelationshipIndex relIndex);
 
+
 	public Property<T> indexedWhenEmpty();
 
+	/**
+	 * Use this method to indicate that a property key is accessible via
+	 * CMIS.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> cmis();
 
 	/**
 	 * Returns the desired type name that will be used in the error message if a
@@ -321,4 +329,5 @@ public interface PropertyKey<T> {
 
 	// ----- CMIS support -----
 	public PropertyType getDataType();
+	public boolean isCMISProperty();
 }
