@@ -75,6 +75,7 @@ var _Crud = {
 	//allTypes : [],
 
 	types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content' ],
+	badTypes: [],
 	views: ['public', 'ui'],
 	schema: [],
 	keys: [],
@@ -185,7 +186,9 @@ var _Crud = {
 	initTabs: function() {
 
 		$.each(_Crud.types, function(t, type) {
-			_Crud.addTab(type);
+			if (_Crud.badTypes.indexOf(type) === -1) {
+				_Crud.addTab(type);
+			}
 		});
 
 		$('#resourceTabsMenu input[type="checkbox"]').on('click', function(e) {
@@ -231,7 +234,7 @@ var _Crud = {
 			//console.log('schema not loaded completely, checking all types ...');
 			$.each(_Crud.types, function(t, type) {
 				//console.log('checking type ' + type, (_Crud.schema[type] && _Crud.schema[type] != null));
-				all &= (_Crud.schema[type] && _Crud.schema[type] !== null);
+				all = all && ((_Crud.badTypes.indexOf(type) !== -1) || (_Crud.schema[type] !== undefined && _Crud.schema[type] !== null));
 			});
 		}
 		_Crud.schemaLoaded = all;
@@ -291,6 +294,7 @@ var _Crud = {
 				//console.log(data);
 				var types = [];
 				_Crud.types.length = 0;
+				_Crud.badTypes = [];
 				$.each(data.result, function(i, res) {
 					var type = getTypeFromResourceSignature(res.signature);
 					//console.log(res);
@@ -334,13 +338,11 @@ var _Crud = {
 					// no schema entry found?
 					if (!data || !data.result || data.result_count === 0) {
 
-						//console.log("ERROR: loading Schema " + type);
-						//Structr.error("ERROR: loading Schema " + type, true);
+						// console.log("ERROR: loading Schema " + type);
+						new MessageBuilder().warning("Failed loading Schema for '" + type + "' - check your resource access grants.").show();
 
-						var typeIndex = _Crud.types.indexOf(type);
-
-						// Delete broken type from list
-						_Crud.types.splice(typeIndex, 1);
+						// NOT removing the type from the _Types.types array as that would lead to skipped types
+						_Crud.badTypes.push(type);
 
 						if (_Crud.isSchemaLoaded()) {
 							//console.log('Schema loaded successfully');
@@ -369,6 +371,10 @@ var _Crud = {
 						});
 					}
 				},
+				400: function(data) {
+					console.log(data);
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
 				401: function(data) {
 					console.log(data);
 					Structr.errorFromResponse(data.responseJSON, url);
@@ -384,8 +390,11 @@ var _Crud = {
 				422: function(data) {
 					Structr.errorFromResponse(data.responseJSON);
 				}
+			},
+			error:function () {
+				// NOT removing the type from the _Types.types array as that would lead to skipped types
+				_Crud.badTypes.push(type);
 			}
-
 
 		});
 	},

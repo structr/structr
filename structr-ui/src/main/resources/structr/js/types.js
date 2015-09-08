@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var propertyDefinitions, types, dynamicTypes = [];
+var propertyDefinitions, dynamicTypes = [];
 var typesTypeKey = 'structrTypesType_' + port;
 var hiddenTypesTabs = [];
 var typesHiddenTabsKey = 'structrTypesHiddenTabs_' + port;
@@ -47,6 +47,7 @@ var _Types = {
 	//allTypes : [],
 
 	types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content' ],
+	badTypes: [],
 	views: ['public', 'all', 'ui'],
 	schema: [],
 	keys: [],
@@ -109,7 +110,9 @@ var _Types = {
 	initTabs: function() {
 
 		$.each(_Types.types, function(t, type) {
-			_Types.addTab(type);
+			if (_Types.badTypes.indexOf(type) === -1) {
+				_Types.addTab(type);
+			}
 		});
 
 		$('#resourceTabsMenu input[type="checkbox"]').on('click', function(e) {
@@ -159,10 +162,11 @@ var _Types = {
 			return;
 		}
 		_Types.schemaLoading = true;
-
 		_Types.loadAccessibleResources(function() {
-			$.each(_Types.types, function(t, type) {
-				//console.log('Loading type definition for ' + type + '...');
+			_Types.badTypes = [];
+
+			_Types.types.forEach(function(type) {
+//				console.log('Loading type definition for ' + type + '...');
 				if (type.startsWith('_')) {
 					return;
 				}
@@ -176,8 +180,8 @@ var _Types = {
 		if (!_Types.schemaLoaded) {
 			//console.log('schema not loaded completely, checking all types ...');
 			$.each(_Types.types, function(t, type) {
-				//console.log('checking type ' + type, (_Types.schema[type] && _Types.schema[type] != null));
-				all &= (_Types.schema[type] && _Types.schema[type] !== null);
+				// console.log('checking type ' + type, (_Types.schema[type] !== undefined && _Types.schema[type] !== null));
+				all = all && ((_Types.badTypes.indexOf(type) !== -1) || (_Types.schema[type] !== undefined && _Types.schema[type] !== null));
 			});
 		}
 		_Types.schemaLoaded = all;
@@ -241,12 +245,8 @@ var _Types = {
 						// console.log("ERROR: loading Schema " + type);
 						new MessageBuilder().warning("Failed loading Schema for '" + type + "' - check your resource access grants.").show();
 
-
-						var typeIndex = _Types.types.indexOf(type);
-
-						// Delete broken type from list
-						_Types.types.splice(typeIndex, 1);
-
+						// NOT removing the type from the _Types.types array as that would lead to skipped types
+						_Types.badTypes.push(type);
 
 						if (_Types.isSchemaLoaded()) {
 							//console.log('Schema loaded successfully');
@@ -275,15 +275,30 @@ var _Types = {
 					}
 
 				},
+				400: function(data) {
+					console.log(data);
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
 				401: function(data) {
+					console.log(data);
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				403: function(data) {
+					console.log(data);
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				404: function(data) {
 					console.log(data);
 					Structr.errorFromResponse(data.responseJSON, url);
 				},
 				422: function(data) {
 					Structr.errorFromResponse(data.responseJSON);
 				}
+			},
+			error:function () {
+				// NOT removing the type from the _Types.types array as that would lead to skipped types
+				_Types.badTypes.push(type);
 			}
-
 
 		});
 	},
