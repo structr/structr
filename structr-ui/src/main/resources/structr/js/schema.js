@@ -246,9 +246,9 @@ var _Schema = {
 			success: function(data) {
 
 				$.each(data.result, function(i, entity) {
-					
+
 					if (hiddenSchemaNodes.length > 0 && hiddenSchemaNodes.indexOf(entity.id) > -1) { return; }
-					
+
 					var isBuiltinType = entity.isBuiltinType;
 					var id = 'id_' + entity.id;
 					nodes[entity.id] = entity;
@@ -2354,13 +2354,13 @@ var _Schema = {
 
 		dialogText.append('<h3>Visibility</h3><table class="props" id="schema-options-table"><tr><th>Type</th><th>Visible <input type="checkbox" id="toggle-all-types"><img class="invert-icon" src="icon/arrow_switch.png" id="invert-all-types"></button></th></table>');
 		var schemaOptionsTable = $('#schema-options-table');
-		
+
 		// list: function(type, rootOnly, pageSize, page, sort, order, properties, callback)
 		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', null, function(schemaNodes) {
 			schemaNodes.forEach(function(schemaNode) {
 				schemaOptionsTable.append('<tr><td>' + schemaNode.name + '</td><td><input class="toggle-type" data-structr-id="' + schemaNode.id + '" type="checkbox" ' + (hiddenSchemaNodes.indexOf(schemaNode.id) > -1 ? '' : 'checked') + '></td></tr>');
 			});
-		
+
 			$('#toggle-all-types', schemaOptionsTable).on('click', function() {
 				$('.toggle-type', schemaOptionsTable).each(function(i, checkbox) {
 					var inp = $(checkbox);
@@ -2436,7 +2436,7 @@ var _Schema = {
 						var obj = properties[key];
 						var simpleClassName = obj.className.split('.')[obj.className.split('.').length - 1];
 						if (obj.relatedType && obj.relationshipType) {
-							if (/*obj.relatedType.endsWith(relatedType) &&*/ obj.relationshipType === relationshipType && ((simpleClassName.startsWith('EndNode') && out)
+							if (obj.relatedType.endsWith(relatedType) && obj.relationshipType === relationshipType && ((simpleClassName.startsWith('EndNode') && out)
 									|| (simpleClassName.startsWith('StartNode') && !out))) {
 								callback(key, obj.isCollection);
 							}
