@@ -513,40 +513,43 @@ var _Elements = {
 
 					var pagesToLink = $('#pagesToLink');
 
-					Structr.addPager(pagesToLink, true, 'Page', function(page) {
+					Structr.addPager(pagesToLink, true, 'Page', function(pages) {
 
-						if (page.type === 'ShadowDocument') {
-							return;
-						}
+						pages.forEach(function(page){
 
-						pagesToLink.append('<div class="node page ' + page.id + '_"><img class="typeIcon" src="icon/page.png">'
-								+ '<b title="' + page.name + '" class="name_">' + page.name + '</b></div>');
-
-						var div = $('.' + page.id + '_', pagesToLink);
-
-						if (isIn(entity.id, page.linkingElements)) {
-							div.addClass('nodeActive');
-						}
-
-						div.on('click', function(e) {
-							e.stopPropagation();
-							if (div.hasClass('nodeActive')) {
-								Command.setProperty(entity.id, 'linkableId', null);
-							} else {
-								Command.link(entity.id, page.id);
+							if (page.type === 'ShadowDocument') {
+								return;
 							}
-							_Entities.reloadChildren(entity.parent.id);
-							$('#dialogBox .dialogText').empty();
-							_Pages.reloadPreviews();
-							$.unblockUI({
-								fadeOut: 25
+
+							pagesToLink.append('<div class="node page ' + page.id + '_"><img class="typeIcon" src="icon/page.png">'
+									+ '<b title="' + page.name + '" class="name_">' + page.name + '</b></div>');
+
+							var div = $('.' + page.id + '_', pagesToLink);
+
+							if (isIn(entity.id, page.linkingElements)) {
+								div.addClass('nodeActive');
+							}
+
+							div.on('click', function(e) {
+								e.stopPropagation();
+								if (div.hasClass('nodeActive')) {
+									Command.setProperty(entity.id, 'linkableId', null);
+								} else {
+									Command.link(entity.id, page.id);
+								}
+								_Entities.reloadChildren(entity.parent.id);
+								$('#dialogBox .dialogText').empty();
+								_Pages.reloadPreviews();
+								$.unblockUI({
+									fadeOut: 25
+								});
+							}).css({
+								cursor: 'pointer'
+							}).hover(function() {
+								$(this).addClass('nodeHover');
+							}, function() {
+								$(this).removeClass('nodeHover');
 							});
-						}).css({
-							cursor: 'pointer'
-						}).hover(function() {
-							$(this).addClass('nodeHover');
-						}, function() {
-							$(this).removeClass('nodeHover');
 						});
 
 					});
@@ -556,62 +559,70 @@ var _Elements = {
 					var filesToLink = $('#filesToLink');
 					var foldersToLink = $('#foldersToLink');
 
-					Structr.addPager(foldersToLink, true, 'Folder', function(folder) {
+					Structr.addPager(foldersToLink, true, 'Folder', function(folders) {
 
-						if (folder.files.length + folder.folders.length === 0) {
-							return;
-						}
+						folders.forEach(function(folder) {
 
-						foldersToLink.append('<div class="node folder ' + folder.id + '_"><img class="typeIcon" src="icon/folder.png">'
-								+ '<b title="' + folder.name + '" class="name_">' + folder.name + '</b></div>');
-
-						var div = $('.' + folder.id + '_', foldersToLink);
-						div.on('click', function(e) {
-							if (!div.children('.node').length) {
-								_Elements.expandFolder(e, entity, folder);
-							} else {
-								div.children('.node').remove();
+							if (folder.files.length + folder.folders.length === 0) {
+								return;
 							}
-						}).css({
-							cursor: 'pointer'
-						}).hover(function() {
-							$(this).addClass('nodeHover');
-						}, function() {
-							$(this).removeClass('nodeHover');
+
+							foldersToLink.append('<div class="node folder ' + folder.id + '_"><img class="typeIcon" src="icon/folder.png">'
+									+ '<b title="' + folder.name + '" class="name_">' + folder.name + '</b></div>');
+
+							var div = $('.' + folder.id + '_', foldersToLink);
+							div.on('click', function(e) {
+								if (!div.children('.node').length) {
+									_Elements.expandFolder(e, entity, folder);
+								} else {
+									div.children('.node').remove();
+								}
+							}).css({
+								cursor: 'pointer'
+							}).hover(function() {
+								$(this).addClass('nodeHover');
+							}, function() {
+								$(this).removeClass('nodeHover');
+							});
+
 						});
 
 					});
 
-					Structr.addPager(filesToLink, true, 'File', function(file) {
+					Structr.addPager(filesToLink, true, 'File', function(files) {
 
-						filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
-								+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
+						files.forEach(function(file) {
 
-						var div = $('.' + file.id + '_', filesToLink);
+							filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+									+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 
-						if (isIn(entity.id, file.linkingElements)) {
-							div.addClass('nodeActive');
-						}
+							var div = $('.' + file.id + '_', filesToLink);
 
-						div.on('click', function(e) {
-							e.stopPropagation();
-							if (div.hasClass('nodeActive')) {
-								Command.setProperty(entity.id, 'linkableId', null);
-							} else {
-								Command.link(entity.id, file.id);
+							if (isIn(entity.id, file.linkingElements)) {
+								div.addClass('nodeActive');
 							}
-							_Entities.reloadChildren(entity.parent.id);
-							$('#dialogBox .dialogText').empty();
-							_Pages.reloadPreviews();
-							$.unblockUI({
-								fadeOut: 25
+
+							div.on('click', function(e) {
+								e.stopPropagation();
+								if (div.hasClass('nodeActive')) {
+									Command.setProperty(entity.id, 'linkableId', null);
+								} else {
+									Command.link(entity.id, file.id);
+								}
+								_Entities.reloadChildren(entity.parent.id);
+								$('#dialogBox .dialogText').empty();
+								_Pages.reloadPreviews();
+								$.unblockUI({
+									fadeOut: 25
+								});
+							}).css({
+								cursor: 'pointer'
+							}).hover(function() {
+								$(this).addClass('nodeHover');
+							}, function() {
+								$(this).removeClass('nodeHover');
 							});
-						}).css({
-							cursor: 'pointer'
-						}).hover(function() {
-							$(this).addClass('nodeHover');
-						}, function() {
-							$(this).removeClass('nodeHover');
+
 						});
 
 					});
@@ -624,37 +635,41 @@ var _Elements = {
 
 					var imagesToLink = $('#imagesToLink');
 
-					Structr.addPager(imagesToLink, false, 'Image', function(image) {
+					Structr.addPager(imagesToLink, false, 'Image', function(images) {
 
-						imagesToLink.append('<div class="node file ' + image.id + '_"><img class="typeIcon" src="' + _Images.getIcon(image) + '">'
-								+ '<b title="' + image.name + '" class="name_">' + image.name + '</b></div>');
+						images.forEach(function(image) {
 
-						var div = $('.' + image.id + '_', imagesToLink);
+							imagesToLink.append('<div class="node file ' + image.id + '_"><img class="typeIcon" src="' + _Images.getIcon(image) + '">'
+									+ '<b title="' + image.name + '" class="name_">' + image.name + '</b></div>');
 
-						if (isIn(entity.id, image.linkingElements)) {
-							div.addClass('nodeActive');
-						}
+							var div = $('.' + image.id + '_', imagesToLink);
 
-						div.on('click', function(e) {
-							e.stopPropagation();
-							if (div.hasClass('nodeActive')) {
-								console.log('removing')
-								Command.setProperty(entity.id, 'linkableId', null);
-							} else {
-								Command.link(entity.id, image.id);
+							if (isIn(entity.id, image.linkingElements)) {
+								div.addClass('nodeActive');
 							}
-							_Entities.reloadChildren(entity.parent.id);
-							$('#dialogBox .dialogText').empty();
-							_Pages.reloadPreviews();
-							$.unblockUI({
-								fadeOut: 25
+
+							div.on('click', function(e) {
+								e.stopPropagation();
+								if (div.hasClass('nodeActive')) {
+									console.log('removing')
+									Command.setProperty(entity.id, 'linkableId', null);
+								} else {
+									Command.link(entity.id, image.id);
+								}
+								_Entities.reloadChildren(entity.parent.id);
+								$('#dialogBox .dialogText').empty();
+								_Pages.reloadPreviews();
+								$.unblockUI({
+									fadeOut: 25
+								});
+							}).css({
+								cursor: 'pointer'
+							}).hover(function() {
+								$(this).addClass('nodeHover');
+							}, function() {
+								$(this).removeClass('nodeHover');
 							});
-						}).css({
-							cursor: 'pointer'
-						}).hover(function() {
-							$(this).addClass('nodeHover');
-						}, function() {
-							$(this).removeClass('nodeHover');
+
 						});
 
 					});
