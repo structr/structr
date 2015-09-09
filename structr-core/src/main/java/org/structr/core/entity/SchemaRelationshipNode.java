@@ -910,7 +910,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		if (_previousSourceJsonName != null && _currentSourceJsonName != null && !_currentSourceJsonName.equals(_previousSourceJsonName)) {
 
-			removeNameFromNonGraphProperties(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
+			renameNameInNonGraphProperties(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
 
 			renameNotionPropertyReferences(_sourceNode, _previousSourceJsonName, _currentSourceJsonName);
 			renameNotionPropertyReferences(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
@@ -918,7 +918,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		if (_previousTargetJsonName != null && _currentTargetJsonName != null && !_currentTargetJsonName.equals(_previousTargetJsonName)) {
 
-			removeNameFromNonGraphProperties(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
+			renameNameInNonGraphProperties(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
 
 			renameNotionPropertyReferences(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
 			renameNotionPropertyReferences(_targetNode, _previousTargetJsonName, _currentTargetJsonName);
@@ -944,7 +944,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	}
 
-	private void removeNameFromNonGraphProperties(final AbstractSchemaNode schemaNode, final String toRemove, final String newValue) throws FrameworkException {
+	private void renameNameInNonGraphProperties(final AbstractSchemaNode schemaNode, final String toRemove, final String newValue) throws FrameworkException {
 
 		// examine all views
 		for (final SchemaView view : schemaNode.getSchemaViews()) {
