@@ -338,7 +338,7 @@ var _Entities = {
 	},
 	showProperties: function (obj) {
 
-		Command.get(obj.id, function (entity) {console.log(entity)
+		Command.get(obj.id, function (entity) {
 
 			var views, activeView = 'ui';
 //        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget']) || entity.isUser) {
@@ -492,7 +492,7 @@ var _Entities = {
 		$('#tab-' + activeView).click();
 
 	},
-	listProperties: function (entity, view, tabView, typeInfo) { console.log(entity)
+	listProperties: function (entity, view, tabView, typeInfo) {
 		var null_prefix = 'null_attr_';
 		$.ajax({
 			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10', // TODO: Implement paging or scroll-into-view here
