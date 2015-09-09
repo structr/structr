@@ -39,8 +39,8 @@ import org.structr.web.entity.FileBase;
  */
 public class CMISObjectService extends AbstractStructrCmisService implements ObjectService {
 
-	public CMISObjectService(final SecurityContext securityContext) {
-		super(securityContext);
+	public CMISObjectService(final StructrCMISService parentService, final SecurityContext securityContext) {
+		super(parentService, securityContext);
 	}
 
 	private static final Logger logger = Logger.getLogger(CMISObjectService.class.getName());
@@ -111,17 +111,26 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 	@Override
 	public Properties getProperties(String repositoryId, String objectId, String filter, ExtensionsData extension) {
-		System.out.println("getAllowableActions");
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		final ObjectData obj = getObject(repositoryId, objectId, filter, false, IncludeRelationships.NONE, null, false, false, extension);
+		if (obj != null) {
+
+			return obj.getProperties();
+		}
+
+		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
 	}
 
 	@Override
 	public List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
 
-		System.out.println("getAllowableActions");
+		final ObjectData obj = getObject(repositoryId, objectId, renditionFilter, false, IncludeRelationships.NONE, null, false, false, extension);
+		if (obj != null) {
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+			return applyPaging(obj.getRenditions(), maxItems, skipCount);
+		}
+
+		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
 	}
 
 	@Override
@@ -154,10 +163,8 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	@Override
 	public ContentStream getContentStream(String repositoryId, String objectId, String streamId, BigInteger offset, BigInteger length, ExtensionsData extension) {
 
-		final App app                              = StructrApp.getInstance();
-		ContentStreamImpl result                   = null;
-
-		System.out.println("getContentStream(" + objectId + ", " + streamId + ", " + offset + ", " + length + ")");
+		final App app            = StructrApp.getInstance();
+		ContentStreamImpl result = null;
 
 		try (final Tx tx = app.tx()) {
 

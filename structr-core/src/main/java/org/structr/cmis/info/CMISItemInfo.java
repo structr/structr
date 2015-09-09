@@ -1,7 +1,5 @@
 package org.structr.cmis.info;
 
-import org.structr.cmis.info.CMISObjectInfo;
-
 /**
  * Optional interface for CMIS support in Structr core.
  *

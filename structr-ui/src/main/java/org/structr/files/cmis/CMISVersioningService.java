@@ -17,8 +17,8 @@ import org.structr.common.SecurityContext;
  */
 public class CMISVersioningService extends AbstractStructrCmisService implements VersioningService {
 
-	public CMISVersioningService(final SecurityContext securityContext) {
-		super(securityContext);
+	public CMISVersioningService(final StructrCMISService parentService, final SecurityContext securityContext) {
+		super(parentService, securityContext);
 	}
 
 	@Override

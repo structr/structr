@@ -42,17 +42,17 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 
 	@Override
 	public Boolean isGetDescendantsSupported() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public Boolean isGetFolderTreeSupported() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public CapabilityOrderBy getOrderByCapability() {
-		return CapabilityOrderBy.NONE;
+		return CapabilityOrderBy.COMMON;
 	}
 
 	@Override

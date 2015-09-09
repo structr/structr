@@ -13,8 +13,8 @@ import org.structr.common.SecurityContext;
  */
 public class CMISPolicyService extends AbstractStructrCmisService implements PolicyService {
 
-	public CMISPolicyService(final SecurityContext securityContext) {
-		super(securityContext);
+	public CMISPolicyService(final StructrCMISService parentService, final SecurityContext securityContext) {
+		super(parentService, securityContext);
 	}
 
 	@Override

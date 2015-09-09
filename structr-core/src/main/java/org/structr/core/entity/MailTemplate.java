@@ -96,5 +96,4 @@ public class MailTemplate extends AbstractNode {
 		return !hasError;
 
 	}
-
 }

@@ -13,8 +13,8 @@ import org.structr.common.SecurityContext;
  */
 public class CMISRelationshipService extends AbstractStructrCmisService implements RelationshipService {
 
-	public CMISRelationshipService(final SecurityContext securityContext) {
-		super(securityContext);
+	public CMISRelationshipService(final StructrCMISService parentService, final SecurityContext securityContext) {
+		super(parentService, securityContext);
 	}
 
 	@Override

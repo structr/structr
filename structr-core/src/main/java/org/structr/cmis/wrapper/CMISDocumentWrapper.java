@@ -15,6 +15,8 @@ import org.structr.common.error.FrameworkException;
  */
 public class CMISDocumentWrapper extends CMISObjectWrapper<CMISDocumentInfo> {
 
+	private boolean isImmutable = false;
+	private String changeToken  = null;
 	private String contentType  = null;
 	private BigInteger fileSize = null;
 
@@ -27,8 +29,25 @@ public class CMISDocumentWrapper extends CMISObjectWrapper<CMISDocumentInfo> {
 
 		properties.add(factory.createPropertyStringData(PropertyIds.CONTENT_STREAM_MIME_TYPE, contentType));
 		properties.add(factory.createPropertyStringData(PropertyIds.CONTENT_STREAM_FILE_NAME, getName()));
-
 		properties.add(factory.createPropertyIntegerData(PropertyIds.CONTENT_STREAM_LENGTH,    fileSize));
+		properties.add(factory.createPropertyIdData(PropertyIds.CONTENT_STREAM_ID, getName()));
+
+		properties.add(factory.createPropertyStringData(PropertyIds.CHANGE_TOKEN, changeToken));
+		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_IMMUTABLE, isImmutable));
+
+		// added for specification compliance
+		properties.add(factory.createPropertyIdData(PropertyIds.SECONDARY_OBJECT_TYPE_IDS, (String)null));
+		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_LATEST_VERSION, true));
+		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_MAJOR_VERSION, true));
+		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_LATEST_MAJOR_VERSION, true));
+		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_PRIVATE_WORKING_COPY, false));
+		properties.add(factory.createPropertyStringData(PropertyIds.VERSION_LABEL, ""));
+		properties.add(factory.createPropertyIdData(PropertyIds.VERSION_SERIES_ID, ""));
+		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_VERSION_SERIES_CHECKED_OUT, false));
+
+		properties.add(factory.createPropertyStringData(PropertyIds.VERSION_SERIES_CHECKED_OUT_BY, (String)null));
+		properties.add(factory.createPropertyIdData(PropertyIds.VERSION_SERIES_CHECKED_OUT_ID, (String)null));
+		properties.add(factory.createPropertyStringData(PropertyIds.CHECKIN_COMMENT, (String)null));
 	}
 
 	@Override
@@ -37,11 +56,14 @@ public class CMISDocumentWrapper extends CMISObjectWrapper<CMISDocumentInfo> {
 		super.initializeFrom(info);
 
 		this.contentType = info.getContentType();
+		this.changeToken = info.getChangeToken();
 
 		final Long size = info.getSize();
 		if (size != null) {
 
 			this.fileSize = BigInteger.valueOf(size);
 		}
+
+		this.isImmutable = info.isImmutable();
 	}
 }

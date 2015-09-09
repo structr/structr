@@ -12,9 +12,12 @@ import org.structr.common.SecurityContext;
  */
 public abstract class AbstractStructrCmisService {
 
-	protected SecurityContext securityContext = null;
+	protected StructrCMISService parentService = null;
+	protected SecurityContext securityContext  = null;
 
-	public AbstractStructrCmisService(final SecurityContext securityContext) {
+	public AbstractStructrCmisService(final StructrCMISService parentService, final SecurityContext securityContext) {
+		
+		this.parentService   = parentService;
 		this.securityContext = securityContext;
 	}
 

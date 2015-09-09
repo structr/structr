@@ -1,7 +1,7 @@
 package org.structr.files.cmis;
 
 import java.math.BigInteger;
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,9 +42,9 @@ import org.structr.files.cmis.repository.CMISRootFolder;
  */
 
 
-public class StructrCmisService extends AbstractCmisService {
+public class StructrCMISService extends AbstractCmisService {
 
-	private static final Logger logger = Logger.getLogger(StructrCmisService.class.getName());
+	private static final Logger logger = Logger.getLogger(StructrCMISService.class.getName());
 
 	private CMISPolicyService policyService             = null;
 	private CMISAclService aclService                   = null;
@@ -57,17 +57,17 @@ public class StructrCmisService extends AbstractCmisService {
 	private CMISRepositoryService repositoryService     = null;
 	private SecurityContext securityContext             = null;
 
-	public StructrCmisService(final SecurityContext securityContext) {
+	public StructrCMISService(final SecurityContext securityContext) {
 
-		repositoryService      = new CMISRepositoryService(securityContext);
-		navigationService      = new CMISNavigationService(securityContext);
-		objectService          = new CMISObjectService(securityContext);
-		versioningService      = new CMISVersioningService(securityContext);
-		discoveryService       = new CMISDiscoveryService(securityContext);
-		multiFilingService     = new CMISMultiFilingService(securityContext);
-		relationshipService    = new CMISRelationshipService(securityContext);
-		aclService             = new CMISAclService(securityContext);
-		policyService          = new CMISPolicyService(securityContext);
+		repositoryService      = new CMISRepositoryService(this, securityContext);
+		navigationService      = new CMISNavigationService(this, securityContext);
+		objectService          = new CMISObjectService(this, securityContext);
+		versioningService      = new CMISVersioningService(this, securityContext);
+		discoveryService       = new CMISDiscoveryService(this, securityContext);
+		multiFilingService     = new CMISMultiFilingService(this, securityContext);
+		relationshipService    = new CMISRelationshipService(this, securityContext);
+		aclService             = new CMISAclService(this, securityContext);
+		policyService          = new CMISPolicyService(this, securityContext);
 
 		this.securityContext   = securityContext;
 	}
@@ -274,7 +274,7 @@ public class StructrCmisService extends AbstractCmisService {
 
 		final String cleanPath = FilenameUtils.normalize(path);
 
-		if (CMISInfo.ROOT_FOLDER_ID.equals(cleanPath) || path == null) {
+		if (CMISInfo.ROOT_FOLDER_ID.equals(cleanPath) || cleanPath == null || path == null) {
 			return new CMISRootFolder(includeAllowableActions);
 		}
 
@@ -288,7 +288,6 @@ public class StructrCmisService extends AbstractCmisService {
 
 	@Override
 	public void updateProperties(String repositoryId, Holder<String> objectId, Holder<String> changeToken, Properties properties, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		objectService.updateProperties(repositoryId, objectId, changeToken, properties, extension);
 	}
 
@@ -368,12 +367,11 @@ public class StructrCmisService extends AbstractCmisService {
 	@Override
 	public List<ObjectData> getAllVersions(String repositoryId, String objectId, String versionSeriesId, String filter, Boolean includeAllowableActions, ExtensionsData extension) {
 
-		if (objectId != null && objectId.equals(CMISInfo.ROOT_FOLDER_ID)) {
-			return Arrays.asList(new ObjectData[] { new CMISRootFolder(includeAllowableActions) });
-		}
+		final List<ObjectData> result = new LinkedList<>();
 
-		logger.log(Level.INFO, "...");
-		return versioningService.getAllVersions(repositoryId, objectId, versionSeriesId, filter, includeAllowableActions, extension);
+		result.add(getObject(repositoryId, objectId, filter, includeAllowableActions, IncludeRelationships.NONE, null, false, false, extension));
+
+		return result;
 	}
 
 	// ----- interface DiscoveryService -----

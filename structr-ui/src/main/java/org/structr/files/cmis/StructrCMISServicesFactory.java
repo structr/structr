@@ -24,7 +24,7 @@ import org.structr.core.graph.Tx;
  *
  * @author Christian Morgner
  */
-public class StructrCmisServicesFactory implements CmisServiceFactory {
+public class StructrCMISServicesFactory implements CmisServiceFactory {
 
 	private static final Logger logger = Logger.getLogger(CmisServiceFactory.class.getName());
 
@@ -40,7 +40,7 @@ public class StructrCmisServicesFactory implements CmisServiceFactory {
 
 	@Override
 	public CmisService getService(final CallContext cc) {
-		return new StructrCmisService(checkAuthentication(cc));
+		return new StructrCMISService(checkAuthentication(cc));
 	}
 
 	@Override

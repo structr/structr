@@ -21,7 +21,7 @@ import org.apache.chemistry.opencmis.commons.enums.SupportedPermissions;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.Permission;
 import org.structr.core.entity.Principal;
-import org.structr.files.cmis.StructrCmisService;
+import org.structr.files.cmis.StructrCMISService;
 import org.structr.files.cmis.repository.StructrAccessControlPermissionMapping;
 import org.structr.files.cmis.repository.StructrDeletePermissionMapping;
 import org.structr.files.cmis.repository.StructrPermissionDefinition;

@@ -33,9 +33,9 @@ public class StructrFolderActions extends CMISExtensionsData implements Allowabl
 //		actions.add(Action.CAN_CHECK_IN);
 //		actions.add(Action.CAN_SET_CONTENT_STREAM);
 //		actions.add(Action.CAN_GET_ALL_VERSIONS);
-		actions.add(Action.CAN_ADD_OBJECT_TO_FOLDER);
-		actions.add(Action.CAN_REMOVE_OBJECT_FROM_FOLDER);
-		actions.add(Action.CAN_GET_CONTENT_STREAM);
+//		actions.add(Action.CAN_ADD_OBJECT_TO_FOLDER);
+//		actions.add(Action.CAN_REMOVE_OBJECT_FROM_FOLDER);
+//		actions.add(Action.CAN_GET_CONTENT_STREAM);
 		actions.add(Action.CAN_APPLY_POLICY);
 		actions.add(Action.CAN_GET_APPLIED_POLICIES);
 		actions.add(Action.CAN_REMOVE_POLICY);

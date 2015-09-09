@@ -7,6 +7,7 @@ package org.structr.cmis.info;
  */
 public interface CMISFolderInfo extends CMISObjectInfo {
 
+	public String getChangeToken();
 	public String getParentId();
 	public String getPath();
 

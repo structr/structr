@@ -10,8 +10,8 @@ import org.structr.common.SecurityContext;
  */
 public class CMISMultiFilingService extends AbstractStructrCmisService implements MultiFilingService {
 
-	public CMISMultiFilingService(final SecurityContext securityContext) {
-		super(securityContext);
+	public CMISMultiFilingService(final StructrCMISService parentService, final SecurityContext securityContext) {
+		super(parentService, securityContext);
 	}
 
 	@Override

@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -837,5 +838,29 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		}
 
 		return null;
+	}
+
+	public PropertyMap getDynamicProperties() {
+
+		final PropertyMap propertyMap       = new PropertyMap();
+		final Class type                    = getClass();
+
+		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
+
+			// include all dynamic keys in definition
+			if (key.isDynamic() || key.isCMISProperty()) {
+
+				// only include primitives here
+				final PropertyType dataType = key.getDataType();
+				if (dataType != null) {
+
+					propertyMap.put(key, getProperty(key));
+				}
+			}
+		}
+
+
+
+		return propertyMap;
 	}
 }

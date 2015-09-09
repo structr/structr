@@ -5,29 +5,47 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
+import org.apache.chemistry.opencmis.commons.definitions.MutableDocumentTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.MutableFolderTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.MutableItemTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.MutablePolicyTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.MutableRelationshipTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.MutableSecondaryTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutableTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_DOCUMENT;
+import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedException;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionContainerImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionListImpl;
 import org.apache.chemistry.opencmis.commons.spi.RepositoryService;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.cmis.CMISInfo;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.PropertyKey;
+import org.structr.dynamic.File;
 import org.structr.files.cmis.config.StructrRepositoryInfo;
-import org.structr.files.cmis.wrapper.StructrTypeWrapper;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.web.entity.Folder;
 
 /**
  *
@@ -39,9 +57,8 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 	private final RepositoryInfo repositoryInfo = new StructrRepositoryInfo();
 
-	public CMISRepositoryService(final SecurityContext securityContext) {
-
-		super(securityContext);
+	public CMISRepositoryService(final StructrCMISService parentService, final SecurityContext securityContext) {
+		super(parentService, securityContext);
 	}
 
 	@Override
@@ -69,60 +86,36 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		// important: children are the direct children of a type, as opposed to the descendants
 
-		final Set<TypeDefinition> results  = new LinkedHashSet<>();
-		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Set<TypeDefinition> results = new LinkedHashSet<>();
 
 		if (typeId != null) {
 
-			switch (typeId) {
+			final BaseTypeId baseTypeId = getBaseTypeId(typeId);
+			if (baseTypeId != null) {
 
-				case "cmis:document":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_DOCUMENT, includePropertyDefinitions));
-					break;
+				results.addAll(getBaseTypeChildren(baseTypeId, includePropertyDefinitions));
 
-				case "cmis:folder":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_FOLDER, includePropertyDefinitions));
-					break;
+			} else {
 
-				case "cmis:item":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_ITEM, includePropertyDefinitions));
-					break;
+				final Class type = StructrApp.getConfiguration().getNodeEntityClass(typeId);
+				if (type != null) {
 
-				case "cmis:policy":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_POLICY, includePropertyDefinitions));
-					break;
+					results.addAll(getTypeChildren(typeId, includePropertyDefinitions));
 
-				case "cmis:relationship":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_RELATIONSHIP, includePropertyDefinitions));
-					break;
+				} else {
 
-				case "cmis:secondary":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_SECONDARY, includePropertyDefinitions));
-					break;
-
-				default:
-
-					logger.log(Level.SEVERE, "default case reached for typeId {0}", typeId);
-
-					final Class parentType = config.getNodeEntityClass(typeId);
-					if (parentType != null) {
-
-						results.addAll(getTypeDefinitions(config, typeId, false, includePropertyDefinitions));
-
-					} else {
-
-						throw new CmisNotSupportedException("Type with ID " + typeId + " does not exist");
-					}
+					throw new CmisObjectNotFoundException("Type with ID " + typeId + " does not exist");
+				}
 			}
 
 		} else {
 
-			results.add(getDocumentTypeDefinition(includePropertyDefinitions));
-			results.add(getFolderTypeDefinition(includePropertyDefinitions));
-			results.add(getItemTypeDefinition(includePropertyDefinitions));
-			results.add(getPolicyTypeDefinition(includePropertyDefinitions));
-			results.add(getRelationshipTypeDefinition(includePropertyDefinitions));
-			results.add(getSecondaryTypeDefinition(includePropertyDefinitions));
+			results.add(getDocumentTypeDefinition(BaseTypeId.CMIS_DOCUMENT.value(), includePropertyDefinitions, true));
+			results.add(getFolderTypeDefinition(BaseTypeId.CMIS_FOLDER.value(), includePropertyDefinitions, true));
+			results.add(getItemTypeDefinition(BaseTypeId.CMIS_ITEM.value(), includePropertyDefinitions, true));
+			results.add(getPolicyTypeDefinition(BaseTypeId.CMIS_POLICY.value(), includePropertyDefinitions, true));
+			results.add(getRelationshipTypeDefinition(BaseTypeId.CMIS_RELATIONSHIP.value(), includePropertyDefinitions, true));
+			results.add(getSecondaryTypeDefinition(BaseTypeId.CMIS_SECONDARY.value(), includePropertyDefinitions, true));
 		}
 
 		final TypeDefinitionListImpl returnValue = new TypeDefinitionListImpl();
@@ -153,65 +146,50 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		 - If not speciﬁed, then the Repository MUST return all types and MUST ignore the value of the depth parameter.
 		*/
 
-
-		final Set<TypeDefinitionContainer> results = new LinkedHashSet<>();
-		final ConfigurationProvider config          = StructrApp.getConfiguration();
+		final List<TypeDefinitionContainer> results = new LinkedList<>();
 
 		if (typeId != null) {
 
-			switch (typeId) {
+			final BaseTypeId baseTypeId = getBaseTypeId(typeId);
+			if (baseTypeId != null) {
 
-				case "cmis:document":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_DOCUMENT, includePropertyDefinitions));
-					break;
+				final TypeDefinition typeDefinition     = getTypeDefinition(repositoryId, typeId, extension);
+				final TypeDefinitionContainer container = getTypeDefinitionContainer(typeDefinition, includePropertyDefinitions);
 
-				case "cmis:folder":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_FOLDER, includePropertyDefinitions));
-					break;
+				results.add(container);
 
-				case "cmis:item":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_ITEM, includePropertyDefinitions));
-					break;
+			} else {
 
-				case "cmis:policy":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_POLICY, includePropertyDefinitions));
-					break;
+				final Class type = StructrApp.getConfiguration().getNodeEntityClass(typeId);
+				if (type != null) {
 
-				case "cmis:relationship":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_RELATIONSHIP, includePropertyDefinitions));
-					break;
+					final TypeDefinition typeDefinition = extendTypeDefinition(type, includePropertyDefinitions);
+					if (typeDefinition != null) {
 
-				case "cmis:secondary":
-					results.addAll(getTypeDescendants(BaseTypeId.CMIS_SECONDARY, includePropertyDefinitions));
-					break;
-
-				default:
-
-					final Class parentType = config.getNodeEntityClass(typeId);
-					if (parentType != null) {
-
-						results.addAll(getTypeDefinitions(config, typeId, true, includePropertyDefinitions));
+						results.add(getTypeDefinitionContainer(typeDefinition, includePropertyDefinitions));
 
 					} else {
 
-						throw new CmisNotSupportedException("Type with ID " + typeId + " does not exist");
+						throw new CmisObjectNotFoundException("Type with ID " + typeId + " does not exist");
 					}
-					break;
+
+				} else {
+
+					throw new CmisObjectNotFoundException("Type with ID " + typeId + " does not exist");
+				}
 			}
 
 		} else {
 
-			// defaults
-			results.add(this.wrap(getDocumentTypeDefinition(includePropertyDefinitions), includePropertyDefinitions));
-			results.add(this.wrap(getFolderTypeDefinition(includePropertyDefinitions), includePropertyDefinitions));
-			results.add(this.wrap(getItemTypeDefinition(includePropertyDefinitions), includePropertyDefinitions));
-			results.add(this.wrap(getPolicyTypeDefinition(includePropertyDefinitions), includePropertyDefinitions));
-			results.add(this.wrap(getRelationshipTypeDefinition(includePropertyDefinitions), includePropertyDefinitions));
-			results.add(this.wrap(getSecondaryTypeDefinition(includePropertyDefinitions), includePropertyDefinitions));
-
+			results.add(getTypeDefinitionContainer(getDocumentTypeDefinition(BaseTypeId.CMIS_DOCUMENT.value(), includePropertyDefinitions, true), includePropertyDefinitions));
+			results.add(getTypeDefinitionContainer(getFolderTypeDefinition(BaseTypeId.CMIS_FOLDER.value(), includePropertyDefinitions, true), includePropertyDefinitions));
+			results.add(getTypeDefinitionContainer(getItemTypeDefinition(BaseTypeId.CMIS_ITEM.value(), includePropertyDefinitions, true), includePropertyDefinitions));
+			results.add(getTypeDefinitionContainer(getPolicyTypeDefinition(BaseTypeId.CMIS_POLICY.value(), includePropertyDefinitions, true), includePropertyDefinitions));
+			results.add(getTypeDefinitionContainer(getRelationshipTypeDefinition(BaseTypeId.CMIS_RELATIONSHIP.value(), includePropertyDefinitions, true), includePropertyDefinitions));
+			results.add(getTypeDefinitionContainer(getSecondaryTypeDefinition(BaseTypeId.CMIS_SECONDARY.value(), includePropertyDefinitions, true), includePropertyDefinitions));
 		}
 
-		return new LinkedList<>(results);
+		return results;
 	}
 
 	@Override
@@ -220,29 +198,32 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		switch (typeId) {
 
 			case "cmis:document":
-				return getDocumentTypeDefinition(true);
+				return getDocumentTypeDefinition(typeId, true, true);
 
 			case "cmis:folder":
-				return getFolderTypeDefinition(true);
+				return getFolderTypeDefinition(typeId, true, true);
 
 			case "cmis:item":
-				return getItemTypeDefinition(true);
+				return getItemTypeDefinition(typeId, true, true);
 
 			case "cmis:policy":
-				return getPolicyTypeDefinition(true);
+				return getPolicyTypeDefinition(typeId, true, true);
 
 			case "cmis:relationship":
-				return getRelationshipTypeDefinition(true);
+				return getRelationshipTypeDefinition(typeId, true, true);
 
 			case "cmis:secondary":
-				return getSecondaryTypeDefinition(true);
-
+				return getSecondaryTypeDefinition(typeId, true, true);
 		}
 
 		final Class type = StructrApp.getConfiguration().getNodeEntityClass(typeId);
 		if (type != null) {
 
-				return new StructrTypeWrapper(type, true);
+			final TypeDefinition extendedTypeDefinition = extendTypeDefinition(type, true);
+			if (extendedTypeDefinition != null) {
+
+				return extendedTypeDefinition;
+			}
 		}
 
 		throw new CmisObjectNotFoundException("Type with ID " + typeId + " does not exist");
@@ -263,59 +244,12 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 	}
 
 	// ----- private methods -----
-	private Set<StructrTypeWrapper> getTypeDefinitions(final ConfigurationProvider config, final String typeId, final boolean recursive, final boolean includePropertyDefinitions) {
+	private MutableSecondaryTypeDefinition getSecondaryTypeDefinition(final String typeId, final boolean includePropertyDefinitions, final boolean baseType) {
 
-		final Set<String> types               = SearchCommand.getAllSubtypesAsStringSet(typeId, !recursive);
-		final Set<StructrTypeWrapper> results = new LinkedHashSet<>();
+		final TypeDefinitionFactory factory      = TypeDefinitionFactory.newInstance();
+		final MutableSecondaryTypeDefinition def = factory.createSecondaryTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_SECONDARY.value());
 
-		for (final String type : types) {
-
-			if (!type.equals(typeId)) {
-
-				final Class clazz = config.getNodeEntityClass(type);
-				if (clazz != null) {
-
-					results.add(new StructrTypeWrapper(clazz, includePropertyDefinitions));
-				}
-			}
-		}
-
-		return results;
-	}
-
-	private Set<StructrTypeWrapper> getTypeDescendants(final BaseTypeId baseTypeId, final boolean includePropertyDefinitions) {
-
-		final Set<StructrTypeWrapper> classes = new LinkedHashSet<>();
-
-		for (final Class<? extends NodeInterface> type : StructrApp.getConfiguration().getNodeEntities().values()) {
-
-			try {
-
-				if (baseTypeId.equals(type.newInstance().getCMISInfo().getBaseTypeId())) {
-					classes.add(new StructrTypeWrapper(type, includePropertyDefinitions));
-				}
-
-			} catch (Throwable ignore) {}
-		}
-
-		return classes;
-	}
-
-	private TypeDefinitionContainer wrap(final MutableTypeDefinition typeDefinition, final boolean includePropertyDefinitions) {
-
-		final TypeDefinitionContainerImpl impl    = new TypeDefinitionContainerImpl(typeDefinition);
-		final List<TypeDefinitionContainer> list = new LinkedList<>();
-
-		list.addAll(getTypeDescendants(typeDefinition.getBaseTypeId(), includePropertyDefinitions));
-		impl.setChildren(list);
-
-		return impl;
-	}
-
-	private MutableTypeDefinition getSecondaryTypeDefinition(final boolean includePropertyDefinitions) {
-
-		final TypeDefinitionFactory factory = TypeDefinitionFactory.newInstance();
-		final MutableTypeDefinition def     = factory.createBaseSecondaryTypeDefinition(CmisVersion.CMIS_1_1);
+		initializeExtendedType(def, typeId);
 
 		def.setIsCreatable(false);
 
@@ -326,22 +260,12 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		return def;
 	}
 
-	private MutableTypeDefinition getRelationshipTypeDefinition(final boolean includePropertyDefinitions) {
+	private MutableRelationshipTypeDefinition getRelationshipTypeDefinition(final String typeId, final boolean includePropertyDefinitions, final boolean baseType) {
 
-		final TypeDefinitionFactory factory = TypeDefinitionFactory.newInstance();
-		final MutableTypeDefinition def     = factory.createBaseRelationshipTypeDefinition(CmisVersion.CMIS_1_1);
+		final TypeDefinitionFactory factory         = TypeDefinitionFactory.newInstance();
+		final MutableRelationshipTypeDefinition def = factory.createRelationshipTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_RELATIONSHIP.value());
 
-		if (!includePropertyDefinitions) {
-			def.removeAllPropertyDefinitions();
-		}
-
-		return def;
-	}
-
-	private MutableTypeDefinition getItemTypeDefinition(final boolean includePropertyDefinitions) {
-
-		final TypeDefinitionFactory factory = TypeDefinitionFactory.newInstance();
-		final MutableTypeDefinition def     = factory.createBaseItemTypeDefinition(CmisVersion.CMIS_1_1);
+		initializeExtendedType(def, typeId);
 
 		if (!includePropertyDefinitions) {
 			def.removeAllPropertyDefinitions();
@@ -350,10 +274,12 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		return def;
 	}
 
-	private MutableTypeDefinition getPolicyTypeDefinition(final boolean includePropertyDefinitions) {
+	private MutableItemTypeDefinition getItemTypeDefinition(final String typeId, final boolean includePropertyDefinitions, final boolean baseType) {
 
 		final TypeDefinitionFactory factory = TypeDefinitionFactory.newInstance();
-		final MutableTypeDefinition def     = factory.createBasePolicyTypeDefinition(CmisVersion.CMIS_1_1);
+		final MutableItemTypeDefinition def = factory.createItemTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_ITEM.value());
+
+		initializeExtendedType(def, typeId);
 
 		if (!includePropertyDefinitions) {
 			def.removeAllPropertyDefinitions();
@@ -362,10 +288,12 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		return def;
 	}
 
-	private MutableTypeDefinition getFolderTypeDefinition(final boolean includePropertyDefinitions) {
+	private MutablePolicyTypeDefinition getPolicyTypeDefinition(final String typeId, final boolean includePropertyDefinitions, final boolean baseType) {
 
-		final TypeDefinitionFactory factory = TypeDefinitionFactory.newInstance();
-		final MutableTypeDefinition def     = factory.createBaseFolderTypeDefinition(CmisVersion.CMIS_1_1);
+		final TypeDefinitionFactory factory   = TypeDefinitionFactory.newInstance();
+		final MutablePolicyTypeDefinition def = factory.createPolicyTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_POLICY.value());
+
+		initializeExtendedType(def, typeId);
 
 		if (!includePropertyDefinitions) {
 			def.removeAllPropertyDefinitions();
@@ -374,15 +302,257 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		return def;
 	}
 
-	private MutableTypeDefinition getDocumentTypeDefinition(final boolean includePropertyDefinitions) {
+	private MutableFolderTypeDefinition getFolderTypeDefinition(final String typeId, final boolean includePropertyDefinitions, final boolean baseType) {
 
-		final TypeDefinitionFactory factory = TypeDefinitionFactory.newInstance();
-		final MutableTypeDefinition def     = factory.createBaseDocumentTypeDefinition(CmisVersion.CMIS_1_1);
+		final TypeDefinitionFactory factory   = TypeDefinitionFactory.newInstance();
+		final MutableFolderTypeDefinition def = factory.createFolderTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_FOLDER.value());
+
+		initializeExtendedType(def, typeId);
 
 		if (!includePropertyDefinitions) {
 			def.removeAllPropertyDefinitions();
 		}
 
 		return def;
+	}
+
+	private MutableDocumentTypeDefinition getDocumentTypeDefinition(final String typeId, final boolean includePropertyDefinitions, final boolean baseType) {
+
+		final TypeDefinitionFactory factory     = TypeDefinitionFactory.newInstance();
+		final MutableDocumentTypeDefinition def = factory.createDocumentTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_DOCUMENT.value());
+
+		initializeExtendedType(def, typeId);
+
+		if (!includePropertyDefinitions) {
+
+			def.removeAllPropertyDefinitions();
+		}
+
+		return def;
+	}
+
+	private List<TypeDefinition> getTypeChildren(final String typeId, final Boolean includePropertyDefinitions) {
+
+		final Set<String> subtypes         = new LinkedHashSet<>(SearchCommand.getAllSubtypesAsStringSet(typeId));
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final List<TypeDefinition> result  = new LinkedList<>();
+
+		// subtypes set from Structr contains initial type as well..
+		subtypes.remove(typeId);
+
+		for (final String subtype : subtypes) {
+
+			final Class subclass = config.getNodeEntityClass(subtype);
+			if (subclass != null) {
+
+				final TypeDefinition extendedTypeDefinition = extendTypeDefinition(subclass, includePropertyDefinitions);
+				if (extendedTypeDefinition != null) {
+
+					result.add(extendedTypeDefinition);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private List<TypeDefinition> getBaseTypeChildren(final BaseTypeId baseTypeId, final Boolean includePropertyDefinitions) {
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final List<TypeDefinition> result  = new LinkedList<>();
+		final App app                      = StructrApp.getInstance();
+
+		// static definition of base type children, add new types here!
+		switch (baseTypeId) {
+
+			case CMIS_DOCUMENT:
+				result.add(extendTypeDefinition(File.class, includePropertyDefinitions));
+				break;
+
+			case CMIS_FOLDER:
+				result.add(extendTypeDefinition(Folder.class, includePropertyDefinitions));
+				break;
+
+			case CMIS_ITEM:
+
+				try (final Tx tx = app.tx()) {
+
+					for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).sort(AbstractNode.name).getAsList()) {
+
+						final Class type = config.getNodeEntityClass(schemaNode.getClassName());
+						if (type != null) {
+
+							final CMISInfo info = getCMISInfo(type);
+							if (info != null && baseTypeId.equals(info.getBaseTypeId())) {
+
+								final TypeDefinition extendedTypeDefinition = extendTypeDefinition(type, includePropertyDefinitions);
+								if (extendedTypeDefinition != null) {
+
+									result.add(extendedTypeDefinition);
+								}
+							}
+						}
+					}
+
+					tx.success();
+
+				} catch (final FrameworkException fex) {
+					fex.printStackTrace();
+				}
+				break;
+		}
+
+		return result;
+	}
+
+	private TypeDefinitionContainer getTypeDefinitionContainer(final TypeDefinition typeDefinition, final Boolean includePropertyDefinitions) {
+
+		final TypeDefinitionContainerImpl result = new TypeDefinitionContainerImpl();
+		final List<TypeDefinitionContainer> list = new LinkedList<>();
+
+		result.setTypeDefinition(typeDefinition);
+		result.setChildren(list);
+
+		final String typeId         = typeDefinition.getId();
+		final BaseTypeId baseTypeId = getBaseTypeId(typeId);
+
+		if (baseTypeId != null) {
+
+			for (final TypeDefinition child : getBaseTypeChildren(baseTypeId, includePropertyDefinitions)) {
+
+				list.add(getTypeDefinitionContainer(child, includePropertyDefinitions));
+			}
+
+		} else {
+
+			for (final TypeDefinition child : getTypeChildren(typeDefinition.getId(), includePropertyDefinitions)) {
+
+				list.add(getTypeDefinitionContainer(child, includePropertyDefinitions));
+			}
+
+		}
+
+		return result;
+	}
+
+	private MutableTypeDefinition extendTypeDefinition(final Class<? extends GraphObject> type, final Boolean includePropertyDefinitions) {
+
+		final TypeDefinitionFactory factory  = TypeDefinitionFactory.newInstance();
+		final String typeName                = type.getSimpleName();
+		MutableTypeDefinition result         = null;
+
+		try {
+
+			// instantiate class to obtain runtime CMIS information
+			final GraphObject obj = type.newInstance();
+			if (obj != null) {
+
+				final CMISInfo info = obj.getCMISInfo();
+				if (info != null) {
+
+					final BaseTypeId baseTypeId = info.getBaseTypeId();
+					if (baseTypeId != null) {
+
+						switch (baseTypeId) {
+
+							case CMIS_DOCUMENT:
+								result = getDocumentTypeDefinition(typeName, includePropertyDefinitions, false);
+								break;
+
+							case CMIS_FOLDER:
+								result = getFolderTypeDefinition(typeName, includePropertyDefinitions, false);
+								break;
+
+							case CMIS_ITEM:
+								result = getItemTypeDefinition(typeName, includePropertyDefinitions, false);
+								break;
+
+							case CMIS_POLICY:
+								result = getPolicyTypeDefinition(typeName, includePropertyDefinitions, false);
+								break;
+
+							case CMIS_RELATIONSHIP:
+								result = getRelationshipTypeDefinition(typeName, includePropertyDefinitions, false);
+								break;
+
+							case CMIS_SECONDARY:
+								result = getSecondaryTypeDefinition(typeName, includePropertyDefinitions, false);
+								break;
+						}
+
+						if (result != null) {
+
+							// initialize..
+							for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
+
+								// include all dynamic and CMIS-enabled keys in definition
+								if (key.isDynamic() || key.isCMISProperty()) {
+
+									// only include primitives here
+									final PropertyType dataType = key.getDataType();
+									if (dataType != null) {
+
+
+										final String propertyId         = key.jsonName();
+										final String displayName        = propertyId;
+										final String description        = StringUtils.capitalize(propertyId);
+										final Class declaringClass      = key.getDeclaringClass();
+										final boolean isInherited       = !type.getSimpleName().equals(declaringClass.getSimpleName());
+										final Cardinality cardinality   = Cardinality.SINGLE;
+										final Updatability updatability = Updatability.READWRITE;
+										final boolean required          = key.isNotNull();
+										final boolean queryable         = key.isIndexed();
+										final boolean orderable         = key.isIndexed();
+
+										// extend base type with dynamic property definition
+										result.addPropertyDefinition(factory.createPropertyDefinition(
+											propertyId,
+											displayName,
+											description,
+											dataType,
+											cardinality,
+											updatability,
+											isInherited,
+											required,
+											queryable,
+											orderable
+										));
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+		} catch (final IllegalAccessException | InstantiationException iex) {
+			iex.printStackTrace();
+		}
+
+
+		return result;
+	}
+
+	private CMISInfo getCMISInfo(final Class<? extends GraphObject> type) {
+
+		try { return type.newInstance().getCMISInfo(); } catch (Throwable t) {}
+
+		return null;
+	}
+
+	private BaseTypeId getBaseTypeId(final String typeId) {
+
+		try { return BaseTypeId.fromValue(typeId); } catch (IllegalArgumentException iex) {}
+
+		return null;
+	}
+
+	private void initializeExtendedType(final MutableTypeDefinition type, final String typeId) {
+
+		type.setId(typeId);
+		type.setLocalName(typeId);
+		type.setQueryName(typeId);
+		type.setDisplayName(typeId);
+		type.setDescription(typeId);
 	}
 }

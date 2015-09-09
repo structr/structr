@@ -39,17 +39,18 @@ import org.structr.core.property.PropertyMap;
  */
 public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISExtensionsData implements ObjectData {
 
-	private AllowableActions allowableActions      = null;
-	private PropertyMap dynamicPropertyMap         = null;
-	private GregorianCalendar lastModificationDate = null;
-	private GregorianCalendar creationDate         = null;
-	private BaseTypeId baseTypeId                  = null;
-	private String lastModifiedBy                  = null;
-	private String createdBy                       = null;
-	private String type                            = null;
-	private String name                            = null;
-	private String id                              = null;
-	private boolean includeActions                 = false;
+	protected AllowableActions allowableActions      = null;
+	protected PropertyMap dynamicPropertyMap         = null;
+	protected GregorianCalendar lastModificationDate = null;
+	protected GregorianCalendar creationDate         = null;
+	protected BaseTypeId baseTypeId                  = null;
+	protected String lastModifiedBy                  = null;
+	protected String description                     = null;
+	protected String createdBy                       = null;
+	protected String type                            = null;
+	protected String name                            = null;
+	protected String id                              = null;
+	protected boolean includeActions                 = false;
 
 	public abstract void createProperties(final BindingsObjectFactory factory, final List<PropertyData<?>> properties);
 
@@ -109,6 +110,14 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		return name;
 	}
 
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	public void setBaseTypeId(final BaseTypeId baseTypeId) {
 		this.baseTypeId = baseTypeId;
 	}
@@ -136,6 +145,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		properties.add(objFactory.createPropertyIdData(PropertyIds.OBJECT_ID, id));
 
 		properties.add(objFactory.createPropertyStringData(PropertyIds.NAME, name));
+		properties.add(objFactory.createPropertyStringData(PropertyIds.DESCRIPTION, description));
 
 		properties.add(objFactory.createPropertyStringData(PropertyIds.CREATED_BY, createdBy));
 		properties.add(objFactory.createPropertyStringData(PropertyIds.LAST_MODIFIED_BY, lastModifiedBy));
@@ -156,29 +166,24 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 					switch (dataType) {
 
 						case BOOLEAN:
-							final Boolean booleanValue = (Boolean)entry.getValue();
-							properties.add(objFactory.createPropertyBooleanData(key.jsonName(), booleanValue));
+							properties.add(objFactory.createPropertyBooleanData(key.jsonName(), (Boolean)entry.getValue()));
 							break;
 
 						case DATETIME:
-							final GregorianCalendar dateValue = new GregorianCalendar();
-							dateValue.setTime((Date)entry.getValue());
-							properties.add(objFactory.createPropertyDateTimeData(key.jsonName(), dateValue));
+							properties.add(objFactory.createPropertyDateTimeData(key.jsonName(), valueOrNull((Date)entry.getValue())));
 							break;
 
 						case DECIMAL:
-							final BigDecimal decimalValue = BigDecimal.valueOf((Double)entry.getValue());
-							properties.add(objFactory.createPropertyDecimalData(key.jsonName(), decimalValue));
+							properties.add(objFactory.createPropertyDecimalData(key.jsonName(), valueOrNull((Double)entry.getValue())));
 							break;
 
 						case INTEGER:
-							final BigInteger integerValue = BigInteger.valueOf((Long)entry.getValue());
-							properties.add(objFactory.createPropertyIntegerData(key.jsonName(), integerValue));
+							// INTEGER includes int and long so we have to cover both cases here
+							properties.add(objFactory.createPropertyIntegerData(key.jsonName(), intOrNull(entry.getValue())));
 							break;
 
 						case STRING:
-							final String stringValue = (String)entry.getValue();
-							properties.add(objFactory.createPropertyStringData(key.jsonName(), stringValue));
+							properties.add(objFactory.createPropertyStringData(key.jsonName(), (String)entry.getValue()));
 							break;
 					}
 
@@ -298,8 +303,8 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		return wrapper;
 	}
 
-	// ----- private methods -----
-	private String translateIdToUsername(final String id) throws FrameworkException {
+	// ----- protected methods -----
+	protected String translateIdToUsername(final String id) throws FrameworkException {
 
 		if (Principal.SUPERUSER_ID.equals(id)) {
 			return StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
@@ -312,5 +317,38 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		}
 
 		return Principal.ANONYMOUS;
+	}
+
+	protected BigDecimal valueOrNull(final Double source) {
+
+		if (source != null) {
+			return BigDecimal.valueOf(source);
+		}
+
+		return null;
+	}
+
+	protected BigInteger intOrNull(final Object source) {
+
+		if (source != null && source instanceof Number) {
+
+			final Number number = (Number)source;
+			return BigInteger.valueOf(number.longValue());
+		}
+
+		return null;
+	}
+
+	protected GregorianCalendar valueOrNull(final Date source) {
+
+		if (source != null) {
+
+			final GregorianCalendar cal = new GregorianCalendar();
+			cal.setTime(source);
+
+			return cal;
+		}
+
+		return null;
 	}
 }

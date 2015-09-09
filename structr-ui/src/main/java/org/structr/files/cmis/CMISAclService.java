@@ -12,8 +12,8 @@ import org.structr.common.SecurityContext;
  */
 public class CMISAclService extends AbstractStructrCmisService implements AclService {
 
-	public CMISAclService(final SecurityContext securityContext) {
-		super(securityContext);
+	public CMISAclService(final StructrCMISService parentService, final SecurityContext securityContext) {
+		super(parentService, securityContext);
 	}
 
 	@Override

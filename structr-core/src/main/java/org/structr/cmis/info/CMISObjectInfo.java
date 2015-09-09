@@ -3,6 +3,7 @@ package org.structr.cmis.info;
 import java.util.GregorianCalendar;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.structr.common.SecurityContext;
 import org.structr.core.property.PropertyMap;
 
 /**
@@ -11,6 +12,8 @@ import org.structr.core.property.PropertyMap;
  * @author Christian Morgner
  */
 public interface CMISObjectInfo {
+
+	public SecurityContext getSecurityContext();
 
 	public BaseTypeId getBaseTypeId();
 	public String getUuid();

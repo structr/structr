@@ -15,8 +15,8 @@ import org.structr.common.SecurityContext;
  */
 public class CMISDiscoveryService extends AbstractStructrCmisService implements DiscoveryService {
 
-	public CMISDiscoveryService(final SecurityContext securityContext) {
-		super(securityContext);
+	public CMISDiscoveryService(final StructrCMISService parentService, final SecurityContext securityContext) {
+		super(parentService, securityContext);
 	}
 
 	private static final Logger logger = Logger.getLogger(CMISDiscoveryService.class.getName());

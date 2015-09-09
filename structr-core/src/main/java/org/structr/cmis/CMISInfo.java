@@ -1,5 +1,6 @@
 package org.structr.cmis;
 
+import java.util.GregorianCalendar;
 import org.structr.cmis.info.CMISFolderInfo;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.structr.cmis.info.CMISDocumentInfo;
@@ -15,7 +16,10 @@ import org.structr.cmis.info.CMISSecondaryInfo;
  */
 public interface CMISInfo {
 
-	public static final String ROOT_FOLDER_ID = "/";
+	// Structr initial commit: Tue Feb 1 23:12:27 2011 +0100
+
+	public static final GregorianCalendar ROOT_FOLDER_DATE = new GregorianCalendar(2011, 1, 1, 23, 12, 27);
+	public static final String ROOT_FOLDER_ID              = "/";
 
 	public BaseTypeId getBaseTypeId();
 
@@ -25,5 +29,4 @@ public interface CMISInfo {
 	public CMISRelationshipInfo getRelationshipInfo();
 	public CMISPolicyInfo getPolicyInfo();
 	public CMISSecondaryInfo getSecondaryInfo();
-
 }

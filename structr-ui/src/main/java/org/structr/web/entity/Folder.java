@@ -205,4 +205,11 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public AllowableActions getAllowableActions() {
 		return StructrFolderActions.getInstance();
 	}
+
+	@Override
+	public String getChangeToken() {
+
+		// versioning not supported yet.
+		return null;
+	}
 }

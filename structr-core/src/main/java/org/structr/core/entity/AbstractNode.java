@@ -32,6 +32,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.neo4j.graphdb.Direction;
@@ -42,6 +44,13 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.LruMap;
 import org.structr.cmis.CMISInfo;
+import org.structr.cmis.common.StructrItemActions;
+import org.structr.cmis.info.CMISDocumentInfo;
+import org.structr.cmis.info.CMISFolderInfo;
+import org.structr.cmis.info.CMISItemInfo;
+import org.structr.cmis.info.CMISPolicyInfo;
+import org.structr.cmis.info.CMISRelationshipInfo;
+import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
@@ -78,7 +87,7 @@ import org.structr.schema.action.ActionContext;
  * @author Axel Morgner
  * @author Christian Morgner
  */
-public abstract class AbstractNode implements NodeInterface, AccessControllable {
+public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
 
 	private static final Map<String, Object> relationshipTemplateInstanceCache = new LruMap<>(1000);
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
@@ -1388,14 +1397,57 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	// ----- CMIS support methods -----
+	@Override
+	public CMISInfo getCMISInfo() {
+		return this;
+	}
+
+	@Override
+	public BaseTypeId getBaseTypeId() {
+		return BaseTypeId.CMIS_ITEM;
+	}
+
+	@Override
+	public CMISFolderInfo getFolderInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISDocumentInfo getDocumentInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISItemInfo geItemInfo() {
+		return this;
+	}
+
+	@Override
+	public CMISRelationshipInfo getRelationshipInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISPolicyInfo getPolicyInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISSecondaryInfo getSecondaryInfo() {
+		return null;
+	}
+
+	@Override
 	public String getCreatedBy() {
 		return getProperty(AbstractNode.createdBy);
 	}
 
+	@Override
 	public String getLastModifiedBy() {
 		return getProperty(AbstractNode.lastModifiedBy);
 	}
 
+	@Override
 	public GregorianCalendar getLastModificationDate() {
 
 		final Date creationDate = getProperty(AbstractNode.lastModifiedDate);
@@ -1410,6 +1462,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return null;
 	}
 
+	@Override
 	public GregorianCalendar getCreationDate() {
 
 		final Date creationDate = getProperty(AbstractNode.createdDate);
@@ -1424,6 +1477,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return null;
 	}
 
+	@Override
 	public PropertyMap getDynamicProperties() {
 
 		final PropertyMap propertyMap       = new PropertyMap();
@@ -1432,7 +1486,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
 
 			// include all dynamic keys in definition
-			if (key.isDynamic()) {
+			if (key.isDynamic() || key.isCMISProperty()) {
 
 				// only include primitives here
 				final PropertyType dataType = key.getDataType();
@@ -1446,5 +1500,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 
 		return propertyMap;
+	}
+
+	@Override
+	public AllowableActions getAllowableActions() {
+		return new StructrItemActions();
 	}
 }

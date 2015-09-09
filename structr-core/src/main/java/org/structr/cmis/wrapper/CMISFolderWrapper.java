@@ -15,8 +15,9 @@ import org.structr.common.error.FrameworkException;
  */
 public class CMISFolderWrapper extends CMISObjectWrapper<CMISFolderInfo> {
 
-	private String parentId = null;
-	private String path     = null;
+	private String changeToken = null;
+	private String parentId    = null;
+	private String path        = null;
 
 	public CMISFolderWrapper(final Boolean includeAllowableActions) {
 		super(BaseTypeId.CMIS_FOLDER, includeAllowableActions);
@@ -38,11 +39,24 @@ public class CMISFolderWrapper extends CMISObjectWrapper<CMISFolderInfo> {
 		this.path = path;
 	}
 
+	public String getChangeToken() {
+		return changeToken;
+	}
+
+	public void setChangeToken(String changeToken) {
+		this.changeToken = changeToken;
+	}
+
 	@Override
 	public void createProperties(final BindingsObjectFactory factory, final List<PropertyData<?>> properties) {
 
+		properties.add(factory.createPropertyStringData(PropertyIds.PARENT_ID, parentId == null && !isRootFolder() ? CMISInfo.ROOT_FOLDER_ID : parentId));
 		properties.add(factory.createPropertyStringData(PropertyIds.PATH, path));
-		properties.add(factory.createPropertyStringData(PropertyIds.PARENT_ID, parentId == null ? CMISInfo.ROOT_FOLDER_ID : parentId));
+		properties.add(factory.createPropertyStringData(PropertyIds.CHANGE_TOKEN, changeToken));
+
+		// added for specification compliance
+		properties.add(factory.createPropertyIdData(PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, (String)null));
+		properties.add(factory.createPropertyIdData(PropertyIds.SECONDARY_OBJECT_TYPE_IDS, (String)null));
 	}
 
 	@Override
@@ -50,7 +64,13 @@ public class CMISFolderWrapper extends CMISObjectWrapper<CMISFolderInfo> {
 
 		super.initializeFrom(info);
 
-		this.parentId = info.getParentId();
-		this.path     = info.getPath();
+		this.changeToken = info.getChangeToken();
+		this.parentId    = info.getParentId();
+		this.path        = info.getPath();
+	}
+
+	// ----- protected methods -----
+	protected boolean isRootFolder() {
+		return false;
 	}
 }

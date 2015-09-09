@@ -874,20 +874,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	public static Set<String> getAllSubtypesAsStringSet(final String type) {
-		return getAllSubtypesAsStringSet(type, false);
-	}
-
-	public static Set<String> getAllSubtypesAsStringSet(final String type, final boolean directOnly) {
 
 		Set<String> allSubtypes = subtypeMapForType.get(type);
-		if (allSubtypes == null || baseTypes.contains(type) || directOnly) {
+		if (allSubtypes == null) {
 
 			allSubtypes = new LinkedHashSet<>();
-
-			// don't store temporary results
-			if (!directOnly) {
-				subtypeMapForType.put(type, allSubtypes);
-			}
+			subtypeMapForType.put(type, allSubtypes);
 
 			final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
 			final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
@@ -901,7 +893,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
 
 				final Class entityType     = entity.getValue();
-				final Set<Class> ancestors = typeAndAllSupertypes(entityType, directOnly);
+				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
 
 				for (final Class superClass : ancestors) {
 
@@ -934,14 +926,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 		}
 
-		return allSubtypes;
+		return Collections.unmodifiableSet(allSubtypes);
 	}
 
 	public static Set<Class> typeAndAllSupertypes(final Class type) {
-		return typeAndAllSupertypes(type, false);
-	}
-
-	public static Set<Class> typeAndAllSupertypes(final Class type, final boolean directOnly) {
 
 		final ConfigurationProvider configuration = StructrApp.getConfiguration();
 		final Set<Class> allSupertypes            = new LinkedHashSet<>();
@@ -954,11 +942,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			allSupertypes.addAll(configuration.getInterfacesForType(localType));
 
 			localType = localType.getSuperclass();
-
-			// only one iteration for direct types..
-			if (directOnly) {
-				break;
-			}
 		}
 
 		// remove base types

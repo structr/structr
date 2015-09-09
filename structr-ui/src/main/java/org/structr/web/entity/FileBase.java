@@ -41,6 +41,7 @@ import org.structr.cmis.info.CMISItemInfo;
 import org.structr.cmis.info.CMISPolicyInfo;
 import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
+import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -679,6 +680,25 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 	@Override
 	public AllowableActions getAllowableActions() {
-		return StructrFileActions.getInstance();
+		return new StructrFileActions(isImmutable());
+	}
+
+	@Override
+	public String getChangeToken() {
+
+		// versioning not supported yet.
+		return null;
+	}
+
+	@Override
+	public boolean isImmutable() {
+
+		final Principal _owner = getOwnerNode();
+		if (_owner != null) {
+
+			return !_owner.isGranted(Permission.write, securityContext);
+		}
+
+		return true;
 	}
 }

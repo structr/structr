@@ -1,27 +1,24 @@
-package org.structr.files.cmis.config;
+package org.structr.cmis.common;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.structr.cmis.common.CMISExtensionsData;
 
 /**
  *
  * @author Christian Morgner
  */
 
-public class StructrFileActions extends CMISExtensionsData implements AllowableActions {
+public class StructrItemActions extends CMISExtensionsData implements AllowableActions {
 
 	private final Set<Action> actions = new LinkedHashSet<>();
 
-	public StructrFileActions(final boolean isImmutable) {
+	public StructrItemActions() {
 
 
-		if (!isImmutable) {
-			actions.add(Action.CAN_DELETE_OBJECT);
-			actions.add(Action.CAN_UPDATE_PROPERTIES);
-		}
+		actions.add(Action.CAN_DELETE_OBJECT);
+		actions.add(Action.CAN_UPDATE_PROPERTIES);
 
 //		actions.add(Action.CAN_GET_FOLDER_TREE);
 		actions.add(Action.CAN_GET_PROPERTIES);
