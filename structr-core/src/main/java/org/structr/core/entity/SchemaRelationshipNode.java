@@ -91,7 +91,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName
 	);
 
 	public static final View uiView = new View(SchemaRelationshipNode.class, PropertyView.Ui,
@@ -177,6 +177,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 
 		if (super.onDeletion(securityContext, errorBuffer, properties)) {
+
+			removeSourceAndTargetJsonNames(properties);
 
 			// register transaction post processing that recreates the schema information
 			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -925,6 +927,29 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 	}
 
+	private void removeSourceAndTargetJsonNames(PropertyMap properties) throws FrameworkException {
+
+		final SchemaNode _sourceNode         = getProperty(sourceNode);
+		final SchemaNode _targetNode         = getProperty(targetNode);
+		final String _currentSourceJsonName  = (properties.get(sourceJsonName) != null) ? properties.get(sourceJsonName) : properties.get(previousSourceJsonName);
+		final String _currentTargetJsonName  = (properties.get(targetJsonName) != null) ? properties.get(targetJsonName) : properties.get(previousTargetJsonName);
+
+		if (_sourceNode != null) {
+
+			removeNameFromNonGraphProperties(_sourceNode, _currentSourceJsonName);
+			removeNameFromNonGraphProperties(_sourceNode, _currentTargetJsonName);
+
+		}
+
+		if (_targetNode != null) {
+
+			removeNameFromNonGraphProperties(_targetNode, _currentSourceJsonName);
+			removeNameFromNonGraphProperties(_targetNode, _currentTargetJsonName);
+
+		}
+
+	}
+
 	private void renameNotionPropertyReferences(final SchemaNode schemaNode, final String previousValue, final String currentValue) throws FrameworkException {
 
 		// examine properties of other node
@@ -962,6 +987,24 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				view.setProperty(SchemaView.nonGraphProperties, StringUtils.join(properties, ", "));
 			}
 		}
+	}
+
+	private void removeNameFromNonGraphProperties(final AbstractSchemaNode schemaNode, final String toRemove) throws FrameworkException {
+
+		// examine all views
+		for (final SchemaView view : schemaNode.getSchemaViews()) {
+
+			final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
+			if (nonGraphProperties != null) {
+
+				final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
+
+				properties.remove(toRemove);
+
+				view.setProperty(SchemaView.nonGraphProperties, StringUtils.join(properties, ", "));
+			}
+		}
+
 	}
 
 	// ----- public static methods -----
