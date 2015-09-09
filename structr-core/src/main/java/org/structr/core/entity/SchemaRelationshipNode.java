@@ -910,7 +910,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		if (_previousSourceJsonName != null && _currentSourceJsonName != null && !_currentSourceJsonName.equals(_previousSourceJsonName)) {
 
-			removeNameFromNonGraphProperties(getProperty(sourceNode), _previousSourceJsonName, _currentSourceJsonName);
+			removeNameFromNonGraphProperties(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
 
 			renameNotionPropertyReferences(_sourceNode, _previousSourceJsonName, _currentSourceJsonName);
 			renameNotionPropertyReferences(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
@@ -918,7 +918,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		if (_previousTargetJsonName != null && _currentTargetJsonName != null && !_currentTargetJsonName.equals(_previousTargetJsonName)) {
 
-			removeNameFromNonGraphProperties(getProperty(targetNode), _previousTargetJsonName, _currentTargetJsonName);
+			removeNameFromNonGraphProperties(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
 
 			renameNotionPropertyReferences(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
 			renameNotionPropertyReferences(_targetNode, _previousTargetJsonName, _currentTargetJsonName);
@@ -954,7 +954,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 				final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
 
-				properties.remove(toRemove);
+				final int pos = properties.indexOf(toRemove);
+				if (pos != -1) {
+					properties.set(pos, newValue);
+				}
 
 				view.setProperty(SchemaView.nonGraphProperties, StringUtils.join(properties, ", "));
 			}
