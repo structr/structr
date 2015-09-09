@@ -2305,12 +2305,16 @@ var _Schema = {
 					});
 		});
 
-		Command.list('SchemaNode', true, 100, 1, 'name', 'asc', 'id,name', function(n) {
-			$('#node-type-selector').append('<option>' + n.name + '</option>');
+		Command.list('SchemaNode', true, 100, 1, 'name', 'asc', 'id,name', function(nodes) {
+			nodes.forEach(function(node) {
+				$('#node-type-selector').append('<option>' + node.name + '</option>');
+			});
 		});
 
-		Command.list('SchemaRelationship', true, 100, 1, 'relationshipType', 'asc', 'id,name', function(r) {
-			$('#rel-type-selector').append('<option>' + r.relationshipType + '</option>');
+		Command.list('SchemaRelationship', true, 100, 1, 'relationshipType', 'asc', 'id,name', function(rels) {
+			rels.forEach(function(rel) {
+				$('#rel-type-selector').append('<option>' + rel.relationshipType + '</option>');
+			});
 		});
 
 		$('#add-uuids').on('click', function(e) {
