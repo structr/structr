@@ -28,7 +28,6 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionContainerImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionListImpl;
 import org.apache.chemistry.opencmis.commons.spi.RepositoryService;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +45,7 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.dynamic.File;
 import org.structr.files.cmis.config.StructrRepositoryInfo;
+import org.structr.files.cmis.wrapper.CMISTypeDefinitionListWrapper;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.Folder;
 
@@ -88,7 +88,7 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		// important: children are the direct children of a type, as opposed to the descendants
 
-		final Set<TypeDefinition> results = new LinkedHashSet<>();
+		final CMISTypeDefinitionListWrapper results = new CMISTypeDefinitionListWrapper(maxItems, skipCount);
 
 		if (typeId != null) {
 
@@ -120,21 +120,7 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 			results.add(getSecondaryTypeDefinition(BaseTypeId.CMIS_SECONDARY.value(), includePropertyDefinitions, true));
 		}
 
-		final TypeDefinitionListImpl returnValue = new TypeDefinitionListImpl();
-		final List<TypeDefinition> unpagedList   = new LinkedList<>(results);
-		final int resultSize                     = unpagedList.size();
-		final List<TypeDefinition> pagedList     = applyPaging(unpagedList, maxItems, skipCount);
-		int skip                                 = 0;
-
-		if (skipCount != null) {
-			skip = skipCount.intValue();
-		}
-
-		returnValue.setNumItems(BigInteger.valueOf(resultSize));
-		returnValue.setList(pagedList);
-		returnValue.setHasMoreItems(resultSize > pagedList.size() + skip);
-
-		return returnValue;
+		return results;
 	}
 
 	@Override

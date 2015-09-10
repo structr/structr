@@ -21,7 +21,6 @@ import org.neo4j.graphdb.index.Index;
 import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -74,132 +73,129 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 
 		boolean parsingSuccessful         = false;
 		InputStream inputStream           = null;
-		String fileName                   = null;
+		String fileName                   = "unknown file";
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		try {
 
-			inputStream = file.getInputStream();
-			fileName = file.getName();
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			tx.success();
+				inputStream = file.getInputStream();
+				fileName = file.getName();
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
-
-		if (inputStream != null) {
-
-			final FulltextTokenizer tokenizer = new FulltextTokenizer(fileName);
-
-			try (final InputStream is = inputStream) {
-
-				final AutoDetectParser parser = new AutoDetectParser();
-
-
-
-				parser.parse(is, new BodyContentHandler(tokenizer), new Metadata());
-				parsingSuccessful = true;
-
-			} catch (Throwable t) {
-				t.printStackTrace();
+				tx.success();
 			}
 
-			// only do indexing when parsing was successful
-			if (parsingSuccessful) {
+			if (inputStream != null) {
 
-				try (Tx tx = StructrApp.getInstance().tx()) {
+				final FulltextTokenizer tokenizer = new FulltextTokenizer(fileName);
 
-					// save raw extracted text
-					file.setProperty(extractedContent, tokenizer.getRawText());
+				try (final InputStream is = inputStream) {
 
-					// tokenize name
-					tokenizer.write(getName());
+					final AutoDetectParser parser = new AutoDetectParser();
 
-					// tokenize owner name
-					final Principal _owner = file.getProperty(owner);
-					if (_owner != null) {
-
-						final String ownerName = _owner.getName();
-						if (ownerName != null) {
-
-							tokenizer.write(ownerName);
-						}
-
-						final String eMail = _owner.getProperty(User.eMail);
-						if (eMail != null) {
-
-							tokenizer.write(eMail);
-						}
-
-						final String twitterName = _owner.getProperty(User.twitterName);
-						if (twitterName != null) {
-
-							tokenizer.write(twitterName);
-						}
-					}
-
-					tx.success();
-
-				} catch (Throwable t) {
-					t.printStackTrace();
+					parser.parse(is, new BodyContentHandler(tokenizer), new Metadata());
+					parsingSuccessful = true;
 				}
 
-				// index document excluding stop words
-				final NodeService nodeService       = Services.getInstance().getService(NodeService.class);
-				final Index<Node> fulltextIndex     = nodeService.getNodeIndex(NodeService.NodeIndex.fulltext);
-				final Set<String> stopWords         = languageStopwordMap.get(tokenizer.getLanguage());
-				final String indexKeyName           = FileBase.indexedContent.jsonName();
-				final Iterator<String> wordIterator = tokenizer.getWords().iterator();
-				final StringBuilder buf             = new StringBuilder();
-				final Node node                     = file.getNode();
-				int indexedWords                    = 0;
-
-				logger.log(Level.INFO, "Indexing {0}..", fileName);
-
-				while (wordIterator.hasNext()) {
+				// only do indexing when parsing was successful
+				if (parsingSuccessful) {
 
 					try (Tx tx = StructrApp.getInstance().tx()) {
 
-						// remove node from index (in case of previous indexing runs)
-						fulltextIndex.remove(node, indexKeyName);
+						// don't modify access time when indexing is finished
+						file.getSecurityContext().preventModificationOfAccessTime();
 
-						while (wordIterator.hasNext()) {
+						// save raw extracted text
+						file.setProperty(extractedContent, tokenizer.getRawText());
 
-							final String word = wordIterator.next();
+						// tokenize name
+						tokenizer.write(getName());
 
-							if (!stopWords.contains(word)) {
+						// tokenize owner name
+						final Principal _owner = file.getProperty(owner);
+						if (_owner != null) {
 
-								buf.append(word).append(" ");
-								fulltextIndex.add(node, indexKeyName, word);
+							final String ownerName = _owner.getName();
+							if (ownerName != null) {
 
-								if (indexedWords > 1000) {
-									indexedWords = 0;
-									break;
-								}
+								tokenizer.write(ownerName);
+							}
+
+							final String eMail = _owner.getProperty(User.eMail);
+							if (eMail != null) {
+
+								tokenizer.write(eMail);
+							}
+
+							final String twitterName = _owner.getProperty(User.twitterName);
+							if (twitterName != null) {
+
+								tokenizer.write(twitterName);
 							}
 						}
 
 						tx.success();
-
-					} catch (Throwable t) {
-						t.printStackTrace();
 					}
+
+					// index document excluding stop words
+					final NodeService nodeService       = Services.getInstance().getService(NodeService.class);
+					final Index<Node> fulltextIndex     = nodeService.getNodeIndex(NodeService.NodeIndex.fulltext);
+					final Set<String> stopWords         = languageStopwordMap.get(tokenizer.getLanguage());
+					final String indexKeyName           = FileBase.indexedContent.jsonName();
+					final Iterator<String> wordIterator = tokenizer.getWords().iterator();
+					final StringBuilder buf             = new StringBuilder();
+					final Node node                     = file.getNode();
+					int indexedWords                    = 0;
+
+					logger.log(Level.INFO, "Indexing {0}..", fileName);
+
+					while (wordIterator.hasNext()) {
+
+						try (Tx tx = StructrApp.getInstance().tx()) {
+
+							// remove node from index (in case of previous indexing runs)
+							fulltextIndex.remove(node, indexKeyName);
+
+							while (wordIterator.hasNext()) {
+
+								final String word = wordIterator.next();
+
+								if (!stopWords.contains(word)) {
+
+									buf.append(word).append(" ");
+									fulltextIndex.add(node, indexKeyName, word);
+
+									if (indexedWords > 1000) {
+										indexedWords = 0;
+										break;
+									}
+								}
+							}
+
+							tx.success();
+						}
+					}
+
+					// store indexed words separately
+					try (Tx tx = StructrApp.getInstance().tx()) {
+
+						// don't modify access time when indexing is finished
+						file.getSecurityContext().preventModificationOfAccessTime();
+
+						// store indexed words
+						file.setProperty(FileBase.indexedWords, buf.toString());
+
+						tx.success();
+					}
+
+					logger.log(Level.INFO, "Indexing of {0} finished, {1} words extracted", new Object[] { fileName, tokenizer.getWordCount() } );
+
 				}
-
-				// store indexed words separately
-				try (Tx tx = StructrApp.getInstance().tx()) {
-
-					file.setProperty(FileBase.indexedWords, buf.toString());
-
-					tx.success();
-
-				} catch (Throwable t) {
-					t.printStackTrace();
-				}
-
-				logger.log(Level.INFO, "Indexing of {0} finished, {1} words extracted", new Object[] { fileName, tokenizer.getWordCount() } );
-
 			}
+
+		} catch (final Throwable t) {
+
+			logger.log(Level.WARNING, "Indexing of {0} failed: {1}", new Object[] { fileName, t.getMessage() } );
 		}
 	}
 

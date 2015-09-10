@@ -100,7 +100,6 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 			setProperty(hasParent, getProperty(parentId) != null);
 
-
 			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
 
 				final Folder workingOrHomeDir = getCurrentWorkingDir();
@@ -501,6 +500,10 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	}
 
 	public OutputStream getOutputStream() {
+		return getOutputStream(true);
+	}
+
+	public OutputStream getOutputStream(final boolean notifyIndexerAfterClosing) {
 
 		final String path = getRelativeFilePath();
 		if (path != null) {
@@ -542,7 +545,10 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 							}
 
 							increaseVersion();
-							notifyUploadCompletion();
+
+							if (notifyIndexerAfterClosing) {
+								notifyUploadCompletion();
+							}
 
 							tx.success();
 

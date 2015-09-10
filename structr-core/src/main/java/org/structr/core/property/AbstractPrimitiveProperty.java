@@ -183,9 +183,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 			} catch (Throwable t) {
 
-
-				t.printStackTrace();
-
 				// throw FrameworkException with the given cause
 				throw new FrameworkException(500, t);
 			}
@@ -249,9 +246,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				propertyContainer.setProperty(AbstractNode.lastModifiedBy.dbName(),   modifiedById);
 			}
 
-			propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
+			if (!securityContext.dontModifyAccessTime()) {
 
-			
+				propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
+			}
+
+
 		} catch (Throwable t) {
 
 			// fail without throwing an exception here

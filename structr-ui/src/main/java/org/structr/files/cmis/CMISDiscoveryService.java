@@ -8,6 +8,7 @@ import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.spi.DiscoveryService;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.structr.common.SecurityContext;
+import org.structr.files.cmis.wrapper.CMISObjectListWrapper;
 
 /**
  *
@@ -23,12 +24,11 @@ public class CMISDiscoveryService extends AbstractStructrCmisService implements 
 
 	@Override
 	public ObjectList query(String repositoryId, String statement, Boolean searchAllVersions, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
-		return null;
+		return new CMISObjectListWrapper(maxItems, skipCount);
 	}
 
 	@Override
 	public ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken, Boolean includeProperties, String filter, Boolean includePolicyIds, Boolean includeAcl, BigInteger maxItems, ExtensionsData extension) {
-		return null;
+		return new CMISObjectListWrapper(maxItems, BigInteger.ZERO);
 	}
-
 }

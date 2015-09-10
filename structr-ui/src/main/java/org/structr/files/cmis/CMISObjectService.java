@@ -1,5 +1,6 @@
 package org.structr.files.cmis;
 
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedExceptio
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
@@ -41,6 +43,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.dynamic.File;
+import org.structr.files.cmis.wrapper.CMISPagingListWrapper;
+import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
@@ -58,8 +63,74 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	private static final Logger logger = Logger.getLogger(CMISObjectService.class.getName());
 
 	@Override
-	public String createDocument(String repositoryId, Properties properties, String folderId, ContentStream contentStream, VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public String createDocument(final String repositoryId, final Properties properties, final String folderId, final ContentStream contentStream, final VersioningState versioningState, final List<String> policies, final Acl addAces, final Acl removeAces, final ExtensionsData extension) {
+
+		final App app = StructrApp.getInstance(securityContext);
+		File newFile  = null;
+		String uuid   = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final String objectTypeId = getStringValue(properties, PropertyIds.OBJECT_TYPE_ID);
+			final String fileName     = getStringValue(properties, PropertyIds.NAME);
+			final Class type          = typeFromObjectTypeId(objectTypeId, BaseTypeId.CMIS_DOCUMENT, File.class);
+
+			// check if type exists
+			if (type != null) {
+
+				// check that base type is cmis:folder
+				final BaseTypeId baseTypeId = getBaseTypeId(type);
+				if (baseTypeId != null && BaseTypeId.CMIS_DOCUMENT.equals(baseTypeId)) {
+
+					// create file
+					newFile = FileHelper.createFile(securityContext, new byte[0], contentStream.getMimeType(), type, fileName);
+
+					// find and set parent if it exists
+					if (!CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
+
+						final Folder parent = app.get(Folder.class, folderId);
+						if (parent != null) {
+
+							newFile.setProperty(Folder.parent, parent);
+
+						} else {
+
+							throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
+						}
+					}
+
+					uuid = newFile.getUuid();
+
+					// copy file and update metadata
+					try (final OutputStream outputStream = newFile.getOutputStream(false)) {
+						IOUtils.copy(contentStream.getStream(), outputStream);
+					}
+
+					FileHelper.updateMetadata(newFile);
+
+				} else {
+
+					throw new CmisConstraintException("Cannot create cmis:document of type " + objectTypeId);
+				}
+
+			} else {
+
+				throw new CmisObjectNotFoundException("Type with ID " + objectTypeId + " does not exist");
+			}
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			throw new CmisRuntimeException("New document could not be created: " + t.getMessage());
+		}
+
+		// start indexing after transaction is finished
+		if (newFile != null) {
+			newFile.notifyUploadCompletion();
+		}
+
+		return uuid;
 	}
 
 	@Override
@@ -193,7 +264,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 		final ObjectData obj = getObject(repositoryId, objectId, renditionFilter, false, IncludeRelationships.NONE, null, false, false, extension);
 		if (obj != null) {
 
-			return applyPaging(obj.getRenditions(), maxItems, skipCount);
+			return new CMISPagingListWrapper<>(obj.getRenditions(), maxItems, skipCount).getPagedList();
 		}
 
 		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");

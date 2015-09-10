@@ -59,6 +59,7 @@ public class SecurityContext {
 	private static final Map<String, Long> resourceFlags = new LruMap<>(10000);
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 	private boolean doTransactionNotifications           = true;
+	private boolean dontModifyAccessTime                 = false;
 
 	//~--- fields ---------------------------------------------------------
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
@@ -650,6 +651,14 @@ public class SecurityContext {
 
 	public void setDoTransactionNotifications(boolean doTransactionNotifications) {
 		this.doTransactionNotifications = doTransactionNotifications;
+	}
+
+	public boolean dontModifyAccessTime() {
+		return dontModifyAccessTime;
+	}
+
+	public void preventModificationOfAccessTime() {
+		dontModifyAccessTime = true;
 	}
 
 	// ----- nested classes -----

@@ -53,7 +53,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 			try (final Tx tx = app.tx()) {
 
-				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(includeAllowableActions);
+				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(includeAllowableActions, maxItems, skipCount);
 				wrapper.wrap(app.nodeQuery(AbstractFile.class).and(Folder.parent, null).sort(AbstractNode.name).getAsList());
 
 				tx.success();
@@ -75,7 +75,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 					final List<AbstractFile> children = parent.getProperty(AbstractFile.children);
 
-					wrapper = new CMISObjectInFolderWrapper(includeAllowableActions);
+					wrapper = new CMISObjectInFolderWrapper(includeAllowableActions, maxItems, skipCount);
 
 					Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
 
