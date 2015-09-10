@@ -2334,7 +2334,7 @@ var _Crud = {
 
 	},
 	error: function(text, confirmationRequired) {
-		var message = new MessageBuilder().text(text);
+		var message = new MessageBuilder().error(text);
 		if (confirmationRequired) {
 			message.requiresConfirmation();
 		} else {
@@ -2346,7 +2346,7 @@ var _Crud = {
 
 		var type = typeParam || n.type;
 		if (!type) {
-			new MessageBuilder().text('Missing type').requiresConfirmation().show();
+			new MessageBuilder().error('Missing type').requiresConfirmation().show();
 			return;
 		}
 
