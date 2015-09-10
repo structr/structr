@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.data.ChangeEventInfo;
@@ -28,6 +29,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -37,9 +39,10 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISExtensionsData implements ObjectData {
+public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISExtensionsData implements ObjectData, Acl {
 
 	protected AllowableActions allowableActions      = null;
+	protected List<Ace> aces                         = null;
 	protected PropertyMap dynamicPropertyMap         = null;
 	protected GregorianCalendar lastModificationDate = null;
 	protected GregorianCalendar creationDate         = null;
@@ -91,7 +94,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	}
 
 	public void setLastModifiedBy(String lastModifiedBy) throws FrameworkException {
-		this.lastModifiedBy = translateIdToUsername(lastModifiedBy);
+		this.lastModifiedBy = CMISObjectWrapper.translateIdToUsername(lastModifiedBy);
 	}
 
 	public String getCreatedBy() {
@@ -99,7 +102,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	}
 
 	public void setCreatedBy(String createdBy) throws FrameworkException {
-		this.createdBy = translateIdToUsername(createdBy);
+		this.createdBy = CMISObjectWrapper.translateIdToUsername(createdBy);
 	}
 
 	public String getType() {
@@ -220,7 +223,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 
 	@Override
 	public Acl getAcl() {
-		return null;
+		return this;
 	}
 
 	@Override
@@ -249,7 +252,8 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		setLastModificationDate(info.getLastModificationDate());
 
 		dynamicPropertyMap = info.getDynamicProperties();
-		allowableActions = info.getAllowableActions();
+		allowableActions   = info.getAllowableActions();
+		aces               = info.getAccessControlEntries();
 	}
 
 	// ----- public static methods -----
@@ -303,8 +307,19 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		return wrapper;
 	}
 
-	// ----- protected methods -----
-	protected String translateIdToUsername(final String id) throws FrameworkException {
+	// ----- interface Acl -----
+	@Override
+	public List<Ace> getAces() {
+		return aces;
+	}
+
+	@Override
+	public Boolean isExact() {
+		return true;
+	}
+
+	// ----- public static methods -----
+	public static String translateIdToUsername(final String id) throws FrameworkException {
 
 		if (Principal.SUPERUSER_ID.equals(id)) {
 			return StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
@@ -319,6 +334,23 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		return Principal.ANONYMOUS;
 	}
 
+	public static Principal translateUsernameToPrincipal(final String username) throws FrameworkException {
+
+		if (StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME).equals(username)) {
+			return new SuperUser();
+		}
+
+		final Principal principal = StructrApp.getInstance().nodeQuery(Principal.class).andName(username).getFirst();
+		if (principal != null) {
+
+			return principal;
+		}
+
+		// return null for anonymous and all other cases
+		return null;
+	}
+
+	// ----- protected methods -----
 	protected BigDecimal valueOrNull(final Double source) {
 
 		if (source != null) {

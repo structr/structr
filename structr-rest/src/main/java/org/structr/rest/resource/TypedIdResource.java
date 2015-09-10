@@ -122,10 +122,10 @@ public class TypedIdResource extends FilterableResource {
 		final GraphObject entity = idResource.getEntity();
 		if (entity != null) {
 
-			String type = SchemaHelper.normalizeEntityName(typeResource.getRawType());
+			final String type       = SchemaHelper.normalizeEntityName(typeResource.getRawType());
+			final String entityType = entity.getClass().getSimpleName();
 
-			if (SearchCommand.getAllSubtypesAsStringSet(entity.getClass().getSimpleName()).contains(type)) {
-			//if (parentClass.isAssignableFrom(entityClass)) {
+			if (SearchCommand.getAllSubtypesAsStringSet(type).contains(entityType)) {
 				return entity;
 			}
 		}

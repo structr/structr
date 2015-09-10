@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.AclCapabilities;
 import org.apache.chemistry.opencmis.commons.data.ExtensionFeature;
@@ -21,7 +20,6 @@ import org.apache.chemistry.opencmis.commons.enums.SupportedPermissions;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.Permission;
 import org.structr.core.entity.Principal;
-import org.structr.files.cmis.StructrCMISService;
 import org.structr.files.cmis.repository.StructrAccessControlPermissionMapping;
 import org.structr.files.cmis.repository.StructrDeletePermissionMapping;
 import org.structr.files.cmis.repository.StructrPermissionDefinition;
@@ -123,7 +121,6 @@ public class StructrRepositoryInfo extends CMISExtensionsData implements Reposit
 
 	@Override
 	public List<ExtensionFeature> getExtensionFeatures() {
-		logger.log(Level.INFO, "...");
 		return Collections.emptyList();
 	}
 

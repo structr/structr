@@ -17,7 +17,6 @@ public class StructrFileActions extends CMISExtensionsData implements AllowableA
 
 	public StructrFileActions(final boolean isImmutable) {
 
-
 		if (!isImmutable) {
 			actions.add(Action.CAN_DELETE_OBJECT);
 			actions.add(Action.CAN_UPDATE_PROPERTIES);

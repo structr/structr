@@ -22,7 +22,7 @@ public class StructrRootFolderActions extends CMISExtensionsData implements Allo
 //		actions.add(Action.CAN_UPDATE_PROPERTIES);
 //		actions.add(Action.CAN_GET_FOLDER_TREE);
 		actions.add(Action.CAN_GET_PROPERTIES);
-		actions.add(Action.CAN_GET_OBJECT_RELATIONSHIPS);
+//		actions.add(Action.CAN_GET_OBJECT_RELATIONSHIPS);
 //		actions.add(Action.CAN_GET_OBJECT_PARENTS);
 //		actions.add(Action.CAN_GET_FOLDER_PARENT);
 		actions.add(Action.CAN_GET_DESCENDANTS);
@@ -36,18 +36,18 @@ public class StructrRootFolderActions extends CMISExtensionsData implements Allo
 //		actions.add(Action.CAN_ADD_OBJECT_TO_FOLDER);
 //		actions.add(Action.CAN_REMOVE_OBJECT_FROM_FOLDER);
 //		actions.add(Action.CAN_GET_CONTENT_STREAM);
-		actions.add(Action.CAN_APPLY_POLICY);
-		actions.add(Action.CAN_GET_APPLIED_POLICIES);
-		actions.add(Action.CAN_REMOVE_POLICY);
+//		actions.add(Action.CAN_APPLY_POLICY);
+//		actions.add(Action.CAN_GET_APPLIED_POLICIES);
+//		actions.add(Action.CAN_REMOVE_POLICY);
 		actions.add(Action.CAN_GET_CHILDREN);
 		actions.add(Action.CAN_CREATE_DOCUMENT);
 		actions.add(Action.CAN_CREATE_FOLDER);
-		actions.add(Action.CAN_CREATE_RELATIONSHIP);
-		actions.add(Action.CAN_CREATE_ITEM);
-		actions.add(Action.CAN_DELETE_TREE);
-		actions.add(Action.CAN_GET_RENDITIONS);
-		actions.add(Action.CAN_GET_ACL);
-		actions.add(Action.CAN_APPLY_ACL);
+//		actions.add(Action.CAN_CREATE_RELATIONSHIP);
+//		actions.add(Action.CAN_CREATE_ITEM);
+//		actions.add(Action.CAN_DELETE_TREE);
+//		actions.add(Action.CAN_GET_RENDITIONS);
+//		actions.add(Action.CAN_GET_ACL);
+//		actions.add(Action.CAN_APPLY_ACL);
 	}
 
 	private StructrRootFolderActions() {

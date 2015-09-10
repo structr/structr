@@ -26,12 +26,14 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
@@ -44,6 +46,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.LruMap;
 import org.structr.cmis.CMISInfo;
+import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.common.StructrItemActions;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.cmis.info.CMISFolderInfo;
@@ -66,6 +69,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.Services;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
@@ -1350,6 +1354,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return null;
 	}
 
+	public void revokeAll() throws FrameworkException {
+
+		if (!isGranted(Permission.accessControl, securityContext)) {
+			throw new FrameworkException(403, "Access control not permitted");
+		}
+
+		final App app = StructrApp.getInstance();
+
+		for (final Security security : getIncomingRelationshipsAsSuperUser(Security.class)) {
+			app.delete(security);
+		}
+	}
+
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
@@ -1505,5 +1522,71 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public AllowableActions getAllowableActions() {
 		return new StructrItemActions();
+	}
+
+	@Override
+	public List<Ace> getAccessControlEntries() {
+
+		final List<Ace> entries = new LinkedList<>();
+
+		for (final Security security : getIncomingRelationshipsAsSuperUser(Security.class)) {
+
+			if (security != null) {
+
+				entries.add(new AceEntry(security));
+			}
+		}
+
+		return entries;
+	}
+
+	// ----- nested classes -----
+	private static class AceEntry extends CMISExtensionsData implements Ace, org.apache.chemistry.opencmis.commons.data.Principal {
+
+		private final List<String> permissions = new LinkedList<>();
+		private String principalId             = null;
+
+		/**
+		 * Construct a new AceEntry from the given Security relationship. This
+		 * method assumes that is is called in a transaction.
+		 *
+		 * @param security
+		 */
+		public AceEntry(final Security security) {
+
+			final Principal principal = security.getSourceNode();
+			if (principal != null) {
+
+				this.principalId = principal.getProperty(Principal.name);
+			}
+
+			permissions.addAll(security.getPermissions());
+		}
+
+		@Override
+		public org.apache.chemistry.opencmis.commons.data.Principal getPrincipal() {
+			return this;
+		}
+
+		@Override
+		public String getPrincipalId() {
+			return principalId;
+		}
+
+		@Override
+		public List<String> getPermissions() {
+			return permissions;
+		}
+
+		@Override
+		public boolean isDirect() {
+			return true;
+		}
+
+		// ----- interface Principal -----
+		@Override
+		public String getId() {
+			return getPrincipalId();
+		}
 	}
 }

@@ -1,6 +1,8 @@
 package org.structr.cmis.info;
 
 import java.util.GregorianCalendar;
+import java.util.List;
+import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.structr.common.SecurityContext;
@@ -26,4 +28,5 @@ public interface CMISObjectInfo {
 
 	public PropertyMap getDynamicProperties();
 	public AllowableActions getAllowableActions();
+	public List<Ace> getAccessControlEntries();
 }

@@ -8,10 +8,12 @@ import java.util.Set;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
+import org.apache.chemistry.opencmis.commons.definitions.Choice;
 import org.apache.chemistry.opencmis.commons.definitions.MutableDocumentTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutableFolderTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutableItemTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutablePolicyTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.MutablePropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutableRelationshipTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutableSecondaryTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutableTypeDefinition;
@@ -437,7 +439,6 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 	private MutableTypeDefinition extendTypeDefinition(final Class<? extends GraphObject> type, final Boolean includePropertyDefinitions) {
 
-		final TypeDefinitionFactory factory  = TypeDefinitionFactory.newInstance();
 		final String typeName                = type.getSimpleName();
 		MutableTypeDefinition result         = null;
 
@@ -485,39 +486,10 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 							// initialize..
 							for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
 
-								// include all dynamic and CMIS-enabled keys in definition
-								if (key.isDynamic() || key.isCMISProperty()) {
+								final MutablePropertyDefinition property = createProperty(type, key);
+								if (property != null) {
 
-									// only include primitives here
-									final PropertyType dataType = key.getDataType();
-									if (dataType != null) {
-
-
-										final String propertyId         = key.jsonName();
-										final String displayName        = propertyId;
-										final String description        = StringUtils.capitalize(propertyId);
-										final Class declaringClass      = key.getDeclaringClass();
-										final boolean isInherited       = !type.getSimpleName().equals(declaringClass.getSimpleName());
-										final Cardinality cardinality   = Cardinality.SINGLE;
-										final Updatability updatability = Updatability.READWRITE;
-										final boolean required          = key.isNotNull();
-										final boolean queryable         = key.isIndexed();
-										final boolean orderable         = key.isIndexed();
-
-										// extend base type with dynamic property definition
-										result.addPropertyDefinition(factory.createPropertyDefinition(
-											propertyId,
-											displayName,
-											description,
-											dataType,
-											cardinality,
-											updatability,
-											isInherited,
-											required,
-											queryable,
-											orderable
-										));
-									}
+									result.addPropertyDefinition(property);
 								}
 							}
 						}
@@ -533,20 +505,6 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		return result;
 	}
 
-	private CMISInfo getCMISInfo(final Class<? extends GraphObject> type) {
-
-		try { return type.newInstance().getCMISInfo(); } catch (Throwable t) {}
-
-		return null;
-	}
-
-	private BaseTypeId getBaseTypeId(final String typeId) {
-
-		try { return BaseTypeId.fromValue(typeId); } catch (IllegalArgumentException iex) {}
-
-		return null;
-	}
-
 	private void initializeExtendedType(final MutableTypeDefinition type, final String typeId) {
 
 		type.setId(typeId);
@@ -554,5 +512,64 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		type.setQueryName(typeId);
 		type.setDisplayName(typeId);
 		type.setDescription(typeId);
+	}
+
+	private MutablePropertyDefinition createProperty(final Class type, final PropertyKey key) {
+
+		// include all dynamic and CMIS-enabled keys in definition
+		if (key.isDynamic() || key.isCMISProperty()) {
+
+			// only include primitives here
+			final TypeDefinitionFactory factory = TypeDefinitionFactory.newInstance();
+			final PropertyType dataType         = key.getDataType();
+
+			if (dataType != null) {
+
+				final String propertyId         = key.jsonName();
+				final String displayName        = propertyId;
+				final String description        = StringUtils.capitalize(propertyId);
+				final Class declaringClass      = key.getDeclaringClass();
+				final boolean isInherited       = !type.getSimpleName().equals(declaringClass.getSimpleName());
+				final Cardinality cardinality   = Cardinality.SINGLE;
+				final Updatability updatability = Updatability.READWRITE;
+				final boolean required          = key.isNotNull();
+				final boolean queryable         = key.isIndexed();
+				final boolean orderable         = key.isIndexed();
+
+				final MutablePropertyDefinition property = factory.createPropertyDefinition(
+					propertyId,
+					displayName,
+					description,
+					dataType,
+					cardinality,
+					updatability,
+					isInherited,
+					required,
+					queryable,
+					orderable
+				);
+
+				// add enum choices if present
+				final Class valueType = key.valueType();
+				if (valueType != null && valueType.isEnum()) {
+
+					final List<Choice> choices = new LinkedList<>();
+
+					for (final Object option : valueType.getEnumConstants()) {
+
+						final String optionName = option.toString();
+
+						choices.add(factory.createChoice(optionName, optionName));
+					}
+
+					property.setIsOpenChoice(false);
+					property.setChoices(choices);
+				}
+
+				return property;
+			}
+		}
+
+		return null;
 	}
 }

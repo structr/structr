@@ -7,7 +7,6 @@ import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISFolderWrapper;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
@@ -33,18 +32,12 @@ public class CMISRootFolder extends CMISFolderWrapper {
 		setDescription("Root Folder");
 		setType(Folder.class.getSimpleName());
 
-		try {
-			final String superuserName = StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
+		final String superuserName = StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
+		this.createdBy      = superuserName;
+		this.lastModifiedBy = superuserName;
 
-			setLastModifiedBy(superuserName);
-			setLastModificationDate(CMISInfo.ROOT_FOLDER_DATE);
-
-			setCreatedBy(superuserName);
-			setCreationDate(CMISInfo.ROOT_FOLDER_DATE);
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
+		setCreationDate(CMISInfo.ROOT_FOLDER_DATE);
+		setLastModificationDate(CMISInfo.ROOT_FOLDER_DATE);
 
 		setPath(CMISInfo.ROOT_FOLDER_ID);
 		setParentId(null);
@@ -70,12 +63,5 @@ public class CMISRootFolder extends CMISFolderWrapper {
 	@Override
 	protected boolean isRootFolder() {
 		return true;
-	}
-
-	@Override
-	protected String translateIdToUsername(final String id) throws FrameworkException {
-
-		// prevent translation of ID values for this root folder entity
-		return id;
 	}
 }

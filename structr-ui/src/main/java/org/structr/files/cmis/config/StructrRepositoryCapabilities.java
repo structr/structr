@@ -97,7 +97,7 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 
 	@Override
 	public CapabilityAcl getAclCapability() {
-		return CapabilityAcl.NONE;
+		return CapabilityAcl.MANAGE;
 	}
 
 	@Override

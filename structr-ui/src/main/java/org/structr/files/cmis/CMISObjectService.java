@@ -1,9 +1,11 @@
 package org.structr.files.cmis;
 
 import java.math.BigInteger;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
@@ -13,25 +15,35 @@ import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.RenditionData;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.commons.spi.ObjectService;
+import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
+import org.structr.web.entity.Folder;
 
 /**
  *
@@ -56,8 +68,60 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	}
 
 	@Override
-	public String createFolder(String repositoryId, Properties properties, String folderId, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public String createFolder(final String repositoryId, final Properties properties, final String folderId, final List<String> policies, final Acl addAces, final Acl removeAces, final ExtensionsData extension) {
+
+		final App app = StructrApp.getInstance(securityContext);
+		String uuid   = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final String objectTypeId = getStringValue(properties, PropertyIds.OBJECT_TYPE_ID);
+			final Class type          = typeFromObjectTypeId(objectTypeId, BaseTypeId.CMIS_FOLDER, Folder.class);
+
+			// check if type exists
+			if (type != null) {
+
+				// check that base type is cmis:folder
+				final BaseTypeId baseTypeId = getBaseTypeId(type);
+				if (baseTypeId != null && BaseTypeId.CMIS_FOLDER.equals(baseTypeId)) {
+
+					// create folder
+					final NodeInterface newFolder = app.create(type, PropertyMap.cmisTypeToJavaType(securityContext, type, properties));
+
+					// find and set parent if it exists
+					if (!CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
+
+						final Folder parent = app.get(Folder.class, folderId);
+						if (parent != null) {
+
+							newFolder.setProperty(Folder.parent, parent);
+
+						} else {
+
+							throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
+						}
+					}
+
+					uuid = newFolder.getUuid();
+
+				} else {
+
+					throw new CmisConstraintException("Cannot create cmis:folder of type " + objectTypeId);
+				}
+
+			} else {
+
+				throw new CmisObjectNotFoundException("Type with ID " + objectTypeId + " does not exist");
+			}
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			throw new CmisRuntimeException("New folder could not be created: " + t.getMessage());
+		}
+
+		return uuid;
 	}
 
 	@Override
@@ -94,11 +158,15 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 		try (final Tx tx = app.tx()) {
 
-			final ObjectData data = CMISObjectWrapper.wrap(app.get(objectId), includeAllowableActions);
+			final GraphObject obj = app.get(objectId);
+			if (obj != null) {
 
-			tx.success();
+				final ObjectData data = CMISObjectWrapper.wrap(obj, includeAllowableActions);
 
-			return data;
+				tx.success();
+
+				return data;
+			}
 
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -106,8 +174,6 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
 	}
-
-
 
 	@Override
 	public Properties getProperties(String repositoryId, String objectId, String filter, ExtensionsData extension) {
@@ -237,12 +303,85 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 	@Override
 	public void deleteObject(String repositoryId, String objectId, Boolean allVersions, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final App app             = StructrApp.getInstance(securityContext);
+		final Principal principal = securityContext.getUser(false);
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject obj = app.get(objectId);
+			if (obj != null) {
+
+				if (principal.isGranted(Permission.delete, securityContext)) {
+
+					if (obj.isNode()) {
+
+						// getSyncNode() returns the node or null
+						app.delete(obj.getSyncNode());
+
+					} else {
+
+						// getSyncRelationship() return the relationship or null
+						app.delete(obj.getSyncRelationship());
+					}
+
+				} else {
+
+					throw new CmisPermissionDeniedException("Cannot delete object with ID " + objectId);
+				}
+
+			} else {
+
+				throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			throw new CmisConstraintException(fex.getMessage(), fex);
+		}
 	}
 
 	@Override
-	public FailedToDeleteData deleteTree(String repositoryId, String folderId, Boolean allVersions, UnfileObject unfileObjects, Boolean continueOnFailure, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public FailedToDeleteData deleteTree(final String repositoryId, final String folderId, final Boolean allVersions, final UnfileObject unfileObjects, final Boolean continueOnFailure, final ExtensionsData extension) {
+
+		/**
+		 * - allVersions can be ignored as long as we don't support versioning
+		 * - unfileObjects
+		 */
+
+		if (UnfileObject.UNFILE.equals(unfileObjects)) {
+			throw new CmisNotSupportedException("Unfiling not supported");
+		}
+
+		final App app                       = StructrApp.getInstance(securityContext);
+		final FailedToDeleteDataImpl result = new FailedToDeleteDataImpl();
+
+		result.setIds(new LinkedList<String>());
+
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder = app.get(Folder.class, folderId);
+			if (folder != null) {
+
+				recursivelyCheckAndDeleteFiles(app, result, folder, continueOnFailure);
+
+			} else {
+
+				throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
+			}
+
+			tx.success();
+
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+
+
+		return result;
 	}
 
 	@Override
@@ -260,4 +399,32 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
+	// ----- private methods -----
+	private void recursivelyCheckAndDeleteFiles(final App app, final FailedToDeleteDataImpl result, final AbstractFile toDelete, final Boolean continueOnFailure) throws FrameworkException {
+
+		if (toDelete != null) {
+
+			final Principal owner = toDelete.getOwnerNode();
+			if (owner == null || owner.isGranted(Permission.delete, securityContext)) {
+
+				app.delete(toDelete);
+
+				for (final AbstractFile child : toDelete.getProperty(AbstractFile.children)) {
+
+					recursivelyCheckAndDeleteFiles(app, result, child, continueOnFailure);
+				}
+
+			} else {
+
+				if (continueOnFailure) {
+
+					result.getIds().add(toDelete.getUuid());
+
+				} else {
+
+					throw new CmisPermissionDeniedException("Cannot delete object with ID " + toDelete.getUuid());
+				}
+			}
+		}
+	}
 }

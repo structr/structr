@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
@@ -106,6 +107,12 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 	public Class<T> getEnumType() {
 		return enumType;
+	}
+
+	// ----- CMIS support -----
+	@Override
+	public PropertyType getDataType() {
+		return PropertyType.STRING;
 	}
 
 	protected class DatabaseConverter extends PropertyConverter<T, String> {
