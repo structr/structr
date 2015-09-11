@@ -21,6 +21,7 @@ package org.structr.schema.action;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
@@ -320,14 +321,20 @@ public class ActionContext {
 		return locale;
 	}
 
-	public String getJavascriptLibraryCode() {
+	public String getJavascriptLibraryCode(String fileName) {
 
 		final StringBuilder buf = new StringBuilder();
 		final App app           = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final JavaScriptSource jsLibraryFile : app.nodeQuery(JavaScriptSource.class).and(JavaScriptSource.useAsJavascriptLibrary, true).getAsList()) {
+			final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class).and(JavaScriptSource.name, fileName).and(JavaScriptSource.useAsJavascriptLibrary, true).getAsList();
+
+			if (jsFiles.isEmpty()) {
+				logger.log(Level.WARNING, "No JavaScript library found with fileName: {0}", fileName );
+			}
+
+			for (final JavaScriptSource jsLibraryFile : jsFiles) {
 
 				final String contentType = jsLibraryFile.getContentType();
 				if (contentType != null) {

@@ -245,6 +245,33 @@ public class StructrScriptable extends ScriptableObject {
 					return null;
 				}
 			}, null, 0, 0);
+
+		}
+
+		if ("includeJs".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+					if (parameters.length == 1) {
+
+						final String fileName = parameters[0].toString();
+
+						context.evaluateString(scope, actionContext.getJavascriptLibraryCode(fileName), fileName, 1, null);
+
+					} else {
+
+						logger.log(Level.WARNING, "Incorrect usage of includeJs function. Takes exactly one parameter: The filename of the javascript file!");
+
+					}
+
+					return null;
+				}
+
+			}, null, 0, 0);
+
 		}
 
 		// execute builtin function?
