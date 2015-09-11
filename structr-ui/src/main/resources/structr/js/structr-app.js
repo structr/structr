@@ -111,13 +111,13 @@ function StructrApp(baseUrl) {
 				s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
 			} else if (action === 'save') {
-				s.saveAction(btn, id, attrs, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn)});
+				s.saveAction(btn, id, attrs, type, suffix, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn)});
 
 			} else if (action === 'edit') {
-				s.editAction(btn, id, attrs, returnUrl);
+				s.editAction(btn, id, attrs, type, suffix, returnUrl);
 
 			} else if (action === 'cancel-edit') {
-				s.cancelEditAction(btn, id, attrs, returnUrl);
+				s.cancelEditAction(btn, id, attrs, type, suffix, returnUrl);
 
 			} else if (action === 'delete') {
 				var f = s.field($('[data-structr-attr="name"]', container));
@@ -140,33 +140,34 @@ function StructrApp(baseUrl) {
 			}
 		});
 	},
-	this.getPossibleFields = function(container, suffix, type, key) {
+	this.getPossibleFields = function(container, suffix, type, key, paramKey) {
+		paramKey = paramKey || 'attr';
 		var possibleFields;
 		if (typeof suffix === 'string' && suffix.length) {
 			// if a suffix is given, use only input elements with that suffix
-			possibleFields = $('[data-structr-name="' + key + ':' + suffix + '"]');
+			possibleFields = $('[data-structr-' + paramKey + '="' + key + ':' + suffix + '"]');
 		} else if (container.length) {
 			// exactly one container
-			possibleFields = container.find('[data-structr-name="' + key + '"]');
+			possibleFields = container.find('[data-structr-' + paramKey + '="' + key + '"]');
 		} else {
 			// fallback: all fields by name
-			possibleFields = $('[data-structr-name="' + key + '"]');
+			possibleFields = $('[data-structr-' + paramKey + '="' + key + '"]');
 		}
 
 		if (possibleFields.length !== 1) {
 			// none, or more than one field: try with type prefix
 			if (container.length) {
-				possibleFields = $('[data-structr-name="' + type + '.' + key + '"]', container);
+				possibleFields = $('[data-structr-' + paramKey + '="' + type + '.' + key + '"]', container);
 			} else {
-				possibleFields = $('[data-structr-name="' + type + '.' + key + '"]');
+				possibleFields = $('[data-structr-' + paramKey + '="' + type + '.' + key + '"]');
 			}
 		}
 		if (possibleFields.length !== 1) {
 			// if still not found, try both, type prefix and suffix
 			if (container.length) {
-				possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]', container);
+				possibleFields = $('[data-structr-' + paramKey + '="' + type + '.' + key + ':' + suffix + '"]', container);
 			} else {
-				possibleFields = $('[data-structr-name="' + type + '.' + key + ':' + suffix + '"]');
+				possibleFields = $('[data-structr-' + paramKey + '="' + type + '.' + key + ':' + suffix + '"]');
 			}
 		}
 
@@ -199,18 +200,15 @@ function StructrApp(baseUrl) {
 		});
 		return data;
 	},
-	this.editAction = function(btn, id, attrs, reload) {
+	this.editAction = function(btn, id, attrs, type, suffix, reload) {
 		var container = s.container(btn, id);
 
 		//show edit elements and hide non-edit elements
 		s.hideEdit(container);
 
 		$.each(attrs, function(i, key) {
-			var el = $('[data-structr-attr="' + key + '"]', container);
-			if (!el.length) {
-				return;
-			}
-
+			
+			var el = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'attr');
 			var f = s.field(el);
 			f.id = id;
 			if (!s.data[id]) s.data[id] = {};
@@ -330,22 +328,22 @@ function StructrApp(baseUrl) {
 		saveButton.addClass(clazz);
 		enableButton(saveButton);
 		saveButton.on('click', function() {
-			s.saveAction(btn, id, attrs, reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+			s.saveAction(btn, id, attrs, type, suffix, reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
 				enableButton(btn);
 			}, function() {
-				s.cancelEditAction(btn, id, attrs, reload);
+				s.cancelEditAction(btn, id, attrs, suffix, reload);
 			});
 		});
 		btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
 		enableButton(btn);
 	},
 
-	this.saveAction = function(btn, id, attrs, reload, successMsg, errorMsg, onSuccess, onError) {
+	this.saveAction = function(btn, id, attrs, type, suffix, reload, successMsg, errorMsg, onSuccess, onError) {
 		var container = s.container(btn, id);
 		if (!s.data[id]) s.data[id] = {};
 		$.each(attrs, function(i, key) {
 
-			var inp = s.input($('[data-structr-attr="' + key + '"]', container));
+			var inp = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'name');
 			var f = s.field(inp);
 			if (!f) return;
 			//console.log('saving', f);
@@ -408,13 +406,14 @@ function StructrApp(baseUrl) {
 		s.request(btn, 'PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
 	},
 
-	this.cancelEditAction = function(btn, id, attrs, reload) {
+	this.cancelEditAction = function(btn, id, attrs, type, suffix, reload) {
 		if (reload && typeof reload === 'boolean') {
 			window.location.reload();
 		} else {
 			var container = $('[data-structr-id="' + id + '"]');
 			$.each(attrs, function(i, key) {
-				var inp = s.input($('[data-structr-attr="' + key + '"]', container));
+				var inp = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'name');
+				var f = s.field(inp);
 //                if (inp && inp.is('select')) {
 //                    return;
 //                }
@@ -1161,39 +1160,39 @@ function isTextarea(el) {
 
 function textarea(f) {
 	//console.log('rendering textarea', f);
-	return '<textarea data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '">' + f.val + '</textarea>';
+	return '<textarea data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-name="' + f.key + '">' + f.val + '</textarea>';
 }
 
 function inputField(f) {
 	//console.log('rendering input field  ', f);
 	var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
-	return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-attr="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : (f.key ? f.key.capitalize() : ''))
+	return '<input data-structr-id="' + f.id + '" data-structr-edit-class="' + f.class + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-name="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : (f.key ? f.key.capitalize() : ''))
 			+ '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
 			+ '" size="' + size + '">';
 }
 
 function field(f) {
-	return '<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '">' + f.val + '</span>';
+	return '<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-name="' + f.key + '">' + f.val + '</span>';
 }
 
 function checkbox(f) {
-	return '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '">';
+	return '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-format="' + (f.format ? f.format : '') + '" data-structr-edit-class="' + f.class + '" data-structr-name="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '">';
 }
 
 function enumSelect(f) {
 	//console.log(f, f.format, f.format.split(','))
-	var inp = '<select data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>';
+	var inp = '<select data-structr-type="' + f.type + '" data-structr-edit-class="' + f.class + '" data-structr-name="' + f.key + '" data-structr-id="' + f.id + '"></select>';
 	return inp;
 }
 
 function singleSelect(f) {
-	var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '"></select>';
+	var inp = '<select data-structr-type="' + f.type + '" data-structr-name="' + f.key + '" data-structr-id="' + f.id + '"></select>';
 	var optionsKey = f.optionsKey || 'name';
 	$.ajax({
 		url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
 		statusCode: {
 			200: function(data) {
-				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
+				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-name="' + f.key + '"]');
 				sel.append('<option></option>');
 				if (data.result && data.result.length) {
 					$.each(data.result, function(i, o) {
@@ -1208,7 +1207,7 @@ function singleSelect(f) {
 }
 
 function multiSelect(f) {
-	var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
+	var inp = '<select data-structr-type="' + f.type + '" data-structr-anamettr="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
 	f.type = f.type.substring(0, f.type.length-2);
 	var valIds = f.val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
 	var optionsKey = f.optionsKey || 'name';
@@ -1216,7 +1215,7 @@ function multiSelect(f) {
 		url: structrRestUrl + (f.query ? f.query : f.type + '/ui'), method: 'GET', contentType: 'application/json',
 		statusCode: {
 			200: function(data) {
-				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
+				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-name="' + f.key + '"]');
 				if (data.result && data.result.length) {
 					$.each(data.result, function(i, o) {
 						sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o[optionsKey] + '</option>');
