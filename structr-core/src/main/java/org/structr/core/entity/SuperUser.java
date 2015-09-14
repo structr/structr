@@ -494,4 +494,13 @@ public class SuperUser implements Principal, AccessControllable {
 	public String getEncryptedPassword() {
 		return null;
 	}
+
+	@Override
+	public void setRelationshipPathSegment(final RelationshipInterface pathElement) {
+	}
+
+	@Override
+	public RelationshipInterface getRelationshipPathSegment() {
+		return null;
+	}
 }

@@ -1124,6 +1124,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			case "owner":
 				return getOwnerNode();
 
+			case "_path":
+				return relationshipPathSegment;
+
 			default:
 
 				// evaluate object value or return default
@@ -1318,6 +1321,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 	}
 
+	private RelationshipInterface relationshipPathSegment = null;
+
+	@Override
+	public void setRelationshipPathSegment(final RelationshipInterface pathSegment) {
+		this.relationshipPathSegment = pathSegment;
+	}
+
+	public RelationshipInterface getRelationshipPathSegment() {
+		return relationshipPathSegment;
+	}
 
 	// ----- Cloud synchronization and replication -----
 	@Override

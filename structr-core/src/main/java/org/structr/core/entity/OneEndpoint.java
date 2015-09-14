@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipFactory;
 
 /**
  *
@@ -44,11 +45,16 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 	@Override
 	public T get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
-		final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
-		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
+		final RelationshipFactory relFactory = new RelationshipFactory<>(securityContext);
+		final NodeFactory<T> nodeFactory     = new NodeFactory<>(securityContext);
+		final Relationship rel               = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
-			return nodeFactory.adapt(rel.getEndNode());
+
+			final T value = nodeFactory.adapt(rel.getEndNode());
+			value.setRelationshipPathSegment(relFactory.adapt(rel));
+
+			return value;
 		}
 
 		return null;
