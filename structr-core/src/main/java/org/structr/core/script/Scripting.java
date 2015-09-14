@@ -220,13 +220,6 @@ public class Scripting {
 		buf.append("function main() { ");
 		buf.append(source);
 		buf.append("\n}\n");
-
-		final String javascriptLibraryCode = actionContext.getJavascriptLibraryCode();
-		if (javascriptLibraryCode != null) {
-
-			buf.append(javascriptLibraryCode);
-		}
-
 		buf.append("\n\nvar _structrMainResult = main();");
 
 		return buf.toString();
