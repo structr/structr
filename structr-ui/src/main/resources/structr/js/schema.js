@@ -1001,7 +1001,8 @@ var _Schema = {
 					});
 				}
 
-			}, function() {
+			}, function(data) {
+				Structr.errorFromResponse(data.responseJSON);
 
 				blinkRed($('.' + rowClass, el));
 				//_Schema.bindEvents(entity, type, key);
@@ -1444,9 +1445,13 @@ var _Schema = {
 				property.indexed = obj.indexed;
 				property.defaultValue = obj.defaultValue;
 
+				// update row class so that consequent changes can be applied
+				$('.' + key).removeClass(key).addClass(property.name);
 				_Schema.bindEvents(property);
 
-			}, function() {
+			}, function(data) {
+
+				Structr.errorFromResponse(data.responseJSON);
 
 				blinkRed($('.local .' + key));
 				_Schema.bindEvents(property);
@@ -1602,9 +1607,14 @@ var _Schema = {
 				method.name   = obj.name;
 				method.source = obj.source;
 
+				// update row class so that consequent changes can be applied
+				$('.' + key).removeClass(key).addClass(method.name);
+
 				_Schema.bindEvents(method);
 
-			}, function() {
+			}, function(data) {
+
+				Structr.errorFromResponse(data.responseJSON);
 
 				blinkRed($('.actions .' + key));
 				_Schema.bindEvents(method);
@@ -1719,9 +1729,14 @@ var _Schema = {
 				view.schemaProperties = obj.schemaProperties;
 				view.name             = obj.name;
 
+				// update row class so that consequent changes can be applied
+				$('.' + key).removeClass(key).addClass(view.name);
+
 				_Schema.bindEvents(view);
 
-			}, function() {
+			}, function(data) {
+
+				Structr.errorFromResponse(data.responseJSON);
 
 				blinkRed($('.views .' + key));
 				_Schema.bindEvents(view);
