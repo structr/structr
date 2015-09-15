@@ -905,8 +905,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		final String _previousSourceJsonName = getProperty(previousSourceJsonName);
 		final String _previousTargetJsonName = getProperty(previousTargetJsonName);
-		final String _currentSourceJsonName  = getProperty(sourceJsonName);
-		final String _currentTargetJsonName  = getProperty(targetJsonName);
+		final String _currentSourceJsonName  = ((getProperty(sourceJsonName) != null) ? getProperty(sourceJsonName) : getPropertyName(getSchemaNodeTargetType(), new LinkedHashSet<>(), false));
+		final String _currentTargetJsonName  = ((getProperty(targetJsonName) != null) ? getProperty(targetJsonName) : getPropertyName(getSchemaNodeSourceType(), new LinkedHashSet<>(), true));
 		final SchemaNode _sourceNode         = getProperty(sourceNode);
 		final SchemaNode _targetNode         = getProperty(targetNode);
 
