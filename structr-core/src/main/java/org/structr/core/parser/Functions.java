@@ -218,6 +218,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_SEARCH = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\"}";
 	public static final String ERROR_MESSAGE_CREATE = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
+	public static final String ERROR_MESSAGE_CREATE_JS = "Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create(\"Feedback\", {text: \"Structr is awesome.\"})}}";
 	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(entity)}. Example: ${delete(this)}";
 	public static final String ERROR_MESSAGE_CACHE = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
 	public static final String ERROR_MESSAGE_GRANT = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
@@ -4261,19 +4262,19 @@ public class Functions {
 				if (sources != null) {
 
 					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
-					final App app = StructrApp.getInstance(securityContext);
 					final ConfigurationProvider config = StructrApp.getConfiguration();
-					PropertyMap propertyMap = null;
+					PropertyMap propertyMap;
 					Class type = null;
 
 					if (sources.length >= 1 && sources[0] != null) {
 
 						type = config.getNodeEntityClass(sources[0].toString());
 
-						if (entity != null && type.equals(entity.getClass())) {
+					}
 
-							throw new FrameworkException(422, "Cannot create() entity of the same type in save action.");
-						}
+					if (type == null) {
+
+						throw new FrameworkException(422, "Unknown type '" + sources[0].toString() + "' in create() method!");
 					}
 
 					// extension for native javascript objects
@@ -4288,7 +4289,8 @@ public class Functions {
 
 						if (parameter_count % 2 == 0) {
 
-							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_CREATE);
+							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + (ctx.isJavaScriptContext() ? ERROR_MESSAGE_CREATE_JS : ERROR_MESSAGE_CREATE));
+
 						}
 
 						for (Integer c = 1; c < parameter_count; c += 2) {
@@ -4312,14 +4314,7 @@ public class Functions {
 						}
 					}
 
-					if (type != null) {
-
-						return app.create(type, propertyMap);
-
-					} else {
-
-						throw new FrameworkException(422, "Unknown type in create() save action.");
-					}
+					return StructrApp.getInstance(securityContext).create(type, propertyMap);
 
 				}
 
@@ -4333,7 +4328,7 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_CREATE;
+				return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_JS : ERROR_MESSAGE_CREATE);
 			}
 
 			@Override
