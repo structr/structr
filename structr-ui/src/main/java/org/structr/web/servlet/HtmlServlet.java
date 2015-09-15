@@ -115,7 +115,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				+ "X-XSS-Protection:1;mode=block";
 	private static List<String> customResponseHeaders = Collections.EMPTY_LIST;
 
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
+	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
 
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();

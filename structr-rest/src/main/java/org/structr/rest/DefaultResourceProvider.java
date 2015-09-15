@@ -35,7 +35,7 @@ public class DefaultResourceProvider implements ResourceProvider {
 
 		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 
-		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"),	UuidResource.class);			// matches a UUID without dashes
+		resourceMap.put(Pattern.compile("[a-fA-F0-9]{32}"),	UuidResource.class);			// matches a UUID without dashes
 
 		resourceMap.put(Pattern.compile("cypher"),		CypherQueryResource.class);		// include experimental cypher support
 

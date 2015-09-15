@@ -46,7 +46,7 @@ import org.structr.schema.SchemaHelper;
 public class ViewFilterResource extends WrappingResource {
 
 	private static final Logger logger       = Logger.getLogger(ViewFilterResource.class.getName());
-	private static final Pattern uuidPattern = Pattern.compile("[a-zA-Z0-9]{32}");
+	private static final Pattern uuidPattern = Pattern.compile("[a-fA-F0-9]{32}");
 	private String propertyView              = null;
 
 	//~--- constructors ---------------------------------------------------
