@@ -145,7 +145,7 @@ public class Services {
 			singletonInstance = new Services();
 			singletonInstance.initialize();
 
-			new Thread(new Runnable() {
+			final Thread thread = new Thread(new Runnable() {
 
 				@Override
 				public void run() {
@@ -159,7 +159,10 @@ public class Services {
 					}
 				}
 
-			}).start();
+			});
+
+			thread.setDaemon(true);
+			thread.start();
 
 		}
 
