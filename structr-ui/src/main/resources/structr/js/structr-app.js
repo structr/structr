@@ -105,9 +105,9 @@ function StructrApp(baseUrl) {
 
 			var id = btn.attr('data-structr-id');
 			var container = $('[data-structr-id="' + id + '"]');
-			var data = s.collectData(btn, id, attrs, type, suffix);
 
 			if (action === 'create') {
+				var data = s.collectData(btn, id, attrs, type, suffix);
 				s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
 
 			} else if (action === 'save') {
@@ -186,7 +186,7 @@ function StructrApp(baseUrl) {
 	this.collectData = function(btn, id, attrs, type, suffix) {
 		var data = {};
 		$.each(attrs, function(i, key) {
-			var field = s.getPossibleFields(s.container(btn, id), suffix, type, key);
+			var field = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'name');
 			var val;
 			if (field.attr('type') === 'checkbox') {
 				val = field.prop('checked');
