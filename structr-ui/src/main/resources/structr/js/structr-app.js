@@ -403,7 +403,7 @@ function StructrApp(baseUrl) {
 			}
 		});
 		//console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
-		s.request(btn, 'PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
+		s.request(btn, 'PUT', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
 	},
 
 	this.cancelEditAction = function(btn, id, attrs, type, suffix, reload) {
