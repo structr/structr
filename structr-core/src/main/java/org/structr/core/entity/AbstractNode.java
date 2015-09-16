@@ -1349,11 +1349,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return relationshipPathSegment;
 	}
 
-	@Override
-	public CMISInfo getCMISInfo() {
-		return null;
-	}
-
 	public void revokeAll() throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, securityContext)) {

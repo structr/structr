@@ -198,6 +198,11 @@
             <artifactId>urlrewritefilter</artifactId>
             <version>4.0.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-server-bindings</artifactId>
+            <version>0.13.0</version>
+        </dependency>
     </dependencies>
     <licenses>
         <license>
