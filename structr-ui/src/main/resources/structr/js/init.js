@@ -1436,6 +1436,10 @@ function MessageBuilder () {
 				msgBuilder.hide();
 			}, this.params.delayDuration);
 
+			$('#' + this.params.msgId).click(function () {
+				msgBuilder.hide();
+			});
+
 		}
 
 		if (this.params.specialInteractionButton) {
