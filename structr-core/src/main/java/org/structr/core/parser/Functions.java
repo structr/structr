@@ -3583,12 +3583,12 @@ public class Functions {
 
 			@Override
 			public String getSignature() {
-				return "";
+				return "string";
 			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return ERROR_MESSAGE_PRINT;
+				return (inJavaScriptContext ? ERROR_MESSAGE_PRINT_JS : ERROR_MESSAGE_PRINT);
 			}
 
 			@Override
