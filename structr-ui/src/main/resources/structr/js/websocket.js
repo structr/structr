@@ -334,27 +334,7 @@ function wsConnect() {
 
 				$('.pageCount', $('.pager' + type)).val(pageCount[type]);
 
-				var nodes = [];
-				var rels  = [];
-
-				$(result).each(function (i, entity) {
-					if (entity.hasOwnProperty('relType')) {
-						rels.push(entity);
-					} else {
-						nodes.push(entity);
-					}
-				});
-
-				$(nodes).each(function (i, entity) {
-					StructrModel.createSearchResult(entity);
-				});
-				$(rels).each(function (i, entity) {
-					StructrModel.createSearchResult(entity);
-				});
-
-				if (engine) {
-					_Graph.resize();
-				}
+				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST_UNATTACHED_NODES')) { /*********************** LIST_UNATTACHED_NODES ************************/
 

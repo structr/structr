@@ -636,16 +636,44 @@ var _Graph = {
 		if (query && query.length) {
 
 			if (type === 'cypher') {
-				Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params);
+				Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params, _Graph.processQueryResults);
 				_Graph.saveQuery(query, 'cypher', params);
 			} else {
-				Command.rest(query.replace(/(\r\n|\n|\r)/gm, ''));
+				Command.rest(query.replace(/(\r\n|\n|\r)/gm, ''), _Graph.processQueryResults);
 				_Graph.saveQuery(query, 'rest');
 			}
 
 			_Graph.listSavedQueries();
 
 		}
+	},
+	processQueryResults: function (results) {
+
+//		console.log('query results: ', results);
+
+		var nodes = [];
+		var rels  = [];
+
+		$(results).each(function (i, entity) {
+			if (entity.hasOwnProperty('relType')) {
+				rels.push(entity);
+			} else {
+				nodes.push(entity);
+			}
+		});
+
+		nodes.forEach(function (entity) {
+			StructrModel.createSearchResult(entity);
+		});
+
+		rels.forEach(function (entity) {
+			StructrModel.createSearchResult(entity);
+		});
+
+		if (engine) {
+			_Graph.resize();
+		}
+
 	},
 	saveQuery: function(query, type, params) {
 		var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
