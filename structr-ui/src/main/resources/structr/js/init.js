@@ -1346,11 +1346,17 @@ function MessageBuilder () {
 		// defaults
 		text: 'Default message',
 		delayDuration: 3000,
-		fadeDuration: 1000
+		fadeDuration: 1000,
+		confirmButtonText: 'Confirm'
 	};
 
-	this.requiresConfirmation = function () {
+	this.requiresConfirmation = function (confirmButtonText) {
 		this.params.requiresConfirmation = true;
+
+		if (confirmButtonText) {
+			this.params.confirmButtonText = confirmButtonText;
+		}
+
 		return this;
 	};
 
@@ -1411,20 +1417,37 @@ function MessageBuilder () {
 			'<div class="message' + (this.params.className ? ' ' + this.params.className : '') +  '" id="' + this.params.msgId + '"">' +
 				(this.params.title ? '<h2>' + this.params.title + '</h2>' : '') +
 				this.params.text +
-				(this.params.requiresConfirmation ? '<button>Confirm</button>' : '') +
+				(this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
+				(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '') +
 			'</div>'
 		);
 
 		var msgBuilder = this;
 
 		if (this.params.requiresConfirmation === true) {
-			$('#' + this.params.msgId).find('button').click(function () {
+
+			$('#' + this.params.msgId).find('button.confirm').click(function () {
 				msgBuilder.hide();
 			});
+
 		} else {
+
 			window.setTimeout(function () {
 				msgBuilder.hide();
 			}, this.params.delayDuration);
+
+		}
+
+		if (this.params.specialInteractionButton) {
+
+			$('#' + this.params.msgId).find('button.special').click(function () {
+				if (msgBuilder.params.specialInteractionButton) {
+					msgBuilder.params.specialInteractionButton.action();
+
+					msgBuilder.hide();
+				}
+			});
+
 		}
 	};
 
@@ -1438,6 +1461,21 @@ function MessageBuilder () {
 				$(this).remove();
 			}
 		});
+	}
+
+	this.specialInteractionButton = function (buttonText, callback, confirmButtonText) {
+		this.params.requiresConfirmation = true;
+
+		this.params.specialInteractionButton = {
+			text: buttonText,
+			action: callback
+		}
+
+		if (confirmButtonText) {
+			this.params.confirmButtonText = confirmButtonText;
+		}
+
+		return this;
 	}
 
 	return this;

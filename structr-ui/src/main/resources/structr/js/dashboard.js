@@ -110,9 +110,17 @@ var _Dashboard = {
 		return fitStringToWidth(obj.name, 160);
 	},
 	clearLocalStorageOnServer: function() {
-		console.log(meObj)
-		Command.setProperty(meObj.id, 'localStorage', null, false, function() {
-			blinkGreen($('#clear-local-storage-on-server'));
-		});
+//		console.log(meObj)
+		if (!meObj) {
+			Command.rest("/me/ui", function (result) {
+				Command.setProperty(result[0].id, 'localStorage', null, false, function() {
+					blinkGreen($('#clear-local-storage-on-server'));
+				});
+			});
+		} else {
+			Command.setProperty(meObj.id, 'localStorage', null, false, function() {
+				blinkGreen($('#clear-local-storage-on-server'));
+			});
+		}
 	}
 };
