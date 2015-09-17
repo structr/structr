@@ -68,21 +68,23 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<Boolean>            isDefaultInUi     = new BooleanProperty("isDefaultInUi");
 	public static final Property<Boolean>            isDefaultInPublic = new BooleanProperty("isDefaultInPublic");
 	public static final Property<String>             contentHash       = new StringProperty("contentHash");
+	public static final Property<String>             readFunction      = new StringProperty("readFunction");
+	public static final Property<String>             writeFunction     = new StringProperty("writeFunction");
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	private NotionPropertyParser notionPropertyParser = null;
@@ -230,6 +232,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(isBuiltinProperty, _contentHash);
 		_contentHash = addContentHash(isDefaultInUi,     _contentHash);
 		_contentHash = addContentHash(isDefaultInPublic, _contentHash);
+		_contentHash = addContentHash(readFunction,      _contentHash);
+		_contentHash = addContentHash(writeFunction,     _contentHash);
 
 		return Integer.toHexString(_contentHash);
 	}
@@ -325,6 +329,30 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	public String getNotionMultiplicity() {
 		return getNotionPropertyParser().getMultiplicity();
+	}
+	
+	@Override
+	public String getReadFunction() {
+
+		String _readFunction = getProperty(SchemaProperty.readFunction);
+		if (_readFunction != null) {
+
+			_readFunction = _readFunction.trim();
+		}
+
+		return _readFunction;
+	}
+
+	@Override
+	public String getWriteFunction() {
+
+		String _writeFunction = getProperty(SchemaProperty.writeFunction);
+		if (_writeFunction != null) {
+
+			_writeFunction = _writeFunction.trim();
+		}
+
+		return _writeFunction;
 	}
 
 	// ----- private methods -----

@@ -85,28 +85,28 @@ public class ActionContext {
 		this.locale          = other.locale;
 	}
 
-	public ActionContext(final ActionContext other, final Object data) {
-
-		this(other);
-
-		init(data);
-	}
-
-	public ActionContext(final SecurityContext securityContext, final Object data) {
-
-		this.securityContext = securityContext;
-
-		this.locale = securityContext.getEffectiveLocale();
-
-		init(data);
-	}
-
-	private void init(final Object data) {
-
-		constants.put("data", data);
-		constants.put("true", true);
-		constants.put("false", false);
-	}
+////	public ActionContext(final ActionContext other, final Object data) {
+////
+////		this(other);
+////
+////		init(data);
+////	}
+////
+////	public ActionContext(final SecurityContext securityContext, final Object data) {
+////
+////		this.securityContext = securityContext;
+////
+////		this.locale = securityContext.getEffectiveLocale();
+////
+////		init(data);
+////	}
+//
+//	private void init(final Object data) {
+//
+//		constants.put("data", data);
+//		constants.put("true", true);
+//		constants.put("false", false);
+//	}
 
 	public SecurityContext getSecurityContext() {
 		return securityContext;

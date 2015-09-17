@@ -167,6 +167,13 @@ public interface PropertyKey<T> {
 	public Class relatedType();
 
 	/**
+	 * Returns the format value for this property.
+	 *
+	 * @return format
+	 */
+	public String format();
+
+	/**
 	 * Returns the default value for this property.
 	 *
 	 * @return defaultValue
@@ -174,11 +181,19 @@ public interface PropertyKey<T> {
 	public T defaultValue();
 
 	/**
-	 * Returns the format value for this property.
+	 * Returns the readFunction value for this property.
 	 *
-	 * @return format
+	 * @return readFunction
 	 */
-	public String format();
+	public String readFunction();
+
+	/**
+	 * Returns the writeFunction value for this property.
+	 *
+	 * @return writeFunction
+	 */
+	public String writeFunction();
+
 
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
@@ -317,4 +332,6 @@ public interface PropertyKey<T> {
 	public PropertyKey<T> unique(final boolean unique);
 	public PropertyKey<T> format(final String format);
 	public PropertyKey<T> dynamic();
+	public PropertyKey<T> readFunction(final String readFunction);
+	public PropertyKey<T> writeFunction(final String writeFunction);
 }

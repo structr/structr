@@ -37,4 +37,6 @@ public interface PropertyDefinition {
 	public boolean isIndexed();
 	public String getDefaultValue();
 	public String getContentType();
+	public String getReadFunction();
+	public String getWriteFunction();
 }

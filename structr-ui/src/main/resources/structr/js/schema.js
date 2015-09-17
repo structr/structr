@@ -719,7 +719,7 @@ var _Schema = {
 	},
 	appendLocalProperties: function(el, entity) {
 
-		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Notnull</th><th>Uniq.</th><th>Idx</th><th>Default</th><th>Action</th></thead></table>');
+		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format/Code</th><th>Notnull</th><th>Uniq.</th><th>Idx</th><th>Default</th><th>Action</th></thead></table>');
 		el.append('<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">');
 
 		var propertiesTable = $('.local.schema-props', el);
@@ -755,13 +755,12 @@ var _Schema = {
 			});
 		});
 
-
 		$('.add-local-attribute', el).on('click', function() {
 			var rowClass = 'new' + (_Schema.cnt++);
 			propertiesTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>'
 					+ '<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>'
 					+ '<td>' + typeOptions + '</td>'
-					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
+					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format or read function code"></td>'
 					+ '<td><input class="not-null" type="checkbox"></td>'
 					+ '<td><input class="unique" type="checkbox"></td>'
 					+ '<td><input class="indexed" type="checkbox"></td>'
@@ -1040,8 +1039,9 @@ var _Schema = {
 
 		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(property.name) + '"></td><td>'
 				+ '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(property.dbName) + '"></td><td>'
-				+ typeOptions + '</td><td><input size="15" type="text" class="property-format" value="'
-				+ (property.format ? escapeForHtmlAttributes(property.format) : '') + '"></td><td><input class="not-null" type="checkbox"'
+				+ typeOptions + '</td>'
+				+ (property.propertyType !== 'Function' ?  '<td><input size="15" type="text" class="property-format" value="' + (property.format ? escapeForHtmlAttributes(property.format) : '') + '"></td>' : '<td><button class="edit-read-function">Read</button><button class="edit-write-function">Write</button></td>')
+				+ '<td><input class="not-null" type="checkbox"'
 				+ (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
 				+ (property.unique ? ' checked="checked"' : '') + '</td><td><input class="indexed" type="checkbox"'
 				+ (property.indexed ? ' checked="checked"' : '') + '</td><td>'
@@ -1070,6 +1070,7 @@ var _Schema = {
 
 		$('.' + key + ' .property-type', el).prop('disabled', true);
 		$('.' + key + ' .property-format', el).prop('disabled', true);
+		$('.' + key + ' button', el).prop('disabled', true);
 		$('.' + key + ' .not-null', el).prop('disabled', true);
 		$('.' + key + ' .unique', el).prop('disabled', true);
 		$('.' + key + ' .indexed', el).prop('disabled', true);
@@ -1114,6 +1115,14 @@ var _Schema = {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', null).val(property.format);
 
+		$('.' + key + ' .edit-read-function', el).on('click', function() {
+			_Schema.openCodeEditor($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+		}).prop('disabled', null);
+
+		$('.' + key + ' .edit-write-function', el).on('click', function() {
+			_Schema.openCodeEditor($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+		}).prop('disabled', null);
+
 		$('.' + key + ' .not-null', el).on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', null).val(property.notNull);
@@ -1147,8 +1156,162 @@ var _Schema = {
 		$('.' + key + ' .indexed', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .property-default', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .remove-property', el).off('click').prop('disabled', 'disabled');
+		$('.' + key + ' button', el).off('click').prop('disabled', 'disabled');
 
 	},
+	openCodeEditor: function(btn, id, key, callback) {
+
+		Command.get(id, function(entity) {
+
+			var title = 'Edit ' + key + ' of ' + entity.name;
+
+			Structr.dialog(title, function() {}, function() {});
+
+			_Schema.editCode(btn, entity, key, dialogText, function() {
+				window.setTimeout(function () {
+					callback();
+				}, 250);
+			});
+
+		});
+
+	},
+	editCode: function(button, entity, key, element, callback) {
+		
+		var text = entity[key];
+		
+		if (isDisabled(button)) {
+			return;
+		}
+		var div = element.append('<div class="editor"></div>');
+		log(div);
+		var contentBox = $('.editor', element);
+		contentType = contentType ? contentType : entity.contentType;
+		var text1, text2;
+
+		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+
+		// Intitialize editor
+		editor = CodeMirror(contentBox.get(0), {
+			value: text,
+			mode: contentType,
+			lineNumbers: true,
+			lineWrapping: lineWrapping,
+            extraKeys: {
+               "'.'":        _Contents.autoComplete,
+               "Ctrl-Space": _Contents.autoComplete
+            }
+        });
+
+		Structr.resize();
+
+		dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
+		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+		dialogSaveButton = $('#editorSave', dialogBtn);
+		var saveAndClose = $('#saveAndClose', dialogBtn);
+
+		saveAndClose.on('click', function(e) {
+			e.stopPropagation();
+			dialogSaveButton.click();
+			setTimeout(function() {
+				dialogSaveButton.remove();
+				saveAndClose.remove();
+				dialogCancelButton.click();
+			}, 500);
+		});
+
+		editor.on('change', function(cm, change) {
+
+			if (text === editor.getValue()) {
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+			} else {
+				dialogSaveButton.prop("disabled", false).removeClass('disabled');
+				saveAndClose.prop("disabled", false).removeClass('disabled');
+			}
+
+			$('#chars').text(editor.getValue().length);
+			$('#words').text(editor.getValue().match(/\S+/g).length);
+		});
+
+		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
+		if (scrollInfo) {
+			editor.scrollTo(scrollInfo.left, scrollInfo.top);
+		}
+
+		editor.on('scroll', function() {
+			var scrollInfo = editor.getScrollInfo();
+			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
+		});
+
+		dialogCancelButton.on('click', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			if (callback) {
+				callback();
+			}
+			return false;
+		});
+
+		dialogSaveButton.on('click', function(e) {
+			e.stopPropagation();
+
+			//var contentNode = Structr.node(entity.id)[0];
+
+			text1 = text;
+			text2 = editor.getValue();
+
+			if (!text1)
+				text1 = '';
+			if (!text2)
+				text2 = '';
+
+			if (debug) {
+				console.log('text1', text1);
+				console.log('text2', text2);
+			}
+
+			if (text1 === text2) {
+				return;
+			}
+
+			Command.setProperty(entity.id, key, text2, false, function() {
+				dialogMsg.html('<div class="infoBox success">Code saved.</div>');
+				$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+				_Schema.reload();
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+				Command.getProperty(entity.id, key, function(newText) {
+					text = newText;
+				});
+			});
+
+		});
+
+		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+		$('#lineWrapping').on('change', function() {
+			var inp = $(this);
+			if  (inp.is(':checked')) {
+				LSWrapper.setItem(lineWrappingKey, "1");
+				editor.setOption('lineWrapping', true);
+			} else {
+				LSWrapper.removeItem(lineWrappingKey);
+				editor.setOption('lineWrapping', false);
+			}
+			blinkGreen(inp.parent());
+			editor.refresh();
+		});
+
+		dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
+		dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + editor.getValue().match(/\S+/g).length + '</span></span>');
+
+		editor.id = entity.id;
+
+		editor.focus();
+
+	},
+	
 	appendRelatedProperty: function(el, rel, key, out) {
 		remotePropertyKeys.push('_' + key);
 		var relType = rel.relationshipType;
