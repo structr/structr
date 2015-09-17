@@ -3,8 +3,8 @@ package org.structr.files.cmis;
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
@@ -23,24 +23,22 @@ import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
 import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.enums.RelationshipDirection;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.server.AbstractCmisService;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfo;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.commons.io.FilenameUtils;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.SecurityContext;
+import org.structr.core.app.StructrApp;
 import org.structr.files.cmis.repository.CMISRootFolder;
 
-/**
- * The Structr CMIS service.
- *
- * @author Christian Morgner
- */
 
 
 public class StructrCMISService extends AbstractCmisService {
@@ -95,7 +93,7 @@ public class StructrCMISService extends AbstractCmisService {
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
 
-			obj = new CMISRootFolder(false);
+			obj = new CMISRootFolder(null, false);
 
 		} else {
 
@@ -104,6 +102,69 @@ public class StructrCMISService extends AbstractCmisService {
 
 		return getObjectInfoIntern(repositoryId, obj);
 	}
+
+	@Override
+	public String create(final String repositoryId, final Properties properties, final String folderId, final ContentStream contentStream, final VersioningState versioningState, final List<String> policies, final ExtensionsData extension) {
+
+		final String objectTypeId = objectService.getStringValue(properties, PropertyIds.OBJECT_TYPE_ID);
+		if (objectTypeId != null) {
+
+			BaseTypeId baseTypeId = objectService.getBaseTypeId(objectTypeId);
+			if (baseTypeId == null) {
+
+				// not a CMIS base type, try to extract base type from Structr type
+				final Class type = StructrApp.getConfiguration().getNodeEntityClass(objectTypeId);
+				if (type != null) {
+
+					baseTypeId = objectService.getBaseTypeId(type);
+				}
+			}
+
+			if (baseTypeId != null) {
+
+				// check prerequisites for the individual base types
+				switch (baseTypeId) {
+
+					case CMIS_DOCUMENT:
+
+						// object must have content stream..
+						if (contentStream == null) {
+							throw new CmisInvalidArgumentException("Document object must have a content stream");
+						}
+
+						return objectService.createDocument(repositoryId, properties, folderId, contentStream, versioningState, policies, null, null, extension);
+
+					case CMIS_FOLDER:
+
+						// object must not have a content stream
+						if (contentStream != null) {
+							throw new CmisInvalidArgumentException("Folder object must not have a content stream");
+						}
+
+						return objectService.createFolder(repositoryId, properties, folderId, policies, null, null, extension);
+
+					case CMIS_ITEM:
+						return objectService.createItem(repositoryId, properties, folderId, policies, null, null, extension);
+
+					case CMIS_RELATIONSHIP:
+						return objectService.createRelationship(repositoryId, properties, policies, null, null, extension);
+
+					case CMIS_POLICY:
+						return objectService.createPolicy(repositoryId, properties, folderId, policies, null, null, extension);
+
+					case CMIS_SECONDARY:
+						throw new CmisInvalidArgumentException("Cannot create object of secondary type");
+				}
+
+			} else {
+
+				throw new CmisObjectNotFoundException("Type " + objectTypeId + " does not exist");
+			}
+		}
+
+	        throw new CmisInvalidArgumentException("Property '" + PropertyIds.OBJECT_TYPE_ID + "' must be set!");
+	}
+
 
 	@Override
 	public void close() {
@@ -172,15 +233,15 @@ public class StructrCMISService extends AbstractCmisService {
 	}
 
 	@Override
-	public ObjectData getFolderParent(String repositoryId, String folderId, String filter, ExtensionsData extension) {
+	public ObjectData getFolderParent(final String repositoryId, final String folderId, final String propertyFilter, final ExtensionsData extension) {
 
-		final ObjectData parent = navigationService.getFolderParent(repositoryId, folderId, filter, extension);
+		final ObjectData parent = navigationService.getFolderParent(repositoryId, folderId, propertyFilter, extension);
 		if (parent != null) {
 
 			return parent;
 		}
 
-		return new CMISRootFolder(false);
+		return new CMISRootFolder(propertyFilter, false);
 	}
 
 	@Override
@@ -191,13 +252,11 @@ public class StructrCMISService extends AbstractCmisService {
 	// ----- interface ObjectService -----
 	@Override
 	public String createDocument(String repositoryId, Properties properties, String folderId, ContentStream contentStream, VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return objectService.createDocument(repositoryId, properties, folderId, contentStream, versioningState, policies, addAces, removeAces, extension);
 	}
 
 	@Override
 	public String createDocumentFromSource(String repositoryId, String sourceId, Properties properties, String folderId, VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return objectService.createDocumentFromSource(repositoryId, sourceId, properties, folderId, versioningState, policies, addAces, removeAces, extension);
 	}
 
@@ -208,76 +267,73 @@ public class StructrCMISService extends AbstractCmisService {
 
 	@Override
 	public String createRelationship(String repositoryId, Properties properties, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return objectService.createRelationship(repositoryId, properties, policies, addAces, removeAces, extension);
 	}
 
 	@Override
 	public String createPolicy(String repositoryId, Properties properties, String folderId, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return objectService.createPolicy(repositoryId, properties, folderId, policies, addAces, removeAces, extension);
 	}
 
 	@Override
 	public String createItem(String repositoryId, Properties properties, String folderId, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
-		logger.log(Level.INFO, "...");
 		return objectService.createItem(repositoryId, properties, folderId, policies, addAces, removeAces, extension);
 	}
 
 	@Override
-	public AllowableActions getAllowableActions(String repositoryId, String objectId, ExtensionsData extension) {
+	public AllowableActions getAllowableActions(final String repositoryId, final String objectId, final ExtensionsData extension) {
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
-			return new CMISRootFolder(true).getAllowableActions();
+			return new CMISRootFolder(null, true).getAllowableActions();
 		}
 
 		return objectService.getAllowableActions(repositoryId, objectId, extension);
 	}
 
 	@Override
-	public ObjectData getObject(String repositoryId, String objectId, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension) {
+	public ObjectData getObject(final String repositoryId, final String objectId, final String propertyFilter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePolicyIds, final Boolean includeAcl, final ExtensionsData extension) {
 
 		if (objectId == null) {
 			throw new CmisInvalidArgumentException("objectId may not be null");
 		}
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
-			return new CMISRootFolder(includeAllowableActions);
+			return new CMISRootFolder(propertyFilter, includeAllowableActions);
 		}
 
-		return objectService.getObject(repositoryId, objectId, filter, includeAllowableActions, includeRelationships, renditionFilter, includePolicyIds, includeAcl, extension);
+		return objectService.getObject(repositoryId, objectId, propertyFilter, includeAllowableActions, includeRelationships, renditionFilter, includePolicyIds, includeAcl, extension);
 	}
 
 	@Override
-	public Properties getProperties(String repositoryId, String objectId, String filter, ExtensionsData extension) {
+	public Properties getProperties(final String repositoryId, final String objectId, final String propertyFilter, final ExtensionsData extension) {
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
-			return new CMISRootFolder(false).getProperties();
+			return new CMISRootFolder(propertyFilter, false).getProperties();
 		}
 
-		return objectService.getProperties(repositoryId, objectId, filter, extension);
+		return objectService.getProperties(repositoryId, objectId, propertyFilter, extension);
 	}
 
 	@Override
-	public List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
+	public List<RenditionData> getRenditions(final String repositoryId, final String objectId, final String renditionFilter, final BigInteger maxItems, final BigInteger skipCount, final ExtensionsData extension) {
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(objectId)) {
-			return new CMISRootFolder(false).getRenditions();
+			return new CMISRootFolder(null, false).getRenditions();
 		}
 
 		return objectService.getRenditions(repositoryId, objectId, renditionFilter, maxItems, skipCount, extension);
 	}
 
 	@Override
-	public ObjectData getObjectByPath(final String repositoryId, final String path, final String filter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePolicyIds, final Boolean includeAcl, final ExtensionsData extension) {
+	public ObjectData getObjectByPath(final String repositoryId, final String path, final String propertyFilter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePolicyIds, final Boolean includeAcl, final ExtensionsData extension) {
 
 		final String cleanPath = FilenameUtils.normalize(path);
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(cleanPath) || cleanPath == null || path == null) {
-			return new CMISRootFolder(includeAllowableActions);
+			return new CMISRootFolder(propertyFilter, includeAllowableActions);
 		}
 
-		return objectService.getObjectByPath(repositoryId, cleanPath, filter, includeAllowableActions, includeRelationships, renditionFilter, includePolicyIds, includeAcl, extension);
+		return objectService.getObjectByPath(repositoryId, cleanPath, propertyFilter, includeAllowableActions, includeRelationships, renditionFilter, includePolicyIds, includeAcl, extension);
 	}
 
 	@Override

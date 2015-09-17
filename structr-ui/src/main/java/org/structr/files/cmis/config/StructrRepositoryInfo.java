@@ -127,7 +127,7 @@ public class StructrRepositoryInfo extends CMISExtensionsData implements Reposit
 	// ----- interface AclCapabilities -----
 	@Override
 	public SupportedPermissions getSupportedPermissions() {
-		return SupportedPermissions.BASIC;
+		return SupportedPermissions.REPOSITORY;
 	}
 
 	@Override

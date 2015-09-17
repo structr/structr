@@ -1,9 +1,7 @@
 package org.structr.cmis.wrapper;
 
 import java.math.BigInteger;
-import java.util.List;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
 import org.structr.cmis.info.CMISDocumentInfo;
@@ -20,12 +18,12 @@ public class CMISDocumentWrapper extends CMISObjectWrapper<CMISDocumentInfo> {
 	private String contentType  = null;
 	private BigInteger fileSize = null;
 
-	public CMISDocumentWrapper(final Boolean includeAllowableActions) {
-		super(BaseTypeId.CMIS_DOCUMENT, includeAllowableActions);
+	public CMISDocumentWrapper(final String propertyFilter, final Boolean includeAllowableActions) {
+		super(BaseTypeId.CMIS_DOCUMENT, propertyFilter, includeAllowableActions);
 	}
 
 	@Override
-	public void createProperties(final BindingsObjectFactory factory, final List<PropertyData<?>> properties) {
+	public void createProperties(final BindingsObjectFactory factory, final FilteredPropertyList properties) {
 
 		properties.add(factory.createPropertyStringData(PropertyIds.CONTENT_STREAM_MIME_TYPE, contentType));
 		properties.add(factory.createPropertyStringData(PropertyIds.CONTENT_STREAM_FILE_NAME, getName()));

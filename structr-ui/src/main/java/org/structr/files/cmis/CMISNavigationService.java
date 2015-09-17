@@ -45,7 +45,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	}
 
 	@Override
-	public ObjectInFolderList getChildren(final String repositoryId, final String folderId, final String filter, final String orderBy, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePathSegment, final BigInteger maxItems, final BigInteger skipCount, final ExtensionsData extension) {
+	public ObjectInFolderList getChildren(final String repositoryId, final String folderId, final String propertyFilter, final String orderBy, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePathSegment, final BigInteger maxItems, final BigInteger skipCount, final ExtensionsData extension) {
 
 		final App app = StructrApp.getInstance();
 
@@ -53,7 +53,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 			try (final Tx tx = app.tx()) {
 
-				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(includeAllowableActions, maxItems, skipCount);
+				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
 				wrapper.wrap(app.nodeQuery(AbstractFile.class).and(Folder.parent, null).sort(AbstractNode.name).getAsList());
 
 				tx.success();
@@ -75,7 +75,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 					final List<AbstractFile> children = parent.getProperty(AbstractFile.children);
 
-					wrapper = new CMISObjectInFolderWrapper(includeAllowableActions, maxItems, skipCount);
+					wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
 
 					Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
 
@@ -193,7 +193,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	}
 
 	@Override
-	public List<ObjectParentData> getObjectParents(String repositoryId, String objectId, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includeRelativePathSegment, ExtensionsData extension) {
+	public List<ObjectParentData> getObjectParents(String repositoryId, String objectId, String propertyFilter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includeRelativePathSegment, ExtensionsData extension) {
 
 		final App app  = StructrApp.getInstance();
 
@@ -205,7 +205,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			if (graphObject instanceof AbstractFile) {
 
 				final Folder parent             = ((AbstractFile)graphObject).getProperty(AbstractFile.parent);
-				final ObjectData element        = parent != null ? CMISObjectWrapper.wrap(parent, includeAllowableActions) : new CMISRootFolder(includeAllowableActions);
+				final ObjectData element        = parent != null ? CMISObjectWrapper.wrap(parent, propertyFilter, includeAllowableActions) : new CMISRootFolder(propertyFilter, includeAllowableActions);
 				final ObjectParentDataImpl impl = new ObjectParentDataImpl(element);
 
 				impl.setRelativePathSegment(graphObject.getProperty(AbstractNode.name));
@@ -224,7 +224,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	}
 
 	@Override
-	public ObjectData getFolderParent(String repositoryId, String folderId, String filter, ExtensionsData extension) {
+	public ObjectData getFolderParent(final String repositoryId, final String folderId, final String propertyFilter, final ExtensionsData extension) {
 
 		final App app     = StructrApp.getInstance();
 		ObjectData result = null;
@@ -238,7 +238,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				final Folder parent = ((AbstractFile)graphObject).getProperty(AbstractFile.parent);
 				if (parent != null) {
 
-					result = CMISObjectWrapper.wrap(parent, false);
+					result = CMISObjectWrapper.wrap(parent, propertyFilter, false);
 				}
 			}
 

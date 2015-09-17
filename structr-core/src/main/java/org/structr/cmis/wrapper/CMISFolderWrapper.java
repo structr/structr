@@ -1,8 +1,6 @@
 package org.structr.cmis.wrapper;
 
-import java.util.List;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.structr.cmis.info.CMISFolderInfo;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
@@ -19,28 +17,16 @@ public class CMISFolderWrapper extends CMISObjectWrapper<CMISFolderInfo> {
 	private String parentId    = null;
 	private String path        = null;
 
-	public CMISFolderWrapper(final Boolean includeAllowableActions) {
-		super(BaseTypeId.CMIS_FOLDER, includeAllowableActions);
-	}
-
-	public String getParentId() {
-		return parentId;
+	public CMISFolderWrapper(final String propertyFilter, final Boolean includeAllowableActions) {
+		super(BaseTypeId.CMIS_FOLDER, propertyFilter, includeAllowableActions);
 	}
 
 	public void setParentId(String parentId) {
 		this.parentId = parentId;
 	}
 
-	public String getPath() {
-		return path;
-	}
-
 	public void setPath(String path) {
 		this.path = path;
-	}
-
-	public String getChangeToken() {
-		return changeToken;
 	}
 
 	public void setChangeToken(String changeToken) {
@@ -48,7 +34,7 @@ public class CMISFolderWrapper extends CMISObjectWrapper<CMISFolderInfo> {
 	}
 
 	@Override
-	public void createProperties(final BindingsObjectFactory factory, final List<PropertyData<?>> properties) {
+	public void createProperties(final BindingsObjectFactory factory, final FilteredPropertyList properties) {
 
 		properties.add(factory.createPropertyStringData(PropertyIds.PARENT_ID, parentId == null && !isRootFolder() ? CMISInfo.ROOT_FOLDER_ID : parentId));
 		properties.add(factory.createPropertyStringData(PropertyIds.PATH, path));

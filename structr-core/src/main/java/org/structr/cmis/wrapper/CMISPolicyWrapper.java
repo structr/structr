@@ -1,7 +1,5 @@
 package org.structr.cmis.wrapper;
 
-import java.util.List;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
 import org.structr.cmis.info.CMISPolicyInfo;
@@ -13,12 +11,12 @@ import org.structr.common.error.FrameworkException;
  */
 public class CMISPolicyWrapper extends CMISObjectWrapper<CMISPolicyInfo> {
 
-	public CMISPolicyWrapper(final Boolean includeAllowableActions) {
-		super(BaseTypeId.CMIS_POLICY, includeAllowableActions);
+	public CMISPolicyWrapper(final String propertyFilter, final Boolean includeAllowableActions) {
+		super(BaseTypeId.CMIS_POLICY, propertyFilter, includeAllowableActions);
 	}
 
 	@Override
-	public void createProperties(final BindingsObjectFactory factory, final List<PropertyData<?>> properties) {
+	public void createProperties(final BindingsObjectFactory factory, final FilteredPropertyList properties) {
 	}
 
 	@Override

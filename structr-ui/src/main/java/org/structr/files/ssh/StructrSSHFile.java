@@ -184,6 +184,14 @@ public class StructrSSHFile implements SshFile {
 		final String[] parts       = localPath.split("[/]+");
 		final String localPart     = parts[0];
 
+		if (".".equals(path)) {
+			return this;
+		}
+
+		if ("..".equals(path)) {
+			return parent;
+		}
+
 		if (isAbsolute && parent != null) {
 
 			return getRootFolder().findFile(path);

@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -15,10 +14,14 @@ import org.apache.chemistry.opencmis.commons.data.ChangeEventInfo;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.PolicyIdList;
 import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.data.RenditionData;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import static org.apache.chemistry.opencmis.commons.enums.PropertyType.BOOLEAN;
+import static org.apache.chemistry.opencmis.commons.enums.PropertyType.DATETIME;
+import static org.apache.chemistry.opencmis.commons.enums.PropertyType.DECIMAL;
+import static org.apache.chemistry.opencmis.commons.enums.PropertyType.INTEGER;
+import static org.apache.chemistry.opencmis.commons.enums.PropertyType.STRING;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.BindingsObjectFactoryImpl;
 import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
 import org.structr.cmis.common.CMISExtensionsData;
@@ -48,6 +51,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	protected GregorianCalendar creationDate         = null;
 	protected BaseTypeId baseTypeId                  = null;
 	protected String lastModifiedBy                  = null;
+	protected String propertyFilter                  = null;
 	protected String description                     = null;
 	protected String createdBy                       = null;
 	protected String type                            = null;
@@ -55,12 +59,13 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	protected String id                              = null;
 	protected boolean includeActions                 = false;
 
-	public abstract void createProperties(final BindingsObjectFactory factory, final List<PropertyData<?>> properties);
+	public abstract void createProperties(final BindingsObjectFactory factory, final FilteredPropertyList properties);
 
-	public CMISObjectWrapper(final BaseTypeId baseTypeId, final Boolean includeActions) {
+	public CMISObjectWrapper(final BaseTypeId baseTypeId, final String propertyFilter, final Boolean includeActions) {
 
-		this.includeActions = includeActions != null && includeActions;
-		this.baseTypeId     = baseTypeId;
+		this.includeActions     = includeActions != null && includeActions;
+		this.propertyFilter     = propertyFilter;
+		this.baseTypeId         = baseTypeId;
 	}
 
 	@Override
@@ -140,8 +145,8 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	@Override
 	public Properties getProperties() {
 
+		final FilteredPropertyList properties  = new FilteredPropertyList(propertyFilter);
 		final BindingsObjectFactory objFactory = new BindingsObjectFactoryImpl();
-		final List<PropertyData<?>> properties = new LinkedList<>();
 
 		properties.add(objFactory.createPropertyIdData(PropertyIds.BASE_TYPE_ID, baseTypeId.value()));
 		properties.add(objFactory.createPropertyIdData(PropertyIds.OBJECT_TYPE_ID, type));
@@ -198,7 +203,8 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		// initialize type-dependent properties
 		createProperties(objFactory, properties);
 
-		return objFactory.createPropertiesData(properties);
+		// filter properties according to filter expression
+		return objFactory.createPropertiesData(properties.getList());
 	}
 
 	@Override
@@ -257,7 +263,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	}
 
 	// ----- public static methods -----
-	public static CMISObjectWrapper wrap(final GraphObject source, final Boolean includeAllowableActions) throws FrameworkException {
+	public static CMISObjectWrapper wrap(final GraphObject source, final String propertyFilter, final Boolean includeAllowableActions) throws FrameworkException {
 
 		CMISObjectWrapper wrapper = null;
 		if (source != null) {
@@ -271,32 +277,32 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 					switch (baseTypeId) {
 
 						case CMIS_DOCUMENT:
-							wrapper = new CMISDocumentWrapper(includeAllowableActions);
+							wrapper = new CMISDocumentWrapper(propertyFilter, includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getDocumentInfo());
 							break;
 
 						case CMIS_FOLDER:
-							wrapper = new CMISFolderWrapper(includeAllowableActions);
+							wrapper = new CMISFolderWrapper(propertyFilter, includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getFolderInfo());
 							break;
 
 						case CMIS_ITEM:
-							wrapper = new CMISItemWrapper(includeAllowableActions);
+							wrapper = new CMISItemWrapper(propertyFilter, includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.geItemInfo());
 							break;
 
 						case CMIS_POLICY:
-							wrapper = new CMISPolicyWrapper(includeAllowableActions);
+							wrapper = new CMISPolicyWrapper(propertyFilter, includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getPolicyInfo());
 							break;
 
 						case CMIS_RELATIONSHIP:
-							wrapper = new CMISRelationshipWrapper(includeAllowableActions);
+							wrapper = new CMISRelationshipWrapper(propertyFilter, includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getRelationshipInfo());
 							break;
 
 						case CMIS_SECONDARY:
-							wrapper = new CMISSecondaryWrapper(includeAllowableActions);
+							wrapper = new CMISSecondaryWrapper(propertyFilter, includeAllowableActions);
 							wrapper.initializeFrom(cmisInfo.getSecondaryInfo());
 							break;
 					}

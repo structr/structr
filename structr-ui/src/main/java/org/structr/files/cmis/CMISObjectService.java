@@ -1,11 +1,11 @@
 package org.structr.files.cmis;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -21,6 +21,7 @@ import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
@@ -44,6 +45,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
+import org.structr.files.cmis.wrapper.CMISContentStream;
 import org.structr.files.cmis.wrapper.CMISPagingListWrapper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
@@ -59,8 +61,6 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	public CMISObjectService(final StructrCMISService parentService, final SecurityContext securityContext) {
 		super(parentService, securityContext);
 	}
-
-	private static final Logger logger = Logger.getLogger(CMISObjectService.class.getName());
 
 	@Override
 	public String createDocument(final String repositoryId, final Properties properties, final String folderId, final ContentStream contentStream, final VersioningState versioningState, final List<String> policies, final Acl addAces, final Acl removeAces, final ExtensionsData extension) {
@@ -82,8 +82,9 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 				final BaseTypeId baseTypeId = getBaseTypeId(type);
 				if (baseTypeId != null && BaseTypeId.CMIS_DOCUMENT.equals(baseTypeId)) {
 
+					final String mimeType = contentStream != null ? contentStream.getMimeType() : null;
 					// create file
-					newFile = FileHelper.createFile(securityContext, new byte[0], contentStream.getMimeType(), type, fileName);
+					newFile = FileHelper.createFile(securityContext, new byte[0], mimeType, type, fileName);
 
 					// find and set parent if it exists
 					if (!CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
@@ -101,12 +102,21 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 					uuid = newFile.getUuid();
 
-					// copy file and update metadata
-					try (final OutputStream outputStream = newFile.getOutputStream(false)) {
-						IOUtils.copy(contentStream.getStream(), outputStream);
-					}
+					if (contentStream != null) {
 
-					FileHelper.updateMetadata(newFile);
+						final InputStream inputStream = contentStream.getStream();
+						if (inputStream != null) {
+
+							// copy file and update metadata
+							try (final OutputStream outputStream = newFile.getOutputStream(false)) {
+								IOUtils.copy(inputStream, outputStream);
+							}
+
+							inputStream.close();
+
+							FileHelper.updateMetadata(newFile);
+						}
+					}
 
 				} else {
 
@@ -135,7 +145,40 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 	@Override
 	public String createDocumentFromSource(String repositoryId, String sourceId, Properties properties, String folderId, VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		// copy existing document
+		final App app = StructrApp.getInstance(securityContext);
+		String uuid   = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final FileBase existingDocument = app.get(FileBase.class, sourceId);
+			if (existingDocument != null) {
+
+				try (final InputStream inputStream = existingDocument.getInputStream()) {
+
+					final ContentStreamImpl copyContentStream = new ContentStreamImpl();
+					copyContentStream.setFileName(existingDocument.getName());
+					copyContentStream.setMimeType(existingDocument.getContentType());
+					copyContentStream.setLength(BigInteger.valueOf(existingDocument.getSize()));
+					copyContentStream.setStream(inputStream);
+
+					uuid = createDocument(repositoryId, properties, folderId, copyContentStream, versioningState, policies, addAces, removeAces, extension);
+				}
+
+			} else {
+
+				throw new CmisObjectNotFoundException("Document with ID " + sourceId + " does not exist");
+			}
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			throw new CmisRuntimeException("New document could not be created: " + t.getMessage());
+		}
+
+		return uuid;
 	}
 
 	@Override
@@ -223,7 +266,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	}
 
 	@Override
-	public ObjectData getObject(String repositoryId, final String objectId, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension) {
+	public ObjectData getObject(final String repositoryId, final String objectId, final String propertyFilter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePolicyIds, final Boolean includeAcl, final ExtensionsData extension) {
 
 		final App app = StructrApp.getInstance();
 
@@ -232,7 +275,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			final GraphObject obj = app.get(objectId);
 			if (obj != null) {
 
-				final ObjectData data = CMISObjectWrapper.wrap(obj, includeAllowableActions);
+				final ObjectData data = CMISObjectWrapper.wrap(obj, propertyFilter, includeAllowableActions);
 
 				tx.success();
 
@@ -247,9 +290,9 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	}
 
 	@Override
-	public Properties getProperties(String repositoryId, String objectId, String filter, ExtensionsData extension) {
+	public Properties getProperties(final String repositoryId, final String objectId, final String propertyFilter, final ExtensionsData extension) {
 
-		final ObjectData obj = getObject(repositoryId, objectId, filter, false, IncludeRelationships.NONE, null, false, false, extension);
+		final ObjectData obj = getObject(repositoryId, objectId, propertyFilter, false, IncludeRelationships.NONE, null, false, false, extension);
 		if (obj != null) {
 
 			return obj.getProperties();
@@ -259,7 +302,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	}
 
 	@Override
-	public List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
+	public List<RenditionData> getRenditions(final String repositoryId, final String objectId, final String renditionFilter, final BigInteger maxItems, final BigInteger skipCount, final ExtensionsData extension) {
 
 		final ObjectData obj = getObject(repositoryId, objectId, renditionFilter, false, IncludeRelationships.NONE, null, false, false, extension);
 		if (obj != null) {
@@ -271,7 +314,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	}
 
 	@Override
-	public ObjectData getObjectByPath(String repositoryId, String path, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension) {
+	public ObjectData getObjectByPath(final String repositoryId, final String path, final String propertyFilter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePolicyIds, final Boolean includeAcl, final ExtensionsData extension) {
 
 		final App app     = StructrApp.getInstance();
 		ObjectData result = null;
@@ -281,7 +324,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			final AbstractFile file = app.nodeQuery(AbstractFile.class).and(AbstractFile.path, path).getFirst();
 			if (file != null) {
 
-				result = CMISObjectWrapper.wrap(file, includeAllowableActions);
+				result = CMISObjectWrapper.wrap(file, propertyFilter, includeAllowableActions);
 			}
 
 			tx.success();
@@ -298,7 +341,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	}
 
 	@Override
-	public ContentStream getContentStream(String repositoryId, String objectId, String streamId, BigInteger offset, BigInteger length, ExtensionsData extension) {
+	public ContentStream getContentStream(final String repositoryId, final String objectId, final String streamId, final BigInteger offset, final BigInteger length, final ExtensionsData extension) {
 
 		final App app            = StructrApp.getInstance();
 		ContentStreamImpl result = null;
@@ -308,12 +351,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			final FileBase file = app.get(FileBase.class, objectId);
 			if (file != null) {
 
-				result = new ContentStreamImpl();
-
-				result.setFileName(file.getName());
-				result.setLength(BigInteger.valueOf(file.getProperty(FileBase.size)));
-				result.setMimeType(file.getProperty(FileBase.contentType));
-				result.setStream(file.getInputStream());
+				return new CMISContentStream(file, offset, length);
 			}
 
 			tx.success();
@@ -330,7 +368,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	}
 
 	@Override
-	public void updateProperties(String repositoryId, Holder<String> objectId, Holder<String> changeToken, Properties properties, ExtensionsData extension) {
+	public void updateProperties(final String repositoryId, final Holder<String> objectId, final Holder<String> changeToken, final Properties properties, final ExtensionsData extension) {
 
 		final App app   = StructrApp.getInstance();
 		final String id = objectId.getValue();
@@ -363,13 +401,90 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	}
 
 	@Override
-	public List<BulkUpdateObjectIdAndChangeToken> bulkUpdateProperties(String repositoryId, List<BulkUpdateObjectIdAndChangeToken> objectIdsAndChangeTokens, Properties properties, List<String> addSecondaryTypeIds, List<String> removeSecondaryTypeIds, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public List<BulkUpdateObjectIdAndChangeToken> bulkUpdateProperties(final String repositoryId, final List<BulkUpdateObjectIdAndChangeToken> objectIdsAndChangeTokens, final Properties properties, final List<String> addSecondaryTypeIds, final List<String> removeSecondaryTypeIds, final ExtensionsData extension) {
+
+		final List<BulkUpdateObjectIdAndChangeToken> result = new LinkedList<>();
+		final App app                                       = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			for (final BulkUpdateObjectIdAndChangeToken token : objectIdsAndChangeTokens) {
+
+				final GraphObject obj = app.get(token.getId());
+				if (obj != null) {
+
+					final PropertyMap propertyMap = PropertyMap.cmisTypeToJavaType(securityContext, obj.getClass(), properties);
+					if (propertyMap != null) {
+
+						for (final Entry<PropertyKey, Object> entry : propertyMap.entrySet()) {
+
+							obj.setProperty(entry.getKey(), entry.getValue());
+						}
+					}
+
+					result.add(token);
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			throw new CmisConstraintException(fex.getMessage(), fex);
+		}
+
+		return result;
 	}
 
 	@Override
-	public void moveObject(String repositoryId, Holder<String> objectId, String targetFolderId, String sourceFolderId, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public void moveObject(String repositoryId, final Holder<String> objectId, final String targetFolderId, final String sourceFolderId, final ExtensionsData extension) {
+
+		if (sourceFolderId != null && targetFolderId != null) {
+
+			if (sourceFolderId.equals(targetFolderId)) {
+				return;
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
+			try (final Tx tx = app.tx()) {
+
+				final FileBase file = get(app, FileBase.class, objectId.getValue());
+				final Folder parent = file.getProperty(FileBase.parent);
+
+				// check if the file to be moved is filed in the root folder (=> null parent)
+				if (CMISInfo.ROOT_FOLDER_ID.equals(sourceFolderId) && parent != null) {
+					throw new CmisInvalidArgumentException("Object with ID " + objectId.getValue() + " is not filed in folder with ID " + sourceFolderId);
+				}
+
+				// check if the file to be moved is filed in the given source folder
+				if (parent != null && !sourceFolderId.equals(parent.getUuid())) {
+					throw new CmisInvalidArgumentException("Object with ID " + objectId.getValue() + " is not filed in folder with ID " + sourceFolderId);
+				}
+
+				// check if the target folder is the root folder
+				if (CMISInfo.ROOT_FOLDER_ID.equals(targetFolderId)) {
+
+					// root folder => null parent
+					file.setProperty(FileBase.parent, null);
+
+				} else {
+
+					// get will throw an exception if the folder doesn't exist
+					file.setProperty(FileBase.parent, get(app, Folder.class, targetFolderId));
+
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				throw new CmisConstraintException(fex.getMessage(), fex);
+			}
+
+		} else {
+
+			throw new CmisInvalidArgumentException("Source and target folder must be set");
+		}
 	}
 
 	@Override
@@ -497,5 +612,16 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 				}
 			}
 		}
+	}
+
+	private <T extends GraphObject> T get(final App app, final Class<T> type, final String id) throws FrameworkException {
+
+		final T obj = app.get(type, id);
+		if (obj != null) {
+
+			return obj;
+		}
+
+		throw new CmisObjectNotFoundException("Object with ID " + id + " does not exist");
 	}
 }

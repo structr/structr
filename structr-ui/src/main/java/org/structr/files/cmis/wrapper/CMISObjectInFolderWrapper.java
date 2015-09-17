@@ -18,16 +18,18 @@ import org.structr.core.entity.AbstractNode;
 public class CMISObjectInFolderWrapper extends CMISPagingListWrapper<ObjectInFolderData> implements ObjectInFolderList {
 
 	private Boolean includeAllowableActions = false;
+	private String propertyFilter           = null;
 
 	public CMISObjectInFolderWrapper(final Boolean includeAllowableActions) {
-		this(includeAllowableActions, null, null);
+		this(null, includeAllowableActions, null, null);
 	}
 
-	public CMISObjectInFolderWrapper(final Boolean includeAllowableActions, final BigInteger maxItems, final BigInteger skipCount) {
+	public CMISObjectInFolderWrapper(final String propertyFilter, final Boolean includeAllowableActions, final BigInteger maxItems, final BigInteger skipCount) {
 
 		super(maxItems, skipCount);
 
 		this.includeAllowableActions = includeAllowableActions;
+		this.propertyFilter          = propertyFilter;
 	}
 
 	public ObjectInFolderData wrapObjectData(final ObjectData element, final String pathSegment) {
@@ -39,7 +41,7 @@ public class CMISObjectInFolderWrapper extends CMISPagingListWrapper<ObjectInFol
 	}
 
 	public ObjectData wrapGraphObject(final GraphObject item) throws FrameworkException {
-		return CMISObjectWrapper.wrap(item, includeAllowableActions);
+		return CMISObjectWrapper.wrap(item, propertyFilter, includeAllowableActions);
 	}
 
 	public void wrap(final List<? extends GraphObject> list) throws FrameworkException {

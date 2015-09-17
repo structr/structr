@@ -17,8 +17,8 @@ import org.structr.core.app.StructrApp;
  */
 public abstract class AbstractStructrCmisService {
 
-	protected StructrCMISService parentService = null;
-	protected SecurityContext securityContext  = null;
+	public StructrCMISService parentService = null;
+	public SecurityContext securityContext  = null;
 
 	public AbstractStructrCmisService(final StructrCMISService parentService, final SecurityContext securityContext) {
 
@@ -26,7 +26,7 @@ public abstract class AbstractStructrCmisService {
 		this.securityContext = securityContext;
 	}
 
-	protected void log(final Logger logger, final Object... objects) {
+	public void log(final Logger logger, final Object... objects) {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -37,7 +37,7 @@ public abstract class AbstractStructrCmisService {
 		logger.log(Level.INFO, buf.toString(), objects);
 	}
 
-	protected Object getValue(final Properties properties, final String key) {
+	public Object getValue(final Properties properties, final String key) {
 
 		final Map<String, PropertyData<?>> data = properties.getProperties();
 		if (data != null) {
@@ -52,7 +52,7 @@ public abstract class AbstractStructrCmisService {
 		return null;
 	}
 
-	protected String getStringValue(final Properties properties, final String key) {
+	public String getStringValue(final Properties properties, final String key) {
 
 		final Object value = getValue(properties, key);
 		if (value != null && value instanceof String) {
@@ -69,7 +69,7 @@ public abstract class AbstractStructrCmisService {
 	 * @param type
 	 * @return
 	 */
-	protected CMISInfo getCMISInfo(final Class<? extends GraphObject> type) {
+	public CMISInfo getCMISInfo(final Class<? extends GraphObject> type) {
 
 		try { return type.newInstance().getCMISInfo(); } catch (Throwable t) {}
 
@@ -81,7 +81,7 @@ public abstract class AbstractStructrCmisService {
 	 * @param type
 	 * @return
 	 */
-	protected BaseTypeId getBaseTypeId(final Class<? extends GraphObject> type) {
+	public BaseTypeId getBaseTypeId(final Class<? extends GraphObject> type) {
 
 		final CMISInfo info = getCMISInfo(type);
 		if (info != null) {
@@ -98,7 +98,7 @@ public abstract class AbstractStructrCmisService {
 	 * @param typeId
 	 * @return
 	 */
-	protected BaseTypeId getBaseTypeId(final String typeId) {
+	public BaseTypeId getBaseTypeId(final String typeId) {
 
 		try { return BaseTypeId.fromValue(typeId); } catch (IllegalArgumentException iex) {}
 
@@ -115,7 +115,7 @@ public abstract class AbstractStructrCmisService {
 	 *
 	 * @return a Structr type
 	 */
-	protected Class typeFromObjectTypeId(final String objectTypeId, final BaseTypeId defaultType, final Class defaultClass) {
+	public Class typeFromObjectTypeId(final String objectTypeId, final BaseTypeId defaultType, final Class defaultClass) {
 
 		// default for cmuis:folder
 		if (defaultType.value().equals(objectTypeId)) {

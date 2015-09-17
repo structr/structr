@@ -41,7 +41,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			final GraphObject node = app.get(objectId);
 			if (node != null) {
 
-				return CMISObjectWrapper.wrap(node, false);
+				return CMISObjectWrapper.wrap(node, null, false);
 			}
 
 			tx.success();
@@ -92,7 +92,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			tx.success();
 
 			// return the wrapper which implements the Acl interface
-			return CMISObjectWrapper.wrap(obj, false);
+			return CMISObjectWrapper.wrap(obj, null, false);
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -134,7 +134,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			tx.success();
 
 			// return the wrapper which implements the Acl interface
-			return CMISObjectWrapper.wrap(obj, false);
+			return CMISObjectWrapper.wrap(obj, null, false);
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();

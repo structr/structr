@@ -24,6 +24,7 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_DOCUMENT;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
+import org.apache.chemistry.opencmis.commons.enums.ContentStreamAllowed;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
@@ -237,9 +238,9 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		final TypeDefinitionFactory factory      = TypeDefinitionFactory.newInstance();
 		final MutableSecondaryTypeDefinition def = factory.createSecondaryTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_SECONDARY.value());
 
-		initializeExtendedType(def, typeId);
-
 		def.setIsCreatable(false);
+
+		initializeExtendedType(def, typeId);
 
 		if (!includePropertyDefinitions) {
 			def.removeAllPropertyDefinitions();
@@ -252,6 +253,8 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		final TypeDefinitionFactory factory         = TypeDefinitionFactory.newInstance();
 		final MutableRelationshipTypeDefinition def = factory.createRelationshipTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_RELATIONSHIP.value());
+
+		def.setIsCreatable(false);
 
 		initializeExtendedType(def, typeId);
 
@@ -267,6 +270,8 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		final TypeDefinitionFactory factory = TypeDefinitionFactory.newInstance();
 		final MutableItemTypeDefinition def = factory.createItemTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_ITEM.value());
 
+		def.setIsCreatable(false);
+
 		initializeExtendedType(def, typeId);
 
 		if (!includePropertyDefinitions) {
@@ -280,6 +285,8 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		final TypeDefinitionFactory factory   = TypeDefinitionFactory.newInstance();
 		final MutablePolicyTypeDefinition def = factory.createPolicyTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_POLICY.value());
+
+		def.setIsCreatable(false);
 
 		initializeExtendedType(def, typeId);
 
@@ -308,6 +315,9 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		final TypeDefinitionFactory factory     = TypeDefinitionFactory.newInstance();
 		final MutableDocumentTypeDefinition def = factory.createDocumentTypeDefinition(CmisVersion.CMIS_1_1, baseType ? null : BaseTypeId.CMIS_DOCUMENT.value());
+
+		// content is required for Structr documents
+		def.setContentStreamAllowed(ContentStreamAllowed.REQUIRED);
 
 		initializeExtendedType(def, typeId);
 
