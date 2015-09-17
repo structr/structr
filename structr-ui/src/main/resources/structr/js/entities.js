@@ -183,10 +183,10 @@ var _Entities = {
 				var id = tab.prop('id').substring(4);
 				var content = $('#content-tab-' + id);
 				content.show();
-				localStorage.setItem(activeQueryTabPrefix  + '_' + nodeId, id);
+				LSWrapper.setItem(activeQueryTabPrefix  + '_' + nodeId, id);
 			});
 		});
-		var id = localStorage.getItem(activeQueryTabPrefix  + '_' + nodeId) || activeId.substring(13);
+		var id = LSWrapper.getItem(activeQueryTabPrefix  + '_' + nodeId) || activeId.substring(13);
 		var tab = $('#tab-' + id);
 		tab.click();
 	},
@@ -216,7 +216,7 @@ var _Entities = {
 				dialog.append('<div class="editor"></div>');
 
 				var contentBox = $('.editor', dialog);
-				var lineWrapping = localStorage.getItem(lineWrappingKey);
+				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
 				// Intitialize editor
 				editor = CodeMirror(contentBox.get(0), {
@@ -310,10 +310,10 @@ var _Entities = {
 				$('#lineWrapping').on('change', function () {
 					var inp = $(this);
 					if (inp.is(':checked')) {
-						localStorage.setItem(lineWrappingKey, "1");
+						LSWrapper.setItem(lineWrappingKey, "1");
 						editor.setOption('lineWrapping', true);
 					} else {
-						localStorage.removeItem(lineWrappingKey);
+						LSWrapper.removeItem(lineWrappingKey);
 						editor.setOption('lineWrapping', false);
 					}
 					editor.refresh();
@@ -439,7 +439,7 @@ var _Entities = {
 				callback(c);
 			}
 			self.addClass('active');
-			localStorage.setItem(activeEditTabPrefix  + '_' + entity.id, name);
+			LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, name);
 		});
 		el.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
 		var content = $('#tabView-' + name);
@@ -472,7 +472,7 @@ var _Entities = {
 				var tabView = $('#tabView-' + view);
 				tabView.empty();
 				tabView.show();
-				localStorage.setItem(activeEditTabPrefix  + '_' + entity.id, view);
+				LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, view);
 				
 				$.ajax({
 					url: rootUrl + '_schema/' + entity.type + '/ui',
@@ -488,7 +488,7 @@ var _Entities = {
 				});
 			});
 		});
-		activeView = localStorage.getItem(activeEditTabPrefix  + '_' + entity.id) || activeView;
+		activeView = LSWrapper.getItem(activeEditTabPrefix  + '_' + entity.id) || activeView;
 		$('#tab-' + activeView).click();
 
 	},

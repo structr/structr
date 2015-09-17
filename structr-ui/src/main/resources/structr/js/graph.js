@@ -398,8 +398,8 @@ var _Graph = {
 
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Graph');
 
-		activeTabLeftGraph = localStorage.getItem(activeTabRightGraphKey);
-		activeTabRightGraph = localStorage.getItem(activeTabLeftGraphKey);
+		activeTabLeftGraph = LSWrapper.getItem(activeTabRightGraphKey);
+		activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);
 
 		if ($('#graph-box') && $('#graph-box').length) {
 
@@ -676,7 +676,7 @@ var _Graph = {
 
 	},
 	saveQuery: function(query, type, params) {
-		var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		var exists = false;
 		$.each(savedQueries, function(i, q) {
 			if (q.query === query && q.params === params) {
@@ -685,19 +685,19 @@ var _Graph = {
 		});
 		if (!exists) {
 			savedQueries.unshift({'type': type, 'query': query, 'params': params});
-			localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+			LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
 			Structr.saveLocalStorage();
 		}
 	},
 	removeSavedQuery: function(i) {
-		var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		savedQueries.splice(i, 1);
-		localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+		LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
 		_Graph.listSavedQueries();
 		Structr.saveLocalStorage();
 	},
 	restoreSavedQuery: function(i, exec) {
-		var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		var query = savedQueries[i];
 		$('.search[name=' + query.type + ']').val(query.query);
 		_Graph.activateClearSearchIcon(query.type);
@@ -719,7 +719,7 @@ var _Graph = {
 	listSavedQueries: function() {
 		$('#saved-queries').empty();
 		queriesSlideout.append('<div id="saved-queries"></div>');
-		var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		$.each(savedQueries, function(q, query) {
 			if (query.type === 'cypher') {
 				$('#saved-queries').append('<div class="saved-query cypher-query"><img class="replay" alt="Cypher Query" src="icon/control_play_blue.png">' + query.query + '<img class="remove-query" src="icon/cross_small_grey.png"></div>');

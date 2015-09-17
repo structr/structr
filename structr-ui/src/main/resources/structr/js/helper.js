@@ -470,3 +470,32 @@ jQuery.isBlank = function (obj) {
 	for (var prop in obj) if (obj[prop]) return false;
 	return true;
 };
+
+/**
+ * thin wrapper for localStorage with a success-check and error display
+ */
+var LSWrapper = {
+
+	setItem: function(key, value) {
+		try {
+			localStorage.setItem(key, value);
+			return true;
+		} catch (e) {
+			// show error
+			return false;
+		}
+	},
+	
+	getItem: function (key) {
+		return localStorage.getItem(key);
+	},
+	
+	removeItem: function (key) {
+		return localStorage.removeItem(key);
+	},
+	
+	clear: function () {
+		localStorage.clear();
+	}
+
+};

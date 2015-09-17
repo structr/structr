@@ -56,7 +56,7 @@ var _Security = {
 			activate: function(event, ui) {
 				//_Types.clearList(_Types.type);
 				var activeTab = ui.newPanel[0].id;
-				localStorage.setItem(securityTabKey, activeTab);
+				LSWrapper.setItem(securityTabKey, activeTab);
 
 				if (activeTab === 'usersAndGroups') {
 					_Security.refreshGroups();
@@ -68,7 +68,7 @@ var _Security = {
 			}
 		});
 
-		var activeTab = localStorage.getItem(securityTabKey);
+		var activeTab = LSWrapper.getItem(securityTabKey);
 		if (activeTab === null || activeTab === 'usersAndGroups') {
 			_Security.refreshGroups();
 			_Security.refreshUsers();

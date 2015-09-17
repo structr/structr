@@ -179,7 +179,7 @@ var _Crud = {
 			_Crud.resize();
 		});
 		
-		hiddenTabs = JSON.parse(localStorage.getItem(crudHiddenTabsKey)) || hiddenTabs;
+		hiddenTabs = JSON.parse(LSWrapper.getItem(crudHiddenTabsKey)) || hiddenTabs;
 		//console.log('########## Hidden tabs ##############', hiddenTabs);
 
 	},
@@ -207,7 +207,7 @@ var _Crud = {
 				}
 			}
 			
-			 localStorage.setItem(crudHiddenTabsKey, JSON.stringify(hiddenTabs));
+			 LSWrapper.setItem(crudHiddenTabsKey, JSON.stringify(hiddenTabs));
 
 		});
 
@@ -560,10 +560,10 @@ var _Crud = {
 
 	},
 	storeType: function() {
-		localStorage.setItem(crudTypeKey, _Crud.type);
+		LSWrapper.setItem(crudTypeKey, _Crud.type);
 	},
 	restoreType: function() {
-		var val = localStorage.getItem(crudTypeKey);
+		var val = LSWrapper.getItem(crudTypeKey);
 		if (val) {
 			_Crud.type = val;
 		}
@@ -571,11 +571,11 @@ var _Crud = {
 	storePagerData: function() {
 		var type = _Crud.type;
 		var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
-		localStorage.setItem(crudPagerDataKey + type, pagerData);
+		LSWrapper.setItem(crudPagerDataKey + type, pagerData);
 	},
 	restorePagerData: function() {
 		var type = _Crud.type;
-		var val = localStorage.getItem(crudPagerDataKey + type);
+		var val = LSWrapper.getItem(crudPagerDataKey + type);
 
 		if (val) {
 			var pagerData = val.split(',');
@@ -587,16 +587,16 @@ var _Crud = {
 		}
 	},
 	setCollectionPageSize: function(type, key, value) {
-		localStorage.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key, value);
+		LSWrapper.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key, value);
 	},
 	getCollectionPageSize: function(type, key) {
-		return localStorage.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key);
+		return LSWrapper.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key);
 	},
 	setCollectionPage: function(type, key, value) {
-		localStorage.setItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key, value);
+		LSWrapper.setItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key, value);
 	},
 	getCollectionPage: function(type, key) {
-		return localStorage.getItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key);
+		return LSWrapper.getItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key);
 	},
 	replaceSortHeader: function(type) {
 		var table = _Crud.getTable(type);
@@ -622,7 +622,7 @@ var _Crud = {
 
 					// append header row
 					table.append('<tr><th>Column Key</th><th>Visible</th></tr>');
-					var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
+					var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
 					var filteredKeys = {};
 					if (filterSource) {
 
@@ -2513,7 +2513,7 @@ var _Crud = {
 			return;
 		}
 
-		var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
+		var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
 		var filteredKeys = {};
 		if (filterSource) {
 			filteredKeys = JSON.parse(filterSource);
@@ -2524,7 +2524,7 @@ var _Crud = {
 				filteredKeys.password = 0;
 				filteredKeys.sessionIds = 0;
 			}
-			localStorage.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
+			LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
 		}
 
 		return $.grep(sourceArray, function(key) {
@@ -2534,7 +2534,7 @@ var _Crud = {
 	toggleColumn: function(type, key) {
 
 		var table = _Crud.getTable(type);
-		var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
+		var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
 		var filteredKeys = {};
 		if (filterSource) {
 
@@ -2558,7 +2558,7 @@ var _Crud = {
 			});
 		}
 
-		localStorage.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
+		LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
 
 	},
 	serializeObject: function(obj) {

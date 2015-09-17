@@ -53,7 +53,7 @@ function wsConnect() {
 				ws = undefined;
 			}
 
-			localStorage.removeItem(userKey);
+			LSWrapper.removeItem(userKey);
 
 			var isEnc = (window.location.protocol === 'https:');
 			var host = document.location.host;
@@ -112,7 +112,7 @@ function wsConnect() {
 				main.empty();
 				//Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
 				var restoreDialogText = '';
-				var dialogData = JSON.parse(localStorage.getItem(dialogDataKey));
+				var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
 				if (dialogData && dialogData.text) {
 					restoreDialogText = '<br><br>The dialog<br><b>"' + dialogData.text + '"</b><br> will be restored after reconnect.';
 				}
@@ -147,12 +147,12 @@ function wsConnect() {
 				_Dashboard.checkAdmin();
 				user = data.data.username;
 				isAdmin = data.data.isAdmin;
-				var oldUser = localStorage.getItem(userKey);
+				var oldUser = LSWrapper.getItem(userKey);
 
 				log(command, code, 'user:', user, ', oldUser:', oldUser, 'session valid:', sessionValid, 'isAdmin', isAdmin);
 
 				if (!sessionValid) {
-					localStorage.removeItem(userKey);
+					LSWrapper.removeItem(userKey);
 					Structr.clearMain();
 					Structr.login(msg);
 				} else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
@@ -170,7 +170,7 @@ function wsConnect() {
 
 			} else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
-				localStorage.removeItem(userKey);
+				LSWrapper.removeItem(userKey);
 				Structr.clearMain();
 				Structr.login();
 
@@ -181,7 +181,7 @@ function wsConnect() {
 				if (localStorageString && localStorageString.length) {
 					var localStorageData = JSON.parse(data.data.localStorageString);
 					Object.keys(localStorageData).forEach(function (key) {
-						localStorage.setItem(key, localStorageData[key]);
+						LSWrapper.setItem(key, localStorageData[key]);
 					});
 				}
 
@@ -194,10 +194,10 @@ function wsConnect() {
 
 				if (code === 403) {
 					//Structr.clearMain();
-					localStorage.removeItem(userKey);
+					LSWrapper.removeItem(userKey);
 					Structr.login('Wrong username or password!');
 				} else if (code === 401) {
-					localStorage.removeItem(userKey);
+					LSWrapper.removeItem(userKey);
 					//Structr.clearMain();
 					Structr.login('');
 				} else {
@@ -496,7 +496,7 @@ function wsConnect() {
 
 				StructrModel.clearCallback(data.callback);
 
-				if (!localStorage.getItem(autoRefreshDisabledKey + activeTab)) {
+				if (!LSWrapper.getItem(autoRefreshDisabledKey + activeTab)) {
 					_Pages.reloadPreviews();
 				}
 			} else if (command === 'PROGRESS') { /*********************** PROGRESS ************************/
@@ -521,7 +521,7 @@ function wsConnect() {
 
 				if (sessionValid === false) {
 					log('invalid session');
-					localStorage.removeItem(userKey);
+					LSWrapper.removeItem(userKey);
 					clearMain();
 
 					Structr.login();

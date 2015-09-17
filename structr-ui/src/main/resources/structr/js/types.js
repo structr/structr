@@ -131,7 +131,7 @@ var _Types = {
 				}
 			}
 			
-			 localStorage.setItem(typesHiddenTabsKey, JSON.stringify(hiddenTypesTabs));
+			 LSWrapper.setItem(typesHiddenTabsKey, JSON.stringify(hiddenTypesTabs));
 
 		});
 
@@ -378,10 +378,10 @@ var _Types = {
 		//searchField.focus();
 	},
 	storeType: function() {
-		localStorage.setItem(typesTypeKey, _Types.type);
+		LSWrapper.setItem(typesTypeKey, _Types.type);
 	},
 	restoreType: function() {
-		var val = localStorage.getItem(typesTypeKey);
+		var val = LSWrapper.getItem(typesTypeKey);
 		if (val) {
 			_Types.type = val;
 		}

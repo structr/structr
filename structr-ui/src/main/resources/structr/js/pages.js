@@ -108,9 +108,9 @@ var _Pages = {
 
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Pages');
 
-		activeTab = localStorage.getItem(activeTabKey);
-		activeTabLeft = localStorage.getItem(activeTabLeftKey);
-		activeTabRight = localStorage.getItem(activeTabRightKey);
+		activeTab = LSWrapper.getItem(activeTabKey);
+		activeTabLeft = LSWrapper.getItem(activeTabLeftKey);
+		activeTabRight = LSWrapper.getItem(activeTabRightKey);
 		log('value read from local storage', activeTab);
 
 		log('onload');
@@ -251,9 +251,9 @@ var _Pages = {
 
 		if (activeTabLeft) {
 
-			if (localStorage.getItem(leftSlideoutWidthKey)) {
+			if (LSWrapper.getItem(leftSlideoutWidthKey)) {
 
-				var leftSlideoutWidth = parseInt(localStorage.getItem(leftSlideoutWidthKey));
+				var leftSlideoutWidth = parseInt(LSWrapper.getItem(leftSlideoutWidthKey));
 				var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
 				leftSlideout.css({
 					width: leftSlideoutWidth + 'px',
@@ -264,7 +264,7 @@ var _Pages = {
 						width: (leftSlideoutWidth-13) + 'px'
 					});
 				}, 100);
-				log(localStorage.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
+				log(LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
 			}
 			$('#' + activeTabLeft).addClass('active').click();
 		}
@@ -274,7 +274,7 @@ var _Pages = {
 		}
 
 		// activate first page when local storage is empty
-		if (!localStorage.getItem(activeTabKey)) {
+		if (!LSWrapper.getItem(activeTabKey)) {
 			window.setTimeout(function(e) {  _Pages.activateTab($('#previewTabs .page').first()); }, 1000);
 		}
 
@@ -380,7 +380,7 @@ var _Pages = {
 		var tab = $('#show_' + entity.id, previews);
 
 		tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
-		tab.append('<input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (localStorage.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '>');
+		tab.append('<input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '>');
 		tab.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
 		tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
 
@@ -407,11 +407,11 @@ var _Pages = {
 		$('.auto-refresh', tab).on('click', function(e) {
 			e.stopPropagation();
 			var key = autoRefreshDisabledKey + entity.id;
-			var autoRefreshDisabled = localStorage.getItem(key) === '1';
+			var autoRefreshDisabled = LSWrapper.getItem(key) === '1';
 			if (autoRefreshDisabled) {
-				localStorage.removeItem(key);
+				LSWrapper.removeItem(key);
 			} else {
-				localStorage.setItem(key, '1');
+				LSWrapper.setItem(key, '1');
 			}
 		});
 
@@ -480,7 +480,7 @@ var _Pages = {
 		element.addClass('active');
 
 		log('store active tab', activeTab);
-		localStorage.setItem(activeTabKey, activeTab);
+		LSWrapper.setItem(activeTabKey, activeTab);
 
 		_Pages.refreshActiveElements(id);
 
@@ -519,7 +519,7 @@ var _Pages = {
 		if (!id || id !== activeTab) {
 			return false;
 		}
-		var autoRefreshDisabled = localStorage.getItem(autoRefreshDisabledKey + id);
+		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
 		if (!autoRefreshDisabled && id) {
 			Command.get(id, function(obj) {
 				log('reloading preview iframe', id, obj.name);
@@ -942,7 +942,7 @@ var _Pages = {
 		dataBindingSlideout.children('#wizard').remove();
 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
 		// Command.list(type, rootOnly, pageSize, page, sort, order, callback) {
-		var selectedType = localStorage.getItem(selectedTypeKey);
+		var selectedType = LSWrapper.getItem(selectedTypeKey);
 		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
 			typeNodes.forEach(function(typeNode) {
 				$('#type-selector').append('<option ' + (typeNode.id === selectedType ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
@@ -968,7 +968,7 @@ var _Pages = {
 		Command.get(id, function(sourceSchemaNode) {
 
 			var typeKey = sourceSchemaNode.name.toLowerCase();
-			localStorage.setItem(selectedTypeKey, id);
+			LSWrapper.setItem(selectedTypeKey, id);
 
 			$('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page.'
 					+ 'The type will be bound to the block which will loop over the result set.</p>');

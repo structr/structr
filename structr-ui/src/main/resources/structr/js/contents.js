@@ -163,7 +163,7 @@ var _Contents = {
 		contentType = contentType ? contentType : entity.contentType;
 		var text1, text2;
 
-		var lineWrapping = localStorage.getItem(lineWrappingKey);
+		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
 		// Intitialize editor
 		editor = CodeMirror(contentBox.get(0), {
@@ -288,14 +288,14 @@ var _Contents = {
 			$('#words').text(editor.getValue().match(/\S+/g).length);
 		});
 
-		var scrollInfo = JSON.parse(localStorage.getItem(scrollInfoKey + '_' + entity.id));
+		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 		if (scrollInfo) {
 			editor.scrollTo(scrollInfo.left, scrollInfo.top);
 		}
 
 		editor.on('scroll', function() {
 			var scrollInfo = editor.getScrollInfo();
-			localStorage.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
+			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 		});
 
 		dialogSaveButton.on('click', function(e) {
@@ -355,10 +355,10 @@ var _Contents = {
 		$('#lineWrapping').on('change', function() {
 			var inp = $(this);
 			if  (inp.is(':checked')) {
-				localStorage.setItem(lineWrappingKey, "1");
+				LSWrapper.setItem(lineWrappingKey, "1");
 				editor.setOption('lineWrapping', true);
 			} else {
-				localStorage.removeItem(lineWrappingKey);
+				LSWrapper.removeItem(lineWrappingKey);
 				editor.setOption('lineWrapping', false);
 			}
 			blinkGreen(inp.parent());

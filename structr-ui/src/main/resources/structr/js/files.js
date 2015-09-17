@@ -577,7 +577,7 @@ var _Files = {
 					return;
 				element.append('<div class="editor"></div>');
 				var contentBox = $('.editor', element);
-				var lineWrapping = localStorage.getItem(lineWrappingKey);
+				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 				editor = CodeMirror(contentBox.get(0), {
 					value: unescapeTags(text),
 					mode: contentType,
@@ -585,14 +585,14 @@ var _Files = {
 					lineWrapping: lineWrapping
 				});
 
-				var scrollInfo = JSON.parse(localStorage.getItem(scrollInfoKey + '_' + file.id));
+				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
 				if (scrollInfo) {
 					editor.scrollTo(scrollInfo.left, scrollInfo.top);
 				}
 
 				editor.on('scroll', function() {
 					var scrollInfo = editor.getScrollInfo();
-					localStorage.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
+					LSWrapper.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
 				});
 				editor.id = file.id;
 
@@ -603,10 +603,10 @@ var _Files = {
 				$('#lineWrapping').on('change', function() {
 					var inp = $(this);
 					if (inp.is(':checked')) {
-						localStorage.setItem(lineWrappingKey, "1");
+						LSWrapper.setItem(lineWrappingKey, "1");
 						editor.setOption('lineWrapping', true);
 					} else {
-						localStorage.removeItem(lineWrappingKey);
+						LSWrapper.removeItem(lineWrappingKey);
 						editor.setOption('lineWrapping', false);
 					}
 					editor.refresh();

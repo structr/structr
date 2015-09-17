@@ -18,8 +18,8 @@
  */
 var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
 var radius = 20, stub = 30, offset = 0, maxZ = 0, reload = false;
-var connectorStyle = localStorage.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
-var zoomLevel = parseFloat(localStorage.getItem(localStorageSuffix + 'zoomLevel')) || 1.0;
+var connectorStyle = LSWrapper.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
+var zoomLevel = parseFloat(LSWrapper.getItem(localStorageSuffix + 'zoomLevel')) || 1.0;
 var remotePropertyKeys = [];
 var hiddenSchemaNodes = [];
 var hiddenSchemaNodesKey = 'structrHiddenSchemaNodes_' + port;
@@ -52,11 +52,11 @@ var _Schema = {
 			var obj = {position: node.position()};
 			obj.position.left /= zoomLevel;
 			obj.position.top = (obj.position.top - $('#schema-graph').offset().top) / zoomLevel;
-			localStorage.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
+			LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
 		});
 	},
 	getPosition: function(type) {
-		var n = JSON.parse(localStorage.getItem(type + localStorageSuffix + 'node-position'));
+		var n = JSON.parse(LSWrapper.getItem(type + localStorageSuffix + 'node-position'));
 		return n ? n.position : undefined;
 	},
 	init: function() {
@@ -91,7 +91,7 @@ var _Schema = {
 			$('#connector-style').on('change', function() {
 				var newStyle = $(this).val();
 				connectorStyle = newStyle;
-				localStorage.setItem(localStorageSuffix + 'connectorStyle', newStyle);
+				LSWrapper.setItem(localStorageSuffix + 'connectorStyle', newStyle);
 				_Schema.reload();
 			});
 
@@ -104,7 +104,7 @@ var _Schema = {
 				slide: function( event, ui ) {
 					var newZoomLevel = ui.value;
 					zoomLevel = newZoomLevel;
-					localStorage.setItem(localStorageSuffix + 'zoomLevel', newZoomLevel);
+					LSWrapper.setItem(localStorageSuffix + 'zoomLevel', newZoomLevel);
 					_Schema.setZoom(newZoomLevel, instance, [0,0], $('#schema-graph')[0]);
 					_Schema.resize();
 				}
@@ -238,7 +238,7 @@ var _Schema = {
 	},
 	loadNodes: function(callback) {
 		var url = rootUrl + 'schema_nodes/ui';
-		hiddenSchemaNodes = JSON.parse(localStorage.getItem(hiddenSchemaNodesKey)) || [];
+		hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(hiddenSchemaNodesKey)) || [];
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -1938,7 +1938,7 @@ var _Schema = {
 
 		Structr.dialog('Sync schema to remote server', function() {},  function() {});
 
-		var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
 
 		dialog.append('To sync <b>all schema nodes and relationships</b> to the remote server, ');
 		dialog.append('enter host, port, username and password of your remote instance and click Start.');
@@ -1968,7 +1968,7 @@ var _Schema = {
 			var key = 'key_push_schema';
 
 			pushConf = {host: host, port: port, username: username, password: password};
-			localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
 
 			Command.pushSchema(host, port, username, password, key, function() {
 				dialog.empty();
@@ -2257,13 +2257,13 @@ var _Schema = {
 				hiddenSchemaNodes.push(key);
 			}
 			nodes[key] = undefined;
-			localStorage.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
+			LSWrapper.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
 		} else {
 			if (hiddenSchemaNodes.indexOf(key) > -1) {
 				hiddenSchemaNodes.splice(hiddenSchemaNodes.indexOf(key), 1);
 				Command.get(key, function(schemaNode) {
 					nodes[key] = schemaNode;
-					localStorage.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
+					LSWrapper.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
 				});
 			}
 		}

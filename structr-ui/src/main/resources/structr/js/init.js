@@ -267,7 +267,7 @@ var Structr = {
 		log('user', user);
 		Structr.ping();
 		Structr.startPing();
-		Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
+		Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
 		log('######## Expanded IDs after reload ##########', Structr.expanded);
 	},
 	ping: function(callback) {
@@ -287,13 +287,13 @@ var Structr = {
 		showLoadingSpinner();
 
 		if (user) {
-			localStorage.setItem(userKey, user);
+			LSWrapper.setItem(userKey, user);
 		}
 		Structr.clearMain();
 		$('#logout_').html('Logout <span class="username">' + user + '</span>');
 		Structr.loadInitialModule();
 		Structr.startPing();
-		var dialogData = JSON.parse(localStorage.getItem(dialogDataKey));
+		var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
 		//console.log('Dialog data after init', dialogData);
 		if (dialogData) {
 			Structr.restoreDialog(dialogData);
@@ -384,7 +384,7 @@ var Structr = {
 		data.username = user;
 		obj.data = data;
 		if (sendObj(obj)) {
-			localStorage.removeItem(userKey);
+			LSWrapper.removeItem(userKey);
 			$.cookie('JSESSIONID', null);
 			sessionId.length = 0;
 			Structr.clearMain();
@@ -397,9 +397,9 @@ var Structr = {
 	loadInitialModule: function(isLogin) {
 		var browserUrl = window.location.href;
 		var anchor = getAnchorFromUrl(browserUrl);
-		lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : localStorage.getItem(lastMenuEntryKey));
+		lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : LSWrapper.getItem(lastMenuEntryKey));
 		if (!lastMenuEntry) {
-			lastMenuEntry = localStorage.getItem(lastMenuEntryKey) || 'dashboard';
+			lastMenuEntry = LSWrapper.getItem(lastMenuEntryKey) || 'dashboard';
 		} else {
 			log('Last menu entry found: ' + lastMenuEntry);
 		}
@@ -537,7 +537,7 @@ var Structr = {
 					if (searchField)
 						searchField.focus();
 
-					localStorage.removeItem(dialogDataKey);
+					LSWrapper.removeItem(dialogDataKey);
 
 				});
 			}
@@ -589,7 +589,7 @@ var Structr = {
 
 			log('Open dialog', dialog, text, dw, dh, t, l, callbackOk, callbackCancel);
 			var dialogData = {'text': text, 'top': t, 'left': l, 'width': dw, 'height': dh};
-			localStorage.setItem(dialogDataKey, JSON.stringify(dialogData));
+			LSWrapper.setItem(dialogDataKey, JSON.stringify(dialogData));
 
 		}
 	},
@@ -644,8 +644,8 @@ var Structr = {
 			Structr.maximize();
 		});
 
-		//localStorage.removeItem(dialogMaximizedKey);
-		isMax = localStorage.getItem(dialogMaximizedKey);
+		//LSWrapper.removeItem(dialogMaximizedKey);
+		isMax = LSWrapper.getItem(dialogMaximizedKey);
 
 		if (isMax) {
 			Structr.maximize();
@@ -665,11 +665,11 @@ var Structr = {
 		$('#maximizeDialog').hide();
 		$('#minimizeDialog').show().on('click', function() {
 			isMax = false;
-			localStorage.removeItem(dialogMaximizedKey);
+			LSWrapper.removeItem(dialogMaximizedKey);
 			Structr.resize();
 		});
 
-		localStorage.setItem(dialogMaximizedKey, '1');
+		LSWrapper.setItem(dialogMaximizedKey, '1');
 
 	},
 	error: function(text, confirmationRequired) {
@@ -776,7 +776,7 @@ var Structr = {
 	activateModule: function(event, name) {
 		if (menuBlocked) return;
 		event.stopPropagation();
-		if (localStorage.getItem(lastMenuEntryKey) !== name || main.children().length === 0) {
+		if (LSWrapper.getItem(lastMenuEntryKey) !== name || main.children().length === 0) {
 			Structr.clearMain();
 			Structr.activateMenuEntry(name);
 			Structr.modules[name].onload();
@@ -796,7 +796,7 @@ var Structr = {
 		$('#title').text('Structr ' + menuEntry.text());
 		window.location.hash = lastMenuEntry;
 		if (lastMenuEntry && lastMenuEntry !== 'logout') {
-			localStorage.setItem(lastMenuEntryKey, lastMenuEntry);
+			LSWrapper.setItem(lastMenuEntryKey, lastMenuEntry);
 		}
 	},
 	registerModule: function(name, module) {
@@ -876,7 +876,7 @@ var Structr = {
 		return entity;
 	},
 	initPager: function(type, p, ps, sort, order) {
-		var pagerData = localStorage.getItem(pagerDataKey + type);
+		var pagerData = LSWrapper.getItem(pagerDataKey + type);
 		if (!pagerData) {
 			page[type] = parseInt(p);
 			pageSize[type] = parseInt(ps);
@@ -921,11 +921,11 @@ var Structr = {
 	},
 	storePagerData: function(type, page, pageSize, sort, order) {
 		if (page && pageSize && sort && order) {
-			localStorage.setItem(pagerDataKey + type, page + ',' + pageSize + ',' + sort + ',' + order);
+			LSWrapper.setItem(pagerDataKey + type, page + ',' + pageSize + ',' + sort + ',' + order);
 		}
 	},
 	restorePagerData: function(type) {
-		var pagerData = localStorage.getItem(pagerDataKey + type);
+		var pagerData = LSWrapper.getItem(pagerDataKey + type);
 		if (pagerData) {
 			var pagerData = pagerData.split(',');
 			page[type] = parseInt(pagerData[0]);
@@ -1066,7 +1066,7 @@ var Structr = {
 		var t = $(tab);
 		t.addClass('active');
 		s.animate({right: '+=' + rsw + 'px'}, {duration: 100}).zIndex(1);
-		localStorage.setItem(activeTabKey, t.prop('id'));
+		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		if (callback) {
 			callback();
 		}
@@ -1086,7 +1086,7 @@ var Structr = {
 		if (wasOpen) {
 			_Pages.resize(0, -rsw);
 		}
-		localStorage.removeItem(activeTabKey);
+		LSWrapper.removeItem(activeTabKey);
 	},
 	openLeftSlideOut: function(slideout, tab, activeTabKey, callback) {
 		var s = $(slideout);
@@ -1094,7 +1094,7 @@ var Structr = {
 		t.addClass('active');
 		var sw = slideout.width() + 12;
 		s.animate({left: '+=' + sw + 'px'}, {duration: 100}).zIndex(1);
-		localStorage.setItem(activeTabKey, t.prop('id'));
+		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		if (callback) {
 			callback();
 		}
@@ -1117,7 +1117,7 @@ var Structr = {
 				_Pages.resize(sw - oldLsw, 0);
 			},
 			stop: function(e, ui) {
-				localStorage.setItem(leftSlideoutWidthKey, slideout.width());
+				LSWrapper.setItem(leftSlideoutWidthKey, slideout.width());
 			}
 		});
 	},
@@ -1138,7 +1138,7 @@ var Structr = {
 		if (wasOpen) {
 			_Pages.resize(-osw, 0);
 		}
-		localStorage.removeItem(activeTabKey);
+		LSWrapper.removeItem(activeTabKey);
 	},
 	pushDialog: function(id, recursive) {
 
@@ -1149,7 +1149,7 @@ var Structr = {
 				function() {
 				});
 
-		var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
 
 		dialog.append('Do you want to transfer <b>' + (obj.name || obj.id) + '</b> to the remote server?');
 
@@ -1169,7 +1169,7 @@ var Structr = {
 			var key = 'key_' + obj.id;
 
 			pushConf = {host: host, port: port, username: username, password: password};
-			localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
 
 			Command.push(obj.id, host, port, username, password, key, recursive, function() {
 				dialog.empty();
@@ -1186,7 +1186,7 @@ var Structr = {
 				function() {
 				});
 
-		var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
 
 		dialog.append('<table class="props push">'
 				+ '<tr><td>Host</td><td><input id="push-host" type="text" length="32" value="' + (pushConf.host || '') + '"></td>'
@@ -1209,7 +1209,7 @@ var Structr = {
 			var key = 'syncables';
 
 			pushConf = {host: host, port: port, username: username, password: password};
-			localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
 
 			syncables.empty();
 			syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
@@ -1295,7 +1295,7 @@ var Structr = {
 		if (this.autoHideInactiveTabs) {
 			return this.autoHideInactiveTabs;
 		} else {
-			this.autoHideInactiveTabs = (localStorage.getItem(autoHideInactiveTabsKey) === "true");
+			this.autoHideInactiveTabs = (LSWrapper.getItem(autoHideInactiveTabsKey) === "true");
 			if (!this.autoHideInactiveTabs) {
 				this.setAutoHideInactiveTabs(false);
 			}
@@ -1304,7 +1304,7 @@ var Structr = {
 	},
 	setAutoHideInactiveTabs: function (val) {
 		this.autoHideInactiveTabs = val;
-		localStorage.setItem(autoHideInactiveTabsKey, val);
+		LSWrapper.setItem(autoHideInactiveTabsKey, val);
 
 		if (val) {
 			this.doHideInactiveTabs();
@@ -1314,7 +1314,7 @@ var Structr = {
 		if (this.hideInactiveTabs) {
 			return this.hideInactiveTabs;
 		} else {
-			this.hideInactiveTabs = (localStorage.getItem(hideInactiveTabsKey) === "true");
+			this.hideInactiveTabs = (LSWrapper.getItem(hideInactiveTabsKey) === "true");
 			if (!this.hideInactiveTabs) {
 				this.setHideInactiveTabs(false);
 			}
@@ -1323,7 +1323,7 @@ var Structr = {
 	},
 	setHideInactiveTabs: function (val) {
 		this.hideInactiveTabs = val;
-		localStorage.setItem(hideInactiveTabsKey, val);
+		LSWrapper.setItem(hideInactiveTabsKey, val);
 
 		if (val) {
 			this.doHideInactiveTabs();
@@ -1484,7 +1484,7 @@ function addExpandedNode(id) {
 	}
 
 	getExpanded()[id] = true;
-	localStorage.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
+	LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
 
 }
 
@@ -1495,7 +1495,7 @@ function removeExpandedNode(id) {
 		return;
 
 	delete getExpanded()[id];
-	localStorage.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
+	LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
 }
 
 function isExpanded(id) {
@@ -1513,7 +1513,7 @@ function isExpanded(id) {
 
 function getExpanded() {
 	if (!Structr.expanded) {
-		Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
+		Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
 	}
 
 	if (!Structr.expanded) {
@@ -1605,7 +1605,7 @@ function getActiveElementId(element) {
 $(window).unload(function() {
 	log('########################################### unload #####################################################');
 	// Remove dialog data in case of page reload
-	localStorage.removeItem(dialogDataKey);
+	LSWrapper.removeItem(dialogDataKey);
 	Structr.saveLocalStorage();
 });
 
