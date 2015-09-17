@@ -540,7 +540,7 @@ var _Schema = {
 		div.append('<b>' + entity.name + '</b>');
 
 		if (!entity.isBuiltinType) {
-			div.append(' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractNode">org.structr.core.entity.AbstractNode</option></select>');
+			div.append(' extends <select class="extends-class-select" style="width:400px"></select>');
 		}
 		div.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
 
