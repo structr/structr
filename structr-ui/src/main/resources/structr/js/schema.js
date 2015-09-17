@@ -1178,7 +1178,7 @@ var _Schema = {
 	},
 	editCode: function(button, entity, key, element, callback) {
 		
-		var text = entity[key];
+		var text = entity[key] || '';
 		
 		if (isDisabled(button)) {
 			return;

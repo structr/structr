@@ -70,13 +70,10 @@ public class FunctionPropertyParser extends PropertySourceGenerator {
 		// Note: This is a temporary migration from the old format to the new readFunction property
 		final String format = source.getFormat();
 
-		logger.log(Level.INFO, "Migrating format to readFunction");
-		
 		if (format != null) {
+			logger.log(Level.INFO, "Migrating format to readFunction");
 			entity.getSchemaProperties().forEach(prop -> migrateFormat(prop, format));
-			
 		}
-		
 	}
 	
 	private void migrateFormat(final SchemaProperty prop, final String format) {
@@ -87,10 +84,9 @@ public class FunctionPropertyParser extends PropertySourceGenerator {
 				prop.setProperty(SchemaProperty.readFunction, format);
 				prop.setProperty(SchemaProperty.format, null);
 			} catch (FrameworkException ex) {
-				logger.log(Level.WARNING, "Could not set migrate format to readFunction", ex);
+				logger.log(Level.WARNING, "Could not migrate format to readFunction", ex);
 				ex.printStackTrace();
 			}
 		}
-		
 	}
 }
