@@ -42,6 +42,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.json.JsonBooleanProperty;
 import org.structr.schema.json.JsonDateProperty;
 import org.structr.schema.json.JsonEnumProperty;
+import org.structr.schema.json.JsonFunctionProperty;
 import org.structr.schema.json.JsonIntegerProperty;
 import org.structr.schema.json.JsonLongProperty;
 import org.structr.schema.json.JsonNumberProperty;
@@ -268,6 +269,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		properties.add(scriptProperty);
 
 		return scriptProperty;
+	}
+
+	@Override
+	public JsonFunctionProperty addFunctionProperty(final String name, final String... views) throws URISyntaxException {
+
+		final StructrFunctionProperty functionProperty = new StructrFunctionProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(functionProperty);
+
+		return functionProperty;
 	}
 
 	@Override

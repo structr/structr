@@ -73,6 +73,9 @@ public interface JsonSchema {
 	public static final String KEY_CARDINALITY        = "cardinality";
 	public static final String KEY_SOURCE_NAME        = "sourceName";
 	public static final String KEY_TARGET_NAME        = "targetName";
+	public static final String KEY_READ_FUNCTION      = "readFunction";
+	public static final String KEY_WRITE_FUNCTION     = "writeFunction";
+	
 
 	public static final String KEY_MINIMUM            = "minimum";
 	public static final String KEY_EXCLUSIVE_MINIMUM  = "exclusiveMinimum";

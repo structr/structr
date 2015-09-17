@@ -236,8 +236,8 @@ public class StructrSchemaTest extends StructrTest {
 			task.addDateProperty("description", "public", "ui").setDatePattern("dd.MM.yyyy").setRequired(true);
 
 			// test function property
-			task.addScriptProperty("displayName", "public", "ui").setSource("this.name");
-			task.addScriptProperty("javascript", "public", "ui").setSource("{ var x = 'test'; return x; }").setContentType("text/javascript");
+			task.addFunctionProperty("displayName", "public", "ui").setReadFunction("this.name");
+			task.addFunctionProperty("javascript", "public", "ui").setReadFunction("{ var x = 'test'; return x; }").setContentType("text/javascript");
 
 
 			// a project
