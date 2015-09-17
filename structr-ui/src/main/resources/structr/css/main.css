@@ -1736,6 +1736,14 @@ button.add_property {
     display: none;
 }
 
+#edit-parent-class {
+	cursor: pointer;
+}
+
+#edit-parent-class.disabled {
+	cursor: not-allowed;
+}
+
 /**
  * Image folders
 */

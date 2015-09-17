@@ -338,7 +338,7 @@ var _Schema = {
 			}
 		});
 	},
-	openEditDialog: function(id, targetView) {
+	openEditDialog: function(id, targetView, callback) {
 
 		Command.get(id, function(entity) {
 
@@ -352,6 +352,9 @@ var _Schema = {
 
 			Structr.dialog(title, function() {
 			}, function() {
+				if (callback) {
+					callback();
+				}
 				instance.repaintEverything();
 			});
 
@@ -540,7 +543,47 @@ var _Schema = {
 		div.append('<b>' + entity.name + '</b>');
 
 		if (!entity.isBuiltinType) {
-			div.append(' extends <select class="extends-class-select" style="width:400px"></select>');
+			div.append(' extends <select class="extends-class-select"></select>');
+
+			div.append(' <img id="edit-parent-class" class="icon edit" src="icon/pencil.png" alt="Edit parent class" title="Edit parent class">');
+			$("#edit-parent-class", div).click(function () {
+				if ($(this).hasClass('disabled')) {
+					return;
+				}
+
+				var typeName = $('.extends-class-select', div).val().split('.').pop();
+
+				Command.search(typeName, 'SchemaNode', function (results) {
+					if (results.length === 1) {
+
+						_Schema.openEditDialog(results[0].id, null, function () {
+
+							window.setTimeout(function () {
+
+								_Schema.openEditDialog(entity.id);
+
+							}, 250);
+
+						});
+
+					} else if (results.length === 0) {
+
+						new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>no corresponding</b> schema node found").show();
+
+					} else {
+
+						new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>multiple corresponding</b> schema node found").show();
+
+					}
+				});
+
+			});
+
+			if (entity.extendsClass && entity.extendsClass.indexOf('org.structr.dynamic.') === 0) {
+				$("#edit-parent-class").removeClass('disabled');
+			} else {
+				$("#edit-parent-class").addClass('disabled');
+			}
 		}
 		div.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
 
@@ -594,12 +637,19 @@ var _Schema = {
 				classSelect.append('<option ' + (entity.extendsClass === classname ? 'selected="selected"' : '') + ' value="' + classname + '">' + classname + '</option>');
 			});
 
-			classSelect.chosen({ search_contains: true, width: '100%' });
+			classSelect.chosen({ search_contains: true, width: '500px' });
 		});
 
 		classSelect.on('change', function() {
 			var obj = {extendsClass: $(this).val()};
-			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj));
+			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj), function () {
+				// enable or disable the edit button
+				if (obj.extendsClass.indexOf('org.structr.dynamic.') === 0) {
+					$("#edit-parent-class").removeClass('disabled');
+				} else {
+					$("#edit-parent-class").addClass('disabled');
+				}
+			});
 		});
 
 	},
