@@ -360,78 +360,6 @@ var _Schema = {
 		});
 
 	},
-	openLocalizationDialog: function (entityId) {
-
-		Command.get(entityId, function(entity) {
-
-			var title = 'Edit localizations for "' + entity.name + '"';
-
-			Structr.dialog(title, null, function() {
-				window.setTimeout(function () {
-					if (entity.type === 'SchemaNode') {
-						_Schema.openEditDialog(entityId);
-					} else if (entity.type === 'SchemaProperty') {
-						_Schema.openEditDialog(entity.schemaNode.id);
-					} else {
-						Structr.error('Could not restore dialog - unsupported entity type', true);
-					}
-
-				}, 250);
-			});
-
-			var id = '___' + entity.id;
-			dialogText.append('<div id="' + id + '" class="schema-details"></div>');
-
-			var el = $('#' + id);
-
-			el.append('<table class="local schemaprop-localizations"><th>Locale</th><th>Localized Name</th><th>Action</th></table>');
-			el.append('<img alt="Add local attribute" class="add-icon add-localization-row" src="icon/add.png">');
-
-			var localizationsTable = $('.local.schemaprop-localizations', el);
-			var addButton = $('.add-localization-row', el);
-
-			// sort by locale
-			_Schema.sort(entity.localizations, 'locale');
-
-			$.each(entity.localizations, function(i, localization) {
-				_Schema.appendLocalizationEntry(localizationsTable, localization, entity.id);
-			});
-
-			addButton.on('click', function() {
-				var rowClass = 'new' + (_Schema.cnt++);
-				localizationsTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="localization-locale" placeholder="Enter locale"></td>'
-					+ '<td><input size="15" type="text" class="localization-name" placeholder="Enter localized name"></td>'
-					+ '<td><img alt="Remove" class="remove-icon remove-localization" src="icon/delete.png"></td>'
-					+ '</tr>');
-
-				$('.' + rowClass + ' .remove-localization', localizationsTable).on('click', function() {
-					var self = $(this);
-					self.closest('tr').remove();
-				});
-
-				$('.' + rowClass + ' .localization-locale', localizationsTable).on('blur', function() {
-					_Schema.collectAndSaveNewLocalization(rowClass, localizationsTable, entity);
-				});
-
-				$('.' + rowClass + ' .localization-name', localizationsTable).on('blur', function() {
-					_Schema.collectAndSaveNewLocalization(rowClass, localizationsTable, entity);
-				});
-
-			});
-
-		});
-
-	},
-	appendLocalizationEntry: function (el, localization, schemaPropertyId) {
-		var key = localization.id;
-
-		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="localization-locale" value="' + escapeForHtmlAttributes(localization.locale) + '"></td><td>'
-				+ '<input size="15" type="text" class="localization-name" value="' + escapeForHtmlAttributes(localization.name) + '"></td><td>'
-				+ '<img alt="Remove" class="remove-icon remove-localization" src="icon/delete.png">'
-				+ '</td></div>');
-
-		_Schema.bindLocalizationEvents(localization, schemaPropertyId);
-	},
 	loadRels: function(callback) {
 		var url = rootUrl + 'schema_relationship_nodes';
 		$.ajax({
@@ -609,14 +537,7 @@ var _Schema = {
 		el.append('<div id="' + id + '" class="schema-details"></div>');
 
 		var div = $('#' + id);
-		div.append(
-			//'<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png"> ' +
-			'<b>' + entity.name + '</b>'
-		);
-
-		$('#' + id + ' .edit-localizations', el).on('click', function() {
-			_Schema.openLocalizationDialog(entity.id);
-		}).prop('disabled', null);
+		div.append('<b>' + entity.name + '</b>');
 
 		if (!entity.isBuiltinType) {
 			div.append(' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractNode">org.structr.core.entity.AbstractNode</option></select>');
@@ -1009,72 +930,6 @@ var _Schema = {
 			});
 		}
 	},
-	collectAndSaveNewLocalization: function(rowClass, el, entity) {
-
-		var name = $('.' + rowClass + ' .localization-name', el).val();
-		var locale = $('.' + rowClass + ' .localization-locale', el).val();
-
-		if (name && name.length) {
-
-			var obj = {};
-			var res = '';
-			if (entity.type === 'SchemaProperty') {
-				obj.localizedProperty = { id: entity.id };
-				res = 'schema_property_localization';
-			} else if (entity.type === 'SchemaNode') {
-				obj.localizedNode = { id: entity.id };
-				res = 'schema_node_localization';
-			} else {
-				Structr.error('Cannot save localization: Unknown entity type ' + entity.type, true);
-				return;
-			}
-			if (name) {
-				obj.name = name;
-			}
-			if (locale) {
-				obj.locale = locale;
-			}
-
-			// store property definition with an empty property object
-			_Schema.storeSchemaEntity(res, {}, JSON.stringify(obj), function(result) {
-
-				if (result && result.result) {
-
-					var id = result.result[0];
-
-					$.ajax({
-						url: rootUrl + id,
-						type: 'GET',
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',
-						statusCode: {
-
-							200: function(data) {
-
-								var localization = data.result;
-								var row      = $('.' + rowClass, el);
-
-								blinkGreen(row);
-
-								_Schema.unbindEvents(localization.id);
-
-								row.removeClass(rowClass).addClass('local').addClass(localization.id);
-								row = $('.local.' + localization.id, el);
-
-								$('.remove-localization', row).off('click');
-
-								_Schema.bindLocalizationEvents(localization);
-							}
-						}
-					});
-				}
-
-			}, function() {
-
-				blinkRed($('.' + rowClass, el));
-			});
-		}
-	},
 	confirmRemoveSchemaEntity: function(entity, title, callback, hint) {
 
 		Structr.confirmation(
@@ -1141,9 +996,7 @@ var _Schema = {
 				+ (property.unique ? ' checked="checked"' : '') + '</td><td><input class="indexed" type="checkbox"'
 				+ (property.indexed ? ' checked="checked"' : '') + '</td><td>'
 				+ '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td>'
-				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">'
-					// + '<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png">'
-					)
+				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">')
 				+ '</td></tr>');
 
 		_Schema.bindEvents(property);
@@ -1231,9 +1084,6 @@ var _Schema = {
 			_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
 		}).prop('disabled', null);
 
-		$('.' + key + ' .edit-localizations', el).on('click', function() {
-			_Schema.openLocalizationDialog(property.id);
-		}).prop('disabled', null);
 	},
 	unbindEvents: function(key) {
 
@@ -1247,35 +1097,6 @@ var _Schema = {
 		$('.' + key + ' .indexed', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .property-default', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .remove-property', el).off('click').prop('disabled', 'disabled');
-
-	},
-	bindLocalizationEvents: function (localization, schemaPropertyId) {
-
-		var key = localization.id;
-		var el  = $('.local.schemaprop-localizations');
-
-		$('.' + key + ' .localization-name', el).on('blur', function() {
-			_Schema.saveSchemaLocalization(localization);
-		}).prop('disabled', null);
-
-		$('.' + key + ' .localization-locale', el).on('blur', function() {
-			_Schema.saveSchemaLocalization(localization);
-		}).prop('disabled', null);
-
-		$('.' + key + ' .remove-localization', el).on('click', function() {
-			_Schema.confirmRemoveSchemaEntity(localization, 'Delete localized name', function() { _Schema.openLocalizationDialog(schemaPropertyId); }, 'Really delete localized name?');
-		}).prop('disabled', null);
-
-	},
-	unbindLocalizationEvents: function (key) {
-
-		var el  = $('.local.schemaprop-localizations');
-
-		$('.' + key + ' .localization-locale', el).off('blur').prop('disabled', 'disabled');
-
-		$('.' + key + ' .localization-name', el).off('blur').prop('disabled', 'disabled');
-
-		$('.' + key + ' .remove-localization', el).off('click').prop('disabled', 'disabled');
 
 	},
 	appendRelatedProperty: function(el, rel, key, out) {
@@ -1459,52 +1280,6 @@ var _Schema = {
 			}, function() {
 
 				_Schema.bindEvents(property);
-			});
-		}
-	},
-	saveSchemaLocalization: function(localization, schemaPropertyId) {
-
-		var key = localization.id;
-
-		_Schema.unbindLocalizationEvents(key);
-
-		var name = $('.' + key + ' .localization-name').val();
-		var locale = $('.' + key + ' .localization-locale').val();
-
-		if (name && name.length) {
-
-			var obj = {};
-			obj.name = name;
-			obj.locale = locale;
-
-//			var res = '';
-//			if (entity.type === 'SchemaProperty') {
-//				res = 'schema_property_localization';
-//			} else if (entity.type === 'SchemaNode') {
-//				res = 'schema_node_localization';
-//			} else {
-//				Structr.error('Cannot save localization: Unsupported entity type ' + entity.type, true);
-//				return;
-//			}
-
-			// updating a localization does not require a resource
-			_Schema.storeSchemaEntity('', localization, JSON.stringify(obj), function() {
-
-				blinkGreen($('.local .' + key));
-
-				localization.name = obj.name;
-				localization.locale = obj.locale;
-
-				_Schema.bindLocalizationEvents(localization, schemaPropertyId);
-
-			}, function() {
-
-				blinkRed($('.local .' + key));
-				_Schema.bindLocalizationEvents(localization, schemaPropertyId);
-
-			}, function() {
-
-				_Schema.bindLocalizationEvents(localization, schemaPropertyId);
 			});
 		}
 	},
