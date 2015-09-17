@@ -204,6 +204,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_RETRIEVE_JS = "Usage: ${{Structr.retrieve(key)}}. Example: ${{retrieve('tmpUser')}}";
 	public static final String ERROR_MESSAGE_PRINT = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
 	public static final String ERROR_MESSAGE_PRINT_JS = "Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}";
+	public static final String ERROR_MESSAGE_LOG = "Usage: ${log(string)}. Example ${log('Hello World!')}";
+	public static final String ERROR_MESSAGE_LOG_JS = "Usage: ${{Structr.log(string)}}. Example ${{Structr.log('Hello World!')}}";
 	public static final String ERROR_MESSAGE_READ = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
 	public static final String ERROR_MESSAGE_WRITE = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
 	public static final String ERROR_MESSAGE_APPEND = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
@@ -3594,6 +3596,45 @@ public class Functions {
 			@Override
 			public String shortDescription() {
 				return "Prints the given string to the output buffer";
+			}
+		});
+		functions.put("log", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "log()";
+			}
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null) {
+
+					final StringBuilder buf = new StringBuilder();
+					for (final Object obj : sources) {
+
+						buf.append(obj);
+					}
+
+					logger.log(Level.INFO, buf.toString());
+				}
+
+				return "";
+			}
+
+			@Override
+			public String getSignature() {
+				return "string";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_LOG_JS : ERROR_MESSAGE_LOG);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Logs the given string to the logfile";
 			}
 		});
 		functions.put("read", new Function<Object, Object>() {

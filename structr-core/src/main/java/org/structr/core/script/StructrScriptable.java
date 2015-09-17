@@ -114,29 +114,6 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
-		if ("log".equals(name)) {
-
-			return new IdFunctionObject(new IdFunctionCall() {
-
-				@Override
-				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
-
-					if (parameters.length > 0 && parameters[0] != null) {
-
-						final StringBuilder buf = new StringBuilder();
-						for (final Object obj : parameters) {
-
-							buf.append(obj);
-						}
-
-						logger.log(Level.INFO, buf.toString());
-					}
-
-					return null;
-				}
-			}, null, 0, 0);
-		}
-
 		if ("this".equals(name)) {
 
 			return wrap(null, start, null, entity);
