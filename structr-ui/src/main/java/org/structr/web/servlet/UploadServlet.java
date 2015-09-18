@@ -72,8 +72,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 
 	private static final int MEMORY_THRESHOLD = 1024 * 1024 * 10;  // above 10 MB, files are stored on disk
-	private static final int MAX_FILE_SIZE = 1024 * 1024 * 100; // 100 MB
-	private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 120; // 120 MB
+	private static final int MAX_FILE_SIZE = 1024 * 1024 * 1000; // 1000 MB
+	private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 1200; // 1200 MB
 
 	// non-static fields
 	private ServletFileUpload uploader = null;
