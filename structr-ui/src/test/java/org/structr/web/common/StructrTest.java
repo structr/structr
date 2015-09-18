@@ -88,9 +88,9 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
 		config.setProperty(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
 		config.setProperty(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
-		config.setProperty(Services.TCP_PORT, "13465");
+		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
+		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
 		config.setProperty(Services.SERVER_IP, "127.0.0.1");
-		config.setProperty(Services.UDP_PORT, "13466");
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);

@@ -384,8 +384,8 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
 		config.setProperty(Services.FILES_PATH, basePath + "/files");
 		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-		config.setProperty(Services.TCP_PORT, "13465");
-		config.setProperty(Services.UDP_PORT, "13466");
+		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
+		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 
