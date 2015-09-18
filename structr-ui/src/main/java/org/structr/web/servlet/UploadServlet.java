@@ -72,8 +72,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 
 	private static final int MEMORY_THRESHOLD = 1024 * 1024 * 10;  // above 10 MB, files are stored on disk
-	private static final int MAX_FILE_SIZE = 1024 * 1024 * 1000; // 1000 MB
-	private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 1200; // 1200 MB
+	private static final String MAX_FILE_SIZE = "1048576000"; // 1000 MB (1024 * 1024 * 1000)
+	private static final String MAX_REQUEST_SIZE = "1258291200"; // 1200 MB (1024 * 1024 * 1200)
 
 	// non-static fields
 	private ServletFileUpload uploader = null;
@@ -157,8 +157,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 			}
 
-			uploader.setFileSizeMax(MAX_FILE_SIZE);
-			uploader.setSizeMax(MAX_REQUEST_SIZE);
+			uploader.setFileSizeMax(Long.parseLong(StructrApp.getConfigurationValue("UploadServlet.maxFileSize", MAX_FILE_SIZE)));
+			uploader.setSizeMax(Long.parseLong(StructrApp.getConfigurationValue("UploadServlet.maxRequestSize", MAX_REQUEST_SIZE)));
 
 			response.setContentType("text/html");
 			final PrintWriter out = response.getWriter();
@@ -268,8 +268,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 				return;
 			}
 
-			uploader.setFileSizeMax(MAX_FILE_SIZE);
-			uploader.setSizeMax(MAX_REQUEST_SIZE);
+			uploader.setFileSizeMax(Integer.parseInt(StructrApp.getConfigurationValue("UploadServlet.maxFileSize", MAX_FILE_SIZE)));
+			uploader.setSizeMax(Integer.parseInt(StructrApp.getConfigurationValue("UploadServlet.maxRequestSize", MAX_REQUEST_SIZE)));
 
 			List<FileItem> fileItemsList = uploader.parseRequest(request);
 			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
