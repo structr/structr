@@ -1098,6 +1098,15 @@ var _Schema = {
 			}).prop('disabled', null).val(property.contentType);
 		}
 
+		if (property.propertyType === 'Function' && !property.isBuiltinProperty) {
+			if (!$('button.edit-read-function', typeField.parent()).length) {
+				$('.' + key + ' .property-format', el).replaceWith('<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button>');
+			}
+			$('.' + key + ' .content-type', el).on('blur', function() {
+				_Schema.savePropertyDefinition(property);
+			}).prop('disabled', null).val(property.contentType);
+		}
+
 		if (property.propertyType && property.propertyType !== '') {
 			$('.' + key + ' .property-name', el).on('change', function() {
 				_Schema.savePropertyDefinition(property);
