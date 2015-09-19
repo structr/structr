@@ -1308,6 +1308,7 @@ var Structr = {
 
 		if (val) {
 			this.doHideInactiveTabs();
+			this.doHideSelectAllCheckbox();
 		}
 	},
 	getHideInactiveTabs: function () {
@@ -1327,8 +1328,10 @@ var Structr = {
 
 		if (val) {
 			this.doHideInactiveTabs();
+			this.doHideSelectAllCheckbox();
 		} else {
 			this.doShowAllTabs();
+			this.doShowSelectAllCheckbox();
 		}
 	},
 	doHideInactiveTabs: function () {
@@ -1338,6 +1341,25 @@ var Structr = {
 	doShowAllTabs: function () {
 		$('#resourceTabsMenu input[type="checkbox"]').show();
 		$('.ui-state-default.ui-corner-top:not(.ui-tabs-active.ui-state-active)').show();
+	},
+	doHideSelectAllCheckbox: function () {
+		$('#resourceTabsSelectAllWrapper').hide();
+	},
+	doShowSelectAllCheckbox: function () {
+		$('#resourceTabsSelectAllWrapper').show();
+	},
+	determineSelectAllCheckboxState: function () {
+		if ( $('#resourceTabsMenu li:not(.last) input[type="checkbox"]').length === $('#resourceTabsMenu li:not(.last) input[type="checkbox"]:checked').length ) {
+			$('#resourceTabsSelectAll').prop('checked', true);
+		} else {
+			$('#resourceTabsSelectAll').prop('checked', false);
+		}
+	},
+	doSelectAllTabs: function () {
+		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]:not(:checked)').click();
+	},
+	doDeselectAllTabs: function () {
+		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]:checked').click();
 	}
 };
 

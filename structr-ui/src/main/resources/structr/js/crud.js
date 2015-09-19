@@ -92,18 +92,23 @@ var _Crud = {
 		main.append('<div id="resourceTabs">'
 			+ '<div id="resourceTabsSettings"></div>'
 			+ '<ul id="resourceTabsMenu"><li class="last hidden">'
-			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"> <label for="resourceTabsAutoHideCheckbox">show selected tabs only</label>'
+			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"><label for="resourceTabsAutoHideCheckbox"> Show selected tabs only</label>'
+			+ ' <span id="resourceTabsSelectAllWrapper"><input type="checkbox" id="resourceTabsSelectAll"><label for="resourceTabsSelectAll"> Select all</label></span>'
 			+ '</li></ul>'
 	        + '</div>');
 
 		if (Structr.getAutoHideInactiveTabs()) {
 			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
+			Structr.doHideSelectAllCheckbox();
 		}
 		$('#resourceTabsAutoHideCheckbox').change(function () {
 			var checked = $(this).prop('checked');
 			Structr.setAutoHideInactiveTabs(checked);
 			Structr.setHideInactiveTabs(checked);
-			//location.reload();
+		});
+
+		$('#resourceTabsSelectAll').change(function () {
+			($(this).prop('checked') ? Structr.doSelectAllTabs() : Structr.doDeselectAllTabs());
 		});
 
 		Structr.ensureIsAdmin($('#resourceTabs'), function() {
@@ -117,6 +122,7 @@ var _Crud = {
 				if (browser) {
 					_Crud.initTabs();
 				}
+				Structr.determineSelectAllCheckboxState();
 				_Crud.resize();
 				Structr.unblockMenu();
 			});
@@ -209,6 +215,7 @@ var _Crud = {
 			
 			 LSWrapper.setItem(crudHiddenTabsKey, JSON.stringify(hiddenTabs));
 
+			 Structr.determineSelectAllCheckboxState();
 		});
 
 		$('#resourceTabs').tabs({
