@@ -56,7 +56,7 @@ var _Dashboard = {
 		aboutMe.append('<button id="clear-local-storage-on-server">Clear UI configuration on server</button>');
 		$('#clear-local-storage-on-server').on('click', function() {
 			_Dashboard.clearLocalStorageOnServer();
-		})
+		});
 
 		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
 		myPages.append('<div class="dashboard-info">You own the following <a class="internal-link" href="javascript:void(0)">pages</a>:</div>');

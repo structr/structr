@@ -849,7 +849,7 @@ var _Crud = {
 					var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
 					var start = (page-1)*pageSize;
 					var end = page*pageSize;
-					ranges += key + '=' + start + '-' + end + ';'
+					ranges += key + '=' + start + '-' + end + ';';
 				}
 			});
 			return ranges;
@@ -1103,7 +1103,7 @@ var _Crud = {
 
 			$('.props td.value', dialogBox).css({
 				backgroundColor: '#fff',
-				borderColor: '#b5b5b5',
+				borderColor: '#b5b5b5'
 			});
 
 			$.each(Object.keys(resp.errors[type]), function(i, key) {
@@ -1978,7 +1978,7 @@ var _Crud = {
 		searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox">No results for ' + type.capitalize() + '</div>');
 		//console.log('noResults', 'resultsFor' + type, searchResults, $('#resultsFor' + type));
 		window.setTimeout(function() {
-			$('#resultsFor' + type).fadeOut('fast')
+			$('#resultsFor' + type).fadeOut('fast');
 		}, 1000);
 	},
 	searchResult: function(searchResults, type, node, onClickCallback) {
@@ -2641,4 +2641,4 @@ var _Crud = {
 		return node;
 	}
 
-}
+};

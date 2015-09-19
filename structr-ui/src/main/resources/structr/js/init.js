@@ -245,7 +245,7 @@ var Structr = {
 	autoHideInactiveTabs: undefined,
 
 	reconnect: function() {
-		log('deactivated ping')
+		log('deactivated ping');
 		Structr.stopPing();
 		log('activating reconnect loop');
 		Structr.stopReconnect();
@@ -279,7 +279,7 @@ var Structr = {
 		sessionId = Structr.getSessionId();
 		
 		if (sessionId) {
-			log('sending ping')
+			log('sending ping');
 			sendObj({command: 'PING', sessionId: sessionId}, callback);
 		}
 	},
@@ -953,7 +953,7 @@ var Structr = {
 				entities.forEach(function(entity) {
 					StructrModel.create(entity);
 				});
-			}
+			};
 		}
 
 		var isPagesEl = (el === pages);
@@ -1029,7 +1029,7 @@ var Structr = {
 		try {
 			$('#pages_').droppable('destroy');
 		} catch (err) {
-			log('exception:', err.toString())
+			log('exception:', err.toString());
 		}
 
 		$('#pages_').droppable({
@@ -1107,7 +1107,7 @@ var Structr = {
 			drag: function(e, ui) {
 				var w = ui.position.left - 12;
 				slideout.css({
-					width: w + 'px',
+					width: w + 'px'
 				});
 				ui.position.top += (ui.helper.width() / 2 - 6);
 				ui.position.left -= (ui.helper.width() / 2 - 6);
@@ -1174,7 +1174,7 @@ var Structr = {
 			Command.push(obj.id, host, port, username, password, key, recursive, function() {
 				dialog.empty();
 				dialogCancelButton.click();
-			})
+			});
 		});
 
 		return false;
@@ -1338,7 +1338,7 @@ var Structr = {
 	doShowAllTabs: function () {
 		$('#resourceTabsMenu input[type="checkbox"]').show();
 		$('.ui-state-default.ui-corner-top:not(.ui-tabs-active.ui-state-active)').show();
-	},
+	}
 };
 
 function MessageBuilder () {
@@ -1373,22 +1373,22 @@ function MessageBuilder () {
 	this.error = function (text) {
 		this.params.text = text;
 		return this.className('error');
-	}
+	};
 
 	this.warning = function (text) {
 		this.params.text = text;
 		return this.className('warning');
-	}
+	};
 
 	this.info = function (text) {
 		this.params.text = text;
 		return this.className('info');
-	}
+	};
 
 	this.success = function (text) {
 		this.params.text = '<img src="icon/accept.png"> ' + text;
 		return this.className('success');
-	}
+	};
 
 	this.delayDuration = function (delayDuration) {
 		this.params.delayDuration = delayDuration;
@@ -1465,7 +1465,7 @@ function MessageBuilder () {
 				$(this).remove();
 			}
 		});
-	}
+	};
 
 	this.specialInteractionButton = function (buttonText, callback, confirmButtonText) {
 		this.params.requiresConfirmation = true;
@@ -1473,14 +1473,14 @@ function MessageBuilder () {
 		this.params.specialInteractionButton = {
 			text: buttonText,
 			action: callback
-		}
+		};
 
 		if (confirmButtonText) {
 			this.params.confirmButtonText = confirmButtonText;
 		}
 
 		return this;
-	}
+	};
 
 	return this;
 }

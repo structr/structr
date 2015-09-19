@@ -253,7 +253,7 @@ var _Files = {
 		if (_Files.isArchive(file)) {
 			div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 			div.children('.unarchive_icon').on('click', function() {
-				log('unarchive', file.id)
+				log('unarchive', file.id);
 				Command.unarchive(file.id);
 			});
 		}
@@ -514,9 +514,9 @@ var _Files = {
 			}
 
 			Structr.dialog('Edit files', function() {
-				log('content saved')
+				log('content saved');
 			}, function() {
-				log('cancelled')
+				log('cancelled');
 			});
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');

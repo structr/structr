@@ -323,7 +323,7 @@ var _Security = {
 			}
 
 			var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" '
-			+ 'alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">'
+				+ 'alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">';
 
 			var parent = Structr.node(groupId);
 
@@ -395,7 +395,7 @@ var _Security = {
 				//containment: '#main',
 				stack: '.node',
 				appendTo: '#main',
-				zIndex: 99,
+				zIndex: 99
 //                stop : function(e,ui) {
 //                    $('#pages_').droppable('enable').removeClass('nodeHover');
 //                }

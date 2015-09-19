@@ -193,9 +193,9 @@ var _Entities = {
 	editSource: function (entity) {
 
 		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
-			log('Element source saved')
+			log('Element source saved');
 		}, function () {
-			log('cancelled')
+			log('cancelled');
 		});
 
 		// Get content in widget mode
@@ -791,7 +791,7 @@ var _Entities = {
 		var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">';
 		if (!(keyIcon && keyIcon.length)) {
 			parent.append(newKeyIcon);
-			keyIcon = $('.key_icon', parent)
+			keyIcon = $('.key_icon', parent);
 			if (protected) {
 				keyIcon.show();
 				keyIcon.addClass('donthide');
@@ -951,7 +951,7 @@ var _Entities = {
 		var element = $('.' + key + 'Box', el);
 		element.append('<span class="' + entity.id + '_"><select class="' + key + '_ ' + key + 'Select"></select></span>');
 		var selectElement = $('.' + key + 'Select');
-		selectElement.append('<option></option>')
+		selectElement.append('<option></option>');
 		selectElement.css({'width': '400px'}).chosen();
 
 		var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
@@ -1049,7 +1049,7 @@ var _Entities = {
 
 		if (hasChildren) {
 
-			log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand)
+			log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
@@ -1182,7 +1182,7 @@ var _Entities = {
 	},
 	resetMouseOverState: function (element) {
 		var el = $(element);
-		var node = el.closest('.node')
+		var node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
 			node.find('img.button').not('.donthide').hide().css('display', 'none');

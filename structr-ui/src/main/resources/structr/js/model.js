@@ -319,7 +319,7 @@ var StructrModel = {
 			tabNameElement.attr('title', newValue);
 
 			log('Model: Reload iframe', id, newValue);
-			_Pages.reloadIframe(id)
+			_Pages.reloadIframe(id);
 		}
 
 	},
@@ -469,7 +469,7 @@ var StructrModel = {
 		}
 	}
 
-}
+};
 
 
 /**************************************
@@ -485,11 +485,11 @@ function StructrFolder(data) {
 
 StructrFolder.prototype.save = function() {
 	StructrModel.save(this.id);
-}
+};
 
 StructrFolder.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
-}
+};
 
 StructrFolder.prototype.remove = function() {
 
@@ -523,16 +523,16 @@ StructrFolder.prototype.remove = function() {
 
 	folders.append(folderEl);
 
-}
+};
 
 StructrFolder.prototype.append = function(refNode) {
 	StructrModel.expand(_Files.appendFolderElement(this, refNode), this);
-}
+};
 
 StructrFolder.prototype.exists = function() {
 	var el = Structr.node(this.id);
 	return el && el.length > 0;
-}
+};
 
 /**************************************
  * Structr File
@@ -547,11 +547,11 @@ function StructrFile(data) {
 
 StructrFile.prototype.save = function() {
 	StructrModel.save(this.id);
-}
+};
 
 StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, false, callback);
-}
+};
 
 StructrFile.prototype.remove = function() {
 	var file = this;
@@ -578,7 +578,7 @@ StructrFile.prototype.remove = function() {
 
 	_Files.appendFileElement(this);
 
-}
+};
 
 StructrFile.prototype.append = function() {
 	var file = this;
@@ -592,7 +592,7 @@ StructrFile.prototype.append = function() {
 		}
 	}
 	StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
-}
+};
 
 
 /**************************************
@@ -608,11 +608,11 @@ function StructrImage(data) {
 
 StructrImage.prototype.save = function() {
 	StructrModel.save(this.id);
-}
+};
 
 StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, false, callback);
-}
+};
 
 StructrImage.prototype.remove = function() {
 	var file = this;
@@ -639,7 +639,7 @@ StructrImage.prototype.remove = function() {
 	}
 
 	_Files.appendFileElement(this);
-}
+};
 
 StructrImage.prototype.append = function(refNode) {
 	var image = this;
@@ -652,7 +652,7 @@ StructrImage.prototype.append = function(refNode) {
 	} else {
 		StructrModel.expand(_Files.appendFileElement(this, parentFolder || refNode), this);
 	}
-}
+};
 
 
 /**************************************
@@ -668,11 +668,11 @@ function StructrUser(data) {
 
 StructrUser.prototype.save = function() {
 	StructrModel.save(this.id);
-}
+};
 
 StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, false, callback);
-}
+};
 
 StructrUser.prototype.remove = function() {
 	var user = this;
@@ -698,7 +698,7 @@ StructrUser.prototype.remove = function() {
 	}
 
 	_Security.appendUserElement(this);
-}
+};
 
 StructrUser.prototype.append = function() {
 	var user = this;
@@ -710,7 +710,7 @@ StructrUser.prototype.append = function() {
 		}
 	}
 	StructrModel.expand(_Security.appendUserElement(this, group), this);
-}
+};
 
 /**************************************
  * Structr Group
@@ -725,15 +725,15 @@ function StructrGroup(data) {
 
 StructrGroup.prototype.save = function() {
 	StructrModel.save(this.id);
-}
+};
 
 StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
-}
+};
 
 StructrGroup.prototype.append = function(refNode) {
 	StructrModel.expand(_Security.appendGroupElement(this, refNode), this);
-}
+};
 
 /**************************************
  * Structr ResourceAccess
@@ -748,15 +748,15 @@ function StructrResourceAccess(data) {
 
 StructrResourceAccess.prototype.save = function() {
 	StructrModel.save(this.id);
-}
+};
 
 StructrResourceAccess.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
-}
+};
 
 StructrResourceAccess.prototype.append = function(refNode) {
 	StructrModel.expand(_Security.appendResourceAccessElement(this, refNode), this);
-}
+};
 
 /**************************************
  * Structr Page
@@ -771,15 +771,15 @@ function StructrPage(data) {
 
 //StructrPage.prototype.createElement = function(name) {
 //    return new Element(name);
-//}
+//};
 
 StructrPage.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
-}
+};
 
 StructrPage.prototype.append = function() {
 	StructrModel.expand(_Pages.appendPageElement(this), this);
-}
+};
 
 /**************************************
  * Structr Widget
@@ -794,15 +794,15 @@ function StructrWidget(data) {
 
 //StructrPage.prototype.createElement = function(name) {
 //    return new Element(name);
-//}
+//};
 
 StructrWidget.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
-}
+};
 
 StructrWidget.prototype.append = function() {
 	StructrModel.expand(_Widgets.appendWidgetElement(this), this);
-}
+};
 
 /**************************************
  * Structr Element
@@ -818,20 +818,20 @@ function StructrElement(data) {
 StructrElement.prototype.appendChild = function(el) {
 	var self = this;
 	self.children.push(el);
-}
+};
 
 StructrElement.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
-}
+};
 
 StructrElement.prototype.removeAttribute = function(key) {
 	var self = this;
 	delete self[key];
-}
+};
 
 StructrElement.prototype.save = function() {
 	StructrModel.save(this.id);
-}
+};
 
 StructrElement.prototype.remove = function() {
 	var element = Structr.node(this.id);
@@ -853,11 +853,11 @@ StructrElement.prototype.remove = function() {
 		_Entities.removeExpandIcon(parent);
 	}
 	_Pages.reloadPreviews();
-}
+};
 
 StructrElement.prototype.append = function(refNode) {
 	StructrModel.expand(_Pages.appendElementElement(this, refNode), this);
-}
+};
 
 StructrElement.prototype.exists = function() {
 
@@ -869,7 +869,7 @@ StructrElement.prototype.exists = function() {
 	var isMasterComponent = (isComponent && hasChildren);
 
 	return !isMasterComponent && Structr.node(obj.id);
-}
+};
 
 
 /**************************************
@@ -886,24 +886,24 @@ function StructrContent(data) {
 StructrContent.prototype.appendChild = function(el) {
 	var self = this;
 	self.children.push(el);
-}
+};
 
 StructrContent.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
-}
+};
 
 //StructrContent.prototype.setProperties = function(attributes) {
 //    this.attributes = attributes;
-//}
+//};
 
 StructrContent.prototype.removeAttribute = function(key) {
 	var self = this;
 	delete self[key];
-}
+};
 
 StructrContent.prototype.save = function() {
 	StructrModel.save(this.id);
-}
+};
 
 StructrContent.prototype.remove = function() {
 	var element = Structr.node(this.id);
@@ -923,7 +923,7 @@ StructrContent.prototype.remove = function() {
 		_Entities.removeExpandIcon(parent);
 	}
 	_Pages.reloadPreviews();
-}
+};
 
 StructrContent.prototype.append = function(refNode) {
 
@@ -960,11 +960,12 @@ StructrContent.prototype.append = function(refNode) {
 
 	_Entities.setMouseOver(div);
 
-}
+};
+
 StructrContent.prototype.exists = function() {
 
 	return Structr.node(this.id);
-}
+};
 
 /**************************************
  * Search result
@@ -979,12 +980,12 @@ function StructrSearchResult(data) {
 
 //StructrSearchResult.prototype.save = function() {
 //    StructrModel.save(this.id);
-//}
+//};
 //
 //StructrSearchResult.prototype.setProperty = function(key, value, recursive, callback) {
 //    Command.setProperty(this.id, key, value, recursive, callback);
-//}
-//
+//};
+
 StructrSearchResult.prototype.append = function() {
 
 	var obj = this;

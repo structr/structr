@@ -79,7 +79,7 @@ var _Contents = {
 		div.append('<img title="Clone content node ' + entity.id + '" alt="Clone content node ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
-			Command.cloneNode(entity.id, entity.parent.id, true)
+			Command.cloneNode(entity.id, entity.parent.id, true);
 		});
 
 		div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
@@ -109,9 +109,9 @@ var _Contents = {
 	},
 	openEditContentDialog: function(btn, entity) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
-			log('content saved')
+			log('content saved');
 		}, function() {
-			log('cancelled')
+			log('cancelled');
 		});
 		Command.getProperty(entity.id, 'content', function(text) {
             currentEntity = entity;

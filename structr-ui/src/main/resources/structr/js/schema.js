@@ -1713,7 +1713,7 @@ var _Schema = {
 		if (name && name.length) {
 
 			var obj                = {};
-			obj.schemaNode         = { id: entity.id }
+			obj.schemaNode         = { id: entity.id };
 			obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(entity, attrs);
 			obj.nonGraphProperties = _Schema.findNonGraphProperties(entity, attrs);
 			obj.name               = name;
@@ -2409,7 +2409,7 @@ var _Schema = {
 			$('td', schemaOptionsTable).on('mouseup', function(e) {
 				e.stopPropagation();
 				e.preventDefault();
-				console.log('td clicked')
+				console.log('td clicked');
 				var td = $(this);
 				var inp = $('.toggle-type', td);
 				inp.prop("checked", !inp.prop("checked"));

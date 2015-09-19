@@ -88,7 +88,7 @@ var Command = {
 		var obj = {};
 		obj.command = 'GET_TYPE_INFO';
 		var data = {};
-		data.type = type
+		data.type = type;
 		obj.data = data;
 		log('getTypeInfo()', obj, callback);
 		return sendObj(obj, callback);
@@ -855,7 +855,7 @@ var Command = {
 	 */
 	createFile: function(file, callback) {
 		var obj = {};
-		obj.command = 'CREATE'
+		obj.command = 'CREATE';
 		var data = {};
 		data.contentType = file.type;
 		data.name = file.name;
@@ -1109,5 +1109,5 @@ var Command = {
 
 		log('autocomplete()', obj, callback);
 		return sendObj(obj, callback);
-	},
-}
+	}
+};

@@ -817,7 +817,7 @@ var _Graph = {
 		_Graph.loadNode(rel.sourceId, function() {
 			_Graph.loadNode(rel.targetId, function() {
 				_Graph.drawRel(rel);
-			})
+			});
 		});
 	},
 	findRelationships: function(sourceId, targedId, relType) {
@@ -908,12 +908,12 @@ var _Graph = {
 
 		graph.css({
 			height: ch,
-			width: win.width(),
+			width: win.width()
 		});
 
 		$('canvas', graph).css({
 			height: ch,
-			width: win.width(),
+			width: win.width()
 		});
 
 		$('#relationship-types').css({
@@ -970,7 +970,7 @@ var _Graph = {
 				var nodeType = node.name;
 
 				if (!isIn(nodeType, Object.keys(nodeColors))) {
-					nodeColors[nodeType] = colors[color++]
+					nodeColors[nodeType] = colors[color++];
 				}
 
 				//Object.keys(nodeColors).forEach(function (nodeType) {

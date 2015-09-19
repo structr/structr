@@ -95,7 +95,7 @@ function wsConnect() {
 
 			Structr.init();
 
-		}
+		};
 
 		ws.onclose = function () {
 
@@ -123,7 +123,7 @@ function wsConnect() {
 
 			}, 100);
 
-		}
+		};
 
 		ws.onmessage = function (message) {
 
@@ -484,7 +484,7 @@ function wsConnect() {
 					if (command === 'CREATE' && entity.isPage) {
 						var tab = $('#show_' + entity.id, previews);
 						setTimeout(function () {
-							_Pages.activateTab(tab)
+							_Pages.activateTab(tab);
 						}, 2000);
 					} else if (command === 'CREATE' && (entity.isFile || entity.isImage || entity.isVideo)) {
 						_Files.uploadFile(entity);
@@ -527,7 +527,7 @@ function wsConnect() {
 					Structr.login();
 				}
 			}
-		}
+		};
 
 	} catch (exception) {
 		log('Error in connect(): ' + exception);

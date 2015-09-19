@@ -108,10 +108,10 @@ function StructrApp(baseUrl) {
 
 			if (action === 'create') {
 				var data = s.collectData(btn, id, attrs, type, suffix);
-				s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
+				s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else if (action === 'save') {
-				s.saveAction(btn, id, attrs, type, suffix, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn)});
+				s.saveAction(btn, id, attrs, type, suffix, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else if (action === 'edit') {
 				s.editAction(btn, id, attrs, type, suffix, returnUrl);
@@ -124,7 +124,7 @@ function StructrApp(baseUrl) {
 				s.del(btn, id, type, btn.attr('data-structr-confirm') === 'true', returnUrl, f ? f.val : undefined);
 
 			} else if (action === 'login') {
-				s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn)});
+				s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else if (action === 'logout') {
 				s.logoutAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
@@ -136,7 +136,7 @@ function StructrApp(baseUrl) {
 				s.resetPasswordAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else {
-				s.customAction(btn, id, type, btn.attr('data-structr-confirm') === 'true', action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
+				s.customAction(btn, id, type, btn.attr('data-structr-confirm') === 'true', action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn);});
 			}
 		});
 	},

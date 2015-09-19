@@ -119,7 +119,7 @@ var _Images = {
 					return;
 				}
 
-				log('dropped something in the #files area')
+				log('dropped something in the #files area');
 
 				event.stopPropagation();
 				event.preventDefault();

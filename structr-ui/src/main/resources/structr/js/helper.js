@@ -129,7 +129,7 @@ if (typeof String.prototype.splitAndTitleize !== 'function') {
 		var parts = this.split(sep);
 		parts.forEach(function(part) {
 			res.push(part.capitalize());
-		})
+		});
 		return res.join(" ");
 	};
 }

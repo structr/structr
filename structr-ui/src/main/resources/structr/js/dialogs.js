@@ -96,7 +96,7 @@ var _Dialogs = {
 			+ '<td><img class="nullIcon" id="null_' + name + '" src="icon/cross_small_grey.png"></td>'
 		);
 	}
-}
+};
 
 /*
 		el.append('<table class="props"></table>');

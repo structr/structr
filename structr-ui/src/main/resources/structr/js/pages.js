@@ -300,7 +300,7 @@ var _Pages = {
 		pagesSlideout.find(':not(.compTab)').remove();
 		previewTabs.empty();
 
-		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>')
+		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');
 		pages = $('#pagesTree', pagesSlideout);
 
 		Structr.addPager(pages, true, 'Page', function(pages) {
@@ -430,10 +430,10 @@ var _Pages = {
 
 		element.hover(function(e) {
 			icons.show();
-			autoRefreshSelector.show()
+			autoRefreshSelector.show();
 		}, function(e) {
 			icons.hide();
-			autoRefreshSelector.hide()
+			autoRefreshSelector.hide();
 		});
 
 		element.on('click', function(e) {
@@ -869,7 +869,7 @@ var _Pages = {
 		return droppables;
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');')
+		log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');');
 		entity = StructrModel.ensureObject(entity);
 		var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
@@ -1060,7 +1060,7 @@ var _Pages = {
 				if (key.substring(0,1) === '_' && key.substring(0,2) !== '__') {
 
 					key = key.substring(1);
-					type = 'custom'
+					type = 'custom';
 
 				} else if (key === 'relatedTo' || key === 'relatedFrom') {
 					// do nothing
