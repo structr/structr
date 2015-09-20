@@ -90,6 +90,6 @@ https://structr.com
 
 ## Copyright and License
 
-Copyright 2010-2015 Morgner UG (haftungsbeschränkt)
+Copyright 2010-2015 Structr GmbH
 
 Structr is licensed under the GPLv3 and AGPLv3 (Structr UI).
