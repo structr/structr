@@ -1207,7 +1207,7 @@ function singleSelect(f) {
 }
 
 function multiSelect(f) {
-	var inp = '<select data-structr-type="' + f.type + '" data-structr-name="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
+	var inp = '<select data-structr-type="' + f.type + '" data-structr-attr="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
 	f.type = f.type.substring(0, f.type.length-2);
 	var valIds = f.val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
 	var optionsKey = f.optionsKey || 'name';
