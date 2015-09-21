@@ -135,7 +135,13 @@ var _Dragndrop = {
 			iframeFix: true,
 			//sortable: '.node',
 			appendTo: '#main',
-			helper: 'clone',
+			helper: function (event, $el) {
+				$el.css({height: "17px"});
+				var hlp = $el.clone();
+				hlp.find('.node').remove();
+				hlp.find('.expand_icon').attr('src', 'icon/tree_arrow_right.png');
+				return hlp;
+			},
 			zIndex: 99,
 			containment: 'body',
 			start: function(event, ui) {
@@ -175,6 +181,7 @@ var _Dragndrop = {
 				$(event.toElement).one('click', function(e) {
 					e.stopImmediatePropagation();
 				});
+				$(ui.item).css({height: ''});
 			}
 		};
 
