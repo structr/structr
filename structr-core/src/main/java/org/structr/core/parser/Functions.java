@@ -107,6 +107,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.Function;
@@ -126,141 +127,143 @@ public class Functions {
 
 	public static final String NULL_STRING = "___NULL___";
 
-	public static final String ERROR_MESSAGE_MD5								= "Usage: ${md5(string)}. Example: ${md5(this.email)}";
-	public static final String ERROR_MESSAGE_ERROR								= "Usage: ${error(...)}. Example: ${error(\"base\", \"must_equal\", int(5))}";
-	public static final String ERROR_MESSAGE_UPPER								= "Usage: ${upper(string)}. Example: ${upper(this.nickName)}";
-	public static final String ERROR_MESSAGE_LOWER								= "Usage: ${lower(string)}. Example: ${lower(this.email)}";
-	public static final String ERROR_MESSAGE_JOIN								= "Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}";
-	public static final String ERROR_MESSAGE_CONCAT								= "Usage: ${concat(values...)}. Example: ${concat(this.firstName, this.lastName)}";
-	public static final String ERROR_MESSAGE_SPLIT								= "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
-	public static final String ERROR_MESSAGE_ABBR								= "Usage: ${abbr(longString, maxLength)}. Example: ${abbr(this.title, 20)}";
-	public static final String ERROR_MESSAGE_CAPITALIZE							= "Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}";
-	public static final String ERROR_MESSAGE_TITLEIZE							= "Usage: ${titleize(string, separator}. (Default separator is \" \") Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
-	public static final String ERROR_MESSAGE_NUM								= "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
-	public static final String ERROR_MESSAGE_INT								= "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
-	public static final String ERROR_MESSAGE_RANDOM								= "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
-	public static final String ERROR_MESSAGE_RINT								= "Usage: ${rint(range)}. Example: ${rint(1000)}";
-	public static final String ERROR_MESSAGE_INDEX_OF							= "Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}";
-	public static final String ERROR_MESSAGE_CONTAINS							= "Usage: ${contains(string, word)}. Example: ${contains(this.name, \"the\")}";
-	public static final String ERROR_MESSAGE_SUBSTRING							= "Usage: ${substring(string, start, length)}. Example: ${substring(this.name, 19, 3)}";
-	public static final String ERROR_MESSAGE_LENGTH								= "Usage: ${length(string)}. Example: ${length(this.name)}";
-	public static final String ERROR_MESSAGE_REPLACE							= "Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}";
-	public static final String ERROR_MESSAGE_CLEAN								= "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
-	public static final String ERROR_MESSAGE_URLENCODE							= "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
-	public static final String ERROR_MESSAGE_ESCAPE_JS							= "Usage: ${escape_javascript(string)}. Example: ${escape_javascript(this.name)}";
-	public static final String ERROR_MESSAGE_ESCAPE_JSON						= "Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}";
-	public static final String ERROR_MESSAGE_IF									= "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
-	public static final String ERROR_MESSAGE_EMPTY								= "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
-	public static final String ERROR_MESSAGE_EQUAL								= "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
-	public static final String ERROR_MESSAGE_ADD								= "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
-	public static final String ERROR_MESSAGE_INT_SUM							= "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
-	public static final String ERROR_MESSAGE_DOUBLE_SUM							= "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
-	public static final String ERROR_MESSAGE_IS_COLLECTION						= "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
-	public static final String ERROR_MESSAGE_IS_ENTITY							= "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
-	public static final String ERROR_MESSAGE_EXTRACT							= "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
-	public static final String ERROR_MESSAGE_FILTER								= "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
-	public static final String ERROR_MESSAGE_MERGE								= "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
-	public static final String ERROR_MESSAGE_COMPLEMENT							= "Usage: ${complement(list1, list2, list3, ...)}. (The resulting list contains no duplicates) Example: ${complement(allUsers, me)} => List of all users except myself";
-	public static final String ERROR_MESSAGE_UNWIND								= "Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}";
-	public static final String ERROR_MESSAGE_SORT								= "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
-	public static final String ERROR_MESSAGE_LT									= "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
-	public static final String ERROR_MESSAGE_GT									= "Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}";
-	public static final String ERROR_MESSAGE_LTE								= "Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}";
-	public static final String ERROR_MESSAGE_GTE								= "Usage: ${gte(value1, value2)}. Example: ${if(gte(this.children, 2), \"Equal to or more than two\", \"Less than two\")}";
-	public static final String ERROR_MESSAGE_SUBT								= "Usage: ${subt(value1, value)}. Example: ${subt(5, 2)}";
-	public static final String ERROR_MESSAGE_MULT								= "Usage: ${mult(value1, value)}. Example: ${mult(5, 2)}";
-	public static final String ERROR_MESSAGE_QUOT								= "Usage: ${quot(value1, value)}. Example: ${quot(5, 2)}";
-	public static final String ERROR_MESSAGE_ROUND								= "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
-	public static final String ERROR_MESSAGE_MAX								= "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
-	public static final String ERROR_MESSAGE_MIN								= "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
-	public static final String ERROR_MESSAGE_CONFIG								= "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
-	public static final String ERROR_MESSAGE_CONFIG_JS							= "Usage: ${{Structr.config(keyFromStructrConf)}}. Example: ${{Structr.config(\"base.path\")}}";
-	public static final String ERROR_MESSAGE_DATE_FORMAT						= "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
-	public static final String ERROR_MESSAGE_DATE_FORMAT_JS						= "Usage: ${{Structr.date_format(value, pattern)}}. Example: ${{Structr.date_format(Structr.get('this').creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}}";
-	public static final String ERROR_MESSAGE_PARSE_DATE							= "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
-	public static final String ERROR_MESSAGE_PARSE_DATE_JS						= "Usage: ${{Structr.parse_date(value, pattern)}}. Example: ${{Structr.parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}}";
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT						= "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT_JS					= "Usage: ${{Structr.number_format(value, ISO639LangCode, pattern)}}. Example: ${{Structr.number_format(12345.6789, 'en', '#,##0.00')}}";
-	public static final String ERROR_MESSAGE_TEMPLATE							= "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
-	public static final String ERROR_MESSAGE_TEMPLATE_JS						= "Usage: ${{Structr.template(name, locale, source)}}. Example: ${{Structr.template(\"TEXT_TEMPLATE_1\", \"en_EN\", Structr.get('this'))}}";
-	public static final String ERROR_MESSAGE_NOT								= "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
-	public static final String ERROR_MESSAGE_AND								= "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
-	public static final String ERROR_MESSAGE_OR									= "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
-	public static final String ERROR_MESSAGE_GET								= "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
-	public static final String ERROR_MESSAGE_GET_OR_NULL						= "Usage: ${get_or_null(entity, propertyKey)}. Example: ${get_or_null(this, \"children\")}";
-	public static final String ERROR_MESSAGE_GET_OR_NULL_JS						= "Usage: ${{Structr.getOrNull(entity, propertyKey)}}. Example: ${{Structr.getOrNull(this, \"children\")}}";
-	public static final String ERROR_MESSAGE_GET_ENTITY							= "Cannot evaluate first argument to entity, must be entity or single element list of entities.";
-	public static final String ERROR_MESSAGE_SIZE								= "Usage: ${size(collection)}. Example: ${size(this.children)}";
-	public static final String ERROR_MESSAGE_FIRST								= "Usage: ${first(collection)}. Example: ${first(this.children)}";
-	public static final String ERROR_MESSAGE_LAST								= "Usage: ${last(collection)}. Example: ${last(this.children)}";
-	public static final String ERROR_MESSAGE_NTH								= "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
-	public static final String ERROR_MESSAGE_GET_COUNTER						= "Usage: ${get_counter(level)}. Example: ${get_counter(1)}";
-	public static final String ERROR_MESSAGE_INC_COUNTER						= "Usage: ${inc_counter(level, [resetLowerLevels])}. Example: ${inc_counter(1, true)}";
-	public static final String ERROR_MESSAGE_RESET_COUNTER						= "Usage: ${reset_counter(level)}. Example: ${reset_counter(1)}";
-	public static final String ERROR_MESSAGE_MERGE_PROPERTIES					= "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
-	public static final String ERROR_MESSAGE_KEYS								= "Usage: ${keys(entity, viewName)}. Example: ${keys(this, \"ui\")}";
-	public static final String ERROR_MESSAGE_EACH								= "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
-	public static final String ERROR_MESSAGE_STORE								= "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
-	public static final String ERROR_MESSAGE_STORE_JS							= "Usage: ${{Structr.store(key, value)}}. Example: ${{Structr.store('tmpUser', Structr.get('this').owner)}}";
-	public static final String ERROR_MESSAGE_RETRIEVE							= "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
-	public static final String ERROR_MESSAGE_RETRIEVE_JS						= "Usage: ${{Structr.retrieve(key)}}. Example: ${{Structr.retrieve('tmpUser')}}";
-	public static final String ERROR_MESSAGE_PRINT								= "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
-	public static final String ERROR_MESSAGE_PRINT_JS							= "Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}";
-	public static final String ERROR_MESSAGE_LOG								= "Usage: ${log(string)}. Example ${log('Hello World!')}";
-	public static final String ERROR_MESSAGE_LOG_JS								= "Usage: ${{Structr.log(string)}}. Example ${{Structr.log('Hello World!')}}";
-	public static final String ERROR_MESSAGE_READ								= "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
-	public static final String ERROR_MESSAGE_WRITE								= "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
-	public static final String ERROR_MESSAGE_APPEND								= "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
-	public static final String ERROR_MESSAGE_XML								= "Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
-	public static final String ERROR_MESSAGE_XPATH								= "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
-	public static final String ERROR_MESSAGE_SET								= "Usage: ${set(entity, propertyKey, value)}. Example: ${set(this, \"email\", lower(this.email))}";
-	public static final String ERROR_MESSAGE_SET_PRIVILEGED						= "Usage: ${set_privileged(entity, propertyKey, value)}. Example: ${set_privileged(this, \"email\", lower(this.email))}";
-	public static final String ERROR_MESSAGE_SET_PRIVILEGED_JS					= "Usage: ${{Structr.setPrvileged(entity, propertyKey, value)}}. Example: ${{Structr.setPrivileged(Structr.this, \"email\", lower(Structr.this.email))}}";
-	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL				= "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
-	public static final String ERROR_MESSAGE_SEND_HTML_MAIL						= "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
-	public static final String ERROR_MESSAGE_GEOCODE							= "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
-	public static final String ERROR_MESSAGE_FIND								= "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
-	public static final String ERROR_MESSAGE_SEARCH								= "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}";
-	public static final String ERROR_MESSAGE_SEARCH_JS							= "Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}";
-	public static final String ERROR_MESSAGE_CREATE								= "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
-	public static final String ERROR_MESSAGE_CREATE_JS							= "Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create(\"Feedback\", {text: \"Structr is awesome.\"})}}";
-	public static final String ERROR_MESSAGE_DELETE								= "Usage: ${delete(entity)}. Example: ${delete(this)}";
-	public static final String ERROR_MESSAGE_CACHE								= "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
-	public static final String ERROR_MESSAGE_GRANT								= "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
-	public static final String ERROR_MESSAGE_GRANT_JS							= "Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}";
-	public static final String ERROR_MESSAGE_REVOKE								= "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
-	public static final String ERROR_MESSAGE_REVOKE_JS							= "Usage: ${{Structr.revoke(principal, node, permissions)}}. Example: ${{Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}}";
-	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE	= "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once, this}";
-	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS	= "Usage: ${{Structr.unlock_readonly_properties_once(node)}}. Example ${{Structr.unlock_readonly_properties_once, Structr.get('this')}}";
-	public static final String ERROR_MESSAGE_CALL								= "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
-	public static final String ERROR_MESSAGE_CALL_JS							= "Usage: ${{Structr.call(key [, payloads...]}}. Example ${{Structr.call('myEvent')}}";
-	public static final String ERROR_MESSAGE_IS_LOCALE							= "Usage: ${is_locale(locales...)}";
-	public static final String ERROR_MESSAGE_IS_LOCALE_JS						= "Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}";
-	public static final String ERROR_MESSAGE_CYPHER								= "Usage: ${cypher('MATCH (n) RETURN n')}";
-	public static final String ERROR_MESSAGE_CYPHER_JS							= "Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}";
-	public static final String ERROR_MESSAGE_LOCALIZE							= "Usage: ${localize(key[, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}";
-	public static final String ERROR_MESSAGE_LOCALIZE_JS						= "Usage: ${{Structr.localize(key[, domain])}}. Example ${{Structr.localize('HELLO_WORLD', 'myDomain')}}";
+	public static final String ERROR_MESSAGE_MD5                                 = "Usage: ${md5(string)}. Example: ${md5(this.email)}";
+	public static final String ERROR_MESSAGE_ERROR                               = "Usage: ${error(...)}. Example: ${error(\"base\", \"must_equal\", int(5))}";
+	public static final String ERROR_MESSAGE_UPPER                               = "Usage: ${upper(string)}. Example: ${upper(this.nickName)}";
+	public static final String ERROR_MESSAGE_LOWER                               = "Usage: ${lower(string)}. Example: ${lower(this.email)}";
+	public static final String ERROR_MESSAGE_JOIN                                = "Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}";
+	public static final String ERROR_MESSAGE_CONCAT                              = "Usage: ${concat(values...)}. Example: ${concat(this.firstName, this.lastName)}";
+	public static final String ERROR_MESSAGE_SPLIT                               = "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
+	public static final String ERROR_MESSAGE_ABBR                                = "Usage: ${abbr(longString, maxLength)}. Example: ${abbr(this.title, 20)}";
+	public static final String ERROR_MESSAGE_CAPITALIZE                          = "Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}";
+	public static final String ERROR_MESSAGE_TITLEIZE                            = "Usage: ${titleize(string, separator}. (Default separator is \" \") Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
+	public static final String ERROR_MESSAGE_NUM                                 = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
+	public static final String ERROR_MESSAGE_INT                                 = "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
+	public static final String ERROR_MESSAGE_RANDOM                              = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
+	public static final String ERROR_MESSAGE_RINT                                = "Usage: ${rint(range)}. Example: ${rint(1000)}";
+	public static final String ERROR_MESSAGE_INDEX_OF                            = "Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}";
+	public static final String ERROR_MESSAGE_CONTAINS                            = "Usage: ${contains(string, word)}. Example: ${contains(this.name, \"the\")}";
+	public static final String ERROR_MESSAGE_SUBSTRING                           = "Usage: ${substring(string, start, length)}. Example: ${substring(this.name, 19, 3)}";
+	public static final String ERROR_MESSAGE_LENGTH                              = "Usage: ${length(string)}. Example: ${length(this.name)}";
+	public static final String ERROR_MESSAGE_REPLACE                             = "Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}";
+	public static final String ERROR_MESSAGE_CLEAN                               = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
+	public static final String ERROR_MESSAGE_URLENCODE                           = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
+	public static final String ERROR_MESSAGE_ESCAPE_JS                           = "Usage: ${escape_javascript(string)}. Example: ${escape_javascript(this.name)}";
+	public static final String ERROR_MESSAGE_ESCAPE_JSON                         = "Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}";
+	public static final String ERROR_MESSAGE_IF                                  = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
+	public static final String ERROR_MESSAGE_EMPTY                               = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
+	public static final String ERROR_MESSAGE_EQUAL                               = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
+	public static final String ERROR_MESSAGE_ADD                                 = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
+	public static final String ERROR_MESSAGE_INT_SUM                             = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
+	public static final String ERROR_MESSAGE_DOUBLE_SUM                          = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
+	public static final String ERROR_MESSAGE_IS_COLLECTION                       = "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
+	public static final String ERROR_MESSAGE_IS_ENTITY                           = "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
+	public static final String ERROR_MESSAGE_EXTRACT                             = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
+	public static final String ERROR_MESSAGE_FILTER                              = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
+	public static final String ERROR_MESSAGE_MERGE                               = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
+	public static final String ERROR_MESSAGE_COMPLEMENT                          = "Usage: ${complement(list1, list2, list3, ...)}. (The resulting list contains no duplicates) Example: ${complement(allUsers, me)} => List of all users except myself";
+	public static final String ERROR_MESSAGE_UNWIND                              = "Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}";
+	public static final String ERROR_MESSAGE_SORT                                = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
+	public static final String ERROR_MESSAGE_LT                                  = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
+	public static final String ERROR_MESSAGE_GT                                  = "Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}";
+	public static final String ERROR_MESSAGE_LTE                                 = "Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}";
+	public static final String ERROR_MESSAGE_GTE                                 = "Usage: ${gte(value1, value2)}. Example: ${if(gte(this.children, 2), \"Equal to or more than two\", \"Less than two\")}";
+	public static final String ERROR_MESSAGE_SUBT                                = "Usage: ${subt(value1, value)}. Example: ${subt(5, 2)}";
+	public static final String ERROR_MESSAGE_MULT                                = "Usage: ${mult(value1, value)}. Example: ${mult(5, 2)}";
+	public static final String ERROR_MESSAGE_QUOT                                = "Usage: ${quot(value1, value)}. Example: ${quot(5, 2)}";
+	public static final String ERROR_MESSAGE_ROUND                               = "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
+	public static final String ERROR_MESSAGE_MAX                                 = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
+	public static final String ERROR_MESSAGE_MIN                                 = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
+	public static final String ERROR_MESSAGE_CONFIG                              = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
+	public static final String ERROR_MESSAGE_CONFIG_JS                           = "Usage: ${{Structr.config(keyFromStructrConf)}}. Example: ${{Structr.config(\"base.path\")}}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT                         = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT_JS                      = "Usage: ${{Structr.date_format(value, pattern)}}. Example: ${{Structr.date_format(Structr.get('this').creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}}";
+	public static final String ERROR_MESSAGE_PARSE_DATE                          = "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
+	public static final String ERROR_MESSAGE_PARSE_DATE_JS                       = "Usage: ${{Structr.parse_date(value, pattern)}}. Example: ${{Structr.parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT                       = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT_JS                    = "Usage: ${{Structr.number_format(value, ISO639LangCode, pattern)}}. Example: ${{Structr.number_format(12345.6789, 'en', '#,##0.00')}}";
+	public static final String ERROR_MESSAGE_TEMPLATE                            = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
+	public static final String ERROR_MESSAGE_TEMPLATE_JS                         = "Usage: ${{Structr.template(name, locale, source)}}. Example: ${{Structr.template(\"TEXT_TEMPLATE_1\", \"en_EN\", Structr.get('this'))}}";
+	public static final String ERROR_MESSAGE_NOT                                 = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
+	public static final String ERROR_MESSAGE_AND                                 = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
+	public static final String ERROR_MESSAGE_OR                                  = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
+	public static final String ERROR_MESSAGE_GET                                 = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
+	public static final String ERROR_MESSAGE_GET_OR_NULL                         = "Usage: ${get_or_null(entity, propertyKey)}. Example: ${get_or_null(this, \"children\")}";
+	public static final String ERROR_MESSAGE_GET_OR_NULL_JS                      = "Usage: ${{Structr.getOrNull(entity, propertyKey)}}. Example: ${{Structr.getOrNull(this, \"children\")}}";
+	public static final String ERROR_MESSAGE_GET_ENTITY                          = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";
+	public static final String ERROR_MESSAGE_SIZE                                = "Usage: ${size(collection)}. Example: ${size(this.children)}";
+	public static final String ERROR_MESSAGE_FIRST                               = "Usage: ${first(collection)}. Example: ${first(this.children)}";
+	public static final String ERROR_MESSAGE_LAST                                = "Usage: ${last(collection)}. Example: ${last(this.children)}";
+	public static final String ERROR_MESSAGE_NTH                                 = "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
+	public static final String ERROR_MESSAGE_GET_COUNTER                         = "Usage: ${get_counter(level)}. Example: ${get_counter(1)}";
+	public static final String ERROR_MESSAGE_INC_COUNTER                         = "Usage: ${inc_counter(level, [resetLowerLevels])}. Example: ${inc_counter(1, true)}";
+	public static final String ERROR_MESSAGE_RESET_COUNTER                       = "Usage: ${reset_counter(level)}. Example: ${reset_counter(1)}";
+	public static final String ERROR_MESSAGE_MERGE_PROPERTIES                    = "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
+	public static final String ERROR_MESSAGE_KEYS                                = "Usage: ${keys(entity, viewName)}. Example: ${keys(this, \"ui\")}";
+	public static final String ERROR_MESSAGE_EACH                                = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
+	public static final String ERROR_MESSAGE_STORE                               = "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
+	public static final String ERROR_MESSAGE_STORE_JS                            = "Usage: ${{Structr.store(key, value)}}. Example: ${{Structr.store('tmpUser', Structr.get('this').owner)}}";
+	public static final String ERROR_MESSAGE_RETRIEVE                            = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
+	public static final String ERROR_MESSAGE_RETRIEVE_JS                         = "Usage: ${{Structr.retrieve(key)}}. Example: ${{Structr.retrieve('tmpUser')}}";
+	public static final String ERROR_MESSAGE_PRINT                               = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
+	public static final String ERROR_MESSAGE_PRINT_JS                            = "Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}";
+	public static final String ERROR_MESSAGE_LOG                                 = "Usage: ${log(string)}. Example ${log('Hello World!')}";
+	public static final String ERROR_MESSAGE_LOG_JS                              = "Usage: ${{Structr.log(string)}}. Example ${{Structr.log('Hello World!')}}";
+	public static final String ERROR_MESSAGE_READ                                = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
+	public static final String ERROR_MESSAGE_WRITE                               = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
+	public static final String ERROR_MESSAGE_APPEND                              = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
+	public static final String ERROR_MESSAGE_XML                                 = "Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
+	public static final String ERROR_MESSAGE_XPATH                               = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
+	public static final String ERROR_MESSAGE_SET                                 = "Usage: ${set(entity, propertyKey, value)}. Example: ${set(this, \"email\", lower(this.email))}";
+	public static final String ERROR_MESSAGE_SET_PRIVILEGED                      = "Usage: ${set_privileged(entity, propertyKey, value)}. Example: ${set_privileged(this, \"email\", lower(this.email))}";
+	public static final String ERROR_MESSAGE_SET_PRIVILEGED_JS                   = "Usage: ${{Structr.setPrvileged(entity, propertyKey, value)}}. Example: ${{Structr.setPrivileged(Structr.this, \"email\", lower(Structr.this.email))}}";
+	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL                 = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
+	public static final String ERROR_MESSAGE_SEND_HTML_MAIL                      = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
+	public static final String ERROR_MESSAGE_GEOCODE                             = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
+	public static final String ERROR_MESSAGE_FIND                                = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
+	public static final String ERROR_MESSAGE_SEARCH                              = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}";
+	public static final String ERROR_MESSAGE_SEARCH_JS                           = "Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}";
+	public static final String ERROR_MESSAGE_CREATE                              = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
+	public static final String ERROR_MESSAGE_CREATE_JS                           = "Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create(\"Feedback\", {text: \"Structr is awesome.\"})}}";
+	public static final String ERROR_MESSAGE_DELETE                              = "Usage: ${delete(entity)}. Example: ${delete(this)}";
+	public static final String ERROR_MESSAGE_CACHE                               = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
+	public static final String ERROR_MESSAGE_GRANT                               = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
+	public static final String ERROR_MESSAGE_GRANT_JS                            = "Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}";
+	public static final String ERROR_MESSAGE_REVOKE                              = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
+	public static final String ERROR_MESSAGE_REVOKE_JS                           = "Usage: ${{Structr.revoke(principal, node, permissions)}}. Example: ${{Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}}";
+	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE     = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once, this}";
+	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS  = "Usage: ${{Structr.unlock_readonly_properties_once(node)}}. Example ${{Structr.unlock_readonly_properties_once, Structr.get('this')}}";
+	public static final String ERROR_MESSAGE_CALL                                = "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
+	public static final String ERROR_MESSAGE_CALL_JS                             = "Usage: ${{Structr.call(key [, payloads...]}}. Example ${{Structr.call('myEvent')}}";
+	public static final String ERROR_MESSAGE_IS_LOCALE                           = "Usage: ${is_locale(locales...)}";
+	public static final String ERROR_MESSAGE_IS_LOCALE_JS                        = "Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}";
+	public static final String ERROR_MESSAGE_CYPHER                              = "Usage: ${cypher('MATCH (n) RETURN n')}";
+	public static final String ERROR_MESSAGE_CYPHER_JS                           = "Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}";
+	public static final String ERROR_MESSAGE_LOCALIZE                            = "Usage: ${localize(key[, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}";
+	public static final String ERROR_MESSAGE_LOCALIZE_JS                         = "Usage: ${{Structr.localize(key[, domain])}}. Example ${{Structr.localize('HELLO_WORLD', 'myDomain')}}";
+	public static final String ERROR_MESSAGE_PROPERTY_INFO                       = "Usage: ${property_info(type, name)}. Example ${property_info('User', 'name')}";
+	public static final String ERROR_MESSAGE_PROPERTY_INFO_JS                    = "Usage: ${Structr.propertyInfo(type, name)}. Example ${Structr.propertyInfo('User', 'name')}";
 
 	// Special functions for relationships
-	public static final String ERROR_MESSAGE_INSTANTIATE						= "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
-	public static final String ERROR_MESSAGE_INCOMING							= "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
-	public static final String ERROR_MESSAGE_INCOMING_JS						= "Usage: ${{Structr.incoming(entity [, relType])}}. Example: ${{Structr.incoming(Structr.this, 'PARENT_OF')}}";
-	public static final String ERROR_MESSAGE_OUTGOING							= "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
-	public static final String ERROR_MESSAGE_OUTGOING_JS						= "Usage: ${{Structr.outgoing(entity [, relType])}}. Example: ${{outgoing(Structr.this, 'PARENT_OF')}}";
-	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP					= "Usage: ${has_relationship(entity1, entity2 [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')} (ignores direction of the relationship)";
-	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP_JS				= "Usage: ${{Structr.has_relationship(entity1, entity2 [, relType])}}. Example: ${{Structr.has_relationship(Structr.get('me'), user, 'FOLLOWS')}} (ignores direction of the relationship)";
-	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP			= "Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP_JS		= "Usage: ${{Structr.has_outgoing_relationship(from, to [, relType])}}. Example: ${{Structr.has_outgoing_relationship(Structr.get('me'), user, 'FOLLOWS')}}";
-	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP			= "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS		= "Usage: ${{Structr.has_incoming_relationship(from, to [, relType])}}. Example: ${{Structr.has_incoming_relationship(Structr.get('me'), user, 'FOLLOWS')}}";
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS					= "Usage: ${get_relationships(entity1, entity2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS_JS				= "Usage: ${{Structr.get_relationships(entity1, entity2 [, relType])}}. Example: ${{Structr.get_relationships(Structr.get('me'), user, 'FOLLOWS')}}  (ignores direction of the relationship)";
-	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS			= "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS		= "Usage: ${{Structr.get_outgoing_relationships(from, to [, relType])}}. Example: ${{Structr.get_outgoing_relationships(Structr.get('me'), user, 'FOLLOWS')}}";
-	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS			= "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS		= "Usage: ${{Structr.get_incoming_relationships(from, to [, relType])}}. Example: ${{Structr.get_incoming_relationships(Structr.get('me'), user, 'FOLLOWS')}}";
-	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP				= "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
-	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP_JS				= "Usage: ${{Structr.create_relationship(from, to, relType)}}. Example: ${{Structr.create_relationship(Structr.get('me'), user, 'FOLLOWS')}} (Relationshiptype has to exist)";
+	public static final String ERROR_MESSAGE_INSTANTIATE                         = "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
+	public static final String ERROR_MESSAGE_INCOMING                            = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
+	public static final String ERROR_MESSAGE_INCOMING_JS                         = "Usage: ${{Structr.incoming(entity [, relType])}}. Example: ${{Structr.incoming(Structr.this, 'PARENT_OF')}}";
+	public static final String ERROR_MESSAGE_OUTGOING                            = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
+	public static final String ERROR_MESSAGE_OUTGOING_JS                         = "Usage: ${{Structr.outgoing(entity [, relType])}}. Example: ${{outgoing(Structr.this, 'PARENT_OF')}}";
+	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP                    = "Usage: ${has_relationship(entity1, entity2 [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')} (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_HAS_RELATIONSHIP_JS                 = "Usage: ${{Structr.has_relationship(entity1, entity2 [, relType])}}. Example: ${{Structr.has_relationship(Structr.get('me'), user, 'FOLLOWS')}} (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP           = "Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP_JS        = "Usage: ${{Structr.has_outgoing_relationship(from, to [, relType])}}. Example: ${{Structr.has_outgoing_relationship(Structr.get('me'), user, 'FOLLOWS')}}";
+	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP           = "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS        = "Usage: ${{Structr.has_incoming_relationship(from, to [, relType])}}. Example: ${{Structr.has_incoming_relationship(Structr.get('me'), user, 'FOLLOWS')}}";
+	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS                   = "Usage: ${get_relationships(entity1, entity2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS_JS                = "Usage: ${{Structr.get_relationships(entity1, entity2 [, relType])}}. Example: ${{Structr.get_relationships(Structr.get('me'), user, 'FOLLOWS')}}  (ignores direction of the relationship)";
+	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS          = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS       = "Usage: ${{Structr.get_outgoing_relationships(from, to [, relType])}}. Example: ${{Structr.get_outgoing_relationships(Structr.get('me'), user, 'FOLLOWS')}}";
+	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS          = "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
+	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS       = "Usage: ${{Structr.get_incoming_relationships(from, to [, relType])}}. Example: ${{Structr.get_incoming_relationships(Structr.get('me'), user, 'FOLLOWS')}}";
+	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP                 = "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
+	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP_JS              = "Usage: ${{Structr.create_relationship(from, to, relType)}}. Example: ${{Structr.create_relationship(Structr.get('me'), user, 'FOLLOWS')}} (Relationshiptype has to exist)";
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
@@ -2592,7 +2595,7 @@ public class Functions {
 
 					} else if (sources[0] instanceof ScriptableObject) {
 
-						
+
 
 					} else {
 
@@ -5545,6 +5548,67 @@ public class Functions {
 			public String shortDescription() {
 				return "";
 			}
+		});
+		functions.put("property_info", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					final ConfigurationProvider config = StructrApp.getConfiguration();
+					final String typeName = sources[0].toString();
+					final String keyName  = sources[1].toString();
+
+					Class type = config.getNodeEntityClass(typeName);
+					if (type == null) {
+
+						type = config.getRelationshipEntityClass(typeName);
+					}
+
+					if (type != null) {
+
+						final PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, false);
+						if (key != null) {
+
+							return SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), key);
+
+						} else {
+
+							return "Unknown property " + typeName + "." + keyName;
+						}
+
+					} else {
+
+						return "Unknown type " + typeName;
+					}
+
+				} else {
+
+					return usage(ctx.isJavaScriptContext());
+				}
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_PROPERTY_INFO_JS : ERROR_MESSAGE_PROPERTY_INFO);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the schema information for the given property";
+			}
+
+			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
+			public String getName() {
+				return "schema_property()";
+			}
+
 		});
 		functions.put("disable_notifications", new Function<Object, Object>() {
 

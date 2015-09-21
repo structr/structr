@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser;
 
+import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -68,9 +69,18 @@ public class ValueExpression extends Expression {
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException {
 
 		// evaluate dot syntax
-		if (keyword.startsWith(".") && value instanceof GraphObject) {
+		if (keyword.startsWith(".")) {
 
-			return ctx.getReferencedProperty(entity, keyword.substring(1), value);
+			final String key = keyword.substring(1);
+
+			if (value instanceof GraphObject) {
+
+				return ctx.getReferencedProperty(entity, key, value);
+
+			} else if (value instanceof Map) {
+
+				return ((Map)value).get(key);
+			}
 		}
 
 		return value;

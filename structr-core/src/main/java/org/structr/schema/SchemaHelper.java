@@ -45,10 +45,12 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.DynamicResourceAccess;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
 import static org.structr.core.entity.SchemaMethod.source;
@@ -60,6 +62,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
@@ -932,6 +935,69 @@ public class SchemaHelper {
 		src.append("\n\t\treturn !error;\n");
 		src.append("\t}\n\n");
 
+	}
+
+	public static Map<String, Object> getPropertyInfo(final SecurityContext securityContext, final PropertyKey property) {
+
+		final Map<String, Object> map = new LinkedHashMap();
+
+		map.put("dbName", property.dbName());
+		map.put("jsonName", property.jsonName());
+		map.put("className", property.getClass().getName());
+
+		final Class declaringClass = property.getDeclaringClass();
+
+		map.put("declaringClass", declaringClass.getSimpleName());
+		map.put("defaultValue", property.defaultValue());
+		if (property instanceof StringProperty) {
+			map.put("contentType", ((StringProperty) property).contentType());
+		}
+		map.put("format", property.format());
+		map.put("readOnly", property.isReadOnly());
+		map.put("system", property.isUnvalidated());
+		map.put("indexed", property.isIndexed());
+		map.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
+		map.put("unique", property.isUnique());
+		map.put("notNull", property.isNotNull());
+		map.put("dynamic", property.isDynamic());
+
+		final Class<? extends GraphObject> relatedType = property.relatedType();
+		if (relatedType != null) {
+
+			map.put("relatedType", relatedType.getName());
+			map.put("type", relatedType.getSimpleName());
+
+		} else {
+
+			map.put("type", property.typeName());
+		}
+		map.put("isCollection", property.isCollection());
+
+		final PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
+		final PropertyConverter inputConverter = property.inputConverter(securityContext);
+
+		if (databaseConverter != null) {
+
+			map.put("databaseConverter", databaseConverter.getClass().getName());
+		}
+
+		if (inputConverter != null) {
+
+			map.put("inputConverter", inputConverter.getClass().getName());
+		}
+
+		//if (declaringClass != null && ("org.structr.dynamic".equals(declaringClass.getPackage().getName()))) {
+		if (declaringClass != null && property instanceof RelationProperty) {
+
+			Relation relation = ((RelationProperty) property).getRelation();
+			if (relation != null) {
+
+				map.put("relationshipType", relation.name());
+			}
+
+		}
+
+		return map;
 	}
 
 	// ----- private methods -----

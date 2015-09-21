@@ -30,20 +30,15 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -203,95 +198,9 @@ public class SchemaTypeResource extends Resource {
 
 		for (PropertyKey property : properties) {
 
-			final Map<String, Object> propProperties = new LinkedHashMap();
-
-			propProperties.put("dbName", property.dbName());
-			propProperties.put("jsonName", property.jsonName());
-			propProperties.put("className", property.getClass().getName());
-
-			final Class declaringClass = property.getDeclaringClass();
-
-			propProperties.put("declaringClass", declaringClass.getSimpleName());
-			propProperties.put("defaultValue", property.defaultValue());
-			if (property instanceof StringProperty) {
-				propProperties.put("contentType", ((StringProperty) property).contentType());
-			}
-			propProperties.put("format", property.format());
-			propProperties.put("readOnly", property.isReadOnly());
-			propProperties.put("system", property.isUnvalidated());
-			propProperties.put("indexed", property.isIndexed());
-			propProperties.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
-			propProperties.put("unique", property.isUnique());
-			propProperties.put("notNull", property.isNotNull());
-			propProperties.put("dynamic", property.isDynamic());
-
-			if (property.isDynamic()) {
-
-				final List<SchemaProperty> effectiveSchemaProperties;
-
-				if (type.equals(declaringClass)) {
-
-					effectiveSchemaProperties = getSchemaProperties(schemaNode);
-
-				} else {
-
-					effectiveSchemaProperties = getSchemaProperties(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst());
-
-				}
-			}
-
-			final Class<? extends GraphObject> relatedType = property.relatedType();
-			if (relatedType != null) {
-
-				propProperties.put("relatedType", relatedType.getName());
-				propProperties.put("type", relatedType.getSimpleName());
-
-			} else {
-
-				propProperties.put("type", property.typeName());
-			}
-			propProperties.put("isCollection", property.isCollection());
-
-			final PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
-			final PropertyConverter inputConverter = property.inputConverter(securityContext);
-
-			if (databaseConverter != null) {
-
-				propProperties.put("databaseConverter", databaseConverter.getClass().getName());
-			}
-
-			if (inputConverter != null) {
-
-				propProperties.put("inputConverter", inputConverter.getClass().getName());
-			}
-
-			//if (declaringClass != null && ("org.structr.dynamic".equals(declaringClass.getPackage().getName()))) {
-			if (declaringClass != null && property instanceof RelationProperty) {
-
-				Relation relation = ((RelationProperty) property).getRelation();
-				if (relation != null) {
-
-					propProperties.put("relationshipType", relation.name());
-				}
-
-			}
-
-			propertyConverterMap.put(property.jsonName(), propProperties);
+			propertyConverterMap.put(property.jsonName(), SchemaHelper.getPropertyInfo(securityContext, property));
 		}
 
 		return propertyConverterMap;
-	}
-
-	private List<SchemaProperty> getSchemaProperties(final SchemaNode schemaNode) {
-
-		final List<SchemaProperty> schemaProperties = new LinkedList<>();
-
-		if (schemaNode != null) {
-
-			schemaProperties.addAll(schemaNode.schemaProperties.getProperty(SecurityContext.getSuperUserInstance(), schemaNode, false));
-
-		}
-
-		return schemaProperties;
 	}
 }
