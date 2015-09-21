@@ -56,11 +56,18 @@ public class FunctionProperty<T> extends Property<T> {
 
 		try {
 
-			return (T)Scripting.evaluate(new ActionContext(securityContext), obj, "${".concat(readFunction).concat("}"));
+			if (obj != null && readFunction != null) {
+
+				return (T)Scripting.evaluate(new ActionContext(securityContext), obj, "${".concat(readFunction).concat("}"));
+
+			} else {
+
+				logger.log(Level.WARNING, "Unable to evaluate function property {0}, object was null.", jsonName());
+			}
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while evaluating read function in Function property '{0}'.", new Object[] { jsonName() });
+			logger.log(Level.WARNING, "Exception while evaluating read function in Function property '{0}'.", jsonName());
 
 			t.printStackTrace();
 		}
@@ -118,9 +125,9 @@ public class FunctionProperty<T> extends Property<T> {
 
 		try {
 			final ActionContext ctx = new ActionContext(securityContext);
-			
+
 			ctx.setConstant("value", value);
-			
+
 			return (T)Scripting.evaluate(ctx, obj, "${".concat(writeFunction).concat("}"));
 
 		} catch (Throwable t) {

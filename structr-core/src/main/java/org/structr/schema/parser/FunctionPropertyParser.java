@@ -18,11 +18,9 @@
  */
 package org.structr.schema.parser;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.FunctionProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
@@ -32,7 +30,7 @@ import org.structr.schema.SchemaHelper.Type;
  * @author Christian Morgner
  */
 public class FunctionPropertyParser extends PropertySourceGenerator {
-	
+
 	private static final Logger logger = Logger.getLogger(FunctionPropertyParser.class.getName());
 
 	public FunctionPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
@@ -66,27 +64,5 @@ public class FunctionPropertyParser extends PropertySourceGenerator {
 
 	@Override
 	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
-
-		// Note: This is a temporary migration from the old format to the new readFunction property
-		final String format = source.getFormat();
-
-		if (format != null) {
-			logger.log(Level.INFO, "Migrating format to readFunction");
-			entity.getSchemaProperties().forEach(prop -> migrateFormat(prop, format));
-		}
-	}
-	
-	private void migrateFormat(final SchemaProperty prop, final String format) {
-		
-		if (getKey().equals(prop.getPropertyType())) {
-		
-			try {
-				prop.setProperty(SchemaProperty.readFunction, format);
-				prop.setProperty(SchemaProperty.format, null);
-			} catch (FrameworkException ex) {
-				logger.log(Level.WARNING, "Could not migrate format to readFunction", ex);
-				ex.printStackTrace();
-			}
-		}
 	}
 }
