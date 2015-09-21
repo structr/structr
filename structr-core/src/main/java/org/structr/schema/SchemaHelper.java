@@ -966,11 +966,14 @@ public class SchemaHelper {
 
 			map.put("relatedType", relatedType.getName());
 			map.put("type", relatedType.getSimpleName());
+			map.put("uiType", relatedType.getSimpleName() + (property.isCollection() ? "[]" : ""));
 
 		} else {
 
 			map.put("type", property.typeName());
+			map.put("uiType", property.typeName() + (property.isCollection() ? "[]" : ""));
 		}
+
 		map.put("isCollection", property.isCollection());
 
 		final PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
