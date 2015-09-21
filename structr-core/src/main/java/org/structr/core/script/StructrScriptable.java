@@ -18,6 +18,7 @@
  */
 package org.structr.core.script;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import jdk.nashorn.api.scripting.ScriptUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.IdFunctionCall;
 import org.mozilla.javascript.IdFunctionObject;
@@ -310,19 +312,41 @@ public class StructrScriptable extends ScriptableObject {
 
 				return unwrap(((Wrapper)source).unwrap());
 
+			} else if (source.getClass().isArray()) {
+
+				final List list = new ArrayList();
+				for (final Object obj : (Object[])source) {
+
+					list.add(unwrap(obj));
+				}
+
+				return list;
+
+			} else if (source.getClass().getName().equals("org.mozilla.javascript.NativeDate")) {
+
+				// FIXME: this is one of the worst ways I've ever resorted to in order
+				// to extract the value of a wrapped NativeDate which is not accessible
+				// in Java 8 any more, but will be returned by the Rhino Javascript
+				// engine.
+
+				try {
+					final Class type   = source.getClass();
+					final Field field  = type.getDeclaredField("date");
+
+					field.setAccessible(true);
+					final Double value = field.getDouble(source);
+
+					return new Date(value.longValue());
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+
 			} else {
 
-				if (source.getClass().isArray()) {
-
-					final List list = new ArrayList();
-					for (final Object obj : (Object[])source) {
-
-						list.add(unwrap(obj));
-					}
-
-					return list;
-				}
+				return ScriptUtils.unwrap(source);
 			}
+
 		}
 
 		return source;
@@ -733,5 +757,11 @@ public class StructrScriptable extends ScriptableObject {
 			return null;
 		}
 
+	}
+
+	public interface JsDateWrap {
+
+	    long getTime();
+	    int getTimezoneOffset();
 	}
 }

@@ -207,7 +207,7 @@ function StructrApp(baseUrl) {
 		s.hideEdit(container);
 
 		$.each(attrs, function(i, key) {
-			
+
 			var el = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'attr');
 			var f = s.field(el);
 			f.id = id;
@@ -1207,7 +1207,7 @@ function singleSelect(f) {
 }
 
 function multiSelect(f) {
-	var inp = '<select data-structr-type="' + f.type + '" data-structr-anamettr="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
+	var inp = '<select data-structr-type="' + f.type + '" data-structr-name="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
 	f.type = f.type.substring(0, f.type.length-2);
 	var valIds = f.val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
 	var optionsKey = f.optionsKey || 'name';

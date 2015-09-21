@@ -71,6 +71,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.mail.EmailException;
+import org.mozilla.javascript.ScriptableObject;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
@@ -2588,6 +2589,10 @@ public class Functions {
 					} else if (sources[0] instanceof Number) {
 
 						date = new Date(((Number) sources[0]).longValue());
+
+					} else if (sources[0] instanceof ScriptableObject) {
+
+						
 
 					} else {
 
