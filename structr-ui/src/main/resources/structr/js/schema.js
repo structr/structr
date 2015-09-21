@@ -189,6 +189,11 @@ var _Schema = {
 					reload = false;
 
 					_Schema.setZoom(zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+
+					$('._jsPlumb_connector').click(function() {
+						$(this).nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ});
+					});
+
 					_Schema.resize();
 
 					Structr.unblockMenu(500);
