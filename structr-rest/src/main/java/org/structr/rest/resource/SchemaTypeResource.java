@@ -25,16 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
@@ -80,19 +78,9 @@ public class SchemaTypeResource extends Resource {
 		Class type = typeResource.getEntityClass();
 		if (type != null) {
 
-			SchemaNode schemaNode = null;
-			try {
-
-				schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
-
-			} catch (FrameworkException ex) {
-
-				Logger.getLogger(SchemaTypeResource.class.getName()).log(Level.SEVERE, "Error looking up SchemaNode - cannot display labels for properties!", ex);
-			}
-
 			if (propertyView != null) {
 
-				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView, schemaNode).entrySet()) {
+				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView).entrySet()) {
 
 					final GraphObjectMap property = new GraphObjectMap();
 
@@ -126,12 +114,12 @@ public class SchemaTypeResource extends Resource {
 
 				for (String view : propertyViews) {
 
-					views.put(view, getPropertiesForView(type, view, schemaNode));
+					if (!View.INTERNAL_GRAPH_VIEW.equals(view)) {
 
+						views.put(view, getPropertiesForView(type, view));
+					}
 				}
-
 			}
-
 		}
 
 		return new Result(resultList, resultList.size(), false, false);
@@ -191,7 +179,7 @@ public class SchemaTypeResource extends Resource {
 
 	}
 
-	private Map<String, Object> getPropertiesForView(final Class type, final String view, final SchemaNode schemaNode) throws FrameworkException {
+	private Map<String, Object> getPropertiesForView(final Class type, final String view) throws FrameworkException {
 
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();

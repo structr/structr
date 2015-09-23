@@ -144,8 +144,9 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final Set<String> viewNames        = new HashSet<>();
 
-			// do not create a node for the "all" view
-			viewNames.add("all");
+			// do not create nodes for the internal views
+			viewNames.add(View.INTERNAL_GRAPH_VIEW);
+			viewNames.add(PropertyView.All);
 
 			// create set of existing views
 			for (final SchemaView view : node.getProperty(schemaViews)) {
