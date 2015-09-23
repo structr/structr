@@ -68,8 +68,8 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 				@Override
 				public S apply(Relationship from) throws RuntimeException {
 
-					final Node endNode              = from.getStartNode();
-					final S value                   = nodeFactory.adapt(endNode);
+					final Node startNode = from.getStartNode();
+					final S value        = nodeFactory.adapt(startNode);
 
 					// store path in node proxy (disable caching)
 					value.setRelationshipPathSegment(relFactory.adapt(from));

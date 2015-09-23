@@ -63,7 +63,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationshipTypeProperty;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.SourceNodeProperty;
-import org.structr.core.property.StringProperty;
 import org.structr.core.property.TargetId;
 import org.structr.core.property.TargetNodeProperty;
 import org.structr.core.script.Scripting;
@@ -86,7 +85,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public static final SourceId          sourceId         = new SourceId("sourceId");
 	public static final TargetId          targetId         = new TargetId("targetId");
 
-	public static final Property<String>         name              = new StringProperty("name");
 	public static final Property<NodeInterface> sourceNodeProperty = new SourceNodeProperty("sourceNode");
 	public static final Property<NodeInterface> targetNodeProperty = new TargetNodeProperty("targetNode");
 
@@ -98,7 +96,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		id, type, relType, sourceId, targetId
 	);
 
-	public static final View graphView = new View(AbstractRelationship.class, "_structr_graph",
+	public static final View graphView = new View(AbstractRelationship.class, View.INTERNAL_GRAPH_VIEW,
 		id, type, relType, sourceNodeProperty, targetNodeProperty
 	);
 

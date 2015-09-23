@@ -30,16 +30,18 @@ import org.structr.core.GraphObject;
  */
 public class View {
 
+	public static final String INTERNAL_GRAPH_VIEW = "_structr_graph";
+
 	private Property[] properties = null;
 	private String name = null;
 
 	/**
 	 * Registers the given list of property keys for the given type, using
 	 * the name parameter.
-	 * 
+	 *
 	 * @param type the type this view will be registered for
 	 * @param name the name under which the view will be registered
-	 * @param keys the list of property keys to register 
+	 * @param keys the list of property keys to register
 	 */
 	public View(Class<? extends GraphObject> type, String name, Property... keys) {
 
@@ -53,7 +55,7 @@ public class View {
 	public Property[] properties() {
 		return properties;
 	}
-	
+
 	/**
 	 * @return the name of this view
 	 */

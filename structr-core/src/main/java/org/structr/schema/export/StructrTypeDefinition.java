@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -421,25 +422,28 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final SchemaView view : schemaNode.getProperty(AbstractSchemaNode.schemaViews)) {
 
-			final Set<String> propertySet = new TreeSet<>();
-			for (final SchemaProperty property : view.getProperty(SchemaView.schemaProperties)) {
-				propertySet.add(property.getName());
-			}
+			if (!View.INTERNAL_GRAPH_VIEW.equals(view.getName())) {
 
-			final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
-			if (nonGraphProperties != null) {
+				final Set<String> propertySet = new TreeSet<>();
+				for (final SchemaProperty property : view.getProperty(SchemaView.schemaProperties)) {
+					propertySet.add(property.getName());
+				}
 
-				for (final String property : nonGraphProperties.split("[, ]+")) {
-					final String trimmed = property.trim();
+				final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
+				if (nonGraphProperties != null) {
 
-					if (StringUtils.isNotBlank(trimmed)) {
-						propertySet.add(trimmed);
+					for (final String property : nonGraphProperties.split("[, ]+")) {
+						final String trimmed = property.trim();
+
+						if (StringUtils.isNotBlank(trimmed)) {
+							propertySet.add(trimmed);
+						}
 					}
 				}
-			}
 
-			if (!propertySet.isEmpty()) {
-				views.put(view.getName(), propertySet);
+				if (!propertySet.isEmpty()) {
+					views.put(view.getName(), propertySet);
+				}
 			}
 		}
 

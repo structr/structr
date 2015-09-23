@@ -86,7 +86,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 
-	public static final View graphView = new View(AbstractNode.class, "_structr_graph",
+	public static final View graphView = new View(AbstractNode.class, View.INTERNAL_GRAPH_VIEW,
 		id, name, type
 	);
 
