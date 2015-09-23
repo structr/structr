@@ -74,10 +74,6 @@ public class TargetNodeProperty extends Property<NodeInterface> {
 			try {
 				((RelationshipInterface)obj).setTargetNodeId(value.getUuid());
 
-			} catch (FrameworkException fex) {
-
-				throw fex;
-
 			} catch (Throwable t) {
 
 				t.printStackTrace();

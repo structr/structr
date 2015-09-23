@@ -41,6 +41,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.LruMap;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.IdSorter;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -86,12 +87,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 
-	public static final View graphView = new View(AbstractNode.class, View.INTERNAL_GRAPH_VIEW,
-		id, name, type
-	);
-
+	private RelationshipInterface relationshipPathSegment = null;
 	private boolean readOnlyPropertiesUnlocked = false;
 	private boolean isCreation                 = false;
+
 
 	protected SecurityContext securityContext = null;
 	protected Principal cachedOwnerNode       = null;
@@ -627,7 +626,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template = getRelationshipForType(type);
 
-		return new IterableAdapter<>(template.getSource().getRawSource(securityContext, dbNode, null), factory);
+		return new IterableAdapter<>(new IdSorter<>(template.getSource().getRawSource(securityContext, dbNode, null)), factory);
 	}
 
 	@Override
@@ -663,17 +662,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template = getRelationshipForType(type);
 
-		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, dbNode, null), factory);
+		return new IterableAdapter<>(new IdSorter<>(template.getTarget().getRawSource(securityContext, dbNode, null)), factory);
 	}
 
 	@Override
 	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
-		return new IterableAdapter<>(dbNode.getRelationships(Direction.INCOMING), new RelationshipFactory<R>(securityContext));
+		return new IterableAdapter<>(new IdSorter<>(dbNode.getRelationships(Direction.INCOMING)), new RelationshipFactory<R>(securityContext));
 	}
 
 	@Override
 	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
-		return new IterableAdapter<>(dbNode.getRelationships(Direction.OUTGOING), new RelationshipFactory<R>(securityContext));
+		return new IterableAdapter<>(new IdSorter<>(dbNode.getRelationships(Direction.OUTGOING)), new RelationshipFactory<R>(securityContext));
 	}
 
 	/**
@@ -1325,13 +1324,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 	}
 
-	private RelationshipInterface relationshipPathSegment = null;
-
 	@Override
 	public void setRelationshipPathSegment(final RelationshipInterface pathSegment) {
 		this.relationshipPathSegment = pathSegment;
 	}
 
+	@Override
 	public RelationshipInterface getRelationshipPathSegment() {
 		return relationshipPathSegment;
 	}

@@ -74,10 +74,6 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 			try {
 				((RelationshipInterface)obj).setSourceNodeId(value.getUuid());
 
-			} catch (FrameworkException fex) {
-
-				throw fex;
-
 			} catch (Throwable t) {
 
 				t.printStackTrace();
