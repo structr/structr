@@ -62,7 +62,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationshipTypeProperty;
 import org.structr.core.property.SourceId;
+import org.structr.core.property.SourceNodeProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.property.TargetId;
+import org.structr.core.property.TargetNodeProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
@@ -78,10 +81,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<Integer> cascadeDelete = new IntProperty("cascadeDelete");
-	public static final Property<String>  relType       = new RelationshipTypeProperty("relType");
-	public static final SourceId          sourceId      = new SourceId("sourceId");
-	public static final TargetId          targetId      = new TargetId("targetId");
+	public static final Property<Integer> cascadeDelete    = new IntProperty("cascadeDelete");
+	public static final Property<String>  relType          = new RelationshipTypeProperty("relType");
+	public static final SourceId          sourceId         = new SourceId("sourceId");
+	public static final TargetId          targetId         = new TargetId("targetId");
+
+	public static final Property<String>         name              = new StringProperty("name");
+	public static final Property<NodeInterface> sourceNodeProperty = new SourceNodeProperty("sourceNode");
+	public static final Property<NodeInterface> targetNodeProperty = new TargetNodeProperty("targetNode");
 
 	public static final View defaultView = new View(AbstractRelationship.class, PropertyView.Public,
 		id, type, relType, sourceId, targetId
@@ -89,6 +96,10 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
 		id, type, relType, sourceId, targetId
+	);
+
+	public static final View graphView = new View(AbstractRelationship.class, "_structr_graph",
+		id, type, relType, sourceNodeProperty, targetNodeProperty
 	);
 
 	private boolean readOnlyPropertiesUnlocked = false;
