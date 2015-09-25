@@ -80,13 +80,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<Integer> cascadeDelete    = new IntProperty("cascadeDelete");
-	public static final Property<String>  relType          = new RelationshipTypeProperty("relType");
-	public static final SourceId          sourceId         = new SourceId("sourceId");
-	public static final TargetId          targetId         = new TargetId("targetId");
-
-	public static final Property<NodeInterface> sourceNodeProperty = new SourceNodeProperty("sourceNode");
-	public static final Property<NodeInterface> targetNodeProperty = new TargetNodeProperty("targetNode");
+	public static final Property<Integer>       cascadeDelete              = new IntProperty("cascadeDelete");
+	public static final Property<String>        relType                    = new RelationshipTypeProperty("relType");
+	public static final SourceId                sourceId                   = new SourceId("sourceId");
+	public static final TargetId                targetId                   = new TargetId("targetId");
+	public static final Property<NodeInterface> sourceNodeProperty         = new SourceNodeProperty("sourceNode");
+	public static final Property<NodeInterface> targetNodeProperty         = new TargetNodeProperty("targetNode");
 
 	public static final View defaultView = new View(AbstractRelationship.class, PropertyView.Public,
 		id, type, relType, sourceId, targetId
@@ -405,7 +404,21 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		try {
 
 			NodeFactory nodeFactory = new NodeFactory(securityContext);
-			return (NodeInterface)nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
+			return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
+
+		} catch (FrameworkException t) {
+			// ignore FrameworkException but let NotInTransactionException pass
+		}
+
+		return null;
+	}
+
+	public NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
+
+		try {
+
+			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 
 		} catch (FrameworkException t) {
 			// ignore FrameworkException but let NotInTransactionException pass

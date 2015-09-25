@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -43,6 +45,7 @@ import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.IdSorter;
 import org.structr.common.Permission;
+import org.structr.common.PermissionPropagation;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -559,37 +562,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null), factory);
 	}
 
-	/**
-	 * Return the (cached) incoming relationship between this node and the
-	 * given principal which holds the security information.
-	 *
-	 * @param p
-	 * @return incoming security relationship
-	 */
-	@Override
-	public Security getSecurityRelationship(final Principal p) {
-
-		if (p == null) {
-
-			return null;
-		}
-
-		for (Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
-
-			if (r != null) {
-
-				if (p.equals(r.getSourceNode())) {
-
-					return r;
-
-				}
-			}
-		}
-
-		return null;
-
-	}
-
 	@Override
 	public <R extends AbstractRelationship> Iterable<R> getRelationships() {
 		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<R>(securityContext));
@@ -673,6 +645,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
 		return new IterableAdapter<>(new IdSorter<>(dbNode.getRelationships(Direction.OUTGOING)), new RelationshipFactory<R>(securityContext));
+	}
+
+	@Override
+	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
+		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<R>(SecurityContext.getSuperUserInstance()));
 	}
 
 	/**
@@ -763,6 +740,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	// ----- interface AccessControllable -----
+	private String indent(final String str, final int length) {
+
+		final StringBuilder buf = new StringBuilder("    ");
+
+		buf.append(StringUtils.leftPad("", length+1));
+		buf.append(str);
+
+		return buf.toString();
+	}
+
 	@Override
 	public boolean isGranted(final Permission permission, final SecurityContext context) {
 
@@ -777,40 +764,69 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			accessingUser = context.getUser(false);
 		}
 
-		return isGranted(permission, accessingUser, 0);
+		return isGranted(permission, accessingUser, 0, new HashSet<>());
 	}
 
-	private boolean isGranted(final Permission permission, final Principal accessingUser, final int level) {
+	private boolean isGranted(final Permission permission, final Principal accessingUser, final int level, final Set<Long> alreadyTraversed) {
+
+		if (level > 5) {
+
+			System.out.println(indent("Denying access because of recursion leve > 5", level*4));
+
+			return false;
+		}
+
 
 		// use quick checks for maximum performance
 		if (isCreation && (accessingUser == null || accessingUser.equals(getOwnerNode()) ) ) {
+
+			System.out.println(indent("Allowing creation", level*4));
 
 			return true;
 		}
 
 		// this includes SuperUser
 		if (accessingUser != null && accessingUser.isAdmin()) {
+
+			System.out.println(indent("Allowing superuser", level*4));
+
 			return true;
 		}
 
 		// allow accessingUser to access itself, but not parents etc.
 		if (this.equals(accessingUser) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
+
+			if (level == 0) {
+
+				System.out.println(indent("Allowing access for user on itself", level*4));
+
+			} else {
+
+				System.out.println(indent("Allowing read access for parents of user", level*4));
+
+			}
 			return true;
 		}
 
 		// check owner
-		final Principal owner  = getOwnerNode();
-		final boolean hasOwner = (owner != null);
+		final Principal _owner = getOwnerNode();
+		final boolean hasOwner = (_owner != null);
 
 		// allow full access for nodes without owner
 		// (covered by ResourceAccess objects)
 		if (!hasOwner && Services.getPermissionsForOwnerlessNodes().contains(permission)) {
 
 			if (accessingUser != null && isVisibleToAuthenticatedUsers()) {
+
+				System.out.println(indent("Allowing anonymous access to authenticated users via flag", level*4));
+
 				return true;
 			}
 
 			if (accessingUser == null && isVisibleToPublicUsers()) {
+
+				System.out.println(indent("Allowing anonymous access to public users via flag", level*4));
+
 				return true;
 			}
 		}
@@ -823,20 +839,32 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		if (accessingUser != null) {
 
 			// owner is always allowed to do anything with its nodes
-			if (hasOwner && accessingUser.equals(owner)) {
+			if (hasOwner && accessingUser.equals(_owner)) {
+
+				System.out.println(indent("Allowing access to " + this.getName() + " to owner " + _owner.getName(), level*4));
+
 				return true;
 			}
 
 			final Security security = getSecurityRelationship(accessingUser);
 			if (security != null && security.isAllowed(permission)) {
 
+				System.out.println(indent("Allowing access for " + accessingUser.getName() + " to " + getName() + "  via direct security relationship " + accessingUser.getName() + " --> " + getType() + "(" + getName() + ")", level*4));
+
 				return true;
 			}
 
-			// Now check possible parent principals
+			// Check permissions from domain relationships
+			if (hasEffectivePermissions(accessingUser, permission)) {
+				return true;
+			}
+
+			// Last: recursively check possible parent principals
 			for (Principal parent : accessingUser.getParents()) {
 
-				if (isGranted(permission, parent, level+1)) {
+				if (isGranted(permission, parent, level+1, alreadyTraversed)) {
+
+					System.out.println(indent("Allowing access for " + accessingUser.getName() + " to " + getName() + "  based on user parent permissions", level*4));
 
 					return true;
 				}
@@ -844,6 +872,137 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 		return false;
+	}
+
+	/**
+
+	/**
+	 * Recursively traverses the graph, starting from the accessing user, to find
+	 * the effective permissions for this entity along the path of OWNS, SECURITY
+	 * and domain relationships with the PermissionPropagation marker interface.
+	 *
+	 * @param startNode
+	 * @param permission
+	 * @return
+	 */
+	private boolean hasEffectivePermissions(final NodeInterface startNode, final Permission permission) {
+		return hasEffectivePermissions(startNode, permission, new HashSet<>(), new HashSet<>());
+
+	}
+
+	/**
+	 * Recursively traverses the graph, starting from the accessing user, to find
+	 * the effective permissions for this entity along the path of OWNS, SECURITY
+	 * and domain relationships with the PermissionPropagation marker interface.
+	 *
+	 * @param startNode
+	 * @param permission
+	 * @param effectivePermissions
+	 * @param visitedIds
+	 * @return
+	 */
+	private boolean hasEffectivePermissions(final NodeInterface startNode, final Permission permission, final Set<Permission> effectivePermissions, final Set<Long> visitedIds) {
+
+		// examine all relationships
+		for (final AbstractRelationship relationship : startNode.getRelationshipsAsSuperUser()) {
+
+			final long relationshipId = relationship.getId();
+
+			if (relationship != null && relationship instanceof PermissionPropagation && !visitedIds.contains(relationshipId)) {
+
+				// prevent the recursive code from traversing over this relationship again
+				visitedIds.add(relationshipId);
+
+				// let this relationship modify the effective permissions
+				modifyEffectivePermissions((PermissionPropagation)relationship, effectivePermissions);
+
+				// stop this path early if the effective permissions are empty
+				if (effectivePermissions.isEmpty()) {
+					continue;
+				}
+
+				// examine other node of this relationship
+				final NodeInterface otherNode = relationship.getOtherNode(startNode);
+
+				// finish this path segment when the destination node is reached
+				if (otherNode.getId() == getId()) {
+
+					// examine effective permissions
+					if (effectivePermissions.contains(permission)) {
+						return true;
+					}
+
+					// don't traverse further
+					continue;
+				}
+
+				// go deeper, but only if the desired permission is not already there
+				if (hasEffectivePermissions(otherNode, permission, effectivePermissions, visitedIds)) {
+					return true;
+				}
+			}
+		}
+
+		// worst case: we examined the whole subgraph.. :(
+		return false;
+	}
+
+	private void modifyEffectivePermissions(final PermissionPropagation rel, Set<Permission> effectivePermissions) {
+
+		switch (rel.getReadPropagation()) {
+			case Add:    effectivePermissions.add(Permission.read); break;
+			case Remove: effectivePermissions.remove(Permission.read); break;
+			default: break;
+		}
+
+		switch (rel.getWritePropagation()) {
+			case Add:    effectivePermissions.add(Permission.write); break;
+			case Remove: effectivePermissions.remove(Permission.write); break;
+			default: break;
+		}
+
+		switch (rel.getDeletePropagation()) {
+			case Add:    effectivePermissions.add(Permission.delete); break;
+			case Remove: effectivePermissions.remove(Permission.delete); break;
+			default: break;
+		}
+
+		switch (rel.getAccessControlPropagation()) {
+			case Add:    effectivePermissions.add(Permission.accessControl); break;
+			case Remove: effectivePermissions.remove(Permission.accessControl); break;
+			default: break;
+		}
+	}
+
+	/**
+	 * Return the (cached) incoming relationship between this node and the
+	 * given principal which holds the security information.
+	 *
+	 * @param p
+	 * @return incoming security relationship
+	 */
+	@Override
+	public Security getSecurityRelationship(final Principal p) {
+
+		if (p == null) {
+
+			return null;
+		}
+
+		for (final Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
+
+			if (r != null) {
+
+				if (p.equals(r.getSourceNode())) {
+
+					return r;
+
+				}
+			}
+		}
+
+		return null;
+
 	}
 
 	@Override

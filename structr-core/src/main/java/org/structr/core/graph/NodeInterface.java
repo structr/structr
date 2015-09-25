@@ -75,6 +75,8 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public boolean isDeleted();
 
 	public <R extends AbstractRelationship> Iterable<R> getRelationships();
+	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();
+
 	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships();
 	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships();
 

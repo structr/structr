@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.PermissionPropagation;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -730,6 +731,7 @@ public class SchemaHelper {
 		src.append("import ").append(baseType.getName()).append(";\n");
 		src.append("import ").append(ConfigurationProvider.class.getName()).append(";\n");
 		src.append("import ").append(GraphObjectComparator.class.getName()).append(";\n");
+		src.append("import ").append(PermissionPropagation.class.getName()).append(";\n");
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(DatePropertyParser.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");

@@ -1663,7 +1663,7 @@ button.add_property {
     position: absolute;
     right: 26px;
     top: 8px;
-    cursor: pointer;        
+    cursor: pointer;
 }
 
 #schema-options-table th #toggle-all-types {
@@ -2303,6 +2303,36 @@ input.bitmask {
     display: block;
     margin: 100px auto;
 }
+
+table#relationship-options {
+    table-layout: fixed;
+}
+
+td#cascading-options, td#propagation-options {
+    vertical-align: top;
+    padding: 12px 36px 12px 0;
+}
+
+#relationship-options p {
+    margin: 0px;
+}
+
+#relationship-options h3 {
+    margin: 12px 0 0 0;
+}
+
+#relationship-options h4 {
+    margin: 0;
+}
+
+#relationship-options select {
+    margin: 0 12px 0 0;
+}
+
+#relationship-options span.button {
+    cursor: pointer;
+}
+
 
 .CodeMirror-hints {
     z-index: 10000 !important;

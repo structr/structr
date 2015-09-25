@@ -503,4 +503,9 @@ public class SuperUser implements Principal, AccessControllable {
 	public RelationshipInterface getRelationshipPathSegment() {
 		return null;
 	}
+
+	@Override
+	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
+		return null;
+	}
 }

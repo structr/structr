@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
+import org.structr.common.PermissionPropagation;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -41,12 +42,15 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
 import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityNotionProperty;
+import org.structr.core.property.EnumProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -68,43 +72,57 @@ import org.structr.schema.parser.Validator;
  */
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 
-	private static final Logger logger                           = Logger.getLogger(SchemaRelationshipNode.class.getName());
-	private static final Pattern ValidKeyPattern                 = Pattern.compile("[a-zA-Z_]+");
+	private static final Logger logger                              = Logger.getLogger(SchemaRelationshipNode.class.getName());
+	private static final Pattern ValidKeyPattern                    = Pattern.compile("[a-zA-Z_]+");
 
-	public static final Property<SchemaNode> sourceNode          = new StartNode<>("sourceNode", SchemaRelationshipSourceNode.class);
-	public static final Property<SchemaNode> targetNode          = new EndNode<>("targetNode", SchemaRelationshipTargetNode.class);
-	public static final Property<String>     sourceId            = new EntityNotionProperty<>("sourceId", sourceNode, new PropertyNotion(GraphObject.id));
-	public static final Property<String>     targetId            = new EntityNotionProperty<>("targetId", targetNode, new PropertyNotion(GraphObject.id));
-	public static final Property<String>     name                = new StringProperty("name").indexed();
-	public static final Property<String>     relationshipType    = new StringProperty("relationshipType");
-	public static final Property<String>     sourceMultiplicity  = new StringProperty("sourceMultiplicity");
-	public static final Property<String>     targetMultiplicity  = new StringProperty("targetMultiplicity");
-	public static final Property<String>     sourceNotion        = new StringProperty("sourceNotion");
-	public static final Property<String>     targetNotion        = new StringProperty("targetNotion");
-	public static final Property<String>     sourceJsonName      = new StringProperty("sourceJsonName");
-	public static final Property<String>     targetJsonName      = new StringProperty("targetJsonName");
-	public static final Property<String>     previousSourceJsonName   = new StringProperty("oldSourceJsonName");
-	public static final Property<String>     previousTargetJsonName   = new StringProperty("oldTargetJsonName");
-	public static final Property<String>     extendsClass        = new StringProperty("extendsClass").indexed();
-	public static final Property<Long>       cascadingDeleteFlag = new LongProperty("cascadingDeleteFlag");
-	public static final Property<Long>       autocreationFlag    = new LongProperty("autocreationFlag");
+	public static final Property<SchemaNode> sourceNode             = new StartNode<>("sourceNode", SchemaRelationshipSourceNode.class);
+	public static final Property<SchemaNode> targetNode             = new EndNode<>("targetNode", SchemaRelationshipTargetNode.class);
+	public static final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", sourceNode, new PropertyNotion(GraphObject.id));
+	public static final Property<String>     targetId               = new EntityNotionProperty<>("targetId", targetNode, new PropertyNotion(GraphObject.id));
+	public static final Property<String>     name                   = new StringProperty("name").indexed();
+	public static final Property<String>     relationshipType       = new StringProperty("relationshipType");
+	public static final Property<String>     sourceMultiplicity     = new StringProperty("sourceMultiplicity");
+	public static final Property<String>     targetMultiplicity     = new StringProperty("targetMultiplicity");
+	public static final Property<String>     sourceNotion           = new StringProperty("sourceNotion");
+	public static final Property<String>     targetNotion           = new StringProperty("targetNotion");
+	public static final Property<String>     sourceJsonName         = new StringProperty("sourceJsonName");
+	public static final Property<String>     targetJsonName         = new StringProperty("targetJsonName");
+	public static final Property<String>     previousSourceJsonName = new StringProperty("oldSourceJsonName");
+	public static final Property<String>     previousTargetJsonName = new StringProperty("oldTargetJsonName");
+	public static final Property<String>     extendsClass           = new StringProperty("extendsClass").indexed();
+	public static final Property<Long>       cascadingDeleteFlag    = new LongProperty("cascadingDeleteFlag");
+	public static final Property<Long>       autocreationFlag       = new LongProperty("autocreationFlag");
+
+
+	public enum Propagation {
+		Add, Keep, Remove
+	}
+
+	// permission propagation via domain relationships
+	public static final Property<Boolean>     propagatesPermissions    = new BooleanProperty("propagatesPermissions").defaultValue(false);
+	public static final Property<Propagation> readPropagation          = new EnumProperty<>("readPropagation", Propagation.class, Propagation.Remove);
+	public static final Property<Propagation> writePropagation         = new EnumProperty<>("writePropagation", Propagation.class, Propagation.Remove);
+	public static final Property<Propagation> deletePropagation        = new EnumProperty<>("deletePropagation", Propagation.class, Propagation.Remove);
+	public static final Property<Propagation> accessControlPropagation = new EnumProperty<>("accessControlPropagation", Propagation.class, Propagation.Remove);
 
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
+		propagatesPermissions, readPropagation, writePropagation, deletePropagation, accessControlPropagation
 	);
 
 	public static final View uiView = new View(SchemaRelationshipNode.class, PropertyView.Ui,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag,  propagatesPermissions,
+		readPropagation, writePropagation, deletePropagation, accessControlPropagation
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
 		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, propagatesPermissions
 	);
 
-	private Set<String> dynamicViews = new LinkedHashSet<>();
+	private final Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
@@ -157,7 +175,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		if (super.onModification(securityContext, errorBuffer)) {
 
 			checkClassName();
-			
+
 			checkAndRenameSourceAndTargetJsonNames();
 
 			// store old property names
@@ -423,6 +441,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		final Set<String> propertyNames                    = new LinkedHashSet<>();
 		final Set<Validator> validators                    = new LinkedHashSet<>();
 		final Set<String> enums                            = new LinkedHashSet<>();
+		final Set<String> interfaces                       = new LinkedHashSet<>();
 
 		src.append("package org.structr.dynamic;\n\n");
 
@@ -431,7 +450,26 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType());
 
 		if ("OWNS".equals(getProperty(relationshipType))) {
-			src.append(" implements org.structr.core.entity.relationship.Ownership");
+			interfaces.add(Ownership.class.getName());
+		}
+
+		if (Boolean.TRUE.equals(getProperty(propagatesPermissions))) {
+			interfaces.add(PermissionPropagation.class.getName());
+		}
+
+		// append interfaces if present
+		if (!interfaces.isEmpty()) {
+
+			src.append(" implements ");
+
+			for (final Iterator<String> it = interfaces.iterator(); it.hasNext();) {
+
+				src.append(it.next());
+
+				if (it.hasNext()) {
+					src.append(", ");
+				}
+			}
 		}
 
 		src.append(" {\n\n");
@@ -493,6 +531,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		SchemaHelper.formatSaveActions(src, actions);
 
 		formatRelationshipFlags(src);
+
+		formatPermissionPropagation(src);
 
 		src.append("}\n");
 
@@ -876,13 +916,42 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 	}
 
+	private void formatPermissionPropagation(final StringBuilder buf) {
+
+		if (getProperty(propagatesPermissions)) {
+
+			buf.append("\n\t@Override\n");
+			buf.append("\tpublic SchemaRelationshipNode.Propagation getReadPropagation() {\n");
+			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(readPropagation)).append(";\n");
+			buf.append("\t}\n\n");
+
+
+			buf.append("\n\t@Override\n");
+			buf.append("\tpublic SchemaRelationshipNode.Propagation getWritePropagation() {\n");
+			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(writePropagation)).append(";\n");
+			buf.append("\t}\n\n");
+
+
+			buf.append("\n\t@Override\n");
+			buf.append("\tpublic SchemaRelationshipNode.Propagation getDeletePropagation() {\n");
+			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(deletePropagation)).append(";\n");
+			buf.append("\t}\n\n");
+
+
+			buf.append("\n\t@Override\n");
+			buf.append("\tpublic SchemaRelationshipNode.Propagation getAccessControlPropagation() {\n");
+			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(accessControlPropagation)).append(";\n");
+			buf.append("\t}\n\n");
+		}
+	}
+
 	private void checkClassName() throws FrameworkException {
-		
+
 		final String className = getClassName();
 		final String potentialNewClassName = assembleNewClassName();
-		
+
 		if (!className.equals(potentialNewClassName)) {
-			
+
 			try {
 				setProperty(AbstractNode.name, potentialNewClassName);
 
@@ -891,16 +960,16 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			}
 		}
 	}
-	
+
 	private String assembleNewClassName() {
-		
+
 		final String _sourceType = getSchemaNodeSourceType();
 		final String _targetType = getSchemaNodeTargetType();
 		final String _relType    = SchemaHelper.cleanPropertyName(getRelationshipType());
 
 		return _sourceType + _relType + _targetType;
 	}
-	
+
 	private void checkAndRenameSourceAndTargetJsonNames() throws FrameworkException {
 
 		final String _previousSourceJsonName = getProperty(previousSourceJsonName);
