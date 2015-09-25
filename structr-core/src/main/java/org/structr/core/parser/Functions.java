@@ -1232,18 +1232,18 @@ public class Functions {
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 					final String template = sources[0].toString();
-					AbstractNode node = null;
+					GraphObject node = null;
 
-					if (sources[1] instanceof AbstractNode) {
-						node = (AbstractNode) sources[1];
+					if (sources[1] instanceof GraphObject) {
+						node = (GraphObject) sources[1];
 					}
 
 					if (sources[1] instanceof List) {
 
 						final List list = (List) sources[1];
-						if (list.size() == 1 && list.get(0) instanceof AbstractNode) {
+						if (list.size() == 1 && list.get(0) instanceof GraphObject) {
 
-							node = (AbstractNode) list.get(0);
+							node = (GraphObject) list.get(0);
 						}
 					}
 
