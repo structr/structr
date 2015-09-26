@@ -245,7 +245,7 @@ function StructrApp(baseUrl) {
 			} else if (f.type === 'Enum') {
 
 				el.html(enumSelect(f));
-				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
+				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-name="' + f.key + '"]');
 				sel.append('<option></option>');
 				$.each(f.format.split(','), function(i, o) {
 					o = o.trim();
