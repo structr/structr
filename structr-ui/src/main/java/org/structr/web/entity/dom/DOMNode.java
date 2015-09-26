@@ -63,6 +63,7 @@ import org.structr.core.GraphObject;
 import static org.structr.core.GraphObject.id;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Predicate;
+import org.structr.core.Result;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.core.app.App;
@@ -738,35 +739,69 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			@Override
 			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-				if (sources != null && sources.length > 0 && sources[0] instanceof GraphObject) {
+				if (sources != null && sources.length > 0) {
 
 					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 
-					try {
+					if (sources[0] instanceof GraphObject) {
 
-						final Value<String> view = new StaticValue<>("public");
-						if (sources.length > 1) {
+						try {
 
-							view.set(securityContext, sources[1].toString());
-						}
+							final Value<String> view = new StaticValue<>("public");
+							if (sources.length > 1) {
 
-						int outputDepth = 3;
-						if (sources.length > 2) {
-
-							if (sources[2] instanceof Number) {
-								outputDepth = ((Number)sources[2]).intValue();
+								view.set(securityContext, sources[1].toString());
 							}
+
+							int outputDepth = 3;
+							if (sources.length > 2) {
+
+								if (sources[2] instanceof Number) {
+									outputDepth = ((Number)sources[2]).intValue();
+								}
+							}
+
+							final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth);
+							final StringWriter writer              = new StringWriter();
+
+							jsonStreamer.streamSingle(securityContext, writer, (GraphObject)sources[0]);
+
+							return writer.getBuffer().toString();
+
+						} catch (Throwable t) {
+							t.printStackTrace();
 						}
 
-						final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth);
-						final StringWriter writer              = new StringWriter();
+					} else if (sources[0] instanceof List) {
 
-						jsonStreamer.streamSingle(securityContext, writer, (GraphObject)sources[0]);
+						try {
 
-						return writer.getBuffer().toString();
+							final Value<String> view = new StaticValue<>("public");
+							if (sources.length > 1) {
 
-					} catch (Throwable t) {
-						t.printStackTrace();
+								view.set(securityContext, sources[1].toString());
+							}
+
+							int outputDepth = 3;
+							if (sources.length > 2) {
+
+								if (sources[2] instanceof Number) {
+									outputDepth = ((Number)sources[2]).intValue();
+								}
+							}
+
+							final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth);
+							final StringWriter writer              = new StringWriter();
+							final List list                        = (List)sources[0];
+
+							jsonStreamer.stream(securityContext, writer, new Result(list, list.size(), true, false), null);
+
+							return writer.getBuffer().toString();
+
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+
 					}
 
 					return "";
