@@ -6083,30 +6083,28 @@ public class Functions {
 		return value1.compareTo(value2);
 	}
 
-	private static int compareBooleanString(final Object o1, final Object o2) {
-
-		return -1;
+	private static int compareBooleanString(final Boolean o1, final String o2) {
+		return o1.compareTo(Boolean.valueOf(o2));
 	}
 
-	private static int compareStringBoolean(final Object o1, final Object o2) {
-
-		return -1;
+	private static int compareStringBoolean(final String o1, final Boolean o2) {
+		return Boolean.valueOf(o1).compareTo(o2);
 	}
 
-	private static int compareNumberString(final Object o1, final Object o2) {
+	private static int compareNumberString(final Number o1, final String o2) {
 
 		final Double value1 = getDoubleForComparison(o1);
-		final Double value2 = Double.parseDouble((String) o2);
+		final Double value2 = Double.parseDouble(o2);
 
-		return (value1.compareTo(value2) == 0 ? -1 : value1.compareTo(value2));
+		return value1.compareTo(value2);
 	}
 
-	private static int compareStringNumber(final Object o1, final Object o2) {
+	private static int compareStringNumber(final String o1, final Number o2) {
 
-		final Double value1 = Double.parseDouble((String) o1);
+		final Double value1 = Double.parseDouble(o1);
 		final Double value2 = getDoubleForComparison(o2);
 
-		return (value1.compareTo(value2) == 0 ? -1 : value1.compareTo(value2));
+		return value1.compareTo(value2);
 	}
 
 	private static boolean gt(final Object o1, final Object o2) {
@@ -6133,19 +6131,19 @@ public class Functions {
 
 		} else if (o1 instanceof Boolean && o2 instanceof String) {
 
-			return compareBooleanString(o1, o2) > 0;
+			return compareBooleanString((Boolean)o1, (String)o2) > 0;
 
 		} else if (o1 instanceof String && o2 instanceof Boolean) {
 
-			return compareStringBoolean(o1, o2) > 0;
+			return compareStringBoolean((String)o1, (Boolean)o2) > 0;
 
 		} else if (o1 instanceof Number && o2 instanceof String) {
 
-			return compareNumberString(o1, o2) > 0;
+			return compareNumberString((Number)o1, (String)o2) > 0;
 
 		} else if (o1 instanceof String && o2 instanceof Number) {
 
-			return compareStringNumber(o1, o2) > 0;
+			return compareStringNumber((String)o1, (Number)o2) > 0;
 
 		} else {
 
@@ -6178,19 +6176,19 @@ public class Functions {
 
 		} else if (o1 instanceof Boolean && o2 instanceof String) {
 
-			return compareBooleanString(o1, o2) < 0;
+			return compareBooleanString((Boolean)o1, (String)o2) < 0;
 
 		} else if (o1 instanceof String && o2 instanceof Boolean) {
 
-			return compareStringBoolean(o1, o2) < 0;
+			return compareStringBoolean((String)o1, (Boolean)o2) < 0;
 
 		} else if (o1 instanceof Number && o2 instanceof String) {
 
-			return compareNumberString(o1, o2) < 0;
+			return compareNumberString((Number)o1, (String)o2) < 0;
 
 		} else if (o1 instanceof String && o2 instanceof Number) {
 
-			return compareStringNumber(o1, o2) < 0;
+			return compareStringNumber((String)o1, (Number)o2) < 0;
 
 		} else {
 
@@ -6223,19 +6221,19 @@ public class Functions {
 
 		} else if (o1 instanceof Boolean && o2 instanceof String) {
 
-			return compareBooleanString(o1, o2) == 0;
+			return compareBooleanString((Boolean)o1, (String)o2) == 0;
 
 		} else if (o1 instanceof String && o2 instanceof Boolean) {
 
-			return compareStringBoolean(o1, o2) == 0;
+			return compareStringBoolean((String)o1, (Boolean)o2) == 0;
 
 		} else if (o1 instanceof Number && o2 instanceof String) {
 
-			return compareNumberString(o1, o2) == 0;
+			return compareNumberString((Number)o1, (String)o2) == 0;
 
 		} else if (o1 instanceof String && o2 instanceof Number) {
 
-			return compareStringNumber(o1, o2) == 0;
+			return compareStringNumber((String)o1, (Number)o2) == 0;
 
 		} else {
 
