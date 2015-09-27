@@ -47,7 +47,6 @@ import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
 import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.EnumProperty;
@@ -98,28 +97,34 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		Add, Keep, Remove
 	}
 
+	public enum Direction {
+		None, In, Out, Both
+	}
+
 	// permission propagation via domain relationships
-	public static final Property<Boolean>     propagatesPermissions    = new BooleanProperty("propagatesPermissions").defaultValue(false);
+	public static final Property<Direction>   permissionPropagation    = new EnumProperty("permissionPropagation", Direction.class, Direction.None);
 	public static final Property<Propagation> readPropagation          = new EnumProperty<>("readPropagation", Propagation.class, Propagation.Remove);
 	public static final Property<Propagation> writePropagation         = new EnumProperty<>("writePropagation", Propagation.class, Propagation.Remove);
 	public static final Property<Propagation> deletePropagation        = new EnumProperty<>("deletePropagation", Propagation.class, Propagation.Remove);
 	public static final Property<Propagation> accessControlPropagation = new EnumProperty<>("accessControlPropagation", Propagation.class, Propagation.Remove);
+	public static final Property<String>      propertyMask             = new StringProperty("propertyMask");
 
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
-		propagatesPermissions, readPropagation, writePropagation, deletePropagation, accessControlPropagation
+		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask
 	);
 
 	public static final View uiView = new View(SchemaRelationshipNode.class, PropertyView.Ui,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag,  propagatesPermissions,
-		readPropagation, writePropagation, deletePropagation, accessControlPropagation
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag,  permissionPropagation,
+		readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
 		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, propagatesPermissions
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, permissionPropagation,
+		propertyMask
 	);
 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
@@ -453,7 +458,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			interfaces.add(Ownership.class.getName());
 		}
 
-		if (Boolean.TRUE.equals(getProperty(propagatesPermissions))) {
+		if (!Direction.None.equals(getProperty(permissionPropagation))) {
 			interfaces.add(PermissionPropagation.class.getName());
 		}
 
@@ -918,7 +923,13 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	private void formatPermissionPropagation(final StringBuilder buf) {
 
-		if (getProperty(propagatesPermissions)) {
+		if (!Direction.None.equals(getProperty(permissionPropagation))) {
+
+			buf.append("\n\t@Override\n");
+			buf.append("\tpublic SchemaRelationshipNode.Direction getPropagationDirection() {\n");
+			buf.append("\t\treturn SchemaRelationshipNode.Direction.").append(getProperty(permissionPropagation)).append(";\n");
+			buf.append("\t}\n\n");
+
 
 			buf.append("\n\t@Override\n");
 			buf.append("\tpublic SchemaRelationshipNode.Propagation getReadPropagation() {\n");
@@ -941,6 +952,21 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			buf.append("\n\t@Override\n");
 			buf.append("\tpublic SchemaRelationshipNode.Propagation getAccessControlPropagation() {\n");
 			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(accessControlPropagation)).append(";\n");
+			buf.append("\t}\n\n");
+
+
+			buf.append("\n\t@Override\n");
+			buf.append("\tpublic String getDeltaProperties() {\n");
+			final String _propertyMask = getProperty(propertyMask);
+			if (_propertyMask != null) {
+
+				buf.append("\t\treturn \"").append(_propertyMask).append("\";\n");
+
+			} else {
+
+				buf.append("\t\treturn null;\n");
+			}
+
 			buf.append("\t}\n\n");
 		}
 	}

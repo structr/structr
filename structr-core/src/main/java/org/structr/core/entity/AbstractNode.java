@@ -46,6 +46,7 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.common.IdSorter;
 import org.structr.common.Permission;
 import org.structr.common.PermissionPropagation;
+import org.structr.common.PermissionResolutionMask;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -90,7 +91,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 
-	private RelationshipInterface relationshipPathSegment = null;
+	private RelationshipInterface relationshipPathSegment     = null;
+	private PermissionResolutionMask permissionResolutionMask = null;
 	private boolean readOnlyPropertiesUnlocked = false;
 	private boolean isCreation                 = false;
 
@@ -452,6 +454,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
 			return null;
+		}
+
+		/**
+		 * check read access:
+		 * - permission resolution MUST already be done here because otherwise we won't be able to access the node
+		 * - securityContext should contain the masked permissions
+		 * - check property name against masked permissions
+		 */
+		if (permissionResolutionMask != null) {
+
+			if (!permissionResolutionMask.allowsPermission(Permission.read)) {
+				return null;
+			}
+
+			if (!permissionResolutionMask.allowsProperty(key)) {
+				return null;
+			}
 		}
 
 		return key.getProperty(securityContext, this, applyConverter, predicate);
@@ -853,8 +872,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * @return
 	 */
 	private boolean hasEffectivePermissions(final NodeInterface startNode, final Permission permission) {
-		return hasEffectivePermissions(startNode, permission, new HashSet<>(), new HashSet<>());
 
+		final PermissionResolutionMask mask = new PermissionResolutionMask();
+
+		if (hasEffectivePermissions(startNode, permission, mask, new HashSet<>())) {
+
+			// store permission resolution mask in this node
+			this.permissionResolutionMask = mask;
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -868,7 +896,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * @param visitedIds
 	 * @return
 	 */
-	private boolean hasEffectivePermissions(final NodeInterface startNode, final Permission permission, final Set<Permission> effectivePermissions, final Set<Long> visitedIds) {
+	private boolean hasEffectivePermissions(final NodeInterface startNode, final Permission permission, final PermissionResolutionMask mask, final Set<Long> visitedIds) {
 
 		// examine all relationships
 		for (final AbstractRelationship relationship : startNode.getRelationshipsAsSuperUser()) {
@@ -880,22 +908,43 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				// prevent the recursive code from traversing over this relationship again
 				visitedIds.add(relationshipId);
 
-				// let this relationship modify the effective permissions
-				modifyEffectivePermissions((PermissionPropagation)relationship, effectivePermissions);
+				final PermissionPropagation propagation                     = (PermissionPropagation)relationship;
+				final NodeInterface otherNode                               = relationship.getOtherNode(startNode);
+				final Relationship dbRelationship                           = relationship.getRelationship();
+				final long startNodeId                                      = dbRelationship.getStartNode().getId();
+				final long thisId                                           = startNode.getId();
+				final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
+				final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
 
-				// stop this path early if the effective permissions are empty
-				if (effectivePermissions.isEmpty()) {
-					continue;
+				// check propagation direction
+				if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
+
+					if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+						continue;
+					}
+
+					if (!relDirection.equals(propagationDirection)) {
+						continue;
+					}
 				}
 
-				// examine other node of this relationship
-				final NodeInterface otherNode = relationship.getOtherNode(startNode);
+				// copy mask before altering it in order to be
+				// able to restore it when the next step is a dead end
+				final PermissionResolutionMask backup = mask.copy();
+
+				// let this relationship modify the effective permissions
+				applyCurrentStep(propagation, mask);
+
+				// stop this path early if the effective permissions are empty
+				if (mask.isEmpty()) {
+					continue;
+				}
 
 				// finish this path segment when the destination node is reached
 				if (otherNode.getId() == getId()) {
 
 					// examine effective permissions
-					if (effectivePermissions.contains(permission)) {
+					if (mask.allowsPermission(permission)) {
 						return true;
 					}
 
@@ -904,9 +953,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 
 				// go deeper, but only if the desired permission is not already there
-				if (hasEffectivePermissions(otherNode, permission, effectivePermissions, visitedIds)) {
+				if (hasEffectivePermissions(otherNode, permission, mask, visitedIds)) {
 					return true;
 				}
+
+				// restore mask so that an invalid step does not alter it
+				mask.restore(backup);
 			}
 		}
 
@@ -914,31 +966,34 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return false;
 	}
 
-	private void modifyEffectivePermissions(final PermissionPropagation rel, Set<Permission> effectivePermissions) {
+	private void applyCurrentStep(final PermissionPropagation rel, PermissionResolutionMask mask) {
 
 		switch (rel.getReadPropagation()) {
-			case Add:    effectivePermissions.add(Permission.read); break;
-			case Remove: effectivePermissions.remove(Permission.read); break;
+			case Add:    mask.addRead(); break;
+			case Remove: mask.removeRead(); break;
 			default: break;
 		}
 
 		switch (rel.getWritePropagation()) {
-			case Add:    effectivePermissions.add(Permission.write); break;
-			case Remove: effectivePermissions.remove(Permission.write); break;
+			case Add:    mask.addWrite(); break;
+			case Remove: mask.removeWrite(); break;
 			default: break;
 		}
 
 		switch (rel.getDeletePropagation()) {
-			case Add:    effectivePermissions.add(Permission.delete); break;
-			case Remove: effectivePermissions.remove(Permission.delete); break;
+			case Add:    mask.addDelete(); break;
+			case Remove: mask.removeDelete(); break;
 			default: break;
 		}
 
 		switch (rel.getAccessControlPropagation()) {
-			case Add:    effectivePermissions.add(Permission.accessControl); break;
-			case Remove: effectivePermissions.remove(Permission.accessControl); break;
+			case Add:    mask.addAccessControl(); break;
+			case Remove: mask.removeAccessControl(); break;
 			default: break;
 		}
+
+		// handle delta properties
+		mask.handleProperties(rel.getDeltaProperties());
 	}
 
 	/**
@@ -1458,6 +1513,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public RelationshipInterface getRelationshipPathSegment() {
 		return relationshipPathSegment;
+	}
+
+	@Override
+	public PermissionResolutionMask getPermissionResolutionMask() {
+		return permissionResolutionMask;
 	}
 
 	// ----- Cloud synchronization and replication -----

@@ -28,6 +28,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
+import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -506,6 +507,11 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
+		return null;
+	}
+
+	@Override
+	public PermissionResolutionMask getPermissionResolutionMask() {
 		return null;
 	}
 }

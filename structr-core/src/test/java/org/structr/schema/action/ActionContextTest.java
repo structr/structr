@@ -476,6 +476,9 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(12.0, 3.0), \"true\", \"false\")}"));
 			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(12000000.0, 3000000.0), \"true\", \"false\")}"));
 
+			// comparision of wrongly typed values
+			assertEquals("Invalid if(lt()) result", "true", Scripting.replaceVariables(ctx, testOne, "${lt(\"1200\", \"30\")}"));
+
 			// lt with null
 			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(this.alwaysNull, \"11\")}"));

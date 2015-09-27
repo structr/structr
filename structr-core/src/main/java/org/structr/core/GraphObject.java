@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.PropertyContainer;
+import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -299,6 +300,7 @@ public interface GraphObject {
 	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException;
 	public Object invokeMethod(final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
 
+	public PermissionResolutionMask getPermissionResolutionMask();
 
 	// ----- Cloud synchronization and replication -----
 	/**

@@ -2310,7 +2310,7 @@ table#relationship-options {
 
 td#cascading-options, td#propagation-options {
     vertical-align: top;
-    padding: 12px 36px 12px 0;
+    padding: 0px 36px 12px 0;
 }
 
 #relationship-options p {
@@ -2319,6 +2319,10 @@ td#cascading-options, td#propagation-options {
 
 #relationship-options h3 {
     margin: 12px 0 0 0;
+}
+
+#relationship-options h3:first-child {
+    margin: 0;
 }
 
 #relationship-options h4 {

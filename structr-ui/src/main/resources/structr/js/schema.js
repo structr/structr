@@ -405,7 +405,7 @@ var _Schema = {
 						scope: res.id,
 						//parameters: {'id': res.id},
 						connector: [connectorStyle, {curviness: 200, cornerRadius: radius, stub: [stub, 30], gap: 6, alwaysRespectStubs: true }],
-                        paintStyle: { lineWidth: 5, strokeStyle: res.propagatesPermissions ? "#ffad25" : "#81ce25" },
+                        paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
 									cssClass: "label multiplicity",
@@ -667,7 +667,7 @@ var _Schema = {
 		var div = $('#' + id);
 		div.append('<b>' + entity.relationshipType + '</b>');
         div.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
-		div.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
+		div.append('<div id="tabs" style="margin-top:6px;"><ul></ul></div>');
 
         var relationshipOptions = $('#cascading-options');
     	relationshipOptions.append('<h3>Cascading Delete</h3>');
@@ -680,14 +680,16 @@ var _Schema = {
 
         var propagationOptions = $('#propagation-options');
     	propagationOptions.append('<h3>Permission Resolution</h3>');
-    	propagationOptions.append('<p><input type="checkbox" id="propagation-selector" /> <span class="button" id="selector-feedback">Enable permission resolution</span></p>');
+    	propagationOptions.append('<select id="propagation-selector"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>');
         propagationOptions.append('<table style="margin: 12px 0 0 0;"><tr id="propagation-table"></tr></table>');
+        propagationOptions.append('<p style="margin-top:12px">Hidden properties</p><textarea id="masked-properties" />');
 
         var propagationTable = $('#propagation-table');
-        propagationTable.append('<td class="selector"><p>Read</p><select id="read-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></td>');
-        propagationTable.append('<td class="selector"><p>Write</p><select id="write-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></td>');
-        propagationTable.append('<td class="selector"><p>Delete</p><select id="delete-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></td>');
-        propagationTable.append('<td class="selector"><p>AccessControl</p><select id="access-control-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></td>');
+        propagationTable.append('<td class="selector"><p>Read</p><select id="read-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+        propagationTable.append('<td class="selector"><p>Write</p><select id="write-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+        propagationTable.append('<td class="selector"><p>Delete</p><select id="delete-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+        propagationTable.append('<td class="selector"><p>AccessControl</p><select id="access-control-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+
 
 
         var mainTabs = $('#tabs', div);
@@ -718,11 +720,12 @@ var _Schema = {
 		$.get(rootUrl + entity.id, function(data) {
 			$('#cascading-delete-selector').val(data.result.cascadingDeleteFlag || 0);
 			$('#autocreate-selector').val(data.result.autocreationFlag || 0);
-			$('#propagation-selector').attr('checked', data.result.propagatesPermissions || false);
+			$('#propagation-selector').val(data.result.permissionPropagation || None);
 			$('#read-selector').val(data.result.readPropagation || 'Remove');
 			$('#write-selector').val(data.result.writePropagation || 'Remove');
 			$('#delete-selector').val(data.result.deletePropagation || 'Remove');
 			$('#access-control-selector').val(data.result.accessControlPropagation || 'Remove');
+            $('#masked-properties').val(data.result.propertyMask);
 		});
 
 		$('#cascading-delete-selector').on('change', function() {
@@ -753,7 +756,7 @@ var _Schema = {
 
 		$('#propagation-selector').on('change', function() {
 			var inp = $(this);
-			_Schema.setRelationshipProperty(entity, 'propagatesPermissions', inp.prop('checked'),
+			_Schema.setRelationshipProperty(entity, 'permissionPropagation', inp.val(),
 			function() {
 				blinkGreen($('#selector-feedback'));
 			},
@@ -798,6 +801,17 @@ var _Schema = {
 		$('#access-control-selector').on('change', function() {
 			var inp = $(this);
 			_Schema.setRelationshipProperty(entity, 'accessControlPropagation', inp.val(),
+			function() {
+				blinkGreen(inp);
+			},
+			function() {
+				blinkRed(inp);
+			});
+		});
+
+		$('#masked-properties').on('blur', function() {
+			var inp = $(this);
+			_Schema.setRelationshipProperty(entity, 'propertyMask', inp.val(),
 			function() {
 				blinkGreen(inp);
 			},

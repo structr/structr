@@ -1,5 +1,6 @@
 package org.structr.common;
 
+import org.structr.core.entity.SchemaRelationshipNode.Direction;
 import org.structr.core.entity.SchemaRelationshipNode.Propagation;
 
 /**
@@ -10,8 +11,11 @@ import org.structr.core.entity.SchemaRelationshipNode.Propagation;
  */
 public interface PermissionPropagation {
 
+	public Direction getPropagationDirection();
 	public Propagation getReadPropagation();
 	public Propagation getWritePropagation();
 	public Propagation getDeletePropagation();
 	public Propagation getAccessControlPropagation();
+
+	public String getDeltaProperties();
 }

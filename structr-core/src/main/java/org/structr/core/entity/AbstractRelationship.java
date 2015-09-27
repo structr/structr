@@ -34,6 +34,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.PermissionResolutionMask;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -779,6 +780,13 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		}
 
 		return Direction.BOTH;
+	}
+
+	@Override
+	public PermissionResolutionMask getPermissionResolutionMask() {
+
+		// no control over relationship properties yet..
+		return null;
 	}
 
 	// ----- Cloud synchronization and replication -----
