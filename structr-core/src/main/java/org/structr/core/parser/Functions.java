@@ -56,6 +56,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -2952,26 +2953,62 @@ public class Functions {
 				final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
+					final String keyName   = sources[1].toString();
 					GraphObject dataObject = null;
 
+					// handle GraphObject
 					if (sources[0] instanceof GraphObject) {
 						dataObject = (GraphObject) sources[0];
 					}
 
+					// handle first element of a list of graph objects
 					if (sources[0] instanceof List) {
 
 						final List list = (List) sources[0];
-						if (list.size() == 1 && list.get(0) instanceof GraphObject) {
+						final int size  = list.size();
 
-							dataObject = (GraphObject) list.get(0);
+						if (size == 1) {
+
+							final Object value = list.get(0);
+							if (value != null) {
+
+								if (value instanceof GraphObject) {
+
+									dataObject = (GraphObject) list.get(0);
+
+								} else {
+
+									return "get(): first element of collection is of type " + value.getClass() + " which is not supported.";
+								}
+
+							} else {
+
+								return "get(): first element of collection is null.";
+							}
+
+						} else {
+
+							return "get(): cannot evaluate collection with size " + size;
 						}
+					}
+
+					// handle map separately
+					if (sources[0] instanceof Map && !(sources[0] instanceof GraphObjectMap)) {
+
+						final Map map = (Map)sources[0];
+						return map.get(keyName);
+					}
+
+					// handle request object
+					if (sources[0] instanceof HttpServletRequest) {
+
+						final HttpServletRequest request = (HttpServletRequest)sources[0];
+						return request.getParameter(keyName);
 					}
 
 					if (dataObject != null) {
 
-						final String keyName = sources[1].toString();
 						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(dataObject.getClass(), keyName);
-
 						if (key != null) {
 
 							final PropertyConverter inputConverter = key.inputConverter(securityContext);

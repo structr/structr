@@ -769,42 +769,24 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	private boolean isGranted(final Permission permission, final Principal accessingUser, final int level, final Set<Long> alreadyTraversed) {
 
-		if (level > 5) {
-
-			System.out.println(indent("Denying access because of recursion leve > 5", level*4));
-
+		if (level > 100) {
+			logger.log(Level.WARNING, "Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
 			return false;
 		}
 
 
 		// use quick checks for maximum performance
 		if (isCreation && (accessingUser == null || accessingUser.equals(getOwnerNode()) ) ) {
-
-			System.out.println(indent("Allowing creation", level*4));
-
 			return true;
 		}
 
 		// this includes SuperUser
 		if (accessingUser != null && accessingUser.isAdmin()) {
-
-			System.out.println(indent("Allowing superuser", level*4));
-
 			return true;
 		}
 
 		// allow accessingUser to access itself, but not parents etc.
 		if (this.equals(accessingUser) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
-
-			if (level == 0) {
-
-				System.out.println(indent("Allowing access for user on itself", level*4));
-
-			} else {
-
-				System.out.println(indent("Allowing read access for parents of user", level*4));
-
-			}
 			return true;
 		}
 
@@ -817,16 +799,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		if (!hasOwner && Services.getPermissionsForOwnerlessNodes().contains(permission)) {
 
 			if (accessingUser != null && isVisibleToAuthenticatedUsers()) {
-
-				System.out.println(indent("Allowing anonymous access to authenticated users via flag", level*4));
-
 				return true;
 			}
 
 			if (accessingUser == null && isVisibleToPublicUsers()) {
-
-				System.out.println(indent("Allowing anonymous access to public users via flag", level*4));
-
 				return true;
 			}
 		}
@@ -840,17 +816,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			// owner is always allowed to do anything with its nodes
 			if (hasOwner && accessingUser.equals(_owner)) {
-
-				System.out.println(indent("Allowing access to " + this.getName() + " to owner " + _owner.getName(), level*4));
-
 				return true;
 			}
 
 			final Security security = getSecurityRelationship(accessingUser);
 			if (security != null && security.isAllowed(permission)) {
-
-				System.out.println(indent("Allowing access for " + accessingUser.getName() + " to " + getName() + "  via direct security relationship " + accessingUser.getName() + " --> " + getType() + "(" + getName() + ")", level*4));
-
 				return true;
 			}
 
@@ -863,9 +833,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			for (Principal parent : accessingUser.getParents()) {
 
 				if (isGranted(permission, parent, level+1, alreadyTraversed)) {
-
-					System.out.println(indent("Allowing access for " + accessingUser.getName() + " to " + getName() + "  based on user parent permissions", level*4));
-
 					return true;
 				}
 			}
