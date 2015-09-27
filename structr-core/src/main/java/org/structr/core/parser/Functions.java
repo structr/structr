@@ -2985,10 +2985,6 @@ public class Functions {
 
 								return "get(): first element of collection is null.";
 							}
-
-						} else {
-
-							return "get(): cannot evaluate collection with size " + size;
 						}
 					}
 
