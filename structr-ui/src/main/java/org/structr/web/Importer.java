@@ -669,15 +669,17 @@ public class Importer {
 
 							final String value =  nodeAttr.getValue();
 
-							boolean isAnchor = StringUtils.isNotBlank(value) && value.startsWith("#");
-							boolean isLocal = StringUtils.isNotBlank(value) && !value.startsWith("http");
-							boolean isActive = StringUtils.isNotBlank(value) && (value.startsWith("${") || value.startsWith("/${"));
+							boolean notBlank     = StringUtils.isNotBlank(value);
+							boolean isAnchor     = notBlank && value.startsWith("#");
+							boolean isLocal      = notBlank && !value.startsWith("http");
+							boolean isActive     = notBlank && (value.startsWith("${") || value.startsWith("/${"));
+							boolean isStructrLib = notBlank && value.startsWith("/structr/js/");
 
 							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
 
-							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor) {
+							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor && !isStructrLib) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
 
@@ -685,15 +687,15 @@ public class Importer {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), value);
 							}
-							
+
 
 						}
 					}
 
 				}
-				
+
 				final StringProperty typeKey = new StringProperty(PropertyView.Html.concat("type"));
-				
+
 				if ("script".equals(tag) && newNode.getProperty(typeKey) == null) {
 
 					// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
@@ -785,14 +787,14 @@ public class Importer {
 
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 		final String fileName = PathHelper.getName(downloadAddress);
-		
+
 		if (StringUtils.isBlank(fileName)) {
-			
+
 			logger.log(Level.WARNING, "Can't figure out filename from download address {0}, aborting.", downloadAddress);
-			
+
 			return null;
 		}
-		
+
 		// TODO: Add security features like null/integrity/virus checking before copying it to
 		// the files repo
 		try {
