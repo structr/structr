@@ -18,27 +18,28 @@
  */
 package org.structr.web.entity.html;
 
+import org.structr.common.PropertyView;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  * @author Axel Morgner
  */
 public class Time extends DOMElement {
-//
-//	static {
-//
-//		StructrApp.getConfiguration().registerPropertySet(Time.class, PropertyView.All, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Time.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Time.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
 
+	public static final Property<String> _datetime = new HtmlProperty("datetime");
+
+	public static final org.structr.common.View htmlView	= new org.structr.common.View(Time.class, PropertyView.Html,
+		_datetime
+	);
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public boolean avoidWhitespace() {
 
-		return true;
+		return false;
 
 	}
 }
