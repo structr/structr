@@ -159,8 +159,6 @@ public class PropertyMap {
 	public static PropertyMap javaTypeToDatabaseType(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
 
 		PropertyMap resultMap = new PropertyMap();
-		Class entityType      = entity.getClass();
-
 		if (source != null) {
 
 			for (Entry<String, Object> entry : source.entrySet()) {
