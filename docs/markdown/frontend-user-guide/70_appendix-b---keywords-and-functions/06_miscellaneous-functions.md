@@ -21,5 +21,6 @@
 <tr><td>keys(entity, viewName)</td><td>Returns all the property keys of the the given entity that are registered in the view with the given name</td><td><code>${keys(this, 'public')} => ['name', 'type', 'id']</code></td></tr>
 <tr><td>call(method [, parameters..])</td><td>Calls the given SchemaMethod with the given parameters (if any) by name.</td><td><code>${call('myCustomMethod')}</code></td></tr>
 
+<tr><td>cypher(query)</td><td>Executes the given Cypher query and returns the results (if any).</td><td><code>${cypher("match (p:Page {name:'LoginPage'}) return p")}</code></td></tr>
 
 </table>
