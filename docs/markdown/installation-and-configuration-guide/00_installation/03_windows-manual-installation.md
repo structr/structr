@@ -61,6 +61,8 @@ Click on "Edit" and change the value to reflect the new JDK location:
 
 <img src="http://docs.structr.org/img-022.png" class="zoomable">
 
+IMPORTANT: Make sure the path to your new JDK location is at the very beginning of the path variable!
+
 To confirm new settings, open a new Command Prompt window (cmd) and type
 
 	C:\Users\IEUser\>where java
