@@ -66,11 +66,13 @@ public class StructrScriptable extends ScriptableObject {
 	private ActionContext actionContext     = null;
 	private FrameworkException exception    = null;
 	private GraphObject entity              = null;
+	private Context scriptingContext        = null;
 
-	public StructrScriptable(final ActionContext actionContext, final GraphObject entity) {
+	public StructrScriptable(final ActionContext actionContext, final GraphObject entity, final Context scriptingContext) {
 
-		this.actionContext   = actionContext;
-		this.entity          = entity;
+		this.actionContext    = actionContext;
+		this.entity           = entity;
+		this.scriptingContext = scriptingContext;
 	}
 
 	@Override
@@ -118,13 +120,13 @@ public class StructrScriptable extends ScriptableObject {
 
 		if ("this".equals(name)) {
 
-			return wrap(null, start, null, entity);
+			return wrap(this.scriptingContext, start, null, entity);
 
 		}
 
 		if ("me".equals(name)) {
 
-			return wrap(null, start, null, actionContext.getSecurityContext().getUser(false));
+			return wrap(this.scriptingContext, start, null, actionContext.getSecurityContext().getUser(false));
 
 		}
 
