@@ -34,6 +34,7 @@ import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -48,6 +49,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
+import org.neo4j.function.Function;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -55,6 +58,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -63,6 +67,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.AbstractSchemaNode;
 
 /**
  *
@@ -111,6 +116,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		String mode                  = (String)attributes.get("mode");
 		String fileName              = (String)attributes.get("file");
 		String validate              = (String)attributes.get("validate");
+		String query                 = (String)attributes.get("query");
+		Long batchSize               = (Long)attributes.get("batchSize");
 		boolean doValidation         = true;
 
 		// should we validate imported nodes?
@@ -133,15 +140,15 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		if ("export".equals(mode)) {
 
-			exportToFile(graphDb, fileName, true);
+			exportToFile(graphDb, fileName, query, true);
 
 		} else if ("exportDb".equals(mode)) {
 
-			exportToFile(graphDb, fileName, false);
+			exportToFile(graphDb, fileName, query, false);
 
 		} else if ("import".equals(mode)) {
 
-			importFromFile(graphDb, securityContext, fileName, doValidation);
+			importFromFile(graphDb, securityContext, fileName, doValidation, batchSize);
 
 		} else {
 
@@ -163,24 +170,53 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToFile(final GraphDatabaseService graphDb, final String fileName, final boolean includeFiles) throws FrameworkException {
+	public static void exportToFile(final GraphDatabaseService graphDb, final String fileName, final String query, final boolean includeFiles) throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
+			Set<AbstractNode> nodes         = new HashSet<>();
+			Set<AbstractRelationship> rels  = new HashSet<>();
+			boolean conditionalIncludeFiles = includeFiles;
+
+			if (query != null) {
+
+				logger.log(Level.INFO, "Using Cypher query {0} to determine export set, disabling export of files", query);
+
+				conditionalIncludeFiles = false;
+
+				final List<GraphObject> result = StructrApp.getInstance().cypher(query, null);
+				for (final GraphObject obj : result) {
+
+					if (obj.isNode()) {
+						nodes.add((AbstractNode)obj.getSyncNode());
+					} else {
+						rels.add((AbstractRelationship)obj.getSyncRelationship());
+					}
+				}
+
+				logger.log(Level.INFO, "Query returned {0} nodes and {1} relationships.", new Object[] { nodes.size(), rels.size() } );
+
+			} else {
+
+				nodes.addAll(app.nodeQuery(AbstractNode.class).includeDeletedAndHidden().getAsList());
+				rels.addAll(app.relationshipQuery(AbstractRelationship.class).includeDeletedAndHidden().getAsList());
+			}
+
 			exportToStream(
 				new FileOutputStream(fileName),
-				app.nodeQuery(AbstractNode.class).includeDeletedAndHidden().getAsList(),
-				app.relationshipQuery(AbstractRelationship.class).includeDeletedAndHidden().getAsList(),
+				nodes,
+				rels,
 				null,
-				includeFiles
+				conditionalIncludeFiles
 			);
 
 			tx.success();
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
 			throw new FrameworkException(500, t.getMessage());
 		}
 
@@ -240,6 +276,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			zos.setLevel(6);
 
 			if (includeFiles) {
+
+				logger.log(Level.INFO, "Exporting files..");
+
 				// export files first
 				exportDirectory(zos, new File("files"), "", filesToInclude.isEmpty() ? null : filesToInclude);
 			}
@@ -263,9 +302,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	}
 
 	public static void importFromFile(final GraphDatabaseService graphDb, final SecurityContext securityContext, final String fileName, boolean doValidation) throws FrameworkException {
+		importFromFile(graphDb, securityContext, fileName, doValidation, 200L);
+	}
+
+	public static void importFromFile(final GraphDatabaseService graphDb, final SecurityContext securityContext, final String fileName, boolean doValidation, final Long batchSize) throws FrameworkException {
 
 		try {
-			importFromStream(graphDb, securityContext, new FileInputStream(fileName), doValidation);
+			importFromStream(graphDb, securityContext, new FileInputStream(fileName), doValidation, batchSize);
 
 		} catch (Throwable t) {
 
@@ -275,7 +318,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 	}
 
-	public static void importFromStream(final GraphDatabaseService graphDb, final SecurityContext securityContext, final InputStream inputStream, boolean doValidation) throws FrameworkException {
+	public static void importFromStream(final GraphDatabaseService graphDb, final SecurityContext securityContext, final InputStream inputStream, boolean doValidation, final Long batchSize) throws FrameworkException {
 
 		try {
 			ZipInputStream zis = new ZipInputStream(inputStream);
@@ -285,7 +328,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				if (STRUCTR_ZIP_DB_NAME.equals(entry.getName())) {
 
-					importDatabase(graphDb, securityContext, zis, doValidation);
+					importDatabase(graphDb, securityContext, zis, doValidation, batchSize);
 
 				} else {
 
@@ -583,15 +626,16 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 	}
 
-	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation) throws FrameworkException, IOException {
+	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation, final Long batchSize) throws FrameworkException, IOException {
 
 		final App app                        = StructrApp.getInstance();
 		final DataInputStream dis            = new DataInputStream(new BufferedInputStream(zis));
 		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
+		final long internalBatchSize         = batchSize != null ? batchSize : 200;
 		final NodeFactory nodeFactory        = new NodeFactory(securityContext);
 		final String uuidPropertyName        = GraphObject.id.dbName();
+		final Map<String, Node> uuidMap      = new LinkedHashMap<>();
 		double t0                            = System.nanoTime();
-		Map<String, Node> uuidMap            = new LinkedHashMap<>();
 		PropertyContainer currentObject      = null;
 		String currentKey                    = null;
 		boolean finished                     = false;
@@ -602,6 +646,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			try (final Tx tx = app.tx(doValidation)) {
 
+				final Set<Long> deletedNodes  = new HashSet<>();
+				final Set<Long> deletedRels   = new HashSet<>();
 				final List<Relationship> rels = new LinkedList<>();
 				final List<Node> nodes        = new LinkedList<>();
 				long nodeCount                = 0;
@@ -625,7 +671,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						if (objectType == 'N') {
 
 							// break loop after 200 objects, commit and restart afterwards
-							 if(nodeCount + relCount >= 200) {
+							 if(nodeCount + relCount >= internalBatchSize) {
 								 dis.reset();
 								 break;
 							 }
@@ -639,7 +685,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						} else if (objectType == 'R') {
 
 							// break look after 200 objects, commit and restart afterwards
-							 if(nodeCount + relCount >= 200) {
+							 if(nodeCount + relCount >= internalBatchSize) {
 								 dis.reset();
 								 break;
 							 }
@@ -724,15 +770,27 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				for (Node node : nodes) {
 
 					NodeInterface entity = nodeFactory.instantiate(node);
-					TransactionCommand.nodeCreated(entity);
-					entity.addToIndex();
+
+					// check for existing schema node and merge
+					if (entity instanceof AbstractSchemaNode) {
+						checkAndMerge(entity, deletedNodes, deletedRels);
+					}
+
+					if (!deletedNodes.contains(node.getId())) {
+
+						TransactionCommand.nodeCreated(entity);
+						entity.addToIndex();
+					}
 				}
 
 				for (Relationship rel : rels) {
 
-					RelationshipInterface entity = relFactory.instantiate(rel);
-					TransactionCommand.relationshipCreated(entity);
-					entity.addToIndex();
+					if (!deletedRels.contains(rel.getId())) {
+
+						RelationshipInterface entity = relFactory.instantiate(rel);
+						TransactionCommand.relationshipCreated(entity);
+						entity.addToIndex();
+					}
 				}
 
 				logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
@@ -850,4 +908,142 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				break;
 		}
 	}
+
+	private static boolean checkAndMerge(final NodeInterface node, final Set<Long> deletedNodes, final Set<Long> deletedRels) throws FrameworkException {
+
+		final Class type                 = node.getClass();
+		final String name                = node.getName();
+		final NodeInterface existingNode = (NodeInterface)StructrApp.getInstance().nodeQuery(type).andName(name).getFirst();
+
+		if (existingNode != null) {
+
+			logger.log(Level.INFO, "Found existing schema node {0}, merging!", name);
+
+			final Node sourceNode = node.getNode();
+			final Node targetNode = existingNode.getNode();
+
+			copyProperties(sourceNode, targetNode);
+
+			// handle outgoing rels
+			for (final Relationship outRel : sourceNode.getRelationships(Direction.OUTGOING)) {
+
+				final Node otherNode      = outRel.getEndNode();
+				final Relationship newRel = targetNode.createRelationshipTo(otherNode, outRel.getType());
+
+				copyProperties(outRel, newRel);
+
+				// report deletion
+				deletedRels.add(outRel.getId());
+
+				// remove previous relationship
+				outRel.delete();
+			}
+
+			// handle incoming rels
+			for (final Relationship inRel : sourceNode.getRelationships(Direction.INCOMING)) {
+
+				final Node otherNode      = inRel.getStartNode();
+				final Relationship newRel = otherNode.createRelationshipTo(targetNode, inRel.getType());
+
+				copyProperties(inRel, newRel);
+
+				// report deletion
+				deletedRels.add(inRel.getId());
+
+				// remove previous relationship
+				inRel.delete();
+			}
+
+			// merge properties, views and methods
+			final Map<String, List<Node>> groupedNodes = groupByTypeAndName(Iterables.toList(Iterables.map(new EndNodes(), targetNode.getRelationships(Direction.OUTGOING))));
+			for (final List<Node> nodes : groupedNodes.values()) {
+
+				final int size = nodes.size();
+				if (size > 1) {
+
+					final Node groupTargetNode = nodes.get(0);
+
+					for (final Node groupSourceNode : nodes.subList(1, size)) {
+
+						copyProperties(groupSourceNode, groupTargetNode);
+
+						// delete relationships of merged node
+						for (final Relationship groupRel : groupTargetNode.getRelationships()) {
+							deletedRels.add(groupRel.getId());
+							groupRel.delete();
+						}
+
+						// delete merged node
+						deletedNodes.add(groupTargetNode.getId());
+						groupTargetNode.delete();
+					}
+				}
+			}
+
+			// report deletion
+			deletedNodes.add(sourceNode.getId());
+
+			// delete
+			sourceNode.delete();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private static void copyProperties(final PropertyContainer source, final PropertyContainer target) {
+
+		for (final String key : source.getPropertyKeys()) {
+
+			// skip id
+			if (!"id".equals(key)) {
+
+				target.setProperty(key, source.getProperty(key));
+			}
+		}
+	}
+
+	private static Map<String, List<Node>> groupByTypeAndName(final Iterable<Node> nodes) {
+
+		final Map<String, List<Node>> groupedNodes = new LinkedHashMap<>();
+
+		for (final Node node : nodes) {
+
+			if (node.hasProperty("name") && node.hasProperty("type")) {
+
+				final String typeAndName = node.getProperty("type") + "." + node.getProperty("name");
+				List<Node> nodeList      = groupedNodes.get(typeAndName);
+
+				if (nodeList == null) {
+
+					nodeList = new LinkedList<>();
+					groupedNodes.put(typeAndName, nodeList);
+				}
+
+				nodeList.add(node);
+			}
+		}
+
+		return groupedNodes;
+	}
+
+	private static class EndNodes implements Function<Relationship, Node> {
+
+		@Override
+		public Node apply(Relationship from) throws RuntimeException {
+			return from.getEndNode();
+		}
+	}
 }
+
+
+
+
+
+
+
+
+
+
+

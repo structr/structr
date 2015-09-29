@@ -62,7 +62,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             format            = new StringProperty("format");
 	public static final Property<Boolean>            notNull           = new BooleanProperty("notNull");
 	public static final Property<Boolean>            unique            = new BooleanProperty("unique");
-	public static final Property<Boolean>            indexed           = new BooleanProperty("indexed").defaultValue(true);	// 
+	public static final Property<Boolean>            indexed           = new BooleanProperty("indexed").defaultValue(true);	//
 	public static final Property<Boolean>            isDynamic         = new BooleanProperty("isDynamic");
 	public static final Property<Boolean>            isBuiltinProperty = new BooleanProperty("isBuiltinProperty");
 	public static final Property<Boolean>            isDefaultInUi     = new BooleanProperty("isDefaultInUi");
@@ -330,7 +330,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public String getNotionMultiplicity() {
 		return getNotionPropertyParser().getMultiplicity();
 	}
-	
+
 	@Override
 	public String getReadFunction() {
 
