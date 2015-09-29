@@ -21,7 +21,7 @@
 <tr><td>keys(entity, viewName)</td><td>Returns all the property keys of the the given entity that are registered in the view with the given name</td><td><code>${keys(this, 'public')} => ['name', 'type', 'id']</code></td></tr>
 <tr><td>call(method [, parameters..])</td><td>Calls the given SchemaMethod with the given parameters (if any) by name.</td><td><code>${call('myCustomMethod')}</code></td></tr>
 
-<tr><td>cypher('MATCH (n) RETURN n')</td><td>Returns the result of the given Cypher query.</td><td><code>${cypher("match (t:Team {name:'Bayern München'}) return t")} => Returns the specific UID of the returned Object, which is stored in the Structr Database</code></td></tr>
+<tr><td>cypher('MATCH (n) RETURN n')</td><td>Returns the result of the given Cypher query.</td><td><code>${cypher("match (p:Page {name:'LoginPage'}) return p")} => Returns the specific UID of the requested Object, which is stored in the Structr Database.</code></td></tr>
 
 
 </table>
