@@ -18,6 +18,6 @@ public class TypePredicate<T extends GraphObject> implements Predicate<T> {
 
 	@Override
 	public boolean accept(final T arg) {
-		return desiredType == null || (arg.getType().equals(desiredType));
+		return desiredType == null || desiredType.equals(arg.getType());
 	}
 }

@@ -72,7 +72,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()))).iterator();
+					nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllNodes()))).iterator();
 					tx.success();
 
 				} catch (FrameworkException fex) {
@@ -130,7 +130,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()))).iterator();
+				relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllRelationships()))).iterator();
 				tx.success();
 
 			} catch (FrameworkException fex) {
