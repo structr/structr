@@ -96,6 +96,7 @@ public class SnapshotsCommand extends AbstractCommand {
 						msg.put(statusProperty, "success");
 
 					} catch (Throwable t) {
+						t.printStackTrace();
 						msg.put(statusProperty, t.getMessage());
 					}
 			}

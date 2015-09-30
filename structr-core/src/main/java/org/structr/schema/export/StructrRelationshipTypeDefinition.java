@@ -57,6 +57,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	private String aclWriteMask                   = null;
 	private String aclDeleteMask                  = null;
 	private String aclAccessControlMask           = null;
+	private String aclHiddenProperties            = null;
 
 	public StructrRelationshipTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
@@ -167,11 +168,32 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		map.put(JsonSchema.KEY_SOURCE_NAME, sourcePropertyName);
 		map.put(JsonSchema.KEY_TARGET_NAME, targetPropertyName);
 
-		map.put(JsonSchema.KEY_ACL_RESOLUTION, aclResolution);
-		map.put(JsonSchema.KEY_ACL_READ_MASK, aclReadMask);
-		map.put(JsonSchema.KEY_ACL_WRITE_MASK, aclWriteMask);
-		map.put(JsonSchema.KEY_ACL_DELETE_MASK, aclDeleteMask);
-		map.put(JsonSchema.KEY_ACL_ACCESS_CONTROL_MASK, aclAccessControlMask);
+
+		// only write values that differ from the default
+		if (!SchemaRelationshipNode.Direction.None.name().equals(aclResolution)) {
+
+			map.put(JsonSchema.KEY_ACL_RESOLUTION, aclResolution);
+
+			if (!SchemaRelationshipNode.Propagation.Remove.name().equals(aclReadMask)) {
+				map.put(JsonSchema.KEY_ACL_READ_MASK, aclReadMask);
+			}
+
+			if (!SchemaRelationshipNode.Propagation.Remove.name().equals(aclWriteMask)) {
+				map.put(JsonSchema.KEY_ACL_WRITE_MASK, aclWriteMask);
+			}
+
+			if (!SchemaRelationshipNode.Propagation.Remove.name().equals(aclDeleteMask)) {
+				map.put(JsonSchema.KEY_ACL_DELETE_MASK, aclDeleteMask);
+			}
+
+			if (!SchemaRelationshipNode.Propagation.Remove.name().equals(aclAccessControlMask)) {
+				map.put(JsonSchema.KEY_ACL_ACCESS_CONTROL_MASK, aclAccessControlMask);
+			}
+
+			if (aclHiddenProperties != null) {
+				map.put(JsonSchema.KEY_ACL_HIDDEN_PROPERTIES, aclHiddenProperties);
+			}
+		}
 
 		final Map<String, Object> cascade = new TreeMap<>();
 
@@ -305,11 +327,18 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 			this.aclDeleteMask = aclDeleteMaskValue.toString();
 		}
 
-		// ACL accesscontrol mask
+		// ACL accessControl mask
 		final Object aclAccessControlMaskValue = source.get(JsonSchema.KEY_ACL_ACCESS_CONTROL_MASK);
 		if (aclAccessControlMaskValue != null) {
 
 			this.aclAccessControlMask = aclAccessControlMaskValue.toString();
+		}
+
+		// ACL hidden properties
+		final Object aclHiddenPropertiesValue = source.get(JsonSchema.KEY_ACL_HIDDEN_PROPERTIES);
+		if (aclHiddenPropertiesValue != null) {
+
+			this.aclHiddenProperties = aclHiddenPropertiesValue.toString();
 		}
 	}
 
@@ -334,6 +363,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		this.aclWriteMask         = schemaNode.getProperty(SchemaRelationshipNode.writePropagation).name();
 		this.aclDeleteMask        = schemaNode.getProperty(SchemaRelationshipNode.deletePropagation).name();
 		this.aclAccessControlMask = schemaNode.getProperty(SchemaRelationshipNode.accessControlPropagation).name();
+		this.aclHiddenProperties  = schemaNode.getProperty(SchemaRelationshipNode.propertyMask);
 
 		if (sourcePropertyName == null) {
 			sourcePropertyName = schemaNode.getPropertyName(sourceNodeType, root.getExistingPropertyNames(), true);
@@ -395,9 +425,29 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		_schemaNode.setProperty(SchemaRelationshipNode.cascadingDeleteFlag, getCascadingFlag(cascadingDelete));
 		_schemaNode.setProperty(SchemaRelationshipNode.autocreationFlag, getCascadingFlag(cascadingCreate));
 
-		_schemaNode.setProperty(SchemaRelationshipNode.permissionPropagation, SchemaRelationshipNode.Direction.valueOf(aclResolution));
-		_schemaNode.setProperty(SchemaRelationshipNode.
+		if (aclResolution != null) {
+			_schemaNode.setProperty(SchemaRelationshipNode.permissionPropagation, SchemaRelationshipNode.Direction.valueOf(aclResolution));
+		}
 
+		if (aclReadMask != null) {
+			_schemaNode.setProperty(SchemaRelationshipNode.readPropagation, SchemaRelationshipNode.Propagation.valueOf(aclReadMask));
+		}
+
+		if (aclWriteMask != null) {
+			_schemaNode.setProperty(SchemaRelationshipNode.writePropagation, SchemaRelationshipNode.Propagation.valueOf(aclWriteMask));
+		}
+
+		if (aclDeleteMask != null) {
+			_schemaNode.setProperty(SchemaRelationshipNode.deletePropagation, SchemaRelationshipNode.Propagation.valueOf(aclDeleteMask));
+		}
+
+		if (aclAccessControlMask != null)  {
+			_schemaNode.setProperty(SchemaRelationshipNode.accessControlPropagation, SchemaRelationshipNode.Propagation.valueOf(aclAccessControlMask));
+		}
+
+		if (aclHiddenProperties != null) {
+			_schemaNode.setProperty(SchemaRelationshipNode.propertyMask, aclHiddenProperties);
+		}
 
 		return _schemaNode;
 	}
