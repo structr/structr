@@ -52,6 +52,11 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	private Cardinality cardinality               = null;
 	private Cascade cascadingDelete               = null;
 	private Cascade cascadingCreate               = null;
+	private String aclResolution                  = null;
+	private String aclReadMask                    = null;
+	private String aclWriteMask                   = null;
+	private String aclDeleteMask                  = null;
+	private String aclAccessControlMask           = null;
 
 	public StructrRelationshipTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
@@ -162,6 +167,12 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		map.put(JsonSchema.KEY_SOURCE_NAME, sourcePropertyName);
 		map.put(JsonSchema.KEY_TARGET_NAME, targetPropertyName);
 
+		map.put(JsonSchema.KEY_ACL_RESOLUTION, aclResolution);
+		map.put(JsonSchema.KEY_ACL_READ_MASK, aclReadMask);
+		map.put(JsonSchema.KEY_ACL_WRITE_MASK, aclWriteMask);
+		map.put(JsonSchema.KEY_ACL_DELETE_MASK, aclDeleteMask);
+		map.put(JsonSchema.KEY_ACL_ACCESS_CONTROL_MASK, aclAccessControlMask);
+
 		final Map<String, Object> cascade = new TreeMap<>();
 
 		if (cascadingCreate != null) {
@@ -265,6 +276,41 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 				throw new IllegalStateException("Invalid JSON source for cascade, expected object.");
 			}
 		}
+
+		// ACL resolution
+		final Object aclResolutionValue = source.get(JsonSchema.KEY_ACL_RESOLUTION);
+		if (aclResolutionValue != null) {
+
+			this.aclResolution = aclResolutionValue.toString();
+		}
+
+		// ACL read mask
+		final Object aclReadMaskValue = source.get(JsonSchema.KEY_ACL_READ_MASK);
+		if (aclReadMaskValue != null) {
+
+			this.aclReadMask = aclReadMaskValue.toString();
+		}
+
+		// ACL write mask
+		final Object aclWriteMaskValue = source.get(JsonSchema.KEY_ACL_WRITE_MASK);
+		if (aclWriteMaskValue != null) {
+
+			this.aclWriteMask = aclWriteMaskValue.toString();
+		}
+
+		// ACL delete mask
+		final Object aclDeleteMaskValue = source.get(JsonSchema.KEY_ACL_DELETE_MASK);
+		if (aclDeleteMaskValue != null) {
+
+			this.aclDeleteMask = aclDeleteMaskValue.toString();
+		}
+
+		// ACL accesscontrol mask
+		final Object aclAccessControlMaskValue = source.get(JsonSchema.KEY_ACL_ACCESS_CONTROL_MASK);
+		if (aclAccessControlMaskValue != null) {
+
+			this.aclAccessControlMask = aclAccessControlMaskValue.toString();
+		}
 	}
 
 	@Override
@@ -278,11 +324,16 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		final String targetNodeType = targetNode.getClassName();
 
 
-		this.sourceType          = root.getId().resolve("definitions/" + sourceNodeType);
-		this.targetType          = root.getId().resolve("definitions/" + targetNodeType);
-		this.relationshipType    = schemaNode.getProperty(SchemaRelationshipNode.relationshipType);
-		this.sourcePropertyName  = schemaNode.getProperty(SchemaRelationshipNode.sourceJsonName);
-		this.targetPropertyName  = schemaNode.getProperty(SchemaRelationshipNode.targetJsonName);
+		this.sourceType           = root.getId().resolve("definitions/" + sourceNodeType);
+		this.targetType           = root.getId().resolve("definitions/" + targetNodeType);
+		this.relationshipType     = schemaNode.getProperty(SchemaRelationshipNode.relationshipType);
+		this.sourcePropertyName   = schemaNode.getProperty(SchemaRelationshipNode.sourceJsonName);
+		this.targetPropertyName   = schemaNode.getProperty(SchemaRelationshipNode.targetJsonName);
+		this.aclResolution        = schemaNode.getProperty(SchemaRelationshipNode.permissionPropagation).name();
+		this.aclReadMask          = schemaNode.getProperty(SchemaRelationshipNode.readPropagation).name();
+		this.aclWriteMask         = schemaNode.getProperty(SchemaRelationshipNode.writePropagation).name();
+		this.aclDeleteMask        = schemaNode.getProperty(SchemaRelationshipNode.deletePropagation).name();
+		this.aclAccessControlMask = schemaNode.getProperty(SchemaRelationshipNode.accessControlPropagation).name();
 
 		if (sourcePropertyName == null) {
 			sourcePropertyName = schemaNode.getPropertyName(sourceNodeType, root.getExistingPropertyNames(), true);
@@ -343,6 +394,10 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		_schemaNode.setProperty(SchemaRelationshipNode.targetMultiplicity, getTargetMultiplicity(cardinality));
 		_schemaNode.setProperty(SchemaRelationshipNode.cascadingDeleteFlag, getCascadingFlag(cascadingDelete));
 		_schemaNode.setProperty(SchemaRelationshipNode.autocreationFlag, getCascadingFlag(cascadingCreate));
+
+		_schemaNode.setProperty(SchemaRelationshipNode.permissionPropagation, SchemaRelationshipNode.Direction.valueOf(aclResolution));
+		_schemaNode.setProperty(SchemaRelationshipNode.
+
 
 		return _schemaNode;
 	}
