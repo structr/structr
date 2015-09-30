@@ -468,7 +468,7 @@ var Structr = {
 		Command.getLocalStorage(callback);
 	},
 	restoreDialog: function(dialogData) {
-		log('restoreDialog', dialogData);
+		log('restoreDialog', dialogData, dialogBox);
 		$.blockUI.defaults.overlayCSS.opacity = .6;
 		$.blockUI.defaults.applyPlatformOpacityRules = false;
 
@@ -479,32 +479,34 @@ var Structr = {
 		var l = dialogData.left;
 		var t = dialogData.top;
 
-		$.blockUI({
-			fadeIn: 25,
-			fadeOut: 25,
-			message: dialogBox,
-			css: {
-				cursor: 'default',
-				border: 'none',
-				backgroundColor: 'transparent',
+		window.setTimeout(function() {
+			$.blockUI({
+				fadeIn: 25,
+				fadeOut: 25,
+				message: dialogBox,
+				css: {
+					cursor: 'default',
+					border: 'none',
+					backgroundColor: 'transparent',
+					width: dw + 'px',
+					height: dh + 'px',
+					top: t + 'px',
+					left: l + 'px'
+				},
+				themedCSS: {
+					width: dw + 'px',
+					height: dh + 'px',
+					top: t + 'px',
+					left: l + 'px'
+				},
 				width: dw + 'px',
 				height: dh + 'px',
 				top: t + 'px',
 				left: l + 'px'
-			},
-			themedCSS: {
-				width: dw + 'px',
-				height: dh + 'px',
-				top: t + 'px',
-				left: l + 'px'
-			},
-			width: dw + 'px',
-			height: dh + 'px',
-			top: t + 'px',
-			left: l + 'px'
-		});
+			});
 
-		Structr.resize();
+			Structr.resize();
+		}, 1000);
 
 	},
 	dialog: function(text, callbackOk, callbackCancel) {
