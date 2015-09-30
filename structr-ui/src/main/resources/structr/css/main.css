@@ -2229,6 +2229,7 @@ input.bitmask {
 
 #node-types {
     top: 93px;
+	overflow-y: scroll;
 }
 
 #relationship-types {

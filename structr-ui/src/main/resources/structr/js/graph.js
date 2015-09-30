@@ -916,8 +916,17 @@ var _Graph = {
 			width: win.width()
 		});
 
+		$nodeTypes = $('#node-types');
+		var distance = $nodeTypes.position().top - 61;
+		var boxHeight = (ch - (3 * distance)) / 2;
+
+		$nodeTypes.css({
+			height: boxHeight
+		});
+
 		$('#relationship-types').css({
-			top: $('#node-types').height() + $('#node-types').position().top + 64
+			top: $nodeTypes.position().top + boxHeight + distance,
+			height: boxHeight
 		});
 
 		if (engine) {
@@ -960,7 +969,8 @@ var _Graph = {
 		var nodeTypesBox = $('#node-types');
 		nodeTypesBox.empty();
 		//nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
-		Command.getByType('SchemaNode', 1000, 1, null, null, null, true, function(nodes) {
+		// getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
+		Command.getByType('SchemaNode', 1000, 1, "name", "asc", null, true, function(nodes) {
 
 			nodes.forEach(function(node) {
 
@@ -1007,6 +1017,8 @@ var _Graph = {
 				});
 
 			});
+
+			_Graph.resize();
 		});
 
 	},
