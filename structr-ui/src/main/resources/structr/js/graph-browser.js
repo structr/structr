@@ -118,7 +118,7 @@ function updateHoverInfo(node, hoverMap) {
     var angle = startAngle + (Math.PI * 2 / num) * i;
     var cos   = Math.cos(angle);
     var sin   = Math.sin(angle);
-  	var dx    = (cos * radius);
+  	var dx    = (cos * radius) - 15;
   	var dy    = (sin * radius) - 15;
     graphInfo.append('<button class="circle" id="' + key + '-button" style="position: absolute; top: 0px; left: 0px; z-index: 10000;" title="' + label + '">' + value + '</button>');
     graphInfo.append('<button class="btn btn-xs" style="margin: 4px; color: #000; background-color: ' + color[key] + '">' + label + '</button>');
