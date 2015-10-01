@@ -1179,8 +1179,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		try {
-			if (!isGranted(Permission.write, securityContext)) {
-				throw new FrameworkException(403, "Modification not permitted.");
+
+			// allow setting of ID without permissions
+			if (!key.equals(GraphObject.id)) {
+
+				if (!isGranted(Permission.write, securityContext)) {
+					throw new FrameworkException(403, "Modification not permitted.");
+				}
 			}
 
 			T oldValue = getProperty(key);

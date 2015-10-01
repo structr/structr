@@ -36,6 +36,10 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -47,6 +51,7 @@ public class ModificationQueue {
 
 	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
 
+	private final boolean auditLogEnabled                                                   = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_SECURITY_AUDITLOG_ENABLED, "false"));
 	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
 	private final Collection<ModificationEvent> modificationEvents                          = new ArrayDeque<>(1000);
 	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
@@ -131,16 +136,40 @@ public class ModificationQueue {
 
 		// copy modifications, do after transaction callbacks
 		for (GraphObjectModificationState state : modifications.values()) {
-
-//			if (!state.isDeleted()) {
-
-				state.doOuterCallback(securityContext);
-//			}
+			state.doOuterCallback(securityContext);
 		}
 
 		long t = System.currentTimeMillis() - t0;
 		if (t > 1000) {
 			logger.log(Level.INFO, "{0} ms", t);
+		}
+	}
+
+	public void updateAuditLog() {
+
+		if (auditLogEnabled && !modificationEvents.isEmpty()) {
+
+			for (final ModificationEvent ev: modificationEvents) {
+
+				if (!ev.isDeleted()) {
+
+					try {
+						final GraphObject obj = ev.getGraphObject();
+						if (obj != null) {
+
+							final String existingLog = obj.getProperty(GraphObject.auditLog);
+							final String newLog      = ev.getAuditLog();
+							final String newValue    = existingLog != null ? existingLog + newLog : newLog;
+
+							obj.unlockReadOnlyPropertiesOnce();
+							obj.setProperty(GraphObject.auditLog, newValue);
+						}
+
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 
@@ -152,21 +181,35 @@ public class ModificationQueue {
 		modificationEvents.clear();
 	}
 
-	public void create(NodeInterface node) {
+	public void create(final Principal user, final NodeInterface node) {
+
 		getState(node).create();
+
+		if (auditLogEnabled) {
+
+			// record deletion of objects in audit log of the creating user, if enabled
+			if (user != null) {
+
+				getState(user).updateChangeLog(user, GraphObjectModificationState.Verb.create, node.getUuid());
+			}
+		}
+
 	}
 
-	public <S extends NodeInterface, T extends NodeInterface> void create(final RelationshipInterface relationship) {
+	public <S extends NodeInterface, T extends NodeInterface> void create(final Principal user, final RelationshipInterface relationship) {
 
 		getState(relationship).create();
 
-		modifyEndNodes(relationship.getSourceNode(), relationship.getTargetNode(), relationship.getRelType());
+		final NodeInterface sourceNode = relationship.getSourceNodeAsSuperUser();
+		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
 
-		// FIXME
-//		String combinedType = relationship.getProperty(RelationshipInterface.combinedType);
-//		if (combinedType != null) {
-//			synchronizationKeys.add(combinedType);
-//		}
+		if (sourceNode != null && targetNode != null) {
+
+			modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
+
+			getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), targetNode.getUuid());
+			getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), sourceNode.getUuid());
+		}
 	}
 
 	public void modifyOwner(NodeInterface node) {
@@ -181,16 +224,16 @@ public class ModificationQueue {
 		getState(node).modifyLocation();
 	}
 
-	public void modify(NodeInterface node, PropertyKey key, Object previousValue, Object newValue) {
-		getState(node).modify(key, previousValue, newValue);
+	public void modify(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
+		getState(node).modify(user, key, previousValue, newValue);
 
 		if (key != null&& key.requiresSynchronization()) {
 			synchronizationKeys.add(node.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
 		}
 	}
 
-	public void modify(RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
-		getState(relationship).modify(key, previousValue, newValue);
+	public void modify(final Principal user, RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
+		getState(relationship).modify(user, key, previousValue, newValue);
 
 		if (key != null && key.requiresSynchronization()) {
 			synchronizationKeys.add(relationship.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
@@ -212,15 +255,37 @@ public class ModificationQueue {
 	}
 	}
 
-	public void delete(NodeInterface node) {
+	public void delete(final Principal user, final NodeInterface node) {
+
 		getState(node).delete(false);
+
+		if (auditLogEnabled) {
+
+			// record deletion of objects in audit log of the delting user, if enabled
+			final SecurityContext securityContext = node.getSecurityContext();
+			if (securityContext != null) {
+
+				final Principal principal = securityContext.getCachedUser();
+				if (principal != null) {
+
+					getState(principal).updateChangeLog(user, GraphObjectModificationState.Verb.delete, node.getUuid());
+				}
+			}
+		}
 	}
 
-	public void delete(RelationshipInterface relationship, boolean passive) {
+	public void delete(final Principal user, final RelationshipInterface relationship, final boolean passive) {
 
 		getState(relationship).delete(passive);
 
-		modifyEndNodes(relationship.getSourceNode(), relationship.getTargetNode(), relationship.getRelType());
+		final NodeInterface sourceNode = relationship.getSourceNodeAsSuperUser();
+		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
+
+		modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
+
+		getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), targetNode.getUuid());
+		getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), sourceNode.getUuid());
+
 	}
 
 	public Collection<ModificationEvent> getModificationEvents() {
@@ -258,7 +323,7 @@ public class ModificationQueue {
 	}
 
 	// ----- private methods -----
-	private void modifyEndNodes(NodeInterface startNode, NodeInterface endNode, RelationshipType relType) {
+	private void modifyEndNodes(final Principal user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipType relType) {
 
 		// only modify if nodes are accessible
 		if (startNode != null && endNode != null) {
@@ -284,8 +349,8 @@ public class ModificationQueue {
 				return;
 			}
 
-			modify(startNode, null, null, null);
-			modify(endNode, null, null, null);
+			modify(user, startNode, null, null, null);
+			modify(user, endNode, null, null, null);
 		}
 	}
 

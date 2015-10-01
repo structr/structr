@@ -201,8 +201,7 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public String getUuid() {
-
-		return null;
+		return "00000000000000000000000000000000";
 
 	}
 
@@ -304,7 +303,7 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public String getName() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+		return "superadmin";
 	}
 
 	@Override

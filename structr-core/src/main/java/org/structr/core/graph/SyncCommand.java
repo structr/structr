@@ -68,6 +68,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SuperUser;
 
 /**
  *
@@ -635,6 +636,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final NodeFactory nodeFactory        = new NodeFactory(securityContext);
 		final String uuidPropertyName        = GraphObject.id.dbName();
 		final Map<String, Node> uuidMap      = new LinkedHashMap<>();
+		final SuperUser superUser            = new SuperUser();
 		double t0                            = System.nanoTime();
 		PropertyContainer currentObject      = null;
 		String currentKey                    = null;
@@ -778,7 +780,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 					if (!deletedNodes.contains(node.getId())) {
 
-						TransactionCommand.nodeCreated(entity);
+						TransactionCommand.nodeCreated(superUser, entity);
 						entity.addToIndex();
 					}
 				}
@@ -788,7 +790,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					if (!deletedRels.contains(rel.getId())) {
 
 						RelationshipInterface entity = relFactory.instantiate(rel);
-						TransactionCommand.relationshipCreated(entity);
+						TransactionCommand.relationshipCreated(superUser, entity);
 						entity.addToIndex();
 					}
 				}

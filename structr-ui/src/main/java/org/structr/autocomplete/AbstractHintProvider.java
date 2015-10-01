@@ -89,8 +89,6 @@ public abstract class AbstractHintProvider {
 		final List<GraphObject> hints = new LinkedList<>();
 		int maxNameLength             = 0;
 
-		System.out.println(currentToken + ", " + previousToken + ", " + thirdToken);
-
 		if (StringUtils.isBlank(currentToken) || startChars.contains(currentToken)) {
 
 			// display all possible hints

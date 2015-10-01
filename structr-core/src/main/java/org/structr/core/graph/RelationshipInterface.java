@@ -39,6 +39,8 @@ public interface RelationshipInterface extends GraphObject {
 
 	public NodeInterface getSourceNode();
 	public NodeInterface getTargetNode();
+	public NodeInterface getSourceNodeAsSuperUser();
+	public NodeInterface getTargetNodeAsSuperUser();
 	public NodeInterface getOtherNode(final NodeInterface thisNode);
 	public RelationshipType getRelType();
 

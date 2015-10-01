@@ -35,6 +35,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.TransactionSource;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -240,7 +241,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 	}
 
-	public static void nodeCreated(NodeInterface node) {
+	public static void nodeCreated(final Principal user, final NodeInterface node) {
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -248,7 +249,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 
-				modificationQueue.create(node);
+				modificationQueue.create(user, node);
 
 			} else {
 
@@ -261,7 +262,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		}
 	}
 
-	public static void nodeModified(AbstractNode node, PropertyKey key, Object previousValue, Object newValue) {
+	public static void nodeModified(final Principal user, final AbstractNode node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -269,7 +270,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 
-				modificationQueue.modify(node, key, previousValue, newValue);
+				modificationQueue.modify(user, node, key, previousValue, newValue);
 
 			} else {
 
@@ -282,7 +283,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		}
 	}
 
-	public static void nodeDeleted(NodeInterface node) {
+	public static void nodeDeleted(final Principal user, final NodeInterface node) {
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -290,7 +291,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 
-				modificationQueue.delete(node);
+				modificationQueue.delete(user, node);
 
 			} else {
 
@@ -303,7 +304,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		}
 	}
 
-	public static void relationshipCreated(RelationshipInterface relationship) {
+	public static void relationshipCreated(final Principal user, final RelationshipInterface relationship) {
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -311,7 +312,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 
-				modificationQueue.create(relationship);
+				modificationQueue.create(user, relationship);
 
 			} else {
 
@@ -324,7 +325,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		}
 	}
 
-	public static void relationshipModified(RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
+	public static void relationshipModified(final Principal user, final RelationshipInterface relationship, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -332,7 +333,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 
-				modificationQueue.modify(relationship, key, previousValue, newValue);
+				modificationQueue.modify(user, relationship, key, previousValue, newValue);
 
 			} else {
 
@@ -345,7 +346,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		}
 	}
 
-	public static void relationshipDeleted(RelationshipInterface relationship, boolean passive) {
+	public static void relationshipDeleted(final Principal user, final RelationshipInterface relationship, final boolean passive) {
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -353,7 +354,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 
-				modificationQueue.delete(relationship, passive);
+				modificationQueue.delete(user, relationship, passive);
 
 			} else {
 

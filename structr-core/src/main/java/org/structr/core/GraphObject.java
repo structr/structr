@@ -58,6 +58,7 @@ public interface GraphObject {
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed();
 	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
 	public static final Property<Date>    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
+	public static final Property<String>  auditLog                    = new StringProperty("auditLog").unvalidated().readOnly();
 
 	// ----- methods common to both types -----
 	/**

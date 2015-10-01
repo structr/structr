@@ -138,7 +138,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 						app.delete(r);
 					}
 				}
-				
+
 			} catch (NotFoundException nfex) {
 				// ignore, we cannot do anything about it..
 			}
@@ -147,7 +147,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			node.removeFromIndex();
 
 			// mark node as deleted in transaction
-			TransactionCommand.nodeDeleted(node);
+			TransactionCommand.nodeDeleted(securityContext.getCachedUser(), node);
 
 			// delete node in database
 			node.getNode().delete();

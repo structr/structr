@@ -385,11 +385,41 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
+	public T getTargetNodeAsSuperUser() {
+
+		try {
+
+			NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+			return nodeFactory.instantiate(dbRelationship.getEndNode());
+
+		} catch (FrameworkException t) {
+			// ignore FrameworkException but let NotInTransactionException pass
+		}
+
+		return null;
+	}
+
+	@Override
 	public S getSourceNode() {
 
 		try {
 
 			NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
+			return nodeFactory.instantiate(dbRelationship.getStartNode());
+
+		} catch (FrameworkException t) {
+			// ignore FrameworkException but let NotInTransactionException pass
+		}
+
+		return null;
+	}
+
+	@Override
+	public S getSourceNodeAsSuperUser() {
+
+		try {
+
+			NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 			return nodeFactory.instantiate(dbRelationship.getStartNode());
 
 		} catch (FrameworkException t) {

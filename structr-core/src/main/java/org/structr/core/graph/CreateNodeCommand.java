@@ -96,7 +96,11 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
 			if (node != null) {
 
-				TransactionCommand.nodeCreated(node);
+				// very first action: set UUID
+				node.unlockReadOnlyPropertiesOnce();
+				node.setProperty(GraphObject.id, getNextUuid());
+
+				TransactionCommand.nodeCreated(user, node);
 
 				// first: create security relationship, but only for non-Principal node types
 				if (user != null && !(user instanceof SuperUser) && node.canHaveOwner()) {
@@ -118,10 +122,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					node.unlockReadOnlyPropertiesOnce();
 					node.setProperty(GraphObject.type, nodeType.getSimpleName());
 				}
-
-				// set UUID
-				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(GraphObject.id, getNextUuid());
 
 				// set created date
 				node.unlockReadOnlyPropertiesOnce();
