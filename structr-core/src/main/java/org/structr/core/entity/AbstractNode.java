@@ -23,11 +23,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-<<<<<<< HEAD
 import java.util.GregorianCalendar;
-=======
 import java.util.HashSet;
->>>>>>> master
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;

@@ -101,7 +101,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		if (request == null) {
 			request = renderContext.getRequest();
 		}
-		
+
 		// initialize variables
 		// mimic HTTP request
 		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
@@ -112,9 +112,14 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 			}
 
 			@Override
-			public String getParameter(String key) {
+			public String getParameter(final String key) {
 				String[] p = getParameterMap().get(key);
 				return p != null ? p[0] : null;
+			}
+
+			@Override
+			public String[] getParameterValues(final String key) {
+				return getParameterMap().get(key);
 			}
 
 			@Override

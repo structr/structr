@@ -383,7 +383,11 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 						value = obj.toString();
 
-					} else {
+					} else if (obj instanceof JsonNull) {
+
+						value = null;
+
+					} else if (value != null) {
 
 						value = obj.getAsString();
 					}

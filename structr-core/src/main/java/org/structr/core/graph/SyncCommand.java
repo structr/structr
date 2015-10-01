@@ -159,7 +159,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
-		return true;
+		return false;
 	}
 
 	// ----- static methods -----
@@ -636,6 +636,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final NodeFactory nodeFactory        = new NodeFactory(securityContext);
 		final String uuidPropertyName        = GraphObject.id.dbName();
 		final Map<String, Node> uuidMap      = new LinkedHashMap<>();
+		final Set<Long> deletedNodes         = new HashSet<>();
+		final Set<Long> deletedRels          = new HashSet<>();
 		final SuperUser superUser            = new SuperUser();
 		double t0                            = System.nanoTime();
 		PropertyContainer currentObject      = null;
@@ -647,9 +649,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		do {
 
 			try (final Tx tx = app.tx(doValidation)) {
-
-				final Set<Long> deletedNodes  = new HashSet<>();
-				final Set<Long> deletedRels   = new HashSet<>();
 				final List<Relationship> rels = new LinkedList<>();
 				final List<Node> nodes        = new LinkedList<>();
 				long nodeCount                = 0;
@@ -701,13 +700,20 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 							if (startNode != null && endNode != null) {
 
-								RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
-								currentObject = startNode.createRelationshipTo(endNode, relType);
+								if (deletedNodes.contains(startNode.getId()) || deletedNodes.contains(endNode.getId())) {
 
-								// store for later use
-								rels.add((Relationship)currentObject);
+									System.out.println("NOT creating relationship between deleted nodes..");
 
-								relCount++;
+								} else {
+
+									RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
+									currentObject = startNode.createRelationshipTo(endNode, relType);
+
+									// store for later use
+									rels.add((Relationship)currentObject);
+
+									relCount++;
+								}
 
 							} else {
 
@@ -771,17 +777,20 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				for (Node node : nodes) {
 
-					NodeInterface entity = nodeFactory.instantiate(node);
-
-					// check for existing schema node and merge
-					if (entity instanceof AbstractSchemaNode) {
-						checkAndMerge(entity, deletedNodes, deletedRels);
-					}
-
 					if (!deletedNodes.contains(node.getId())) {
 
-						TransactionCommand.nodeCreated(superUser, entity);
-						entity.addToIndex();
+						NodeInterface entity = nodeFactory.instantiate(node);
+
+						// check for existing schema node and merge
+						if (entity instanceof AbstractSchemaNode) {
+							checkAndMerge(entity, deletedNodes, deletedRels);
+						}
+
+						if (!deletedNodes.contains(node.getId())) {
+
+							TransactionCommand.nodeCreated(superUser, entity);
+							entity.addToIndex();
+						}
 					}
 				}
 
@@ -939,6 +948,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				// remove previous relationship
 				outRel.delete();
+
+				System.out.println("############################################ Deleting relationship " + outRel.getId());
 			}
 
 			// handle incoming rels
@@ -954,6 +965,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				// remove previous relationship
 				inRel.delete();
+
+				System.out.println("############################################ Deleting relationship " + inRel.getId());
 			}
 
 			// merge properties, views and methods
@@ -970,14 +983,16 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						copyProperties(groupSourceNode, groupTargetNode);
 
 						// delete relationships of merged node
-						for (final Relationship groupRel : groupTargetNode.getRelationships()) {
+						for (final Relationship groupRel : groupSourceNode.getRelationships()) {
 							deletedRels.add(groupRel.getId());
 							groupRel.delete();
 						}
 
 						// delete merged node
-						deletedNodes.add(groupTargetNode.getId());
-						groupTargetNode.delete();
+						deletedNodes.add(groupSourceNode.getId());
+						groupSourceNode.delete();
+
+						System.out.println("############################################ Deleting node " + groupSourceNode.getId());
 					}
 				}
 			}
@@ -987,6 +1002,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			// delete
 			sourceNode.delete();
+
+			System.out.println("############################################ Deleting node " + sourceNode.getId());
 
 			return true;
 		}
