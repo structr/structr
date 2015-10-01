@@ -400,11 +400,21 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 				for (Entry<String, JsonElement> entry : relData.entrySet()) {
 
 					JsonElement obj = entry.getValue();
-					webSocketData.setRelData(entry.getKey(), obj instanceof JsonNull ? null : obj.getAsString());
+
+					if (obj instanceof JsonNull || obj.isJsonNull()) {
+
+						webSocketData.setRelData(entry.getKey(), null);
+
+					} else {
+
+						try {
+							webSocketData.setRelData(entry.getKey(), obj.getAsString());
+						} catch (Throwable t) {
+							webSocketData.setRelData(entry.getKey(), null);
+						}
+					}
 				}
-
 			}
-
 		}
 
 		return webSocketData;

@@ -125,6 +125,16 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public String readFunction() {
+		return propertyKey.readFunction();
+	}
+
+	@Override
+	public String writeFunction() {
+		return propertyKey.writeFunction();
+	}
+
+	@Override
 	public Integer getSortType() {
 		return propertyKey.getSortType();
 	}
@@ -319,6 +329,16 @@ public class Reference<T> implements PropertyKey<T> {
 
 	@Override
 	public Property<T> format(final String format) {
+		return null;
+	}
+
+	@Override
+	public Property<T> readFunction(final String readFunction) {
+		return null;
+	}
+	
+	@Override
+	public Property<T> writeFunction(final String writeFunction) {
 		return null;
 	}
 

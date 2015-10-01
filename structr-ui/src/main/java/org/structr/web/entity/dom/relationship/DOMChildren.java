@@ -36,4 +36,14 @@ public class DOMChildren extends AbstractChildren<DOMNode, DOMNode> {
 	public Class<DOMNode> getTargetType() {
 		return DOMNode.class;
 	}
+
+	@Override
+	public String toString() {
+
+		if (dbRelationship != null) {
+			return Long.toString(dbRelationship.getId());
+		}
+
+		return super.toString();
+	}
 }

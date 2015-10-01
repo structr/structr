@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
@@ -90,7 +91,25 @@ public class CypherQueryCommand extends NodeServiceCommand {
 				String key   = entry.getKey();
 				Object value = entry.getValue();
 
-				resultList.add((GraphObject)handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0));
+				final Object obj = handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
+				if (obj instanceof GraphObject) {
+
+					resultList.add((GraphObject)obj);
+
+				} else if (obj instanceof Collection) {
+
+					for (final Object item : ((Collection)obj)) {
+
+						if (item instanceof GraphObject) {
+
+							resultList.add((GraphObject)item);
+
+						} else {
+
+							logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", item.getClass().getName());
+						}
+					}
+				}
 			}
 
 		}

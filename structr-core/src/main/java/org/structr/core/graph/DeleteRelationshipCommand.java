@@ -43,19 +43,19 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	public Object execute(final Relationship rel) throws FrameworkException {
-		
+
 		RelationshipFactory relFactory = new RelationshipFactory(securityContext);
-		
+
 		// default is active deletion!
 		return execute(relFactory.instantiate(rel), false);
 	}
-	
+
 	public Object execute(final RelationshipInterface rel) {
-		
+
 		// default is active deletion!
 		return execute(rel, false);
 	}
-	
+
 	public Object execute(final RelationshipInterface rel, final boolean passiveDeletion) {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
@@ -73,8 +73,8 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 			final Relationship relToDelete       = rel.getRelationship();
 			final RelationshipInterface finalRel = rel;
 
-			TransactionCommand.relationshipDeleted(finalRel, passiveDeletion);
-			
+			TransactionCommand.relationshipDeleted(securityContext.getCachedUser(), finalRel, passiveDeletion);
+
 			// callback
 			finalRel.onRelationshipDeletion();
 

@@ -69,6 +69,8 @@ public class SecurityContext {
 	private Principal cachedUser                 = null;
 	private HttpServletRequest request           = null;
 	private Set<String> customView               = null;
+	private String cachedUserName                = null;
+	private String cachedUserId                  = null;
 
 	//~--- constructors ---------------------------------------------------
 	private SecurityContext() {
@@ -79,8 +81,8 @@ public class SecurityContext {
 	 */
 	private SecurityContext(Principal user, AccessMode accessMode) {
 
-		this.cachedUser = user;
-		this.accessMode = accessMode;
+		this.cachedUser     = user;
+		this.accessMode     = accessMode;
 	}
 
 	/*
@@ -279,10 +281,32 @@ public class SecurityContext {
 
 	}
 
+	public String getCachedUserId() {
+		return cachedUserId;
+	}
+
+	public String getCachedUserName() {
+		return cachedUserName;
+	}
+
+	public Principal getCachedUser() {
+		return cachedUser;
+	}
+
 	public Principal getUser(final boolean tryLogin) {
 
 		// If we've got a user, return it! Easiest and fastest!!
 		if (cachedUser != null) {
+
+			// update caches, we can safely assume a transaction context here
+			if (cachedUserId == null) {
+				this.cachedUserId   = cachedUser.getUuid();
+			}
+
+			// update caches, we can safely assume a transaction context here
+			if (cachedUserName == null) {
+				this.cachedUserName = cachedUser.getName();
+			}
 
 			return cachedUser;
 
@@ -307,6 +331,12 @@ public class SecurityContext {
 		try {
 
 			cachedUser = authenticator.getUser(request, tryLogin);
+			if (cachedUser != null) {
+
+				cachedUserId   = cachedUser.getUuid();
+				cachedUserName = cachedUser.getName();
+			}
+
 
 		} catch (Throwable t) {
 
@@ -664,6 +694,8 @@ public class SecurityContext {
 	// ----- nested classes -----
 	private static class SuperUserSecurityContext extends SecurityContext {
 
+		private static final SuperUser superUser = new SuperUser();
+
 		public SuperUserSecurityContext(HttpServletRequest request) {
 			super(request);
 		}
@@ -678,6 +710,21 @@ public class SecurityContext {
 
 			return new SuperUser();
 
+		}
+
+		@Override
+		public Principal getCachedUser() {
+			return superUser;
+		}
+
+		@Override
+		public String getCachedUserId() {
+			return "00000000000000000000000000000000";
+		}
+
+		@Override
+		public String getCachedUserName() {
+			return "superadmin";
 		}
 
 		@Override

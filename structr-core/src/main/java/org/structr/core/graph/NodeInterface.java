@@ -21,7 +21,10 @@ package org.structr.core.graph;
 import org.neo4j.graphdb.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.core.GraphObject;
+import static org.structr.core.GraphObject.id;
+import static org.structr.core.GraphObject.type;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.ManyEndpoint;
 import org.structr.core.entity.ManyStartpoint;
@@ -52,6 +55,10 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public static final Property<Principal>       owner    = new StartNode<>("owner", PrincipalOwnsNode.class);
 	public static final Property<String>          ownerId  = new EntityIdProperty("ownerId", owner);
 
+	public static final View graphView = new View(NodeInterface.class, View.INTERNAL_GRAPH_VIEW,
+		id, name, type
+	);
+
 	public void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation);
 
 	public void onNodeCreation();
@@ -67,6 +74,8 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public boolean isDeleted();
 
 	public <R extends AbstractRelationship> Iterable<R> getRelationships();
+	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();
+
 	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships();
 	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships();
 

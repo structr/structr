@@ -18,6 +18,8 @@
  */
 package org.structr.core.graph;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +30,10 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -37,6 +42,8 @@ import org.structr.core.property.PropertyMap;
  * @author Christian Morgner
  */
 public class GraphObjectModificationState implements ModificationEvent {
+
+	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] { "id", "type", "sessionIds", "localStorage", "salt", "password" } ));
 
 	public static final int STATE_DELETED =                    1;
 	public static final int STATE_MODIFIED =                   2;
@@ -48,15 +55,21 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_PROPAGATING_MODIFICATION = 128;
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 
+	private final boolean auditLogEnabled        = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_SECURITY_AUDITLOG_ENABLED, "false"));
 	private final PropertyMap modifiedProperties = new PropertyMap();
 	private final PropertyMap removedProperties  = new PropertyMap();
 	private final PropertyMap newProperties      = new PropertyMap();
+	private StringBuilder changeLog              = null;
 	private RelationshipType relType             = null;
 	private boolean isNode                       = false;
 	private boolean modified                     = false;
 	private GraphObject object                   = null;
 	private String uuid                          = null;
 	private int status                           = 0;
+
+	public enum Verb {
+		create, change, delete, link, unlink
+	}
 
 	public GraphObjectModificationState(GraphObject object) {
 
@@ -69,11 +82,22 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 		// store uuid for later use
 		this.uuid = object.getUuid();
+
+		if (auditLogEnabled) {
+
+			// create on demand
+			changeLog = new StringBuilder();
+		}
 	}
 
 	@Override
 	public String toString() {
 		return object.getClass().getSimpleName() + "(" + object + "); " + status;
+	}
+
+	@Override
+	public String getAuditLog() {
+		return changeLog.toString();
 	}
 
 	public void propagatedModification() {
@@ -131,7 +155,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 	}
 
-	public void modify(PropertyKey key, Object previousValue, Object newValue) {
+	public void modify(final Principal user, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		int statusBefore = status;
 
@@ -145,7 +169,9 @@ public class GraphObjectModificationState implements ModificationEvent {
 		if (status != statusBefore) {
 
 			if (key != null) {
+
 				modifiedProperties.put(key, newValue);
+				updateChangeLog(user, Verb.change, key, previousValue, newValue);
 			}
 
 			modified = true;
@@ -154,6 +180,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			if (key != null) {
 				newProperties.put(key, newValue);
+				updateChangeLog(user, Verb.change, key, previousValue, newValue);
 			}
 		}
 	}
@@ -169,8 +196,6 @@ public class GraphObjectModificationState implements ModificationEvent {
 		status |= STATE_DELETED;
 
 		if (status != statusBefore) {
-
-			//removedProperties.put(GraphObject.id, object.getUuid());
 
 			// copy all properties on deletion
 			for (final PropertyKey key : object.getPropertyKeys(PropertyView.Public)) {
@@ -378,6 +403,71 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	public boolean wasModified() {
 		return modified;
+	}
+
+	public void updateChangeLog(final Principal user, final Verb verb, final PropertyKey key, final Object previousValue, final Object newValue) {
+
+		if (auditLogEnabled && changeLog != null && key != null) {
+
+			final String name = key.jsonName();
+
+			if (!hiddenPropertiesInAuditLog.contains(name) && !(key.isUnvalidated() || key.isReadOnly())) {
+
+				// build change log
+				changeLog.append(System.currentTimeMillis());
+				changeLog.append(":");
+				changeLog.append(user.getUuid());
+				changeLog.append(":");
+				changeLog.append(user.getName());
+				changeLog.append(":");
+				changeLog.append(verb);
+				changeLog.append(":");
+				changeLog.append(key.jsonName());
+				changeLog.append(":");
+				changeLog.append(previousValue);
+				changeLog.append(":");
+				changeLog.append(newValue);
+				changeLog.append("\n");
+			}
+		}
+	}
+
+	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String object) {
+
+		if (auditLogEnabled && changeLog != null) {
+
+			// build change log
+			changeLog.append(System.currentTimeMillis());
+			changeLog.append(":");
+			changeLog.append(user.getUuid());
+			changeLog.append(":");
+			changeLog.append(user.getName());
+			changeLog.append(":");
+			changeLog.append(verb);
+			changeLog.append(":");
+			changeLog.append(linkType);
+			changeLog.append(":");
+			changeLog.append(object);
+			changeLog.append('\n');
+		}
+	}
+
+	public void updateChangeLog(final Principal user, final Verb verb, final String object) {
+
+		if (auditLogEnabled && changeLog != null) {
+
+			// build change log
+			changeLog.append(System.currentTimeMillis());
+			changeLog.append(":");
+			changeLog.append(user.getUuid());
+			changeLog.append(":");
+			changeLog.append(user.getName());
+			changeLog.append(":");
+			changeLog.append(verb);
+			changeLog.append(":");
+			changeLog.append(object);
+			changeLog.append("\n");
+		}
 	}
 
 	// ----- interface ModificationEvent -----

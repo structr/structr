@@ -108,10 +108,10 @@ function StructrApp(baseUrl) {
 
 			if (action === 'create') {
 				var data = s.collectData(btn, id, attrs, type, suffix);
-				s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn)}, function() {enableButton(btn);});
+				s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else if (action === 'save') {
-				s.saveAction(btn, id, attrs, type, suffix, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn)});
+				s.saveAction(btn, id, attrs, type, suffix, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else if (action === 'edit') {
 				s.editAction(btn, id, attrs, type, suffix, returnUrl);
@@ -124,7 +124,7 @@ function StructrApp(baseUrl) {
 				s.del(btn, id, type, btn.attr('data-structr-confirm') === 'true', returnUrl, f ? f.val : undefined);
 
 			} else if (action === 'login') {
-				s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn)});
+				s.loginAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else if (action === 'logout') {
 				s.logoutAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
@@ -136,7 +136,7 @@ function StructrApp(baseUrl) {
 				s.resetPasswordAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else {
-				s.customAction(btn, id, type, btn.attr('data-structr-confirm') === 'true', action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn)});
+				s.customAction(btn, id, type, btn.attr('data-structr-confirm') === 'true', action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn);});
 			}
 		});
 	},
@@ -207,7 +207,7 @@ function StructrApp(baseUrl) {
 		s.hideEdit(container);
 
 		$.each(attrs, function(i, key) {
-			
+
 			var el = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'attr');
 			var f = s.field(el);
 			f.id = id;
@@ -245,7 +245,7 @@ function StructrApp(baseUrl) {
 			} else if (f.type === 'Enum') {
 
 				el.html(enumSelect(f));
-				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-attr="' + f.key + '"]');
+				var sel = $('select[data-structr-id="' + f.id + '"][data-structr-name="' + f.key + '"]');
 				sel.append('<option></option>');
 				$.each(f.format.split(','), function(i, o) {
 					o = o.trim();
@@ -1207,7 +1207,7 @@ function singleSelect(f) {
 }
 
 function multiSelect(f) {
-	var inp = '<select data-structr-type="' + f.type + '" data-structr-anamettr="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
+	var inp = '<select data-structr-type="' + f.type + '" data-structr-name="' + f.key + '" data-structr-id="' + f.id + '" multiple="multiple"></select>';
 	f.type = f.type.substring(0, f.type.length-2);
 	var valIds = f.val.replace(/ /g, '').slice(1).slice(0, -1).split(',');
 	var optionsKey = f.optionsKey || 'name';

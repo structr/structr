@@ -49,7 +49,6 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 	private static final Property<Boolean> isSelected = new BooleanProperty("isSelected");
 	private static final Property<Boolean> isDisabled = new BooleanProperty("isDisabled");
-	private static final Property<Boolean> isDynamic  = new BooleanProperty("isDynamic");
 
 	static {
 
@@ -73,7 +72,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 					final ConfigurationProvider config = StructrApp.getConfiguration();
 					String typeName              = schemaObject.getProperty(AbstractNode.name);
-					
+
 					if (typeName == null && schemaObject instanceof SchemaRelationshipNode) {
 						typeName = ((SchemaRelationshipNode) schemaObject).getClassName();
 					}

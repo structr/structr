@@ -55,12 +55,12 @@ var filenameLength = 4;
 /**
  * Base URL for Structr UI tests
  */
-exports.url = 'http://localhost:8875/structr/#logout';
+exports.url = 'http://localhost:' + casper.cli.get('httpPort') + '/structr/#logout';
 
 /**
  * Base URL for structr
  */
-exports.baseUrl = 'http://localhost:8875/';
+exports.baseUrl = 'http://localhost:' + casper.cli.get('httpPort') + '/';
 
 /**
  * Image type extension

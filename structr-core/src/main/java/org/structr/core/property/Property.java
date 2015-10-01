@@ -78,6 +78,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
+	protected String readFunction                          = null;
+	protected String writeFunction                         = null;
 
 	private boolean requiresSynchronization                = false;
 
@@ -371,6 +373,28 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 
+	@Override
+	public String readFunction() {
+		return readFunction;
+	}
+	
+	@Override
+	public Property<T> readFunction(final String readFunction) {
+		this.readFunction = readFunction;
+		return this;
+	}
+
+	@Override
+	public String writeFunction() {
+		return writeFunction;
+	}
+
+	@Override
+	public Property<T> writeFunction(final String writeFunction) {
+		this.writeFunction = writeFunction;
+		return this;
+	}
+	
 	@Override
 	public int hashCode() {
 

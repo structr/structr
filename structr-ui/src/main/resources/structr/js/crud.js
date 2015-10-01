@@ -92,18 +92,23 @@ var _Crud = {
 		main.append('<div id="resourceTabs">'
 			+ '<div id="resourceTabsSettings"></div>'
 			+ '<ul id="resourceTabsMenu"><li class="last hidden">'
-			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"> <label for="resourceTabsAutoHideCheckbox">show selected tabs only</label>'
+			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"><label for="resourceTabsAutoHideCheckbox"> Show selected tabs only</label>'
+			+ ' <span id="resourceTabsSelectAllWrapper"><input type="checkbox" id="resourceTabsSelectAll"><label for="resourceTabsSelectAll"> Select all</label></span>'
 			+ '</li></ul>'
 	        + '</div>');
 
 		if (Structr.getAutoHideInactiveTabs()) {
 			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
+			Structr.doHideSelectAllCheckbox();
 		}
 		$('#resourceTabsAutoHideCheckbox').change(function () {
 			var checked = $(this).prop('checked');
 			Structr.setAutoHideInactiveTabs(checked);
 			Structr.setHideInactiveTabs(checked);
-			//location.reload();
+		});
+
+		$('#resourceTabsSelectAll').change(function () {
+			($(this).prop('checked') ? Structr.doSelectAllTabs() : Structr.doDeselectAllTabs());
 		});
 
 		Structr.ensureIsAdmin($('#resourceTabs'), function() {
@@ -117,6 +122,7 @@ var _Crud = {
 				if (browser) {
 					_Crud.initTabs();
 				}
+				Structr.determineSelectAllCheckboxState();
 				_Crud.resize();
 				Structr.unblockMenu();
 			});
@@ -178,8 +184,7 @@ var _Crud = {
 		$(window).on('resize', function() {
 			_Crud.resize();
 		});
-
-		hiddenTabs = JSON.parse(localStorage.getItem(crudHiddenTabsKey)) || hiddenTabs;
+		hiddenTabs = JSON.parse(LSWrapper.getItem(crudHiddenTabsKey)) || hiddenTabs;
 		//console.log('########## Hidden tabs ##############', hiddenTabs);
 
 	},
@@ -206,9 +211,9 @@ var _Crud = {
 					hiddenTabs.splice(hiddenTabs.indexOf(key), 1);
 				}
 			}
+			 LSWrapper.setItem(crudHiddenTabsKey, JSON.stringify(hiddenTabs));
 
-			 localStorage.setItem(crudHiddenTabsKey, JSON.stringify(hiddenTabs));
-
+			 Structr.determineSelectAllCheckboxState();
 		});
 
 		$('#resourceTabs').tabs({
@@ -560,10 +565,10 @@ var _Crud = {
 
 	},
 	storeType: function() {
-		localStorage.setItem(crudTypeKey, _Crud.type);
+		LSWrapper.setItem(crudTypeKey, _Crud.type);
 	},
 	restoreType: function() {
-		var val = localStorage.getItem(crudTypeKey);
+		var val = LSWrapper.getItem(crudTypeKey);
 		if (val) {
 			_Crud.type = val;
 		}
@@ -571,11 +576,11 @@ var _Crud = {
 	storePagerData: function() {
 		var type = _Crud.type;
 		var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
-		localStorage.setItem(crudPagerDataKey + type, pagerData);
+		LSWrapper.setItem(crudPagerDataKey + type, pagerData);
 	},
 	restorePagerData: function() {
 		var type = _Crud.type;
-		var val = localStorage.getItem(crudPagerDataKey + type);
+		var val = LSWrapper.getItem(crudPagerDataKey + type);
 
 		if (val) {
 			var pagerData = val.split(',');
@@ -587,16 +592,16 @@ var _Crud = {
 		}
 	},
 	setCollectionPageSize: function(type, key, value) {
-		localStorage.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key, value);
+		LSWrapper.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key, value);
 	},
 	getCollectionPageSize: function(type, key) {
-		return localStorage.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key);
+		return LSWrapper.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key);
 	},
 	setCollectionPage: function(type, key, value) {
-		localStorage.setItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key, value);
+		LSWrapper.setItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key, value);
 	},
 	getCollectionPage: function(type, key) {
-		return localStorage.getItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key);
+		return LSWrapper.getItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key);
 	},
 	replaceSortHeader: function(type) {
 		var table = _Crud.getTable(type);
@@ -622,7 +627,7 @@ var _Crud = {
 
 					// append header row
 					table.append('<tr><th>Column Key</th><th>Visible</th></tr>');
-					var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
+					var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
 					var filteredKeys = {};
 					if (filterSource) {
 
@@ -849,7 +854,7 @@ var _Crud = {
 					var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
 					var start = (page-1)*pageSize;
 					var end = page*pageSize;
-					ranges += key + '=' + start + '-' + end + ';'
+					ranges += key + '=' + start + '-' + end + ';';
 				}
 			});
 			return ranges;
@@ -1098,7 +1103,7 @@ var _Crud = {
 
 			$('.props td.value', dialogBox).css({
 				backgroundColor: '#fff',
-				borderColor: '#b5b5b5',
+				borderColor: '#b5b5b5'
 			});
 
 			$.each(resp.errors, function(i, error) {
@@ -1967,7 +1972,7 @@ var _Crud = {
 		searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox">No results for ' + type.capitalize() + '</div>');
 		//console.log('noResults', 'resultsFor' + type, searchResults, $('#resultsFor' + type));
 		window.setTimeout(function() {
-			$('#resultsFor' + type).fadeOut('fast')
+			$('#resultsFor' + type).fadeOut('fast');
 		}, 1000);
 	},
 	searchResult: function(searchResults, type, node, onClickCallback) {
@@ -2502,7 +2507,7 @@ var _Crud = {
 			return;
 		}
 
-		var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
+		var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
 		var filteredKeys = {};
 		if (filterSource) {
 			filteredKeys = JSON.parse(filterSource);
@@ -2513,7 +2518,7 @@ var _Crud = {
 				filteredKeys.password = 0;
 				filteredKeys.sessionIds = 0;
 			}
-			localStorage.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
+			LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
 		}
 
 		return $.grep(sourceArray, function(key) {
@@ -2523,7 +2528,7 @@ var _Crud = {
 	toggleColumn: function(type, key) {
 
 		var table = _Crud.getTable(type);
-		var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
+		var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
 		var filteredKeys = {};
 		if (filterSource) {
 
@@ -2547,7 +2552,7 @@ var _Crud = {
 			});
 		}
 
-		localStorage.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
+		LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
 
 	},
 	serializeObject: function(obj) {
@@ -2630,4 +2635,4 @@ var _Crud = {
 		return node;
 	}
 
-}
+};

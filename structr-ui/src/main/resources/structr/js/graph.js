@@ -398,8 +398,8 @@ var _Graph = {
 
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Graph');
 
-		activeTabLeftGraph = localStorage.getItem(activeTabRightGraphKey);
-		activeTabRightGraph = localStorage.getItem(activeTabLeftGraphKey);
+		activeTabLeftGraph = LSWrapper.getItem(activeTabRightGraphKey);
+		activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);
 
 		if ($('#graph-box') && $('#graph-box').length) {
 
@@ -636,10 +636,10 @@ var _Graph = {
 		if (query && query.length) {
 
 			if (type === 'cypher') {
-				Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params);
+				Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params, _Graph.processQueryResults);
 				_Graph.saveQuery(query, 'cypher', params);
 			} else {
-				Command.rest(query.replace(/(\r\n|\n|\r)/gm, ''));
+				Command.rest(query.replace(/(\r\n|\n|\r)/gm, ''), _Graph.processQueryResults);
 				_Graph.saveQuery(query, 'rest');
 			}
 
@@ -647,8 +647,36 @@ var _Graph = {
 
 		}
 	},
+	processQueryResults: function (results) {
+
+//		console.log('query results: ', results);
+
+		var nodes = [];
+		var rels  = [];
+
+		$(results).each(function (i, entity) {
+			if (entity.hasOwnProperty('relType')) {
+				rels.push(entity);
+			} else {
+				nodes.push(entity);
+			}
+		});
+
+		nodes.forEach(function (entity) {
+			StructrModel.createSearchResult(entity);
+		});
+
+		rels.forEach(function (entity) {
+			StructrModel.createSearchResult(entity);
+		});
+
+		if (engine) {
+			_Graph.resize();
+		}
+
+	},
 	saveQuery: function(query, type, params) {
-		var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		var exists = false;
 		$.each(savedQueries, function(i, q) {
 			if (q.query === query && q.params === params) {
@@ -657,19 +685,19 @@ var _Graph = {
 		});
 		if (!exists) {
 			savedQueries.unshift({'type': type, 'query': query, 'params': params});
-			localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+			LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
 			Structr.saveLocalStorage();
 		}
 	},
 	removeSavedQuery: function(i) {
-		var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		savedQueries.splice(i, 1);
-		localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+		LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
 		_Graph.listSavedQueries();
 		Structr.saveLocalStorage();
 	},
 	restoreSavedQuery: function(i, exec) {
-		var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		var query = savedQueries[i];
 		$('.search[name=' + query.type + ']').val(query.query);
 		_Graph.activateClearSearchIcon(query.type);
@@ -691,7 +719,7 @@ var _Graph = {
 	listSavedQueries: function() {
 		$('#saved-queries').empty();
 		queriesSlideout.append('<div id="saved-queries"></div>');
-		var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		$.each(savedQueries, function(q, query) {
 			if (query.type === 'cypher') {
 				$('#saved-queries').append('<div class="saved-query cypher-query"><img class="replay" alt="Cypher Query" src="icon/control_play_blue.png">' + query.query + '<img class="remove-query" src="icon/cross_small_grey.png"></div>');
@@ -789,7 +817,7 @@ var _Graph = {
 		_Graph.loadNode(rel.sourceId, function() {
 			_Graph.loadNode(rel.targetId, function() {
 				_Graph.drawRel(rel);
-			})
+			});
 		});
 	},
 	findRelationships: function(sourceId, targedId, relType) {
@@ -880,16 +908,25 @@ var _Graph = {
 
 		graph.css({
 			height: ch,
-			width: win.width(),
+			width: win.width()
 		});
 
 		$('canvas', graph).css({
 			height: ch,
-			width: win.width(),
+			width: win.width()
+		});
+
+		$nodeTypes = $('#node-types');
+		var distance = $nodeTypes.position().top - 61;
+		var boxHeight = (ch - (3 * distance)) / 2;
+
+		$nodeTypes.css({
+			height: boxHeight
 		});
 
 		$('#relationship-types').css({
-			top: $('#node-types').height() + $('#node-types').position().top + 64
+			top: $nodeTypes.position().top + boxHeight + distance,
+			height: boxHeight
 		});
 
 		if (engine) {
@@ -932,7 +969,8 @@ var _Graph = {
 		var nodeTypesBox = $('#node-types');
 		nodeTypesBox.empty();
 		//nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
-		Command.getByType('SchemaNode', 1000, 1, null, null, null, true, function(nodes) {
+		// getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
+		Command.getByType('SchemaNode', 1000, 1, "name", "asc", null, true, function(nodes) {
 
 			nodes.forEach(function(node) {
 
@@ -942,7 +980,7 @@ var _Graph = {
 				var nodeType = node.name;
 
 				if (!isIn(nodeType, Object.keys(nodeColors))) {
-					nodeColors[nodeType] = colors[color++]
+					nodeColors[nodeType] = colors[color++];
 				}
 
 				//Object.keys(nodeColors).forEach(function (nodeType) {
@@ -979,6 +1017,8 @@ var _Graph = {
 				});
 
 			});
+
+			_Graph.resize();
 		});
 
 	},

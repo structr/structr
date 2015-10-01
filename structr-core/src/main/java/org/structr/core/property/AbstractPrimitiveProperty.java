@@ -141,6 +141,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				if (obj instanceof AbstractNode) {
 
 					TransactionCommand.nodeModified(
+						securityContext.getCachedUser(),
 						(AbstractNode)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
@@ -150,6 +151,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				} else if (obj instanceof AbstractRelationship) {
 
 					TransactionCommand.relationshipModified(
+						securityContext.getCachedUser(),
 						(AbstractRelationship)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,

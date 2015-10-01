@@ -87,8 +87,8 @@ public abstract class StructrUiTest extends TestCase {
 	protected static final String htmlUrl = "/structr/html";
 	protected static final String wsUrl = "/structr/ws";
 	protected static final String host = "localhost";
-	protected static final int httpPort = 8875;
-	protected static final int ftpPort = 8876;
+	protected static final int httpPort = (System.getProperty("httpPort") != null ? Integer.parseInt(System.getProperty("httpPort")) : 8875);
+	protected static final int ftpPort = (System.getProperty("ftpPort") != null ? Integer.parseInt(System.getProperty("ftpPort")) : 8876);
 
 	protected static String baseUri;
 
@@ -133,8 +133,8 @@ public abstract class StructrUiTest extends TestCase {
 		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
 		config.setProperty(Services.FILES_PATH, basePath + "/files");
 		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-		config.setProperty(Services.TCP_PORT, "13465");
-		config.setProperty(Services.UDP_PORT, "13466");
+		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
+		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 

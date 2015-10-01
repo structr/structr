@@ -253,7 +253,7 @@ var _Files = {
 		if (_Files.isArchive(file)) {
 			div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 			div.children('.unarchive_icon').on('click', function() {
-				log('unarchive', file.id)
+				log('unarchive', file.id);
 				Command.unarchive(file.id);
 			});
 		}
@@ -515,9 +515,9 @@ var _Files = {
 			}
 
 			Structr.dialog('Edit files', function() {
-				log('content saved')
+				log('content saved');
 			}, function() {
-				log('cancelled')
+				log('cancelled');
 			});
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
@@ -578,7 +578,7 @@ var _Files = {
 					return;
 				element.append('<div class="editor"></div>');
 				var contentBox = $('.editor', element);
-				var lineWrapping = localStorage.getItem(lineWrappingKey);
+				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 				editor = CodeMirror(contentBox.get(0), {
 					value: unescapeTags(text),
 					mode: contentType,
@@ -586,14 +586,14 @@ var _Files = {
 					lineWrapping: lineWrapping
 				});
 
-				var scrollInfo = JSON.parse(localStorage.getItem(scrollInfoKey + '_' + file.id));
+				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
 				if (scrollInfo) {
 					editor.scrollTo(scrollInfo.left, scrollInfo.top);
 				}
 
 				editor.on('scroll', function() {
 					var scrollInfo = editor.getScrollInfo();
-					localStorage.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
+					LSWrapper.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
 				});
 				editor.id = file.id;
 
@@ -604,10 +604,10 @@ var _Files = {
 				$('#lineWrapping').on('change', function() {
 					var inp = $(this);
 					if (inp.is(':checked')) {
-						localStorage.setItem(lineWrappingKey, "1");
+						LSWrapper.setItem(lineWrappingKey, "1");
 						editor.setOption('lineWrapping', true);
 					} else {
-						localStorage.removeItem(lineWrappingKey);
+						LSWrapper.removeItem(lineWrappingKey);
 						editor.setOption('lineWrapping', false);
 					}
 					editor.refresh();

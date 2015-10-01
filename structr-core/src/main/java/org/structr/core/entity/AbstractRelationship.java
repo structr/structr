@@ -38,6 +38,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.PermissionResolutionMask;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -66,7 +67,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationshipTypeProperty;
 import org.structr.core.property.SourceId;
+import org.structr.core.property.SourceNodeProperty;
 import org.structr.core.property.TargetId;
+import org.structr.core.property.TargetNodeProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
@@ -82,10 +85,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<Integer> cascadeDelete = new IntProperty("cascadeDelete");
-	public static final Property<String>  relType       = new RelationshipTypeProperty("relType");
-	public static final SourceId          sourceId      = new SourceId("sourceId");
-	public static final TargetId          targetId      = new TargetId("targetId");
+	public static final Property<Integer>       cascadeDelete              = new IntProperty("cascadeDelete");
+	public static final Property<String>        relType                    = new RelationshipTypeProperty("relType");
+	public static final SourceId                sourceId                   = new SourceId("sourceId");
+	public static final TargetId                targetId                   = new TargetId("targetId");
+	public static final Property<NodeInterface> sourceNodeProperty         = new SourceNodeProperty("sourceNode");
+	public static final Property<NodeInterface> targetNodeProperty         = new TargetNodeProperty("targetNode");
 
 	public static final View defaultView = new View(AbstractRelationship.class, PropertyView.Public,
 		id, type, relType, sourceId, targetId
@@ -93,6 +98,10 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
 		id, type, relType, sourceId, targetId
+	);
+
+	public static final View graphView = new View(AbstractRelationship.class, View.INTERNAL_GRAPH_VIEW,
+		id, type, relType, sourceNodeProperty, targetNodeProperty
 	);
 
 	private boolean readOnlyPropertiesUnlocked = false;
@@ -380,6 +389,21 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
+	public T getTargetNodeAsSuperUser() {
+
+		try {
+
+			NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+			return nodeFactory.instantiate(dbRelationship.getEndNode());
+
+		} catch (FrameworkException t) {
+			// ignore FrameworkException but let NotInTransactionException pass
+		}
+
+		return null;
+	}
+
+	@Override
 	public S getSourceNode() {
 
 		try {
@@ -395,12 +419,41 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
+	public S getSourceNodeAsSuperUser() {
+
+		try {
+
+			NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+			return nodeFactory.instantiate(dbRelationship.getStartNode());
+
+		} catch (FrameworkException t) {
+			// ignore FrameworkException but let NotInTransactionException pass
+		}
+
+		return null;
+	}
+
+	@Override
 	public NodeInterface getOtherNode(final NodeInterface node) {
 
 		try {
 
 			NodeFactory nodeFactory = new NodeFactory(securityContext);
-			return (NodeInterface)nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
+			return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
+
+		} catch (FrameworkException t) {
+			// ignore FrameworkException but let NotInTransactionException pass
+		}
+
+		return null;
+	}
+
+	public NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
+
+		try {
+
+			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 
 		} catch (FrameworkException t) {
 			// ignore FrameworkException but let NotInTransactionException pass
@@ -765,6 +818,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public CMISInfo getCMISInfo() {
+		return null;
+	}
+
+	@Override
+	public PermissionResolutionMask getPermissionResolutionMask() {
+		// no control over relationship properties yet..
 		return null;
 	}
 

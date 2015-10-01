@@ -344,11 +344,12 @@ public class NodeService implements SingletonService {
 
 		if (seedFile.exists()) {
 
+			boolean hasApplicationNodes   = false;
+
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
 				final String idName           = GraphObject.id.dbName();
-				boolean hasApplicationNodes   = false;
 
 				while (allNodes.hasNext()) {
 
@@ -359,18 +360,22 @@ public class NodeService implements SingletonService {
 					}
 				}
 
-				if (!hasApplicationNodes) {
-
-					logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
-
-					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
-				}
-
 				tx.success();
 
-			} catch (FrameworkException fex) {
+			} catch (FrameworkException fex) { }
 
-				logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
+			if (!hasApplicationNodes) {
+
+				logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
+
+				try {
+
+					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
+
+				} catch (FrameworkException fex) {
+
+					logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
+				}
 			}
 		}
 	}

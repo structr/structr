@@ -168,6 +168,9 @@ UploadServlet.resourceprovider = org.structr.web.common.UiResourceProvider
 UploadServlet.user.autocreate = false
 UploadServlet.allowAnonymousUploads = false
 
+# Upload servlet limits (unit is MiB)
+UploadServlet.maxFileSize = 1000
+UploadServlet.maxRequestSize = 1200
 
 #############################################################################
 # Custom response headers

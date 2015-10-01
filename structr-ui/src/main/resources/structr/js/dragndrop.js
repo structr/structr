@@ -135,7 +135,13 @@ var _Dragndrop = {
 			iframeFix: true,
 			//sortable: '.node',
 			appendTo: '#main',
-			helper: 'clone',
+			helper: function (event, $el) {
+				$el.css({height: "17px"});
+				var hlp = $el.clone();
+				hlp.find('.node').remove();
+				hlp.find('.expand_icon').attr('src', 'icon/tree_arrow_right.png');
+				return hlp;
+			},
 			zIndex: 99,
 			containment: 'body',
 			start: function(event, ui) {
@@ -175,6 +181,7 @@ var _Dragndrop = {
 				$(event.toElement).one('click', function(e) {
 					e.stopImmediatePropagation();
 				});
+				$(ui.item).css({height: ''});
 			}
 		};
 
@@ -253,7 +260,7 @@ var _Dragndrop = {
 					var firstContentId = target.children[0].id;
 					if (related) {
 						var key = tag.substring(tag.indexOf('.') + 1);
-						log('tag, key, subkey', tag, key, related.subKey)
+						log('tag, key, subkey', tag, key, related.subKey);
 						if (related.isCollection) {
 							Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
 							Command.setProperty(firstContentId, 'dataKey', key);
@@ -353,7 +360,7 @@ var _Dragndrop = {
 
 					$.each(matches, function(i, match) {
 
-						var propertyKey = match.replace(/\[/, '').replace(/\]/, '')
+						var propertyKey = match.replace(/\[/, '').replace(/\]/, '');
 						var options = '';
 						var hasOptions = false;
 
@@ -401,7 +408,7 @@ var _Dragndrop = {
 						$.each(matches, function(i, match) {
 
 							$.each($('.input-field', table), function(i, m) {
-								var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '')
+								var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '');
 								attrs[key] = $(this).val();
 								//console.log(this, match, key, attrs[key]);
 							});

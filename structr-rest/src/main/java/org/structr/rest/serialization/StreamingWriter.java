@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.neo4j.helpers.Predicate;
+import org.structr.common.PermissionResolutionMask;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -427,6 +428,8 @@ public abstract class StreamingWriter {
 				Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
 				if (keys != null) {
 
+					final PermissionResolutionMask permissionResolutionMask = source.getPermissionResolutionMask();
+
 					// speciality for the Ui view: limit recursive rendering to (id, name)
 					if (compactNestedProperties && depth > 0 && PropertyView.Ui.equals(localPropertyView)) {
 						keys = idNameOnly;
@@ -434,21 +437,24 @@ public abstract class StreamingWriter {
 
 					for (PropertyKey key : keys) {
 
-						final Predicate predicate  = writer.getSecurityContext().getRange(key.jsonName());
-						final Object value         = source.getProperty(key, predicate);
-						final PropertyKey localKey = key;
+						if (permissionResolutionMask == null || permissionResolutionMask.allowsProperty(key)) {
 
-						if (value != null) {
+							final Predicate predicate  = writer.getSecurityContext().getRange(key.jsonName());
+							final Object value         = source.getProperty(key, predicate);
+							final PropertyKey localKey = key;
 
-							if (!(reduceRedundancy && visitedObjects.contains(value.hashCode()))) {
+							if (value != null) {
 
-								writer.name(localKey.jsonName());
-								serializeProperty(writer, key, value, localPropertyView, depth+1);
+								if (!(reduceRedundancy && visitedObjects.contains(value.hashCode()))) {
+
+									writer.name(localKey.jsonName());
+									serializeProperty(writer, key, value, localPropertyView, depth+1);
+								}
+
+							} else {
+
+								writer.name(localKey.jsonName()).nullValue();
 							}
-
-						} else {
-
-							writer.name(localKey.jsonName()).nullValue();
 						}
 					}
 				}

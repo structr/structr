@@ -277,9 +277,9 @@ var _Widgets = {
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
 				Structr.dialog('Edit widget "' + widget.name + '"', function() {
-					log('Widget source saved')
+					log('Widget source saved');
 				}, function() {
-					log('cancelled')
+					log('cancelled');
 				});
 				if (!widget.id) {
 					return false;
@@ -421,7 +421,7 @@ var _Widgets = {
 
 		if (hasChildren) {
 
-			log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand)
+			log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = $(el).children('.node').hasClass('hidden') ? Structr.expand_icon : Structr.expanded_icon;

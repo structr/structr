@@ -63,18 +63,23 @@ var _Types = {
 		main.append('<div id="resourceTabs">'
 			+ '<div id="resourceTabsSettings"></div>'
 			+ '<ul id="resourceTabsMenu"><li class="last hidden">'
-			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"> <label for="resourceTabsAutoHideCheckbox">show selected tabs only</label>'
+			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"><label for="resourceTabsAutoHideCheckbox"> Show selected tabs only</label>'
+			+ ' <span id="resourceTabsSelectAllWrapper"><input type="checkbox" id="resourceTabsSelectAll"><label for="resourceTabsSelectAll"> Select all</label></span>'
 			+ '</li></ul></div>');
 
 		if (Structr.getAutoHideInactiveTabs()) {
 			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
+			Structr.doHideSelectAllCheckbox();
 		}
 
 		$('#resourceTabsAutoHideCheckbox').change(function () {
 			var checked = $(this).prop('checked');
 			Structr.setAutoHideInactiveTabs(checked);
 			Structr.setHideInactiveTabs(checked);
-			//location.reload();
+		});
+
+		$('#resourceTabsSelectAll').change(function () {
+			($(this).prop('checked') ? Structr.doSelectAllTabs() : Structr.doDeselectAllTabs());
 		});
 
 		Structr.ensureIsAdmin($('#resourceTabs'), function() {
@@ -87,6 +92,8 @@ var _Types = {
 			_Types.loadSchema(function() {
 				_Types.initTabs();
 				_Types.resize();
+				Structr.determineSelectAllCheckboxState();
+
 				Structr.unblockMenu(500);
 				_Types.updateUrl(_Types.type);
 			});
@@ -131,8 +138,9 @@ var _Types = {
 				}
 			}
 			
-			 localStorage.setItem(typesHiddenTabsKey, JSON.stringify(hiddenTypesTabs));
+			 LSWrapper.setItem(typesHiddenTabsKey, JSON.stringify(hiddenTypesTabs));
 
+			 Structr.determineSelectAllCheckboxState();
 		});
 
 		$('#resourceTabs').tabs({
@@ -378,10 +386,10 @@ var _Types = {
 		//searchField.focus();
 	},
 	storeType: function() {
-		localStorage.setItem(typesTypeKey, _Types.type);
+		LSWrapper.setItem(typesTypeKey, _Types.type);
 	},
 	restoreType: function() {
-		var val = localStorage.getItem(typesTypeKey);
+		var val = LSWrapper.getItem(typesTypeKey);
 		if (val) {
 			_Types.type = val;
 		}

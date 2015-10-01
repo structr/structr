@@ -88,7 +88,7 @@ var Command = {
 		var obj = {};
 		obj.command = 'GET_TYPE_INFO';
 		var data = {};
-		data.type = type
+		data.type = type;
 		obj.data = data;
 		log('getTypeInfo()', obj, callback);
 		return sendObj(obj, callback);
@@ -189,7 +189,7 @@ var Command = {
 	 * of that type.
 	 *
 	 */
-	search: function(searchString, type) {
+	search: function(searchString, type, callback) {
 		var obj = {};
 		obj.command = 'SEARCH';
 		var data = {};
@@ -197,26 +197,26 @@ var Command = {
 		data.type = type;
 		obj.data = data;
 		log('search()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a REST query by SEARCH command to the server.
 	 *
 	 */
-	rest: function(searchString) {
+	rest: function(searchString, callback) {
 		var obj = {};
 		obj.command = 'SEARCH';
 		var data = {};
 		data.restQuery = searchString;
 		obj.data = data;
 		log('rest()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a Cypher query by SEARCH command to the server.
 	 *
 	 */
-	cypher: function(query, params) {
+	cypher: function(query, params, callback) {
 		var obj = {};
 		obj.command = 'SEARCH';
 		var data = {};
@@ -224,7 +224,7 @@ var Command = {
 		data.cypherParams = params;
 		obj.data = data;
 		log('cypher()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a DELETE command to the server.
@@ -877,7 +877,7 @@ var Command = {
 	 */
 	createFile: function(file, callback) {
 		var obj = {};
-		obj.command = 'CREATE'
+		obj.command = 'CREATE';
 		var data = {};
 		data.contentType = file.type;
 		data.name = file.name;
@@ -1131,5 +1131,5 @@ var Command = {
 
 		log('autocomplete()', obj, callback);
 		return sendObj(obj, callback);
-	},
-}
+	}
+};

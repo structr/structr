@@ -29,6 +29,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
+import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -201,8 +202,7 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public String getUuid() {
-
-		return null;
+		return "00000000000000000000000000000000";
 
 	}
 
@@ -304,7 +304,7 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public String getName() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+		return "superadmin";
 	}
 
 	@Override
@@ -507,6 +507,16 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public CMISInfo getCMISInfo() {
+		return null;
+	}
+
+	@Override
+	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
+		return null;
+	}
+
+	@Override
+	public PermissionResolutionMask getPermissionResolutionMask() {
 		return null;
 	}
 }

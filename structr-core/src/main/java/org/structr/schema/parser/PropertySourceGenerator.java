@@ -45,7 +45,7 @@ public abstract class PropertySourceGenerator {
 	private final Set<Validator> globalValidators = new LinkedHashSet<>();
 	private final Set<String> enumDefinitions     = new LinkedHashSet<>();
 	private ErrorBuffer errorBuffer               = null;
-	private PropertyDefinition source             = null;
+	protected PropertyDefinition source           = null;
 	private String localValidator                 = "";
 	private String className                      = "";
 
@@ -132,16 +132,18 @@ public abstract class PropertySourceGenerator {
 		if (app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).and(AbstractNode.name, propertyName).getFirst() == null) {
 
 			app.create(SchemaProperty.class,
-				new NodeAttribute<>(AbstractNode.name, propertyName),
-				new NodeAttribute<>(SchemaProperty.schemaNode, schemaNode),
-				new NodeAttribute<>(SchemaProperty.propertyType, getKey().name()),
-				new NodeAttribute<>(SchemaProperty.contentType, source.getContentType()),
-				new NodeAttribute<>(SchemaProperty.dbName, source.getDbName()),
-				new NodeAttribute<>(SchemaProperty.defaultValue, source.getDefaultValue()),
-				new NodeAttribute<>(SchemaProperty.format, source.getFormat()),
-				new NodeAttribute<>(SchemaProperty.unique, source.isUnique()),
-				new NodeAttribute<>(SchemaProperty.indexed, source.isIndexed()),
-				new NodeAttribute<>(SchemaProperty.notNull, source.isNotNull())
+				new NodeAttribute<>(AbstractNode.name,             propertyName),
+				new NodeAttribute<>(SchemaProperty.schemaNode,     schemaNode),
+				new NodeAttribute<>(SchemaProperty.propertyType,   getKey().name()),
+				new NodeAttribute<>(SchemaProperty.contentType,    source.getContentType()),
+				new NodeAttribute<>(SchemaProperty.dbName,         source.getDbName()),
+				new NodeAttribute<>(SchemaProperty.defaultValue,   source.getDefaultValue()),
+				new NodeAttribute<>(SchemaProperty.format,         source.getFormat()),
+				new NodeAttribute<>(SchemaProperty.unique,         source.isUnique()),
+				new NodeAttribute<>(SchemaProperty.indexed,        source.isIndexed()),
+				new NodeAttribute<>(SchemaProperty.notNull,        source.isNotNull()),
+				new NodeAttribute<>(SchemaProperty.readFunction,   source.getReadFunction()),
+				new NodeAttribute<>(SchemaProperty.writeFunction,  source.getWriteFunction())
 			);
 
 			schemaNode.removeProperty(new StringProperty(underscorePropertyName));
@@ -174,6 +176,14 @@ public abstract class PropertySourceGenerator {
 
 		if (StringUtils.isNotBlank(source.getFormat())) {
 			buf.append(".format(\"").append(StringEscapeUtils.escapeJava(source.getFormat())).append("\")");
+		}
+
+		if (StringUtils.isNotBlank(source.getReadFunction())) {
+			buf.append(".readFunction(\"").append(StringEscapeUtils.escapeJava(source.getReadFunction())).append("\")");
+		}
+
+		if (StringUtils.isNotBlank(source.getWriteFunction())) {
+			buf.append(".writeFunction(\"").append(StringEscapeUtils.escapeJava(source.getWriteFunction())).append("\")");
 		}
 
 		if (source.isUnique()) {

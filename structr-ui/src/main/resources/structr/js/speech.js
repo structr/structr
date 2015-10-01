@@ -66,7 +66,7 @@ if ('webkitSpeechRecognition' in window) {
 					}
 				}
 				callback(interim, final);
-			}
+			};
 			btn.on('click', function () {
 				_Speech.toggleStartStop(btn);
 			});

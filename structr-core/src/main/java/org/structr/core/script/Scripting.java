@@ -164,7 +164,7 @@ public class Scripting {
 			// class loading / PermGen space bug in Rhino
 			//scriptingContext.setOptimizationLevel(-1);
 
-			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity);
+			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
 			scriptable.setParentScope(scope);
 
 			// register Structr scriptable

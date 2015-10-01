@@ -183,19 +183,19 @@ var _Entities = {
 				var id = tab.prop('id').substring(4);
 				var content = $('#content-tab-' + id);
 				content.show();
-				localStorage.setItem(activeQueryTabPrefix + '_' + nodeId, id);
+				LSWrapper.setItem(activeQueryTabPrefix  + '_' + nodeId, id);
 			});
 		});
-		var id = localStorage.getItem(activeQueryTabPrefix + '_' + nodeId) || activeId.substring(13);
+		var id = LSWrapper.getItem(activeQueryTabPrefix  + '_' + nodeId) || activeId.substring(13);
 		var tab = $('#tab-' + id);
 		tab.click();
 	},
 	editSource: function(entity) {
 
-		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function() {
-			log('Element source saved')
-		}, function() {
-			log('cancelled')
+		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
+			log('Element source saved');
+		}, function () {
+			log('cancelled');
 		});
 
 		// Get content in widget mode
@@ -216,7 +216,7 @@ var _Entities = {
 				dialog.append('<div class="editor"></div>');
 
 				var contentBox = $('.editor', dialog);
-				var lineWrapping = localStorage.getItem(lineWrappingKey);
+				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
 				// Intitialize editor
 				editor = CodeMirror(contentBox.get(0), {
@@ -310,10 +310,10 @@ var _Entities = {
 				$('#lineWrapping').on('change', function() {
 					var inp = $(this);
 					if (inp.is(':checked')) {
-						localStorage.setItem(lineWrappingKey, "1");
+						LSWrapper.setItem(lineWrappingKey, "1");
 						editor.setOption('lineWrapping', true);
 					} else {
-						localStorage.removeItem(lineWrappingKey);
+						LSWrapper.removeItem(lineWrappingKey);
 						editor.setOption('lineWrapping', false);
 					}
 					editor.refresh();
@@ -439,7 +439,7 @@ var _Entities = {
 				callback(c);
 			}
 			self.addClass('active');
-			localStorage.setItem(activeEditTabPrefix + '_' + entity.id, name);
+			LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, name);
 		});
 		el.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
 		var content = $('#tabView-' + name);
@@ -472,7 +472,7 @@ var _Entities = {
 				var tabView = $('#tabView-' + view);
 				tabView.empty();
 				tabView.show();
-				localStorage.setItem(activeEditTabPrefix + '_' + entity.id, view);
+				LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, view);
 
 				$.ajax({
 					url: rootUrl + '_schema/' + entity.type + '/ui',
@@ -488,7 +488,7 @@ var _Entities = {
 				});
 			});
 		});
-		activeView = localStorage.getItem(activeEditTabPrefix + '_' + entity.id) || activeView;
+		activeView = LSWrapper.getItem(activeEditTabPrefix  + '_' + entity.id) || activeView;
 		$('#tab-' + activeView).click();
 
 	},
@@ -791,7 +791,7 @@ var _Entities = {
 		var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">';
 		if (!(keyIcon && keyIcon.length)) {
 			parent.append(newKeyIcon);
-			keyIcon = $('.key_icon', parent)
+			keyIcon = $('.key_icon', parent);
 			if (protected) {
 				keyIcon.show();
 				keyIcon.addClass('donthide');
@@ -951,7 +951,7 @@ var _Entities = {
 		var element = $('.' + key + 'Box', el);
 		element.append('<span class="' + entity.id + '_"><select class="' + key + '_ ' + key + 'Select"></select></span>');
 		var selectElement = $('.' + key + 'Select');
-		selectElement.append('<option></option>')
+		selectElement.append('<option></option>');
 		selectElement.css({'width': '400px'}).chosen();
 
 		var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
@@ -1049,7 +1049,7 @@ var _Entities = {
 
 		if (hasChildren) {
 
-			log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand)
+			log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
@@ -1182,7 +1182,7 @@ var _Entities = {
 	},
 	resetMouseOverState: function(element) {
 		var el = $(element);
-		var node = el.closest('.node')
+		var node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
 			node.find('img.button').not('.donthide').hide().css('display', 'none');

@@ -21,6 +21,7 @@ package org.structr.core;
 import java.util.*;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.cmis.CMISInfo;
+import org.structr.common.PermissionResolutionMask;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
@@ -274,5 +275,10 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
+	}
+
+	@Override
+	public PermissionResolutionMask getPermissionResolutionMask() {
+		return null;
 	}
 }

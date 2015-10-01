@@ -260,6 +260,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 					newProperty = new StructrScriptProperty(parent, name);
 					break;
 
+				case "function":
+					newProperty = new StructrFunctionProperty(parent, name);
+					break;
+
 				case "boolean":
 					newProperty = new StructrBooleanProperty(parent, name);
 					break;
@@ -341,7 +345,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		switch (type) {
 
 			case Function:
-				final StructrScriptProperty func = new StructrScriptProperty(parent, name);
+				final StructrFunctionProperty func = new StructrFunctionProperty(parent, name);
 				func.deserialize(property);
 				return func;
 

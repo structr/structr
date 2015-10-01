@@ -313,103 +313,111 @@ public class Content extends DOMNode implements Text {
 	@Override
 	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
-			return;
-		}
+		try {
 
-		final String id            = getUuid();
-		final EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
-		final boolean inBody       = renderContext.inBody();
-		final AsyncBuffer out      = renderContext.getBuffer();
+			if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
+				return;
+			}
 
-		String _contentType = getProperty(contentType);
+			final String id            = getUuid();
+			final EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
+			final boolean inBody       = renderContext.inBody();
+			final AsyncBuffer out      = renderContext.getBuffer();
 
-		// fetch content with variable replacement
-		String _content = getPropertyWithVariableReplacement(renderContext, Content.content);
+			String _contentType = getProperty(contentType);
 
-		if (!(EditMode.RAW.equals(edit) || EditMode.WIDGET.equals(edit)) && (_contentType == null || ("text/plain".equals(_contentType)))) {
+			// fetch content with variable replacement
+			String _content = getPropertyWithVariableReplacement(renderContext, Content.content);
 
-			_content = escapeForHtml(_content);
+			if (!(EditMode.RAW.equals(edit) || EditMode.WIDGET.equals(edit)) && (_contentType == null || ("text/plain".equals(_contentType)))) {
 
-		}
-
-		if (EditMode.CONTENT.equals(edit) && inBody && this.isGranted(Permission.write, securityContext)) {
-
-			if ("text/javascript".equals(_contentType)) {
-
-				// Javascript will only be given some local vars
-				// TODO: Is this neccessary?
-				out.append("// data-structr-type='").append(getType()).append("'\n// data-structr-id='").append(id).append("'\n");
-
-			} else if ("text/css".equals(_contentType)) {
-
-				// CSS will only be given some local vars
-				// TODO: Is this neccessary?
-				out.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
-
-			} else {
-
-//				// In edit mode, add an artificial comment tag around content nodes within body to make them editable
-				final String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
-				out.append("<!--data-structr-id=\"".concat(id)
-					.concat("\" data-structr-raw-value=\"").concat(escapeForHtmlAttributes(cleanedContent)).concat("\"-->"));
+				_content = escapeForHtml(_content);
 
 			}
 
-		}
+			if (EditMode.CONTENT.equals(edit) && inBody && this.isGranted(Permission.write, securityContext)) {
 
-		// No contentType-specific rendering in DATA edit mode
-		//if (!edit.equals(EditMode.DATA)) {
+				if ("text/javascript".equals(_contentType)) {
 
-			// examine content type and apply converter
+					// Javascript will only be given some local vars
+					// TODO: Is this neccessary?
+					out.append("// data-structr-type='").append(getType()).append("'\n// data-structr-id='").append(id).append("'\n");
 
-			if (_contentType != null) {
+				} else if ("text/css".equals(_contentType)) {
 
-				final Adapter<String, String> converter = contentConverters.get(_contentType);
+					// CSS will only be given some local vars
+					// TODO: Is this neccessary?
+					out.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
 
-				if (converter != null) {
+				} else {
 
-					try {
+	//				// In edit mode, add an artificial comment tag around content nodes within body to make them editable
+					final String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
+					out.append("<!--data-structr-id=\"".concat(id)
+						.concat("\" data-structr-raw-value=\"").concat(escapeForHtmlAttributes(cleanedContent)).concat("\"-->"));
 
-						// apply adapter
-						_content = converter.adapt(_content);
-					} catch (FrameworkException fex) {
+				}
 
-						logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
+			}
+
+			// No contentType-specific rendering in DATA edit mode
+			//if (!edit.equals(EditMode.DATA)) {
+
+				// examine content type and apply converter
+
+				if (_contentType != null) {
+
+					final Adapter<String, String> converter = contentConverters.get(_contentType);
+
+					if (converter != null) {
+
+						try {
+
+							// apply adapter
+							_content = converter.adapt(_content);
+						} catch (FrameworkException fex) {
+
+							logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
+
+						}
 
 					}
 
 				}
 
-			}
+				// replace newlines with <br /> for rendering
+				if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
 
-			// replace newlines with <br /> for rendering
-			if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
+					final DOMNode _parent = getProperty(Content.parent);
+					if (_parent == null || !(_parent instanceof Textarea)) {
 
-				final DOMNode _parent = getProperty(Content.parent);
-				if (_parent == null || !(_parent instanceof Textarea)) {
-
-					_content = _content.replaceAll("[\\n]{1}", "<br>");
+						_content = _content.replaceAll("[\\n]{1}", "<br>");
+					}
 				}
+			//}
+
+			if (_content != null) {
+
+				//buffer.append(indent(depth, true)).append(_content);
+
+				// insert whitespace to make element clickable
+				if (EditMode.CONTENT.equals(edit) && _content.length() == 0) {
+					_content = "--- empty ---";
+				}
+
+				out.append(_content);
 			}
-		//}
 
-		if (_content != null) {
+			if (EditMode.CONTENT.equals(edit) && inBody && !("text/javascript".equals(getProperty(contentType))) && !("text/css".equals(getProperty(contentType)))) {
 
-			//buffer.append(indent(depth, true)).append(_content);
-
-			// insert whitespace to make element clickable
-			if (EditMode.CONTENT.equals(edit) && _content.length() == 0) {
-				_content = "--- empty ---";
+	//			buffer.append("</span>");
+				out.append("<!---->");
 			}
 
-			out.append(_content);
-		}
+		} catch (Throwable t) {
 
-		if (EditMode.CONTENT.equals(edit) && inBody && !("text/javascript".equals(getProperty(contentType))) && !("text/css".equals(getProperty(contentType)))) {
-
-//			buffer.append("</span>");
-			out.append("<!---->");
+			// catch exception to prevent ugly status 500 error pages in frontend.
+			t.printStackTrace();
 		}
 
 	}

@@ -44,6 +44,8 @@ public abstract class FrontendTest extends StructrUiTest {
 	//~--- methods --------------------------------------------------------
 	protected int run(final String testName) {
 
+		
+		
 		try (final Tx tx = app.tx()) {
 
 			createAdminUser();
@@ -60,7 +62,7 @@ public abstract class FrontendTest extends StructrUiTest {
 			// Currently, phantomjs doesn't allow localStorage to be modified remotely,
 			// and the --local-storage-path parameter is ignored.
 			//String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
-			String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
+			String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --httpPort=" + httpPort + " --local-storage-path=" + basePath + " test " + testName + ".js"};
 			//String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --debug test " + testName + ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);

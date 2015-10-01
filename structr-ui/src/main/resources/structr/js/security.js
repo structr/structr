@@ -56,7 +56,7 @@ var _Security = {
 			activate: function(event, ui) {
 				//_Types.clearList(_Types.type);
 				var activeTab = ui.newPanel[0].id;
-				localStorage.setItem(securityTabKey, activeTab);
+				LSWrapper.setItem(securityTabKey, activeTab);
 
 				if (activeTab === 'usersAndGroups') {
 					_Security.refreshGroups();
@@ -68,7 +68,7 @@ var _Security = {
 			}
 		});
 
-		var activeTab = localStorage.getItem(securityTabKey);
+		var activeTab = LSWrapper.getItem(securityTabKey);
 		if (activeTab === null || activeTab === 'usersAndGroups') {
 			_Security.refreshGroups();
 			_Security.refreshUsers();
@@ -323,7 +323,7 @@ var _Security = {
 			}
 
 			var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" '
-			+ 'alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">'
+				+ 'alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">';
 
 			var parent = Structr.node(groupId);
 
@@ -395,7 +395,7 @@ var _Security = {
 				//containment: '#main',
 				stack: '.node',
 				appendTo: '#main',
-				zIndex: 99,
+				zIndex: 99
 //                stop : function(e,ui) {
 //                    $('#pages_').droppable('enable').removeClass('nodeHover');
 //                }

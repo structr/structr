@@ -23,7 +23,6 @@ import java.util.List;
 import static junit.framework.TestCase.fail;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.AbstractChildren;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.DOMTest;
@@ -788,7 +787,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(test9);
 			div.appendChild(p3);
 
-			// normalize 
+			// normalize
 			div.normalize();
 
 			NodeList children = div.getChildNodes();

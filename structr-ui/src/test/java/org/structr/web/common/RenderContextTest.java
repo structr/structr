@@ -510,26 +510,26 @@ public class RenderContextTest extends StructrUiTest {
 			grant("Page/_Ui", 16, false);
 
 			// test GET REST access
-			assertEquals("Invalid GET notation result", page.getName(), Scripting.replaceVariables(ctx, p1, "${from_json(GET('http://localhost:8875/structr/rest/pages/ui')).result[0].name}"));
+			assertEquals("Invalid GET notation result", page.getName(), Scripting.replaceVariables(ctx, p1, "${from_json(GET('http://localhost:" + httpPort + "/structr/rest/pages/ui')).result[0].name}"));
 
 			grant("Folder", 64, true);
 			grant("_login", 64, false);
 
-			assertEquals("Invalid POST result", "201",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:8875/structr/rest/folders', '{name:Test}').status}"));
-			assertEquals("Invalid POST result", "1.0",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:8875/structr/rest/folders', '{name:Test}').body.result_count}"));
-			assertEquals("Invalid POST result", "application/json; charset=utf-8", Scripting.replaceVariables(ctx, page, "${POST('http://localhost:8875/structr/rest/folders', '{name:Test}').headers.Content-Type}"));
+			assertEquals("Invalid POST result", "201",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:Test}').status}"));
+			assertEquals("Invalid POST result", "1.0",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:Test}').body.result_count}"));
+			assertEquals("Invalid POST result", "application/json; charset=utf-8", Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:Test}').headers.Content-Type}"));
 
 			// test POST with invalid name containing curly braces to provoke 422
-			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:8875/structr/rest/folders', '{name:\"Test{{{}}{}{}{}\"}').status}"));
+			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:\"Test{{{}}{}{}{}\"}').status}"));
 
 			// test login and sessions
-			final String sessionIdCookie = Scripting.replaceVariables(ctx, page, "${POST('http://localhost:8875/structr/rest/login', '{name:admin,password:admin}').headers.Set-Cookie}");
+			final String sessionIdCookie = Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/login', '{name:admin,password:admin}').headers.Set-Cookie}");
 			final String sessionId       = HttpCookie.parse(sessionIdCookie).get(0).getValue();
 
 			// test authenticated GET request using session ID cookie
-			assertEquals("Invalid authenticated GET result", "admin",   Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:8875/structr/rest/users')).result[0].name}"));
-			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:8875/structr/rest/users')).result[1].name}"));
-			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:8875/structr/rest/users')).result[2].name}"));
+			assertEquals("Invalid authenticated GET result", "admin",   Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users')).result[0].name}"));
+			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users')).result[1].name}"));
+			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users')).result[2].name}"));
 
 			// locale
 			final String localeString = ctx.getLocale().toString();

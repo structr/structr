@@ -91,7 +91,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			newRel.setProperty(AbstractRelationship.cascadeDelete, factory.instantiate(rel).getCascadingDeleteFlag());
 
 			// notify transaction handler
-			TransactionCommand.relationshipCreated(newRel);
+			TransactionCommand.relationshipCreated(securityContext.getCachedUser(), newRel);
 
 			if (properties != null) {
 

@@ -18,8 +18,8 @@
  */
 var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
 var radius = 20, stub = 30, offset = 0, maxZ = 0, reload = false;
-var connectorStyle = localStorage.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
-var zoomLevel = parseFloat(localStorage.getItem(localStorageSuffix + 'zoomLevel')) || 1.0;
+var connectorStyle = LSWrapper.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
+var zoomLevel = parseFloat(LSWrapper.getItem(localStorageSuffix + 'zoomLevel')) || 1.0;
 var remotePropertyKeys = [];
 var hiddenSchemaNodes = [];
 var hiddenSchemaNodesKey = 'structrHiddenSchemaNodes_' + port;
@@ -52,11 +52,11 @@ var _Schema = {
 			var obj = {position: node.position()};
 			obj.position.left /= zoomLevel;
 			obj.position.top = (obj.position.top - $('#schema-graph').offset().top) / zoomLevel;
-			localStorage.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
+			LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
 		});
 	},
 	getPosition: function(type) {
-		var n = JSON.parse(localStorage.getItem(type + localStorageSuffix + 'node-position'));
+		var n = JSON.parse(LSWrapper.getItem(type + localStorageSuffix + 'node-position'));
 		return n ? n.position : undefined;
 	},
 	init: function() {
@@ -91,7 +91,7 @@ var _Schema = {
 			$('#connector-style').on('change', function() {
 				var newStyle = $(this).val();
 				connectorStyle = newStyle;
-				localStorage.setItem(localStorageSuffix + 'connectorStyle', newStyle);
+				LSWrapper.setItem(localStorageSuffix + 'connectorStyle', newStyle);
 				_Schema.reload();
 			});
 
@@ -104,7 +104,7 @@ var _Schema = {
 				slide: function( event, ui ) {
 					var newZoomLevel = ui.value;
 					zoomLevel = newZoomLevel;
-					localStorage.setItem(localStorageSuffix + 'zoomLevel', newZoomLevel);
+					LSWrapper.setItem(localStorageSuffix + 'zoomLevel', newZoomLevel);
 					_Schema.setZoom(newZoomLevel, instance, [0,0], $('#schema-graph')[0]);
 					_Schema.resize();
 				}
@@ -189,6 +189,11 @@ var _Schema = {
 					reload = false;
 
 					_Schema.setZoom(zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+
+					$('._jsPlumb_connector').click(function() {
+						$(this).nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ});
+					});
+
 					_Schema.resize();
 
 					Structr.unblockMenu(500);
@@ -238,7 +243,7 @@ var _Schema = {
 	},
 	loadNodes: function(callback) {
 		var url = rootUrl + 'schema_nodes/ui';
-		hiddenSchemaNodes = JSON.parse(localStorage.getItem(hiddenSchemaNodesKey)) || [];
+		hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(hiddenSchemaNodesKey)) || [];
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -338,7 +343,7 @@ var _Schema = {
 			}
 		});
 	},
-	openEditDialog: function(id, targetView) {
+	openEditDialog: function(id, targetView, callback) {
 
 		Command.get(id, function(entity) {
 
@@ -352,6 +357,9 @@ var _Schema = {
 
 			Structr.dialog(title, function() {
 			}, function() {
+				if (callback) {
+					callback();
+				}
 				instance.repaintEverything();
 			});
 
@@ -359,78 +367,6 @@ var _Schema = {
 
 		});
 
-	},
-	openLocalizationDialog: function (entityId) {
-
-		Command.get(entityId, function(entity) {
-
-			var title = 'Edit localizations for "' + entity.name + '"';
-
-			Structr.dialog(title, null, function() {
-				window.setTimeout(function () {
-					if (entity.type === 'SchemaNode') {
-						_Schema.openEditDialog(entityId);
-					} else if (entity.type === 'SchemaProperty') {
-						_Schema.openEditDialog(entity.schemaNode.id);
-					} else {
-						Structr.error('Could not restore dialog - unsupported entity type', true);
-					}
-
-				}, 250);
-			});
-
-			var id = '___' + entity.id;
-			dialogText.append('<div id="' + id + '" class="schema-details"></div>');
-
-			var el = $('#' + id);
-
-			el.append('<table class="local schemaprop-localizations"><th>Locale</th><th>Localized Name</th><th>Action</th></table>');
-			el.append('<img alt="Add local attribute" class="add-icon add-localization-row" src="icon/add.png">');
-
-			var localizationsTable = $('.local.schemaprop-localizations', el);
-			var addButton = $('.add-localization-row', el);
-
-			// sort by locale
-			_Schema.sort(entity.localizations, 'locale');
-
-			$.each(entity.localizations, function(i, localization) {
-				_Schema.appendLocalizationEntry(localizationsTable, localization, entity.id);
-			});
-
-			addButton.on('click', function() {
-				var rowClass = 'new' + (_Schema.cnt++);
-				localizationsTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="localization-locale" placeholder="Enter locale"></td>'
-					+ '<td><input size="15" type="text" class="localization-name" placeholder="Enter localized name"></td>'
-					+ '<td><img alt="Remove" class="remove-icon remove-localization" src="icon/delete.png"></td>'
-					+ '</tr>');
-
-				$('.' + rowClass + ' .remove-localization', localizationsTable).on('click', function() {
-					var self = $(this);
-					self.closest('tr').remove();
-				});
-
-				$('.' + rowClass + ' .localization-locale', localizationsTable).on('blur', function() {
-					_Schema.collectAndSaveNewLocalization(rowClass, localizationsTable, entity);
-				});
-
-				$('.' + rowClass + ' .localization-name', localizationsTable).on('blur', function() {
-					_Schema.collectAndSaveNewLocalization(rowClass, localizationsTable, entity);
-				});
-
-			});
-
-		});
-
-	},
-	appendLocalizationEntry: function (el, localization, schemaPropertyId) {
-		var key = localization.id;
-
-		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="localization-locale" value="' + escapeForHtmlAttributes(localization.locale) + '"></td><td>'
-				+ '<input size="15" type="text" class="localization-name" value="' + escapeForHtmlAttributes(localization.name) + '"></td><td>'
-				+ '<img alt="Remove" class="remove-icon remove-localization" src="icon/delete.png">'
-				+ '</td></div>');
-
-		_Schema.bindLocalizationEvents(localization, schemaPropertyId);
 	},
 	loadRels: function(callback) {
 		var url = rootUrl + 'schema_relationship_nodes';
@@ -468,7 +404,8 @@ var _Schema = {
 						deleteEndpointsOnDetach: false,
 						scope: res.id,
 						//parameters: {'id': res.id},
-						connector: [connectorStyle, {curviness: 200, cornerRadius: radius, stub: [stub, 30], gap: 6, alwaysRespectStubs: true}],
+						connector: [connectorStyle, {curviness: 200, cornerRadius: radius, stub: [stub, 30], gap: 6, alwaysRespectStubs: true }],
+                        paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
 									cssClass: "label multiplicity",
@@ -609,17 +546,50 @@ var _Schema = {
 		el.append('<div id="' + id + '" class="schema-details"></div>');
 
 		var div = $('#' + id);
-		div.append(
-			//'<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png"> ' +
-			'<b>' + entity.name + '</b>'
-		);
-
-		$('#' + id + ' .edit-localizations', el).on('click', function() {
-			_Schema.openLocalizationDialog(entity.id);
-		}).prop('disabled', null);
+		div.append('<b>' + entity.name + '</b>');
 
 		if (!entity.isBuiltinType) {
-			div.append(' extends <select class="extends-class-select"><option value="org.structr.core.entity.AbstractNode">org.structr.core.entity.AbstractNode</option></select>');
+			div.append(' extends <select class="extends-class-select"></select>');
+
+			div.append(' <img id="edit-parent-class" class="icon edit" src="icon/pencil.png" alt="Edit parent class" title="Edit parent class">');
+			$("#edit-parent-class", div).click(function () {
+				if ($(this).hasClass('disabled')) {
+					return;
+				}
+
+				var typeName = $('.extends-class-select', div).val().split('.').pop();
+
+				Command.search(typeName, 'SchemaNode', function (results) {
+					if (results.length === 1) {
+
+						_Schema.openEditDialog(results[0].id, null, function () {
+
+							window.setTimeout(function () {
+
+								_Schema.openEditDialog(entity.id);
+
+							}, 250);
+
+						});
+
+					} else if (results.length === 0) {
+
+						new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>no corresponding</b> schema node found").show();
+
+					} else {
+
+						new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>multiple corresponding</b> schema node found").show();
+
+					}
+				});
+
+			});
+
+			if (entity.extendsClass && entity.extendsClass.indexOf('org.structr.dynamic.') === 0) {
+				$("#edit-parent-class").removeClass('disabled');
+			} else {
+				$("#edit-parent-class").addClass('disabled');
+			}
 		}
 		div.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
 
@@ -673,12 +643,19 @@ var _Schema = {
 				classSelect.append('<option ' + (entity.extendsClass === classname ? 'selected="selected"' : '') + ' value="' + classname + '">' + classname + '</option>');
 			});
 
-			classSelect.chosen({ search_contains: true, width: '100%' });
+			classSelect.chosen({ search_contains: true, width: '500px' });
 		});
 
 		classSelect.on('change', function() {
 			var obj = {extendsClass: $(this).val()};
-			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj));
+			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj), function () {
+				// enable or disable the edit button
+				if (obj.extendsClass.indexOf('org.structr.dynamic.') === 0) {
+					$("#edit-parent-class").removeClass('disabled');
+				} else {
+					$("#edit-parent-class").addClass('disabled');
+				}
+			});
 		});
 
 	},
@@ -689,11 +666,33 @@ var _Schema = {
 
 		var div = $('#' + id);
 		div.append('<b>' + entity.relationshipType + '</b>');
-		div.append('<h3>Cascading Delete</h3><select id="cascading-delete-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>');
-		div.append('<h3>Automatic Creation of Related Nodes</h3><select id="autocreate-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>');
-		div.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
+        div.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
+		div.append('<div id="tabs" style="margin-top:6px;"><ul></ul></div>');
 
-		var mainTabs = $('#tabs', div);
+        var relationshipOptions = $('#cascading-options');
+    	relationshipOptions.append('<h3>Cascading Delete</h3>');
+        relationshipOptions.append('<p>Direction of automatic removal of related nodes when a node is deleted</p>');
+        relationshipOptions.append('<select id="cascading-delete-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>');
+
+		relationshipOptions.append('<h3>Automatic Creation of Related Nodes</h3>');
+        relationshipOptions.append('<p>Direction of automatic creation of related nodes when a node is created</p>');
+        relationshipOptions.append('<select id="autocreate-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>');
+
+        var propagationOptions = $('#propagation-options');
+    	propagationOptions.append('<h3>Permission Resolution</h3>');
+    	propagationOptions.append('<select id="propagation-selector"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>');
+        propagationOptions.append('<table style="margin: 12px 0 0 0;"><tr id="propagation-table"></tr></table>');
+        propagationOptions.append('<p style="margin-top:12px">Hidden properties</p><textarea id="masked-properties" />');
+
+        var propagationTable = $('#propagation-table');
+        propagationTable.append('<td class="selector"><p>Read</p><select id="read-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+        propagationTable.append('<td class="selector"><p>Write</p><select id="write-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+        propagationTable.append('<td class="selector"><p>Delete</p><select id="delete-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+        propagationTable.append('<td class="selector"><p>AccessControl</p><select id="access-control-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+
+
+
+        var mainTabs = $('#tabs', div);
 
 		_Entities.appendPropTab(entity, mainTabs, 'local', 'Local Attributes', true, function (c) {
 			Command.get(entity.id, function(e) {
@@ -719,8 +718,14 @@ var _Schema = {
 		});
 
 		$.get(rootUrl + entity.id, function(data) {
-			$('#cascading-delete-selector').val(data.result.cascadingDeleteFlag);
-			$('#autocreate-selector').val(data.result.autocreationFlag);
+			$('#cascading-delete-selector').val(data.result.cascadingDeleteFlag || 0);
+			$('#autocreate-selector').val(data.result.autocreationFlag || 0);
+			$('#propagation-selector').val(data.result.permissionPropagation || None);
+			$('#read-selector').val(data.result.readPropagation || 'Remove');
+			$('#write-selector').val(data.result.writePropagation || 'Remove');
+			$('#delete-selector').val(data.result.deletePropagation || 'Remove');
+			$('#access-control-selector').val(data.result.accessControlPropagation || 'Remove');
+            $('#masked-properties').val(data.result.propertyMask);
 		});
 
 		$('#cascading-delete-selector').on('change', function() {
@@ -745,10 +750,80 @@ var _Schema = {
 			});
 		});
 
+        $('#selector-feedback').on('click', function(e) {
+            $('#propagation-selector').click();
+        });
+
+		$('#propagation-selector').on('change', function() {
+			var inp = $(this);
+			_Schema.setRelationshipProperty(entity, 'permissionPropagation', inp.val(),
+			function() {
+				blinkGreen($('#selector-feedback'));
+			},
+			function() {
+				blinkRed($('#selector-feedback'));
+			});
+		});
+
+		$('#read-selector').on('change', function() {
+			var inp = $(this);
+			_Schema.setRelationshipProperty(entity, 'readPropagation', inp.val(),
+			function() {
+				blinkGreen(inp);
+			},
+			function() {
+				blinkRed(inp);
+			});
+		});
+
+		$('#write-selector').on('change', function() {
+			var inp = $(this);
+			_Schema.setRelationshipProperty(entity, 'writePropagation', inp.val(),
+			function() {
+				blinkGreen(inp);
+			},
+			function() {
+				blinkRed(inp);
+			});
+		});
+
+		$('#delete-selector').on('change', function() {
+			var inp = $(this);
+			_Schema.setRelationshipProperty(entity, 'deletePropagation', inp.val(),
+			function() {
+				blinkGreen(inp);
+			},
+			function() {
+				blinkRed(inp);
+			});
+		});
+
+		$('#access-control-selector').on('change', function() {
+			var inp = $(this);
+			_Schema.setRelationshipProperty(entity, 'accessControlPropagation', inp.val(),
+			function() {
+				blinkGreen(inp);
+			},
+			function() {
+				blinkRed(inp);
+			});
+		});
+
+		$('#masked-properties').on('blur', function() {
+			var inp = $(this);
+			_Schema.setRelationshipProperty(entity, 'propertyMask', inp.val(),
+			function() {
+				blinkGreen(inp);
+			},
+			function() {
+				blinkRed(inp);
+			});
+		});
+
 	},
 	appendLocalProperties: function(el, entity) {
 
-		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Notnull</th><th>Uniq.</th><th>Idx</th><th>Default</th><th>Action</th></thead></table>');
+		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format/Code</th><th>Notnull</th><th>Uniq.</th><th>Idx</th><th>Default</th><th>Action</th></thead></table>');
 		el.append('<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">');
 
 		var propertiesTable = $('.local.schema-props', el);
@@ -784,13 +859,12 @@ var _Schema = {
 			});
 		});
 
-
 		$('.add-local-attribute', el).on('click', function() {
 			var rowClass = 'new' + (_Schema.cnt++);
 			propertiesTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>'
 					+ '<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>'
 					+ '<td>' + typeOptions + '</td>'
-					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
+					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format or read function code"></td>'
 					+ '<td><input class="not-null" type="checkbox"></td>'
 					+ '<td><input class="unique" type="checkbox"></td>'
 					+ '<td><input class="indexed" type="checkbox"></td>'
@@ -1009,72 +1083,6 @@ var _Schema = {
 			});
 		}
 	},
-	collectAndSaveNewLocalization: function(rowClass, el, entity) {
-
-		var name = $('.' + rowClass + ' .localization-name', el).val();
-		var locale = $('.' + rowClass + ' .localization-locale', el).val();
-
-		if (name && name.length) {
-
-			var obj = {};
-			var res = '';
-			if (entity.type === 'SchemaProperty') {
-				obj.localizedProperty = { id: entity.id };
-				res = 'schema_property_localization';
-			} else if (entity.type === 'SchemaNode') {
-				obj.localizedNode = { id: entity.id };
-				res = 'schema_node_localization';
-			} else {
-				Structr.error('Cannot save localization: Unknown entity type ' + entity.type, true);
-				return;
-			}
-			if (name) {
-				obj.name = name;
-			}
-			if (locale) {
-				obj.locale = locale;
-			}
-
-			// store property definition with an empty property object
-			_Schema.storeSchemaEntity(res, {}, JSON.stringify(obj), function(result) {
-
-				if (result && result.result) {
-
-					var id = result.result[0];
-
-					$.ajax({
-						url: rootUrl + id,
-						type: 'GET',
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',
-						statusCode: {
-
-							200: function(data) {
-
-								var localization = data.result;
-								var row      = $('.' + rowClass, el);
-
-								blinkGreen(row);
-
-								_Schema.unbindEvents(localization.id);
-
-								row.removeClass(rowClass).addClass('local').addClass(localization.id);
-								row = $('.local.' + localization.id, el);
-
-								$('.remove-localization', row).off('click');
-
-								_Schema.bindLocalizationEvents(localization);
-							}
-						}
-					});
-				}
-
-			}, function() {
-
-				blinkRed($('.' + rowClass, el));
-			});
-		}
-	},
 	confirmRemoveSchemaEntity: function(entity, title, callback, hint) {
 
 		Structr.confirmation(
@@ -1135,15 +1143,14 @@ var _Schema = {
 
 		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(property.name) + '"></td><td>'
 				+ '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(property.dbName) + '"></td><td>'
-				+ typeOptions + '</td><td><input size="15" type="text" class="property-format" value="'
-				+ (property.format ? escapeForHtmlAttributes(property.format) : '') + '"></td><td><input class="not-null" type="checkbox"'
+				+ typeOptions + '</td>'
+				+ (property.propertyType !== 'Function' ?  '<td><input size="15" type="text" class="property-format" value="' + (property.format ? escapeForHtmlAttributes(property.format) : '') + '"></td>' : '<td><button class="edit-read-function">Read</button><button class="edit-write-function">Write</button></td>')
+				+ '<td><input class="not-null" type="checkbox"'
 				+ (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
 				+ (property.unique ? ' checked="checked"' : '') + '</td><td><input class="indexed" type="checkbox"'
 				+ (property.indexed ? ' checked="checked"' : '') + '</td><td>'
 				+ '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td>'
-				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">'
-					// + '<img alt="Localizations" class="add-icon edit-localizations" src="icon/book_open.png">'
-					)
+				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">')
 				+ '</td></tr>');
 
 		_Schema.bindEvents(property);
@@ -1167,6 +1174,7 @@ var _Schema = {
 
 		$('.' + key + ' .property-type', el).prop('disabled', true);
 		$('.' + key + ' .property-format', el).prop('disabled', true);
+		$('.' + key + ' button', el).prop('disabled', true);
 		$('.' + key + ' .not-null', el).prop('disabled', true);
 		$('.' + key + ' .unique', el).prop('disabled', true);
 		$('.' + key + ' .indexed', el).prop('disabled', true);
@@ -1194,6 +1202,15 @@ var _Schema = {
 			}).prop('disabled', null).val(property.contentType);
 		}
 
+		if (property.propertyType === 'Function' && !property.isBuiltinProperty) {
+			if (!$('button.edit-read-function', typeField.parent()).length) {
+				$('.' + key + ' .property-format', el).replaceWith('<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button>');
+			}
+			$('.' + key + ' .content-type', el).on('blur', function() {
+				_Schema.savePropertyDefinition(property);
+			}).prop('disabled', null).val(property.contentType);
+		}
+
 		if (property.propertyType && property.propertyType !== '') {
 			$('.' + key + ' .property-name', el).on('change', function() {
 				_Schema.savePropertyDefinition(property);
@@ -1210,6 +1227,14 @@ var _Schema = {
 		$('.' + key + ' .property-format', el).on('blur', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', null).val(property.format);
+
+		$('.' + key + ' .edit-read-function', el).on('click', function() {
+			_Schema.openCodeEditor($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+		}).prop('disabled', null);
+
+		$('.' + key + ' .edit-write-function', el).on('click', function() {
+			_Schema.openCodeEditor($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+		}).prop('disabled', null);
 
 		$('.' + key + ' .not-null', el).on('change', function() {
 			_Schema.savePropertyDefinition(property);
@@ -1231,9 +1256,6 @@ var _Schema = {
 			_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
 		}).prop('disabled', null);
 
-		$('.' + key + ' .edit-localizations', el).on('click', function() {
-			_Schema.openLocalizationDialog(property.id);
-		}).prop('disabled', null);
 	},
 	unbindEvents: function(key) {
 
@@ -1247,37 +1269,162 @@ var _Schema = {
 		$('.' + key + ' .indexed', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .property-default', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .remove-property', el).off('click').prop('disabled', 'disabled');
+		$('.' + key + ' button', el).off('click').prop('disabled', 'disabled');
 
 	},
-	bindLocalizationEvents: function (localization, schemaPropertyId) {
+	openCodeEditor: function(btn, id, key, callback) {
 
-		var key = localization.id;
-		var el  = $('.local.schemaprop-localizations');
+		Command.get(id, function(entity) {
 
-		$('.' + key + ' .localization-name', el).on('blur', function() {
-			_Schema.saveSchemaLocalization(localization);
-		}).prop('disabled', null);
+			var title = 'Edit ' + key + ' of ' + entity.name;
 
-		$('.' + key + ' .localization-locale', el).on('blur', function() {
-			_Schema.saveSchemaLocalization(localization);
-		}).prop('disabled', null);
+			Structr.dialog(title, function() {}, function() {});
 
-		$('.' + key + ' .remove-localization', el).on('click', function() {
-			_Schema.confirmRemoveSchemaEntity(localization, 'Delete localized name', function() { _Schema.openLocalizationDialog(schemaPropertyId); }, 'Really delete localized name?');
-		}).prop('disabled', null);
+			_Schema.editCode(btn, entity, key, dialogText, function() {
+				window.setTimeout(function () {
+					callback();
+				}, 250);
+			});
 
-	},
-	unbindLocalizationEvents: function (key) {
-
-		var el  = $('.local.schemaprop-localizations');
-
-		$('.' + key + ' .localization-locale', el).off('blur').prop('disabled', 'disabled');
-
-		$('.' + key + ' .localization-name', el).off('blur').prop('disabled', 'disabled');
-
-		$('.' + key + ' .remove-localization', el).off('click').prop('disabled', 'disabled');
+		});
 
 	},
+	editCode: function(button, entity, key, element, callback) {
+
+		var text = entity[key] || '';
+
+		if (isDisabled(button)) {
+			return;
+		}
+		var div = element.append('<div class="editor"></div>');
+		log(div);
+		var contentBox = $('.editor', element);
+		contentType = contentType ? contentType : entity.contentType;
+		var text1, text2;
+
+		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+
+		// Intitialize editor
+		editor = CodeMirror(contentBox.get(0), {
+			value: text,
+			mode: contentType,
+			lineNumbers: true,
+			lineWrapping: lineWrapping,
+            extraKeys: {
+               "'.'":        _Contents.autoComplete,
+               "Ctrl-Space": _Contents.autoComplete
+            }
+        });
+
+		Structr.resize();
+
+		dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
+		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+		dialogSaveButton = $('#editorSave', dialogBtn);
+		var saveAndClose = $('#saveAndClose', dialogBtn);
+
+		saveAndClose.on('click', function(e) {
+			e.stopPropagation();
+			dialogSaveButton.click();
+			setTimeout(function() {
+				dialogSaveButton.remove();
+				saveAndClose.remove();
+				dialogCancelButton.click();
+			}, 500);
+		});
+
+		editor.on('change', function(cm, change) {
+
+			if (text === editor.getValue()) {
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+			} else {
+				dialogSaveButton.prop("disabled", false).removeClass('disabled');
+				saveAndClose.prop("disabled", false).removeClass('disabled');
+			}
+
+			$('#chars').text(editor.getValue().length);
+			$('#words').text(editor.getValue().match(/\S+/g).length);
+		});
+
+		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
+		if (scrollInfo) {
+			editor.scrollTo(scrollInfo.left, scrollInfo.top);
+		}
+
+		editor.on('scroll', function() {
+			var scrollInfo = editor.getScrollInfo();
+			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
+		});
+
+		dialogCancelButton.on('click', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			if (callback) {
+				callback();
+			}
+			return false;
+		});
+
+		dialogSaveButton.on('click', function(e) {
+			e.stopPropagation();
+
+			//var contentNode = Structr.node(entity.id)[0];
+
+			text1 = text;
+			text2 = editor.getValue();
+
+			if (!text1)
+				text1 = '';
+			if (!text2)
+				text2 = '';
+
+			if (debug) {
+				console.log('text1', text1);
+				console.log('text2', text2);
+			}
+
+			if (text1 === text2) {
+				return;
+			}
+
+			Command.setProperty(entity.id, key, text2, false, function() {
+				dialogMsg.html('<div class="infoBox success">Code saved.</div>');
+				$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+				_Schema.reload();
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+				Command.getProperty(entity.id, key, function(newText) {
+					text = newText;
+				});
+			});
+
+		});
+
+		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+		$('#lineWrapping').on('change', function() {
+			var inp = $(this);
+			if  (inp.is(':checked')) {
+				LSWrapper.setItem(lineWrappingKey, "1");
+				editor.setOption('lineWrapping', true);
+			} else {
+				LSWrapper.removeItem(lineWrappingKey);
+				editor.setOption('lineWrapping', false);
+			}
+			blinkGreen(inp.parent());
+			editor.refresh();
+		});
+
+		dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
+		dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + editor.getValue().match(/\S+/g).length + '</span></span>');
+
+		editor.id = entity.id;
+
+		editor.focus();
+
+	},
+
 	appendRelatedProperty: function(el, rel, key, out) {
 		remotePropertyKeys.push('_' + key);
 		var relType = rel.relationshipType;
@@ -1459,52 +1606,6 @@ var _Schema = {
 			}, function() {
 
 				_Schema.bindEvents(property);
-			});
-		}
-	},
-	saveSchemaLocalization: function(localization, schemaPropertyId) {
-
-		var key = localization.id;
-
-		_Schema.unbindLocalizationEvents(key);
-
-		var name = $('.' + key + ' .localization-name').val();
-		var locale = $('.' + key + ' .localization-locale').val();
-
-		if (name && name.length) {
-
-			var obj = {};
-			obj.name = name;
-			obj.locale = locale;
-
-//			var res = '';
-//			if (entity.type === 'SchemaProperty') {
-//				res = 'schema_property_localization';
-//			} else if (entity.type === 'SchemaNode') {
-//				res = 'schema_node_localization';
-//			} else {
-//				Structr.error('Cannot save localization: Unsupported entity type ' + entity.type, true);
-//				return;
-//			}
-
-			// updating a localization does not require a resource
-			_Schema.storeSchemaEntity('', localization, JSON.stringify(obj), function() {
-
-				blinkGreen($('.local .' + key));
-
-				localization.name = obj.name;
-				localization.locale = obj.locale;
-
-				_Schema.bindLocalizationEvents(localization, schemaPropertyId);
-
-			}, function() {
-
-				blinkRed($('.local .' + key));
-				_Schema.bindLocalizationEvents(localization, schemaPropertyId);
-
-			}, function() {
-
-				_Schema.bindLocalizationEvents(localization, schemaPropertyId);
 			});
 		}
 	},
@@ -1716,7 +1817,7 @@ var _Schema = {
 		if (name && name.length) {
 
 			var obj                = {};
-			obj.schemaNode         = { id: entity.id }
+			obj.schemaNode         = { id: entity.id };
 			obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(entity, attrs);
 			obj.nonGraphProperties = _Schema.findNonGraphProperties(entity, attrs);
 			obj.name               = name;
@@ -2113,7 +2214,7 @@ var _Schema = {
 
 		Structr.dialog('Sync schema to remote server', function() {},  function() {});
 
-		var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
 
 		dialog.append('To sync <b>all schema nodes and relationships</b> to the remote server, ');
 		dialog.append('enter host, port, username and password of your remote instance and click Start.');
@@ -2143,7 +2244,7 @@ var _Schema = {
 			var key = 'key_push_schema';
 
 			pushConf = {host: host, port: port, username: username, password: password};
-			localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
 
 			Command.pushSchema(host, port, username, password, key, function() {
 				dialog.empty();
@@ -2412,7 +2513,7 @@ var _Schema = {
 			$('td', schemaOptionsTable).on('mouseup', function(e) {
 				e.stopPropagation();
 				e.preventDefault();
-				console.log('td clicked')
+				console.log('td clicked');
 				var td = $(this);
 				var inp = $('.toggle-type', td);
 				inp.prop("checked", !inp.prop("checked"));
@@ -2432,13 +2533,13 @@ var _Schema = {
 				hiddenSchemaNodes.push(key);
 			}
 			nodes[key] = undefined;
-			localStorage.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
+			LSWrapper.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
 		} else {
 			if (hiddenSchemaNodes.indexOf(key) > -1) {
 				hiddenSchemaNodes.splice(hiddenSchemaNodes.indexOf(key), 1);
 				Command.get(key, function(schemaNode) {
 					nodes[key] = schemaNode;
-					localStorage.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
+					LSWrapper.setItem(hiddenSchemaNodesKey, JSON.stringify(hiddenSchemaNodes));
 				});
 			}
 		}
