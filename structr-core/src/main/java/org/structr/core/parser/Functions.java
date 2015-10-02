@@ -1521,10 +1521,9 @@ public class Functions {
 
 				logger.log(Level.FINE, "Length: {0}", sources.length);
 
-				if (sources.length < 2) {
-
-					return true;
-				}
+                                if (sources.length != 2) {
+                                    return usage(ctx.isJavaScriptContext());
+                                }
 
 				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[]{sources[0], sources[1]});
 
