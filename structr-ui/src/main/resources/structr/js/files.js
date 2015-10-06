@@ -359,7 +359,7 @@ var _Files = {
 		if (!parent)
 			return false;
 
-		parent.append('<div id="id_' + folder.id + '" structr_type="folder" class="node folder' + (isSelected ? ' selected' : '') + '">'
+		parent.append('<div id="id_' + folder.id + '" data-structr_type="folder" class="node folder' + (isSelected ? ' selected' : '') + '">'
 				+ '<img class="typeIcon" src="' + _Files.folder_icon + '">'
 				+ '<b title="' + folder.name + '" class="name_">' + fitStringToWidth(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
 				+ '</div>');
@@ -422,8 +422,8 @@ var _Files = {
 			tolerance: 'pointer',
 			drop: function(event, ui) {
 				var self = $(this);
-				var fileId = getId(ui.draggable);
-				var folderId = getId(self);
+				var fileId = Structr.getId(ui.draggable);
+				var folderId = Structr.getId(self);
 				log('fileId, folderId', fileId, folderId);
 				if (!(fileId === folderId)) {
 					var nodeData = {};
@@ -435,7 +435,7 @@ var _Files = {
 
 						$.each(selectedElements, function(i, fileEl) {
 							//log('addExpandedNode(folderId)', addExpandedNode(folderId));
-							var fileId = getId(fileEl);
+							var fileId = Structr.getId(fileEl);
 							Command.appendFile(fileId, folderId);
 							Structr.node(folderId).append(Structr.node(fileId));
 							$(ui.draggable).remove();
@@ -522,7 +522,7 @@ var _Files = {
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
 			$.each(selectedElements, function(i, el) {
-				var entity = StructrModel.obj(getId(el));
+				var entity = StructrModel.obj(Structr.getId(el)); console.log(el, Structr.getId(el), entity);
 				$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
 				$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
 
@@ -535,7 +535,7 @@ var _Files = {
 						fileContents[activeFileId] = editor.getValue();
 					}
 
-					activeFileId = getIdFromPrefixIdString($(this).prop('id'), 'tab-');
+					activeFileId = Structr.getIdFromPrefixIdString($(this).prop('id'), 'tab-');
 					$('#content-tab-' + activeFileId).empty();
 					_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
 

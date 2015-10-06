@@ -492,7 +492,7 @@ function wsConnect() {
 							_Pages.activateTab(tab);
 						}, 2000);
 					} else if (command === 'CREATE' && (entity.isFile || entity.isImage || entity.isVideo)) {
-						_Files.uploadFile(entity);
+						_Filesystem.uploadFile(entity);
 					}
 
 					StructrModel.callCallback(data.callback, entity);

@@ -1131,13 +1131,13 @@ var _Entities = {
 			_Entities.makeNameEditable(node);
 		});
 
-		var nodeId = getId(el), isComponent;
+		var nodeId = Structr.getId(el), isComponent;
 		if (nodeId === undefined) {
-			nodeId = getComponentId(el);
+			nodeId = Structr.getComponentId(el);
 			if (nodeId) {
 				isComponent = true;
 			} else {
-				nodeId = getActiveElementId(el);
+				nodeId = Structr.getActiveElementId(el);
 			}
 		}
 
@@ -1159,7 +1159,7 @@ var _Entities = {
 
 				var page = $(el).closest('.page');
 				if (page.length) {
-					$('#preview_' + getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
+					$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
 				}
 				self.addClass('nodeHover').children('img.button').show().css('display', 'inline-block');
 				self.children('.icons').children('img.button').show();
@@ -1189,8 +1189,8 @@ var _Entities = {
 		}
 		var page = node.closest('.page');
 		if (page.length) {
-			//$('#preview_' + getId(page)).contents().find('[data-structr-id=' + getId(node) + ']').removeClass('nodeHover');
-			$('#preview_' + getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
+			//$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id=' + Structr.getId(node) + ']').removeClass('nodeHover');
+			$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
 		}
 	},
 	isExpanded: function(element) {
@@ -1205,7 +1205,7 @@ var _Entities = {
 			return;
 		}
 		var el = $(element);
-		var id = getId(el);
+		var id = Structr.getId(el);
 
 		if (!id) {
 			return;
@@ -1247,7 +1247,7 @@ var _Entities = {
 	toggleElement: function(element, expanded) {
 
 		var el = $(element);
-		var id = getId(el) || getComponentId(el);
+		var id = Structr.getId(el) || Structr.getComponentId(el);
 
 		log('toggleElement: ', el, id);
 
@@ -1295,7 +1295,7 @@ var _Entities = {
 				e.stopPropagation();
 				_Entities.makeNameEditable(element, w);
 			});
-			Command.setProperty(getId(element), "name", newName);
+			Command.setProperty(Structr.getId(element), "name", newName);
 			_Pages.reloadPreviews();
 		});
 
@@ -1308,7 +1308,7 @@ var _Entities = {
 					e.stopPropagation();
 					_Entities.makeNameEditable(element, w);
 				});
-				Command.setProperty(getId(element), "name", newName);
+				Command.setProperty(Structr.getId(element), "name", newName);
 				_Pages.reloadPreviews();
 			}
 		});

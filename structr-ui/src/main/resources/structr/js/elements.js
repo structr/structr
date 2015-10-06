@@ -182,7 +182,7 @@ var _Elements = {
 					log('widget dropped on widget area, aborting');
 					return false;
 				}
-				var sourceId = getId(sourceEl);
+				var sourceId = Structr.getId(sourceEl);
 
 				$.ajax({
 					url: viewRootUrl + sourceId + '?edit=1',
@@ -278,7 +278,7 @@ var _Elements = {
 				e.stopPropagation();
 				dropBlocked = true;
 				var sourceEl = $(ui.draggable);
-				var sourceId = getId(sourceEl);
+				var sourceId = Structr.getId(sourceEl);
 				if (!sourceId) return false;
 				var obj = StructrModel.obj(sourceId);
 				if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {

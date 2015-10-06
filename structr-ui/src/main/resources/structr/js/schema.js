@@ -173,7 +173,7 @@ var _Schema = {
 
 				_Schema.loadSchema(function() {
 					instance.bind('connection', function(info) {
-						_Schema.connect(getIdFromPrefixIdString(info.sourceId, 'id_'), getIdFromPrefixIdString(info.targetId, 'id_'));
+						_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
 					});
 					instance.bind('connectionDetached', function(info) {
 						Structr.confirmation('<h3>Delete schema relationship?</h3>',
@@ -299,7 +299,7 @@ var _Schema = {
 					$('.edit', node).on('click', function(e) {
 
 						e.stopPropagation();
-						var id = getId($(this).closest('.schema.node'));
+						var id = Structr.getId($(this).closest('.schema.node'));
 
 						if (!id) {
 							return false;

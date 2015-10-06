@@ -273,7 +273,7 @@ var StructrModel = {
 		var inputElement = $('td.' + key + '_ input', element);
 		log(inputElement);
 		var newValue = obj[key];
-		//console.log(key, newValue, typeof newValue);
+		log(key, newValue, typeof newValue);
 
 		var attrElement = element.children('.' + key + '_');
 
@@ -293,8 +293,7 @@ var StructrModel = {
 				} else {
 					log(key, newValue);
 					if (key === 'name') {
-						attrElement.html(fitStringToWidth(newValue, w));
-						attrElement.attr('title', newValue);
+						attrElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 					}
 				}
 
@@ -327,8 +326,7 @@ var StructrModel = {
 
 			blinkGreen(tabNameElement);
 
-			tabNameElement.html(fitStringToWidth(newValue, w));
-			tabNameElement.attr('title', newValue);
+			tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 
 			log('Model: Reload iframe', id, newValue);
 			_Pages.reloadIframe(id);

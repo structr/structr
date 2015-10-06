@@ -56,7 +56,7 @@ var _Dragndrop = {
 				var self = $(this), related;
 				//if (el.sortable) el.sortable('refresh');
 
-				var sourceId = getId(ui.draggable) || getComponentId(ui.draggable);
+				var sourceId = Structr.getId(ui.draggable) || Structr.getComponentId(ui.draggable);
 
 				if (!sourceId) {
 
@@ -71,15 +71,15 @@ var _Dragndrop = {
 					}
 				}
 
-				var targetId = getId(self);
+				var targetId = Structr.getId(self);
 
 				if (!targetId) {
 					targetId = self.attr('data-structr-id');
 				}
 
-				log('dropped onto', self, targetId, getId(sortParent));
-				if (targetId === getId(sortParent)) {
-					log('target id == sortParent id', targetId, getId(sortParent));
+				log('dropped onto', self, targetId, Structr.getId(sortParent));
+				if (targetId === Structr.getId(sortParent)) {
+					log('target id == sortParent id', targetId, Structr.getId(sortParent));
 					return false;
 				}
 
@@ -95,7 +95,7 @@ var _Dragndrop = {
 				if (!page) {
 					page = self.closest('[data-structr-page]')[0];
 				}
-				var pageId = (page ? getId(page) : target.pageId);
+				var pageId = (page ? Structr.getId(page) : target.pageId);
 
 				if (!pageId) {
 					pageId = $(page).attr('data-structr-page');
@@ -147,7 +147,7 @@ var _Dragndrop = {
 			start: function(event, ui) {
 				sorting = true;
 				sortParent = $(ui.item).parent();
-				log('### sortable start: sorting?', sorting, getId(el), getId(self), getId(sortParent));
+				log('### sortable start: sorting?', sorting, Structr.getId(el), Structr.getId(self), Structr.getId(sortParent));
 			},
 			update: function(event, ui) {
 
@@ -155,19 +155,19 @@ var _Dragndrop = {
 				if (!sorting)
 					return false;
 
-				var id = getId(el);
+				var id = Structr.getId(el);
 				if (!id)
-					id = getComponentId(el);
+					id = Structr.getComponentId(el);
 
 				var nextNode = el.next('.node');
-				var refId = getId(nextNode);
+				var refId = Structr.getId(nextNode);
 				if (!refId) {
-					refId = getComponentId(nextNode);
+					refId = Structr.getComponentId(nextNode);
 				}
 
-				log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent), nextNode, refId);
+				log('### sortable update: sorting?', sorting, Structr.getId(el), Structr.getId(self), Structr.getId(sortParent), nextNode, refId);
 
-				var parentId = getId(sortParent);
+				var parentId = Structr.getId(sortParent);
 				el.remove();
 				Command.insertBefore(parentId, id, refId);
 				sorting = false;
@@ -304,7 +304,7 @@ var _Dragndrop = {
 			}
 		}
 
-		log('drop event in appendElementElement', pageId, getId(self), (tag !== 'content' ? tag : ''));
+		log('drop event in appendElementElement', pageId, Structr.getId(self), (tag !== 'content' ? tag : ''));
 
 	},
 	htmlElementFromPaletteDropped: function(tag, target, pageId) {

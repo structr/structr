@@ -2348,6 +2348,10 @@ td#cascading-options, td#propagation-options {
     max-width: 480px;
 }
 
+/*
+ * Filesystem
+ */
+
 .jstree-anchor {
   font-family: sans-serif;
   font-size: 9pt;
@@ -2359,6 +2363,14 @@ td#cascading-options, td#propagation-options {
 
 #filesystem-main {
   display: table-row;
+}
+
+#filesystem-main b.name_ {
+  font-weight: normal;
+}
+
+#filesystem-main input.new-name {
+  font-weight: normal;
 }
 
 #file-tree-container {

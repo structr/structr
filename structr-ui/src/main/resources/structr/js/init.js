@@ -858,7 +858,7 @@ var Structr = {
 		log(element);
 
 		var entity = {};
-		entity.id = getId($(element));
+		entity.id = Structr.getId($(element));
 		var cls = Structr.getClass(element);
 		if (cls) {
 			entity.type = cls.capitalize();
@@ -1363,6 +1363,20 @@ var Structr = {
 	},
 	doDeselectAllTabs: function () {
 		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]:checked').click();
+	},
+	getId: function(element) {
+		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;
+	},
+	getIdFromPrefixIdString: function(idString, prefix) {
+		if (!idString || !idString.startsWith(prefix))
+			return false;
+		return idString.substring(prefix.length);
+	},
+	getComponentId: function(element) {
+		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'componentId_') || undefined;
+	},
+	getActiveElementId: function(element) {
+		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	}
 };
 
@@ -1517,7 +1531,7 @@ function getElementPath(element) {
 		var self = $(this);
 		// id for top-level element
 		if (i === 0)
-			return getId(self);
+			return Structr.getId(self);
 		return self.prevAll('.node').length;
 	}).get().join('_');
 }
@@ -1650,24 +1664,6 @@ function setPosition(parentId, nodeUrl, pos) {
 
 var keyEventBlocked = true;
 var keyEventTimeout;
-
-function getId(element) {
-	return getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;
-}
-
-function getIdFromPrefixIdString(idString, prefix) {
-	if (!idString || !idString.startsWith(prefix))
-		return false;
-	return idString.substring(prefix.length);
-}
-
-function getComponentId(element) {
-	return getIdFromPrefixIdString($(element).prop('id'), 'componentId_') || undefined;
-}
-
-function getActiveElementId(element) {
-	return getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
-}
 
 $(window).unload(function() {
 	log('########################################### unload #####################################################');

@@ -284,8 +284,8 @@ var _Security = {
 			tolerance: 'pointer',
 			drop: function(event, ui) {
 				var self = $(this);
-				var userId = getId(ui.draggable);
-				var groupId = getId(self);
+				var userId = Structr.getId(ui.draggable);
+				var groupId = Structr.getId(self);
 				var nodeData = {};
 				nodeData.id = userId;
 				//console.log('addExpandedNode(groupId)', groupId);
