@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ * Copyright (C) 2010-2015 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
