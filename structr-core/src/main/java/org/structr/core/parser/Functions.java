@@ -1073,12 +1073,10 @@ public class Functions {
 
 						return source.contains(part);
 
-					} else if (sources[0] instanceof Collection && sources[1] instanceof GraphObject) {
+					} else if (sources[0] instanceof Collection) {
 
 						final Collection collection = (Collection) sources[0];
-						final GraphObject obj = (GraphObject) sources[1];
-
-						return collection.contains(obj);
+						return collection.contains(sources[1]);
 
 					} else if (sources[0].getClass().isArray()) {
 
