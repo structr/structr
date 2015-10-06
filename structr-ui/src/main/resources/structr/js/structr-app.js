@@ -210,6 +210,10 @@ function StructrApp(baseUrl) {
 
 			var el = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'attr');
 			var f = s.field(el);
+			
+			// ignore invalid fields
+			if (!f) return;
+			
 			f.id = id;
 			if (!s.data[id]) s.data[id] = {};
 			s.data[id][key] = f.val;
