@@ -499,9 +499,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		// TODO: implement POST to be able to handle large request bodies
-
-		throw new IllegalStateException("Method not allowed");
+		doGet(request, response);
 
 	}
 
