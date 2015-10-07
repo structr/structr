@@ -830,7 +830,7 @@ var _Crud = {
 				_Crud.replaceSortHeader(type);
 			},
 			error: function(a, b, c) {
-				console.log(a, b, c);
+				console.log(a, b, c, type, url);
 				// something went really wrong, probably a network issue, so reload the whole page
 				window.setTimeout(function() {
 					location.reload();
