@@ -227,6 +227,7 @@ function wsConnect() {
 						} else {
 
 							var node = Structr.node(msgObj.id);
+							
 							if (node) {
 
 								var progr = node.find('.progress');

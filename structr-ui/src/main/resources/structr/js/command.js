@@ -882,6 +882,8 @@ var Command = {
 		data.contentType = file.type;
 		data.name = file.name;
 		data.size = file.size;
+		data.parent = file.parent;
+		data.parentId = file.parentId;
 		data.type = isImage(file.type) ? 'Image' : isVideo(file.type) ? 'VideoFile' : 'File';
 		obj.data = data;
 		log('createFile()', obj);

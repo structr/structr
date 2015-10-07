@@ -39,7 +39,7 @@ var _Filesystem = {
 
 		main = $('#main');
 
-		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Fulltext search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -78,7 +78,7 @@ var _Filesystem = {
 		if (folderContents) {
 			folderContents.css({
 				width: windowWidth - 400 - 64 + 'px',
-				height: windowHeight - headerOffsetHeight - 16 + 'px'
+				height: windowHeight - headerOffsetHeight - 43 + 'px'
 			});
 		}
 		Structr.resize();
@@ -88,15 +88,68 @@ var _Filesystem = {
 
 		_Filesystem.init();
 
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Files');
+		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Filesystem');
 
 		main.append('<div id="filesystem-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
 
 		fileTree = $('#file-tree');
 		folderContents = $('#folder-contents');
 
-		$.jstree.defaults.core.themes.dots = false;
+		$('#folder-contents-container').prepend(
+				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>'
+				+ '<button class="pull_file_icon button"><img title="Sync Files" alt="Sync Files" src="' + _Files.pull_file_icon + '"> Sync Files</button>'
+				);
+		
+		$('.add_file_icon', main).on('click', function(e) {
+			e.stopPropagation();
+			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir }, function(f) {
+				_Filesystem.appendFileOrFolderRow(f);
+			});
+		});
 
+		$('#folder-contents-container').prepend('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
+		$('.add_folder_icon', main).on('click', function(e) {
+			e.stopPropagation();
+			Command.create({ type: 'Folder', parentId: currentWorkingDir }, function(f) {
+				_Filesystem.appendFileOrFolderRow(f);
+				_Filesystem.refreshTree();
+			});
+		});
+
+		$.jstree.defaults.core.themes.dots = false;
+		
+		_Filesystem.initTree();
+
+		$('#file-tree').on('select_node.jstree', function(evt, data) {
+
+			_Filesystem.setWorkingDirectory(data.node.id);
+			_Filesystem.displayFolderContents(data.node.id, data.node.parent, data.node.original.path);
+
+		});
+
+		$('#file-tree').on('loaded.jstree', function(evt, data) {
+
+			_Filesystem.loadAndSetWorkingDir();
+
+		});
+
+		_Filesystem.activateUpload();
+
+		win.off('resize');
+		win.resize(function() {
+			_Filesystem.resize();
+		});
+
+		Structr.unblockMenu(100);
+
+		_Filesystem.resize();
+
+	},
+	refreshTree: function() {
+		$('#file-tree').jstree('refresh');
+	},
+	initTree: function() {
+		
 		$('#file-tree').jstree({
 			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
 			'core': {
@@ -141,33 +194,7 @@ var _Filesystem = {
 				}
 			}
 		});
-
-
-
-		$('#file-tree').on('select_node.jstree', function(evt, data) {
-
-			_Filesystem.setWorkingDirectory(data.node.id);
-			_Filesystem.displayFolderContents(data.node.id, data.node.parent, data.node.original.path);
-
-		});
-
-		$('#file-tree').on('loaded.jstree', function(evt, data) {
-
-			_Filesystem.loadAndSetWorkingDir();
-
-		});
-
-		_Filesystem.activateUpload();
-
-		win.off('resize');
-		win.resize(function() {
-			_Filesystem.resize();
-		});
-
-		Structr.unblockMenu(100);
-
-		_Filesystem.resize();
-
+		
 	},
 	unload: function() {
 		$(main.children('table')).remove();
@@ -228,9 +255,12 @@ var _Filesystem = {
 
 				} else {
 					$(filesToUpload).each(function(i, file) {
-						file.parent = currentWorkingDir;
-						console.log('create file', file, currentWorkingDir);
-						Command.createFile(file);
+						//file.parent = { id: currentWorkingDir };
+						file.parentId = currentWorkingDir;
+						file.hasParent = true;
+						Command.createFile(file, function(f) {
+							_Filesystem.appendFileOrFolderRow(f);
+						});
 					});
 				}
 
@@ -268,7 +298,7 @@ var _Filesystem = {
 	fulltextSearch: function(searchString) {
 
 		var content = $('#folder-contents');
-		content.hide();
+		content.children().hide();
 
 		var url = rootUrl + 'files/ui?loose=1';
 
@@ -283,14 +313,18 @@ var _Filesystem = {
 	},
 	clearSearch: function() {
 		$('.search', main).val('');
-		$('#folder-contents').show();
 		$('#search-results').remove();
+		$('#folder-contents').children().show();
 	},
 	loadAndSetWorkingDir: function() {
 		$.get(rootUrl + 'me/ui', function(data) {
 			var me = data.result;
 			//console.log('working dir', me.workingDirectory);
-			$('#file-tree').jstree(true).select_node(me.workingDirectory.id);
+			if (me.workingDirectory) {
+				$('#file-tree').jstree(true).select_node(me.workingDirectory.id);
+			} else {
+				currentWorkingDir = null;
+			}
 		});
 
 	},
@@ -342,6 +376,11 @@ var _Filesystem = {
 	},
 	setWorkingDirectory: function(id) {
 
+		if (id === 'root') {
+			currentWorkingDir = null;
+			return;
+		}
+
 		var data = JSON.stringify({'workingDirectory': {'id': id}});
 
 		$.ajax({
@@ -350,18 +389,23 @@ var _Filesystem = {
 			method: 'PUT',
 			type: 'PUT',
 			data: data,
-			success: function() {
-				currentWorkingDir = id;
+			statusCode: {
+				200: function() {
+					currentWorkingDir = id;
+				}
 			}
 		});
 	},
-	displayFolderContents: function(id, parentId, name) {
+	displayFolderContents: function(id, parentId, path) {
 
 		var content = $('#folder-contents');
 		content.empty();
+		path = path.split('/').splice(1).map(function(part) {
+			return '<i class="fa fa-caret-right"></i> ' + part;
+		}).join(' ');
 		content.append(
-				'<h1>' + name + '</h1>'
-				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Content Type</th><th>Owner</th></tr></thead>'
+				'<h2>' + path + '</h2>'
+				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
 				+ '<tr id="parent-file-link">'
 				+ '<td class="file-type"><i class="fa fa-folder"></i></td>'
@@ -427,19 +471,22 @@ var _Filesystem = {
 		var row = $('#' + rowId);
 		var icon = d.isFolder ? 'fa-folder' : _Filesystem.getIcon(d.name, d.contentType);
 
-		row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
-
 		if (d.isFolder) {
+			row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
 			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
 		} else {
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="file" class="node file"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
+			row.append('<td class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="file" class="node file">'
+			+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b>'
+			+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
 		}
 
-		row.append('<td class="readonly">' + size + '</td>');
-		row.append('<td>' + (d.isFile && d.contentType ? d.contentType : '') + '</td>');
+		row.append('<td>' + size + '</td>');
+		row.append('<td>' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
 		row.append('<td>' + (d.owner ? d.owner.name : '') + '</td>');
 
-		$('#id_' + d.id + '.folder').on('click', function(e) {
+		// Change working dir by click on folder icon
+		$('#id_' + d.id + '.folder').parent().prev().on('click', function(e) {
 			
 			e.preventDefault();
 			e.stopPropagation();
@@ -477,6 +524,8 @@ var _Filesystem = {
 		
 		var delIcon = div.children('.delete_icon');
 		if (d.isFolder) {
+			
+			// ********** Folders **********
 
 			div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
 			div.children('.push_icon').on('click', function() {
@@ -492,9 +541,64 @@ var _Filesystem = {
 			}
 			div.children('.delete_icon').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.deleteNode(this, d, true);
+				_Entities.deleteNode(this, d, true, function() {
+					_Filesystem.refreshTree();
+				});
 			});
+			
+			div.draggable({
+				revert: 'invalid',
+				stack: '.node'
+			});
+
+			div.droppable({
+				accept: '.folder, .file, .image',
+				greedy: true,
+				hoverClass: 'nodeHover',
+				tolerance: 'pointer',
+				drop: function(e, ui) {
+					
+					e.preventDefault();
+					e.stopPropagation();
+					
+					var self = $(this);
+					var fileId = Structr.getId(ui.draggable);
+					var folderId = Structr.getId(self);
+					log('fileId, folderId', fileId, folderId);
+					if (!(fileId === folderId)) {
+						var nodeData = {};
+						nodeData.id = fileId;
+						//addExpandedNode(folderId);
+
+						//selectedElements = $('.node.selected');
+						if (selectedElements.length > 1) {
+
+							$.each(selectedElements, function(i, fileEl) {
+								var fileId = Structr.getId(fileEl);
+								Command.setProperty(fileId, 'parentId', folderId, false, function() {
+									$(ui.draggable).remove();
+								});
+								
+							});
+							selectedElements.length = 0;
+						} else {
+							Command.setProperty(fileId, 'parentId', folderId, false, function() {
+								$(ui.draggable).remove();
+							});
+						}
+
+						_Filesystem.refreshTree();
+					}
+					
+					return false;
+				}
+			});
+			
+
 		} else {
+			
+			// ********** Files **********
+			
 			if (_Files.isArchive(d)) {
 				div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 				div.children('.unarchive_icon').on('click', function() {
@@ -527,6 +631,37 @@ var _Filesystem = {
 			
 			_Filesystem.appendEditFileIcon(div, d);
 
+			div.draggable({
+				revert: 'invalid',
+				//helper: 'clone',
+				containment: 'document',
+				//stack: '.node',
+				appendTo: '#main',
+				//zIndex: 2,
+//				start: function(e, ui) {
+//					$(this).hide();
+//					ui.helper.css({
+//						width: files.width() + 'px'
+//					});
+//				},
+				stop: function(e, ui) {
+					$(this).show();
+					//$('#pages_').droppable('enable').removeClass('nodeHover');
+					$(e.toElement).one('click', function(e) {
+						e.stopImmediatePropagation();
+					});
+				},
+				helper: function(event) {
+					selectedElements = $('.node.selected');
+					if (selectedElements.length > 1) {
+						selectedElements.removeClass('selected');
+						return $('<img class="node-helper" src="icon/page_white_stack.png">')
+								.css("margin-left", event.clientX - $(event.target).offset().left);
+					}
+					return $(this).clone();
+				}
+			});
+			
 		}
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.setMouseOver(div);
@@ -595,8 +730,7 @@ var _Filesystem = {
 	displaySearchResultsForURL: function(url) {
 
 		var content = $('#folder-contents');
-		content.hide();
-		content.parent().append('<div id="search-results"></div>');
+		content.append('<div id="search-results"></div>');
 
 		var searchString = $('.search', main).val();
 		var container = $('#search-results');
@@ -618,19 +752,20 @@ var _Filesystem = {
 							statusCode: {
 								200: function(data) {
 
-									container.append('<div style="border: 1px solid #a5a5a5; padding: 12px; margin-bottom: 24px; background-color: #fff; border-radius: 3px;" id="results' + d.id + '"></div>');
+									container.append('<div class="search-result" id="results' + d.id + '"></div>');
 
 									var div = $('#results' + d.id);
-
-									div.append('<h2>' + d.path + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
+									var icon = _Filesystem.getIcon(d.name, d.contentType);
+									//div.append('<h2><img id="preview' + d.id + '" src="' + icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" />' + d.path + '</h2>');
+									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 
 									$.each(data.result.context, function(i, contextString) {
 
 										searchString.split(' ').forEach(function(str) {
-											contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), "<span style='background-color: #c5ff69;'>$1</span>");
+											contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
 										});
 
-										div.append('<div style="font-size: 9pt; margin-right: 20px; margin-bottom: 20px; width: 300px; float: left;">' + contextString + '</div>');
+										div.append('<div class="part">' + contextString + '</div>');
 
 									});
 

@@ -319,18 +319,27 @@ var StructrModel = {
 
 		log(key, Structr.getClass(element));
 
-		if (key === 'name' && Structr.getClass(element) === 'page') {
+		if (key === 'name') {
 
-			// update tab and reload iframe
-			var tabNameElement = $('#show_' + id).children('.name_');
+			if (Structr.getClass(element) === 'page') {
 
-			blinkGreen(tabNameElement);
+				// update tab and reload iframe
+				var tabNameElement = $('#show_' + id).children('.name_');
 
-			tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
+				blinkGreen(tabNameElement);
 
-			log('Model: Reload iframe', id, newValue);
-			_Pages.reloadIframe(id);
+				tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
+
+				log('Model: Reload iframe', id, newValue);
+				_Pages.reloadIframe(id);
+
+			} else if (Structr.getClass(element) === 'folder') {
+				
+				_Filesystem.refreshTree();
+			
+			}
 		}
+		
 
 	},
 	/**
@@ -537,7 +546,7 @@ StructrFolder.prototype.remove = function() {
 };
 
 StructrFolder.prototype.append = function(refNode) {
-	StructrModel.expand(_Files.appendFolderElement(this, refNode), this);
+	//StructrModel.expand(_Files.appendFolderElement(this, refNode), this);
 };
 
 StructrFolder.prototype.exists = function() {
@@ -602,7 +611,7 @@ StructrFile.prototype.append = function() {
 			parentFolder.files.push(file);
 		}
 	}
-	StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
+	//StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
 };
 
 

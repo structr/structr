@@ -283,7 +283,7 @@ var _Images = {
 
 		return div;
 	},
-	showThumbnails: function(img, el) { console.log(img, el)
+	showThumbnails: function(img, el) {
 		$('.thumbnail', el).attr('src', '/' + img.tnSmall.id);
 		$('.thumbnail', el).on('mousedown', function(e) {
 			e.stopPropagation();

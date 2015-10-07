@@ -2433,11 +2433,11 @@ table.dataTable thead th, table.dataTable thead td {
 }
 
 .jstree-default .jstree-wholerow-clicked {
-  background: linear-gradient(to bottom, #a3ef47 0px, #81ce25 100%) !important;
+  background: #81ce25 ! important;
 }
 
 .jstree-default .jstree-wholerow-hovered {
-  background: linear-gradient(to bottom, #eff8e3 0px, #dff2c8 100%);
+  background: #eff8e3 ! important;
 }
 
 #files-table {
@@ -2471,6 +2471,7 @@ i.fa {
 #files-table td.file-type {
   width: 16px;
   padding: 4px 0px;
+  cursor: pointer;
 }
 
 #files-table td.file-type i.fa {
@@ -2545,4 +2546,29 @@ i.fa.ps {
 .ui-tooltip {
     white-space: pre-line;
     width: 50%;
+}
+
+.search-result {
+    border: 1px solid #a5a5a5;
+    padding: 0 12px 12px 12px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    background-color: #f6f6f6;
+    border-radius: 3px;
+}
+
+.search-result .part {
+    border-radius: 3px;
+    background-color: #fff;
+    font-size: 9pt;
+    margin-right: 20px;
+    margin-bottom: 12px;
+    min-width: 240px;
+    width: 30%;
+    float: left;
+}
+
+.search-result .highlight {
+    background-color: #c5ff69;
+    color: #000;
 }
