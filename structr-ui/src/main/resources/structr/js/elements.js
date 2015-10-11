@@ -215,6 +215,7 @@ var _Elements = {
 
 		});
 
+		remoteWidgetFilter = undefined;
 		_Widgets.refreshRemoteWidgets();
 
 	},

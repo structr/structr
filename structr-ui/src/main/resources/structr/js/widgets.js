@@ -44,6 +44,8 @@ var _Widgets = {
 		Structr.resize();
 	},
 	refreshRemoteWidgets: function() {
+		remoteWidgetFilter = undefined;
+
 		if (widgetsUrl.startsWith(document.location.hostname)) {
 			return;
 		}
