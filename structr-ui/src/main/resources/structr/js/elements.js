@@ -169,8 +169,9 @@ var _Elements = {
 
 		widgetsSlideout.find(':not(.compTab)').remove();
 
-		widgetsSlideout.append('<div class="ver-scrollable"><div id="widgets"><h3>Local Widgets</h3></div><div id="remoteWidgets"><h3>Remote Widgets</h3></div></div>');
+		widgetsSlideout.append('<div class="ver-scrollable"><h3>Local Widgets</h3><div id="widgets"></div><h3>Remote Widgets</h3><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
 		widgets = $('#widgets', widgetsSlideout);
+		_Widgets.refreshWidgets();
 
 		widgets.droppable({
 			drop: function(e, ui) {
@@ -198,24 +199,23 @@ var _Elements = {
 					}
 				});
 			}
+		});
+
+		remoteWidgets = $('#remoteWidgets', widgetsSlideout);
+
+		$('#remoteWidgetsFilter').keyup(function (event) {
+
+			var e = event || window.event();
+
+			if (e.keyCode === 27) {
+				$(this).val("");
+			}
+
+			_Widgets.repaintRemoteWidgets($(this).val());
 
 		});
 
-		Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type,source,treePath,isWidget', function(entities) {
-			entities.forEach(function (entity) {
-				StructrModel.create(entity, null, false);
-				_Widgets.appendWidgetElement(entity, false, widgets);
-			});
-		});
-
-		var remoteWidgetsArea = $('#remoteWidgets', widgetsSlideout);
-		_Widgets.getRemoteWidgets(widgetsUrl, function(entity) {
-
-			var obj = StructrModel.create(entity, undefined, false);
-			obj.srcUrl = widgetsUrl + '/' + entity.id;
-			_Widgets.appendWidgetElement(obj, true, remoteWidgetsArea);
-
-		});
+		_Widgets.refreshRemoteWidgets();
 
 	},
 	/**
