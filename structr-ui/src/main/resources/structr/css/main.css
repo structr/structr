@@ -2378,7 +2378,7 @@ td#cascading-options, td#propagation-options {
   vertical-align: top;
   padding: 12px;
   padding-right: 0px;
-  padding-top: 36px;
+  padding-top: 12px;
 }
 
 #file-tree {
@@ -2396,7 +2396,6 @@ td#cascading-options, td#propagation-options {
   display: table-cell;
   vertical-align: top;
   padding: 12px;
-  padding-top: 36px;
 }
 
 #folder-contents {
@@ -2405,7 +2404,9 @@ td#cascading-options, td#propagation-options {
   border-radius: 3px;
   border: 1px solid #a5a5a5;
   padding: 12px;
+  margin-top: 12px;
   overflow: auto;
+  font-size: 9pt;
 }
 
 #folder-contents h1 {
@@ -2548,13 +2549,26 @@ i.fa.ps {
     width: 50%;
 }
 
+#search-results h1, #search-results table.props {
+    margin-bottom: 12px;
+}
+
+#search-results table.props {
+    margin-bottom: 24px;
+}
 .search-result {
+    position: relative;
     border: 1px solid #a5a5a5;
     padding: 0 12px 12px 12px;
     margin-top: 12px;
     margin-bottom: 12px;
     background-color: #f6f6f6;
     border-radius: 3px;
+    overflow: auto;
+}
+
+.search-result.collapsed {
+    max-height: 120px;
 }
 
 .search-result .part {
@@ -2571,4 +2585,18 @@ i.fa.ps {
 .search-result .highlight {
     background-color: #c5ff69;
     color: #000;
+}
+
+.search-result .toggle-height {
+    cursor: pointer;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
+.search-result .go-to-top {
+    cursor: pointer;
+    position: absolute;
+    top: 12px;
+    right: 36px;
 }
