@@ -801,7 +801,7 @@ var _Crud = {
 		var table = _Crud.getTable(type);
 		var headerRow = '<thead><tr>' + $($('tr:first-child', table)[0]).html() + '</tr></thead>';
 		//console.log(headerRow);
-		table.empty();
+		fastRemoveAllChildren(table[0]);
 		table.append(headerRow);
 	},
 	list: function(type, url) {

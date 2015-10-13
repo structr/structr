@@ -501,3 +501,10 @@ var LSWrapper = {
 	}
 
 };
+
+function fastRemoveAllChildren(el) {
+	var child;
+	while ((child = el.firstChild)) {
+	  el.removeChild(child);
+	}	
+}

@@ -923,6 +923,10 @@ img.button {
     border: 1px solid #aaa;
 }
 
+.nodeHover {
+    z-index: 99;
+}
+
 .nodeSelected {
     background-color: #fffcdd ! important;
     border: 1px solid #ca0;
@@ -2471,7 +2475,6 @@ i.fa {
 
 #files-table td.file-type {
   width: 16px;
-  padding: 4px 0px;
   cursor: pointer;
 }
 
@@ -2482,7 +2485,6 @@ i.fa {
 
 #files-table td {
   text-align: left;
-  padding: 4px;
   padding-left: 8px;
 }
 
@@ -2497,6 +2499,11 @@ i.fa {
 #files-table td a:hover {
   text-decoration: underline;
 }
+
+#files-table .file, #files-table .folder {
+  margin: 0;
+}
+
 
 i.fa-file-archive-o {
   color: orange;
@@ -2556,6 +2563,11 @@ i.fa.ps {
 #search-results table.props {
     margin-bottom: 24px;
 }
+
+#search-results table.props th._type {
+    width: 120px;
+}
+
 .search-result {
     position: relative;
     border: 1px solid #a5a5a5;

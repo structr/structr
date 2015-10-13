@@ -25,11 +25,13 @@ var win = $(window);
 var selectedElements = [];
 var counter = 0;
 var currentWorkingDir;
+var folderPageSize = 10000, folderPage = 1;
 
 $(document).ready(function() {
 
 	Structr.registerModule('filesystem', _Filesystem);
 	_Filesystem.resize();
+	
 });
 
 var _Filesystem = {
@@ -61,6 +63,8 @@ var _Filesystem = {
 
 		});
 
+		Structr.makePagesMenuDroppable();
+
 	},
 	resize: function() {
 
@@ -91,7 +95,7 @@ var _Filesystem = {
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Filesystem');
 
 		main.append('<div id="filesystem-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
-
+		
 		fileTree = $('#file-tree');
 		folderContents = $('#folder-contents');
 
@@ -102,7 +106,7 @@ var _Filesystem = {
 		
 		$('.add_file_icon', main).on('click', function(e) {
 			e.stopPropagation();
-			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir }, function(f) {
+			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
 				_Filesystem.appendFileOrFolderRow(f);
 			});
 		});
@@ -110,7 +114,7 @@ var _Filesystem = {
 		$('#folder-contents-container').prepend('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
 		$('.add_folder_icon', main).on('click', function(e) {
 			e.stopPropagation();
-			Command.create({ type: 'Folder', parentId: currentWorkingDir }, function(f) {
+			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
 				_Filesystem.appendFileOrFolderRow(f);
 				_Filesystem.refreshTree();
 			});
@@ -118,21 +122,27 @@ var _Filesystem = {
 
 		$.jstree.defaults.core.themes.dots = false;
 		
-		_Filesystem.initTree();
+		_Filesystem.loadAndSetWorkingDir(function() {
+			_Filesystem.initTree();
+			if (!currentWorkingDir) {
+				_Filesystem.displayFolderContents('root', null, '/');
+			}
+		
+		});
 
-		$('#file-tree').on('select_node.jstree', function(evt, data) {
+		fileTree.on('select_node.jstree', function(evt, data) {
+
+			if (data.node.id === 'root') {
+				fileTree.jstree('deselect_node', 'root');
+				_Filesystem.deepOpen(currentWorkingDir, []);
+				//return;
+			}
 
 			_Filesystem.setWorkingDirectory(data.node.id);
 			_Filesystem.displayFolderContents(data.node.id, data.node.parent, data.node.original.path);
 
 		});
-
-		$('#file-tree').on('loaded.jstree', function(evt, data) {
-
-			_Filesystem.loadAndSetWorkingDir();
-
-		});
-
+		
 		_Filesystem.activateUpload();
 
 		win.off('resize');
@@ -145,12 +155,34 @@ var _Filesystem = {
 		_Filesystem.resize();
 
 	},
+	deepOpen: function(d, dirs) {
+		if (d && d.id) {
+			dirs.unshift(d);
+			Command.get(d.id, function(dir) {
+				if (dir.parent) {
+					_Filesystem.deepOpen(dir.parent, dirs);
+				} else {
+					_Filesystem.open(dirs);
+				}
+			});
+		}
+	},
+	open: function(dirs) {
+		if (!dirs.length) return;
+		var d = dirs.shift();
+		fileTree.jstree('deselect_node', d.id);
+		fileTree.jstree('open_node', d.id, function() {
+			if (currentWorkingDir) {
+				fileTree.jstree('select_node', currentWorkingDir.id);
+			}
+			_Filesystem.open(dirs);
+		});
+	},
 	refreshTree: function() {
-		$('#file-tree').jstree('refresh');
+		fileTree.jstree('refresh');
 	},
 	initTree: function() {
-		
-		$('#file-tree').jstree({
+		fileTree.jstree({
 			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
 			'core': {
 				'animation': 0,
@@ -162,10 +194,22 @@ var _Filesystem = {
 
 						case '#':
 
-							Command.list('Folder', true, 100, 1, 'name', 'asc', null, function(folders) {
+							Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', null, function(folders) {
 
 								var children = [];
 								var list = [];
+
+								list.push({
+									id: 'root',
+									text: '/',
+									children: true,
+									icon: '/structr/icon/structr_icon_16x16.png',
+									path: '/',
+									state: {
+										opened: true,
+										selected: true
+									}
+								});
 
 								folders.forEach(function(d) {
 
@@ -177,9 +221,8 @@ var _Filesystem = {
 									});
 								});
 
-								list.push({id: 'root', text: '/', children: true, icon: '/structr/icon/structr_icon_16x16.png', path: '/', state: {opened: true, selected: true}});
 								cb(list);
-
+								
 							});
 							break;
 
@@ -197,7 +240,6 @@ var _Filesystem = {
 		
 	},
 	unload: function() {
-		$(main.children('table')).remove();
 	},
 	activateUpload: function() {
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -256,7 +298,7 @@ var _Filesystem = {
 				} else {
 					$(filesToUpload).each(function(i, file) {
 						//file.parent = { id: currentWorkingDir };
-						file.parentId = currentWorkingDir;
+						file.parentId = currentWorkingDir ? currentWorkingDir.id : null;;
 						file.hasParent = true;
 						Command.createFile(file, function(f) {
 							_Filesystem.appendFileOrFolderRow(f);
@@ -306,8 +348,6 @@ var _Filesystem = {
 			url = url + '&indexedContent=' + str;
 		});
 
-		//console.log(url);
-
 		_Filesystem.displaySearchResultsForURL(url);
 
 	},
@@ -316,15 +356,16 @@ var _Filesystem = {
 		$('#search-results').remove();
 		$('#folder-contents').children().show();
 	},
-	loadAndSetWorkingDir: function() {
-		$.get(rootUrl + 'me/ui', function(data) {
-			var me = data.result;
-			//console.log('working dir', me.workingDirectory);
+	loadAndSetWorkingDir: function(callback) {
+		Command.rest("/me/ui", function (result) {
+			var me = result[0];
 			if (me.workingDirectory) {
-				$('#file-tree').jstree(true).select_node(me.workingDirectory.id);
+				currentWorkingDir = me.workingDirectory;
 			} else {
 				currentWorkingDir = null;
 			}
+			
+			callback();
 		});
 
 	},
@@ -332,7 +373,7 @@ var _Filesystem = {
 
 		if (!id) {
 
-			Command.list('Folder', true, 100, 1, 'name', 'asc', null, function(folders) {
+			Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', null, function(folders) {
 
 				var list = [];
 
@@ -347,12 +388,12 @@ var _Filesystem = {
 				});
 
 				callback(list);
-
+				
 			});
 
 		} else {
 
-			Command.query('Folder', 100, 1, 'name', 'asc', {parent: id}, function(folders) {
+			Command.query('Folder', folderPageSize, folderPage, 'name', 'asc', {parent: id}, function(folders) {
 
 				var list = [];
 
@@ -375,31 +416,25 @@ var _Filesystem = {
 		
 	},
 	setWorkingDirectory: function(id) {
-
+		
 		if (id === 'root') {
 			currentWorkingDir = null;
 			return;
 		}
-
-		var data = JSON.stringify({'workingDirectory': {'id': id}});
-
+		
+		currentWorkingDir = { 'id': id };
+		var data = JSON.stringify({'workingDirectory': currentWorkingDir});
+		
 		$.ajax({
 			url: rootUrl + 'me',
 			dataType: 'application/json',
-			method: 'PUT',
 			type: 'PUT',
-			data: data,
-			statusCode: {
-				200: function() {
-					currentWorkingDir = id;
-				}
-			}
+			data: data
 		});
 	},
 	displayFolderContents: function(id, parentId, path) {
-
 		var content = $('#folder-contents');
-		content.empty();
+		fastRemoveAllChildren(content[0]);
 		path = path.split('/').splice(1).map(function(part) {
 			return '<i class="fa fa-caret-right"></i> ' + part;
 		}).join(' ');
@@ -493,7 +528,7 @@ var _Filesystem = {
 
 			if (d.parent && d.parent.id) {
 
-				$("#file-tree").jstree("open_node", $('#' + d.parent.id), function() {
+				fileTree.jstree('open_node', $('#' + d.parent.id), function() {
 
 					if (d.name === '..') {
 						$('#' + d.parent.id + '_anchor').click();
@@ -757,10 +792,10 @@ var _Filesystem = {
 						});
 						return;
 					} else {
-						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th>Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
+						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
 						data.result.forEach(function(d) {
 							var icon = _Filesystem.getIcon(d.name, d.contentType);
-							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i></td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
+							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + ' (' + d.contentType + ')</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
 						
 						});
 						

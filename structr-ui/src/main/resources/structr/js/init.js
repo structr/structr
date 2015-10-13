@@ -338,7 +338,7 @@ var Structr = {
 	login: function(text) {
 		if (!loginBox.is(':visible')) {
 
-			main.empty();
+			fastRemoveAllChildren(main[0]);
 
 			$.blockUI.defaults.overlayCSS.opacity = .6;
 			$.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -429,7 +429,8 @@ var Structr = {
 		});
 		$.ui.ddmanager.droppables.default = newDroppables;
 		$('iframe').unload();
-		main.children().not('#graph-box').remove();
+		//main.children().not('#graph-box').remove();
+		fastRemoveAllChildren(main[0]);
 		$('#graph-box').hide();
 	},
 	confirmation: function(text, yesCallback, noCallback) {
@@ -1043,7 +1044,7 @@ var Structr = {
 			over: function(e, ui) {
 
 				e.stopPropagation();
-				$('#pages_').droppable('disable');
+				$('a#pages_').droppable('disable');
 				log('over is off');
 
 				Structr.activateMenuEntry('pages');
@@ -1059,10 +1060,10 @@ var Structr = {
 //                _Pages.init();
 				Structr.modules['pages'].onload();
 				_Pages.resize();
+				$('a#pages_').removeClass('nodeHover').droppable('enable');
 			}
 
 		});
-		$('#pages_').removeClass('nodeHover').droppable('enable');
 	},
 	openSlideOut: function(slideout, tab, activeTabKey, callback) {
 		var s = $(slideout);
@@ -1214,7 +1215,7 @@ var Structr = {
 			pushConf = {host: host, port: port, username: username, password: password};
 			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
 
-			syncables.empty();
+			fastRemoveAllChildren(syncables[0]);
 			syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
 
 			Command.listSyncables(host, port, username, password, key, type, function(syncable) {
