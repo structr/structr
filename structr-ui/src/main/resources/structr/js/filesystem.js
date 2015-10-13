@@ -730,19 +730,43 @@ var _Filesystem = {
 	displaySearchResultsForURL: function(url) {
 
 		var content = $('#folder-contents');
+		$('#search-results').remove();
 		content.append('<div id="search-results"></div>');
 
 		var searchString = $('.search', main).val();
 		var container = $('#search-results');
+		content.on('scroll', function() {
+			window.history.pushState('', '', '#filesystem');
+			
+		});
+
+		//console.log('Search string:', searchString, url);
 
 		$.ajax({
 			url: url,
 			statusCode: {
 				200: function(data) {
 
-					container.append('<h1>Search results</h1>');
+					//console.log(data.result);
+					
+					if (!data.result || data.result.length === 0) {
+						container.append('<h1>No results for "' + searchString + '"</h1>');
+						container.append('<h2>Press ESC or click <a href="#filesystem" class="clear-results">here to clear</a> empty result list.</h2>');
+						$('.clear-results', container).on('click', function() {
+							_Filesystem.clearSearch();
+						});
+						return;
+					} else {
+						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th>Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
+						data.result.forEach(function(d) {
+							var icon = _Filesystem.getIcon(d.name, d.contentType);
+							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i></td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
+						
+						});
+						
+					}
 
-					$.each(data.result, function(i, d) {
+					data.result.forEach(function(d) {
 
 						$.ajax({
 							url: rootUrl + 'files/' + d.id + '/getSearchContext',
@@ -751,13 +775,36 @@ var _Filesystem = {
 							data: JSON.stringify({searchString: searchString, contextLength: 30}),
 							statusCode: {
 								200: function(data) {
+									
+									if (!data.result) return;
+									
+									//console.log(data.result);
 
-									container.append('<div class="search-result" id="results' + d.id + '"></div>');
+									container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
 
 									var div = $('#results' + d.id);
 									var icon = _Filesystem.getIcon(d.name, d.contentType);
 									//div.append('<h2><img id="preview' + d.id + '" src="' + icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" />' + d.path + '</h2>');
 									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
+									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
+									
+									$('.toggle-height', div).on('click', function() {
+										var icon = $(this);
+										div.toggleClass('collapsed');
+										if (icon.hasClass('fa-expand')) {
+											icon.removeClass('fa-expand');
+											icon.addClass('fa-compress');
+										} else {
+											icon.removeClass('fa-compress');
+											icon.addClass('fa-expand');
+										}
+										
+									});
+
+									$('.go-to-top', div).on('click', function() {
+										content.scrollTop(0);
+										window.history.pushState('', '', '#filesystem');
+									});
 
 									$.each(data.result.context, function(i, contextString) {
 

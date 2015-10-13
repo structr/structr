@@ -19,6 +19,7 @@
 
 var widgets, remoteWidgets, widgetsUrl = 'https://widgets.structr.org/structr/rest/widgets';
 var win = $(window);
+var widgetData = [], remoteWidgetData = [], remoteWidgetFilter;
 
 $(document).ready(function() {
 	Structr.registerModule('widgets', _Widgets);
@@ -30,73 +31,72 @@ var _Widgets = {
 	group_icon: 'icon/folder.png',
 	add_widget_icon: 'icon/layout_add.png',
 	delete_widget_icon: 'icon/layout_delete.png',
-	init: function() {
-
-		Structr.initPager('Widget', 1, 25);
-
-	},
-	onload: function() {
-
-		_Widgets.init();
-
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Widgets');
-
-		log('onload');
-
-		main.append('<div id="dropArea"><div class="fit-to-height" id="widgets"></div><div class="fit-to-height" id="remoteWidgets"></div></div>');
-		widgets = $('#widgets');
-		remoteWidgets = $('#remoteWidgets');
-
-		_Widgets.refreshWidgets();
-		_Widgets.refreshRemoteWidgets();
-
-		Structr.resize();
-
-		win.off('resize');
-		win.resize(function() {
-			Structr.resize();
-		});
-
-		Structr.unblockMenu(100);
-
-	},
-	unload: function() {
-		$(main.children('table')).remove();
-	},
 	refreshWidgets: function() {
 		widgets.empty();
-		widgets.append('<h2>Local Widgets</h2>');
-		widgets.append('<button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Widgets.add_widget_icon + '"> Add Widget</button>');
-		$('.add_widgets_icon', main).on('click', function(e) {
-			e.stopPropagation();
-			Command.create({'type': 'Widget'});
+
+		Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type,source,treePath,isWidget', function(entities) {
+			entities.forEach(function (entity) {
+				StructrModel.create(entity, null, false);
+				_Widgets.appendWidgetElement(entity, false, widgets);
+			});
 		});
-		Structr.addPager(widgets, true, 'Widget');
+
 		Structr.resize();
 	},
 	refreshRemoteWidgets: function() {
-		remoteWidgets.empty();
-		remoteWidgets.append('<h2>Remote Widgets</h2>');
+		remoteWidgetFilter = undefined;
 
 		if (widgetsUrl.startsWith(document.location.hostname)) {
 			return;
 		}
 
 		_Widgets.getRemoteWidgets(widgetsUrl, function(entity) {
-
-			var obj = StructrModel.create(entity, undefined, false);
+			var obj = StructrModel.create(entity, null, false);
 			obj.srcUrl = widgetsUrl + '/' + entity.id;
-			_Widgets.appendWidgetElement(obj, true);
-
+			remoteWidgetData.push(obj);
+		}, function () {
+			_Widgets.repaintRemoteWidgets('');
 		});
 
-		//remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
-//        $('#connect_button', main).on('click', function(e) {
-//            e.stopPropagation();
-
-//        });
+//		remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
+//		$('#connect_button', main).on('click', function(e) {
+//			e.stopPropagation();
+//		});
 	},
-	getRemoteWidgets: function(baseUrl, callback) {
+	repaintRemoteWidgets: function (search) {
+
+		if (search !== remoteWidgetFilter) {
+
+			remoteWidgetFilter = search;
+
+			if (search && search.length > 0) {
+
+				search = search.toLowerCase();
+
+				remoteWidgets.empty();
+
+				remoteWidgetData.forEach(function (obj) {
+
+					if (obj.name.toLowerCase().indexOf(search) !== -1) {
+						_Widgets.appendWidgetElement(obj, true, remoteWidgets);
+					}
+
+				});
+
+			} else {
+
+				remoteWidgets.empty();
+
+				remoteWidgetData.forEach(function (obj) {
+					_Widgets.appendWidgetElement(obj, true, remoteWidgets);
+				});
+
+			}
+
+		}
+
+	},
+	getRemoteWidgets: function(baseUrl, callback, finishCallback) {
 		$.ajax({
 			//url: $('#widgetServerUrl').val(),
 			url: baseUrl + '?sort=treePath',
@@ -110,6 +110,9 @@ var _Widgets = {
 						$.each(data.result, function(i, entity) {
 							callback(entity);
 						});
+						if (finishCallback) {
+							finishCallback();
+						}
 					}
 				},
 				400: function(data, status, xhr) {
