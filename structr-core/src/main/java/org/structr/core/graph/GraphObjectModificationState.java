@@ -18,6 +18,10 @@
  */
 package org.structr.core.graph;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -413,21 +417,17 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			if (!hiddenPropertiesInAuditLog.contains(name) && !(key.isUnvalidated() || key.isReadOnly())) {
 
-				// build change log
-				changeLog.append(System.currentTimeMillis());
-				changeLog.append(":");
-				changeLog.append(user.getUuid());
-				changeLog.append(":");
-				changeLog.append(user.getName());
-				changeLog.append(":");
-				changeLog.append(verb);
-				changeLog.append(":");
-				changeLog.append(key.jsonName());
-				changeLog.append(":");
-				changeLog.append(previousValue);
-				changeLog.append(":");
-				changeLog.append(newValue);
-				changeLog.append("\n");
+				final JsonObject obj = new JsonObject();
+
+				obj.add("time", toElement(System.currentTimeMillis()));
+				obj.add("userId", toElement(user.getUuid()));
+				obj.add("userName", toElement(user.getName()));
+				obj.add("verb", toElement(verb));
+				obj.add("key", toElement(key.jsonName()));
+				obj.add("prev", toElement(previousValue));
+				obj.add("val", toElement(newValue));
+
+				changeLog.append(obj.toString());
 			}
 		}
 	}
@@ -436,19 +436,16 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 		if (auditLogEnabled && changeLog != null) {
 
-			// build change log
-			changeLog.append(System.currentTimeMillis());
-			changeLog.append(":");
-			changeLog.append(user.getUuid());
-			changeLog.append(":");
-			changeLog.append(user.getName());
-			changeLog.append(":");
-			changeLog.append(verb);
-			changeLog.append(":");
-			changeLog.append(linkType);
-			changeLog.append(":");
-			changeLog.append(object);
-			changeLog.append('\n');
+			final JsonObject obj = new JsonObject();
+
+			obj.add("time", toElement(System.currentTimeMillis()));
+			obj.add("userId", toElement(user.getUuid()));
+			obj.add("userName", toElement(user.getName()));
+			obj.add("verb", toElement(verb));
+			obj.add("rel", toElement(linkType));
+			obj.add("target", toElement(object));
+
+			changeLog.append(obj.toString());
 		}
 	}
 
@@ -456,18 +453,41 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 		if (auditLogEnabled && changeLog != null) {
 
-			// build change log
-			changeLog.append(System.currentTimeMillis());
-			changeLog.append(":");
-			changeLog.append(user.getUuid());
-			changeLog.append(":");
-			changeLog.append(user.getName());
-			changeLog.append(":");
-			changeLog.append(verb);
-			changeLog.append(":");
-			changeLog.append(object);
-			changeLog.append("\n");
+			final JsonObject obj = new JsonObject();
+
+			obj.add("time", toElement(System.currentTimeMillis()));
+			obj.add("userId", toElement(user.getUuid()));
+			obj.add("userName", toElement(user.getName()));
+			obj.add("verb", toElement(verb));
+			obj.add("target", toElement(object));
+
+			changeLog.append(obj.toString());
 		}
+	}
+
+	private JsonElement toElement(final Object value) {
+
+		if (value != null) {
+
+			if (value instanceof String) {
+
+				return new JsonPrimitive((String)value);
+
+			} else if (value instanceof Number) {
+
+				return new JsonPrimitive((Number)value);
+
+			} else if (value instanceof Boolean) {
+
+				return new JsonPrimitive((Boolean)value);
+
+			} else {
+
+				return new JsonPrimitive(value.toString());
+			}
+		}
+
+		return JsonNull.INSTANCE;
 	}
 
 	// ----- interface ModificationEvent -----
