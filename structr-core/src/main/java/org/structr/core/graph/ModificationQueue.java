@@ -98,7 +98,7 @@ public class ModificationQueue {
 		return valid;
 	}
 
-	public boolean doValidation(SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
+	public boolean doValidation(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final boolean doValidation) throws FrameworkException {
 
 		long t0       = System.currentTimeMillis();
 		boolean valid = true;
@@ -130,7 +130,7 @@ public class ModificationQueue {
 		return valid;
 	}
 
-	public void doOuterCallbacks(SecurityContext securityContext) {
+	public void doOuterCallbacks(final SecurityContext securityContext) {
 
 		long t0 = System.currentTimeMillis();
 
@@ -354,11 +354,11 @@ public class ModificationQueue {
 		}
 	}
 
-	private GraphObjectModificationState getState(NodeInterface node) {
+	private GraphObjectModificationState getState(final NodeInterface node) {
 		return getState(node, false);
 	}
 
-	private GraphObjectModificationState getState(NodeInterface node, boolean checkPropagation) {
+	private GraphObjectModificationState getState(final NodeInterface node, final boolean checkPropagation) {
 
 		String hash = hash(node);
 		GraphObjectModificationState state = modifications.get(hash);
@@ -392,11 +392,11 @@ public class ModificationQueue {
 		return state;
 	}
 
-	private String hash(NodeInterface node) {
+	private String hash(final NodeInterface node) {
 		return "N" + node.getId();
 	}
 
-	private String hash(RelationshipInterface rel) {
+	private String hash(final RelationshipInterface rel) {
 		return "R" + rel.getId();
 	}
 }

@@ -52,9 +52,6 @@ public class Tx implements AutoCloseable {
 	public Tx(final SecurityContext securityContext, final StructrApp app, final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {
 
 		this.securityContext = securityContext;
-		if (securityContext != null) {
-			securityContext.setDoTransactionNotifications(doNotifications);
-		}
 		this.doNotifications = doNotifications;
 		this.doValidation    = doValidation;
 		this.doCallbacks     = doCallbacks;

@@ -103,6 +103,22 @@ public class SecurityContext {
 
 		initializeCustomView(request);
 		initializeQueryRanges(request);
+		initializeHttpParameters(request);
+	}
+
+	private void initializeHttpParameters(final HttpServletRequest request) {
+
+		if (request != null) {
+
+			try {
+
+				if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
+					this.doTransactionNotifications = false;
+				}
+
+			} catch (Throwable t) {}
+
+		}
 	}
 
 	private void initializeCustomView(final HttpServletRequest request) {
