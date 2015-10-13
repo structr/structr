@@ -157,12 +157,12 @@ public class ModificationQueue {
 						final GraphObject obj = ev.getGraphObject();
 						if (obj != null) {
 
-							final String existingLog = obj.getProperty(GraphObject.auditLog);
+							final String existingLog = obj.getProperty(GraphObject.changeLog);
 							final String newLog      = ev.getAuditLog();
 							final String newValue    = existingLog != null ? existingLog + newLog : newLog;
 
 							obj.unlockReadOnlyPropertiesOnce();
-							obj.setProperty(GraphObject.auditLog, newValue);
+							obj.setProperty(GraphObject.changeLog, newValue);
 						}
 
 					} catch (Throwable t) {

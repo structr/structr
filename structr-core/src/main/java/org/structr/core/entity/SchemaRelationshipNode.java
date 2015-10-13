@@ -79,7 +79,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public static final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", sourceNode, new PropertyNotion(GraphObject.id));
 	public static final Property<String>     targetId               = new EntityNotionProperty<>("targetId", targetNode, new PropertyNotion(GraphObject.id));
 	public static final Property<String>     name                   = new StringProperty("name").indexed();
-	public static final Property<String>     relationshipType       = new StringProperty("relationshipType");
+	public static final Property<String>     relationshipType       = new StringProperty("relationshipType").indexed();
 	public static final Property<String>     sourceMultiplicity     = new StringProperty("sourceMultiplicity");
 	public static final Property<String>     targetMultiplicity     = new StringProperty("targetMultiplicity");
 	public static final Property<String>     sourceNotion           = new StringProperty("sourceNotion");
