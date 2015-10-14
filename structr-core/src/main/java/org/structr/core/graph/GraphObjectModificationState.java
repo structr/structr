@@ -428,6 +428,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				obj.add("val", toElement(newValue));
 
 				changeLog.append(obj.toString());
+				changeLog.append("\n");
 			}
 		}
 	}
@@ -446,6 +447,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("target", toElement(object));
 
 			changeLog.append(obj.toString());
+			changeLog.append("\n");
 		}
 	}
 
@@ -462,6 +464,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("target", toElement(object));
 
 			changeLog.append(obj.toString());
+			changeLog.append("\n");
 		}
 	}
 
