@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>2.0-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-rest</artifactId>
     <packaging>jar</packaging>
-    <version>1.1-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <name>Structr REST</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
@@ -97,7 +97,7 @@
                     </excludes>
                     <properties>
                         <year>2015</year>
-                        <owner>Morgner UG (haftungsbeschränkt)</owner>
+                        <owner>Structr GmbH</owner>
                     </properties>
                 </configuration>
                 <executions>
@@ -209,9 +209,9 @@
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2015 Morgner UG (haftungsbeschränkt) &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2015 Structr GmbH &lt;structr@structr.org&gt;
 
-                This file is part of structr &lt;http://structr.org&gt;.
+                This file is part of Structr &lt;http://structr.org&gt;.
 
                 structr is free software: you can redistribute it and/or modify
                 it under the terms of the GNU General Public License as published by
