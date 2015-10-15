@@ -29,7 +29,7 @@ var relTypes = {}, nodeTypes = {}, nodeColors = {}, relColors = {}, hasDragged, 
 var hiddenNodeTypes = [], hiddenRelTypes = []; //['OWNS', 'SECURITY'];
 var edgeType = 'curvedArrow';
 var schemaNodes = {}, schemaRelationships = {}, schemaNodesById = {};
-
+var displayHtmlTypes = false, displayCustomTypes = true, displayCoreTypes = false, displayUiTypes = false, displayLogTypes = false, displayOtherTypes = false;
 var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc';
 var tmpX, tmpY;
 var forceAtlas2Config = {
@@ -106,8 +106,10 @@ var _Graph = {
 		colors.push('#9A6800');
 		colors.push('#9A4700');
 
+		var max = 255, min = 0;
+		
 		for (i = 50; i < 999; i++) {
-			var color = 'rgb(' + (Math.floor((256 - 199) * Math.random()) + 200) + ',' + (Math.floor((256 - 199) * Math.random()) + 200) + ',' + (Math.floor((256 - 199) * Math.random()) + 200) + ')';
+			var color = 'rgb(' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ')';
 			colors.push(color);
 		}
 
@@ -410,9 +412,9 @@ var _Graph = {
 				'<div id="graph-box"><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
 				+ '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Display Options</div></div>'
 				+ '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
-				+ ' <div class="canvas" id="graph-canvas"></div>'
-				+ ' <div id="node-types" class="graph-object-types"> <button id="show-all-node-types">Show all</button></div>'
-				+ ' <div id="relationship-types" class="graph-object-types"></div>'
+				+ '<div class="canvas" id="graph-canvas"></div>'
+				+ '<div id="node-types" class="graph-object-types"></div>'
+				+ '<div id="relationship-types" class="graph-object-types"></div>'
 				//+ '<div id="nodes" class="slideOut slideOutRight"><div class="compTab" id="nodesTab">Nodes</div></div>'
 				//+ '<div id="relationships" class="slideOut slideOutRight"><div class="compTab" id="relationshipsTab">Relationships</div></div>'
 				+ '</div>'
@@ -421,6 +423,44 @@ var _Graph = {
 			queriesSlideout = $('#queries');
 			displaySlideout = $('#display');
 			filtersSlideout = $('#filters');
+
+			var nodeFilters = $('#nodeFilters', filtersSlideout);
+
+			nodeFilters.append('<div><input type="checkbox" class="toggle-core-types"' + (displayCoreTypes ? ' checked="checked"' : '') + '> Core types</div>');
+			$('.toggle-core-types', nodeFilters).on('click', function() {
+				displayCoreTypes = !displayCoreTypes;
+				_Graph.updateNodeTypes();
+			});
+
+			nodeFilters.append('<div><input type="checkbox" class="toggle-ui-types"' + (displayUiTypes ? ' checked="checked"' : '') + '> UI types</div>');
+			$('.toggle-ui-types', nodeFilters).on('click', function() {
+				displayUiTypes = !displayUiTypes;
+				_Graph.updateNodeTypes();
+			});
+
+			nodeFilters.append('<div><input type="checkbox" class="toggle-custom-types"' + (displayCustomTypes ? ' checked="checked"' : '') + '> Custom types</div>');
+			$('.toggle-custom-types', nodeFilters).on('click', function() {
+				displayCustomTypes = !displayCustomTypes;
+				_Graph.updateNodeTypes();
+			});
+
+			nodeFilters.append('<div><input type="checkbox" class="toggle-html-types"' + (displayHtmlTypes ? ' checked="checked"' : '') + '> HTML types</div>');
+			$('.toggle-html-types', nodeFilters).on('click', function() {
+				displayHtmlTypes = !displayHtmlTypes;
+				_Graph.updateNodeTypes();
+			});
+
+			nodeFilters.append('<div><input type="checkbox" class="toggle-log-types"' + (displayLogTypes ? ' checked="checked"' : '') + '> Log types</div>');
+			$('.toggle-log-types', nodeFilters).on('click', function() {
+				displayLogTypes = !displayLogTypes;
+				_Graph.updateNodeTypes();
+			});
+
+			nodeFilters.append('<div><input type="checkbox" class="toggle-other-types"' + (displayOtherTypes ? ' checked="checked"' : '') + '> Other types</div>');
+			$('.toggle-other-types', nodeFilters).on('click', function() {
+				displayOtherTypes = !displayOtherTypes;
+				_Graph.updateNodeTypes();
+			});
 
 			graph = $('#graph-canvas');
 
@@ -965,12 +1005,25 @@ var _Graph = {
 	updateNodeTypes: function() {
 
 		var nodeTypesBox = $('#node-types');
-		nodeTypesBox.empty();
-		//nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
+		fastRemoveAllChildren(nodeTypesBox[0]);
+		
 		// getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
 		Command.getSchemaInfo(function(nodes) {
 
+			nodes.sort(function(a, b) {
+				var aName = a.name.toLowerCase();
+				var bName = b.name.toLowerCase();
+				return aName < bName ? -1 : aName > bName ? 1 : 0;
+			});
+
 			nodes.forEach(function(node) {
+				
+				if (!displayCustomTypes && node.className.startsWith('org.structr.dynamic')) return;
+				if (!displayCoreTypes   && node.className.startsWith('org.structr.core.entity')) return;
+				if (!displayHtmlTypes   && node.className.startsWith('org.structr.web.entity.html')) return;
+				if (!displayUiTypes     && node.className.startsWith('org.structr.web.entity') && !(displayHtmlTypes && node.className.startsWith('org.structr.web.entity.html'))) return;
+				if (!displayLogTypes    && node.className.startsWith('org.structr.rest.logging.entity')) return;
+				if (!displayOtherTypes  && node.className.startsWith('org.structr.xmpp')) return;
 
 				schemaNodes[node.type] = node;
 				schemaNodesById[node.id] = node;
@@ -992,7 +1045,7 @@ var _Graph = {
 				}
 
 				//Object.keys(nodeColors).forEach(function (nodeType) {
-				nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type"><div class="circle" style="background-color: ' + nodeColors[nodeType] + '"></div>' + nodeType + '</div>');
+				nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ' + nodeColors[nodeType] + '"></div>' + nodeType + '</div>');
 				var nt = $('#node-type-' + nodeType, nodeTypesBox);
 				if (isIn(nodeType, hiddenNodeTypes)) {
 					nt.attr('data-hidden', 1);
@@ -1004,18 +1057,7 @@ var _Graph = {
 					nodeTypeEl.css({pointer: 'move'});
 					//_Graph.toggleNodeType(nodeType);
 				}).on('click', function() {
-					var n = $(this);
-					if (n.attr('data-hidden')) {
-						_Graph.showNodeType(nodeType, function() {
-							n.removeAttr('data-hidden', 1);
-							n.removeClass('hidden-node-type');
-						});
-					} else {
-						_Graph.hideNodeType(nodeType, function() {
-							n.attr('data-hidden', 1);
-							n.addClass('hidden-node-type');
-						});
-					}
+					// TODO: Query
 				}).on('mouseover', function() {
 					_Graph.highlightNodeType(nodeType);
 				}).on('mouseout', function() {
@@ -1023,12 +1065,42 @@ var _Graph = {
 				}).draggable({
 					helper: 'clone'
 				});
+				
+				$('.toggle-type', nt).on('click', function() {
+					var n = $(this);
+					if (n.attr('data-hidden')) {
+						_Graph.showNodeType(nodeType, function() {
+							n.removeAttr('data-hidden', 1);
+							//n.removeClass('hidden-node-type');
+						});
+					} else {
+						_Graph.hideNodeType(nodeType, function() {
+							n.attr('data-hidden', 1);
+							//n.addClass('hidden-node-type');
+						});
+					}
+				});
 
 			});
 
 			_Graph.resize();
 		});
 
+	},
+	hideNodeTypes: function(types, callback) {
+		types.forEach(function(type) {
+			engine.graph.nodes().forEach(function(node) {
+				if (node.type === type) {
+					node.hidden = true;
+				}
+			});
+			hiddenNodeTypes.push(type);
+		});
+		_Graph.refreshEngine();
+		if (callback) {
+			callback();
+		}
+		//console.log(hiddenNodeTypes);
 	},
 	hideNodeType: function(type, callback) {
 		engine.graph.nodes().forEach(function(node) {
@@ -1043,13 +1115,28 @@ var _Graph = {
 		}
 		//console.log(hiddenNodeTypes);
 	},
+	showNodeTypes: function(types, callback) {
+		types.forEach(function(type) {
+			engine.graph.nodes().forEach(function(node) {
+				if (node.type === type) {
+					node.hidden = false;
+				}
+			});
+			hiddenNodeTypes.splice(hiddenNodeTypes.indexOf(type), 1);
+		});
+		_Graph.refreshEngine();
+		if (callback) {
+			callback();
+		}
+		//console.log(hiddenNodeTypes);
+	},
 	showNodeType: function(type, callback) {
 		engine.graph.nodes().forEach(function(node) {
 			if (node.type === type) {
 				node.hidden = false;
 			}
 		});
-		hiddenNodeTypes.splice(hiddenNodeTypes.indexOf('type'), 1);
+		hiddenNodeTypes.splice(hiddenNodeTypes.indexOf(type), 1);
 		_Graph.refreshEngine();
 		if (callback) {
 			callback();

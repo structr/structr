@@ -924,7 +924,7 @@ img.button {
 }
 
 .nodeHover {
-    z-index: 99;
+    z-index: 2;
 }
 
 .nodeSelected {
@@ -941,6 +941,7 @@ img.button {
     color: #333 ! important;
     background-color: #f5f5f5 ! important;
     border: 1px solid #ccc;
+    z-index: 1;
 }
 
 #graph-canvas .node {
