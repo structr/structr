@@ -59,7 +59,7 @@ import org.structr.schema.ConfigurationProvider;
  * Base class for all resource constraints. Constraints can be combined with succeeding constraints to avoid unneccesary evaluation.
  *
  *
- * @author Christian Morgner
+ *
  */
 public abstract class Resource {
 

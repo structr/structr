@@ -30,7 +30,7 @@ import org.w3c.dom.DOMException;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class InsertBeforeCommand extends AbstractCommand {
 

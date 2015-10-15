@@ -23,7 +23,7 @@ import org.structr.core.graph.NodeInterface;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class NodeHasLocation extends ManyToMany<NodeInterface, NodeInterface> {
 

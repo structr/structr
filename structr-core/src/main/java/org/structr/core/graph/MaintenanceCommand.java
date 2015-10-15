@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
  * command. Maintenance commands can be called via REST if registered
  * appropriately.
  *
- * @author Christian Morgner
+ *
  */
 public interface MaintenanceCommand {
 

@@ -31,7 +31,7 @@ import org.structr.schema.compiler.NodeExtender;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class StructrHttpServiceConfig {
 

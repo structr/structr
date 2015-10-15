@@ -26,7 +26,7 @@ import org.structr.core.notion.Notion;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 

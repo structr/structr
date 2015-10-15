@@ -68,8 +68,8 @@ import org.structr.core.validator.TypeUniquenessValidator;
  *  AUTH_USER_OPTIONS     = 256
  *  NON_AUTH_USER_OPTIONS = 512
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class ResourceAccess extends AbstractNode {
 

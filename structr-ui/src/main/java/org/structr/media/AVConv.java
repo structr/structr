@@ -29,7 +29,7 @@ import org.structr.web.entity.VideoFile;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class AVConv implements VideoHelper {

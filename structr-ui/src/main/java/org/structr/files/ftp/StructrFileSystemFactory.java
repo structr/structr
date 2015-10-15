@@ -30,7 +30,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class StructrFileSystemFactory implements FileSystemFactory {
 

@@ -33,7 +33,7 @@ import org.structr.core.notion.Notion;
 /**
  * A property that uses an {@link Aggregation} to return a list of entities.
  *
- * @author Christian Morgner
+ *
  */
 public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T> {
 

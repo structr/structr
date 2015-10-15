@@ -45,7 +45,7 @@ import org.structr.web.entity.Folder;
  *
  * It's a thin wrapper, implementing mkdir() and createOutputStream() only.
  *
- * @author Axel Morgner
+ *
  */
 public class FileOrFolder extends AbstractStructrFtpFile {
 

@@ -26,7 +26,7 @@ import org.structr.common.SecurityContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class GetVideoInfoProcess extends AbstractProcess<Map<String, Object>> {

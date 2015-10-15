@@ -26,7 +26,7 @@ import org.structr.core.property.Property;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface JavaScriptSource extends NodeInterface {
 

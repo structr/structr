@@ -49,7 +49,7 @@ import org.structr.core.notion.ObjectNotion;
 /**
  * A property that defines a relationship with the given parameters between a node and a collection of other nodes.
  *
- * @author Christian Morgner
+ *
  */
 public class StartNodes<S extends NodeInterface, T extends NodeInterface> extends Property<List<S>> implements RelationProperty<S> {
 

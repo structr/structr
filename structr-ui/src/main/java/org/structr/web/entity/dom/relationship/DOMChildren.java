@@ -23,7 +23,7 @@ import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DOMChildren extends AbstractChildren<DOMNode, DOMNode> {
 

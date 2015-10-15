@@ -31,7 +31,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TestFive extends AbstractNode {
 	

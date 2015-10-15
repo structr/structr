@@ -58,7 +58,7 @@ import org.structr.rest.service.StructrHttpServiceConfig;
  * This servlet produces CSV (comma separated value) lists out of a search
  * result
  *
- * @author Axel Morgner
+ *
  */
 public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 

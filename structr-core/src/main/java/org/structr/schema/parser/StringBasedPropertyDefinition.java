@@ -23,7 +23,7 @@ import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StringBasedPropertyDefinition implements PropertyDefinition {
 

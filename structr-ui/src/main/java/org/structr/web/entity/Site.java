@@ -35,7 +35,7 @@ import org.structr.web.property.UiNotion;
 /**
  * This class represents a web site, defined by one ore more hostnames and ports
  *
- * @author Axel Morgner
+ *
  */
 
 

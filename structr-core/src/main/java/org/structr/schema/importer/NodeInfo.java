@@ -30,7 +30,7 @@ import org.neo4j.graphdb.Node;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class NodeInfo {

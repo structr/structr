@@ -23,7 +23,7 @@ import org.structr.web.entity.FileBase;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FulltextIndexingTask extends AbstractTask<FileBase> {
 

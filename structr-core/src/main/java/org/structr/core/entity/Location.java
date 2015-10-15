@@ -34,7 +34,7 @@ import org.structr.core.property.DoubleProperty;
 /**
  * The Location entity.
  *
- * @author Axel Morgner
+ *
  */
 public class Location extends AbstractNode {
 

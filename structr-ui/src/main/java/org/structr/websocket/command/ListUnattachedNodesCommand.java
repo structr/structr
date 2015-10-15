@@ -48,7 +48,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
  * Websocket command to retrieve DOM nodes which are not attached to a parent
  * element
  *
- * @author Axel Morgner
+ *
  */
 public class ListUnattachedNodesCommand extends AbstractCommand {
 

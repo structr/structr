@@ -33,7 +33,7 @@ import org.structr.core.converter.PropertyConverter;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class JoinProperty extends StringProperty {
 

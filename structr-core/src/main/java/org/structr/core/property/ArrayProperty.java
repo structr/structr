@@ -36,7 +36,7 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 /**
 * A property that stores and retrieves an array of the given type.
  *
- * @author Christian Morgner
+ *
  */
 public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 

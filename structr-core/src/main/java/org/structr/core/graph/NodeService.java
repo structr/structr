@@ -59,8 +59,8 @@ import org.structr.core.app.StructrApp;
 /**
  * The graph/node service main class.
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class NodeService implements SingletonService {
 

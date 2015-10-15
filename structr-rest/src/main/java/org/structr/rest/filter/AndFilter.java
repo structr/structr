@@ -25,7 +25,7 @@ import org.structr.core.GraphObject;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class AndFilter extends Filter {
 

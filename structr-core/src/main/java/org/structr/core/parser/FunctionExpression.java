@@ -26,7 +26,7 @@ import org.structr.schema.action.Function;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FunctionExpression extends Expression {
 

@@ -33,7 +33,7 @@ import org.structr.web.property.UiNotion;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Tag extends ValidatedNode {
 

@@ -42,7 +42,7 @@ import org.structr.schema.parser.DatePropertyParser;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ActionContext {
 

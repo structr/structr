@@ -27,7 +27,7 @@ import org.structr.rest.common.StructrRestTest;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DocumentTest extends StructrRestTest {
 

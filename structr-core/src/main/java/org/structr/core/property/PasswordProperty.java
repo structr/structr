@@ -32,7 +32,7 @@ import org.structr.core.entity.Principal;
  * The return value of this property will always be the password hash, the clear-text password
  * will be lost.
  *
- * @author Christian Morgner
+ *
  */
 public class PasswordProperty extends StringProperty {
 

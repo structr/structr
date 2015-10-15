@@ -52,7 +52,7 @@ import org.structr.core.JsonSingleInput;
 /**
  * Controls deserialization of property sets.
  *
- * @author Christian Morgner
+ *
  */
 public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSerializer<IJsonInput>, JsonDeserializer<IJsonInput> {
 

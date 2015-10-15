@@ -56,7 +56,7 @@ import org.structr.core.property.PropertyMap;
  *
  * All tests are executed in superuser context
  *
- * @author Axel Morgner
+ *
  */
 public class CreateGraphObjectsTest extends StructrTest {
 

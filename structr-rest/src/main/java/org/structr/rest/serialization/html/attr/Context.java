@@ -20,7 +20,7 @@ package org.structr.rest.serialization.html.attr;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Context {
 

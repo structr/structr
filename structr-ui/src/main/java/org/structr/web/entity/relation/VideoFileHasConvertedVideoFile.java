@@ -24,7 +24,7 @@ import org.structr.web.entity.VideoFile;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class VideoFileHasConvertedVideoFile extends OneToMany<VideoFile, VideoFile> {
 

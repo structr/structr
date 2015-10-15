@@ -23,7 +23,7 @@ import java.util.Map;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Permissions {
 

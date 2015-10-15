@@ -22,7 +22,7 @@ package org.structr.web.common;
  * This class serves as a wrapper around the {@link AsyncBuffer} to be able to
  * get the output of the render method as a String.
  *
- * @author Christian Morgner
+ *
  */
 public class StringRenderBuffer extends AsyncBuffer {
 

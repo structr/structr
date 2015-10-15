@@ -33,7 +33,7 @@ import org.structr.core.graph.Tx;
 /**
  * Test access control with different permission levels.
  *
- * @author Axel Morgner
+ *
  */
 public class AdvancedAccessControlTest extends StructrTest {
 

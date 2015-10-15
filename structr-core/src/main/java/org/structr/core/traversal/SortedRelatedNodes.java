@@ -32,7 +32,7 @@ import org.structr.core.predicate.TypePredicate;
  * traversal of the given relationship type and direction and sorts them
  * using the given Comparator.
  *
- * @author Christian Morgner
+ *
  */
 public class SortedRelatedNodes<T extends AbstractNode> extends AbstractNodeCollector<T> {
 

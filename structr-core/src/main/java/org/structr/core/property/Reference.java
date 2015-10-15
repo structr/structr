@@ -37,7 +37,7 @@ import org.structr.core.graph.search.SearchAttribute;
  * with {@link ReferenceGroup} to return a group of properties from both start and end
  * node of a relationship.
  *
- * @author Christian Morgner
+ *
  */
 public class Reference<T> implements PropertyKey<T> {
 

@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates an invalid sort key.
  *
- * @author Christian Morgner
+ *
  */
 public class InvalidSortKey extends SemanticErrorToken {
 

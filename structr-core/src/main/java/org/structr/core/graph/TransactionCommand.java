@@ -54,7 +54,7 @@ import org.structr.core.property.PropertyKey;
  * });
  * </pre>
  *
- * @author Christian Morgner
+ *
  */
 public class TransactionCommand extends NodeServiceCommand implements AutoCloseable {
 

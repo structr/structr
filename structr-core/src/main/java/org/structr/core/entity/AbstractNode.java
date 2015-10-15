@@ -93,8 +93,8 @@ import org.structr.schema.action.ActionContext;
 /**
  * Abstract base class for all node entities in structr.
  *
- * @author Axel Morgner
- * @author Christian Morgner
+ *
+ *
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
 

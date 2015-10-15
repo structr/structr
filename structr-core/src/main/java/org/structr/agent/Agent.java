@@ -38,7 +38,7 @@ import org.structr.core.graph.Tx;
 /**
  * Abstract base class for all agents.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class Agent<T extends AbstractNode> extends Thread implements StatusInfo {
 

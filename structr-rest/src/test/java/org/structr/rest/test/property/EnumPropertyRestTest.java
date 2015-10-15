@@ -28,7 +28,7 @@ import org.structr.rest.common.TestEnum;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class EnumPropertyRestTest extends StructrRestTest {
 	

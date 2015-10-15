@@ -27,7 +27,7 @@ import org.apache.sshd.common.file.SshFile;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class NullFile implements SshFile {
 

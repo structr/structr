@@ -40,7 +40,7 @@ import org.structr.web.entity.dom.Page;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class StructrFileSystemView implements FileSystemView {
 

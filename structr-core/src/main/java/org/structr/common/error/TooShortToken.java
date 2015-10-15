@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that the length of a property value is too short.
  *
- * @author Christian Morgner
+ *
  */
 public class TooShortToken extends SemanticErrorToken {
 

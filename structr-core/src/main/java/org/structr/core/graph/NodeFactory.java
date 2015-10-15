@@ -42,8 +42,8 @@ import org.structr.core.entity.relationship.NodeHasLocation;
  *
  * @param <T>
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 

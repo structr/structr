@@ -29,7 +29,7 @@ import org.structr.web.entity.Image;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class FilesTest extends StructrTest {
 

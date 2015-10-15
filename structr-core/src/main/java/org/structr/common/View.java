@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
  * needed for the REST server to define inheritable "views" for an entity. See
  * the example archetype for more information.
  *
- * @author Christian Morgner
+ *
  */
 public class View {
 

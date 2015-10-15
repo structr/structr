@@ -57,7 +57,7 @@ import org.structr.web.entity.relation.VideoFileHasPosterImage;
 /**
  * A video whose binary data will be stored on disk.
  *
- * @author Axel Morgner
+ *
  *
  */
 public class VideoFile extends File {

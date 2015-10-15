@@ -37,7 +37,7 @@ import org.structr.core.traversal.TraverserInterface;
 /**
  * A property that uses a {@link TraverserInterface} to return a collection of entities.
  *
- * @author Christian Morgner
+ *
  */
 public class TraverserCollectionProperty<T extends AbstractNode> extends AbstractReadOnlyCollectionProperty<T> {
 

@@ -22,7 +22,7 @@ import org.structr.xmpp.XMPPContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface TypeHandler<T> {
 

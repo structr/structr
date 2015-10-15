@@ -25,7 +25,7 @@ import org.structr.files.ssh.TerminalHandler;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface ShellCommand extends TerminalHandler {
 

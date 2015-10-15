@@ -67,7 +67,7 @@ import org.structr.schema.ConfigurationProvider;
 /**
  * Stateful facade for accessing the Structr core layer.
  *
- * @author Christian Morgner
+ *
  */
 public class StructrApp implements App {
 

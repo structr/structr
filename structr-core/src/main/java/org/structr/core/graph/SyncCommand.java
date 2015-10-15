@@ -72,7 +72,7 @@ import org.structr.core.entity.SuperUser;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SyncCommand extends NodeServiceCommand implements MaintenanceCommand, Serializable {
 

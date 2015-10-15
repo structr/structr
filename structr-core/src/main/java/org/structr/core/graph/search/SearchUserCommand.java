@@ -37,7 +37,7 @@ import org.structr.core.graph.NodeInterface;
 /**
  * Searches for a user node by her/his name in the database and returns the result.
  *
- * @author Axel Morgner
+ *
  */
 public class SearchUserCommand extends NodeServiceCommand {
 

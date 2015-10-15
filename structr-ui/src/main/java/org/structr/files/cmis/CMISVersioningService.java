@@ -31,7 +31,7 @@ import org.structr.common.SecurityContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISVersioningService extends AbstractStructrCmisService implements VersioningService {
 

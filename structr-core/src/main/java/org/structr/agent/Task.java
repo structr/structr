@@ -27,7 +27,7 @@ import org.structr.core.entity.Principal;
 /**
  * A task that an {@link Agent} can operate on.
 
- * @author Christian Morgner
+ *
  */
 public interface Task<T extends AbstractNode> extends Delayed, StatusInfo {
 

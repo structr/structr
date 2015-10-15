@@ -33,7 +33,7 @@ import org.structr.schema.json.JsonSchema;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrEnumProperty extends StructrStringProperty implements JsonEnumProperty {
 

@@ -40,7 +40,7 @@ import org.structr.web.entity.relation.FileChildren;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class ListFilesCommand extends AbstractCommand {
 

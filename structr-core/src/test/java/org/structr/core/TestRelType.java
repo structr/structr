@@ -22,7 +22,7 @@ import org.neo4j.graphdb.RelationshipType;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public enum TestRelType implements RelationshipType {
 	

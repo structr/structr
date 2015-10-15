@@ -28,7 +28,7 @@ import org.junit.Test;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class LazyFileBasedLongCollectionTest {
 

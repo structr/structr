@@ -43,7 +43,7 @@ import org.structr.core.app.StructrApp;
  *
  * This command takes no parameters.
  *
- * @author Axel Morgner
+ *
  */
 public class ClearDatabase extends NodeServiceCommand {
 

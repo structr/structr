@@ -29,7 +29,7 @@ import org.structr.web.entity.LinkSource;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * @author Axel Morgner
+ *
  */
 public class A extends LinkSource {
 

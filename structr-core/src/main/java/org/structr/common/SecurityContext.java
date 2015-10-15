@@ -50,7 +50,7 @@ import org.structr.schema.SchemaHelper;
  * permission flags for a given node. This is the place where HttpServletRequest
  * and Authenticator get together.
  *
- * @author Christian Morgner
+ *
  */
 public class SecurityContext {
 

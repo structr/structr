@@ -64,7 +64,7 @@ import org.structr.schema.ConfigurationProvider;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class SchemaImporter extends NodeServiceCommand {
 

@@ -35,7 +35,7 @@ import org.structr.common.SecurityContext;
  * appropriate service class, and derive all commands you create for that service from this base class.
  * </p>
  *
- * @author Christian Morgner
+ *
  */
 public abstract class Command {
 

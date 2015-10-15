@@ -63,7 +63,7 @@ import org.structr.schema.ConfigurationProvider;
  *
  * Use the command method to obtain an instance of the desired command.
  *
- * @author Christian Morgner
+ *
  */
 public class Services {
 

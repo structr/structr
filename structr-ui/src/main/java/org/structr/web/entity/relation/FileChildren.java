@@ -23,7 +23,7 @@ import org.structr.web.entity.AbstractFile;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FileChildren extends AbstractChildren<AbstractFile, AbstractFile> {
 

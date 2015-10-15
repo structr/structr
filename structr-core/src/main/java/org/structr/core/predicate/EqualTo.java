@@ -27,7 +27,7 @@ import org.structr.core.Predicate;
  * to a value equal to 0 using the compareTo methods. This predicate evaluates
  * to <b>true</b> if there is only one parameter value for the evaluate method.
  *
- * @author Christian Morgner
+ *
  */
 public class EqualTo<T extends Comparable> implements Predicate<T> {
 

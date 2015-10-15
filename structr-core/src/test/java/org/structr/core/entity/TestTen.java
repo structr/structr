@@ -28,7 +28,7 @@ import org.structr.core.property.StartNode;
  * Test class for testing cascading delete with relationships
  * that reference the same type..
  *
- * @author Christian Morgner
+ *
  */
 public class TestTen extends AbstractNode {
 

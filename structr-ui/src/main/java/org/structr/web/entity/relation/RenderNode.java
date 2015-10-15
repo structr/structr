@@ -24,7 +24,7 @@ import org.structr.web.entity.dom.DOMElement;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class RenderNode extends OneToMany<DOMElement, NodeInterface> {
 

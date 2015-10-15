@@ -37,7 +37,7 @@ import org.structr.websocket.StructrWebSocket;
 /**
  * Websocket command to create a relationship.
  *
- * @author Axel Morgner
+ *
  */
 public class CreateRelationshipCommand extends AbstractCommand {
 

@@ -31,7 +31,7 @@ import org.structr.core.graph.CypherQueryCommand;
 /**
  * Encapsulates a Cypher query.
  *
- * @author Christian Morgner
+ *
  */
 public class CypherQuery {
 

@@ -23,7 +23,7 @@ import org.structr.web.entity.Image;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Thumbnails extends OneToMany<Image, Image> {
 

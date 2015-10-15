@@ -29,8 +29,8 @@ import org.structr.core.entity.Principal;
  * An authenticator interface that defines how the system can obtain a principal
  * from a HttpServletRequest.
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public interface Authenticator {
 

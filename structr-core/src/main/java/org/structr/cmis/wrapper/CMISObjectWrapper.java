@@ -58,7 +58,7 @@ import org.structr.core.property.PropertyMap;
  *
  * @param <T> the CMIS info type this wrapper is based on
  *
- * @author Christian Morgner
+ *
  */
 public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISExtensionsData implements ObjectData, Acl {
 

@@ -25,7 +25,7 @@ import org.w3c.dom.NodeList;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DOMNodeList<T extends Node> extends ArrayList<T> implements NodeList {
 

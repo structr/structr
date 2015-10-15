@@ -27,7 +27,7 @@ import org.structr.core.property.StartNode;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class TestFour extends AbstractNode {
 	

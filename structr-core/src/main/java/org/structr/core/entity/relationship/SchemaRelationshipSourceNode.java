@@ -25,7 +25,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaRelationshipSourceNode extends OneToMany<SchemaNode, SchemaRelationshipNode> {
 

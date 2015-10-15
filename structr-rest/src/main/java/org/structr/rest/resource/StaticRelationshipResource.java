@@ -59,7 +59,7 @@ import org.structr.rest.exception.NotFoundException;
 //~--- classes ----------------------------------------------------------------
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StaticRelationshipResource extends SortableResource {
 

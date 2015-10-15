@@ -23,7 +23,7 @@ import org.structr.core.entity.Principal;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class TestUser extends AbstractUser implements Principal {
 

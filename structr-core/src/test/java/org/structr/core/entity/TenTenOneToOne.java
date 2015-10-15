@@ -20,7 +20,7 @@ package org.structr.core.entity;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TenTenOneToOne extends OneToOne<TestTen, TestTen> {
 

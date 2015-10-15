@@ -25,7 +25,7 @@ import org.structr.core.GraphObject;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class OrFilter extends Filter {
 

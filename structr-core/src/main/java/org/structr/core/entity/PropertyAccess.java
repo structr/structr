@@ -42,7 +42,7 @@ import org.structr.core.property.IntProperty;
  * </ul>
  * 
  * 
- * @author Axel Morgner
+ *
  */
 public class PropertyAccess extends AbstractNode {
 

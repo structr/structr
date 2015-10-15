@@ -28,7 +28,7 @@ import org.structr.web.entity.dom.Page;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class UpdateOperation extends InvertibleModificationOperation {
 

@@ -41,7 +41,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISAclService extends AbstractStructrCmisService implements AclService {
 

@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that a property is read-only.
  *
- * @author Christian Morgner
+ *
  */
 public class ReadOnlyPropertyToken extends SemanticErrorToken {
 

@@ -28,7 +28,7 @@ import org.structr.core.converter.RelationshipEndNodeConverter;
 /**
  * A property that returns the end node of a relationship.
  *
- * @author Axel Morgner
+ *
  */
 public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 

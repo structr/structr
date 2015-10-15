@@ -28,7 +28,7 @@ import org.w3c.dom.DOMException;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class PagePathTest extends StructrUiTest {
 	

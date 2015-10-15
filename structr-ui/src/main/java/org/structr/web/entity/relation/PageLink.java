@@ -30,7 +30,7 @@ import org.structr.web.entity.dom.Page;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PageLink extends ManyToOne<DOMNode, Page> {
 

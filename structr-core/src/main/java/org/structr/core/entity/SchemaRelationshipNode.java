@@ -67,7 +67,7 @@ import org.structr.schema.parser.Validator;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 

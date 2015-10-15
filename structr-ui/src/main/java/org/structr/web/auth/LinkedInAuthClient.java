@@ -28,7 +28,7 @@ import org.structr.core.app.StructrApp;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class LinkedInAuthClient extends StructrOAuthClient {
 	

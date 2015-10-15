@@ -35,7 +35,7 @@ import org.structr.rest.exception.NotFoundException;
 /**
  * Represents an exact UUID match.
  *
- * @author Christian Morgner
+ *
  */
 public class UuidResource extends FilterableResource {
 

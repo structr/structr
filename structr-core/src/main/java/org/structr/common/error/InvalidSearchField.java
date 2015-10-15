@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates an invalid search field.
  *
- * @author Christian Morgner
+ *
  */
 public class InvalidSearchField extends SemanticErrorToken {
 

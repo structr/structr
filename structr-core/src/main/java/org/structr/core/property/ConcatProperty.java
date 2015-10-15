@@ -24,7 +24,7 @@ import org.structr.core.GraphObject;
 /**
  * A read-only property that returns the concatenated values of two other properties.
  *
- * @author Christian Morgner
+ *
  */
 public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 

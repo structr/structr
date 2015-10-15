@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
  * Defines a filtering adapter that can adapt an instance of source
  * class S to an instance of target class T.
  *
- * @author Christian Morgner
+ *
  */
 public interface Adapter<S, T>
 {

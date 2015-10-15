@@ -35,7 +35,7 @@ import org.w3c.dom.DOMException;
 /**
  * Websocket command to clone a page
  *
- * @author Axel Morgner
+ *
  */
 public class ClonePageCommand extends AbstractCommand {
 

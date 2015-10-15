@@ -29,7 +29,7 @@ import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FunctionDataSource implements GraphDataSource<List<GraphObject>> {
 

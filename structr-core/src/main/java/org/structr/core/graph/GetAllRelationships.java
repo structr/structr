@@ -28,7 +28,7 @@ import org.structr.core.entity.AbstractRelationship;
 /**
  * Fetches all the relationships in the database.
  *
- * @author Axel Morgner
+ *
  */
 public class GetAllRelationships extends NodeServiceCommand {
 

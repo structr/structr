@@ -22,8 +22,8 @@ import javax.servlet.Servlet;
 
 /**
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public interface HttpServiceServlet extends Servlet {
 

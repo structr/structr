@@ -34,7 +34,7 @@ import org.structr.web.entity.html.relation.ResourceLink;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * @author Axel Morgner
+ *
  */
 public class Link extends LinkSource {
 

@@ -24,7 +24,7 @@ import java.util.Map.Entry;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class MessageBuilder {
 

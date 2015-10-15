@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
 /**
  * A transformation that can be applied to the result set of a resource.
  * 
- * @author Christian Morgner
+ *
  */
 public abstract class ViewTransformation<T> extends Transformation<List<T>> {
 

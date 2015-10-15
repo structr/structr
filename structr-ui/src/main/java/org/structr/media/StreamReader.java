@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StreamReader extends Thread {
 

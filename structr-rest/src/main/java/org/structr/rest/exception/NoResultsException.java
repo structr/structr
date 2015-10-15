@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class NoResultsException extends FrameworkException {
 

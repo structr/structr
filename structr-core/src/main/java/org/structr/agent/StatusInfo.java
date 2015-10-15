@@ -21,7 +21,7 @@ package org.structr.agent;
 /**
  * Defines the ability of a task to return status information.
  * 
- * @author Christian Morgner
+ *
  */
 public interface StatusInfo {
 	

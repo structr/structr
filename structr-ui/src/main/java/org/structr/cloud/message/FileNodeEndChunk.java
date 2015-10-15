@@ -28,7 +28,7 @@ import org.structr.core.graph.SyncCommand;
 /**
  * Marks the end of a <code>FileNodeDataContainer</code>. This class does not contain binary content itself, its a marker only.
  *
- * @author Christian Morgner
+ *
  */
 public class FileNodeEndChunk extends DataContainer {
 

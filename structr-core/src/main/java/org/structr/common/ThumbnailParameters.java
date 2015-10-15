@@ -21,7 +21,7 @@ package org.structr.common;
 /**
  * Simple class to hold parameters for thumbnail generation.
  *
- * @author Axel Morgner
+ *
  */
 public class ThumbnailParameters {
 

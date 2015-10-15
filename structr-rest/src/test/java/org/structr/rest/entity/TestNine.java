@@ -41,7 +41,7 @@ import org.structr.core.property.StringProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TestNine extends AbstractNode {
 

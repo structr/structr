@@ -53,7 +53,7 @@ import org.structr.schema.importer.RDFImporter;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class MaintenanceParameterResource extends Resource {
 

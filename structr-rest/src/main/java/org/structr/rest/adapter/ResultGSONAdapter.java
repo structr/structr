@@ -40,7 +40,7 @@ import org.structr.core.Result;
 /**
  * Controls deserialization of property sets.
  *
- * @author Christian Morgner
+ *
  */
 public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializer<Result> {
 

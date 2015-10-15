@@ -28,7 +28,7 @@ import org.structr.core.PropertyValidator;
 /**
  * A simple validator that checks for non-empty values.
  *
- * @author Christian Morgner
+ *
  */
 public class SimpleNonEmptyValueValidator implements PropertyValidator<String> {
 

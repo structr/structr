@@ -35,7 +35,7 @@ import org.structr.websocket.StructrWebSocket;
 /**
  * Websocket command to create a simple HTML page
  *
- * @author Axel Morgner
+ *
  */
 public class CreateSimplePage extends AbstractCommand {
 

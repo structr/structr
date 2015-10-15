@@ -20,7 +20,7 @@ package org.structr.common.error;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class InvalidSchemaToken extends ErrorToken {
 

@@ -22,7 +22,7 @@ import java.io.IOException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class InputCommand extends InteractiveShellCommand {
 

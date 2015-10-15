@@ -35,7 +35,7 @@ import org.structr.core.property.Property;
  * Encapsulates a sorted collection of related nodes of different types, to be
  * used by an {@link AggregatorProperty}.
  *
- * @author Christian Morgner
+ *
  */
 public class Aggregation implements Value<Aggregation> {
 

@@ -29,7 +29,7 @@ import org.structr.web.entity.VideoFile;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {

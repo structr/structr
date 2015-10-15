@@ -39,7 +39,7 @@ import org.structr.websocket.StructrWebSocket;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ChunkCommand extends AbstractCommand {
 

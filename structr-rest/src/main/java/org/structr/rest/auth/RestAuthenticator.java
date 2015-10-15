@@ -45,7 +45,7 @@ import org.structr.core.entity.SuperUser;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class RestAuthenticator implements Authenticator {
 

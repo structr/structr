@@ -33,7 +33,7 @@ import org.structr.dynamic.File;
  * Encapsulates a pull request for a node
  *
  *
- * @author Christian Morgner
+ *
  */
 public class PullFile extends FileNodeDataContainer {
 

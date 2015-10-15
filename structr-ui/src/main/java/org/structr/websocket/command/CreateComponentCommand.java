@@ -34,7 +34,7 @@ import org.w3c.dom.DOMException;
  *
  * This command will create a SYNC relationship: (source)<-[:SYNC]-(component)
  *
- * @author Axel Morgner
+ *
  */
 public class CreateComponentCommand extends AbstractCommand {
 

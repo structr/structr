@@ -34,7 +34,7 @@ import org.structr.schema.compiler.ClassFileManager;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FunctionsCompiler {
 

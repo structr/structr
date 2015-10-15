@@ -43,7 +43,7 @@ import org.structr.schema.action.Actions;
 /**
  * Utility class for authentication
  *
- * @author Axel Morgner
+ *
  */
 public class AuthHelper {
 

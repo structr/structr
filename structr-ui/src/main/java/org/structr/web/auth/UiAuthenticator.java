@@ -51,7 +51,7 @@ import org.structr.web.servlet.HtmlServlet;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class UiAuthenticator implements Authenticator {
 	

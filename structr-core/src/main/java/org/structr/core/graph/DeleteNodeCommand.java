@@ -38,7 +38,7 @@ import org.structr.core.app.StructrApp;
 /**
  * Deletes a node.
  *
- * @author Axel Morgner
+ *
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 

@@ -34,8 +34,8 @@ import org.structr.core.converter.PropertyConverter;
  *
  * The String can have an optional content MIME type, as described in http://en.wikipedia.org/wiki/MIME
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class StringProperty extends AbstractPrimitiveProperty<String> {
 

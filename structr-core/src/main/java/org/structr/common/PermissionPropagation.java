@@ -25,7 +25,7 @@ import org.structr.core.entity.SchemaRelationshipNode.Propagation;
  * Marker interface to signal the configurable support of security
  * permission propagation through domain relationships.
  *
- * @author Christian Morgner
+ *
  */
 public interface PermissionPropagation {
 

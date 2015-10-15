@@ -58,7 +58,7 @@ import org.structr.module.JarConfigurationProvider;
  *
  * All tests are executed in superuser context
  *
- * @author Axel Morgner
+ *
  */
 public class StructrTest extends TestCase {
 

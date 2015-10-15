@@ -73,7 +73,7 @@ import org.structr.web.entity.dom.ShadowDocument;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CloudConnection<T> extends Thread implements TransactionSource {
 

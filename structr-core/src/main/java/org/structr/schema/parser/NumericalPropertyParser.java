@@ -27,7 +27,7 @@ import org.structr.schema.Schema;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 

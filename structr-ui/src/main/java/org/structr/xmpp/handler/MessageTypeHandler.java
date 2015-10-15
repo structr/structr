@@ -24,7 +24,7 @@ import org.structr.xmpp.XMPPContext.StructrXMPPConnection;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class MessageTypeHandler implements TypeHandler<Message> {
 

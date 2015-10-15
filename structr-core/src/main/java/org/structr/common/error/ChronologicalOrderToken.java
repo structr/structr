@@ -24,7 +24,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that two given date properties must be ordered chronologically.
  *
- * @author Christian Morgner
+ *
  */
 public class ChronologicalOrderToken extends SemanticErrorToken {
 

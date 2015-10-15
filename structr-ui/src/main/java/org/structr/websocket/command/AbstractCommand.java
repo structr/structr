@@ -42,7 +42,7 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Base class for all WebSocket messages in structr.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractCommand {
 

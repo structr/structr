@@ -34,7 +34,7 @@ import org.w3c.dom.Text;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class RelationClassAssignmentTest extends StructrUiTest {
 	

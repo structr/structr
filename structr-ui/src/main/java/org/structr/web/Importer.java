@@ -95,8 +95,8 @@ import org.structr.web.entity.dom.Page;
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
  *
- * @author Axel Morgner
- * @author Christian Morgner
+ *
+ *
  */
 public class Importer {
 

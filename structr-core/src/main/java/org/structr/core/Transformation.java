@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
  * A transformation that can be applied to an object in the
  * presence of a {@link SecurityContext}.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class Transformation<T> implements Comparable<Transformation<T>> {
 	

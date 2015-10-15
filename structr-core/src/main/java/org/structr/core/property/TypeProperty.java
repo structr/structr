@@ -34,7 +34,7 @@ import org.structr.core.graph.search.SearchCommand;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TypeProperty extends StringProperty {
 

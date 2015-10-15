@@ -21,7 +21,7 @@ package org.structr.xmpp;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface XMPPInfo {
 

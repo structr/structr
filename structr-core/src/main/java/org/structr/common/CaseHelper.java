@@ -27,7 +27,7 @@ import org.apache.commons.lang3.text.WordUtils;
  * A helper class that contains methods to convert strings to and from
  * different cases and styles, i.e. camelCase to underscore_style etc.
  *
- * @author Axel Morgner
+ *
  */
 public class CaseHelper {
 

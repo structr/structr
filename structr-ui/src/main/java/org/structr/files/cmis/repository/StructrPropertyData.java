@@ -25,7 +25,7 @@ import org.apache.chemistry.opencmis.commons.data.PropertyData;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrPropertyData<T> extends CMISExtensionsData implements PropertyData<T> {
 

@@ -26,7 +26,7 @@ import org.structr.cmis.common.CMISExtensionsData;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class StructrFolderActions extends CMISExtensionsData implements AllowableActions {

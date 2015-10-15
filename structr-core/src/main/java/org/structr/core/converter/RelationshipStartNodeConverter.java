@@ -27,7 +27,7 @@ import org.structr.core.entity.AbstractRelationship;
 /**
  * Returns the start node of a relationship when evaluated.
  *
- * @author Axel Morgner
+ *
  */
 public class RelationshipStartNodeConverter extends PropertyConverter {
 

@@ -25,7 +25,7 @@ import org.structr.core.property.StartNode;
 /**
  * A simple entity for testing constraint-based cascading delete.
  * 
- * @author Christian Morgner
+ *
  */
 public class TestNine extends AbstractNode {
 	

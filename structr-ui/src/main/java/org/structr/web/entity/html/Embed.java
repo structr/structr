@@ -24,7 +24,7 @@ import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
- * @author Axel Morgner
+ *
  */
 public class Embed extends DOMElement {
 

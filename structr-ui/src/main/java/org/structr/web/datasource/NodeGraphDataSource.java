@@ -29,7 +29,7 @@ import org.structr.web.entity.relation.RenderNode;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class NodeGraphDataSource implements GraphDataSource<List<GraphObject>> {
 

@@ -23,7 +23,7 @@ import org.structr.core.Command;
 /**
  * Abstract base class for agent service commands.
  * 
- * @author Christian Morgner
+ *
  */
 public abstract class AgentServiceCommand extends Command
 {

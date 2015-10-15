@@ -36,7 +36,7 @@ import org.structr.web.entity.VideoFile;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class SetMetadataProcess extends AbstractProcess<Void> {

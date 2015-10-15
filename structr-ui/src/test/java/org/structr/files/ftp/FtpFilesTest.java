@@ -35,7 +35,7 @@ import org.structr.web.common.FtpTest;
 /**
  * Tests for FTP files.
  *
- * @author Axel Morgner
+ *
  */
 public class FtpFilesTest extends FtpTest {
 

@@ -29,7 +29,7 @@ import org.w3c.dom.Document;
 /**
  * Wrap a content node in a new DOM element
  * 
- * @author Axel Morgner
+ *
  */
 public class WrapContentCommand extends AbstractCommand {
 

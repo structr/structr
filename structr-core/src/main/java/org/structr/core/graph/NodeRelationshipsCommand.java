@@ -38,7 +38,7 @@ import org.structr.common.error.FrameworkException;
 /**
  * Returns a List of relationships for the given node.
  *
- * @author Axel Morgner
+ *
  */
 public class NodeRelationshipsCommand extends NodeServiceCommand {
 

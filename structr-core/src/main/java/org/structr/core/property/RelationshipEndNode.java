@@ -32,7 +32,7 @@ import org.structr.core.notion.Notion;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnlyProperty<T> {
 

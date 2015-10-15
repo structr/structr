@@ -22,7 +22,7 @@ import java.net.URI;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface JsonProperty extends Comparable<JsonProperty> {
 

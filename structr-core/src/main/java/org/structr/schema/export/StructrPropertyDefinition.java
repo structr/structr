@@ -38,7 +38,7 @@ import org.structr.schema.json.JsonType;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class StructrPropertyDefinition implements JsonProperty, StructrDefinition {
 

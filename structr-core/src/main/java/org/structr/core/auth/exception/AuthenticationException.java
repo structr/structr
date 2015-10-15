@@ -22,7 +22,7 @@ package org.structr.core.auth.exception;
  * Thrown when a protected resource is accessed. In the REST server, this
  * exception causes the HTTP status code 401 to be returned .
  * 
- * @author Axel Morgner
+ *
  */
 public class AuthenticationException extends UnauthorizedException {
 

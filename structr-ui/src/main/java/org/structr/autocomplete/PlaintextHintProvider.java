@@ -24,7 +24,7 @@ import org.structr.core.GraphObject;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PlaintextHintProvider extends AbstractHintProvider {
 

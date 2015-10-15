@@ -23,7 +23,7 @@ import org.neo4j.graphdb.traversal.Evaluator;
 /**
  * Define the methods which make an object evaluable by an {@link Evaluator}.
  *
- * @author Christian Morgner
+ *
  */
 public interface Evaluable {
 	

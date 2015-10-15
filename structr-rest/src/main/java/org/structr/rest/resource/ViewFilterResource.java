@@ -41,7 +41,7 @@ import org.structr.schema.SchemaHelper;
  * property view. This constraint must be wrapped around another
  * resource constraint, otherwise it will throw an IllegalPathException.
  *
- * @author Christian Morgner
+ *
  */
 public class ViewFilterResource extends WrappingResource {
 

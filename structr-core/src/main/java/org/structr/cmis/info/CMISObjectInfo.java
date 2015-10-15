@@ -29,7 +29,7 @@ import org.structr.core.property.PropertyMap;
 /**
  * Optional interface for CMIS support in Structr core.
  *
- * @author Christian Morgner
+ *
  */
 public interface CMISObjectInfo {
 

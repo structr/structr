@@ -27,7 +27,7 @@ import org.structr.core.graph.NodeInterface;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface Target<R, T> {
 

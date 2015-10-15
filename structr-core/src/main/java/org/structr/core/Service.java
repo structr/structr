@@ -25,7 +25,7 @@ import org.structr.common.StructrConf;
 /**
  * The base class for services in structr.
  *
- * @author cmorgner
+ *
  */
 public interface Service {
 

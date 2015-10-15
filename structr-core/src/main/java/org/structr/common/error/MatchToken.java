@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that a property value must match a given expression.
  *
- * @author Christian Morgner
+ *
  */
 public class MatchToken extends SemanticErrorToken {
 

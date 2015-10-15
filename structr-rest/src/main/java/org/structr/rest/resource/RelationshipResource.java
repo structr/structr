@@ -38,7 +38,7 @@ import org.structr.rest.exception.IllegalPathException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class RelationshipResource extends WrappingResource {
 

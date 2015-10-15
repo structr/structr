@@ -58,7 +58,7 @@ import org.structr.schema.json.JsonType;
 /**
  *
  *
- * @author Christian Morgner
+ *
  * @param <T>
  */
 public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {

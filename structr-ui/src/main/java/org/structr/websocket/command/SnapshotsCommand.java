@@ -42,7 +42,7 @@ import org.structr.rest.maintenance.SnapshotCommand;
 /**
  * Websocket command to retrieve DOM nodes which are not attached to a parent element
  *
- * @author Axel Morgner
+ *
  */
 public class SnapshotsCommand extends AbstractCommand {
 

@@ -50,8 +50,8 @@ import org.structr.web.entity.dom.DOMNode;
 /**
  * Represents a component. A component is an assembly of elements
  *
- * @author Axel Morgner
- * @author Christian Morgner
+ *
+ *
  */
 public class Component extends DOMElement {
 

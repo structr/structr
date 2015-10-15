@@ -38,7 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Websocket command to grant or revoke a permission
  *
- * @author Axel Morgner
+ *
  */
 public class SetPermissionCommand extends AbstractCommand {
 

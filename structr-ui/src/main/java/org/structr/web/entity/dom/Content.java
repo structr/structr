@@ -63,7 +63,7 @@ import org.w3c.dom.Text;
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
  * All methods in the W3C Text interface are based on the raw database content.
  *
- * @author Axel Morgner
+ *
  */
 public class Content extends DOMNode implements Text {
 

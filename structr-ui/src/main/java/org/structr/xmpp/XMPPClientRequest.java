@@ -23,7 +23,7 @@ import org.structr.core.entity.Relation;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class XMPPClientRequest extends OneToMany<XMPPClient, XMPPRequest> {
 

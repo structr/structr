@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Abstract base class for read-only collection properties.
  * 
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractReadOnlyCollectionProperty<T> extends AbstractReadOnlyProperty<List<T>> {
 

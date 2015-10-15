@@ -30,7 +30,7 @@ import org.structr.web.common.HtmlProperty;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * @author Axel Morgner
+ *
  */
 public class Meta extends DOMElement {
 

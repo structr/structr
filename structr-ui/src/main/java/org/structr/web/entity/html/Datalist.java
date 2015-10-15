@@ -23,7 +23,7 @@ import org.structr.web.entity.dom.DOMElement;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * @author Axel Morgner
+ *
  */
 public class Datalist extends DOMElement {
 }

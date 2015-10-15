@@ -29,7 +29,7 @@ import org.structr.core.notion.RelationshipNotion;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, ManyStartpoint<S>, ManyEndpoint<T>> {
 

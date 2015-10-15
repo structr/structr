@@ -26,7 +26,7 @@ import org.structr.core.property.IntProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TestSix extends AbstractNode {
 

@@ -33,7 +33,7 @@ import org.structr.rest.common.TestEnum;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TwoOneOneToMany extends OneToMany<TestTwo, TestOne> {
 

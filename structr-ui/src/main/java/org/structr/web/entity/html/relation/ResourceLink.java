@@ -30,7 +30,7 @@ import org.structr.web.entity.Linkable;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ResourceLink extends ManyToOne<LinkSource, Linkable> {
 

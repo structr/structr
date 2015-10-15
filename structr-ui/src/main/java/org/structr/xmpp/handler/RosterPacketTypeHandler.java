@@ -23,7 +23,7 @@ import org.structr.xmpp.XMPPContext.StructrXMPPConnection;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class RosterPacketTypeHandler implements TypeHandler<RosterPacket> {
 

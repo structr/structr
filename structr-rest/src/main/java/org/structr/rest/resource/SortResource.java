@@ -33,7 +33,7 @@ import org.structr.rest.servlet.JsonRestServlet;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SortResource extends WrappingResource {
 

@@ -47,7 +47,7 @@ import org.structr.core.notion.Notion;
  * and an optional notion to it and use SchemaHelper to register it as the
  * value parameter of a TraversingConverter.
  *
- * @author Christian Morgner
+ *
  * @param <T>
  */
 public abstract class AbstractNodeCollector<T extends AbstractNode> implements TraverserInterface<T>, Value<TraverserInterface<T>> {

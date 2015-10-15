@@ -38,7 +38,7 @@ import org.structr.rest.exception.NotAllowedException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class MeResource extends TypedIdResource {
 

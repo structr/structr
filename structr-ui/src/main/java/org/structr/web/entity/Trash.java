@@ -21,7 +21,7 @@ package org.structr.web.entity;
 /**
  * Trash folder
  *
- * @author amorgner
+ *
  *
  */
 public class Trash extends Folder {

@@ -73,8 +73,8 @@ import org.structr.rest.logging.entity.LogEvent;
 
 /**
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class LogResource extends Resource {
 

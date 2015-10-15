@@ -22,7 +22,7 @@ import org.structr.rest.serialization.html.Attr;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Onload extends Attr {
 

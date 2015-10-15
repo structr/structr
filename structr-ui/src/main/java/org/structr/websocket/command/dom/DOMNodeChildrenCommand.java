@@ -34,7 +34,7 @@ import org.structr.websocket.command.AbstractCommand;
 /**
  * Websocket command to return the children of the given DOM node
  *
- * @author Axel Morgner
+ *
  */
 public class DOMNodeChildrenCommand extends AbstractCommand {
 

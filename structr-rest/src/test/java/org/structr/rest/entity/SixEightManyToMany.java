@@ -22,7 +22,7 @@ import org.structr.core.entity.ManyToMany;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SixEightManyToMany extends ManyToMany<TestSix, TestEight> {
 

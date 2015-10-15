@@ -23,7 +23,7 @@ import org.structr.core.Services;
 /**
  * Main startup class for Structr.
  * 
- * @author Christian Morgner
+ *
  */
 public class Server {
 

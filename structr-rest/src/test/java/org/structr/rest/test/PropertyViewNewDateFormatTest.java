@@ -29,7 +29,7 @@ import org.structr.rest.entity.TestTwo;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PropertyViewNewDateFormatTest extends StructrRestTest {
 

@@ -24,7 +24,7 @@ import org.structr.web.entity.Widget;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ImageWidget extends OneToMany<Widget, Image> {
 

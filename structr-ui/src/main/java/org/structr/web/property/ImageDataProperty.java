@@ -34,8 +34,8 @@ import org.structr.web.entity.Image;
  * the other one (with a {@link KeyAndClass} argumnents stores the data with
  * setProperty as an object of the given class
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class ImageDataProperty<T> extends StringProperty {
 	

@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 /**
  * Deletes the relationship supplied as a parameter.
  *
- * @author Christian Morgner
+ *
  */
 public class DeleteRelationshipCommand extends NodeServiceCommand {
 

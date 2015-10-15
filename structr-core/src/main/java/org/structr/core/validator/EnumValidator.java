@@ -34,7 +34,7 @@ import org.structr.core.property.PropertyKey;
  * A validator that ensures a given String value is a valid enum element of the
  * given type.
  *
- * @author Christian Morgner
+ *
  */
 public class EnumValidator<T> implements PropertyValidator<T> {
 

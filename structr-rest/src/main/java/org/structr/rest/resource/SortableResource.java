@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
  * combined with a SortResource in order to sort the result
  * set.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class SortableResource extends FilterableResource {
 

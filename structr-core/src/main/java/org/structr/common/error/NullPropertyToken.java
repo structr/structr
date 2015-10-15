@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that a property value may not be null.
  *
- * @author Christian Morgner
+ *
  */
 public class NullPropertyToken extends SemanticErrorToken {
 

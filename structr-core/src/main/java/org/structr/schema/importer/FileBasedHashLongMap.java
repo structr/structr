@@ -25,7 +25,7 @@ import java.util.Map;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FileBasedHashLongMap<K> {
 

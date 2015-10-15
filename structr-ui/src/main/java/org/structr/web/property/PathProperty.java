@@ -31,7 +31,7 @@ import org.structr.web.entity.Linkable;
  * including name. The path consists of the names of the parent elements,
  * concatenated by "/" as path separator.
  *
- * @author Axel Morgner
+ *
  */
 public class PathProperty extends AbstractReadOnlyProperty<String> {
 

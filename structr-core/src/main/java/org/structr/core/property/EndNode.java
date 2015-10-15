@@ -45,7 +45,7 @@ import org.structr.core.notion.ObjectNotion;
 /**
  * A property that defines a relationship with the given parameters between two nodes.
  *
- * @author Christian Morgner
+ *
  */
 public class EndNode<S extends NodeInterface, T extends NodeInterface> extends Property<T> implements RelationProperty<T> {
 

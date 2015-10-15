@@ -25,8 +25,8 @@ import java.util.List;
 /**
  * Encapsulates the result of a query operation.
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class Result<T extends GraphObject> {
 

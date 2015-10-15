@@ -27,7 +27,7 @@ import org.structr.web.converter.PathsConverter;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PathsProperty extends AbstractPrimitiveProperty<Set<String>> {
 

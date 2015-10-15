@@ -51,7 +51,7 @@ import org.structr.schema.compiler.NodeExtender;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaService implements Service {
 

@@ -38,7 +38,7 @@ import org.structr.schema.json.JsonSchema;
 /**
  * The main class to interact with the Structr Schema API.
  *
- * @author Christian Morgner
+ *
  */
 public class StructrSchema {
 

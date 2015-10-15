@@ -24,7 +24,7 @@ import org.structr.core.property.PropertyMap;
 /**
  * Indicates that a desired object could not be found.
  *
- * @author Christian Morgner
+ *
  */
 public class PropertiesNotFoundToken extends SemanticErrorToken {
 

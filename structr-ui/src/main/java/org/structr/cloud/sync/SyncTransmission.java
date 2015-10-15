@@ -44,7 +44,7 @@ import org.structr.dynamic.File;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SyncTransmission implements CloudTransmission {
 

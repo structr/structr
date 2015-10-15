@@ -32,7 +32,7 @@ import org.structr.core.PropertyValidator;
 /**
  * A validator that ensures a given date lies in the future.
  *
- * @author Christian Morgner
+ *
  */
 public class FutureDateValidator implements PropertyValidator {
 

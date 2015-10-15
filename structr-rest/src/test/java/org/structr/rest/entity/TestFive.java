@@ -31,7 +31,7 @@ import org.structr.core.property.StartNode;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class TestFive extends AbstractNode {
 	

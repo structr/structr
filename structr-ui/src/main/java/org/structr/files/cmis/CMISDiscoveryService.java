@@ -30,7 +30,7 @@ import org.structr.files.cmis.wrapper.CMISObjectListWrapper;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISDiscoveryService extends AbstractStructrCmisService implements DiscoveryService {
 

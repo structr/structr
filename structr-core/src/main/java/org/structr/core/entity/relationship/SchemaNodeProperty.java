@@ -25,7 +25,7 @@ import org.structr.core.entity.SchemaProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaNodeProperty extends OneToMany<AbstractSchemaNode, SchemaProperty> {
 

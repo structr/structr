@@ -27,7 +27,7 @@ import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DoublePropertyParser extends NumericalPropertyParser {
 

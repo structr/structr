@@ -25,7 +25,7 @@ import org.apache.chemistry.opencmis.commons.data.ObjectList;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISObjectListWrapper extends CMISPagingListWrapper<ObjectData> implements ObjectList {
 

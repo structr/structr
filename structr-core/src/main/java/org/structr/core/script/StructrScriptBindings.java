@@ -24,7 +24,7 @@ import javax.script.Bindings;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrScriptBindings extends HashMap<String, Object> implements Bindings {
 }

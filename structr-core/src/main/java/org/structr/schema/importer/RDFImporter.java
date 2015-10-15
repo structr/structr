@@ -44,7 +44,7 @@ import org.xml.sax.SAXException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 

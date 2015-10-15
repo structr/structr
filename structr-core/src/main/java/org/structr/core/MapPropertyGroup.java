@@ -35,7 +35,7 @@ import org.structr.core.converter.PropertyConverter;
 /**
  * A property group that uses a Map.
  *
- * @author Christian Morgner
+ *
  */
 public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 

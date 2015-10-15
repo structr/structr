@@ -28,7 +28,7 @@ import org.structr.web.entity.dom.Content;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * @author Axel Morgner
+ *
  */
 public class B extends DOMElement {
 	

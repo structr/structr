@@ -26,7 +26,7 @@ import org.structr.rest.resource.Resource;
  * A provider interface that allows external modules to
  * inject resource constraint classes into the JsonRestServlet.
  *
- * @author Christian Morgner
+ *
  */
 public interface ResourceProvider {
 	public Map<Pattern, Class<? extends Resource>> getResources();

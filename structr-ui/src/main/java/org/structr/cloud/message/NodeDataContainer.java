@@ -32,7 +32,7 @@ import org.structr.core.graph.SyncCommand;
  *
  * To be initialized with {@link AbstractNode} in constructor.
  *
- * @author axel
+ *
  */
 public class NodeDataContainer extends DataContainer {
 

@@ -27,7 +27,7 @@ import org.structr.rest.servlet.CsvServlet;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class CsvTest extends StructrCsvTest {
 

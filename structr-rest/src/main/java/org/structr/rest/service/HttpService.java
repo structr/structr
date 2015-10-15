@@ -76,7 +76,7 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class HttpService implements RunnableService {
 

@@ -38,7 +38,7 @@ import org.w3c.dom.Text;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class HtmlServletObjectResolvingTest extends StructrUiTest {
 

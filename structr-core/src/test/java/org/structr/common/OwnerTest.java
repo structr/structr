@@ -59,7 +59,7 @@ import org.structr.core.graph.Tx;
 /**
  * Test setting ownership.
  *
- * @author Axel Morgner
+ *
  */
 public class OwnerTest extends StructrTest {
 

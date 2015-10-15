@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
  * A value holder that can be fetched and set in the presence of a
  * {@link SecurityContext}.
  * 
- * @author Christian Morgner
+ *
  */
 public interface Value<T> {
 

@@ -54,7 +54,7 @@ import org.structr.web.property.UiNotion;
 
 /**
  *
- * @author Axel Morgner
+ *
  *
  */
 public class User extends AbstractUser {

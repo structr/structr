@@ -61,7 +61,7 @@ import org.structr.xmpp.handler.TypeHandler;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class XMPPContext {
 

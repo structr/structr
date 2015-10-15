@@ -38,7 +38,7 @@ import org.structr.core.Services;
 /**
  * Helper class for sending simple or HTML e-mails.
  *
- * @author Axel Morgner
+ *
  */
 public abstract class MailHelper {
 

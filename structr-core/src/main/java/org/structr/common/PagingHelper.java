@@ -31,7 +31,7 @@ import org.structr.core.Result;
 /**
  * Utility for paging
  *
- * @author Axel Morgner
+ *
  */
 public class PagingHelper {
 

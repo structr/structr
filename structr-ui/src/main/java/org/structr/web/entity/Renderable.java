@@ -23,7 +23,7 @@ import org.structr.web.common.RenderContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface Renderable {
 

@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class NonInteractiveShellCommand extends AbstractShellCommand {
 

@@ -29,7 +29,7 @@ import org.structr.schema.SchemaHelper;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class SchemaReloadingNode extends AbstractNode {
 

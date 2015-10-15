@@ -25,7 +25,7 @@ import java.util.concurrent.BlockingQueue;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Receiver extends Thread {
 

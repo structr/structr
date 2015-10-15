@@ -24,7 +24,7 @@ import java.util.Set;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SyncState {
 

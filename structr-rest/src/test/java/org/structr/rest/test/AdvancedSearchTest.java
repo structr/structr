@@ -41,7 +41,7 @@ import org.structr.rest.entity.TestUser;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class AdvancedSearchTest extends StructrRestTest {
 

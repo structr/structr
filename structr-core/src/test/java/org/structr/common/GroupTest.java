@@ -28,7 +28,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class GroupTest extends StructrTest {
 

@@ -29,8 +29,8 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Websocket command to retrieve a single graph object by id.
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class GetCommand extends AbstractCommand {
 

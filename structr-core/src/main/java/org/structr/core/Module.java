@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * A structr module.
  *
- * @author Axel Morgner
+ *
  */
 public interface Module extends Serializable
 {

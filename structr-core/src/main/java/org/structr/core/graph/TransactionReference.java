@@ -25,7 +25,7 @@ import org.structr.core.TransactionSource;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TransactionReference implements Transaction {
 

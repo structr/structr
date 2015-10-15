@@ -36,7 +36,7 @@ import org.structr.core.property.PropertyKey;
 
 /**
  *
- * @author Axel Morgner
+ *
  *
  */
 public abstract class AbstractUser extends AbstractNode implements Principal {

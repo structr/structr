@@ -30,7 +30,7 @@ import org.structr.core.graph.SyncCommand;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 

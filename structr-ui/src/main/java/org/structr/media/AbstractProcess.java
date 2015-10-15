@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractProcess<T> implements Callable<T> {
 

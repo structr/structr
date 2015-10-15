@@ -20,7 +20,7 @@ package org.structr.schema.action;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class Hint {
 

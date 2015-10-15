@@ -52,7 +52,7 @@ import org.structr.rest.service.HttpService;
 
  All tests are executed in superuser config
  *
- * @author Axel Morgner
+ *
  */
 public class StructrTest extends TestCase {
 

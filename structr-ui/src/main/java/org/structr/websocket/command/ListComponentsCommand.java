@@ -46,7 +46,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
  * Websocket command to retrieve nodes which are in use on more than
  * one page.
  * 
- * @author Axel Morgner
+ *
  */
 public class ListComponentsCommand extends AbstractCommand {
 	

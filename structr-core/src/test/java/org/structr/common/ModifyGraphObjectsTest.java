@@ -38,7 +38,7 @@ import org.structr.core.property.StringProperty;
  *
  * All tests are executed in superuser context
  *
- * @author Axel Morgner
+ *
  */
 public class ModifyGraphObjectsTest extends StructrTest {
 

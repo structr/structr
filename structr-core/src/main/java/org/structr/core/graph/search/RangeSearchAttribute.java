@@ -33,8 +33,8 @@ import org.structr.core.property.PropertyKey;
 /**
  * Search attribute for range queries
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class RangeSearchAttribute<T> extends SearchAttribute<T> {
 

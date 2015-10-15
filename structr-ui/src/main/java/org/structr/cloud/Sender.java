@@ -26,7 +26,7 @@ import java.util.concurrent.BlockingQueue;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Sender extends Thread {
 

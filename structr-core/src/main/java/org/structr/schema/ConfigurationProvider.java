@@ -35,7 +35,7 @@ import org.structr.core.property.PropertyKey;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface ConfigurationProvider {
 

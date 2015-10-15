@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * matcher.reset(input);
  * </pre>
  *
- * @author Christian Morgner
+ *
  */
 public class ThreadLocalMatcher extends ThreadLocal<Matcher> {
 

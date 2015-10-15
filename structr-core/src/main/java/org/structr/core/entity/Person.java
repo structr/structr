@@ -30,7 +30,7 @@ import org.structr.core.property.StringProperty;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class Person extends AbstractNode {
 

@@ -56,7 +56,7 @@ import org.structr.schema.action.Function;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrScriptable extends ScriptableObject {
 

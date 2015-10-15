@@ -33,7 +33,7 @@ import org.structr.core.property.PropertyKey;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class GraphComparatorTest extends StructrTest {
 

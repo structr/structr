@@ -43,7 +43,7 @@ import org.structr.websocket.message.MessageBuilder;
 /**
  * Websocket command to return the children of the given node
  *
- * @author Axel Morgner
+ *
  */
 public class ListSchemaPropertiesCommand extends AbstractCommand {
 

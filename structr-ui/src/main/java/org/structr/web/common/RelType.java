@@ -23,7 +23,7 @@ import org.neo4j.graphdb.RelationshipType;
 /**
  * Defines relationship types for structr's internal relationships.
  * 
- * @author Axel Morgner
+ *
  */
 public enum RelType implements RelationshipType {
 	

@@ -26,7 +26,7 @@ import org.structr.core.Predicate;
  * A node predicate that evaluates to <b>true</b> if the given node has a
  * property value that matches the given value.
  *
- * @author Christian Morgner
+ *
  */
 public class NodePropertyValuePredicate implements Predicate<Node> {
 

@@ -29,7 +29,7 @@ import org.structr.core.Services;
 /**
  * Abstract base class for geocoding providers.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractGeoCodingProvider implements GeoCodingProvider {
 

@@ -40,7 +40,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrCMISServicesFactory implements CmisServiceFactory {
 

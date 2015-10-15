@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISFolderWrapper extends CMISObjectWrapper<CMISFolderInfo> {
 

@@ -48,7 +48,7 @@ import org.structr.schema.SchemaHelper;
 /**
  * Creates a new node in the database with the given properties.
  *
- * @author Christian Morgner
+ *
  */
 public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceCommand {
 

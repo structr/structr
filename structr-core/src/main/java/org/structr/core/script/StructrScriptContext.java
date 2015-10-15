@@ -26,7 +26,7 @@ import javax.script.ScriptContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrScriptContext implements ScriptContext {
 

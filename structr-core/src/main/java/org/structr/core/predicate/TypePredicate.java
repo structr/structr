@@ -29,7 +29,7 @@ import org.structr.core.entity.AbstractNode;
  * A node predicate that evaluates to <b>true</b> if the type of the given node
  * matches the given type.
  *
- * @author Christian Morgner
+ *
  */
 public class TypePredicate implements Predicate<Node> {
 

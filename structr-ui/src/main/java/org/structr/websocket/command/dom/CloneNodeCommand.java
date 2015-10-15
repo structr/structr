@@ -32,7 +32,7 @@ import org.w3c.dom.DOMException;
 /**
  * Clone a DOMNode to an arbitrary location in the same or another document (page).
  *
- * @author Axel Morgner
+ *
  */
 public class CloneNodeCommand extends AbstractCommand {
 

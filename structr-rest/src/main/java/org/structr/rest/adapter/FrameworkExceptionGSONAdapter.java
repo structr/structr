@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 /**
  * Wrapper around the toJSON method of the exception class itself.
  * 
- * @author Christian Morgner
+ *
  */
 public class FrameworkExceptionGSONAdapter implements JsonSerializer<FrameworkException> {
 

@@ -31,7 +31,7 @@ import org.structr.core.Services;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class FtpService implements RunnableService {
 

@@ -23,7 +23,7 @@ import org.structr.common.error.FrameworkException;
 /**
  * Encapsulates the code that need to be wrapped into a transaction.
  * 
- * @author Christian Morgner
+ *
  */
 public abstract class StructrTransaction<T> {
 	

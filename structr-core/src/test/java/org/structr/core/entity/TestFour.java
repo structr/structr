@@ -35,7 +35,7 @@ import org.structr.core.property.StringProperty;
  * The isValid method does always return true for testing purposes only.
  *
  *
- * @author Axel Morgner
+ *
  */
 public class TestFour extends AbstractNode {
 

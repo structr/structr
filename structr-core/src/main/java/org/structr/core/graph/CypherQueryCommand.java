@@ -44,7 +44,7 @@ import org.structr.core.property.GenericProperty;
  * Executes the given Cypher query and tries to convert the result in a List
  * of {@link GraphObject}s.
  *
- * @author Christian Morgner
+ *
  */
 public class CypherQueryCommand extends NodeServiceCommand {
 

@@ -23,7 +23,7 @@ import org.structr.core.GraphObject;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class TypePredicate<T extends GraphObject> implements Predicate<T> {

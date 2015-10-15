@@ -25,7 +25,7 @@ import org.structr.common.SecurityContext;
 /**
  * A validator that can be used to do validation checks on node properties.
  *
- * @author Christian Morgner
+ *
  * @param <T>
  */
 public interface PropertyValidator<T> {

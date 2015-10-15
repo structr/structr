@@ -27,7 +27,7 @@ import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISExtensionsData implements ExtensionsData {
 

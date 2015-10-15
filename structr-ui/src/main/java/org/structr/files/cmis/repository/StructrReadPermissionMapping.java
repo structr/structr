@@ -26,7 +26,7 @@ import org.structr.common.Permission;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrReadPermissionMapping extends CMISExtensionsData implements PermissionMapping {
 

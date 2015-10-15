@@ -43,7 +43,7 @@ import org.structr.core.property.TargetId;
  * A generic relationship entity that will be instantiated when an anonymous
  * relationship is encountered.
  *
- * @author Axel Morgner
+ *
  *
  */
 public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface> {

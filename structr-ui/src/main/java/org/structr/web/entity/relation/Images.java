@@ -24,7 +24,7 @@ import org.structr.web.entity.Image;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Images extends AbstractChildren<Folder, Image> {
 

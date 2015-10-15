@@ -23,7 +23,7 @@ package org.structr.core;
  * is requested. Use this class when your service needs to be newly instantiated
  * for every command.
  *
- * @author Christian Morgner
+ *
  */
 public interface PrototypeService extends Service
 {

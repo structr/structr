@@ -24,7 +24,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that a given date property has the wrong format.
  *
- * @author Christian Morgner
+ *
  */
 public class DateFormatToken extends SemanticErrorToken {
 

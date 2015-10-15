@@ -29,7 +29,7 @@ import org.structr.dynamic.File;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FileHelperTest extends StructrUiTest {
 

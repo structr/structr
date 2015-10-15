@@ -57,7 +57,7 @@ import org.structr.web.entity.relation.UserHomeDir;
 /**
  * The Folder entity.
  *
- * @author Axel Morgner
+ *
  *
  */
 public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {

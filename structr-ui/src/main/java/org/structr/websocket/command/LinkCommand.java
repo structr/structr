@@ -34,7 +34,7 @@ import org.structr.websocket.StructrWebSocket;
 /**
  * Websocket command to create a LINK relationship between a LinkSource and a Linkable.
  * 
- * @author Axel Morgner
+ *
  */
 public class LinkCommand extends AbstractCommand {
 

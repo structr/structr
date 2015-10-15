@@ -46,7 +46,7 @@ import org.structr.module.JarConfigurationProvider;
 
 /**
  *
- * @author Christian Morgner (christian@morgner.de)
+ *
  */
 public class NodeExtender {
 

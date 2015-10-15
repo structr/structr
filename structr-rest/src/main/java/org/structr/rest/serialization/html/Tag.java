@@ -30,7 +30,7 @@ import org.structr.rest.serialization.html.attr.Id;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class Tag {
 

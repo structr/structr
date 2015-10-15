@@ -39,7 +39,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Resource that handles logs a user out
  *
- * @author Axel Morgner
+ *
  */
 public class LogoutResource extends Resource {
 

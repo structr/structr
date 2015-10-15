@@ -21,7 +21,7 @@ package org.structr.media;
 /**
  * An enumeration of pre-defined video formats to be used with a VideoConverter.
  *
- * @author Christian Morgner
+ *
  */
 public enum VideoFormat {
 

@@ -47,7 +47,7 @@ import org.structr.web.entity.dom.ShadowDocument;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class UiSyncCommand extends NodeServiceCommand implements MaintenanceCommand {
 

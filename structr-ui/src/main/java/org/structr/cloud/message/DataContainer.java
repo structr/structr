@@ -30,7 +30,7 @@ import org.structr.core.graph.SyncCommand;
 /**
  * Abstract superclass of {@link NodeDataContainer} and {@link RelationshipDataContainer}
  *
- * @author axel
+ *
  */
 public abstract class DataContainer extends Message {
 

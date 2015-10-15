@@ -41,7 +41,7 @@ import org.structr.rest.exception.NotAllowedException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CypherQueryResource extends Resource {
 

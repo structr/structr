@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISPolicyService extends AbstractStructrCmisService implements PolicyService {
 

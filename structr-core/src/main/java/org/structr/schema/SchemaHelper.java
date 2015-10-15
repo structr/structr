@@ -87,7 +87,7 @@ import org.structr.schema.parser.Validator;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaHelper {
 

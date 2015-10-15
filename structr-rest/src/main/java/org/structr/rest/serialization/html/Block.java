@@ -20,7 +20,7 @@ package org.structr.rest.serialization.html;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Block extends Tag {
 

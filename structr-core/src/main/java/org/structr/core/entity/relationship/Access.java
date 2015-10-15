@@ -24,7 +24,7 @@ import org.structr.core.entity.ResourceAccess;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Access extends OneToMany<ResourceAccess, PropertyAccess> {
 

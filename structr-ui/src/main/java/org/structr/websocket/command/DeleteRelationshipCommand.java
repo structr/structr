@@ -29,7 +29,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- classes ----------------------------------------------------------------
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class DeleteRelationshipCommand extends AbstractCommand {
 

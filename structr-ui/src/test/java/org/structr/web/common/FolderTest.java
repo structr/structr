@@ -27,7 +27,7 @@ import org.structr.web.entity.Folder;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class FolderTest extends StructrTest {
 	

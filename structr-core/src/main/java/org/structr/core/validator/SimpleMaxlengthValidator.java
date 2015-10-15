@@ -28,7 +28,7 @@ import org.structr.core.PropertyValidator;
 /**
  * A simple string max length validator.
  *
- * @author Christian Morgner
+ *
  */
 public class SimpleMaxlengthValidator implements PropertyValidator<String> {
 

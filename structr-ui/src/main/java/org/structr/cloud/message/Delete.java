@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.SyncCommand;
 
 /**
- * @author Christian Morgner
+ *
  */
 public class Delete extends Message {
 

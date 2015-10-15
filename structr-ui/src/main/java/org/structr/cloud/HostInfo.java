@@ -20,7 +20,7 @@ package org.structr.cloud;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class HostInfo implements CloudHost {
 

@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ActionEntry implements Comparable<ActionEntry> {
 

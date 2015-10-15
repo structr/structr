@@ -25,7 +25,7 @@ import org.structr.core.entity.SchemaMethod;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaNodeMethod extends OneToMany<AbstractSchemaNode, SchemaMethod> {
 

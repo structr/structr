@@ -42,7 +42,7 @@ import org.structr.core.graph.TransactionCommand;
  * instantiate a node with an unknown / unregistered type, this class is
  * used.
  *
- * @author Christian Morgner
+ *
  */
 public class DefaultFactoryDefinition implements FactoryDefinition {
 

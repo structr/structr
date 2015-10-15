@@ -23,7 +23,7 @@ import org.structr.files.ssh.StructrShellCommand;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class LogoutCommand extends NonInteractiveShellCommand {
 

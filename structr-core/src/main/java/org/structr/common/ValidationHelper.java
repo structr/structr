@@ -42,7 +42,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Defines helper methods for property validation.
  *
- * @author Christian Morgner
+ *
  */
 public class ValidationHelper {
 

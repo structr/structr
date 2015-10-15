@@ -39,7 +39,7 @@ import org.structr.websocket.message.WebSocketMessage;
  * Websocket command to delete all DOM nodes which are not attached to a parent
  * element
  *
- * @author Axel Morgner
+ *
  */
 public class DeleteUnattachedNodesCommand extends AbstractCommand {
 

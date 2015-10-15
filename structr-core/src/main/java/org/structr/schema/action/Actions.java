@@ -36,7 +36,7 @@ import org.structr.core.script.Scripting;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Actions {
 

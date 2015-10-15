@@ -42,7 +42,7 @@ import org.structr.core.app.StructrApp;
  * Sets a new UUID on each graph object of the given type. For nodes, set type,
  * for relationships relType.
  *
- * @author Axel Morgner
+ *
  */
 public class BulkSetUuidCommand extends NodeServiceCommand implements MaintenanceCommand {
 

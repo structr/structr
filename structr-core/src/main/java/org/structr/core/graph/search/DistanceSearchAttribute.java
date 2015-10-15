@@ -27,7 +27,7 @@ import org.structr.core.GraphObject;
  *
  * Here, the key is a search string to be passed to geocoding, and value is a distance in km.
  *
- * @author Axel Morgner
+ *
  */
 public class DistanceSearchAttribute extends SearchAttribute {
 

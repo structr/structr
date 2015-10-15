@@ -25,7 +25,7 @@ import org.structr.core.property.StringProperty;
 /**
  * Content element that can act as an outer template.
  *
- * @author Axel Morgner
+ *
  */
 
 

@@ -26,7 +26,7 @@ import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
 /**
- * @author Christian Morgner
+ *
  */
 public class MultiSemaphore {
 

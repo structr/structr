@@ -29,7 +29,7 @@ import org.structr.schema.json.JsonScriptProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrScriptProperty extends StructrStringProperty implements JsonScriptProperty {
 

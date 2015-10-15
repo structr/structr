@@ -40,7 +40,7 @@ import org.structr.core.entity.AbstractRelationship;
  *
  * Use 'type' argument for node type, and 'relType' for relationship type.
  *
- * @author Axel Morgner
+ *
  */
 public class BulkRebuildIndexCommand extends NodeServiceCommand implements MaintenanceCommand, TransactionPostProcess {
 

@@ -27,7 +27,7 @@ import org.structr.core.graph.NodeInterface;
  * A wrapper around {@link GraphObjectComparator} to be able to use it for
  * {@link AbstractNode} objects without type cast.
  * 
- * @author Christian Morgner
+ *
  */
 public class AbstractNodePropertyComparator implements Comparator<NodeInterface> {
 

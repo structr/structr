@@ -31,7 +31,7 @@ import org.structr.core.entity.ManyToMany;
 
 /**
  *
- * @author axel
+ *
  */
 public class FriendsOfFriends extends ManyToMany<Person, Person> implements RelationshipType {
 

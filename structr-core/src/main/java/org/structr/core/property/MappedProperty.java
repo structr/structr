@@ -27,7 +27,7 @@ import org.structr.core.converter.PropertyMapper;
  * A property that maps another (local) property of the same node. This class can be used
  * to establish name mappings between different properties.
  *
- * @author Christian Morgner
+ *
  */
 public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 

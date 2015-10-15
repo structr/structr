@@ -31,7 +31,7 @@ import org.structr.core.converter.PropertyConverter;
 /**
  * A generic dummy property that does nothing.
  *
- * @author Christian Morgner
+ *
  */
 public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 

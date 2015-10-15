@@ -21,7 +21,7 @@ package org.structr.web.entity.html;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
- * @author Axel Morgner
+ *
  */
 public class Keygen extends DOMElement {
 //

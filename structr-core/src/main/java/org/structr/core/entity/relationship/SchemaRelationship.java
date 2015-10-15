@@ -42,7 +42,7 @@ import org.structr.schema.SchemaHelper;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> {
 

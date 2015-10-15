@@ -27,7 +27,7 @@ import org.structr.core.graph.RelationshipInterface;
 /**
  * A property group that returns grouped properties from the start node of a relationship.
  * 
- * @author Christian Morgner
+ *
  */
 public class StartNodeGroup extends GroupProperty {
 	

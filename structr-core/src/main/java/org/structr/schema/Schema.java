@@ -29,7 +29,7 @@ import org.structr.core.entity.SchemaView;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface Schema {
 

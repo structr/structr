@@ -22,7 +22,7 @@ import org.structr.core.entity.OneToMany;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SevenSixOneToMany extends OneToMany<TestSeven, TestSix> {
 

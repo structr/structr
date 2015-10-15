@@ -25,7 +25,7 @@ import org.structr.core.notion.PropertySetNotion;
 /**
  * Convenience wrapper for (id, name) tuple.
  * 
- * @author Christian Morgner
+ *
  */
 public class UiNotion extends PropertySetNotion {
 

@@ -54,7 +54,7 @@ import org.structr.web.entity.Folder;
 /**
  * File utility class.
  *
- * @author Axel Morgner
+ *
  */
 public class FileHelper {
 

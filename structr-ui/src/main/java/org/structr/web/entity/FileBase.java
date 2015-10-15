@@ -72,7 +72,7 @@ import org.structr.web.entity.relation.Folders;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FileBase extends AbstractFile implements Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo {
 

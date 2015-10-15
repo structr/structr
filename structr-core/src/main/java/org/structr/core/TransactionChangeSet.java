@@ -29,7 +29,7 @@ import org.structr.core.entity.AbstractRelationship;
  * Encapsulates the changeset of a neo4j database transaction, taking care of
  * structr internals.
  * 
- * @author Christian Morgner
+ *
  */
 public class TransactionChangeSet {
 

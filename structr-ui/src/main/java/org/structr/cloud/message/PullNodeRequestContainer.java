@@ -34,7 +34,7 @@ import org.structr.core.graph.SyncCommand;
  * Encapsulates a pull request for a node
  *
  *
- * @author Christian Morgner
+ *
  */
 public class PullNodeRequestContainer extends Message {
 

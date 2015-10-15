@@ -40,7 +40,7 @@ import org.structr.web.property.PathProperty;
 /**
  * Base class for filesystem objects in structr.
  *
- * @author Christian Morgner
+ *
  */
 public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, AbstractFile> {
 

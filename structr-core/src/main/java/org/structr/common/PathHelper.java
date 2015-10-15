@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * A helper class that provides methods for URL path splitting etc.
  * 
- * @author Christian Morgner
+ *
  */
 public class PathHelper {
 

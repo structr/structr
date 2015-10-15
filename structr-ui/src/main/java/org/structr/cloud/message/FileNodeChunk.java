@@ -28,7 +28,7 @@ import org.structr.core.graph.SyncCommand;
 /**
  * Represents a single chunk of a <code>FileNodeDataContainer</code> that can be transmitted to a remote structr instance.
  *
- * @author Christian Morgner
+ *
  */
 public class FileNodeChunk extends DataContainer {
 

@@ -27,7 +27,7 @@ import org.structr.core.entity.AbstractNode;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> {
 

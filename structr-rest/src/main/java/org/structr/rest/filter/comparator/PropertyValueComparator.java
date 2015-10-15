@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PropertyValueComparator implements Comparator<GraphObject> {
 

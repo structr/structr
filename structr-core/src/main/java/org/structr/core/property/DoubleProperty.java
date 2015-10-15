@@ -39,7 +39,7 @@ import org.structr.core.graph.search.SearchAttribute;
 /**
  * A property that stores and retrieves a simple Double value.
  *
- * @author Christian Morgner
+ *
  */
 public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements NumericalPropertyKey<Double> {
 

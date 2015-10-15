@@ -37,7 +37,7 @@ import org.structr.schema.compiler.NodeExtender;
  * dynamic types, so you should avoid using dynamic properties and save
  * actions on the File class directly.
  *
- * @author Christian Morgner
+ *
  */
 public class File extends FileBase {
 

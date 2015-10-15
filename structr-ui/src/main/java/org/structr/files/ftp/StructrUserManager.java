@@ -39,7 +39,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author axel
+ *
  */
 public class StructrUserManager implements UserManager {
 

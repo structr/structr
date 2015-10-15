@@ -40,7 +40,7 @@ import org.structr.web.entity.User;
 /**
  * Resource that handles user logins
  *
- * @author Axel Morgner
+ *
  */
 public class LoginResource extends Resource {
 

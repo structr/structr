@@ -30,7 +30,7 @@ import org.structr.core.property.DoubleProperty;
  * A simple entity with lat,lon coordinates
  * 
  * 
- * @author Axel Morgner
+ *
  */
 public class TestSeven extends AbstractNode {
 	

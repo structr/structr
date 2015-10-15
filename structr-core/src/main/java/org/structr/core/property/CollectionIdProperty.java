@@ -26,7 +26,7 @@ import org.structr.core.notion.PropertyNotion;
 /**
  * A property that wraps a PropertyNotion with the entity's UUID around a CollectionProperty.
  *
- * @author Christian Morgner
+ *
  * @param <T>
  */
 public class CollectionIdProperty<T extends AbstractNode> extends CollectionNotionProperty<T, String> {

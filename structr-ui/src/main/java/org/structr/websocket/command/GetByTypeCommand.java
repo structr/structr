@@ -41,8 +41,8 @@ import org.structr.websocket.message.WebSocketMessage;
  * 
  * Supports paging and ignores thumbnails.
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class GetByTypeCommand extends AbstractCommand {
 	

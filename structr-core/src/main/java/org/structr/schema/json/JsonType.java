@@ -25,7 +25,7 @@ import java.util.Set;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface JsonType extends Comparable<JsonType> {
 

@@ -51,7 +51,7 @@ import org.structr.web.entity.User;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FulltextIndexingAgent extends Agent<FileBase> {
 

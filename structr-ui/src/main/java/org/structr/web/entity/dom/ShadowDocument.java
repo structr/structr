@@ -30,7 +30,7 @@ import org.structr.web.entity.relation.PageLink;
  * The sole purpose of this class is to have a node to append reused elements
  * (aka) components to.
  *
- * @author Axel Morgner
+ *
  */
 public class ShadowDocument extends Page {
 

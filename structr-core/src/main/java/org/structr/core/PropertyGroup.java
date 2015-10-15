@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
  * A PropertyGroup can be used to encapsulate multiple node properties into a
  * single property.
  *
- * @author Christian Morgner
+ *
  */
 public interface PropertyGroup<T> {
 	

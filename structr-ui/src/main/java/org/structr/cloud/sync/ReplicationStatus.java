@@ -31,7 +31,7 @@ import org.structr.core.graph.SyncCommand;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ReplicationStatus extends Message<ReplicationStatus> {
 

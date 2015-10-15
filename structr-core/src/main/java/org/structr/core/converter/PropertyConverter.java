@@ -27,7 +27,7 @@ import org.structr.core.GraphObject;
  * values from one type to another. Please note that implementations
  * of this interface MUST be able to handle null values.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class PropertyConverter<S, T> {
 

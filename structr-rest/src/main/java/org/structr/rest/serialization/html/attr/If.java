@@ -23,7 +23,7 @@ import org.structr.rest.serialization.html.Attr;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class If extends Conditional {
 

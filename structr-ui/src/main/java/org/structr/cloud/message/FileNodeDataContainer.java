@@ -38,7 +38,7 @@ import org.structr.dynamic.File;
 /**
  * Transport data container for file nodes
  *
- * @author axel
+ *
  */
 public class FileNodeDataContainer extends NodeDataContainer {
 

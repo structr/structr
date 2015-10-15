@@ -27,7 +27,7 @@ import org.structr.core.property.PropertyMap;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface RelationshipInterface extends GraphObject {
 

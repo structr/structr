@@ -24,7 +24,7 @@ import org.structr.web.entity.dom.Page;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class Pages extends OneToMany<Site, Page> {
 

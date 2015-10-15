@@ -24,7 +24,7 @@ import java.util.Queue;
 /**
  * Special buffer for asynchronous streaming of chunked output.
  *
- * @author Axel Morgner
+ *
  */
 public class AsyncBuffer {
 

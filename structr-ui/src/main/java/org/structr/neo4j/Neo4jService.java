@@ -32,7 +32,7 @@ import org.structr.core.app.StructrApp;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class Neo4jService implements RunnableService {
 

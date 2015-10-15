@@ -23,7 +23,7 @@ import org.structr.websocket.message.MessageBuilder;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class WebsocketProgressListener implements CloudListener {
 

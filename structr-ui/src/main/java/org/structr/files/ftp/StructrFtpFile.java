@@ -33,7 +33,7 @@ import org.structr.web.entity.FileBase;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class StructrFtpFile extends AbstractStructrFtpFile {
 

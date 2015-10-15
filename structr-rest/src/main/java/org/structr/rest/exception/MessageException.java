@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
  * An exception that can be used to pass a response message from
  * module-specific code to the response body.
  *
- * @author Christian Morgner
+ *
  */
 public class MessageException extends FrameworkException {
 

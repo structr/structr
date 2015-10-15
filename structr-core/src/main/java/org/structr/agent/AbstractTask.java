@@ -30,7 +30,7 @@ import org.structr.core.entity.Principal;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class AbstractTask<T extends AbstractNode> implements Task<T> {
 

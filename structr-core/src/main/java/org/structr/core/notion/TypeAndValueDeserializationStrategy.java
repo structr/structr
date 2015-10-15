@@ -42,7 +42,7 @@ import org.structr.core.property.RelationProperty;
 /**
  * Deserializes a {@link GraphObject} using a type and a property value.
  *
- * @author Christian Morgner
+ *
  */
 public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 

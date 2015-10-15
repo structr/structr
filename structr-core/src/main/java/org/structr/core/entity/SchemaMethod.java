@@ -29,7 +29,7 @@ import org.structr.schema.action.ActionEntry;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaMethod extends SchemaReloadingNode {
 

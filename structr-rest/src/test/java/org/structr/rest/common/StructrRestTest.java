@@ -65,7 +65,7 @@ import org.structr.rest.servlet.JsonRestServlet;
  *
  * All tests are executed in superuser context
  *
- * @author Axel Morgner
+ *
  */
 public class StructrRestTest extends TestCase {
 

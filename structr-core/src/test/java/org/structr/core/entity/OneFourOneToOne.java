@@ -29,7 +29,7 @@ import org.structr.core.property.StringProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class OneFourOneToOne extends OneToOne<TestOne, TestFour> {
 

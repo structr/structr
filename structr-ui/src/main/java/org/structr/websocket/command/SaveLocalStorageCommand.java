@@ -29,7 +29,7 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
- * @author Axel Morgner
+ *
  */
 public class SaveLocalStorageCommand extends AbstractCommand {
 

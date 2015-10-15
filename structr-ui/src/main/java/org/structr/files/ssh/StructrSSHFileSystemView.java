@@ -25,7 +25,7 @@ import org.structr.common.SecurityContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrSSHFileSystemView implements FileSystemView {
 

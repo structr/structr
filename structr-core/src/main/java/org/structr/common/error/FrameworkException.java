@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletResponse;
  * a buffer that supports context-dependent, nested error
  * messages.
  *
- * @author Christian Morgner
+ *
  */
 public class FrameworkException extends Exception {
 

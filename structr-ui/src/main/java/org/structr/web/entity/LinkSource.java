@@ -32,7 +32,7 @@ import org.structr.web.entity.html.relation.ResourceLink;
 /**
  * This class represents elements which can have an outgoing link to a resource.
  *
- * @author Axel Morgner
+ *
  */
 public class LinkSource extends DOMElement {
 

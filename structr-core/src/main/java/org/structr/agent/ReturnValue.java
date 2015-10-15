@@ -22,7 +22,7 @@ package org.structr.agent;
  * Defines the possible return values for task execution in the agent service of
  * structr.
  * 
- * @author Christian Morgner
+ *
  */
 public enum ReturnValue {
 	

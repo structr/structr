@@ -25,7 +25,7 @@ import org.structr.rest.entity.TestObject;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CollectionResourceBasicTest extends StructrRestTest {
 	

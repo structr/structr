@@ -27,7 +27,7 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FilteredPropertyList {
 

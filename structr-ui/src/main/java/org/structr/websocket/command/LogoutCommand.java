@@ -28,7 +28,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class LogoutCommand extends AbstractCommand {
 

@@ -26,7 +26,7 @@ import org.structr.rest.logging.entity.relationship.SubjectEventRelationship;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class LogSubject extends AbstractNode {
 

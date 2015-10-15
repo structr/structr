@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
  * 
  * In order to use this interface, you must register your implementation in SchemaHelper.
  *
- * @author Axel Morgner
+ *
  */
 public interface TransactionNotifier {
 

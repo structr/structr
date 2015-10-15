@@ -33,7 +33,7 @@ import org.structr.schema.json.JsonType;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 class NotionReferenceProperty extends StructrReferenceProperty {
 

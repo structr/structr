@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class RelatedNodePropertyTest extends StructrRestTest {
 

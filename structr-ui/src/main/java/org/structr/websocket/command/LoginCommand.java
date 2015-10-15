@@ -34,7 +34,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- classes ----------------------------------------------------------------
 /**
  *
- * @author Christian Morgner, Axel Morgner
+ *
  */
 public class LoginCommand extends AbstractCommand {
 

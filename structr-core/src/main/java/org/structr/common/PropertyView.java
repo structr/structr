@@ -22,7 +22,7 @@ package org.structr.common;
  * Defines the default property views for structr, see {@link View} and the
  * example archetype for more information.
  *
- * @author Christian Morgner
+ *
  */
 public interface PropertyView {
 

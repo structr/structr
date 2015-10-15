@@ -32,7 +32,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class EntityPropertyTest extends StructrTest {
 

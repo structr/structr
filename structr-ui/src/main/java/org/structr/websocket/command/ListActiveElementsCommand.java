@@ -51,7 +51,7 @@ import org.structr.web.entity.html.Link;
 /**
  * Websocket command to retrieve DOM nodes which are not attached to a parent element
  *
- * @author Axel Morgner
+ *
  */
 public class ListActiveElementsCommand extends AbstractCommand {
 

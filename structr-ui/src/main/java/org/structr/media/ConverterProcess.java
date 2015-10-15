@@ -40,7 +40,7 @@ import org.structr.web.entity.VideoFile;
  *
  * transcode.sh [input] [output]
  *
- * @author Christian Morgner
+ *
  */
 
 public class ConverterProcess extends AbstractProcess<VideoFile> {

@@ -38,7 +38,7 @@ import org.structr.dynamic.File;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PushTransmission implements CloudTransmission {
 

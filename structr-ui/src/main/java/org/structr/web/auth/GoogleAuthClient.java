@@ -23,7 +23,7 @@ import org.structr.core.app.StructrApp;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class GoogleAuthClient extends StructrOAuthClient {
 	

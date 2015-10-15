@@ -32,7 +32,7 @@ import java.util.Map;
  * A resource constraint that implements the generic ability to
  * wrap another constraint.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class WrappingResource extends Resource {
 

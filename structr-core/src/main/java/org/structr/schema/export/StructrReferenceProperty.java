@@ -27,7 +27,7 @@ import org.structr.schema.json.JsonType;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class StructrReferenceProperty extends StructrPropertyDefinition implements JsonReferenceProperty {
 

@@ -48,7 +48,7 @@ import org.structr.core.graph.NodeService;
  *       search criteria
  * </ol>
  *
- * @author Axel Morgner
+ *
  * @param <T>
  */
 public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<Node, T> {

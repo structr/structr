@@ -33,7 +33,7 @@ import org.structr.core.app.StructrApp;
  * A service that keeps track of registered tasks and runs
  * them at their scheduled time.
  *
- * @author Christian Morgner
+ *
  */
 public class CronService extends Thread implements RunnableService {
 

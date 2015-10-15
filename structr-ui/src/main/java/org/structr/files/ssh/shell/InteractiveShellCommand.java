@@ -24,7 +24,7 @@ import org.structr.files.ssh.StructrShellCommand;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class InteractiveShellCommand extends AbstractShellCommand {
 

@@ -49,7 +49,7 @@ import org.w3c.dom.NodeList;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 

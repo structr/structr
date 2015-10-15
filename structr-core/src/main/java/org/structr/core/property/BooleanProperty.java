@@ -32,7 +32,7 @@ import org.structr.core.converter.PropertyConverter;
 /**
 * A property that stores and retrieves a simple Boolean value.
  *
- * @author Christian Morgner
+ *
  */
 public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 

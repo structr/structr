@@ -31,7 +31,7 @@ import org.structr.rest.exception.IllegalMethodException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class EntityResolverResource extends SortableResource {
 

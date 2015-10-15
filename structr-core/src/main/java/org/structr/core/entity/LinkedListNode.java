@@ -31,7 +31,7 @@ import org.structr.core.property.StringProperty;
 /**
  * Abstract base class for a multi-dimensional linked list data structure.
  *
- * @author Christian Morgner
+ *
  * @param <R>
  * @param <T>
  */

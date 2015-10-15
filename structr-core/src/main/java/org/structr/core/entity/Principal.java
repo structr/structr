@@ -33,7 +33,7 @@ import org.structr.core.property.StringProperty;
 //~--- interfaces -------------------------------------------------------------
 /**
  *
- * @author Axel Morgner
+ *
  *
  */
 public interface Principal extends NodeInterface, AccessControllable {

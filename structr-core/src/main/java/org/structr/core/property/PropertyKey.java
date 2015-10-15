@@ -35,7 +35,7 @@ import org.structr.core.graph.search.SearchAttribute;
 /**
  * Base interface for typed property keys.
  *
- * @author Christian Morgner
+ *
  * @param <T>
  */
 public interface PropertyKey<T> {

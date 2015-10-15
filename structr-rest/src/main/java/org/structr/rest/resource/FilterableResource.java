@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
  * combined with a ViewFilterResource in order to configure
  * a specific property view.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class FilterableResource extends WrappingResource {
 

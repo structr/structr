@@ -28,7 +28,7 @@ import org.structr.core.Predicate;
  * evaluates to <b>true</b> if there is only one parameter value for the
  * evaluate method.
  *
- * @author Christian Morgner
+ *
  */
 public class GreaterThan<T extends Comparable> implements Predicate<T> {
 

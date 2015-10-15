@@ -38,7 +38,7 @@ import org.structr.core.Result;
  * Encapsulates the result of a REST HTTP method call, i.e. headers, response
  * code etc.
  *
- * @author Christian Morgner
+ *
  */
 public class RestMethodResult {
 

@@ -30,7 +30,7 @@ import org.structr.core.graph.RelationshipInterface;
 /**
  * Search for relationships by their attributes.
  *
- * @author Axel Morgner
+ *
  */
 public class SearchRelationshipCommand<T extends RelationshipInterface> extends SearchCommand<Relationship, T> {
 

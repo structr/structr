@@ -24,7 +24,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrConf extends Properties {
 

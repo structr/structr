@@ -28,7 +28,7 @@ import org.structr.schema.json.JsonBooleanProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrBooleanProperty extends StructrPropertyDefinition implements JsonBooleanProperty {
 

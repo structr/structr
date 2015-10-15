@@ -124,7 +124,7 @@ import org.w3c.dom.UserDataHandler;
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable {
 

@@ -27,7 +27,7 @@ import org.structr.core.auth.Authenticator;
 /**
  * Custom creator for structr WebSockets.
  *
- * @author Axel Morgner
+ *
  */
 public class StructrWebSocketCreator implements WebSocketCreator {
 

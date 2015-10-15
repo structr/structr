@@ -38,7 +38,7 @@ import org.structr.websocket.StructrWebSocket;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class PatchCommand extends AbstractCommand {
 

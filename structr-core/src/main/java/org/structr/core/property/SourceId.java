@@ -29,7 +29,7 @@ import org.structr.core.graph.RelationshipInterface;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SourceId extends Property<String> {
 

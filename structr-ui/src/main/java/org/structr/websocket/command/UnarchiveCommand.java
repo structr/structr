@@ -51,7 +51,7 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Websocket command for un-archiving archive files.
  *
- * @author Axel Morgner
+ *
  */
 public class UnarchiveCommand extends AbstractCommand {
 

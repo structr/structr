@@ -26,7 +26,7 @@ import org.structr.common.Permission;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrDeletePermissionMapping extends CMISExtensionsData implements PermissionMapping {
 

@@ -26,7 +26,7 @@ import org.structr.core.graph.NodeInterface;
 /**
  * Returns the "type" property of the end node when evaluated.
  *
- * @author Christian Morgner
+ *
  */
 public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, String> {
 

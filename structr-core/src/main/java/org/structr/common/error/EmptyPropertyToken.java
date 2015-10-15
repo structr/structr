@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that a given property value may not be empty.
  *
- * @author Christian Morgner
+ *
  */
 public class EmptyPropertyToken extends SemanticErrorToken {
 

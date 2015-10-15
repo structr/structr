@@ -30,7 +30,7 @@ import org.structr.web.common.RenderContext;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class IdRequestParameterGraphDataSource implements GraphDataSource<List<GraphObject>> {
 

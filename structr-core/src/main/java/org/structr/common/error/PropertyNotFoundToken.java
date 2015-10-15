@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that a required object could not be found.
  *
- * @author Christian Morgner
+ *
  */
 public class PropertyNotFoundToken extends SemanticErrorToken {
 

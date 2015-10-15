@@ -24,7 +24,7 @@ import org.structr.core.graph.NodeInterface;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> implements Ownership {
 

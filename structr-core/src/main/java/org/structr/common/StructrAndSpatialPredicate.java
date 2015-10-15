@@ -37,7 +37,7 @@ import org.structr.schema.ConfigurationProvider;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class StructrAndSpatialPredicate<T extends PropertyContainer> implements Predicate<T> {

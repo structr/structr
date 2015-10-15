@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.*;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class LongPropertyRestTest extends StructrRestTest {
 

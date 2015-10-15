@@ -28,7 +28,7 @@ import org.w3c.dom.Element;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DOMElementTest extends DOMTest {
 

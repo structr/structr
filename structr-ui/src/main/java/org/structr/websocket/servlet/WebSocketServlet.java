@@ -35,8 +35,8 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSocketServlet implements HttpServiceServlet {
 

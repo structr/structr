@@ -30,7 +30,7 @@ import org.structr.core.graph.MaintenanceCommand;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class GraphGistImporter extends SchemaImporter implements MaintenanceCommand {
 

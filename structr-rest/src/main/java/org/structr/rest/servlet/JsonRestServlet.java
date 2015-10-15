@@ -71,7 +71,7 @@ import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 /**
  * Implements the structr REST API.
  *
- * @author Christian Morgner
+ *
  */
 public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 

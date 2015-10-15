@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Utility class for recurring dates
  *
- * @author Axel Morgner
+ *
  */
 public class RecurringDateHelper {
 

@@ -30,8 +30,8 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Websocket command to retrieve a single relationship by id.
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class GetRelationshipCommand extends AbstractCommand {
 

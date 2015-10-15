@@ -29,7 +29,7 @@ import org.structr.schema.json.JsonSchema;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrDateProperty extends StructrStringProperty implements JsonDateProperty {
 

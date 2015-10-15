@@ -28,7 +28,7 @@ import org.structr.core.property.StringProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class LogEvent extends AbstractNode {
 

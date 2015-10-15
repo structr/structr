@@ -32,7 +32,7 @@ import org.structr.core.property.StringProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TestSeven extends AbstractNode {
 

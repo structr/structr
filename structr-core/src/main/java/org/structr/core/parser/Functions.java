@@ -116,7 +116,7 @@ import org.xml.sax.SAXException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Functions {
 

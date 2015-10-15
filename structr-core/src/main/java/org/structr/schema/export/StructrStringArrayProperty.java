@@ -28,7 +28,7 @@ import org.structr.schema.json.JsonStringArrayProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrStringArrayProperty extends StructrPropertyDefinition implements JsonStringArrayProperty {
 

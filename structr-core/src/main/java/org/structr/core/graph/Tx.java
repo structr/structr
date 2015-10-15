@@ -28,7 +28,7 @@ import org.structr.core.app.StructrApp;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Tx implements AutoCloseable {
 

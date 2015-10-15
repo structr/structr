@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.*;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class SchemaResourceTest extends StructrRestTest {
 

@@ -35,7 +35,7 @@ import static org.structr.core.property.IntProperty.INT_EMPTY_FIELD_VALUE;
 /**
  * A read-only property that returns the number of elements in a collection returned from a given property.
  *
- * @author Christian Morgner
+ *
  */
 public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 

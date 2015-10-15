@@ -24,7 +24,7 @@ import org.structr.core.entity.SchemaView;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaViewProperty extends ManyToMany<SchemaView, SchemaProperty> {
 

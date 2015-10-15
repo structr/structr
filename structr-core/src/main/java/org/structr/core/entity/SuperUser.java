@@ -46,7 +46,7 @@ import org.structr.schema.action.ActionContext;
  * The SuperUser entity. Please note that this class is not persitent but will
  * be instantiated when needed.
  *
- * @author amorgner
+ *
  *
  */
 public class SuperUser implements Principal, AccessControllable {

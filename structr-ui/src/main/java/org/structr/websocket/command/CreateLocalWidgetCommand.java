@@ -33,7 +33,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class CreateLocalWidgetCommand extends AbstractCommand {
 

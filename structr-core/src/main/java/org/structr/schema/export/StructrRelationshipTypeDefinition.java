@@ -38,7 +38,7 @@ import org.structr.schema.json.JsonType;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<SchemaRelationshipNode> implements JsonReferenceType {
 

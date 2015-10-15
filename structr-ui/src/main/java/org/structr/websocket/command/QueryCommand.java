@@ -46,8 +46,8 @@ import org.structr.websocket.message.WebSocketMessage;
  *
  * To get all nodes of a certain type, see the {@link GetCommand}.
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class QueryCommand extends AbstractCommand {
 

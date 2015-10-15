@@ -39,7 +39,7 @@ import org.structr.common.error.FrameworkException;
 /**
  * Returns an aggregated Map of relationship counts for the given node.
  *
- * @author Axel Morgner
+ *
  */
 public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 

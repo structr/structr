@@ -38,7 +38,7 @@ import org.structr.core.property.PropertyMap;
 /**
  * Test access control with different permission levels.
  *
- * @author Axel Morgner
+ *
  */
 public class AccessControlTest extends StructrTest {
 

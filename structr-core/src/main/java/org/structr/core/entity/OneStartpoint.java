@@ -32,7 +32,7 @@ import org.structr.core.graph.RelationshipFactory;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint implements Source<Relationship, S> {
 

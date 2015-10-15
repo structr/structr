@@ -44,7 +44,7 @@ import org.structr.rest.serialization.html.attr.Type;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrJsonHtmlWriter implements RestWriter {
 

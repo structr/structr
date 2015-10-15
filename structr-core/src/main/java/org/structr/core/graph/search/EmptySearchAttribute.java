@@ -27,7 +27,7 @@ import org.structr.core.property.PropertyKey;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 

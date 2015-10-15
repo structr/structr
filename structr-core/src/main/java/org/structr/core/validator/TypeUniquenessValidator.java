@@ -36,7 +36,7 @@ import org.structr.core.app.StructrApp;
 /**
  * A validator that ensures global uniqueness for given entity type.
  *
- * @author Christian Morgner
+ *
  */
 public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 

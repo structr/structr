@@ -34,7 +34,7 @@ import org.structr.core.property.PropertyKey;
  * A validator that normalizes the given value and ensures it is an
  * existing entity of given type.
  *
- * @author Christian Morgner
+ *
  */
 public class TypeAndExactNameValidator implements PropertyValidator<String> {
 

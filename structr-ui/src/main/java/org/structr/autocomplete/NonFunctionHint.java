@@ -22,7 +22,7 @@ import org.structr.schema.action.Hint;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class NonFunctionHint extends Hint {
 

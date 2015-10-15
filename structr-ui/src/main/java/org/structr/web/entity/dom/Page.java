@@ -96,8 +96,8 @@ import org.w3c.dom.Text;
 /**
  * Represents a page resource
  *
- * @author Axel Morgner
- * @author Christian Morgner
+ *
+ *
  */
 public class Page extends DOMNode implements Linkable, Document, DOMImplementation, FtpFile {
 

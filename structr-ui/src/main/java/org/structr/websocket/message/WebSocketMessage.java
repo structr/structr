@@ -31,8 +31,8 @@ import org.structr.core.property.PropertyKey;
 
 /**
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class WebSocketMessage {
 

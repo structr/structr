@@ -30,7 +30,7 @@ import org.structr.core.entity.Principal;
 /**
  * A task for testing the CRON service.
  *
- * @author Christian Morgner
+ *
  */
 public class CronTestTask<T extends AbstractNode> implements Task<T> {
 

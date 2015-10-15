@@ -45,7 +45,7 @@ import org.structr.schema.SchemaHelper;
 //~--- classes ----------------------------------------------------------------
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class SchemaTypeResource extends Resource {
 

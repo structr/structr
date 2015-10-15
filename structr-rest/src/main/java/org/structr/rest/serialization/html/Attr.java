@@ -22,7 +22,7 @@ import org.structr.rest.serialization.html.attr.Context;
 
 /**
  *
- * @author chrisi
+ *
  */
 public class Attr {
 		

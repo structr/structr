@@ -77,7 +77,7 @@ import org.structr.schema.action.ActionContext;
 /**
  * Abstract base class for all relationship entities in structr.
  *
- * @author Axel Morgner
+ *
  * @param <S>
  * @param <T>
  */

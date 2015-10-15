@@ -27,7 +27,7 @@ import org.structr.core.graph.NodeInterface;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class CollectionSumProperty<T extends NodeInterface, S extends Number> extends AbstractReadOnlyProperty<S> {
 

@@ -23,7 +23,7 @@ import org.structr.rest.common.StructrRestTest;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class AmbiguityTest extends StructrRestTest {
 

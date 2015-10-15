@@ -22,7 +22,7 @@ import org.structr.core.Command;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public abstract class CloudServiceCommand extends Command {
 

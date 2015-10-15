@@ -41,7 +41,7 @@ import org.structr.websocket.StructrWebSocket;
 /**
  * Websocket command to return the children of the given node
  *
- * @author Axel Morgner
+ *
  */
 public class AutocompleteCommand extends AbstractCommand {
 

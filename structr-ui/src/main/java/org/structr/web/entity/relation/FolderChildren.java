@@ -24,7 +24,7 @@ import org.structr.web.entity.Folder;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class FolderChildren extends AbstractChildren<Folder, AbstractFile> {
 

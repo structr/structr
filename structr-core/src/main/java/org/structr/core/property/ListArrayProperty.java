@@ -30,7 +30,7 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @deprecated This property is not working correctly, please do not use.
  * 
- * @author Christian Morgner
+ *
  */
 public class ListArrayProperty extends StringProperty {
 

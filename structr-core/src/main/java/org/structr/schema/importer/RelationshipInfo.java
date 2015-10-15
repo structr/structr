@@ -20,7 +20,7 @@ package org.structr.schema.importer;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class RelationshipInfo {
 

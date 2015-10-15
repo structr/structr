@@ -27,7 +27,7 @@ import org.structr.core.GraphObject;
  * A string property that lets the user create a value
  * when there is no value associated with it yet.
  * 
- * @author Christian Morgner
+ *
  */
 public abstract class AutoStringProperty extends StringProperty {
 

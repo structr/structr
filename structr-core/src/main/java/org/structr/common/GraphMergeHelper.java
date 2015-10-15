@@ -31,7 +31,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Utility to merge to graphs.
  *
- * @author Axel Morgner
+ *
  */
 public class GraphMergeHelper {
 

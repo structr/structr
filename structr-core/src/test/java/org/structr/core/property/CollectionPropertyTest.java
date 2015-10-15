@@ -31,7 +31,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CollectionPropertyTest extends StructrTest {
 

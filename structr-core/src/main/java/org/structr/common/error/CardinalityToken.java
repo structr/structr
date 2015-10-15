@@ -21,7 +21,7 @@ package org.structr.common.error;
 /**
  * Indicates that a specific property value already exists in the database.
  *
- * @author Christian Morgner
+ *
  */
 public class CardinalityToken extends SemanticErrorToken {
 

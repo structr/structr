@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Marker to indicate that the method annotated
  * with this class is callable directly via REST.
  * 
- * @author Christian Morgner
+ *
  */
 
 @Target(ElementType.METHOD)

@@ -22,7 +22,7 @@ import org.structr.core.entity.OneToOne;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TenSevenOneToOne extends OneToOne<TestTen, TestSeven> {
 

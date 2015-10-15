@@ -35,7 +35,7 @@ import org.structr.core.property.StringProperty;
  * A simple entity for the most basic tests.
  *
  *
- * @author Axel Morgner
+ *
  */
 public class TestOne extends AbstractNode {
 

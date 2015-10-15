@@ -21,7 +21,7 @@ package org.structr.core.property;
 /**
  * A read-only {@link Reference}.
  *
- * @author Christian Morgner
+ *
  */
 public class ReadOnlyReference<T> extends Reference<T> {
 	

@@ -24,7 +24,7 @@ import javax.tools.JavaFileObject;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DiagnosticErrorToken extends SemanticErrorToken {
 

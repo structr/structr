@@ -42,7 +42,7 @@ import org.structr.core.GraphObject;
 
 /**
  *
- * @author axel
+ *
  */
 public class PathsConverter extends PropertyConverter {
 

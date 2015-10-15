@@ -25,7 +25,7 @@ import java.util.List;
  * A buffer that collects error tokens to allow for i18n and human readable
  * output.
  *
- * @author Christian Morgner
+ *
  */
 public class ErrorBuffer {
 

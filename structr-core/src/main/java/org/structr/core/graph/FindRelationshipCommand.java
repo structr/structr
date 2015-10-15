@@ -36,7 +36,7 @@ import org.structr.core.entity.AbstractRelationship;
 /**
  * Searches for a relationship in the database and return the result.
  *
- * @author Axel Morgner
+ *
  */
 public class FindRelationshipCommand<T extends AbstractRelationship> extends NodeServiceCommand {
 

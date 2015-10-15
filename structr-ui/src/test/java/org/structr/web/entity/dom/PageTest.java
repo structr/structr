@@ -34,7 +34,7 @@ import org.w3c.dom.NodeList;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PageTest extends StructrUiTest {
 

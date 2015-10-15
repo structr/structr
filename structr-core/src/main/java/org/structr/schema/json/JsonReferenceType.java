@@ -24,7 +24,7 @@ import org.structr.schema.json.JsonSchema.Cascade;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface JsonReferenceType extends JsonType {
 

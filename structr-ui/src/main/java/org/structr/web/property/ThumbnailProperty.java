@@ -30,7 +30,7 @@ import org.structr.web.entity.Image;
 /**
  * A property that automatically created a thumbnail for an image. (?)
  *
- * @author Axel Morgner
+ *
  */
 public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 

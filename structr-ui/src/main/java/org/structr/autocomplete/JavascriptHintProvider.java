@@ -22,7 +22,7 @@ import org.structr.common.CaseHelper;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class JavascriptHintProvider extends AbstractHintProvider {
 

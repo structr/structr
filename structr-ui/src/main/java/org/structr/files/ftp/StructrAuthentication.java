@@ -22,7 +22,7 @@ import org.apache.ftpserver.ftplet.Authentication;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class StructrAuthentication implements Authentication {
 	

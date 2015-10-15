@@ -41,7 +41,7 @@ import org.structr.web.entity.VideoFile;
  *
  * transcode.sh [input] [output]
  *
- * @author Christian Morgner
+ *
  */
 
 public class FrameGrabberProcess extends AbstractProcess<Image> {

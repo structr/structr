@@ -42,7 +42,7 @@ import org.structr.common.geo.GeoCodingResult.Type;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 

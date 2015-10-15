@@ -25,7 +25,7 @@ import org.structr.core.Module;
 /**
  * The default implementation of a structr module.
  *
- * @author Christian Morgner
+ *
  */
 public class DefaultModule implements Module {
 	

@@ -38,7 +38,7 @@ import org.structr.core.app.StructrApp;
  * Synchronization message that causes the slave to examine its database
  * contents, reporting everything to the master.
  *
- * @author Christian Morgner
+ *
  */
 public class Synchronize extends Message {
 

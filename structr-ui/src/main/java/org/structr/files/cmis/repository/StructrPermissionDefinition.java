@@ -24,7 +24,7 @@ import org.structr.common.Permission;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrPermissionDefinition extends CMISExtensionsData implements PermissionDefinition {
 

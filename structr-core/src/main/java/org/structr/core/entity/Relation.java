@@ -35,7 +35,7 @@ import org.structr.core.property.Property;
  * @param <S>
  * @param <T>
  *
- * @author Christian Morgner
+ *
  */
 public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipInterface, RelationshipType {
 

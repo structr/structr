@@ -25,7 +25,7 @@ import org.structr.core.property.Property;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractChildren<S extends LinkedTreeNode, T extends LinkedTreeNode> extends OneToMany<S, T> {
 

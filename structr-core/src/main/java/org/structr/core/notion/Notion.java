@@ -45,7 +45,7 @@ import org.structr.core.property.RelationProperty;
  * return only its name when referenced from a Folder entity, but to return the
  * whole object when referenced from a Group entity.
  *
- * @author Christian Morgner
+ *
  * @param <S>
  * @param <T>
  */

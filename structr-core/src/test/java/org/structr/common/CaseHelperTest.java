@@ -23,7 +23,7 @@ import static junit.framework.TestCase.assertEquals;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 

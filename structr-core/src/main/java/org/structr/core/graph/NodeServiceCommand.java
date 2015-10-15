@@ -35,7 +35,7 @@ import org.structr.core.app.StructrApp;
 /**
  * Abstract base class for all graph service commands.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class NodeServiceCommand extends Command {
 

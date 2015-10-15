@@ -22,7 +22,7 @@ import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public interface PropertyDefinition {
 

@@ -56,7 +56,7 @@ import org.structr.schema.action.ActionContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 

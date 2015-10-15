@@ -24,7 +24,7 @@ import org.structr.core.validator.SimpleRegexValidator;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class UuidProperty extends StringProperty {
 

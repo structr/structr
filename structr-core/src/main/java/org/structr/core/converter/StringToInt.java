@@ -24,7 +24,7 @@ import org.structr.core.Value;
 /**
  * Converts an Integer to a String and back.
  *
- * @author Christian Morgner
+ *
  */
 public class StringToInt extends Converter<String, Integer> {
 	

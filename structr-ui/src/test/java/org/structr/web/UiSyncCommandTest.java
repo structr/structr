@@ -37,7 +37,7 @@ import org.structr.web.entity.html.Script;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class UiSyncCommandTest extends StructrUiTest {
 

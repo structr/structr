@@ -41,7 +41,7 @@ import org.structr.common.geo.GeoCodingResult.Type;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 

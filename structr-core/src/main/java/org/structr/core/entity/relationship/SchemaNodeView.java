@@ -25,7 +25,7 @@ import org.structr.core.entity.SchemaView;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaNodeView extends OneToMany<AbstractSchemaNode, SchemaView>  {
 

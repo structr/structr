@@ -58,7 +58,7 @@ import org.structr.core.graph.Tx;
  *
  * All tests are executed in superuser context
  *
- * @author Axel Morgner
+ *
  */
 public class SortingTest extends StructrTest {
 

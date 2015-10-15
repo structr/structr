@@ -27,7 +27,7 @@ import org.w3c.dom.Node;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public abstract class DOMTest extends StructrUiTest {

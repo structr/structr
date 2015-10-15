@@ -37,7 +37,7 @@ import org.structr.core.graph.search.SearchAttribute;
 /**
  * A property that stores and retrieves a simple Long value.
  *
- * @author Christian Morgner
+ *
  */
 public class LongProperty extends AbstractPrimitiveProperty<Long> implements NumericalPropertyKey<Long> {
 

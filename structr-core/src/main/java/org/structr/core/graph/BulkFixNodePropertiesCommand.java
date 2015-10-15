@@ -37,7 +37,7 @@ import org.structr.schema.SchemaHelper;
  * Tries to fix properties in the database that have been stored there with the
  * wrong type.
  *
- * @author Christian Morgner
+ *
  */
 public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements MaintenanceCommand {
 

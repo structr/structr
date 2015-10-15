@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISRelationshipService extends AbstractStructrCmisService implements RelationshipService {
 

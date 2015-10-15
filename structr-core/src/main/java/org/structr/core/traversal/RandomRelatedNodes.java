@@ -32,7 +32,7 @@ import org.structr.core.notion.ObjectNotion;
  * traversal of the given relationship type and direction and randomizes the
  * resulting list.
  *
- * @author Christian Morgner
+ *
  */
 public class RandomRelatedNodes<T extends AbstractNode> extends AbstractNodeCollector<T> {
 

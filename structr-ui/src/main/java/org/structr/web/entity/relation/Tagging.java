@@ -24,7 +24,7 @@ import org.structr.web.entity.Taggable;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Tagging extends ManyToMany<Tag, Taggable> {
 

@@ -23,7 +23,7 @@ import org.structr.core.GraphObject;
 /**
  * Indicates that a given ID could not be found.
  *
- * @author Christian Morgner
+ *
  */
 public class IdNotFoundToken extends PropertyNotFoundToken {
 

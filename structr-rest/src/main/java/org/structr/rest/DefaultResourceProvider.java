@@ -26,7 +26,7 @@ import org.structr.rest.resource.*;
 /**
  * A default resource provider implementation for structr.
  *
- * @author Christian Morgner
+ *
  */
 public class DefaultResourceProvider implements ResourceProvider {
 

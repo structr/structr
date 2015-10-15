@@ -24,7 +24,7 @@ import org.structr.core.entity.Relation;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface JsonObjectType extends JsonType {
 

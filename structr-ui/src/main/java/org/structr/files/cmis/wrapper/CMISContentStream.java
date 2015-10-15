@@ -33,7 +33,7 @@ import org.structr.web.entity.FileBase;
 /**
  * An implementation of the CMIS ContentStream interface using a MappedByteBuffer.
  *
- * @author Christian Morgner
+ *
  */
 public class CMISContentStream extends CMISExtensionsData implements ContentStream {
 

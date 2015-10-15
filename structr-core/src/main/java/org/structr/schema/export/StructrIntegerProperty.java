@@ -30,7 +30,7 @@ import org.structr.schema.parser.IntPropertyParser;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrIntegerProperty extends StructrPropertyDefinition implements JsonIntegerProperty {
 

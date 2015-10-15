@@ -25,7 +25,7 @@ import org.structr.web.entity.VideoFile;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class VideoFileHasPosterImage extends OneToOne<VideoFile, Image> {
 

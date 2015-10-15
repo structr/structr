@@ -40,7 +40,7 @@ import static org.structr.web.common.FileHelper.setFileData;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 
 import org.structr.dynamic.File;

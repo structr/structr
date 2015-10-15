@@ -47,7 +47,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage>, JsonDeserializer<WebSocketMessage> {
 

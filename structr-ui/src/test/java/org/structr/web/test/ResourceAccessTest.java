@@ -39,7 +39,7 @@ import org.structr.web.entity.User;
 /**
  * Test resource access security implemented in {@link UiAuthenticator}
  *
- * @author Axel Morgner
+ *
  */
 public class ResourceAccessTest extends StructrUiTest {
 

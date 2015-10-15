@@ -36,7 +36,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class ImportCommand extends AbstractCommand {
 

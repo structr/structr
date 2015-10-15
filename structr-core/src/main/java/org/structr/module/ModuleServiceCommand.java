@@ -23,7 +23,7 @@ import org.structr.core.Command;
 /**
  * Abstract base class for all module service commands.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class ModuleServiceCommand extends Command {
 

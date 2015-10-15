@@ -39,7 +39,7 @@ import org.structr.web.entity.Folder;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public abstract class AbstractStructrFtpFile implements FtpFile {
 

@@ -33,7 +33,7 @@ import org.structr.core.graph.NodeFactory;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TransformationResource extends WrappingResource {
 

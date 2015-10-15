@@ -27,7 +27,7 @@ import org.structr.core.property.Property;
  * A node with validation. This is a convenience class that avoids having to
  * implement the validation methods for all types separately.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class ValidatedNode extends AbstractNode {
 

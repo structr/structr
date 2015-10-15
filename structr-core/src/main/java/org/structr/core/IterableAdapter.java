@@ -30,7 +30,7 @@ import org.structr.common.error.FrameworkException;
  * evaluation in the sense that a call to the "next" method causes the next
  * element of the source Iterable to be converted and returned.
  *
- * @author Christian Morgner
+ *
  */
 public class IterableAdapter<S, T> implements Iterable<T>
 {

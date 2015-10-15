@@ -24,7 +24,7 @@ import javax.tools.SimpleJavaFileObject;
 
 /**
  *
- * @author Christian Morgner (christian@morgner.de)
+ *
  */
 public class CharSequenceJavaFileObject extends SimpleJavaFileObject {
 

@@ -46,7 +46,7 @@ import org.structr.core.graph.Tx;
  * A resource constraint that allows to execute maintenance tasks via
  * REST API.
  *
- * @author Christian Morgner
+ *
  */
 public class MaintenanceResource extends Resource {
 

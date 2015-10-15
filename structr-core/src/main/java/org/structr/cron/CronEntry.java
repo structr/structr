@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 /**
  * A CRON entry.
  *
- * @author Christian Morgner
+ *
  */
 public class CronEntry implements Delayed {
 

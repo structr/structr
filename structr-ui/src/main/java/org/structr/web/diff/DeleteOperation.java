@@ -29,7 +29,7 @@ import org.w3c.dom.Node;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DeleteOperation extends InvertibleModificationOperation {
 

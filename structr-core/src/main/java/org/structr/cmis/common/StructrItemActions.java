@@ -25,7 +25,7 @@ import org.apache.chemistry.opencmis.commons.enums.Action;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class StructrItemActions extends CMISExtensionsData implements AllowableActions {

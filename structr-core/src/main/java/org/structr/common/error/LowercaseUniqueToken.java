@@ -24,7 +24,7 @@ import org.structr.core.property.PropertyKey;
  * Indicates that a given property value is already present in the database and
  * may only occur once.
  *
- * @author Bastian Knerr
+ *
  */
 public class LowercaseUniqueToken extends SemanticErrorToken {
 

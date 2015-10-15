@@ -26,7 +26,7 @@ import org.structr.rest.logging.entity.relationship.ObjectEventRelationship;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class LogObject extends AbstractNode {
 

@@ -35,7 +35,7 @@ import org.structr.core.graph.search.SearchUserCommand;
  * Validator that checks the uniqueness after a given lowercase transformation
  * of the property value.
  *
- * @author Bastian Knerr
+ *
  */
 public class LowercaseTypeUniquenessValidator implements PropertyValidator<String> {
 

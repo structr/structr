@@ -25,7 +25,7 @@ import org.structr.web.entity.User;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractShellCommand implements ShellCommand {
 

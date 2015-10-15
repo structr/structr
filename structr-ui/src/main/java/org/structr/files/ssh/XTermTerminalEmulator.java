@@ -24,7 +24,7 @@ import java.io.OutputStream;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 

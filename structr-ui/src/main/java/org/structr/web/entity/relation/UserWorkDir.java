@@ -24,7 +24,7 @@ import org.structr.web.entity.User;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class UserWorkDir extends OneToOne<User, Folder> {
 

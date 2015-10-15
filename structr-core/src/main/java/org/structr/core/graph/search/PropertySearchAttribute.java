@@ -34,7 +34,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Represents an attribute for textual search, used in {@link SearchNodeCommand}.
  *
- * @author Axel Morgner
+ *
  */
 public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 

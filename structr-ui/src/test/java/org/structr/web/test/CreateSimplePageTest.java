@@ -38,7 +38,7 @@ import org.w3c.dom.Text;
 /**
  * Create a simple test page
  *
- * @author Axel Morgner
+ *
  */
 public class CreateSimplePageTest extends StructrUiTest {
 

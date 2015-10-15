@@ -41,7 +41,7 @@ import org.structr.core.graph.RelationshipInterface;
  * abstract method to transform the raw Cypher query result into a meaningful
  * object.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 

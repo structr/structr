@@ -27,7 +27,7 @@ import org.structr.core.property.Property;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class TestTen extends AbstractNode {
 

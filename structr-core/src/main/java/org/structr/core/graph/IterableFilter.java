@@ -28,7 +28,7 @@ import org.structr.core.Predicate;
  * each element in the collection, deciding whether to include the element or
  * not.
  * 
- * @author Christian Morgner
+ *
  */
 public class IterableFilter<T> implements Iterable<T> {
 

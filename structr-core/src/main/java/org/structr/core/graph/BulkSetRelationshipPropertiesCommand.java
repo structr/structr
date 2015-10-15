@@ -43,7 +43,7 @@ import org.structr.schema.SchemaHelper;
  * Sets the properties found in the property set on all relationships matching the type.
  * If no type property is found, set the properties on all relationships.
  *
- * @author Axel Morgner
+ *
  */
 public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand implements MaintenanceCommand {
 

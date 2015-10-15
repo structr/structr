@@ -28,7 +28,7 @@ import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CountPropertyParser extends PropertySourceGenerator {
 

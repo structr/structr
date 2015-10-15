@@ -41,7 +41,7 @@ import org.structr.core.property.PropertyMap;
  * Creates a relationship between two NodeInterface instances. The execute
  * method of this command takes the following parameters.
  *
- * @author cmorgner
+ *
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 

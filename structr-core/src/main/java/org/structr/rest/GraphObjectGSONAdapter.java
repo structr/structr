@@ -45,7 +45,7 @@ import org.structr.core.converter.PropertyConverter;
  * Controls serialization and deserialization of graph objects (nodes
  * and relationships).
  *
- * @author Christian Morgner
+ *
  */
 public class GraphObjectGSONAdapter {
 

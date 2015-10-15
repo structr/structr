@@ -39,7 +39,7 @@ import org.structr.core.app.StructrApp;
  *
  * Use 'type' argument for node type, and 'relType' for relationship type.
  *
- * @author Axel Morgner
+ *
  */
 public class BulkCreateLabelsCommand extends NodeServiceCommand implements MaintenanceCommand {
 

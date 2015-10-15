@@ -25,7 +25,7 @@ import org.structr.core.graph.TransactionPostProcess;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ReloadSchema implements TransactionPostProcess {
 

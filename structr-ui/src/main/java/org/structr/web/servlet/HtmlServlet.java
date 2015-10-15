@@ -90,8 +90,8 @@ import org.structr.web.entity.dom.Page;
 /**
  * Main servlet for content rendering.
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 

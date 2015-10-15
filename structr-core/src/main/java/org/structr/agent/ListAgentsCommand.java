@@ -21,7 +21,7 @@ package org.structr.agent;
 /**
  * Returns a collection of the currently running {@link Agent}s.
  *
- * @author Christian Morgner
+ *
  */
 public class ListAgentsCommand extends AgentServiceCommand {
 

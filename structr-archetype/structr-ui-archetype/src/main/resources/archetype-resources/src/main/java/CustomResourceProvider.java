@@ -26,7 +26,7 @@ import org.structr.web.common.UiResourceProvider;
 /**
  * Project-specific resource provider implementation.
  *
- * @author Christian Morgner
+ *
  */
 public class CustomResourceProvider extends UiResourceProvider {
 

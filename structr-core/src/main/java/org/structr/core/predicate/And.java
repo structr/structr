@@ -27,7 +27,7 @@ import org.structr.core.Predicate;
 /**
  * Combines two predicates with AND.
  *
- * @author Christian Morgner
+ *
  */
 public class And<T> implements Predicate<T> {
 

@@ -29,7 +29,7 @@ import org.structr.core.property.StartNode;
  * DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED
  * 
  * 
- * @author Axel Morgner
+ *
  */
 public class TestThree extends AbstractNode {
 	

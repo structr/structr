@@ -29,7 +29,7 @@ import org.structr.core.graph.ModificationEvent;
  *
  * In order to use this interface, you must register your implementation in SchemaHelper.
  *
- * @author Christian Morgner
+ *
  */
 public interface StructrTransactionListener {
 

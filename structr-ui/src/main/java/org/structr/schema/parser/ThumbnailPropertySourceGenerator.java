@@ -28,7 +28,7 @@ import org.structr.web.property.ThumbnailProperty;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ThumbnailPropertySourceGenerator extends PropertySourceGenerator {
 

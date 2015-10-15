@@ -28,7 +28,7 @@ import org.structr.core.property.RelationProperty;
  * Defines a strategy for deserializing a {@link GraphObject} from an input
  * object.
  *
- * @author Christian Morgner
+ *
  * @param <T>
  */
 public interface DeserializationStrategy<S, T extends NodeInterface> {

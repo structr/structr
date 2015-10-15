@@ -36,7 +36,7 @@ import org.structr.core.entity.AbstractNode;
  * Abstract base class for custom node collectors. Extend this class to specify
  * uniqueness and evaluators for a traversal.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class CustomCollector<T extends AbstractNode> implements TraverserInterface<T>, Value<TraverserInterface<T>> {
 

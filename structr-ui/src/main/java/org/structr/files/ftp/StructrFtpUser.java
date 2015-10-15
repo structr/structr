@@ -34,7 +34,7 @@ import org.structr.web.entity.Folder;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class StructrFtpUser implements User {
 	

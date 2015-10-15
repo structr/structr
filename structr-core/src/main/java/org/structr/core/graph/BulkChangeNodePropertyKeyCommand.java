@@ -46,7 +46,7 @@ import org.structr.schema.SchemaHelper;
  * If no type property is found, change the property key on all nodes.
  * If a property with the new key is already present, the command will abort.
  *
- * @author Axel Morgner
+ *
  */
 public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand implements MaintenanceCommand {
 

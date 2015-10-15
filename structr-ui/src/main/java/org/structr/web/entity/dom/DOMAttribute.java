@@ -30,7 +30,7 @@ import org.w3c.dom.UserDataHandler;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DOMAttribute implements Attr, DOMImportable, DOMAdoptable {
 

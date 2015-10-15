@@ -39,7 +39,7 @@ import org.structr.websocket.StructrWebSocket;
 /**
  * Websocket command to return the children of the given node
  *
- * @author Axel Morgner
+ *
  */
 public class ChildrenCommand extends AbstractCommand {
 

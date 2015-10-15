@@ -28,7 +28,7 @@ import org.structr.core.PropertyValidator;
 /**
  * A simple type validator.
  *
- * @author Christian Morgner
+ *
  */
 public class TypeValidator implements PropertyValidator<Class> {
 

@@ -31,7 +31,7 @@ import org.structr.core.entity.OneToMany;
 
 /**
  *
- * @author axel
+ *
  */
 public class Citizen extends OneToMany<City, Person> implements RelationshipType {
 

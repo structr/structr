@@ -26,7 +26,7 @@ import static org.structr.core.entity.ResourceAccess.signature;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class DynamicResourceAccess extends ResourceAccess {
 

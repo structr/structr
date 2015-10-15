@@ -36,7 +36,7 @@ import twitter4j.conf.ConfigurationBuilder;
  * Twitter supports only OAuth 1.0a, therefore we need a completely different
  * approach and library here.
  * 
- * @author Axel Morgner
+ *
  */
 public class TwitterAuthClient extends StructrOAuthClient {
 	

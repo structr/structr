@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface JsonEnumProperty extends JsonStringProperty {
 

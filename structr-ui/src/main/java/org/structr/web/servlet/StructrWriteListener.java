@@ -28,7 +28,7 @@ import javax.servlet.WriteListener;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class StructrWriteListener implements WriteListener {
 	

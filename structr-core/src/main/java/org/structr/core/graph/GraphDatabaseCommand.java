@@ -23,7 +23,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 /**
  * Returns the Neo4j graph database instance.
  * 
- * @author Christian Morgner
+ *
  */
 public class GraphDatabaseCommand extends NodeServiceCommand {
 	

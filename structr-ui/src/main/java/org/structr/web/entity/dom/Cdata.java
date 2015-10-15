@@ -24,7 +24,7 @@ import org.w3c.dom.CDATASection;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class Cdata extends Content implements CDATASection {

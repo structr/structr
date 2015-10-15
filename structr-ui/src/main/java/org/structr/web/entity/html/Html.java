@@ -34,7 +34,7 @@ import org.structr.web.common.RenderContext;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * @author Axel Morgner
+ *
  */
 public class Html extends DOMElement {
 

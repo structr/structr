@@ -23,7 +23,7 @@ package org.structr.core;
  * {@link Decorator} instances in order to extend existing functionality without
  * the need to modify the code itself.
  *
- * @author Christian Morgner
+ *
  */
 public interface Decorable<T> {
 	

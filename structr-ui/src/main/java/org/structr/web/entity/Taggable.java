@@ -30,7 +30,7 @@ import org.structr.web.property.UiNotion;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface Taggable extends NodeInterface {
 	

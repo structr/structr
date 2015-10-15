@@ -44,7 +44,7 @@ import org.structr.core.property.PropertyKey;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class ModificationQueue {

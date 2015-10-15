@@ -25,7 +25,7 @@ import org.structr.core.property.PropertyKey;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class LongSearchAttribute extends PropertySearchAttribute<Long> {
 

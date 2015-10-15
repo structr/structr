@@ -35,7 +35,7 @@ import org.structr.schema.action.ActionContext;
 /**
  * A dummy graph object that uses a map as its data store.
  *
- * @author Christian Morgner
+ *
  */
 public class GraphObjectMap extends PropertyMap implements GraphObject {
 

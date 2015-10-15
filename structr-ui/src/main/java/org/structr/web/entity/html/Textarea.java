@@ -28,7 +28,7 @@ import org.structr.web.common.HtmlProperty;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * @author Axel Morgner
+ *
  */
 public class Textarea extends DOMElement {
 

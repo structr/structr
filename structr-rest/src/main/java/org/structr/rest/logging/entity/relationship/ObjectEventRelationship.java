@@ -25,7 +25,7 @@ import org.structr.rest.logging.entity.LogEvent;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ObjectEventRelationship extends ManyToOne<LogEvent, NodeInterface> {
 

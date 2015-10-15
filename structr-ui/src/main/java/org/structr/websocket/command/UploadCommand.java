@@ -38,7 +38,7 @@ import org.structr.dynamic.File;
  *
  * This command expects a file name and a base64-encoded string.
  *
- * @author Axel Morgner
+ *
  */
 public class UploadCommand extends AbstractCommand {
 

@@ -43,7 +43,7 @@ import org.structr.core.graph.search.DistanceSearchAttribute;
  * Helper class to create location nodes from coordinates or by using
  * online geocoding service.
  *
- * @author Axel Morgner
+ *
  */
 public class GeoHelper {
 

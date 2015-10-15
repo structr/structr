@@ -29,7 +29,7 @@ import org.structr.core.entity.AbstractNode;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PropertyValueFilter<T extends Comparable> extends Filter {
 

@@ -26,7 +26,7 @@ import org.structr.web.property.ThumbnailProperty;
 /**
  * Image with a 200x100 thumbnail
  *
- * @author Axel Morgner
+ *
  */
 public class TestImage extends Image {
 

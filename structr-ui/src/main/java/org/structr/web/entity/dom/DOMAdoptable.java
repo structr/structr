@@ -23,7 +23,7 @@ import org.w3c.dom.Node;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface DOMAdoptable {
 

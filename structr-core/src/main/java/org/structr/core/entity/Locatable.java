@@ -23,7 +23,7 @@ package org.structr.core.entity;
  * when properties of the Location entity change.
  *
  *
- * @author Christian Morgner
+ *
  */
 public interface Locatable {
 

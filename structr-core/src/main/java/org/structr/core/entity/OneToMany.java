@@ -32,7 +32,7 @@ import org.structr.core.notion.RelationshipNotion;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>> {
 

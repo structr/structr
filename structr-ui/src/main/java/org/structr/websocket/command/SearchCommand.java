@@ -42,7 +42,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- classes ----------------------------------------------------------------
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class SearchCommand extends AbstractCommand {
 

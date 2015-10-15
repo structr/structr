@@ -54,7 +54,7 @@ import org.structr.core.graph.search.SearchAttribute;
 /**
  * Abstract base class for all property types.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class Property<T> implements PropertyKey<T> {
 

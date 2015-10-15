@@ -27,7 +27,7 @@ import org.structr.rest.entity.TestOne;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StaticRelationshipResourceTest extends StructrRestTest {
 

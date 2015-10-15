@@ -24,7 +24,7 @@ import org.structr.core.property.PropertyKey;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DoubleSearchAttribute extends PropertySearchAttribute<Double> {
 

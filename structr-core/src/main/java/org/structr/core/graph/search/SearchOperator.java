@@ -22,7 +22,7 @@ import org.apache.lucene.search.BooleanClause.Occur;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public enum SearchOperator {
 

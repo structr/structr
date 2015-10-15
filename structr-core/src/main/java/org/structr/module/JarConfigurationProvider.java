@@ -70,7 +70,7 @@ import org.structr.schema.SchemaService;
 /**
  * The module service main class.
  *
- * @author Christian Morgner
+ *
  */
 public class JarConfigurationProvider implements ConfigurationProvider {
 

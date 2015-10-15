@@ -32,7 +32,7 @@ import org.structr.core.property.StringProperty;
 
 /**
  *
- * @author alex
+ *
  */
 public class TestGroupPropThree extends AbstractNode{
 	

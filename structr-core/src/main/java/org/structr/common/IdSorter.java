@@ -27,7 +27,7 @@ import org.neo4j.helpers.collection.Iterables;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class IdSorter<T extends Relationship> implements Iterable<T>, Comparator<T> {
 

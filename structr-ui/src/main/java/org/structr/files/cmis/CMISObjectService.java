@@ -72,7 +72,7 @@ import org.structr.web.entity.Folder;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISObjectService extends AbstractStructrCmisService implements ObjectService {
 

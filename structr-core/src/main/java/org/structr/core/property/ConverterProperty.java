@@ -32,7 +32,7 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @deprecated This property is needed for backwards compatibility only and will be removed in future releases
  *
- * @author Christian Morgner
+ *
  */
 public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 

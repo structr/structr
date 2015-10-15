@@ -30,7 +30,7 @@ import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class CypherGraphDataSource implements GraphDataSource<List<GraphObject>> {
 

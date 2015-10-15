@@ -40,7 +40,7 @@ import org.w3c.dom.DOMException;
 //~--- classes ----------------------------------------------------------------
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DeleteNodeCommand extends AbstractCommand {
 

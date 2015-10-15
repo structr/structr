@@ -38,7 +38,7 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 /**
  * A property that returns grouped properties from a set of {@link Reference} elements.
  *
- * @author Christian Morgner
+ *
  */
 public class ReferenceGroup extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
 

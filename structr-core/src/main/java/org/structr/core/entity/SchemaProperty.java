@@ -47,7 +47,7 @@ import org.structr.schema.parser.PropertyDefinition;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 

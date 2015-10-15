@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * A parameter holder.
  *
- * @author Christian Morgner
+ *
  */
 public class ParameterHolder<T> {
 

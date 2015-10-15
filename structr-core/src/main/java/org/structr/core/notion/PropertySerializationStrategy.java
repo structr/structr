@@ -27,7 +27,7 @@ import org.structr.core.property.RelationProperty;
 /**
  * Serializes a {@link GraphObject} using a property value.
  *
- * @author Christian Morgner
+ *
  */
 public class PropertySerializationStrategy implements SerializationStrategy {
 

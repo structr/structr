@@ -34,7 +34,7 @@ import org.jsoup.select.NodeVisitor;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class MicroformatParser {
 

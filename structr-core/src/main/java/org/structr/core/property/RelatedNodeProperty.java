@@ -31,7 +31,7 @@ import org.structr.core.converter.RelatedNodePropertyMapper;
  * type. This propert works in both directions, i.e. you can get and
  * set the value as if it was a local property.
  *
- * @author Christian Morgner
+ *
  */
 public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 

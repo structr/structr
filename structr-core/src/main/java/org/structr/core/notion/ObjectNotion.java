@@ -28,7 +28,7 @@ import org.structr.core.property.RelationProperty;
  * {@link IdDeserializationStrategy} to read/write a
  * {@link org.structr.core.GraphObject}. This is the default notion.
  *
- * @author Christian Morgner
+ *
  */
 public class ObjectNotion extends Notion {
 

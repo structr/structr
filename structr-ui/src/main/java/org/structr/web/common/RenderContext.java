@@ -43,7 +43,7 @@ import org.structr.web.entity.html.relation.ResourceLink;
  * Holds information about the context in which a resource is rendered, like
  * f.e. edit mode
  *
- * @author Axel Morgner
+ *
  */
 public class RenderContext extends ActionContext {
 

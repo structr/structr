@@ -34,7 +34,7 @@ import org.structr.rest.entity.TestUser;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class AccessControlTest extends StructrRestTest {
 

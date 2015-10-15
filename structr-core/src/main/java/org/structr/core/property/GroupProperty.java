@@ -41,7 +41,7 @@ import org.structr.core.graph.search.PropertySearchAttribute;
 /**
  * A property that combines other properties in a nested object.
  *
- * @author Christian Morgner
+ *
  */
 public class GroupProperty extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
 

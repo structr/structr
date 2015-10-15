@@ -51,7 +51,7 @@ import org.structr.core.notion.Notion;
 * value will be used to search for a matching node to which the
 * relationship will be created.
  *
- * @author Christian Morgner
+ *
  */
 public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T> {
 

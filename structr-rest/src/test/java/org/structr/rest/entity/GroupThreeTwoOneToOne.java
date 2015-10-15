@@ -22,7 +22,7 @@ import org.structr.core.entity.OneToOne;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class GroupThreeTwoOneToOne extends OneToOne<TestGroupPropThree, TestGroupPropTwo> {
 

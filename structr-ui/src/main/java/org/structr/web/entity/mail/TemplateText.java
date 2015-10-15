@@ -24,7 +24,7 @@ import org.structr.web.entity.dom.Content;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class TemplateText extends OneToOne<MailTemplate, Content> {
 

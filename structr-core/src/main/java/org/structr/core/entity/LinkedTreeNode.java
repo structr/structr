@@ -36,7 +36,7 @@ import org.structr.core.property.PropertyMap;
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends AbstractListSiblings<T, T>, T extends LinkedTreeNode> extends LinkedListNode<S, T> {
 

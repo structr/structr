@@ -47,7 +47,7 @@ import org.structr.web.entity.relation.Sync;
 /**
  * Migrate UI relationships of the pre-0.9 scheme to the new scheme
  *
- * @author Axel Morgner
+ *
  */
 public class BulkMigrateRelationships extends NodeServiceCommand implements MaintenanceCommand {
 

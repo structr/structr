@@ -43,7 +43,7 @@ import org.structr.web.entity.User;
 /**
  * Common class for FTP tests
  *
- * @author Axel Morgner
+ *
  */
 public abstract class FtpTest extends StructrUiTest {
 

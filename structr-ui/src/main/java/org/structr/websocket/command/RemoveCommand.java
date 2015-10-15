@@ -36,8 +36,8 @@ import org.w3c.dom.DOMException;
 
 /**
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class RemoveCommand extends AbstractCommand {
 

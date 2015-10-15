@@ -31,7 +31,7 @@ import org.w3c.dom.DOMException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class XPathTest extends StructrUiTest {
 

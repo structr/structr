@@ -26,7 +26,7 @@ import org.structr.rest.DefaultResourceProvider;
 /**
  * Project-specific resource provider implementation.
  *
- * @author Christian Morgner
+ *
  */
 public class CustomResourceProvider extends DefaultResourceProvider {
 

@@ -27,7 +27,7 @@ import org.structr.core.converter.PropertyConverter;
 /**
  * Abstract base class for read-only properties.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 

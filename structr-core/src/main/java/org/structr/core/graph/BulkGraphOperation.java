@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 /**
  * Encapsulates a bulk graph operation.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class BulkGraphOperation<T> {
 

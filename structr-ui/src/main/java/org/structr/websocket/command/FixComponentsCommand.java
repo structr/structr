@@ -38,7 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Fix 'lost' components
  *
- * @author Axel Morgner
+ *
  */
 public class FixComponentsCommand extends AbstractCommand {
 

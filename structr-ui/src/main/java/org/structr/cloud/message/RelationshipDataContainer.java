@@ -32,7 +32,7 @@ import org.structr.core.graph.SyncCommand;
  *
  * To be initialized with {@link AbstractRelationship} in constructor.
  *
- * @author axel
+ *
  */
 public class RelationshipDataContainer extends DataContainer implements Comparable<RelationshipDataContainer> {
 

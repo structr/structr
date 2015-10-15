@@ -35,7 +35,7 @@ import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
 /**
  * Run casperjs frontend tests
  *
- * @author Axel Morgner
+ *
  */
 public abstract class FrontendTest extends StructrUiTest {
 

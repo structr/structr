@@ -27,7 +27,7 @@ import org.structr.core.entity.Security;
  * Interface to encapsulate query-able permissions. This interface exists
  * in order to make {@link SecurityContext} testable.
  *
- * @author Christian Morgner
+ *
  */
 public interface AccessControllable {
 

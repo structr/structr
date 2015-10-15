@@ -36,7 +36,7 @@ import org.structr.core.graph.GraphDatabaseCommand;
  * Executes the given {@link CypherQueryConverter} on the current node and
  * returns the results.
  *
- * @author Christian Morgner
+ *
  */
 public class CypherQueryConverter extends PropertyConverter {
 

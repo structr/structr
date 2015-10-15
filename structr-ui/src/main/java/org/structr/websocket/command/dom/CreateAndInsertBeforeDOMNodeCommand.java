@@ -29,7 +29,7 @@ import org.w3c.dom.Document;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CreateAndInsertBeforeDOMNodeCommand extends AbstractCommand {
 

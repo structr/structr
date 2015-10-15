@@ -41,7 +41,7 @@ import org.structr.schema.parser.DatePropertyParser;
 * the given date format pattern. This property uses a long value internally
 * to provide millisecond precision.
  *
- * @author Christian Morgner
+ *
  */
 public class DateProperty extends AbstractPrimitiveProperty<Date> {
 

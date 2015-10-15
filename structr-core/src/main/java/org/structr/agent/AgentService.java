@@ -45,7 +45,7 @@ import org.structr.schema.ConfigurationProvider;
 /**
  * The agent service main class.
  *
- * @author Christian Morgner
+ *
  */
 public class AgentService extends Thread implements RunnableService {
 

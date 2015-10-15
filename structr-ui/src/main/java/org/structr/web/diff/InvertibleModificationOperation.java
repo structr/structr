@@ -29,7 +29,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class InvertibleModificationOperation implements Comparable<InvertibleModificationOperation> {
 

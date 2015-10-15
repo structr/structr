@@ -64,7 +64,7 @@ import org.structr.websocket.servlet.WebSocketServlet;
  *
  * All tests are executed in superuser context
  *
- * @author Axel Morgner
+ *
  */
 public abstract class StructrUiTest extends TestCase {
 

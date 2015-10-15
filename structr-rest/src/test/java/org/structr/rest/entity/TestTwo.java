@@ -32,7 +32,7 @@ import org.structr.core.property.EndNodes;
 /**
  * Another simple entity for the most basic tests.
  *
- * @author Axel Morgner
+ *
  */
 public class TestTwo extends AbstractNode {
 

@@ -29,7 +29,7 @@ import org.structr.core.property.Property;
  * This class has a not-null constraint on the TestOne object, so when
  * the TestOne object is deleted, this object should be deleted as well.
  *
- * @author Axel Morgner
+ *
  */
 public class TestTwo extends AbstractNode {
 

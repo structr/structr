@@ -29,7 +29,7 @@ import org.structr.core.PropertyValidator;
 /**
  * A simple regular expression validator.
  *
- * @author Christian Morgner
+ *
  */
 public class SimpleRegexValidator implements PropertyValidator<String> {
 

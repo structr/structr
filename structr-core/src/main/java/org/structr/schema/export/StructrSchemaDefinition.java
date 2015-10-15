@@ -36,7 +36,7 @@ import org.structr.schema.json.JsonType;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 

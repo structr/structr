@@ -64,7 +64,7 @@ import org.structr.web.entity.VideoFile;
 /**
  * Simple upload servlet.
  *
- * @author Axel Morgner
+ *
  */
 public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 

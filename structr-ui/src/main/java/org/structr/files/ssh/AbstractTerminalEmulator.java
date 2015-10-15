@@ -29,7 +29,7 @@ import java.util.List;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractTerminalEmulator extends Thread implements TerminalEmulator {
 

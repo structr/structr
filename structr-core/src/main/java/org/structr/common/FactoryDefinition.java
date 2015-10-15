@@ -29,7 +29,7 @@ import org.structr.core.graph.RelationshipFactory;
  * Defines methods that are used by {@link NodeFactory} and
  * {@link RelationshipFactory} when creating nodes.
  *
- * @author Christian Morgner
+ *
  */
 public interface FactoryDefinition {
 	

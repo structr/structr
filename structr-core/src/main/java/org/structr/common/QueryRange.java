@@ -23,7 +23,7 @@ import org.neo4j.helpers.Predicate;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class QueryRange implements Predicate {
 

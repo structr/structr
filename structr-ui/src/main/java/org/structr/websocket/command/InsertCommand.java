@@ -39,7 +39,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
 /**
  * Insert a node as child of the given node
  *
- * @author Axel Morgner
+ *
  */
 public class InsertCommand extends AbstractCommand {
 

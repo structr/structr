@@ -34,7 +34,7 @@ import org.w3c.dom.DOMException;
  *
  * This command will create a SYNC relationship: (component)-[:SYNC]->(target)
  *
- * @author Axel Morgner
+ *
  */
 public class CloneComponentCommand extends AbstractCommand {
 

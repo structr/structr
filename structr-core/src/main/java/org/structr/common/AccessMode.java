@@ -21,7 +21,7 @@ package org.structr.common;
 /**
  * A type-safe enumeration of access modes.
  *
- * @author Christian Morgner
+ *
  */
 public enum AccessMode {
 

@@ -24,7 +24,7 @@ import org.structr.core.entity.AbstractNode;
 /**
  * Defines an interface for graph database content retrieval.
  *
- * @author Christian Morgner
+ *
  */
 
 public interface GraphDataSource<T> {

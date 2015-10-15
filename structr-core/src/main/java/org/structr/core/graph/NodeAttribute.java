@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * A parameterized node attribute to identify a node attribute.
  *
- * @author Christian Morgner
+ *
  */
 public class NodeAttribute<T> {
 

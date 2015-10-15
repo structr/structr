@@ -34,7 +34,7 @@ import org.structr.schema.json.JsonSchema;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode> implements JsonObjectType {
 

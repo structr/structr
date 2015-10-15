@@ -24,7 +24,7 @@ import org.structr.core.entity.Principal;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Groups extends ManyToMany<Group, Principal> {
 

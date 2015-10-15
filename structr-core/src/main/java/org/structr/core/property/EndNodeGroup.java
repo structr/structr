@@ -26,7 +26,7 @@ import org.structr.core.graph.RelationshipInterface;
 /**
  * A property group that returns grouped properties from the end node of a relationship.
  *
- * @author Christian Morgner
+ *
  */
 public class EndNodeGroup extends GroupProperty {
 	

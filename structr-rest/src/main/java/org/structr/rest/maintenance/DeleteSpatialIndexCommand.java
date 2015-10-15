@@ -39,7 +39,7 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DeleteSpatialIndexCommand extends NodeServiceCommand implements MaintenanceCommand {
 

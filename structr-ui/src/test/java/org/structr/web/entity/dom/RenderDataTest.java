@@ -40,7 +40,7 @@ import org.structr.web.entity.relation.RenderNode;
 /**
  * Test to render data mixed with markup
  *
- * @author Axel Morgner
+ *
  */
 public class RenderDataTest extends DOMTest {
 

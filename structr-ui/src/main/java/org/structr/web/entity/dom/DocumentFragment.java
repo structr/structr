@@ -28,7 +28,7 @@ import org.w3c.dom.NodeList;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFragment {

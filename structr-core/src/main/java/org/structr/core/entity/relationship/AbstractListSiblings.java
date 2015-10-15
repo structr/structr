@@ -23,7 +23,7 @@ import org.structr.core.entity.OneToOne;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractListSiblings<S extends LinkedListNode, T extends LinkedListNode> extends OneToOne<S, T> {
 

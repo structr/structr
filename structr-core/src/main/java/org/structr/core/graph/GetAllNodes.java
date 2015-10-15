@@ -28,7 +28,7 @@ import org.structr.core.entity.AbstractNode;
 /**
  * Fetches all the nodes in the database.
  *
- * @author Axel Morgner
+ *
  */
 public class GetAllNodes extends NodeServiceCommand {
 

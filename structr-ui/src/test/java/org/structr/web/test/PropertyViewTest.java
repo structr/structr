@@ -31,7 +31,7 @@ import org.structr.web.entity.TestOne;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class PropertyViewTest extends StructrUiTest {
 

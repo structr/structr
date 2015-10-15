@@ -33,7 +33,7 @@ import org.structr.web.common.FtpTest;
 /**
  * Tests for FTP directories.
  * 
- * @author Axel Morgner
+ *
  */
 public class FtpDirectoriesTest extends FtpTest {
 

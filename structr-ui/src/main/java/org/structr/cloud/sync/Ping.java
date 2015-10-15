@@ -29,7 +29,7 @@ import org.structr.core.graph.SyncCommand;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Ping extends Message {
 

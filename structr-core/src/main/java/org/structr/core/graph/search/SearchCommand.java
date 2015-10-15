@@ -63,7 +63,7 @@ import org.structr.schema.ConfigurationProvider;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
 

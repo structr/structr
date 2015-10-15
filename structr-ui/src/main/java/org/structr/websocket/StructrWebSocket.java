@@ -50,8 +50,8 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- classes ----------------------------------------------------------------
 /**
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 
 public class StructrWebSocket implements WebSocketListener {

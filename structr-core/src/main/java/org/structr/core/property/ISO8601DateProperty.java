@@ -33,8 +33,8 @@ import org.structr.schema.parser.DatePropertyParser;
  * A property that stores and retrieves a Date string in ISO8601 format. This property
  * uses a long value internally to provide millisecond precision.
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class ISO8601DateProperty extends DateProperty {
 

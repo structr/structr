@@ -25,7 +25,7 @@ import org.structr.rest.logging.entity.LogEvent;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SubjectEventRelationship extends OneToMany<NodeInterface, LogEvent> {
 

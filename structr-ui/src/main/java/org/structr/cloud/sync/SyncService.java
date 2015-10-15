@@ -49,7 +49,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SyncService extends Thread  implements RunnableService, StructrTransactionListener {
 

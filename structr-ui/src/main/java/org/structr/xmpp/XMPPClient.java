@@ -49,7 +49,7 @@ import org.structr.schema.SchemaService;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class XMPPClient extends AbstractNode implements XMPPInfo {
 

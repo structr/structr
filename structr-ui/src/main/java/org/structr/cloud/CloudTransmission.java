@@ -23,7 +23,7 @@ import org.structr.common.error.FrameworkException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface CloudTransmission<T> {
 	public T doRemote(final CloudConnection<T> client) throws IOException, FrameworkException;

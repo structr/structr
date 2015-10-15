@@ -22,7 +22,7 @@ import org.structr.dynamic.File;
 
 /**
  *
- * @author amorgner
+ *
  *
  */
 public class CsvFile extends File {

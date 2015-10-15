@@ -40,8 +40,8 @@ import org.w3c.dom.Document;
 
 /**
  *
- * @author Christian Morgner
- * @author Axel Morgner
+ *
+ *
  */
 public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 

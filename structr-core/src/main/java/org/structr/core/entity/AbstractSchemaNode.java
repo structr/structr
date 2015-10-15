@@ -46,7 +46,7 @@ import org.structr.schema.Schema;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class AbstractSchemaNode extends SchemaReloadingNode implements Schema {
 

@@ -26,7 +26,7 @@ import org.structr.schema.action.ActionContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public class ArrayExpression extends Expression {

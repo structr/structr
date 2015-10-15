@@ -24,7 +24,7 @@ import org.structr.core.Value;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class RequestParameterValue implements Value<String> {
 

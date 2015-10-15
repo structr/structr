@@ -30,7 +30,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CreateOperation extends InvertibleModificationOperation {
 

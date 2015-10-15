@@ -24,7 +24,7 @@ import org.structr.common.error.SemanticErrorToken;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class DynamicValidationError extends SemanticErrorToken {
 

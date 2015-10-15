@@ -24,7 +24,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Indicates that a given date property value must lie in the future.
  *
- * @author Christian Morgner
+ *
  */
 public class FutureDateToken extends SemanticErrorToken {
 

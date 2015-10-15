@@ -34,7 +34,7 @@ import org.structr.web.entity.TestImage;
 
  All tests are executed in superuser config
  *
- * @author Axel Morgner
+ *
  */
 public class ThumbnailTest extends StructrTest {
 

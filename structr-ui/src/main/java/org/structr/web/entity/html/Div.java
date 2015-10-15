@@ -24,7 +24,7 @@ import org.structr.web.entity.dom.DOMElement;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class Div extends DOMElement {
 

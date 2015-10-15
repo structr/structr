@@ -25,7 +25,7 @@ import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISTypeDefinitionListWrapper extends CMISPagingListWrapper<TypeDefinition> implements TypeDefinitionList {
 

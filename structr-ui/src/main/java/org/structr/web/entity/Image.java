@@ -53,7 +53,7 @@ import org.structr.web.property.ThumbnailProperty;
 /**
  * An image whose binary data will be stored on disk.
  *
- * @author Axel Morgner
+ *
  *
  */
 public class Image extends File {

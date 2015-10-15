@@ -27,7 +27,7 @@ import org.structr.core.property.RelationProperty;
  * Defines a strategy for serializing a {@link GraphObject} into an output
  * object.
  *
- * @author Christian Morgner
+ *
  */
 public interface SerializationStrategy<S extends GraphObject, T> {
 

@@ -61,7 +61,7 @@ import org.structr.web.servlet.HtmlServlet;
 /**
  * A resource to register new users
  *
- * @author Axel Morgner
+ *
  */
 public class RegistrationResource extends Resource {
 

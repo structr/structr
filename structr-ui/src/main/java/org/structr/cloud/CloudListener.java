@@ -22,7 +22,7 @@ package org.structr.cloud;
  * Listener interface that enables you to get updated on the
  * progress of CloudService operations.
  *
- * @author Christian Morgner
+ *
  */
 public interface CloudListener {
 

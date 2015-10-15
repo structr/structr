@@ -30,7 +30,7 @@ import org.w3c.dom.UserDataHandler;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Html5DocumentType implements DocumentType {
 

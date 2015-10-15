@@ -43,7 +43,7 @@ import org.structr.web.property.UiNotion;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Widget extends AbstractNode implements Taggable {
 

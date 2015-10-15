@@ -21,7 +21,7 @@ package org.structr.module;
 /**
  * Returns the module service instance.
  *
- * @author Christian Morgner
+ *
  */
 public class GetModuleServiceCommand extends ModuleServiceCommand {
 

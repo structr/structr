@@ -46,7 +46,7 @@ import java.util.logging.Logger;
  * If no {@link KeyAndClass} object is given, the image data will be set on
  * the image node itself.
  *
- * @author Axel Morgner
+ *
  */
 public class ImageConverter extends PropertyConverter {
 

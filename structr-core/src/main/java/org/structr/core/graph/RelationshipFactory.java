@@ -43,7 +43,7 @@ import org.structr.core.app.StructrApp;
  * way to instantiate and initialize structr relationships, as this is the most-
  * used operation.
  *
- * @author Axel Morgner
+ *
  * @param <T>
  */
 public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {

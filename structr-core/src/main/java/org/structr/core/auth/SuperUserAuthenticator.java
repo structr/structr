@@ -29,7 +29,7 @@ import org.structr.core.entity.SuperUser;
 /**
  * An authenticator implementation for structr which always returns a superuser or superuser context.
  * 
- * @author Christian Morgner
+ *
  */
 public class SuperUserAuthenticator implements Authenticator {
 	

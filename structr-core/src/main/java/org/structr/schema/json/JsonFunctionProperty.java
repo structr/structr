@@ -20,7 +20,7 @@ package org.structr.schema.json;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public interface JsonFunctionProperty extends JsonStringProperty {
 

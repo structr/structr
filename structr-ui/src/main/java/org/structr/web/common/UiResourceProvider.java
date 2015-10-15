@@ -37,7 +37,7 @@ import org.structr.web.resource.ResetPasswordResource;
 /**
  * The default constraint provider for structr-ui
  *
- * @author Christian Morgner
+ *
  */
 public class UiResourceProvider implements ResourceProvider {
 

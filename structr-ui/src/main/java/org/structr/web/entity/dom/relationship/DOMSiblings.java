@@ -23,7 +23,7 @@ import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class DOMSiblings extends AbstractListSiblings<DOMNode, DOMNode> {
 

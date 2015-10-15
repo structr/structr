@@ -46,7 +46,7 @@ import org.structr.files.cmis.repository.StructrWritePermissionMapping;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrRepositoryInfo extends CMISExtensionsData implements RepositoryInfo, AclCapabilities {
 

@@ -36,7 +36,7 @@ import org.structr.cmis.common.CMISExtensionsData;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrRepositoryCapabilities extends CMISExtensionsData implements RepositoryCapabilities, CreatablePropertyTypes, NewTypeSettableAttributes {
 

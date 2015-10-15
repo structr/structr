@@ -37,7 +37,7 @@ import org.structr.core.app.StructrApp;
 /**
  * Delete all nodes which have the 'deleted' property set to true
  *
- * @author Axel Morgner
+ *
  */
 public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implements MaintenanceCommand {
 

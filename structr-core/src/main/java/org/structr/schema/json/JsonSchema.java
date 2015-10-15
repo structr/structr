@@ -25,7 +25,7 @@ import org.structr.core.app.App;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface JsonSchema {
 

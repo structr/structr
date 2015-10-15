@@ -21,7 +21,7 @@ package org.structr.cloud;
 /**
  * An instance address represents the connection information for a specific structr instance.
  *
- * @author Axel Morgner
+ *
  */
 public class InstanceAddress {
 

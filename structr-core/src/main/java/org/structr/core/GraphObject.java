@@ -45,7 +45,7 @@ import org.structr.schema.action.ActionContext;
 /**
  * A common base class for {@link AbstractNode} and {@link AbstractRelationship}.
  *
- * @author Christian Morgner
+ *
  */
 public interface GraphObject {
 

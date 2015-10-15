@@ -39,7 +39,7 @@ import org.w3c.dom.NodeList;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> {
 

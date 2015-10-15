@@ -29,7 +29,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StringPropertyTest extends StructrTest {
 	

@@ -37,7 +37,7 @@ import org.structr.core.property.PropertyMap;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public interface App extends Closeable {
 

@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
  * A {@link Value} that integrates a {@link PropertyConverter} in order to
  * provide on-the-fly conversion of objects.
  * 
- * @author Christian Morgner
+ *
  */
 public class Converter<SourceType, TargetType> implements Value<TargetType> {
 

@@ -27,7 +27,7 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ArrayPropertyTest extends StructrTest {
 

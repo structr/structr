@@ -34,7 +34,7 @@ import org.structr.schema.SchemaHelper;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ListSyncables extends Message<List<SyncableInfo>> {
 

@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class SingleTransmission<T> implements CloudTransmission<T> {
 

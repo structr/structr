@@ -24,7 +24,7 @@ import org.structr.core.Predicate;
 /**
  * Combines two predicates with OR.
  *
- * @author Christian Morgner
+ *
  */
 public class Or<T> implements Predicate<T> {
 

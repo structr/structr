@@ -20,7 +20,7 @@ package org.structr.rest.common;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public enum TestEnum {
 	

@@ -23,7 +23,7 @@ package org.structr.core;
  * able to differentiate between local and remote transactions (i.e. those
  * coming from a replication master).
  *
- * @author Christian Morgner
+ *
  */
 public interface TransactionSource {
 

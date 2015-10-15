@@ -22,7 +22,7 @@ import org.structr.web.common.StructrUiTest;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class RelativeXPathTest extends StructrUiTest {
 

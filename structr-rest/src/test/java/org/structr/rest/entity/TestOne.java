@@ -33,7 +33,7 @@ import org.structr.rest.RestMethodResult;
 /**
  * A simple entity for the most basic tests.
  *
- * @author Axel Morgner
+ *
  */
 public class TestOne extends AbstractNode {
 

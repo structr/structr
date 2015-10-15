@@ -28,7 +28,7 @@ import org.structr.rest.entity.TestOne;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class AdvancedPagingTest extends StructrRestTest {
 

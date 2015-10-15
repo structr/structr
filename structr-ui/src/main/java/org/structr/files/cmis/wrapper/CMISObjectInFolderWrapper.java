@@ -31,7 +31,7 @@ import org.structr.core.entity.AbstractNode;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISObjectInFolderWrapper extends CMISPagingListWrapper<ObjectInFolderData> implements ObjectInFolderList {
 

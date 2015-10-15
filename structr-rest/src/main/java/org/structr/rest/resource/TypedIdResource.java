@@ -35,7 +35,7 @@ import org.structr.rest.exception.NotFoundException;
  * Represents a type-constrained ID match. A TypedIdResource will always
  * result in a single element.
  *
- * @author Christian Morgner
+ *
  */
 public class TypedIdResource extends FilterableResource {
 

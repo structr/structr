@@ -42,7 +42,7 @@ import org.structr.core.graph.RelationshipFactory;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint implements Source<Iterable<Relationship>, Iterable<S>> {
 

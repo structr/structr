@@ -21,7 +21,7 @@ package org.structr.cron;
 /**
  * Encapsulates information about a single time field of a CRON task.
  *
- * @author Christian Morgner
+ *
  */
 public class CronField {
 

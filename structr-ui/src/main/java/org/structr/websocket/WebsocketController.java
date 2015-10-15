@@ -51,7 +51,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class WebsocketController implements StructrTransactionListener {
 

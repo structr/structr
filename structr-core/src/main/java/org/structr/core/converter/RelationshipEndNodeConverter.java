@@ -27,7 +27,7 @@ import org.structr.core.entity.AbstractRelationship;
 /**
  * Returns the end node of a relationship when evaluated.
  *
- * @author Axel Morgner
+ *
  */
 public class RelationshipEndNodeConverter extends PropertyConverter {
 

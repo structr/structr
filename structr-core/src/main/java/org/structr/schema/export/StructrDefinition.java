@@ -20,7 +20,7 @@ package org.structr.schema.export;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 

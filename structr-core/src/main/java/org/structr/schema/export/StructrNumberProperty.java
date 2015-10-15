@@ -30,7 +30,7 @@ import org.structr.schema.parser.DoublePropertyParser;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrNumberProperty extends StructrPropertyDefinition implements JsonNumberProperty {
 

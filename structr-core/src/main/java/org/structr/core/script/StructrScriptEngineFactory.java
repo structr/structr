@@ -29,7 +29,7 @@ import javax.script.ScriptEngineFactory;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrScriptEngineFactory implements ScriptEngineFactory {
 

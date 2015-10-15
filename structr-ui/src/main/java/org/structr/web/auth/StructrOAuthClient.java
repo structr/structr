@@ -42,7 +42,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Central class for OAuth client implementations.
  * 
- * @author Axel Morgner
+ *
  */
 public class StructrOAuthClient {
 	

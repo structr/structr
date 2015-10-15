@@ -38,7 +38,7 @@ import org.structr.rest.exception.IllegalPathException;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public class EnvResource extends Resource {
 

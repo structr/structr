@@ -25,7 +25,7 @@ import org.structr.common.SecurityContext;
  * assigned to it. This value object will return the exact given value on
  * every evaluation.
  *
- * @author Christian Morgner
+ *
  */
 public class StaticValue<T> implements Value<T> {
 

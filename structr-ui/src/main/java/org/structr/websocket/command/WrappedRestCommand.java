@@ -47,7 +47,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
- * @author Kai Schwaiger
+ *
  * 
  * This WS-Command is a facade for REST commands. (for the time being only POST and PUT is allowed)
  * 

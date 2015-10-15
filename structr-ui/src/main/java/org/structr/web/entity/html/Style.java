@@ -35,7 +35,7 @@ import org.w3c.dom.Node;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * @author Axel Morgner
+ *
  */
 public class Style extends DOMElement {
 

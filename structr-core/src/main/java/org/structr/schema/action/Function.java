@@ -23,7 +23,7 @@ import org.structr.core.GraphObject;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public abstract class Function<S, T> extends Hint {
 

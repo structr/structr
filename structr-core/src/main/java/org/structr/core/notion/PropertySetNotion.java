@@ -27,7 +27,7 @@ import org.structr.core.property.PropertyKey;
  * Combines a {@link PropertySetSerializationStrategy} and a {@link TypeAndPropertySetDeserializationStrategy}
  * to read/write a {@link GraphObject}.
  *
- * @author Christian Morgner
+ *
  */
 public class PropertySetNotion<S extends NodeInterface> extends Notion<S, Map<String, Object>> {
 

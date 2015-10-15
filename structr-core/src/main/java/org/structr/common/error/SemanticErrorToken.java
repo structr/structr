@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Abstract base class for semantic error tokens.
  *
- * @author Christian Morgner
+ *
  */
 public class SemanticErrorToken extends ErrorToken {
 

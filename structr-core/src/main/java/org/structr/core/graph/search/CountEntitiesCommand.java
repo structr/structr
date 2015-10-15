@@ -38,7 +38,7 @@ import org.structr.core.graph.NodeServiceCommand;
  * entities between a lower and an upper search term. This is used for range
  * queries.
  *
- * @author Christian Morgner
+ *
  */
 public class CountEntitiesCommand extends NodeServiceCommand {
 

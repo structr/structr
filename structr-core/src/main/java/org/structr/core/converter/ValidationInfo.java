@@ -26,7 +26,7 @@ import org.structr.core.Value;
 /**
  * Encapsulates validation information for String properties.
  * 
- * @author Axel Morgner
+ *
  */
 public class ValidationInfo implements Value<ValidationInfo> {
 

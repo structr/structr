@@ -28,7 +28,7 @@ import org.structr.core.PropertyValidator;
 /**
  * A validator that ensures valid boolean values for a given property.
  *
- * @author Christian Morgner
+ *
  */
 public class BooleanValidator implements PropertyValidator {
 

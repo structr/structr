@@ -61,7 +61,7 @@ import org.structr.schema.SchemaHelper;
  * that is not the first element in an URI will try to find a pre-defined
  * relationship between preceding and the node type and follow that path.
  *
- * @author Christian Morgner
+ *
  */
 public class TypeResource extends SortableResource {
 

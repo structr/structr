@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 /**
  * Simple class to hold a {@link PropertyKey} and a {@link Class}
  *
- * @author Axel Morgner
+ *
  */
 public class KeyAndClass<T> {
 

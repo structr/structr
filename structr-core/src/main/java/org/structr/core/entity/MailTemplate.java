@@ -40,7 +40,7 @@ import org.structr.schema.SchemaService;
 /**
  * Entity bean to represent a template with placeholders, to be used for sending e-mails
  *
- * @author Axel Morgner
+ *
  *
  */
 public class MailTemplate extends AbstractNode {

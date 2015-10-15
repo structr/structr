@@ -23,7 +23,7 @@ import org.structr.web.common.RenderContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Comment extends Content implements org.w3c.dom.Comment {
 

@@ -29,7 +29,7 @@ import org.structr.core.property.PropertyKey;
  * Delegate class that implements the permission handling functions for
  * Security relationships and Principals.
  *
- * @author Christian Morgner
+ *
  */
 public class SecurityDelegate {
 

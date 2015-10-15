@@ -31,7 +31,7 @@ import org.structr.web.entity.html.relation.ResourceLink;
 
 /**
  *
- * @author Axel Morgner
+ *
  */
 public interface Linkable extends NodeInterface {
 

@@ -42,7 +42,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- classes ----------------------------------------------------------------
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class UpdateCommand extends AbstractCommand {
 

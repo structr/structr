@@ -30,7 +30,7 @@ import org.structr.schema.parser.LongPropertyParser;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class StructrLongProperty extends StructrPropertyDefinition implements JsonLongProperty {
 

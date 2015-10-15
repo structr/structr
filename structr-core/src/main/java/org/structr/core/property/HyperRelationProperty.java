@@ -28,7 +28,7 @@ import org.structr.core.entity.AbstractNode;
 /**
  * A property that returns the end node of a hyperrelationship.
  *
- * @author Christian Morgner
+ *
  */
 public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNode> extends AbstractReadOnlyProperty<List<T>> {
 

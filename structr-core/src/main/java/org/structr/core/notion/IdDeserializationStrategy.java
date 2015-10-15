@@ -37,7 +37,7 @@ import org.structr.core.property.RelationProperty;
 /**
  * Deserializes a {@link GraphObject} using the UUID property.
  *
- * @author Christian Morgner
+ *
  */
 public class IdDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 

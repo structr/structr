@@ -25,7 +25,7 @@ import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
- * @author Axel Morgner
+ *
  */
 public class Option extends DOMElement {
 	

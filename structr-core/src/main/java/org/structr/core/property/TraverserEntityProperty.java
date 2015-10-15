@@ -37,7 +37,7 @@ import org.structr.core.traversal.TraverserInterface;
 /**
  * A property that uses a {@link TraverserInterface} to return a single entity.
  *
- * @author Christian Morgner
+ *
  */
 public class TraverserEntityProperty<T extends AbstractNode> extends AbstractReadOnlyProperty<T> {
 

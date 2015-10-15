@@ -40,7 +40,7 @@ import org.structr.core.graph.NodeInterface;
  *
  * All tests are executed in superuser context
  *
- * @author Axel Morgner
+ *
  */
 public class PerformanceTest extends StructrTest {
 

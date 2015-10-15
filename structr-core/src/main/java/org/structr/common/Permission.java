@@ -21,7 +21,7 @@ package org.structr.common;
 /**
  * A type-safe enumeration of structr's access privileges.
  *
- * @author Christian Morgner
+ *
  */
 public interface Permission {
 

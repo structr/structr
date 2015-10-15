@@ -21,7 +21,7 @@ package org.structr.common.error;
 /**
  * Abstract base class for all error tokens.
  *
- * @author Christian Morgner
+ *
  */
 public abstract class ErrorToken {
 

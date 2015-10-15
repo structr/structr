@@ -39,7 +39,7 @@ import org.structr.schema.SchemaService;
 
 /**
  *
- * @author amorgner
+ *
  *
  */
 public class Group extends AbstractUser implements Principal {

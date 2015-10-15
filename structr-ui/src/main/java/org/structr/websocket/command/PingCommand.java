@@ -34,7 +34,7 @@ import org.structr.websocket.message.WebSocketMessage;
  *
  * Checks validity of session id.
  *
- * @author Axel Morgner
+ *
  */
 public class PingCommand extends AbstractCommand {
 

@@ -25,7 +25,7 @@ import java.util.Calendar;
 
 /**
  *
- * @author alex
+ *
  */
 public class RecurringDateHelperTest extends StructrTest {
 	

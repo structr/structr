@@ -26,7 +26,7 @@ import org.structr.core.entity.AbstractNode;
  * A simple entity for the most basic tests.
  * 
  * 
- * @author Christian Morgner
+ *
  */
 public class TestObject extends AbstractNode {
 	

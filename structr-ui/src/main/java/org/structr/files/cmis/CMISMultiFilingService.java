@@ -24,7 +24,7 @@ import org.structr.common.SecurityContext;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class CMISMultiFilingService extends AbstractStructrCmisService implements MultiFilingService {
 

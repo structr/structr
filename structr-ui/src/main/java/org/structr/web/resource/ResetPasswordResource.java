@@ -50,7 +50,7 @@ import org.structr.web.servlet.HtmlServlet;
 /**
  * A resource to reset a user's password
  *
- * @author Axel Morgner
+ *
  */
 public class ResetPasswordResource extends Resource {
 

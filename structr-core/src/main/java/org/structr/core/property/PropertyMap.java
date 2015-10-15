@@ -43,7 +43,7 @@ import org.structr.schema.SchemaHelper;
  * A container for properties and their values that is used for input/output and database
  * conversion.
  *
- * @author Christian Morgner
+ *
  */
 public class PropertyMap {
 

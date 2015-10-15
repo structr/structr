@@ -63,8 +63,8 @@ import org.w3c.dom.TypeInfo;
 //~--- classes ----------------------------------------------------------------
 /**
  *
- * @author Axel Morgner
- * @author Christian Morgner
+ *
+ *
  */
 public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 

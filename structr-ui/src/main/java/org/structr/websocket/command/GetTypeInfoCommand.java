@@ -34,7 +34,7 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Websocket command to retrieve type information from the schema.
  *
- * @author Axel Morgner
+ *
  */
 public class GetTypeInfoCommand extends AbstractCommand {
 

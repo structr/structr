@@ -37,7 +37,7 @@ import org.structr.core.property.RelationProperty;
 /**
  * Maps the given target property key to a related node.
  * 
- * @author Christian Morgner
+ *
  */
 public class RelatedNodePropertyMapper<T extends NodeInterface> extends PropertyConverter {
 

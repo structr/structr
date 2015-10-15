@@ -27,7 +27,7 @@ import org.structr.core.graph.NodeInterface;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class OtherNodeTypeRelationFilter implements Predicate<Relation> {
 

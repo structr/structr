@@ -40,7 +40,7 @@ import org.structr.schema.SchemaHelper;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 
 public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {

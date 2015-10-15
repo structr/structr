@@ -21,7 +21,7 @@ package org.structr.agent;
 /**
  * Hands over one ore more {@link Task}s to the agent service for processing.
  * 
- * @author Christian Morgner
+ *
  */
 public class ProcessTaskCommand extends AgentServiceCommand {
 

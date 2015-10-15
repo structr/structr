@@ -30,7 +30,7 @@ import javax.tools.StandardJavaFileManager;
 
 /**
  *
- * @author Christian Morgner (christian@morgner.de)
+ *
  */
 public class ClassFileManager extends ForwardingJavaFileManager {
 

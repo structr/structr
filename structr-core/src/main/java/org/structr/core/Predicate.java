@@ -23,7 +23,7 @@ import org.structr.common.SecurityContext;
 /**
  * An unary predicate that evaluates objects of type T.
  *
- * @author Christian Morgner
+ *
  */
 public interface Predicate<T>
 {

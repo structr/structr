@@ -23,7 +23,7 @@ import java.io.PrintWriter;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class Document extends Tag {
 

@@ -28,7 +28,7 @@ import org.apache.lucene.search.SortField;
 
 /**
  *
- * @author Christian Morgner
+ *
  */
 public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 

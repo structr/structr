@@ -38,7 +38,7 @@ import org.structr.core.entity.AbstractNode;
  * Properties with null values (not existing properties) are always handled
  * as "lower than", so that any not-null value ranks higher.
  * 
- * @author Axel Morgner
+ *
  */
 public class GraphObjectComparator extends ViewTransformation<GraphObject> implements Comparator<GraphObject> {
 
