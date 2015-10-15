@@ -169,9 +169,8 @@ var _Elements = {
 
 		widgetsSlideout.find(':not(.compTab)').remove();
 
-		widgetsSlideout.append('<div class="ver-scrollable"><h3>Local Widgets</h3><div id="widgets"></div><h3>Remote Widgets</h3><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
+		widgetsSlideout.append('<div class="ver-scrollable"><h2>Local Widgets</h2><div id="widgets"></div><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
 		widgets = $('#widgets', widgetsSlideout);
-		_Widgets.refreshWidgets();
 
 		widgets.droppable({
 			drop: function(e, ui) {
@@ -199,6 +198,14 @@ var _Elements = {
 					}
 				});
 			}
+
+		});
+
+		Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type,source,treePath,isWidget', function(entities) {
+			entities.forEach(function (entity) {
+				StructrModel.create(entity, null, false);
+				_Widgets.appendWidgetElement(entity, false, widgets);
+			});
 		});
 
 		remoteWidgets = $('#remoteWidgets', widgetsSlideout);
