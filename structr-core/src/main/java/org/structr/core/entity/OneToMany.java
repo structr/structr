@@ -113,4 +113,9 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 
 		return null;
 	}
+
+	@Override
+	public boolean isInternalStructrRelationship() {
+		return false;
+	}
 }

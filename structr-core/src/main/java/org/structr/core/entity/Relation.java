@@ -94,13 +94,15 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 	public S getSource();
 	public T getTarget();
 
-	public abstract Property<String> getSourceIdProperty();
-	public abstract Property<String> getTargetIdProperty();
-	public abstract Notion getEndNodeNotion();
-	public abstract Notion getStartNodeNotion();
+	public Property<String> getSourceIdProperty();
+	public Property<String> getTargetIdProperty();
+	public Notion getEndNodeNotion();
+	public Notion getStartNodeNotion();
 
 	public int getCascadingDeleteFlag();
 	public int getAutocreationFlag();
 
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
+
+	public boolean isInternalStructrRelationship();
 }

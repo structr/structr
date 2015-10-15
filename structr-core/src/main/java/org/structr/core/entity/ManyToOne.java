@@ -113,4 +113,9 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 
 		return null;
 	}
+
+	@Override
+	public boolean isInternalStructrRelationship() {
+		return false;
+	}
 }

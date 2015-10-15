@@ -94,6 +94,17 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
+	 * Send a single GET_SCHEMA_INFO command to the server.
+	 *
+	 * The server will return a schema overviewall relevant properties.
+	 */
+	getSchemaInfo: function(callback) {
+		var obj = {};
+		obj.command = 'GET_SCHEMA_INFO';
+		log('getSchemaInfo()', obj, callback);
+		return sendObj(obj, callback);
+	},
+	/**
 	 * Send a LIST command to the server.
 	 *
 	 * The server will return a result set containing all items of the given

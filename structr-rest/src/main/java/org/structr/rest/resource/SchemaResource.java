@@ -21,19 +21,33 @@ package org.structr.rest.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Multiplicity;
+import static org.structr.core.entity.SchemaRelationshipNode.relationshipType;
+import static org.structr.core.entity.SchemaRelationshipNode.sourceMultiplicity;
+import static org.structr.core.entity.SchemaRelationshipNode.targetMultiplicity;
+import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -41,6 +55,22 @@ import org.structr.schema.SchemaHelper;
  *
  */
 public class SchemaResource extends Resource {
+
+	private static final Logger logger = Logger.getLogger(SchemaResource.class.getName());
+	private static final StringProperty urlProperty                      = new StringProperty("url");
+	private static final StringProperty typeProperty                     = new StringProperty("type");
+	private static final StringProperty nameProperty                     = new StringProperty("name");
+	private static final StringProperty classNameProperty                = new StringProperty("className");
+	private static final BooleanProperty isRelProperty                   = new BooleanProperty("isRel");
+	private static final LongProperty flagsProperty                      = new LongProperty("flags");
+	private static final GenericProperty relatedToProperty               = new GenericProperty("relatedTo");
+	private static final GenericProperty relatedFromProperty             = new GenericProperty("relatedFrom");
+	private static final GenericProperty possibleSourceTypesProperty     = new GenericProperty("possibleSourceTypes");
+	private static final GenericProperty possibleTargetTypesProperty     = new GenericProperty("possibleTargetTypes");
+	private static final BooleanProperty allSourceTypesPossibleProperty  = new BooleanProperty("allSourceTypesPossible");
+	private static final BooleanProperty allTargetTypesPossibleProperty  = new BooleanProperty("allTargetTypesPossible");
+	private static final BooleanProperty htmlSourceTypesPossibleProperty = new BooleanProperty("htmlSourceTypesPossible");
+	private static final BooleanProperty htmlTargetTypesPossibleProperty = new BooleanProperty("htmlTargetTypesPossible");
 
 	public enum UriPart {
 		_schema
@@ -61,32 +91,7 @@ public class SchemaResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-
-		List<GraphObjectMap> resultList = new LinkedList<>();
-
-		// extract types from ModuleService
-		for (String rawType : StructrApp.getConfiguration().getNodeEntities().keySet()) {
-
-			// create & add schema information
-			Class type            = SchemaHelper.getEntityClassForRawType(rawType);
-			GraphObjectMap schema = new GraphObjectMap();
-			resultList.add(schema);
-
-			if (type != null) {
-
-				String url = "/".concat(rawType);
-
-				schema.setProperty(new StringProperty("url"), url);
-				schema.setProperty(new StringProperty("type"), type.getSimpleName());
-				schema.setProperty(new StringProperty("className"), type.getName());
-				schema.setProperty(new StringProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
-				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
-			}
-
-
-		}
-
-		return new Result(resultList, resultList.size(), false, false);
+		return getSchemaOverviewResult();
 	}
 
 	@Override
@@ -126,5 +131,157 @@ public class SchemaResource extends Resource {
 	@Override
 	public boolean isCollectionResource() throws FrameworkException {
 		return true;
+	}
+
+	// ----- public static methods -----
+	public static Result getSchemaOverviewResult() throws FrameworkException {
+
+		final List<GraphObjectMap> resultList = new LinkedList<>();
+		final ConfigurationProvider config    = StructrApp.getConfiguration();
+
+		// extract types from ModuleService
+		for (String rawType : config.getNodeEntities().keySet()) {
+
+			// create & add schema information
+			Class type            = SchemaHelper.getEntityClassForRawType(rawType);
+			GraphObjectMap schema = new GraphObjectMap();
+			resultList.add(schema);
+
+			if (type != null) {
+
+				String url = "/".concat(rawType);
+
+				schema.setProperty(urlProperty, url);
+				schema.setProperty(typeProperty, type.getSimpleName());
+				schema.setProperty(nameProperty, type.getSimpleName());
+				schema.setProperty(classNameProperty, type.getName());
+				schema.setProperty(isRelProperty, AbstractRelationship.class.isAssignableFrom(type));
+				schema.setProperty(flagsProperty, SecurityContext.getResourceFlags(rawType));
+
+				final List<GraphObjectMap> relatedTo   = new LinkedList<>();
+				final List<GraphObjectMap> relatedFrom = new LinkedList<>();
+
+				for (final PropertyKey key : config.getPropertySet(type, PropertyView.All)) {
+
+					if (key instanceof RelationProperty) {
+
+						final RelationProperty relationProperty = (RelationProperty)key;
+						final Relation relation                 = relationProperty.getRelation();
+
+						if (!relation.isInternalStructrRelationship()) {
+
+							switch (relation.getDirectionForType(type)) {
+
+								case OUTGOING:
+									relatedTo.add(relationPropertyToMap(config, relationProperty));
+									break;
+
+								case INCOMING:
+									relatedFrom.add(relationPropertyToMap(config, relationProperty));
+									break;
+
+								case BOTH:
+									relatedTo.add(relationPropertyToMap(config, relationProperty));
+									relatedFrom.add(relationPropertyToMap(config, relationProperty));
+									break;
+							}
+						}
+					}
+				}
+
+				if (!relatedTo.isEmpty()) {
+					schema.setProperty(relatedToProperty, relatedTo);
+				}
+
+				if (!relatedFrom.isEmpty()) {
+					schema.setProperty(relatedFromProperty, relatedFrom);
+				}
+			}
+
+
+		}
+
+		return new Result(resultList, resultList.size(), false, false);
+
+	}
+
+	// ----- private methods -----
+	private static GraphObjectMap relationPropertyToMap(final ConfigurationProvider config, final RelationProperty relationProperty) {
+
+		final GraphObjectMap map = new GraphObjectMap();
+		final Relation relation  = relationProperty.getRelation();
+
+		/**
+		 * what we need here:
+		 * id,
+		 * sourceMultiplicity,
+		 * targetMultiplicity,
+		 * relationshipType,
+		 *
+		 */
+
+		map.put(sourceMultiplicity, multiplictyToString(relation.getSourceMultiplicity()));
+		map.put(targetMultiplicity, multiplictyToString(relation.getTargetMultiplicity()));
+		map.put(typeProperty, relation.getClass().getSimpleName());
+		map.put(relationshipType, relation.name());
+
+		final Class sourceType = relation.getSourceType();
+		final Class targetType = relation.getTargetType();
+
+		// select AbstractNode and SUPERCLASSES (not subclasses!)
+		if (sourceType.isAssignableFrom(AbstractNode.class)) {
+
+			map.put(allSourceTypesPossibleProperty, true);
+			map.put(htmlSourceTypesPossibleProperty, true);
+			map.put(possibleSourceTypesProperty, null);
+
+		} else if ("DOMNode".equals(sourceType.getSimpleName())) {
+
+			map.put(allTargetTypesPossibleProperty, false);
+			map.put(htmlTargetTypesPossibleProperty, true);
+			map.put(possibleTargetTypesProperty, null);
+
+		} else {
+
+			map.put(allSourceTypesPossibleProperty, false);
+			map.put(htmlSourceTypesPossibleProperty, false);
+			map.put(possibleSourceTypesProperty, StringUtils.join(SearchCommand.getAllSubtypesAsStringSet(sourceType.getSimpleName()), ","));
+		}
+
+		// select AbstractNode and SUPERCLASSES (not subclasses!)
+		if (targetType.isAssignableFrom(AbstractNode.class)) {
+
+			map.put(allTargetTypesPossibleProperty, true);
+			map.put(htmlTargetTypesPossibleProperty, true);
+			map.put(possibleTargetTypesProperty, null);
+
+		} else if ("DOMNode".equals(targetType.getSimpleName())) {
+
+			map.put(allTargetTypesPossibleProperty, false);
+			map.put(htmlTargetTypesPossibleProperty, true);
+			map.put(possibleTargetTypesProperty, null);
+
+		} else {
+
+			map.put(allTargetTypesPossibleProperty, false);
+			map.put(htmlTargetTypesPossibleProperty, false);
+			map.put(possibleTargetTypesProperty, StringUtils.join(SearchCommand.getAllSubtypesAsStringSet(targetType.getSimpleName()), ","));
+		}
+
+		return map;
+	}
+
+	private static String multiplictyToString(final Multiplicity multiplicity) {
+
+		switch (multiplicity) {
+
+			case One:
+				return "1";
+
+			case Many:
+				return "*";
+		}
+
+		return null;
 	}
 }

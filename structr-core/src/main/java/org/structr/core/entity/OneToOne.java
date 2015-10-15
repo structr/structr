@@ -126,4 +126,9 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 
 		return null;
 	}
+
+	@Override
+	public boolean isInternalStructrRelationship() {
+		return false;
+	}
 }

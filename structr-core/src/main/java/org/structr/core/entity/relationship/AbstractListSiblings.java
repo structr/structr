@@ -31,4 +31,9 @@ public abstract class AbstractListSiblings<S extends LinkedListNode, T extends L
 	public String name() {
 		return "CONTAINS_NEXT_SIBLING";
 	}
+
+	@Override
+	public boolean isInternalStructrRelationship() {
+		return true;
+	}
 }

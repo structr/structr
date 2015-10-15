@@ -209,12 +209,14 @@ var _Graph = {
 					return;
 				}
 				var d = _Graph.distance(node, n);
-
 				if (shiftKey && d < 200) {
 
 					var draggedNodeSchemaNode = schemaNodes[node.type];
 					//console.log('shift and in radius', n, node, sourceSchemaNode);
+
 					if (!draggedNodeSchemaNode) {
+
+						console.log("Unknown type " + node.type);
 						return;
 					}
 
@@ -222,11 +224,8 @@ var _Graph = {
 					draggedNodeSchemaNode.relatedTo.forEach(function(toRel) {
 
 						var edgeId = node.id + '-[:' + toRel.id + ']->' + n.id;
-						var possibleTargetType = schemaNodesById[toRel.targetId].name;
 
-						//console.log('possible target type:', possibleTargetType, 'edge exists?', engine.graph.edges(edgeId));
-
-						if (possibleTargetType === n.type && !engine.graph.edges(edgeId)) {
+						if (toRel.allTargetTypesPossible || (toRel.possibleTargetTypes && toRel.possibleTargetTypes.contains(n.type)) && !engine.graph.edges(edgeId)) {
 
 							//console.log('toRel, target multi', toRel.targetMultiplicity, toRel);
 
@@ -274,11 +273,10 @@ var _Graph = {
 					draggedNodeSchemaNode.relatedFrom.forEach(function(fromRel) {
 
 						var edgeId = node.id + '<-[:' + fromRel.id + ']-' + n.id;
-						var possibleSourceType = schemaNodesById[fromRel.sourceId].name;
 
 						//console.log('possible source type:', possibleSourceType, 'edge exists?', edgeId, engine.graph.edges(edgeId));
 
-						if (possibleSourceType === n.type && !engine.graph.edges(edgeId)) {
+						if (fromRel.allSourceTypesPossible || (fromRel.possibleSourceTypes && fromRel.possibleSourceTypes.contains(n.type)) && !engine.graph.edges(edgeId)) {
 
 							//console.log('fromRel source multi', fromRel.sourceMultiplicity, fromRel);
 
@@ -970,12 +968,22 @@ var _Graph = {
 		nodeTypesBox.empty();
 		//nodeTypesBox.append('<button id="show-all-node-types">Show all</button>');
 		// getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
-		Command.getByType('SchemaNode', 1000, 1, "name", "asc", null, true, function(nodes) {
+		Command.getSchemaInfo(function(nodes) {
 
 			nodes.forEach(function(node) {
 
-				schemaNodes[node.name] = node;
+				schemaNodes[node.type] = node;
 				schemaNodesById[node.id] = node;
+
+				// expand comma-separated list into real collection
+				if (schemaNodes[node.type].possibleSourceTypes) {
+					schemaNodes[node.type].possibleSourceTypes = schemaNodes[node.type].possibleSourceTypes.split(",");
+				}
+
+				// expand comma-separated list into real collection
+				if (schemaNodes[node.type].possibleTargetTypes) {
+					schemaNodes[node.type].possibleTargetTypes = schemaNodes[node.type].possibleTargetTypes.split(",");
+				}
 
 				var nodeType = node.name;
 
