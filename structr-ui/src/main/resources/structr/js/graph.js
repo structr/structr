@@ -873,12 +873,18 @@ var _Graph = {
 	loadNode: function(nodeId, callback) {
 		//console.log('loadNode', nodeId, callback);
 		if (nodeId) {
-			Command.get(nodeId, function(n) {
-				_Graph.drawNode(n);
+			if (isIn(nodeId, nodeIds)) {
 				if (callback) {
 					callback();
 				}
-			});
+			} else {
+				Command.get(nodeId, function(n) {
+					_Graph.drawNode(n);
+					if (callback) {
+						callback();
+					}
+				});
+			}
 		}
 	},
 	loadRelationship: function(rel) {
