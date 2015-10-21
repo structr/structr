@@ -3,23 +3,21 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
+ * Structr is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,21 +34,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolException;
-import org.apache.http.client.RedirectStrategy;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.client.params.ClientPNames;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Comment;
@@ -100,9 +93,9 @@ import org.structr.web.entity.dom.Page;
  */
 public class Importer {
 
-	private static final String[] hrefElements = new String[] {"link"};
-	private static final String[] ignoreElementNames = new String[] {"#declaration", "#doctype"};
-	private static final String[] srcElements = new String[] { "img", "script", "audio", "video", "input", "source", "track" };
+	private static final String[] hrefElements = new String[]{"link"};
+	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
+	private static final String[] srcElements = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
 	private static final Logger logger = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
@@ -138,6 +131,10 @@ public class Importer {
 		this.publicVisible = publicVisible;
 		this.authVisible = authVisible;
 
+		if (address != null && !address.endsWith("/")) {
+
+			this.address = this.address.concat("/");
+		}
 	}
 
 	private void init() {
@@ -174,78 +171,23 @@ public class Importer {
 
 				originalUrl = new URL(address);
 
-				DefaultHttpClient client = new DefaultHttpClient();
-				HttpGet get = new HttpGet(originalUrl.toString());
-				get.setHeader("User-Agent", "Mozilla");
-				get.setHeader("Connection", "close");
+				HttpClient client = getHttpClient();
 
-				client.setRedirectStrategy(new RedirectStrategy() {
+				GetMethod get = new GetMethod(originalUrl.toString());
+				get.addRequestHeader("User-Agent", "curl/7.35.0");
+				get.addRequestHeader("Connection", "close");
+				get.getParams().setParameter("http.protocol.single-cookie-header", true);
 
-					@Override
-					public boolean isRedirected(HttpRequest hr, HttpResponse hr1, HttpContext hc) throws ProtocolException {
-						return false;
-					}
+				get.setFollowRedirects(true);
 
-					@Override
-					public HttpUriRequest getRedirect(HttpRequest hr, HttpResponse hr1, HttpContext hc) throws ProtocolException {
-						return new DefaultRedirectStrategy().getRedirect(hr, hr1, hc);
-					}
-				});
+				client.executeMethod(get);
 
-
-				HttpResponse resp = client.execute(get);
-
-				Header location = resp.getFirstHeader("Location");
-
-				logger.log(Level.INFO, "Location: {0}", new Object[]{ location });
-
-				if (location != null) {
-
-					final String newLocation = new URL(originalUrl, location.getValue()).toString();
-					address = newLocation;
-
-					// fix address to never contain trailing slash
-					if (address.endsWith("/")) {
-						address = address.substring(0, address.length() - 1);
-					}
-
-					logger.log(Level.INFO, "New location: {0}", new Object[]{ newLocation });
-
-					client = new DefaultHttpClient();
-
-					int attempts = 1;
-					boolean success = false;
-
-					while (!success) {
-
-						try {
-
-							resp = client.execute(new HttpGet(newLocation));
-
-							success = true;
-
-						} catch (IllegalStateException ise) {
-
-							ise.printStackTrace();
-
-							logger.log(Level.INFO, "Unable to establish connection to {0}, trying again after {1} sec...", new Object[]{ newLocation, attempts*10 });
-							attempts++;
-
-							if (attempts > 3) {
-								throw new FrameworkException(500, "Error while parsing content from " + newLocation + ", couldn't establish connections after " + attempts + " attempts");
-							}
-
-							try {
-								Thread.sleep(attempts*10*1000);
-
-							} catch (InterruptedException ex) {}
-
-						}
-					}
-				}
+				final InputStream response = get.getResponseBodyAsStream();
 
 				// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-				code = IOUtils.toString(resp.getEntity().getContent(), "UTF-8");
+				code = IOUtils.toString(response, "UTF-8");
+
+				System.out.println(code);
 
 				if (code.charAt(0) == 65279) {
 					code = code.substring(1);
@@ -254,6 +196,8 @@ public class Importer {
 				parsedDocument = Jsoup.parse(code);
 
 			} catch (IOException ioe) {
+
+				ioe.printStackTrace();
 
 				throw new FrameworkException(500, "Error while parsing content from " + address);
 
@@ -312,12 +256,12 @@ public class Importer {
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
 		final Importer importer = new Importer(securityContext, source, null, "source", 0, false, false);
-		final App localAppCtx   = StructrApp.getInstance(securityContext);
-		Page page               = null;
+		final App localAppCtx = StructrApp.getInstance(securityContext);
+		Page page = null;
 
 		try (final Tx tx = localAppCtx.tx()) {
 
-			page   = localAppCtx.create(Page.class, new NodeAttribute<>(Page.name, name));
+			page = localAppCtx.create(Page.class, new NodeAttribute<>(Page.name, name));
 
 			if (importer.parse()) {
 
@@ -346,12 +290,12 @@ public class Importer {
 		}
 
 		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-		final Map<String, DOMNode> indexMappedExistingNodes   = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedExistingNodes    = new LinkedHashMap<>();
-		final Map<DOMNode, Integer> depthMappedExistingNodes  = new LinkedHashMap<>();
-		final Map<String, DOMNode> indexMappedNewNodes        = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedNewNodes         = new LinkedHashMap<>();
-		final Map<DOMNode, Integer> depthMappedNewNodes       = new LinkedHashMap<>();
+		final Map<String, DOMNode> indexMappedExistingNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode> hashMappedExistingNodes = new LinkedHashMap<>();
+		final Map<DOMNode, Integer> depthMappedExistingNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode> indexMappedNewNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode> hashMappedNewNodes = new LinkedHashMap<>();
+		final Map<DOMNode, Integer> depthMappedNewNodes = new LinkedHashMap<>();
 
 		InvertibleModificationOperation.collectNodes(sourceNode, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
 		InvertibleModificationOperation.collectNodes(modifiedNode, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
@@ -360,8 +304,8 @@ public class Importer {
 		for (final Iterator<Map.Entry<String, DOMNode>> it = hashMappedExistingNodes.entrySet().iterator(); it.hasNext();) {
 
 			final Map.Entry<String, DOMNode> existingNodeEntry = it.next();
-			final DOMNode existingNode                     = existingNodeEntry.getValue();
-			final String existingHash                      = existingNode.getIdHash();
+			final DOMNode existingNode = existingNodeEntry.getValue();
+			final String existingHash = existingNode.getIdHash();
 
 			// check for deleted nodes ignoring Page nodes
 			if (!hashMappedNewNodes.containsKey(existingHash) && !(existingNode instanceof Page)) {
@@ -374,7 +318,7 @@ public class Importer {
 		for (final Iterator<Map.Entry<String, DOMNode>> it = indexMappedNewNodes.entrySet().iterator(); it.hasNext();) {
 
 			final Map.Entry<String, DOMNode> newNodeEntry = it.next();
-			final DOMNode newNode                     = newNodeEntry.getValue();
+			final DOMNode newNode = newNodeEntry.getValue();
 
 			// if newNode is a content element, do not rely on local hash property
 			String newHash = newNode.getProperty(DOMNode.dataHashProperty);
@@ -385,7 +329,7 @@ public class Importer {
 			// check for deleted nodes ignoring Page nodes
 			if (!hashMappedExistingNodes.containsKey(newHash) && !(newNode instanceof Page)) {
 
-				final DOMNode newParent  = newNode.getProperty(DOMNode.parent);
+				final DOMNode newParent = newNode.getProperty(DOMNode.parent);
 
 				changeSet.add(new CreateOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, depthMappedNewNodes.get(newNode)));
 			}
@@ -395,14 +339,14 @@ public class Importer {
 		for (final Map.Entry<String, DOMNode> newNodeEntry : indexMappedNewNodes.entrySet()) {
 
 			final String newTreeIndex = newNodeEntry.getKey();
-			final DOMNode newNode     = newNodeEntry.getValue();
+			final DOMNode newNode = newNodeEntry.getValue();
 
 			for (final Map.Entry<String, DOMNode> existingNodeEntry : indexMappedExistingNodes.entrySet()) {
 
 				final String existingTreeIndex = existingNodeEntry.getKey();
-				final DOMNode existingNode     = existingNodeEntry.getValue();
-				DOMNode newParent              = null;
-				int equalityBitmask            = 0;
+				final DOMNode existingNode = existingNodeEntry.getValue();
+				DOMNode newParent = null;
+				int equalityBitmask = 0;
 
 				if (newTreeIndex.equals(existingTreeIndex)) {
 					equalityBitmask |= 1;
@@ -418,34 +362,34 @@ public class Importer {
 
 				switch (equalityBitmask) {
 
-					case 7:	// same tree index (1), same node (2), same content (4) => node is completely unmodified
+					case 7: // same tree index (1), same node (2), same content (4) => node is completely unmodified
 						break;
 
-					case 6:	// same content (2), same node (4), NOT same tree index => node has moved
-						newParent  = newNode.getProperty(DOMNode.parent);
+					case 6: // same content (2), same node (4), NOT same tree index => node has moved
+						newParent = newNode.getProperty(DOMNode.parent);
 						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));
 						break;
 
-					case 5:	// same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
+					case 5: // same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
 						break;
 
-					case 4:	// NOT same tree index, NOT same node, same content (4) => different node, content is equal by chance?
+					case 4: // NOT same tree index, NOT same node, same content (4) => different node, content is equal by chance?
 						break;
 
 					case 3: // same tree index, same node, NOT same content => node was modified but not moved
 						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
 						break;
 
-					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
-						newParent  = newNode.getProperty(DOMNode.parent);
+					case 2: // NOT same tree index, same node (2), NOT same content => node was moved and changed
+						newParent = newNode.getProperty(DOMNode.parent);
 						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
 						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));
 						break;
 
-					case 1:	// same tree index (1), NOT same node, NOT same content => ignore
+					case 1: // same tree index (1), NOT same node, NOT same content => ignore
 						break;
 
-					case 0:	// NOT same tree index, NOT same node, NOT same content => ignore
+					case 0: // NOT same tree index, NOT same node, NOT same content => ignore
 						break;
 				}
 			}
@@ -508,7 +452,7 @@ public class Importer {
 
 			if (node instanceof Element) {
 
-				Element el = ((Element) node);
+				Element el = ((Element)node);
 				Set<String> classes = el.classNames();
 
 				for (String cls : classes) {
@@ -520,7 +464,7 @@ public class Importer {
 
 				String downloadAddressAttr = (ArrayUtils.contains(srcElements, tag)
 					? "src" : ArrayUtils.contains(hrefElements, tag)
-					? "href" : null);
+						? "href" : null);
 
 				if (downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
@@ -542,7 +486,7 @@ public class Importer {
 			if (/*type.equals("#data") || */type.equals("#comment")) {
 
 				tag = "";
-				comment = ((Comment) node).getData();
+				comment = ((Comment)node).getData();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(comment)) {
@@ -556,7 +500,7 @@ public class Importer {
 			} else if (type.equals("#data")) {
 
 				tag = "";
-				content = ((DataNode) node).getWholeData();
+				content = ((DataNode)node).getWholeData();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
@@ -570,7 +514,7 @@ public class Importer {
 //                              type    = "Content";
 				tag = "";
 				//content = ((TextNode) node).getWholeText();
-				content = ((TextNode) node).text();
+				content = ((TextNode)node).text();
 
 				// Add content node for whitespace within <p> elements only
 				if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
@@ -587,17 +531,17 @@ public class Importer {
 				// create comment or content node
 				if (!StringUtils.isBlank(comment)) {
 
-					newNode = (DOMNode) page.createComment(comment);
+					newNode = (DOMNode)page.createComment(comment);
 					newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
 
 				} else {
 
-					newNode = (Content) page.createTextNode(content);
+					newNode = (Content)page.createTextNode(content);
 				}
 
 			} else {
 
-				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
+				newNode = (org.structr.web.entity.dom.DOMElement)page.createElement(tag);
 			}
 
 			if (newNode != null) {
@@ -667,12 +611,12 @@ public class Importer {
 
 						} else {
 
-							final String value =  nodeAttr.getValue();
+							final String value = nodeAttr.getValue();
 
-							boolean notBlank     = StringUtils.isNotBlank(value);
-							boolean isAnchor     = notBlank && value.startsWith("#");
-							boolean isLocal      = notBlank && !value.startsWith("http");
-							boolean isActive     = notBlank && (value.startsWith("${") || value.startsWith("/${"));
+							boolean notBlank = StringUtils.isNotBlank(value);
+							boolean isAnchor = notBlank && value.startsWith("#");
+							boolean isLocal = notBlank && !value.startsWith("http");
+							boolean isActive = notBlank && (value.startsWith("${") || value.startsWith("/${"));
 							boolean isStructrLib = notBlank && value.startsWith("/structr/js/");
 
 							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive) {
@@ -687,7 +631,6 @@ public class Importer {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), value);
 							}
-
 
 						}
 					}
@@ -743,7 +686,7 @@ public class Importer {
 
 			logger.log(Level.INFO, "Starting download from {0}", downloadUrl);
 
-			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
+			copyURLToFile(downloadUrl.toString(), fileOnDisk);
 
 		} catch (IOException ioe) {
 
@@ -754,29 +697,32 @@ public class Importer {
 
 			}
 
-			logger.log(Level.WARNING, "Unable to download from {0} {1}", new Object[] { originalUrl, downloadAddress });
+			logger.log(Level.WARNING, "Unable to download from {0} {1}", new Object[]{originalUrl, downloadAddress});
+			ioe.printStackTrace();
 
 			try {
 				// Try alternative baseUrl with trailing "/"
 				if (address.endsWith("/")) {
 
 					// don't append a second slash!
-					logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[] { originalUrl, address, downloadAddress });
+					logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[]{originalUrl, address, downloadAddress});
 					downloadUrl = new URL(new URL(originalUrl, address), downloadAddress);
 
 				} else {
 
 					// append a slash
-					logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[] { originalUrl, address.concat("/"), downloadAddress });
+					logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[]{originalUrl, address.concat("/"), downloadAddress});
 					downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
 				}
 
-				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
+				copyURLToFile(downloadUrl.toString(), fileOnDisk);
 
 			} catch (MalformedURLException ex) {
+				ex.printStackTrace();
 				logger.log(Level.SEVERE, "Could not resolve address {0}", address.concat("/"));
 				return null;
 			} catch (IOException ex) {
+				ex.printStackTrace();
 				logger.log(Level.WARNING, "Unable to download from {0}", address.concat("/"));
 				return null;
 			}
@@ -800,8 +746,8 @@ public class Importer {
 		try {
 
 			contentType = FileHelper.getContentMimeType(fileOnDisk, fileName);
-			size        = fileOnDisk.length();
-			checksum    = FileUtils.checksumCRC32(fileOnDisk);
+			size = fileOnDisk.length();
+			checksum = FileUtils.checksumCRC32(fileOnDisk);
 
 		} catch (IOException ioe) {
 
@@ -812,7 +758,7 @@ public class Importer {
 		String httpPrefix = "http://";
 
 		logger.log(Level.INFO, "Download URL: {0}, address: {1}, cleaned address: {2}, filename: {3}",
-			new Object[] { downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName });
+			new Object[]{downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName});
 
 		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
@@ -823,7 +769,7 @@ public class Importer {
 			? StringUtils.substringAfter(downloadAddress, "http://")
 			: relativePath), fileName);
 
-		logger.log(Level.INFO, "Relative path: {0}, final path: {1}", new Object[] { relativePath, path });
+		logger.log(Level.INFO, "Relative path: {0}, final path: {1}", new Object[]{relativePath, path});
 
 		if (contentType.equals("text/plain")) {
 
@@ -878,7 +824,6 @@ public class Importer {
 		return null;
 
 	}
-
 
 	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
@@ -943,4 +888,42 @@ public class Importer {
 
 	}
 
+	private void copyURLToFile(final String uri, final java.io.File fileOnDisk) throws IOException {
+
+		final HttpClient client = getHttpClient();
+		final HttpMethod get = new GetMethod(uri);
+
+		get.addRequestHeader("User-Agent", "curl/7.35.0");
+
+		logger.log(Level.INFO, "Downloading from {0}", uri);
+		get.setFollowRedirects(true);
+
+		final int statusCode = client.executeMethod(get);
+
+		if (statusCode == 200) {
+
+			try (final InputStream is = get.getResponseBodyAsStream()) {
+
+				try (final OutputStream os = new FileOutputStream(fileOnDisk)) {
+
+					IOUtils.copy(is, os);
+				}
+			}
+
+		} else {
+
+			System.out.println("response body: " + new String(get.getResponseBody(), "utf-8"));
+			logger.log(Level.WARNING, "Unable to create file {0}: status code was {1}", new Object[] { uri, statusCode } );
+		}
+	}
+
+	private HttpClient getHttpClient() {
+
+		final HttpClient client = new HttpClient();
+
+		client.getParams().setCookiePolicy(CookiePolicy.NETSCAPE);
+		client.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
+
+		return client;
+	}
 }
