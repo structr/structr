@@ -169,8 +169,8 @@ var _Graph = {
 			settings : {
 				font: 'Open Sans',
 				immutable: false,
-				minNodeSize: 12,
-				maxNodeSize: 12,
+				minNodeSize: 4,
+				maxNodeSize: 16,
 				borderSize: 4,
 				defaultNodeBorderColor: '#a5a5a5',
 				singleHover: true,
@@ -252,111 +252,116 @@ var _Graph = {
 						return;
 					}
 
-					// outgoing schema rels
-					draggedNodeSchemaNode.relatedTo.forEach(function(toRel) {
+					if (draggedNodeSchemaNode.relatedTo) {
+						
+						// outgoing schema rels
+						draggedNodeSchemaNode.relatedTo.forEach(function(toRel) {
 
-						var edgeId = node.id + '-[:' + toRel.id + ']->' + n.id;
+							var edgeId = node.id + '-[:' + toRel.id + ']->' + n.id;
 
-						if (toRel.allTargetTypesPossible || (toRel.possibleTargetTypes && toRel.possibleTargetTypes.contains(n.type)) && !engine.graph.edges(edgeId)) {
+							if (toRel.allTargetTypesPossible || (toRel.possibleTargetTypes && toRel.possibleTargetTypes.contains(n.type)) && !engine.graph.edges(edgeId)) {
 
-							//console.log('toRel, target multi', toRel.targetMultiplicity, toRel);
+								//console.log('toRel, target multi', toRel.targetMultiplicity, toRel);
 
-							if (toRel.sourceMultiplicity === '1') {
-								engine.graph.edges().forEach(function(edge) {
-									//console.log(edge, n, node, toRel);
-									if (edge.target === n.id && edge.relType === toRel.relationshipType) {
-										edge.hidden = true;
-										edge.removed = true;
-										//console.log('outgoing rel found, will be removed', edge);
-										removedRel = edge.id;
-									}
+								if (toRel.sourceMultiplicity === '1') {
+									engine.graph.edges().forEach(function(edge) {
+										//console.log(edge, n, node, toRel);
+										if (edge.target === n.id && edge.relType === toRel.relationshipType) {
+											edge.hidden = true;
+											edge.removed = true;
+											//console.log('outgoing rel found, will be removed', edge);
+											removedRel = edge.id;
+										}
+									});
+								}
+
+								if (toRel.targetMultiplicity === '1') {
+									engine.graph.edges().forEach(function(edge) {
+										//console.log(edge, n, node, toRel);
+										if (edge.source === node.id && edge.relType === toRel.relationshipType) {
+											edge.hidden = true;
+											edge.removed = true;
+											//console.log('outgoing rel found, will be removed', edge);
+											removedRel = edge.id;
+										}
+									});
+								}
+
+								engine.graph.addEdge({
+									id: edgeId,
+									label: toRel.relationshipType,
+									source: node.id,
+									target: n.id,
+									size: 40,
+									color: '#81ce25',
+									type: 'curvedArrow',
+									added: true,
+									replaced: removedRel,
+									relType: toRel.relationshipType
+								});
+
+							}
+						});
+					}
+					
+					if (draggedNodeSchemaNode.relatedFrom) {
+						
+						// incoming schema rels
+						draggedNodeSchemaNode.relatedFrom.forEach(function(fromRel) {
+
+							var edgeId = node.id + '<-[:' + fromRel.id + ']-' + n.id;
+
+							//console.log('possible source type:', possibleSourceType, 'edge exists?', edgeId, engine.graph.edges(edgeId));
+
+							if (fromRel.allSourceTypesPossible || (fromRel.possibleSourceTypes && fromRel.possibleSourceTypes.contains(n.type)) && !engine.graph.edges(edgeId)) {
+
+								//console.log('fromRel source multi', fromRel.sourceMultiplicity, fromRel);
+
+								if (fromRel.sourceMultiplicity === '1') {
+
+									// loop over all edges if they fit the schema rel
+									engine.graph.edges().forEach(function(edge) {
+										//console.log(edge, n, node, fromRel);
+										//if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
+										if (edge.target === node.id && edge.relType === fromRel.relationshipType) {
+											edge.hidden = true;
+											edge.removed = true;
+											//console.log('outgoing rel found, will be removed', edge);
+											removedRel = edge.id;
+										}
+									});
+								}
+
+								if (fromRel.targetMultiplicity === '1') {
+
+									// loop over all edges if they fit the schema rel
+									engine.graph.edges().forEach(function(edge) {
+										//console.log(edge, n, node, fromRel);
+										//if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
+										if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
+											edge.hidden = true;
+											edge.removed = true;
+											//console.log('outgoing rel found, will be removed', edge);
+											removedRel = edge.id;
+										}
+									});
+								}
+
+								engine.graph.addEdge({
+									id: edgeId,
+									label: fromRel.relationshipType,
+									source: n.id,
+									target: node.id,
+									size: 40,
+									color: '#81ce25',
+									type: 'curvedArrow',
+									added: true,
+									replaced: removedRel,
+									relType: fromRel.relationshipType
 								});
 							}
-
-							if (toRel.targetMultiplicity === '1') {
-								engine.graph.edges().forEach(function(edge) {
-									//console.log(edge, n, node, toRel);
-									if (edge.source === node.id && edge.relType === toRel.relationshipType) {
-										edge.hidden = true;
-										edge.removed = true;
-										//console.log('outgoing rel found, will be removed', edge);
-										removedRel = edge.id;
-									}
-								});
-							}
-
-							engine.graph.addEdge({
-								id: edgeId,
-								label: toRel.relationshipType,
-								source: node.id,
-								target: n.id,
-								size: 40,
-								color: '#81ce25',
-								type: 'curvedArrow',
-								added: true,
-								replaced: removedRel,
-								relType: toRel.relationshipType
-							});
-
-						}
-					});
-
-					// incoming schema rels
-					draggedNodeSchemaNode.relatedFrom.forEach(function(fromRel) {
-
-						var edgeId = node.id + '<-[:' + fromRel.id + ']-' + n.id;
-
-						//console.log('possible source type:', possibleSourceType, 'edge exists?', edgeId, engine.graph.edges(edgeId));
-
-						if (fromRel.allSourceTypesPossible || (fromRel.possibleSourceTypes && fromRel.possibleSourceTypes.contains(n.type)) && !engine.graph.edges(edgeId)) {
-
-							//console.log('fromRel source multi', fromRel.sourceMultiplicity, fromRel);
-
-							if (fromRel.sourceMultiplicity === '1') {
-
-								// loop over all edges if they fit the schema rel
-								engine.graph.edges().forEach(function(edge) {
-									//console.log(edge, n, node, fromRel);
-									//if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
-									if (edge.target === node.id && edge.relType === fromRel.relationshipType) {
-										edge.hidden = true;
-										edge.removed = true;
-										//console.log('outgoing rel found, will be removed', edge);
-										removedRel = edge.id;
-									}
-								});
-							}
-
-							if (fromRel.targetMultiplicity === '1') {
-
-								// loop over all edges if they fit the schema rel
-								engine.graph.edges().forEach(function(edge) {
-									//console.log(edge, n, node, fromRel);
-									//if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
-									if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
-										edge.hidden = true;
-										edge.removed = true;
-										//console.log('outgoing rel found, will be removed', edge);
-										removedRel = edge.id;
-									}
-								});
-							}
-
-							engine.graph.addEdge({
-								id: edgeId,
-								label: fromRel.relationshipType,
-								source: n.id,
-								target: node.id,
-								size: 40,
-								color: '#81ce25',
-								type: 'curvedArrow',
-								added: true,
-								replaced: removedRel,
-								relType: fromRel.relationshipType
-							});
-						}
-					});
-
+						});
+					}
 					_Graph.scheduleRefreshEngine();
 
 				} else {
@@ -732,6 +737,7 @@ var _Graph = {
 
 		if (engine) {
 			_Graph.resize();
+			doLayout(20);
 		}
 
 	},
@@ -1073,7 +1079,7 @@ var _Graph = {
 					filteredNodeTypes.splice(filteredNodeTypes.indexOf(node.type), 1);
 				}
 				
-				console.log(filteredNodeTypes);
+				//console.log(filteredNodeTypes);
 
 				schemaNodes[node.type] = node;
 				schemaNodesById[node.id] = node;
@@ -1322,7 +1328,7 @@ var _Graph = {
 		hasDoubleClicked = false;
 		hasDragged = false;
 		engine.refresh();
-		doLayout(10);
+		//doLayout(10);
 	},
 	distance: function(n1, n2) {
 		var x1 = parseInt(n1['renderer1:x']);
