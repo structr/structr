@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var main, fileTree, folderContents;
+var main, filesystemMain, fileTree, folderContents;
 var fileList;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
@@ -40,7 +40,7 @@ var _Filesystem = {
 		log('_Filesystem.init');
 
 		main = $('#main');
-
+		
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 
 		searchField = $('.search', main);
@@ -95,7 +95,8 @@ var _Filesystem = {
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Filesystem');
 
 		main.append('<div id="filesystem-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
-		
+		filesystemMain = $('#filesystem-main');
+
 		fileTree = $('#file-tree');
 		folderContents = $('#folder-contents');
 
@@ -240,6 +241,7 @@ var _Filesystem = {
 		
 	},
 	unload: function() {
+		fastRemoveAllChildren(main[0]);
 	},
 	activateUpload: function() {
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
