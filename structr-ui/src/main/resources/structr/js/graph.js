@@ -842,7 +842,6 @@ var _Graph = {
 					while (i < results.length && count < maxRels) {
 						var r = results[i++];
 						if (relIds.indexOf(r.id) === -1) {
-							relIds.push(r.id);
 							_Graph.loadRelationship(r);
 						}
 					}
@@ -862,7 +861,6 @@ var _Graph = {
 					while (i < results.length && count < maxRels) {
 						var r = results[i++];
 						if (relIds.indexOf(r.id) === -1) {
-							relIds.push(r.id);
 							_Graph.loadRelationship(r);
 						}
 					}
