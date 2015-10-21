@@ -131,7 +131,7 @@ public class Importer {
 		this.publicVisible = publicVisible;
 		this.authVisible = authVisible;
 
-		if (!address.endsWith("/")) {
+		if (address != null && !address.endsWith("/")) {
 
 			this.address = this.address.concat("/");
 		}
