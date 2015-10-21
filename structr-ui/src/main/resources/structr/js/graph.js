@@ -920,6 +920,9 @@ var _Graph = {
 		//_Graph.updateNodeTypes();
 	},
 	drawRel: function(r) {
+		if (isIn(r.id, relIds)) {
+			return;
+		}
 		relIds.push(r.id);
 		_Graph.setRelationshipColor(r);
 		//var existingEdges = _Graph.findRelationships(r.sourceId, r.targetId, r.relType);
