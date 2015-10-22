@@ -131,8 +131,7 @@ public class Importer {
 		this.publicVisible = publicVisible;
 		this.authVisible = authVisible;
 
-		if (address != null && !address.endsWith("/")) {
-
+		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
 		}
 	}
@@ -921,7 +920,7 @@ public class Importer {
 
 		final HttpClient client = new HttpClient();
 
-		client.getParams().setCookiePolicy(CookiePolicy.NETSCAPE);
+		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
 		client.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 
 		return client;
