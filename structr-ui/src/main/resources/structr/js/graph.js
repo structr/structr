@@ -930,7 +930,7 @@ var _Graph = {
 		//_Graph.updateNodeTypes();
 	},
 	drawRel: function(r) {
-		if (isIn(r.id, relIds)) {
+		if (isIn(r.id, relIds) || (!isIn(r.sourceId, nodeIds) || !isIn(r.targetId, nodeIds)) ) {
 			return;
 		}
 		relIds.push(r.id);
