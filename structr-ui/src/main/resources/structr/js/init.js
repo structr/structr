@@ -1432,7 +1432,7 @@ function MessageBuilder () {
 	};
 
 	this.success = function (text) {
-		this.params.text = '<img src="icon/accept.png"> ' + text;
+		this.params.text = text;
 		return this.className('success');
 	};
 
