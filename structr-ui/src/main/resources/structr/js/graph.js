@@ -737,7 +737,7 @@ var _Graph = {
 
 		if (engine) {
 			_Graph.resize();
-			doLayout(20);
+			_Graph.scheduleRefreshEngine();
 		}
 
 	},
@@ -851,7 +851,7 @@ var _Graph = {
 							_Graph.loadRelationship(r);
 						}
 					}
-					doLayout(20);
+					_Graph.scheduleRefreshEngine();
 				}
 			});
 
@@ -871,6 +871,8 @@ var _Graph = {
 							_Graph.loadRelationship(r);
 						}
 					}
+
+					_Graph.scheduleRefreshEngine();
 				}
 			});
 		}
@@ -1329,7 +1331,7 @@ var _Graph = {
 		hasDoubleClicked = false;
 		hasDragged = false;
 		engine.refresh();
-		//doLayout(10);
+		doLayout(20);
 	},
 	distance: function(n1, n2) {
 		var x1 = parseInt(n1['renderer1:x']);
@@ -1396,7 +1398,7 @@ function restartLayout(num) {
       area: 1000000000,
       gravity: 0,
       speed: 0.1,
-      iterations: 10
+      iterations: 1000
     });
     animating = false;
     if (count++ < num) {
