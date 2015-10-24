@@ -36,7 +36,7 @@ var forceAtlas2Config = {
 	gravity: 1,
 	strongGravityMode: true,
 	adjustSizes: true,
-	iterationsPerRender: 10,
+	iterationsPerRender: 1000,
 	barnesHutOptimize: false,
 	slowDown: 2
 		//outboundAttractionDistribution: true
@@ -851,6 +851,7 @@ var _Graph = {
 							_Graph.loadRelationship(r);
 						}
 					}
+					doLayout(20);
 				}
 			});
 
