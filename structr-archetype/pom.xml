@@ -5,14 +5,14 @@
     <groupId>org.structr</groupId>
     <artifactId>structr-archetype</artifactId>
     <packaging>pom</packaging>
-    <version>1.1-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <name>Structr Archetype Module</name>
     <description>Module containing several archetypes for structr</description>
 
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>2.0-SNAPSHOT</version>
     </parent>
     
     <modules>
