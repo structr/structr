@@ -48,4 +48,9 @@ public class ObjectEventRelationship extends ManyToOne<LogEvent, NodeInterface> 
 	public int getAutocreationFlag() {
 		return Relation.SOURCE_TO_TARGET;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

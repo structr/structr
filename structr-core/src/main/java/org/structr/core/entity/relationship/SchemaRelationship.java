@@ -139,6 +139,11 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> {
 		return !error && super.isValid(errorBuffer);
 	}
 
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
+
 	// ----- interface Syncable -----
 	@Override
 	public List<GraphObject> getSyncData() {

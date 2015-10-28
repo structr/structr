@@ -47,4 +47,9 @@ public class VideoFileHasConvertedVideoFile extends OneToMany<VideoFile, VideoFi
 	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

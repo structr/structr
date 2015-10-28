@@ -48,4 +48,9 @@ public class SchemaRelationshipSourceNode extends OneToMany<SchemaNode, SchemaRe
 	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

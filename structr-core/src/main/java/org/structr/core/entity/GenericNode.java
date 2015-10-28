@@ -154,5 +154,10 @@ public class GenericNode extends AbstractNode {
 		public String name() {
 			return relType;
 		}
+
+		@Override
+		public boolean isInternal() {
+			return false;
+		}
 	}
 }

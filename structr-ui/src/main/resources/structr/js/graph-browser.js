@@ -16,6 +16,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 var animating = false;
 var timeout   = 0;
 var expanded  = {};
@@ -41,6 +42,10 @@ $(function() {
 });
 
 function nodeHovered(node) {
+  var domainOnly = false;
+  if (window.domainOnly && window.domainOnly === true) {
+	  domainOnly = true;
+  }
   if (animating) {
     return;
   }
@@ -53,7 +58,7 @@ function nodeHovered(node) {
   var hoverMap = {};
   $('#graph-info').append('<span>Loading...</span>');
   $.ajax({
-    url: '/structr/rest/' + node.data.node.id + '/out/_structr_graph',
+    url: '/structr/rest/' + node.data.node.id + '/out/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
     contentType: 'application/json',
     method: 'GET',
     statusCode: {
@@ -68,7 +73,7 @@ function nodeHovered(node) {
           }
         });
         $.ajax({
-          url: '/structr/rest/' + node.data.node.id + '/in/_structr_graph',
+          url: '/structr/rest/' + node.data.node.id + '/in/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
           contentType: 'application/json',
           method: 'GET',
           statusCode: {
@@ -156,6 +161,10 @@ function nodeClicked(node) {
 }
 
 function expandNode(node, type) {
+  var domainOnly = false;
+  if (window.domainOnly && window.domainOnly === true) {
+	  domainOnly = true;
+  }
   var id = node.data.node.id;
   var x  = node.data.node.x;
   var y  = node.data.node.y;
@@ -165,7 +174,7 @@ function expandNode(node, type) {
     edges: expanded[id] ? expanded[id].edges : []
   };
   $.ajax({
-    url: '/structr/rest/' + node.data.node.id + '/out/_structr_graph',
+    url: '/structr/rest/' + node.data.node.id + '/out/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
     contentType: 'application/json',
     method: 'GET',
     statusCode: {
@@ -182,7 +191,7 @@ function expandNode(node, type) {
     }
   });
   $.ajax({
-    url: '/structr/rest/' + node.data.node.id + '/in/_structr_graph',
+    url: '/structr/rest/' + node.data.node.id + '/in/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
     contentType: 'application/json',
     method: 'GET',
     statusCode: {

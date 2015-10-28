@@ -42,4 +42,9 @@ public class Groups extends ManyToMany<Group, Principal> {
 	public String name() {
 		return "CONTAINS";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

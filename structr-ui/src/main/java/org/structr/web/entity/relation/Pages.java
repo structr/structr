@@ -42,4 +42,9 @@ public class Pages extends OneToMany<Site, Page> {
 	public String name() {
 		return "CONTAINS";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

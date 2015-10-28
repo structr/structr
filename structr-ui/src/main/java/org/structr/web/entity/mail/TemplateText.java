@@ -42,4 +42,9 @@ public class TemplateText extends OneToOne<MailTemplate, Content> {
 	public String name() {
 		return "CONTAINS";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

@@ -41,4 +41,9 @@ public class Thumbnails extends OneToMany<Image, Image> {
 	public String name() {
 		return "THUMBNAIL";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

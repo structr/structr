@@ -42,4 +42,9 @@ public class Access extends OneToMany<ResourceAccess, PropertyAccess> {
 	public Class<PropertyAccess> getTargetType() {
 		return PropertyAccess.class;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

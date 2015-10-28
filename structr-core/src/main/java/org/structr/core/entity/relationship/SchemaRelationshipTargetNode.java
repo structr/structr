@@ -48,4 +48,9 @@ public class SchemaRelationshipTargetNode extends ManyToOne<SchemaRelationshipNo
 	public int getCascadingDeleteFlag() {
 		return Relation.TARGET_TO_SOURCE;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

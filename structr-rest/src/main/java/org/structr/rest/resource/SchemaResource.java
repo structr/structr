@@ -168,7 +168,7 @@ public class SchemaResource extends Resource {
 						final RelationProperty relationProperty = (RelationProperty)key;
 						final Relation relation                 = relationProperty.getRelation();
 
-						if (!relation.isInternalStructrRelationship()) {
+						if (!relation.isHidden()) {
 
 							switch (relation.getDirectionForType(type)) {
 

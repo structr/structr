@@ -197,11 +197,8 @@ public class ActionContextTest extends StructrTest {
 
 			// test with property
 			assertEquals("Invalid md5() result", "27118326006d3829667a400ad23d5d98",  Scripting.replaceVariables(ctx, testOne, "${md5(this.aString)}"));
-			assertEquals("Invalid usage message for md5()", Functions.ERROR_MESSAGE_MD5, Scripting.replaceVariables(ctx, testOne, "${md5()}"));
 			assertEquals("Invalid upper() result", "27118326006D3829667A400AD23D5D98",  Scripting.replaceVariables(ctx, testOne, "${upper(md5(this.aString))}"));
-			assertEquals("Invalid usage message for upper()", Functions.ERROR_MESSAGE_UPPER, Scripting.replaceVariables(ctx, testOne, "${upper()}"));
 			assertEquals("Invalid upper(lower() result", "27118326006D3829667A400AD23D5D98",  Scripting.replaceVariables(ctx, testOne, "${upper(lower(upper(md5(this.aString))))}"));
-			assertEquals("Invalid usage message for lower()", Functions.ERROR_MESSAGE_LOWER, Scripting.replaceVariables(ctx, testOne, "${lower()}"));
 
 			assertEquals("Invalid md5() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${md5(this.alwaysNull)}"));
 			assertEquals("Invalid upper() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${upper(this.alwaysNull)}"));
@@ -230,31 +227,26 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid concat() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(\"one\", \"two\", \"three\")}"));
 			assertEquals("Invalid concat() result", "oneStringthree", Scripting.replaceVariables(ctx, testOne, "${concat(\"one\", this.aString, \"three\")}"));
 			assertEquals("Invalid concat() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${concat(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for concat()", Functions.ERROR_MESSAGE_CONCAT, Scripting.replaceVariables(ctx, testOne, "${concat()}"));
 
 			// split
 			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\"))}"));
 			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\"))}"));
 			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\", \";\"))}"));
 			assertEquals("Invalid split() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${split(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for split()", Functions.ERROR_MESSAGE_SPLIT, Scripting.replaceVariables(ctx, testOne, "${split()}"));
 
 			// abbr
 			assertEquals("Invalid abbr() result", "oneStringt…", Scripting.replaceVariables(ctx, testOne, "${abbr(concat(\"one\", this.aString, \"three\"), 10)}"));
 			assertEquals("Invalid abbr() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${abbr(this.alwaysNull, 10)}"));
-			assertEquals("Invalid usage message for abbr()", Functions.ERROR_MESSAGE_ABBR, Scripting.replaceVariables(ctx, testOne, "${abbr()}"));
 
 			// capitalize..
 			assertEquals("Invalid capitalize() result", "One_two_three", Scripting.replaceVariables(ctx, testOne, "${capitalize(concat(\"one_\", \"two_\", \"three\"))}"));
 			assertEquals("Invalid capitalize() result", "One_Stringthree", Scripting.replaceVariables(ctx, testOne, "${capitalize(concat(\"one_\", this.aString, \"three\"))}"));
 			assertEquals("Invalid capitalize() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${capitalize(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for capitalize()", Functions.ERROR_MESSAGE_CAPITALIZE, Scripting.replaceVariables(ctx, testOne, "${capitalize()}"));
 
 			// titleize
 			assertEquals("Invalid titleize() result", "One Two Three", Scripting.replaceVariables(ctx, testOne, "${titleize(concat(\"one_\", \"two_\", \"three\"), \"_\")}"));
 			assertEquals("Invalid titleize() result", "One Stringthree", Scripting.replaceVariables(ctx, testOne, "${titleize(concat(\"one_\", this.aString, \"three\"), \"_\")}"));
 			assertEquals("Invalid titleize() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${titleize(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for titleize()", Functions.ERROR_MESSAGE_TITLEIZE, Scripting.replaceVariables(ctx, testOne, "${titleize()}"));
 
 			// num (explicit number conversion)
 			assertEquals("Invalid num() result", "2.234", Scripting.replaceVariables(ctx, testOne, "${num(2.234)}"));
@@ -263,7 +255,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid num() result", "", Scripting.replaceVariables(ctx, testOne, "${num(\"abc\")}"));
 			assertEquals("Invalid num() result", "", Scripting.replaceVariables(ctx, testOne, "${num(this.aString)}"));
 			assertEquals("Invalid num() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${num(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for num()", Functions.ERROR_MESSAGE_NUM, Scripting.replaceVariables(ctx, testOne, "${num()}"));
 
 			// index_of
 			assertEquals("Invalid index_of() result", "19", Scripting.replaceVariables(ctx, testOne, "${index_of(this.name, 'for')}"));
@@ -303,28 +294,23 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(this.cleanTestString)}"));
 			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(get(this, \"cleanTestString\"))}"));
 			assertEquals("Invalid clean() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${clean(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for clean()", Functions.ERROR_MESSAGE_CLEAN, Scripting.replaceVariables(ctx, testOne, "${clean()}"));
 
 			// urlencode
 			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", Scripting.replaceVariables(ctx, testOne, "${urlencode(this.cleanTestString)}"));
 			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", Scripting.replaceVariables(ctx, testOne, "${urlencode(get(this, \"cleanTestString\"))}"));
 			assertEquals("Invalid urlencode() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${urlencode(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for urlencode()", Functions.ERROR_MESSAGE_URLENCODE, Scripting.replaceVariables(ctx, testOne, "${urlencode()}"));
 
 			// escape_javascript
 			assertEquals("Invalid escape_javascript() result", "A\\'B\\\"C", Scripting.replaceVariables(ctx, testOne, "${escape_javascript(this.stringWithQuotes)}"));
 			assertEquals("Invalid escape_javascript() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${escape_javascript(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for escape_javascript()", Functions.ERROR_MESSAGE_ESCAPE_JS, Scripting.replaceVariables(ctx, testOne, "${escape_javascript()}"));
 
 			// escape_json
 			assertEquals("Invalid escape_json() result", "A'B\\\"C", Scripting.replaceVariables(ctx, testOne, "${escape_json(this.stringWithQuotes)}"));
 			assertEquals("Invalid escape_json() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${escape_json(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for escape_json()", Functions.ERROR_MESSAGE_ESCAPE_JSON, Scripting.replaceVariables(ctx, testOne, "${escape_json()}"));
 
 			// if etc.
 			assertEquals("Invalid if() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${if(\"true\", \"true\", \"false\")}"));
 			assertEquals("Invalid if() result", "false", Scripting.replaceVariables(ctx, testOne,  "${if(\"false\", \"true\", \"false\")}"));
-			assertEquals("Invalid usage message for if()", Functions.ERROR_MESSAGE_IF, Scripting.replaceVariables(ctx, testOne, "${if()}"));
 
 			// empty
 			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${empty(\"\")}"));
@@ -332,7 +318,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid empty() result", "false",  Scripting.replaceVariables(ctx, testOne, "${empty(\"   \")}"));
 			assertEquals("Invalid empty() result", "false",  Scripting.replaceVariables(ctx, testOne, "${empty(\"xyz\")}"));
 			assertEquals("Invalid empty() result with null value", "true", Scripting.replaceVariables(ctx, testOne, "${empty(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for empty()", Functions.ERROR_MESSAGE_EMPTY, Scripting.replaceVariables(ctx, testOne, "${empty()}"));
 
 			assertEquals("Invalid if(empty()) result", "false",  Scripting.replaceVariables(ctx, testOne,  "${if(empty(\"test\"), true, false)}"));
 			assertEquals("Invalid if(empty()) result", "false",  Scripting.replaceVariables(ctx, testOne,  "${if(empty(\"test\n\"), true, false)}"));
@@ -371,7 +356,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid if(equal()) result", "true", Scripting.replaceVariables(ctx, testOne, "${if(equal(13, \"013\"), \"true\", \"false\")}"));
 			assertEquals("Invalid if(equal()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"13\", \"013\"), \"true\", \"false\")}"));
 			assertEquals("Invalid if(equal()) result", "false",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"13\", \"00013\"), \"true\", \"false\")}"));
-			assertEquals("Invalid usage message for equal()", Functions.ERROR_MESSAGE_EQUAL, Scripting.replaceVariables(ctx, testOne, "${equal()}"));
 
 			// disabled: java StreamTokenizer can NOT handle scientific notation
 //			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(23.4462, 2.34462e1)}"));
@@ -394,7 +378,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.0, add(1, 1.0)), \"true\", \"false\")}"));
 			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(20, add(\"10\", \"10\")), \"true\", \"false\")}"));
 			assertEquals("Invalid if(equal(add())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(20, add(\"10\", \"010\")), \"true\", \"false\")}"));
-			assertEquals("Invalid usage message for add()", Functions.ERROR_MESSAGE_ADD, Scripting.replaceVariables(ctx, testOne, "${add()}"));
 
 			// eq
 			assertEquals("Invalideq) result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.id, this.id)}"));
@@ -423,7 +406,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid if(eq()) result", "true", Scripting.replaceVariables(ctx, testOne, "${if(eq(13, \"013\"), \"true\", \"false\")}"));
 			assertEquals("Invalid if(eq()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(eq(\"13\", \"013\"), \"true\", \"false\")}"));
 			assertEquals("Invalid if(eq()) result", "false",  Scripting.replaceVariables(ctx, testOne, "${if(eq(\"13\", \"00013\"), \"true\", \"false\")}"));
-			assertEquals("Invalid usage message for eq()", Functions.ERROR_MESSAGE_EQUAL, Scripting.replaceVariables(ctx, testOne, "${eq()}"));
 
 			// disabled: java StreamTokenizer can NOT handle scientific notation
 //			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(23.4462, 2.34462e1)}"));
@@ -483,7 +465,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for lt()", Functions.ERROR_MESSAGE_LT, Scripting.replaceVariables(ctx, testOne, "${lt()}"));
 
 			// if + gt
 			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(\"2\", \"2\"), \"true\", \"false\")}"));
@@ -510,7 +491,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid gt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gt(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid gt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gt(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid gt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gt(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for gt()", Functions.ERROR_MESSAGE_GT, Scripting.replaceVariables(ctx, testOne, "${gt()}"));
 
 			// if + lte
 			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(\"2\", \"2\"), \"true\", \"false\")}"));
@@ -537,7 +517,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid lte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lte(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid lte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lte(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid lte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lte(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for lte()", Functions.ERROR_MESSAGE_LTE, Scripting.replaceVariables(ctx, testOne, "${lte()}"));
 
 			// if + gte
 			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(\"2\", \"2\"), \"true\", \"false\")}"));
@@ -564,7 +543,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid gte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gte(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid gte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gte(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid gte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gte(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for gte()", Functions.ERROR_MESSAGE_GTE, Scripting.replaceVariables(ctx, testOne, "${gte()}"));
 
 			// if + equal + subt
 			assertEquals("Invalid if(equal(subt())) result", "true", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", subt(\"3\", \"1\")), \"true\", \"false\")}"));
@@ -586,7 +564,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid subt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${subt(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid subt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${subt(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid subt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${subt(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for subt()", Functions.ERROR_MESSAGE_SUBT, Scripting.replaceVariables(ctx, testOne, "${subt()}"));
 
 			// if + equal + mult
 			assertEquals("Invalid if(equal(mult())) result", "true", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"6\", mult(\"3\", \"2\")), \"true\", \"false\")}"));
@@ -608,7 +585,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid mult() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${mult(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid mult() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${mult(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid mult() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${mult(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for mult()", Functions.ERROR_MESSAGE_MULT, Scripting.replaceVariables(ctx, testOne, "${mult()}"));
 
 			// if + equal + quot
 			assertEquals("Invalid if(equal(quot())) result", "true", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"1.5\", quot(\"3\", \"2\")), \"true\", \"false\")}"));
@@ -626,7 +602,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid quot() result with null value", "10.0",  Scripting.replaceVariables(ctx, testOne, "${quot(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid quot() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${quot(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid quot() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${quot(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for quot()", Functions.ERROR_MESSAGE_QUOT, Scripting.replaceVariables(ctx, testOne, "${quot()}"));
 
 			// if + equal + round
 			assertEquals("Invalid if(equal(round())) result", "true", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"1.9\", round(\"1.9\", \"2\")), \"true\", \"false\")}"));
@@ -659,7 +634,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid round() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${round(\"10\")}"));
 			assertEquals("Invalid round() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull)}"));
 			assertEquals("Invalid round() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for round()", Functions.ERROR_MESSAGE_ROUND, Scripting.replaceVariables(ctx, testOne, "${round()}"));
 
 			// if + equal + max
 			assertEquals("Invalid if(equal(max())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", max(\"1.9\", \"2\")), \"true\", \"false\")}"));
@@ -670,7 +644,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid max() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${max(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid max() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${max(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid max() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${max(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for max()", Functions.ERROR_MESSAGE_MAX, Scripting.replaceVariables(ctx, testOne, "${max()}"));
 
 			// if + equal + min
 			assertEquals("Invalid if(equal(min())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"1.9\", min(\"1.9\", \"2\")), \"true\", \"false\")}"));
@@ -681,7 +654,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid min() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${min(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid min() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${min(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid min() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${min(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for min()", Functions.ERROR_MESSAGE_MIN, Scripting.replaceVariables(ctx, testOne, "${min()}"));
 
 			// date_format
 			assertEquals("Invalid date_format() result", nowString1, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDate, \"" + format1.toPattern() + "\")}"));
@@ -691,7 +663,6 @@ public class ActionContextTest extends StructrTest {
 			// date_format with null
 			assertEquals("Invalid date_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${date_format(\"10\", this.alwaysNull)}"));
 			assertEquals("Invalid date_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${date_format(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for date_format()", Functions.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
 
 			// date_format error messages
 			assertEquals("Invalid date_format() result for wrong number of parameters", Functions.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
@@ -719,7 +690,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid number_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${number_format(this.alwaysNull, this.alwaysNull, this.alwaysNull)}"));
 			assertEquals("Invalid number_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${number_format(\"10\", this.alwaysNull, this.alwaysNull)}"));
 			assertEquals("Invalid number_format() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${number_format(\"10\", \"de\", this.alwaysNull)}"));
-			assertEquals("Invalid usage message for number_format()", Functions.ERROR_MESSAGE_NUMBER_FORMAT, Scripting.replaceVariables(ctx, testOne, "${number_format()}"));
 
 			// not
 			assertEquals("Invalid not() result", "true",  Scripting.replaceVariables(ctx, testOne, "${not(false)}"));
@@ -729,7 +699,6 @@ public class ActionContextTest extends StructrTest {
 
 			// not with null
 			assertEquals("Invalid not() result with null value", "true", Scripting.replaceVariables(ctx, testOne, "${not(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for not()", Functions.ERROR_MESSAGE_NOT, Scripting.replaceVariables(ctx, testOne, "${not()}"));
 
 			// and
 			assertEquals("Invalid and() result", "true",  Scripting.replaceVariables(ctx, testOne, "${and(true, true)}"));
@@ -739,8 +708,6 @@ public class ActionContextTest extends StructrTest {
 
 			// and with null
 			assertEquals("Invalid and() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${and(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for and()", Functions.ERROR_MESSAGE_AND, Scripting.replaceVariables(ctx, testOne, "${and(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for and()", Functions.ERROR_MESSAGE_AND, Scripting.replaceVariables(ctx, testOne, "${and()}"));
 
 			// or
 			assertEquals("Invalid or() result", "true",  Scripting.replaceVariables(ctx, testOne, "${or(true, true)}"));
@@ -750,8 +717,6 @@ public class ActionContextTest extends StructrTest {
 
 			// or with null
 			assertEquals("Invalid or() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${or(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid usage message for or()", Functions.ERROR_MESSAGE_OR, Scripting.replaceVariables(ctx, testOne, "${or(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for or()", Functions.ERROR_MESSAGE_OR, Scripting.replaceVariables(ctx, testOne, "${or()}"));
 
 			// get
 			assertEquals("Invalid get() result", "1",  Scripting.replaceVariables(ctx, testOne, "${get(this, \"anInt\")}"));
@@ -760,7 +725,6 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid get() result", testTwo.toString(),  Scripting.replaceVariables(ctx, testOne, "${get(this, \"testTwo\")}"));
 			assertEquals("Invalid get() result", testTwo.getUuid(),  Scripting.replaceVariables(ctx, testOne, "${get(get(this, \"testTwo\"), \"id\")}"));
 			assertEquals("Invalid get() result", testSixs.get(0).getUuid(),  Scripting.replaceVariables(ctx, testOne, "${get(first(get(this, \"manyToManyTestSixs\")), \"id\")}"));
-			assertEquals("Invalid usage message for get()", Functions.ERROR_MESSAGE_GET, Scripting.replaceVariables(ctx, testOne, "${get()}"));
 
 			// size
 			assertEquals("Invalid size() result", "20", Scripting.replaceVariables(ctx, testOne, "${size(this.manyToManyTestSixs)}"));
@@ -791,25 +755,19 @@ public class ActionContextTest extends StructrTest {
 
 			// first / last / nth with null
 			assertEquals("Invalid first() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${first(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for first()", Functions.ERROR_MESSAGE_FIRST, Scripting.replaceVariables(ctx, testOne, "${first()}"));
 			assertEquals("Invalid last() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${last(this.alwaysNull)}"));
-			assertEquals("Invalid usage message for last()", Functions.ERROR_MESSAGE_LAST, Scripting.replaceVariables(ctx, testOne, "${last()}"));
 			assertEquals("Invalid nth() result with null value",   "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull,  2)}"));
 			assertEquals("Invalid nth() result with null value",   "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull,  7)}"));
 			assertEquals("Invalid nth() result with null value",   "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull,  9)}"));
 			assertEquals("Invalid nth() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull, 12)}"));
 			assertEquals("Invalid nth() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull, this.alwaysNull)}"));
 			assertEquals("Invalid nth() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull, blah)}"));
-			assertEquals("Invalid usage message for nth()", Functions.ERROR_MESSAGE_NTH, Scripting.replaceVariables(ctx, testOne, "${nth()}"));
 
 			// each with null
-			assertEquals("Invalid usage message for each()", Functions.ERROR_MESSAGE_EACH, Scripting.replaceVariables(ctx, testOne, "${each()}"));
 
 			// get with null
-			assertEquals("Invalid usage message for get()", Functions.ERROR_MESSAGE_GET, Scripting.replaceVariables(ctx, testOne, "${get()}"));
 
 			// set with null
-			assertEquals("Invalid usage message for set()", Functions.ERROR_MESSAGE_SET, Scripting.replaceVariables(ctx, testOne, "${set()}"));
 
 			// set date (JS scripting)
 			assertEquals("Setting the current date/time should not produce output (JS)", "", Scripting.replaceVariables(ctx, testOne, "${{var t = Structr.get('this'); t.aDate = new Date();}}"));
@@ -823,34 +781,6 @@ public class ActionContextTest extends StructrTest {
 				fail("Setting the current date/time should not cause an Exception (StructrScript)");
 			}
 
-			// geocode with null
-			assertEquals("Invalid usage message for geocode()", Functions.ERROR_MESSAGE_GEOCODE, Scripting.replaceVariables(ctx, testOne, "${geocode()}"));
-
-			// send_plaintex_mail with null
-			assertEquals("Invalid usage message for send_plaintext_mail()", Functions.ERROR_MESSAGE_SEND_PLAINTEXT_MAIL, Scripting.replaceVariables(ctx, testOne, "${send_plaintext_mail()}"));
-
-			// send_html_mail with null
-			assertEquals("Invalid usage message for send_html_mail()", Functions.ERROR_MESSAGE_SEND_HTML_MAIL, Scripting.replaceVariables(ctx, testOne, "${send_html_mail()}"));
-
-			// read with null
-			assertEquals("Invalid usage message for each()", Functions.ERROR_MESSAGE_EACH, Scripting.replaceVariables(ctx, testOne, "${each()}"));
-
-			// write with null
-			assertEquals("Invalid usage message for write()", Functions.ERROR_MESSAGE_WRITE, Scripting.replaceVariables(ctx, testOne, "${write()}"));
-
-			// append with null
-			assertEquals("Invalid usage message for append()", Functions.ERROR_MESSAGE_APPEND, Scripting.replaceVariables(ctx, testOne, "${append()}"));
-
-			// xml with null
-			assertEquals("Invalid usage message for xml()", Functions.ERROR_MESSAGE_XML, Scripting.replaceVariables(ctx, testOne, "${xml()}"));
-
-			// xpath with null
-			assertEquals("Invalid usage message for xpath()", Functions.ERROR_MESSAGE_XPATH, Scripting.replaceVariables(ctx, testOne, "${xpath()}"));
-
-			// find with null
-			assertEquals("Invalid usage message for find()", Functions.ERROR_MESSAGE_FIND, Scripting.replaceVariables(ctx, testOne, "${find()}"));
-
-			// do
 			Scripting.replaceVariables(ctx, testOne, "${if(empty(this.alwaysNull), set(this, \"doResult\", true), set(this, \"doResult\", false))}");
 			assertEquals("Invalid do() result", "true", Scripting.replaceVariables(ctx, testOne, "${this.doResult}"));
 

@@ -42,4 +42,9 @@ public class UserWorkDir extends OneToOne<User, Folder> {
 	public String name() {
 		return "WORKING_DIR";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

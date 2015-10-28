@@ -42,4 +42,9 @@ public class ImageWidget extends OneToMany<Widget, Image> {
 	public String name() {
 		return "PICTURE_OF";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

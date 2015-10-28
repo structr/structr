@@ -33,7 +33,12 @@ public abstract class AbstractListSiblings<S extends LinkedListNode, T extends L
 	}
 
 	@Override
-	public boolean isInternalStructrRelationship() {
+	public boolean isHidden() {
+		return true;
+	}
+
+	@Override
+	public boolean isInternal() {
 		return true;
 	}
 }

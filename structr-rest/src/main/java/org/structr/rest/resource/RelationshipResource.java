@@ -25,7 +25,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
-import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -34,6 +33,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.rest.exception.IllegalPathException;
 
 /**
@@ -42,6 +42,7 @@ import org.structr.rest.exception.IllegalPathException;
  */
 public class RelationshipResource extends WrappingResource {
 
+	public static final String REQUEST_PARAMETER_FILTER_INTERNAL_RELATIONSHIP_TYPES = "domainOnly";
 	private static final Logger logger = Logger.getLogger(RelationshipResource.class.getName());
 	private Direction direction = null;
 
@@ -69,7 +70,7 @@ public class RelationshipResource extends WrappingResource {
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
-		
+
 		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId).getResults();
 		if (results != null && !results.isEmpty()) {
 
@@ -79,8 +80,8 @@ public class RelationshipResource extends WrappingResource {
 
 					if (obj instanceof AbstractNode) {
 
-						final List relationships = Direction.INCOMING.equals(direction) ? 
-							
+						final List<? extends RelationshipInterface> relationships = Direction.INCOMING.equals(direction) ?
+
 							//Iterables.toList(((AbstractNode) obj).getIncomingRelationships()) :
 							//Iterables.toList(((AbstractNode) obj).getOutgoingRelationships());
 							(sortDescending ?
@@ -91,14 +92,35 @@ public class RelationshipResource extends WrappingResource {
 								app.relationshipQuery().and(AbstractRelationship.sourceId, obj.getUuid()).sortDescending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList()
 							:
 								app.relationshipQuery().and(AbstractRelationship.sourceId, obj.getUuid()).sortAscending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList());
-						
+
 						if (relationships != null) {
 
-							final int rels = relationships.size();
-							
-							logger.log(Level.FINE, "Number of relationships: {0} for parameters {1}, {2}, {3}, {4}, {5}", new Object[]{rels, sortKey, sortDescending, pageSize, page, offsetId});
-							
-							resultList.addAll(relationships);
+							boolean filterInternalRelationshipTypes = false;
+
+							if (securityContext != null && securityContext.getRequest() != null) {
+
+								final String filterInternal = securityContext.getRequest().getParameter(REQUEST_PARAMETER_FILTER_INTERNAL_RELATIONSHIP_TYPES);
+								if (filterInternal != null) {
+
+									filterInternalRelationshipTypes = "true".equals(filterInternal);
+								}
+							}
+
+							// allow the user to remove internal relationship types from
+							// the result set using the request parameter "filterInternal=true"
+							if (filterInternalRelationshipTypes) {
+
+								for (final RelationshipInterface rel : relationships) {
+
+									if (!rel.isInternal()) {
+										resultList.add(rel);
+									}
+								}
+
+							} else {
+
+								resultList.addAll(relationships);
+							}
 						}
 					}
 				}

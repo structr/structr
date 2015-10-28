@@ -41,4 +41,9 @@ public class Sync extends OneToMany<DOMNode, DOMNode> {
 	public String name() {
 		return "SYNC";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

@@ -41,4 +41,9 @@ public class NodeHasLocation extends ManyToMany<NodeInterface, NodeInterface> {
 	public Class<NodeInterface> getTargetType() {
 		return NodeInterface.class;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

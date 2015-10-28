@@ -115,7 +115,12 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public boolean isInternalStructrRelationship() {
+	public boolean isHidden() {
+		return false;
+	}
+
+	@Override
+	public boolean isInternal() {
 		return false;
 	}
 }

@@ -66,4 +66,9 @@ public class ResourceLink extends ManyToOne<LinkSource, Linkable> {
 	public Property<String> getTargetIdProperty() {
 		return targetId;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

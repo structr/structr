@@ -42,4 +42,9 @@ public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> imple
 	public Class<NodeInterface> getTargetType() {
 		return NodeInterface.class;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

@@ -54,4 +54,9 @@ public class PageLink extends ManyToOne<DOMNode, Page> {
 	public String name() {
 		return "PAGE";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

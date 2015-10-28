@@ -55,4 +55,6 @@ public interface RelationshipInterface extends GraphObject {
 	public void setTargetNodeId(final String targetIdNode) throws FrameworkException;
 
 	public int cascadeDelete();
+
+	public boolean isInternal();
 }

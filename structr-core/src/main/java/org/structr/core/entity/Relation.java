@@ -104,5 +104,5 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
 
-	public boolean isInternalStructrRelationship();
+	public boolean isHidden();
 }

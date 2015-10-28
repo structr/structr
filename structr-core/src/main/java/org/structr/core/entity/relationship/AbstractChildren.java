@@ -35,4 +35,9 @@ public abstract class AbstractChildren<S extends LinkedTreeNode, T extends Linke
 	public String name() {
 		return "CONTAINS";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

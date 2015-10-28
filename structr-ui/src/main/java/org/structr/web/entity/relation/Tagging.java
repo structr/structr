@@ -42,4 +42,9 @@ public class Tagging extends ManyToMany<Tag, Taggable> {
 	public String name() {
 		return "TAG";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

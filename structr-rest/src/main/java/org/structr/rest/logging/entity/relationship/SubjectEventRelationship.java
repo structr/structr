@@ -48,4 +48,9 @@ public class SubjectEventRelationship extends OneToMany<NodeInterface, LogEvent>
 	public int getAutocreationFlag() {
 		return Relation.TARGET_TO_SOURCE;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

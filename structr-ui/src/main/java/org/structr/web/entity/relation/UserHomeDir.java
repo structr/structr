@@ -42,4 +42,9 @@ public class UserHomeDir extends OneToOne<User, Folder> {
 	public String name() {
 		return "HOME_DIR";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

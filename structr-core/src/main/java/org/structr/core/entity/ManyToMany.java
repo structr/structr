@@ -114,7 +114,12 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public boolean isInternalStructrRelationship() {
+	public boolean isHidden() {
+		return false;
+	}
+
+	@Override
+	public boolean isInternal() {
 		return false;
 	}
 }

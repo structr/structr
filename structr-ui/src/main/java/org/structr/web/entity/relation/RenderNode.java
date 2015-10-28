@@ -42,4 +42,9 @@ public class RenderNode extends OneToMany<DOMElement, NodeInterface> {
 	public String name() {
 		return "RENDER_NODE";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

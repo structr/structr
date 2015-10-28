@@ -172,4 +172,9 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 	public Property<String> getTargetIdProperty() {
 		return accessControllableId;
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

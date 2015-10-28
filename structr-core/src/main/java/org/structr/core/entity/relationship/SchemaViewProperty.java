@@ -42,4 +42,9 @@ public class SchemaViewProperty extends ManyToMany<SchemaView, SchemaProperty> {
 	public String name() {
 		return "HAS_VIEW_PROPERTY";
 	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }
