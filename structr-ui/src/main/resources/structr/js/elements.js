@@ -765,8 +765,6 @@ var _Elements = {
 					$(this).removeClass('nodeHover');
 				});
 			});
-
-			return false;
 		
 		});
 	}
