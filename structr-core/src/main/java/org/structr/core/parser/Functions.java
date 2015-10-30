@@ -52,6 +52,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -110,6 +113,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.Function;
 import org.structr.schema.parser.DatePropertyParser;
+import org.structr.util.AbstractProcess;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -234,6 +238,8 @@ public class Functions {
 	public static final String ERROR_MESSAGE_CALL                                = "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
 	public static final String ERROR_MESSAGE_CALL_JS                             = "Usage: ${{Structr.call(key [, payloads...]}}. Example ${{Structr.call('myEvent')}}";
 	public static final String ERROR_MESSAGE_IS_LOCALE                           = "Usage: ${is_locale(locales...)}";
+	public static final String ERROR_MESSAGE_EXEC                                = "Usage: ${exec(fileName [, parameters...]}. Example ${exec('/usr/local/bin/my_script.sh')}";
+	public static final String ERROR_MESSAGE_EXEC_JS                             = "Usage: ${{Structr.exec(fileName [, parameters...]}}. Example ${{Structr.exec('/usr/local/bin/my_script.sh')}}";
 	public static final String ERROR_MESSAGE_IS_LOCALE_JS                        = "Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}";
 	public static final String ERROR_MESSAGE_CYPHER                              = "Usage: ${cypher('MATCH (n) RETURN n')}";
 	public static final String ERROR_MESSAGE_CYPHER_JS                           = "Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}";
@@ -5352,7 +5358,66 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
+				return (inJavaScriptContext ? ERROR_MESSAGE_CALL_JS : ERROR_MESSAGE_CALL);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Calls the given exported / dynamic method on the given entity";
+			}
+		});
+		functions.put("exec", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "exec()";
+			}
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					final StringBuilder script = new StringBuilder(sources[0].toString());
+
+					if (sources.length > 1) {
+
+						for (int i = 1; i < sources.length; i++) {
+							if (sources[i] != null) {
+
+								script.append(" ").append(sources[i].toString());
+							}
+						}
+					}
+
+					final ExecutorService executorService = Executors.newSingleThreadExecutor();
+					final ScriptingProcess process        = new ScriptingProcess(ctx.getSecurityContext(), script.toString());
+
+					try {
+
+						return executorService.submit(process).get();
+
+					} catch (InterruptedException | ExecutionException iex) {
+
+						iex.printStackTrace();
+
+					} finally {
+
+						executorService.shutdown();
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_EXEC_JS : ERROR_MESSAGE_EXEC);
 			}
 
 			@Override
@@ -6207,4 +6272,29 @@ public class Functions {
 		return eq(o1, o2) || lt(o1, o2);
 	}
 
+	private static class ScriptingProcess extends AbstractProcess<String> {
+
+		private final StringBuilder commandLine = new StringBuilder();
+
+		public ScriptingProcess(final SecurityContext securityContext, final String commandLine) {
+
+			super(securityContext);
+
+			this.commandLine.append(commandLine);
+		}
+
+		@Override
+		public StringBuilder getCommandLine() {
+			return commandLine;
+		}
+
+		@Override
+		public String processExited(final int exitCode) {
+			return outputStream();
+		}
+
+		@Override
+		public void preprocess() {
+		}
+	}
 }

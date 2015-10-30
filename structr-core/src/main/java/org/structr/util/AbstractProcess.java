@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.media;
+package org.structr.util;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
