@@ -18,6 +18,7 @@
  */
 package org.structr.media;
 
+import org.structr.util.AbstractProcess;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.LinkedHashMap;
