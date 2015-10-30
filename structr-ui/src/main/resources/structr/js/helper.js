@@ -503,6 +503,7 @@ var LSWrapper = {
 };
 
 function fastRemoveAllChildren(el) {
+	if (!el) return;
 	var child;
 	while ((child = el.firstChild)) {
 	  el.removeChild(child);
