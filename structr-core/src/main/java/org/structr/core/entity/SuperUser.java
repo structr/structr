@@ -497,6 +497,11 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
+	public String getSalt() {
+		return null;
+	}
+
+	@Override
 	public void setRelationshipPathSegment(final RelationshipInterface pathElement) {
 	}
 

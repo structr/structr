@@ -85,7 +85,7 @@ public class AuthenticationRequest extends Message {
 
 			try {
 				this.keyLength = Math.min(keyLength, Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER));
-				this.salt      = user.getProperty(Principal.salt);
+				this.salt      = user.getSalt();
 
 				serverConnection.impersonateUser(user);
 				serverConnection.send(new AuthenticationResponse(userName, user.getEncryptedPassword(), salt, keyLength));
