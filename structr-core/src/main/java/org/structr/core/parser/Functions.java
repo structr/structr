@@ -5378,32 +5378,41 @@ public class Functions {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
-					final StringBuilder script = new StringBuilder(sources[0].toString());
+					final String scriptKey = sources[0].toString();
+					final String script    = StructrApp.getConfigurationValue(scriptKey);
 
-					if (sources.length > 1) {
+					if (StringUtils.isNotBlank(script)) {
 
-						for (int i = 1; i < sources.length; i++) {
-							if (sources[i] != null) {
+						final StringBuilder scriptBuilder = new StringBuilder(script);
+						if (sources.length > 1) {
 
-								script.append(" ").append(sources[i].toString());
+							for (int i = 1; i < sources.length; i++) {
+								if (sources[i] != null) {
+
+									scriptBuilder.append(" ").append(sources[i].toString());
+								}
 							}
 						}
-					}
 
-					final ExecutorService executorService = Executors.newSingleThreadExecutor();
-					final ScriptingProcess process        = new ScriptingProcess(ctx.getSecurityContext(), script.toString());
+						final ExecutorService executorService = Executors.newSingleThreadExecutor();
+						final ScriptingProcess process        = new ScriptingProcess(ctx.getSecurityContext(), scriptBuilder.toString());
 
-					try {
+						try {
 
-						return executorService.submit(process).get();
+							return executorService.submit(process).get();
 
-					} catch (InterruptedException | ExecutionException iex) {
+						} catch (InterruptedException | ExecutionException iex) {
 
-						iex.printStackTrace();
+							iex.printStackTrace();
 
-					} finally {
+						} finally {
 
-						executorService.shutdown();
+							executorService.shutdown();
+						}
+
+					} else {
+
+						logger.log(Level.WARNING, "No script found for key {0} in structr.conf, nothing executed.", scriptKey);
 					}
 				}
 
