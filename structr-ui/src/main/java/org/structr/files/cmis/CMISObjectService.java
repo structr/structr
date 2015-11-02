@@ -509,9 +509,10 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	public void deleteObject(String repositoryId, String objectId, Boolean allVersions, ExtensionsData extension) {
 
 		final App app             = StructrApp.getInstance(securityContext);
-		final Principal principal = securityContext.getUser(false);
 
 		try (final Tx tx = app.tx()) {
+
+			final Principal principal = securityContext.getUser(false);
 
 			final GraphObject obj = app.get(objectId);
 			if (obj != null) {

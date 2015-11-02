@@ -457,7 +457,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 */
 	@Override
 	public <T> T getProperty(final PropertyKey<T> key) {
-		return getProperty(key, true, null);
+		return getProperty(key, null);
 	}
 
 	@Override

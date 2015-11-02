@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import static org.structr.core.auth.AuthHelper.getHash;
 import static org.structr.core.auth.AuthHelper.getSimpleHash;
 import static org.structr.core.entity.Principal.password;
@@ -43,6 +44,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	private static final Logger logger = Logger.getLogger(AbstractUser.class.getName());
 	private Boolean cachedIsAdminFlag  = null;
+	private static final Object HIDDEN = "****** HIDDEN ******";
 
 	@Override
 	public void addSessionId(final String sessionId) {
@@ -135,7 +137,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		final String encryptedPasswordFromDatabase = getEncryptedPassword();
 		if (encryptedPasswordFromDatabase != null) {
 
-			final String salt = getProperty(Principal.salt);
+			final String salt = getSalt();
 			String encryptedPasswordToCheck = null;
 
 			if (salt != null) {
@@ -173,11 +175,28 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 	}
 
 	@Override
+	public String getSalt() {
+
+		boolean dbNodeHasProperty = dbNode.hasProperty(salt.dbName());
+
+		if (dbNodeHasProperty) {
+
+			Object dbValue = dbNode.getProperty(salt.dbName());
+
+			return (String) dbValue;
+
+		} else {
+
+			return null;
+		}
+	}
+
+	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
 
-		if (password.equals(key)) {
+		if (password.equals(key) || salt.equals(key)) {
 
-			return "";
+			return null;
 
 		}
 
@@ -186,19 +205,22 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 	}
 
 	/**
-	 * Intentionally return null.
+	 * Intentionally return a special value indicating that the real value is not being disclosed.
+	 * 
+	 * @param key
+	 * @param predicate
 	 * @return null for password
 	 */
 	@Override
-	public <T> T getProperty(final PropertyKey<T> key) {
+	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 
-		if (password.equals(key)) {
+		if (password.equals(key) || salt.equals(key)) {
 
-			return null;
+			return (T) HIDDEN;
 
 		} else {
 
-			return super.getProperty(key);
+			return super.getProperty(key, predicate);
 
 		}
 
