@@ -121,6 +121,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 	private final Set<String> possiblePropertyNamesForEntityResolving   = new LinkedHashSet<>();
 
+	private boolean isAsync = false;
+
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -150,6 +152,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				possiblePropertyNamesForEntityResolving.add(name);
 			}
 		}
+
+		this.isAsync = Services.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), true);
 	}
 
 	@Override
@@ -374,9 +378,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						setCustomResponseHeaders(response);
 
+						final boolean createsRawData = rootElement.getProperty(Page.pageCreatesRawData);
+
 						// async or not?
-						boolean isAsync = Services.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), true);
-						if (isAsync) {
+						if (isAsync && !createsRawData) {
 
 							final AsyncContext async = request.startAsync();
 							final ServletOutputStream out = async.getResponse().getOutputStream();
@@ -469,9 +474,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							// render
 							rootElement.render(renderContext, 0);
 
-							response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
-							response.getOutputStream().flush();
-							response.getOutputStream().close();
+							try {
+
+								response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
+								response.getOutputStream().flush();
+								response.getOutputStream().close();
+
+							} catch (IOException ioex) {
+								ioex.printStackTrace();
+							}
 						}
 					}
 

@@ -18,6 +18,7 @@
  */
 package org.structr.schema.action;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -256,6 +258,22 @@ public class ActionContext {
 
 					case "request":
 						return securityContext.getRequest();
+
+					case "response":
+						if (securityContext != null) {
+							final HttpServletResponse response = securityContext.getResponse();
+							if (response != null) {
+
+								try {
+									// return output stream of HTTP response for streaming
+									return response.getOutputStream();
+
+								} catch (IOException ioex) {
+									ioex.printStackTrace();
+								}
+							}
+						}
+						return null;
 
 					case "now":
 						return DatePropertyParser.format(new Date(), DateProperty.DEFAULT_FORMAT);

@@ -54,7 +54,7 @@ import org.structr.web.servlet.HtmlServlet;
  *
  */
 public class UiAuthenticator implements Authenticator {
-	
+
 	private static final Logger logger       = Logger.getLogger(UiAuthenticator.class.getName());
 
 	protected boolean examined = false;
@@ -113,7 +113,7 @@ public class UiAuthenticator implements Authenticator {
 
 		// Initialize custom user class
 		getUserClass();
-		
+
 		SecurityContext securityContext;
 
 		Principal user = checkSessionAuthentication(request);
@@ -188,6 +188,11 @@ public class UiAuthenticator implements Authenticator {
 		 }
 
 		examined = true;
+
+		// store a reference of the response object in SecurityContext
+		// to be able to stream data directly from builtin functions
+		securityContext.setResponse(response);
+
 		return securityContext;
 
 	}
@@ -596,9 +601,9 @@ public class UiAuthenticator implements Authenticator {
 
 	@Override
 	public Class getUserClass() {
-		
+
 		if (userClass == null) {
-		
+
 			String configuredCustomClassName = StructrApp.getConfigurationValue("Registration.customUserClass");
 			if (StringUtils.isEmpty(configuredCustomClassName)) {
 				configuredCustomClassName = User.class.getSimpleName();
@@ -606,7 +611,7 @@ public class UiAuthenticator implements Authenticator {
 			userClass = StructrApp.getConfiguration().getNodeEntityClass(configuredCustomClassName);
 
 		}
-		
+
 		return userClass;
 
 	}

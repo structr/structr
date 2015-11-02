@@ -21,9 +21,21 @@ package org.structr.web.entity.dom;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.security.DigestOutputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +48,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.httpclient.Credentials;
@@ -50,6 +67,19 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.DEROutputStream;
+import org.bouncycastle.cert.jcajce.JcaCertStore;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.CMSSignedDataGenerator;
+import org.bouncycastle.cms.CMSTypedData;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import org.bouncycastle.util.encoders.Base64;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.neo4j.graphdb.Direction;
@@ -77,6 +107,7 @@ import org.structr.core.parser.Functions;
 import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE;
 import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS;
 import static org.structr.core.parser.Functions.arrayHasMinLengthAndAllElementsNotNull;
+import static org.structr.core.parser.Functions.functions;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -1060,6 +1091,149 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 		});
 
+		functions.put("create_jar_file", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "create_jar_file";
+			}
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					if (sources[0] instanceof OutputStream) {
+
+						try {
+
+							final JarOutputStream jos       = new JarOutputStream((OutputStream)sources[0]);
+							final MessageDigest md          = MessageDigest.getInstance("SHA1");
+							final Manifest manifest         = new Manifest();
+							final Attributes mainAttributes = manifest.getMainAttributes();
+							final KeyPairGenerator gen      = KeyPairGenerator.getInstance("DSA", "SUN");
+
+							gen.initialize(1024, SecureRandom.getInstance("SHA1PRNG", "SUN"));
+
+							final KeyPair keyPair           = gen.generateKeyPair();
+							final PrivateKey privateKey     = keyPair.getPrivate();
+
+							// maximum compression
+							jos.setLevel(9);
+
+							// initialize manifest
+							mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+
+							// add entries from scripting context
+							for (final Object source : sources) {
+
+								if (source != null && source instanceof NameAndContent) {
+
+									final NameAndContent content = (NameAndContent)source;
+									final JarEntry entry         = new JarEntry(content.getName());
+									final byte[] data            = content.getContent().getBytes("utf-8");
+
+									// write JarEntry
+									jos.putNextEntry(entry);
+									jos.write(data);
+									jos.closeEntry();
+									jos.flush();
+
+									// update message digest with data
+									md.update(data);
+
+									// create new attribute with the entry's name
+									Attributes attr = manifest.getAttributes(entry.getName());
+									if (attr == null) {
+
+										attr = new Attributes();
+										manifest.getEntries().put(entry.getName(), attr);
+									}
+
+									// store SHA1-Digest for the new entry
+									attr.putValue("SHA1-Digest", new String(Base64.encode(md.digest()), "ASCII"));
+								}
+							}
+
+							// add manifest entry
+							jos.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
+							manifest.write(jos);
+
+							// add signature entry
+							final byte[] signedData = getSignatureForManifest(manifest);
+							jos.putNextEntry(new JarEntry("META-INF/CERT.SF"));
+							jos.write(signedData);
+
+							// add certificate entry
+							//jos.putNextEntry(new JarEntry("META-INF/CERT." + privateKey.getAlgorithm()));
+							//writeSignatureBlock(jos, new CMSProcessableByteArray(signedData), cert, privateKey);
+
+
+							// use finish() here to avoid an "already closed" exception later
+							jos.flush();
+							jos.finish();
+
+						} catch (IOException | GeneralSecurityException ioex) {
+							ioex.printStackTrace();
+						}
+
+					} else {
+
+						return "First parameter of create_jar_file() must be an output stream.";
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return "create_jar_file()";
+			}
+
+			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Creates a signed JAR file from the given contents.";
+			}
+		});
+		functions.put("jar_entry", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "jar_entry";
+			}
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					return new NameAndContent(sources[0].toString(), sources[1].toString());
+				}
+
+				return null;
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return "jar_entry()";
+			}
+
+			@Override
+			public String getSignature() {
+				return "";
+			}
+
+			@Override
+			public String shortDescription() {
+				return "";
+			}
+		});
 	}
 
 	public abstract boolean isSynced();
@@ -2524,5 +2698,86 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		return cachedOwnerDocument;
+	}
+
+	// ----- nested classes -----
+	private static class NameAndContent {
+
+		private String name = null;
+		private String content = null;
+
+		public NameAndContent(final String name, final String content) {
+			this.name = name;
+			this.content = content;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public String getContent() {
+			return content;
+		}
+	}
+
+	// ----- private methods -----
+	private static byte[] getSignatureForManifest(final Manifest forManifest) throws IOException, GeneralSecurityException {
+
+		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		final Manifest signatureFile    = new Manifest();
+		final Attributes main           = signatureFile.getMainAttributes();
+		final MessageDigest md          = MessageDigest.getInstance("SHA1");
+		final PrintStream print         = new PrintStream(new DigestOutputStream(new ByteArrayOutputStream(), md), true, "UTF-8");
+
+		main.putValue("Signature-Version", "1.0");
+
+		// Digest of the entire manifest
+		forManifest.write(print);
+		print.flush();
+
+		main.putValue("SHA1-Digest-Manifest", new String(Base64.encode(md.digest()), "ASCII"));
+
+		final Map<String, Attributes> entries = forManifest.getEntries();
+
+		for (Map.Entry<String, Attributes> entry : entries.entrySet()) {
+
+			// Digest of the manifest stanza for this entry.
+			print.print("Name: " + entry.getKey() + "\r\n");
+
+			for (Map.Entry<Object, Object> att : entry.getValue().entrySet()) {
+				print.print(att.getKey() + ": " + att.getValue() + "\r\n");
+			}
+
+			print.print("\r\n");
+			print.flush();
+
+			final Attributes sfAttr = new Attributes();
+			sfAttr.putValue("SHA1-Digest", new String(Base64.encode(md.digest()), "ASCII"));
+
+			signatureFile.getEntries().put(entry.getKey(), sfAttr);
+		}
+
+		signatureFile.write(bos);
+
+		return bos.toByteArray();
+	}
+
+	private static void writeSignatureBlock(final JarOutputStream jos, final CMSTypedData data, final X509Certificate publicKey, final PrivateKey privateKey) throws IOException, CertificateEncodingException, OperatorCreationException, CMSException {
+
+		final List<X509Certificate> certList = new ArrayList<>();
+		certList.add(publicKey);
+
+		final JcaCertStore certs         = new JcaCertStore(certList);
+		final CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
+		final ContentSigner sha1Signer   = new JcaContentSignerBuilder("SHA1with" + privateKey.getAlgorithm()).build(privateKey);
+
+		gen.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().build()).setDirectSignature(true).build(sha1Signer, publicKey));
+		gen.addCertificates(certs);
+
+		final CMSSignedData sigData = gen.generate(data, false);
+		final ASN1InputStream asn1  = new ASN1InputStream(sigData.getEncoded());
+		final DEROutputStream dos   = new DEROutputStream(jos);
+
+		dos.writeObject(asn1.readObject());
 	}
 }
