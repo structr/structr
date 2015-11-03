@@ -20,6 +20,7 @@
 var buttonClicked;
 var activeElements = {};
 var activeQueryTabPrefix = 'structrActiveQueryTab_' + port;
+var availableQueryTabs = ['rest', 'cypher', 'xpath', 'function'];
 var activeEditTabPrefix = 'structrActiveEditTab_' + port;
 
 var _Entities = {
@@ -187,8 +188,13 @@ var _Entities = {
 			});
 		});
 		var id = LSWrapper.getItem(activeQueryTabPrefix  + '_' + nodeId) || activeId.substring(13);
-		var tab = $('#tab-' + id);
-		tab.click();
+
+		if (availableQueryTabs.indexOf(id) === -1) {
+			id = availableQueryTabs[0];
+			LSWrapper.removeItem(activeQueryTabPrefix  + '_' + nodeId);
+		}
+
+		$('#tab-' + id).click();
 	},
 	editSource: function(entity) {
 
