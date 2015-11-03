@@ -450,14 +450,9 @@ var _Filesystem = {
 				'<h2>' + path + '</h2>'
 				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
-				+ '<tr id="parent-file-link">'
-				+ '<td class="file-type"><i class="fa fa-folder"></i></td>'
-				+ '<td><a href="#">..</a></td>'
-				+ '<td></td>'
-				+ '<td></td>'
-				+ '<td></td>'
-				+ '</tr></tbody></table>'
-				);
+				+ ((id != 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
+				+ '</tbody></table>'
+		);
 
 		$('.breadcrumb-entry').click(function (e) {
 			e.preventDefault();
