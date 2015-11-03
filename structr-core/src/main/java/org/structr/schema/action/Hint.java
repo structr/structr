@@ -28,7 +28,6 @@ public abstract class Hint {
 	private boolean isDynamic      = false;
 
 	public abstract String shortDescription();
-	public abstract String getSignature();
 	public abstract String getName();
 
 	public String getReplacement() {

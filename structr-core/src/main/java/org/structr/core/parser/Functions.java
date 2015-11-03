@@ -493,10 +493,6 @@ public class Functions {
 				return null;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -524,10 +520,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -555,10 +547,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -586,10 +574,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -628,10 +612,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -678,10 +658,6 @@ public class Functions {
 				return StringUtils.join(list, "");
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -719,10 +695,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -771,10 +743,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -803,10 +771,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -852,10 +816,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -891,10 +851,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -933,10 +889,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -971,10 +923,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1009,10 +957,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1045,10 +989,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1093,10 +1033,6 @@ public class Functions {
 				return false;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1135,10 +1071,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1168,10 +1100,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1224,10 +1152,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1282,10 +1206,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1314,10 +1234,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1346,10 +1262,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1378,10 +1290,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1421,11 +1329,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "condition, exp1, exp2";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_IF;
 			}
@@ -1456,10 +1359,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1502,10 +1401,6 @@ public class Functions {
 				return valueEquals(sources[0], sources[1]);
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1531,10 +1426,6 @@ public class Functions {
 				return functions.get("equal").apply(ctx, entity, sources);
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1588,10 +1479,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1631,10 +1518,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1674,10 +1557,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1708,10 +1587,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1742,10 +1617,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1815,10 +1686,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1863,10 +1730,6 @@ public class Functions {
 				return list;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1917,10 +1780,6 @@ public class Functions {
 				return sourceSet;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -1978,10 +1837,6 @@ public class Functions {
 				return list;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2037,10 +1892,6 @@ public class Functions {
 				return sources[0];
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2074,10 +1925,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2110,10 +1957,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2146,10 +1989,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2183,10 +2022,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2233,10 +2068,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2281,10 +2112,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2333,10 +2160,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2384,10 +2207,6 @@ public class Functions {
 				}
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2432,10 +2251,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2480,10 +2295,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2514,11 +2325,6 @@ public class Functions {
 				}
 
 				return "";
-			}
-
-			@Override
-			public String getSignature() {
-				return "key, [defaultValue]";
 			}
 
 			@Override
@@ -2582,11 +2388,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "value[, pattern]";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_DATE_FORMAT_JS : ERROR_MESSAGE_DATE_FORMAT);
 			}
@@ -2631,11 +2432,6 @@ public class Functions {
 				}
 
 				return "";
-			}
-
-			@Override
-			public String getSignature() {
-				return "value, pattern";
 			}
 
 			@Override
@@ -2684,11 +2480,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "value, pattern, language";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_NUMBER_FORMAT_JS : ERROR_MESSAGE_NUMBER_FORMAT);
 			}
@@ -2734,10 +2525,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2768,10 +2555,6 @@ public class Functions {
 				return true;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2828,10 +2611,6 @@ public class Functions {
 				return result;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2888,10 +2667,6 @@ public class Functions {
 				return result;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -2992,11 +2767,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "entity, key";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET;
 			}
@@ -3059,11 +2829,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "entity, key";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_GET;
 			}
@@ -3114,10 +2879,6 @@ public class Functions {
 				return 0;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3158,10 +2919,6 @@ public class Functions {
 				return null;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3205,10 +2962,6 @@ public class Functions {
 				return null;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3261,10 +3014,6 @@ public class Functions {
 				return null;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3294,10 +3043,6 @@ public class Functions {
 				return 0;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3338,10 +3083,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3371,10 +3112,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3426,10 +3163,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3475,10 +3208,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3512,10 +3241,6 @@ public class Functions {
 				}
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3552,10 +3277,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3586,11 +3307,6 @@ public class Functions {
 				}
 
 				return "";
-			}
-
-			@Override
-			public String getSignature() {
-				return "string";
 			}
 
 			@Override
@@ -3625,11 +3341,6 @@ public class Functions {
 				}
 
 				return "";
-			}
-
-			@Override
-			public String getSignature() {
-				return "string";
 			}
 
 			@Override
@@ -3676,10 +3387,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3735,10 +3442,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3786,10 +3489,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3833,10 +3532,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3873,10 +3568,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -3944,11 +3635,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "entity, key, value";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SET;
 			}
@@ -3986,11 +3672,6 @@ public class Functions {
 				}
 
 				return "";
-			}
-
-			@Override
-			public String getSignature() {
-				return "fromAddress, fromName, toAddress, toName, subject, text";
 			}
 
 			@Override
@@ -4039,11 +3720,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "fromAddress, fromName, toAddress, toName, subject, html[, text]";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_SEND_HTML_MAIL;
 			}
@@ -4084,11 +3760,6 @@ public class Functions {
 				}
 
 				return "";
-			}
-
-			@Override
-			public String getSignature() {
-				return "street, city, country";
 			}
 
 			@Override
@@ -4186,11 +3857,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "type[, key, value, ...]";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return ERROR_MESSAGE_FIND;
 			}
@@ -4280,10 +3946,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -4368,11 +4030,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "type[, key, value, ...]";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_JS : ERROR_MESSAGE_CREATE);
 			}
@@ -4414,10 +4071,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -4469,10 +4122,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -4501,10 +4150,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -4557,10 +4202,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -4639,10 +4280,6 @@ public class Functions {
 				return false;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -4721,10 +4358,6 @@ public class Functions {
 				return false;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -4803,10 +4436,6 @@ public class Functions {
 				return false;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -4886,10 +4515,6 @@ public class Functions {
 				return list;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -4969,10 +4594,6 @@ public class Functions {
 				return list;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5052,10 +4673,6 @@ public class Functions {
 				return list;
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5112,10 +4729,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5188,11 +4801,6 @@ public class Functions {
 
 					return usage(ctx.isJavaScriptContext());
 				}
-			}
-
-			@Override
-			public String getSignature() {
-				return "user, entity, permissions";
 			}
 
 			@Override
@@ -5269,11 +4877,6 @@ public class Functions {
 			}
 
 			@Override
-			public String getSignature() {
-				return "user, entity, permissions";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_REVOKE_JS : ERROR_MESSAGE_REVOKE);
 			}
@@ -5309,10 +4912,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5351,10 +4950,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5419,10 +5014,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5466,10 +5057,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5507,10 +5094,6 @@ public class Functions {
 				return "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5598,10 +5181,6 @@ public class Functions {
 
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5663,10 +5242,6 @@ public class Functions {
 				return "Returns the schema information for the given property";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String getName() {
@@ -5689,10 +5264,6 @@ public class Functions {
 				return  "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
@@ -5719,10 +5290,6 @@ public class Functions {
 				return  "";
 			}
 
-			@Override
-			public String getSignature() {
-				return "";
-			}
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
