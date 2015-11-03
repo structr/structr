@@ -468,37 +468,22 @@ var _Filesystem = {
 			}
 		});
 
+		var handleChildren = function(children) {
+			if (children && children.length) {
+				children.forEach(_Filesystem.appendFileOrFolderRow);
+			}
+		};
+
 		if (id === 'root') {
 
-			Command.list('Folder', true, 1000, 1, 'name', 'asc', null, function(children) {
-
-				if (children && children.length) {
-					children.forEach(_Filesystem.appendFileOrFolderRow);
-				}
-			});
-
-			Command.list('FileBase', true, 1000, 1, 'name', 'asc', null, function(children) {
-
-				if (children && children.length) {
-					children.forEach(_Filesystem.appendFileOrFolderRow);
-				}
-			});
+			Command.list('Folder', true, 1000, 1, 'name', 'asc', null, handleChildren);
+			Command.list('FileBase', true, 1000, 1, 'name', 'asc', null, handleChildren);
 
 		} else {
 
-			Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, function(children) {
+			Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren);
+			Command.query('FileBase', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren);
 
-				if (children && children.length) {
-					children.forEach(_Filesystem.appendFileOrFolderRow);
-				}
-			});
-
-			Command.query('FileBase', 1000, 1, 'name', 'asc', {parentId: id}, function(children) {
-
-				if (children && children.length) {
-					children.forEach(_Filesystem.appendFileOrFolderRow);
-				}
-			});
 		}
 	},
 	appendFileOrFolderRow: function(d) {
