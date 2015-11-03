@@ -84,27 +84,24 @@ public class ListCommand extends AbstractCommand {
 		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
 		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type)/*.includeDeletedAndHidden()*/.sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
-		// important
-		if (FileBase.class.isAssignableFrom(type) && rootOnly) {
+		if (FileBase.class.isAssignableFrom(type)) {
 
-			query.and(FileBase.hasParent, false);
+			if (rootOnly) {
+				query.and(FileBase.hasParent, false);
+			}
+
+			if (FileBase.class.isAssignableFrom(type)) {
+
+				// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
+				query.not().and(Image.isThumbnail, true);
+			}
+
 		}
 
 		// important
 		if (Folder.class.isAssignableFrom(type) && rootOnly) {
 
 			query.and(Folder.hasParent, false);
-		}
-
-		// for image lists, suppress thumbnails
-		if (type.equals(Image.class)) {
-
-			query.and(Image.isThumbnail, false);
-		}
-
-		if (type.equals(File.class)) {
-
-			query.not().and(Image.isThumbnail, true);
 		}
 
 		try {
