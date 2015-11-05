@@ -93,6 +93,10 @@
                     <groupId>asm</groupId>
                     <artifactId>asm</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>bouncycastle</groupId>
+                    <artifactId>bcprov-jdk16</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

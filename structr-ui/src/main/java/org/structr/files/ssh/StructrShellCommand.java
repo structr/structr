@@ -171,7 +171,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				term.print("Welcome to ");
 				term.setBold(true);
 				term.print("Structr");
-				term.print(" 1.1");
+				term.print(" 2.0");
 				term.setBold(false);
 				term.println();
 
