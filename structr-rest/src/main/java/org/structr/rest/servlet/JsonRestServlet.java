@@ -18,8 +18,6 @@
  */
 package org.structr.rest.servlet;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
@@ -54,11 +52,8 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.rest.JsonInputGSONAdapter;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
-import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
@@ -147,7 +142,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		// initialize variables
 		this.propertyView           = new ThreadLocalPropertyView();
-		this.gson                   = new ThreadLocalGson(config.getOutputNestingDepth());
+		this.gson                   = new ThreadLocalGson(propertyView, config.getOutputNestingDepth());
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="DELETE">
@@ -940,39 +935,5 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
-	public class ThreadLocalGson extends ThreadLocal<Gson> {
-
-		private int outputNestingDepth = 3;
-
-		public ThreadLocalGson(final int outputNestingDepth) {
-			this.outputNestingDepth = outputNestingDepth;
-		}
-
-		@Override
-		protected Gson initialValue() {
-
-			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, outputNestingDepth);
-			JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter();
-
-			// create GSON serializer
-			final GsonBuilder gsonBuilder = new GsonBuilder()
-				.setPrettyPrinting()
-				.serializeNulls()
-				.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
-				.registerTypeAdapter(IJsonInput.class, jsonInputAdapter)
-				.registerTypeAdapter(Result.class, resultGsonAdapter);
-
-
-			final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
-			if (lenient) {
-
-				// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
-				gsonBuilder.serializeSpecialFloatingPointValues();
-
-			}
-
-			return gsonBuilder.create();
-		}
-	}
 	// </editor-fold>
 }
