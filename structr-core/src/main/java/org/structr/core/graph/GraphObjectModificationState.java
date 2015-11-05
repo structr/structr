@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
@@ -59,7 +60,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_PROPAGATING_MODIFICATION = 128;
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 
-	private final boolean auditLogEnabled        = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_SECURITY_AUDITLOG_ENABLED, "false"));
+	private final boolean auditLogEnabled        = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_CHANGELOG_ENABLED, "false"));
 	private final PropertyMap modifiedProperties = new PropertyMap();
 	private final PropertyMap removedProperties  = new PropertyMap();
 	private final PropertyMap newProperties      = new PropertyMap();
@@ -100,7 +101,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	@Override
-	public String getAuditLog() {
+	public String getChangeLog() {
 		return changeLog.toString();
 	}
 
@@ -483,6 +484,17 @@ public class GraphObjectModificationState implements ModificationEvent {
 			} else if (value instanceof Boolean) {
 
 				return new JsonPrimitive((Boolean)value);
+
+			} else if (value.getClass().isArray()) {
+
+				final JsonArray arr   = new JsonArray();
+				final Object[] values = (Object[])value;
+
+				for (final Object v : values) {
+					arr.add(toElement(v));
+				}
+
+				return arr;
 
 			} else {
 

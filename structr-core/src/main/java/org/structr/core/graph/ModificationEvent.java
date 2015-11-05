@@ -34,7 +34,7 @@ public interface ModificationEvent {
 	public boolean isNode();
 
 	public int getStatus();
-	public String getAuditLog();
+	public String getChangeLog();
 
 	public boolean isDeleted();
 	public boolean isModified();

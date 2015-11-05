@@ -51,7 +51,7 @@ public class ModificationQueue {
 
 	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
 
-	private final boolean auditLogEnabled                                                   = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_SECURITY_AUDITLOG_ENABLED, "false"));
+	private final boolean auditLogEnabled                                                   = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_CHANGELOG_ENABLED, "false"));
 	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
 	private final Collection<ModificationEvent> modificationEvents                          = new ArrayDeque<>(1000);
 	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
@@ -158,7 +158,7 @@ public class ModificationQueue {
 						if (obj != null) {
 
 							final String existingLog = obj.getProperty(GraphObject.structrChangeLog);
-							final String newLog      = ev.getAuditLog();
+							final String newLog      = ev.getChangeLog();
 							final String newValue    = existingLog != null ? existingLog + newLog : newLog;
 
 							obj.unlockReadOnlyPropertiesOnce();
