@@ -19,6 +19,7 @@
 package org.structr.files.cmis;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,10 +38,11 @@ import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
+import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServiceWrapper;
 
 /**
  *
- *
+ * @author Christian Morgner
  */
 public class StructrCMISServicesFactory implements CmisServiceFactory {
 
@@ -58,7 +60,15 @@ public class StructrCMISServicesFactory implements CmisServiceFactory {
 
 	@Override
 	public CmisService getService(final CallContext cc) {
-		return new StructrCMISService(checkAuthentication(cc));
+
+	    StructrCMISService service = new StructrCMISService(checkAuthentication(cc));
+
+	    //The wrapper catches invalid CMIS requests and sets default values
+	    //for parameters that have not been provided by the client
+	    ConformanceCmisServiceWrapper wrapperService =
+		new ConformanceCmisServiceWrapper(service, BigInteger.TEN, BigInteger.TEN, BigInteger.ZERO, BigInteger.ZERO);
+
+	    return wrapperService;
 	}
 
 	@Override
