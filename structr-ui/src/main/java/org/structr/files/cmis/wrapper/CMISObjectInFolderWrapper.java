@@ -24,6 +24,7 @@ import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderDataImpl;
+import org.neo4j.graphdb.PropertyContainer;
 import org.structr.core.GraphObject;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
 import org.structr.common.error.FrameworkException;
@@ -62,10 +63,33 @@ public class CMISObjectInFolderWrapper extends CMISPagingListWrapper<ObjectInFol
 		return CMISObjectWrapper.wrap(item, propertyFilter, includeAllowableActions);
 	}
 
+	/**
+	 * Collects every file in the parent folder (except thumbnails) from the 
+	 * database and adds it to the wrapper, which will be sent to the CMIS 
+	 * framework. 
+         * @param list of Objects, which will be shown in the CMIS client. 
+	 * Thumbnails will be ignored.
+	 */
 	public void wrap(final List<? extends GraphObject> list) throws FrameworkException {
 
 		for (final GraphObject element : list) {
-			add(wrapObjectData(wrapGraphObject(element), element.getProperty(AbstractNode.name)));
+			boolean isThumbnail = false;
+
+			if(element.getProperty(AbstractNode.type).equals("Image")) {
+
+				//check if image is a thumbnail and set the boolean "isThumbnail"
+				PropertyContainer p = element.getPropertyContainer();
+
+				if(p.hasProperty("isThumbnail")) {
+
+				    isThumbnail  = (boolean) p.getProperty("isThumbnail");
+				}
+			}
+
+			//only add to the wrapper, if the object is NOT a thumbnail
+			if(!isThumbnail) {
+			    add(wrapObjectData(wrapGraphObject(element), element.getProperty(AbstractNode.name)));
+			}
 		}
 	}
 
