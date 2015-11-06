@@ -343,7 +343,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * @param relType
 	 * @return classes
 	 */
-	private List<Class<? extends RelationshipInterface>> getRelationClassCanditatesForRelType(final String relType) {
+	private List<Class<? extends RelationshipInterface>> getRelationClassCandidatesForRelType(final String relType) {
 
 		List<Class<? extends RelationshipInterface>> candidates = new ArrayList();
 
@@ -386,7 +386,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		Class sourceType = getNodeEntityClass(sourceTypeName);
 		Class targetType = getNodeEntityClass(targetTypeName);
 
-		for (final Class candidate : getRelationClassCanditatesForRelType(relType)) {
+		for (final Class candidate : getRelationClassCandidatesForRelType(relType)) {
 
 			Relation rel = instantiate(candidate);
 
