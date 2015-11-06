@@ -642,7 +642,7 @@ var _Crud = {
 					event.preventDefault();
 					_Crud.sort[type] = key;
 					_Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
-					_Crud.activateList(type);
+					_Crud.refreshList(type);
 					//_Crud.updateUrl(type);
 					return false;
 				});
