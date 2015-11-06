@@ -49,4 +49,8 @@ public class QueryRange implements Predicate {
 
 		return result;
 	}
+	
+	public void resetCount() {
+		count = 0;
+	}
 }
