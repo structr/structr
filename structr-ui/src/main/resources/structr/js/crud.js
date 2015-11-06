@@ -736,13 +736,15 @@ var _Crud = {
 			statusCode: {
 				200: function(data) {
 					
-					//var resultCount = data.result_count;
+					var resultCount = data.result_count;
 					var pageCount   = data.page_count;
+					
+					//console.log('result count', resultCount, 'page count', pageCount, 'page', page, 'pageSize', pageSize);
 
 					//var oldPage = parseInt(_Crud.getCollectionPage(type, key) || 1);
 					var page = 1;
 					
-					if (pageCount == 1) return;
+					if (!resultCount || !pageCount || pageCount === 1) return;
 
 					//el.append('<div class="collection-cell"></div>');
 					el.prepend('<div class="cell-pager"></div>');
@@ -952,7 +954,7 @@ var _Crud = {
 		$('.page', pagerNode).on('keypress', function(e) {
 			if (e.keyCode === 13) {
 				_Crud.page[type] = $(this).val();
-				_Crud.activateList(type);
+				_Crud.refreshList(type);
 			}
 		});
 
@@ -961,7 +963,7 @@ var _Crud = {
 				_Crud.pageSize[type] = $(this).val();
 				// set page no to 1
 				_Crud.page[type] = 1;
-				_Crud.activateList(type);
+				_Crud.refreshList(type);
 			}
 		});
 
