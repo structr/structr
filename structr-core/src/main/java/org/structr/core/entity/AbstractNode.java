@@ -926,8 +926,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 						final RelationshipInterface r = factory.instantiate(rel);
 						if (r instanceof PermissionPropagation) {
 
-							propagatingRelTypes.add(r.getRelType().name());
-
 							final PermissionPropagation propagation                     = (PermissionPropagation)r;
 							final long startNodeId                                      = rel.getStartNode().getId();
 							final long thisId                                           = previousNode.getId();
