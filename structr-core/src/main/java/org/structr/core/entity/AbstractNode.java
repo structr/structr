@@ -971,10 +971,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				}
 			}
 
-			AccessPathCache.put(startNode, this, mask);
-
 			if (arrived && mask.allowsPermission(permission)) {
+
+				AccessPathCache.put(startNode, this, mask);
+
 				return true;
+
+			} else {
+
+				AccessPathCache.put(startNode, this, new PermissionResolutionMask());
 			}
 		}
 
