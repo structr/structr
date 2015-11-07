@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.AccessPathCache;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -60,7 +61,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_PROPAGATING_MODIFICATION = 128;
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 
-	private final boolean auditLogEnabled        = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_CHANGELOG_ENABLED, "false"));
+	private final boolean changeLogEnabled       = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_CHANGELOG_ENABLED, "false"));
 	private final PropertyMap modifiedProperties = new PropertyMap();
 	private final PropertyMap removedProperties  = new PropertyMap();
 	private final PropertyMap newProperties      = new PropertyMap();
@@ -88,7 +89,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		// store uuid for later use
 		this.uuid = object.getUuid();
 
-		if (auditLogEnabled) {
+		if (changeLogEnabled) {
 
 			// create on demand
 			changeLog = new StringBuilder();
@@ -158,6 +159,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 		if (status != statusBefore) {
 			modified = true;
 		}
+
+		updateCache();
 	}
 
 	public void modify(final Principal user, final PropertyKey key, final Object previousValue, final Object newValue) {
@@ -188,6 +191,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 				updateChangeLog(user, Verb.change, key, previousValue, newValue);
 			}
 		}
+
+		updateCache();
 	}
 
 	public void delete(boolean passive) {
@@ -208,6 +213,19 @@ public class GraphObjectModificationState implements ModificationEvent {
 			}
 
 			modified = true;
+		}
+
+		updateCache();
+	}
+
+	private void updateCache() {
+
+		if (uuid != null) {
+			AccessPathCache.invalidateForId(uuid);
+		}
+
+		if (relType != null) {
+			AccessPathCache.invalidateForRelType(relType.name());
 		}
 	}
 
@@ -412,7 +430,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	public void updateChangeLog(final Principal user, final Verb verb, final PropertyKey key, final Object previousValue, final Object newValue) {
 
-		if (auditLogEnabled && changeLog != null && key != null) {
+		if (changeLogEnabled && changeLog != null && key != null) {
 
 			final String name = key.jsonName();
 
@@ -436,7 +454,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String object) {
 
-		if (auditLogEnabled && changeLog != null) {
+		if (changeLogEnabled && changeLog != null) {
 
 			final JsonObject obj = new JsonObject();
 
@@ -454,7 +472,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	public void updateChangeLog(final Principal user, final Verb verb, final String object) {
 
-		if (auditLogEnabled && changeLog != null) {
+		if (changeLogEnabled && changeLog != null) {
 
 			final JsonObject obj = new JsonObject();
 

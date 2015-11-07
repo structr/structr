@@ -60,6 +60,7 @@ import org.structr.cmis.info.CMISPolicyInfo;
 import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessControllable;
+import org.structr.common.AccessPathCache;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.IdSorter;
 import org.structr.common.Permission;
@@ -880,8 +881,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	/**
-
-	/**
 	 * Recursively traverses the graph, starting from the accessing user, to find
 	 * the effective permissions for this entity along the path of OWNS, SECURITY
 	 * and domain relationships with the PermissionPropagation marker interface.
@@ -892,23 +891,29 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 */
 	private boolean hasEffectivePermissions(final NodeInterface startNode, final Permission permission) {
 
-		final RelationshipFactory factory = new RelationshipFactory(SecurityContext.getSuperUserInstance());
-		final String relTypes             = getPermissionPropagationRelTypes();
-		final Map<String, Object> params  = new HashMap<>();
+		final RelationshipFactory relFactory = new RelationshipFactory(SecurityContext.getSuperUserInstance());
+		final String relTypes                = getPermissionPropagationRelTypes();
+		final Map<String, Object> params     = new HashMap<>();
 
 		params.put("id1", this.getId());
 		params.put("id2", startNode.getId());
+
+		PermissionResolutionMask mask = AccessPathCache.get(startNode, this);
+		if (mask != null) {
+
+			return mask.allowsPermission(permission);
+		}
 
 		final String query  = "MATCH n, m, p = allShortestPaths(n-[" + relTypes + "]-m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
 		final Result result = StructrApp.getInstance().getGraphDatabaseService().execute(query, params);
 
 		while (result.hasNext()) {
 
-			final PermissionResolutionMask mask = new PermissionResolutionMask();
-			final Map<String, Object> row       = result.next();
-			final Path path                     = (Path)row.get("p");
-			Node previousNode                   = null;
-			boolean arrived                     = true;
+			mask                          = new PermissionResolutionMask();
+			final Map<String, Object> row = result.next();
+			final Path path               = (Path)row.get("p");
+			Node previousNode             = null;
+			boolean arrived               = true;
 
 			for (final PropertyContainer container : path) {
 
@@ -917,14 +922,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					// store previous node to determine relationship direction
 					previousNode = (Node)container;
 
+					AccessPathCache.update(startNode, this, previousNode);
+
 				} else {
 
 					final Relationship rel = (Relationship)container;
 
+
 					try {
 
-						final RelationshipInterface r = factory.instantiate(rel);
+						final RelationshipInterface r = relFactory.instantiate(rel);
 						if (r instanceof PermissionPropagation) {
+
+							// update cache with relationship type
+							AccessPathCache.update(startNode, this, rel);
 
 							final PermissionPropagation propagation                     = (PermissionPropagation)r;
 							final long startNodeId                                      = rel.getStartNode().getId();
@@ -954,12 +965,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 							break;
 						}
 
-
 					} catch (Throwable t) {
 						t.printStackTrace();
 					}
 				}
 			}
+
+			AccessPathCache.put(startNode, this, mask);
 
 			if (arrived && mask.allowsPermission(permission)) {
 				return true;
@@ -1766,5 +1778,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		public String getId() {
 			return getPrincipalId();
 		}
+	}
+
+	// ----- public static methods -----
+	public static void invalidateCacheFor(final String uuid) {
+
+
 	}
 }

@@ -63,15 +63,15 @@ public class SecurityContext {
 	private boolean dontModifyAccessTime                 = false;
 
 	//~--- fields ---------------------------------------------------------
-	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
-	private final Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
-	private AccessMode accessMode                = AccessMode.Frontend;
-	private Authenticator authenticator          = null;
-	private Principal cachedUser                 = null;
-	private HttpServletRequest request           = null;
-	private Set<String> customView               = null;
-	private String cachedUserName                = null;
-	private String cachedUserId                  = null;
+	private final Map<String, QueryRange> ranges                                     = new ConcurrentHashMap<>();
+	private final Map<String, Object> attrs                                          = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+	private AccessMode accessMode                                                    = AccessMode.Frontend;
+	private Authenticator authenticator                                              = null;
+	private Principal cachedUser                                                     = null;
+	private HttpServletRequest request                                               = null;
+	private Set<String> customView                                                   = null;
+	private String cachedUserName                                                    = null;
+	private String cachedUserId                                                      = null;
 
 	//~--- constructors ---------------------------------------------------
 	private SecurityContext() {
