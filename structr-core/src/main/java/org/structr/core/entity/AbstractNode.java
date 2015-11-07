@@ -895,8 +895,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		final String relTypes                = getPermissionPropagationRelTypes();
 		final Map<String, Object> params     = new HashMap<>();
 
-		params.put("id1", this.getId());
-		params.put("id2", startNode.getId());
+		params.put("id1", startNode.getId());
+		params.put("id2", this.getId());
 
 		PermissionResolutionMask mask = AccessPathCache.get(startNode, this);
 		if (mask != null) {
@@ -940,7 +940,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 							final PermissionPropagation propagation                     = (PermissionPropagation)r;
 							final long startNodeId                                      = rel.getStartNode().getId();
 							final long thisId                                           = previousNode.getId();
-							final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.In : SchemaRelationshipNode.Direction.Out;
+							final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
 							final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
 
 							// check propagation direction
