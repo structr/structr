@@ -22,9 +22,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.neo4j.function.Function;
+import org.neo4j.graphdb.Relationship;
 
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.PagingIterator;
@@ -38,17 +37,10 @@ import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
 
-/**
- *
- *
- */
-
 public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
-	private static final Logger logger = Logger.getLogger(Factory.class.getName());
-
-	public static final int DEFAULT_PAGE_SIZE	= Integer.MAX_VALUE;
-	public static final int DEFAULT_PAGE		= 1;
+	public static final int DEFAULT_PAGE_SIZE = Integer.MAX_VALUE;
+	public static final int DEFAULT_PAGE      = 1;
 
 	/**
 	 * This limit is the number of objects up to which the overall count
@@ -83,12 +75,10 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 	}
 
-	public abstract T instantiate(final S obj) throws FrameworkException;
-
-	public abstract T instantiateWithType(final S obj, final Class<T> type, boolean isCreation) throws FrameworkException;
-
+	public abstract T instantiate(final S obj);
+	public abstract T instantiate(final S obj, final Relationship pathSegment);
+	public abstract T instantiateWithType(final S obj, final Class<T> type, final Relationship pathSegment, boolean isCreation) throws FrameworkException;
 	public abstract T instantiate(final S obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException;
-
 	public abstract T instantiateDummy(final S entity, final String entityType) throws FrameworkException;
 
 	/**
@@ -169,16 +159,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	@Override
 	public T adapt(S s) {
-
-		try {
-			return instantiate(s);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to adapt", fex);
-		}
-
-		return null;
+		return instantiate(s);
 	}
 
 	@Override

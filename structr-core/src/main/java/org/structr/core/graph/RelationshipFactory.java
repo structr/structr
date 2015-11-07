@@ -69,10 +69,15 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	}
 
 	@Override
-	public T instantiate(final Relationship relationship) throws FrameworkException {
+	public T instantiate(final Relationship relationship) {
+		return instantiate(relationship, null);
+	}
+
+	@Override
+	public T instantiate(final Relationship relationship, final Relationship pathSegment) {
 
 		if (TransactionCommand.isDeleted(relationship)) {
-			return (T) instantiateWithType(relationship, null, false);
+			return (T) instantiateWithType(relationship, null, null, false);
 		}
 
 		Class type = idTypeMap.get(relationship.getId());
@@ -85,11 +90,11 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			}
 		}
 
-		return (T) instantiateWithType(relationship, type, false);
+		return (T) instantiateWithType(relationship, type, null, false);
 	}
 
 	@Override
-	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final boolean isCreation) throws FrameworkException {
+	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final Relationship pathSegment, final boolean isCreation) {
 
 		// cannot instantiate relationship without type
 		if (relClass == null) {
@@ -121,8 +126,13 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			final String type = newRel.getProperty(GraphObject.type);
 			if (type == null || (type != null && !type.equals(relClass.getSimpleName()))) {
 
-				newRel.unlockReadOnlyPropertiesOnce();
-				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
+				try {
+					newRel.unlockReadOnlyPropertiesOnce();
+					newRel.setProperty(GraphObject.type, relClass.getSimpleName());
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
 			}
 		}
 
@@ -133,16 +143,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 	@Override
 	public T adapt(final Relationship relationship) {
-
-		try {
-			return instantiate(relationship);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to adapt relationship", fex);
-		}
-
-		return null;
+		return instantiate(relationship);
 	}
 
 	/**
