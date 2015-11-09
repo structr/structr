@@ -73,23 +73,7 @@ public class CMISObjectInFolderWrapper extends CMISPagingListWrapper<ObjectInFol
 	public void wrap(final List<? extends GraphObject> list) throws FrameworkException {
 
 		for (final GraphObject element : list) {
-			boolean isThumbnail = false;
-
-			if(element.getProperty(AbstractNode.type).equals("Image")) {
-
-				//check if image is a thumbnail and set the boolean "isThumbnail"
-				PropertyContainer p = element.getPropertyContainer();
-
-				if(p.hasProperty("isThumbnail")) {
-
-				    isThumbnail  = (boolean) p.getProperty("isThumbnail");
-				}
-			}
-
-			//only add to the wrapper, if the object is NOT a thumbnail
-			if(!isThumbnail) {
-			    add(wrapObjectData(wrapGraphObject(element), element.getProperty(AbstractNode.name)));
-			}
+                    add(wrapObjectData(wrapGraphObject(element), element.getProperty(AbstractNode.name)));
 		}
 	}
 

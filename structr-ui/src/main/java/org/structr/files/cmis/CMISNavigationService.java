@@ -19,6 +19,7 @@
 package org.structr.files.cmis;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,6 +50,7 @@ import org.structr.files.cmis.repository.CMISRootFolder;
 import org.structr.files.cmis.wrapper.CMISObjectInFolderWrapper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 
 /**
  *
@@ -71,8 +73,22 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 			try (final Tx tx = app.tx()) {
 
-				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
-				wrapper.wrap(app.nodeQuery(AbstractFile.class).and(Folder.parent, null).sort(AbstractNode.name).getAsList());
+				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);                             
+
+                                //query all files from the root-folder of the filesystem except images
+                                final List<AbstractFile> files = app.nodeQuery(AbstractFile.class).and(Folder.parent, null).not().and(Image.isThumbnail, false).getAsList();
+                                //query all images, but not thumbnails
+                                final List<AbstractFile> images = app.nodeQuery(AbstractFile.class).and(Folder.parent, null).and(Image.isThumbnail, false).getAsList();
+
+                                //merge the two lists to get wished list
+                                List<AbstractFile> children = new ArrayList<>();
+                                children.addAll(files);
+                                children.addAll(images);
+
+                                //comparator needed!
+                                //children.sort();
+                 
+                                wrapper.wrap(children);
 
 				tx.success();
 
