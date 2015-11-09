@@ -23,6 +23,7 @@ var zoomLevel = parseFloat(LSWrapper.getItem(localStorageSuffix + 'zoomLevel')) 
 var remotePropertyKeys = [];
 var hiddenSchemaNodes = [];
 var hiddenSchemaNodesKey = 'structrHiddenSchemaNodes_' + port;
+var selectedRel, relhHighlightColor = 'red';
 
 $(document).ready(function() {
 
@@ -190,8 +191,13 @@ var _Schema = {
 
 					_Schema.setZoom(zoomLevel, instance, [0,0], $('#schema-graph')[0]);
 
-					$('._jsPlumb_connector').click(function() {
-						$(this).nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ});
+					canvas.click(function() {
+						_Schema.deselectRel();
+					});
+
+					$('._jsPlumb_connector').click(function(e) {
+						e.stopPropagation();
+						_Schema.selectRel($(this));
 					});
 
 					_Schema.resize();
@@ -205,6 +211,25 @@ var _Schema = {
 			_Schema.resize();
 		});
 
+	},
+	selectRel: function ($rel) {
+		if (selectedRel) {
+			_Schema.deselectRel();
+		}
+		$rel.css({zIndex: ++maxZ});
+		selectedRel = $rel;
+		pathElements = selectedRel.find('path');
+		pathElements.css({stroke: relhHighlightColor});
+		$(pathElements[1]).css({fill: relhHighlightColor});
+		selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ});
+	},
+	deselectRel: function() {
+		if (selectedRel) {
+			pathElements = selectedRel.find('path');
+			pathElements.css('stroke', '');
+			$(pathElements[1]).css('fill', '');
+			selectedRel = undefined;
+		}
 	},
 	onload: function() {
 		_Schema.init();

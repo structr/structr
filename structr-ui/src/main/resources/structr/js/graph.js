@@ -36,7 +36,7 @@ var forceAtlas2Config = {
 	gravity: 1,
 	strongGravityMode: true,
 	adjustSizes: true,
-	iterationsPerRender: 1000,
+	iterationsPerRender: 10,
 	barnesHutOptimize: false,
 	slowDown: 2
 		//outboundAttractionDistribution: true
@@ -1211,7 +1211,7 @@ var _Graph = {
 				node.color = colorLuminance(node.color, -.2);
 			}
 		});
-		_Graph.scheduleRefreshEngine();
+		//_Graph.scheduleRefreshEngine();
 	},
 	unhighlightNodeType: function(type) {
 		engine.graph.nodes().forEach(function(node) {
@@ -1219,7 +1219,7 @@ var _Graph = {
 				node.color = node.oldColor;
 			}
 		});
-		_Graph.scheduleRefreshEngine();
+		//_Graph.scheduleRefreshEngine();
 	},
 	setNodeColor: function(node) {
 		if (!isIn(node.type, Object.keys(nodeColors))) {
@@ -1283,7 +1283,7 @@ var _Graph = {
 				edge.color = colorLuminance(edge.color, -.2);
 			}
 		});
-		_Graph.scheduleRefreshEngine();
+		//_Graph.scheduleRefreshEngine();
 	},
 	unhighlightRelationshipType: function(type) {
 		engine.graph.edges().forEach(function(edge) {
@@ -1291,7 +1291,7 @@ var _Graph = {
 				edge.color = edge.oldColor;
 			}
 		});
-		_Graph.scheduleRefreshEngine();
+		//_Graph.scheduleRefreshEngine();
 	},
 	hideRelType: function(type, callback) {
 		engine.graph.edges().forEach(function(edge) {

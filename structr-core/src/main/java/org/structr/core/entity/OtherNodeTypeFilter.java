@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchCommand;
 
 /**
  *
@@ -61,7 +62,10 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
 				final Class otherNodeType = otherNode.getClass();
 
-				return desiredType.isAssignableFrom(otherNodeType);
+				//final boolean desiredTypeIsAssignableFromOtherNodeType = desiredType.isAssignableFrom(otherNodeType);
+				final boolean desiredTypeIsAssignableFromOtherNodeType = SearchCommand.getAllSubtypesAsStringSet(desiredType.getSimpleName()).contains(otherNodeType.getSimpleName());
+				
+				return desiredTypeIsAssignableFromOtherNodeType;
 			}
 
 		} catch (FrameworkException fex) {
