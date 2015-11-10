@@ -905,7 +905,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					final PermissionPropagation propagation                     = (PermissionPropagation)r;
 					final long startNodeId                                      = rawPathSegment.getStartNode().getId();
 					final long thisId                                           = getId();
-					final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
+					final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.In : SchemaRelationshipNode.Direction.Out;
 					final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
 
 					// check propagation direction
