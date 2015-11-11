@@ -74,21 +74,8 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			try (final Tx tx = app.tx()) {
 
 				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);                             
-
-                                //query all files from the root-folder of the filesystem except images
-                                final List<AbstractFile> files = app.nodeQuery(AbstractFile.class).and(Folder.parent, null).not().and(Image.isThumbnail, false).getAsList();
-                                //query all images, but not thumbnails
-                                final List<AbstractFile> images = app.nodeQuery(AbstractFile.class).and(Folder.parent, null).and(Image.isThumbnail, false).getAsList();
-
-                                //merge the two lists to get wished list
-                                List<AbstractFile> children = new ArrayList<>();
-                                children.addAll(files);
-                                children.addAll(images);
-
-                                //comparator needed!
-                                //children.sort();
                  
-                                wrapper.wrap(children);
+                                wrapper.wrap(getChildrenRootFolder(app));
 
 				tx.success();
 
@@ -144,7 +131,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 			if (CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
 
-				for (final AbstractFile file : app.nodeQuery(AbstractFile.class).and(AbstractFile.parent, null).sort(AbstractNode.name).getAsList()) {
+				for (final AbstractFile file : getChildrenRootFolder(app)) {
 
 					recursivelyCollectDescendants(result, file, maxDepth, 1, includeAllowableActions);
 				}
@@ -349,4 +336,19 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			recursivelyCollectDescendants(childContainerList, folderChild, maxDepth, depth+1, includeAllowableActions);
 		}
 	}
+
+                private List<AbstractFile> getChildrenRootFolder(App app) throws FrameworkException {
+
+                //query all files from the root-folder of the filesystem except images
+                final List<AbstractFile> files = app.nodeQuery(AbstractFile.class).and(Folder.parent, null).not().and(Image.isThumbnail, false).getAsList();
+                //query all images, but not thumbnails
+                final List<AbstractFile> images = app.nodeQuery(AbstractFile.class).and(Folder.parent, null).and(Image.isThumbnail, false).getAsList();
+
+                //merge the two lists to get wished list
+                List<AbstractFile> children = new ArrayList<>();
+                children.addAll(files);
+                children.addAll(images);
+
+                return children;
+        }
 }

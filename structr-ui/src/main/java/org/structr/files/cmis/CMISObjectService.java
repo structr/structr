@@ -18,12 +18,16 @@
  */
 package org.structr.files.cmis;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -86,7 +90,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 		final App app = StructrApp.getInstance(securityContext);
 		File newFile  = null;
 		String uuid   = null;
-
+                
 		try (final Tx tx = app.tx()) {
 
 			final String objectTypeId = getStringValue(properties, PropertyIds.OBJECT_TYPE_ID);
@@ -591,12 +595,66 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 	@Override
 	public void setContentStream(String repositoryId, Holder<String> objectId, Boolean overwriteFlag, Holder<String> changeToken, ContentStream contentStream, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+            final App app = StructrApp.getInstance(securityContext);
+            
+            try (final Tx tx = app.tx()) {
+
+                final FileBase file = get(app, FileBase.class, objectId.getValue());
+                
+                if (contentStream != null) {
+
+                    final InputStream inputNewContent = contentStream.getStream();
+                    final InputStream inputOldContent = file.getInputStream();
+                    
+                    //only put new content stream into the file, if file is empty or overwriteflag is set on true
+                    if((inputOldContent.available() == 0) || (inputOldContent.available() != 0 && overwriteFlag)) {
+                    
+                        if (inputNewContent != null) {
+
+                            try (final OutputStream outputStream = file.getOutputStream(false)) {     
+                                IOUtils.copy(inputNewContent, outputStream);
+                            } 
+                        
+                            inputOldContent.close();
+                            inputNewContent.close();
+                        }
+                        
+                    } else {
+                                inputOldContent.close();
+                                inputNewContent.close();
+                                throw new CmisInvalidArgumentException("Content Stream is not empty. You have to overwrite it.");
+                            }
+                }
+                
+                tx.success();
+                
+                } catch (FrameworkException fex) {
+
+		throw new CmisConstraintException(fex.getMessage(), fex);
+            } catch (IOException ex) {
+                Logger.getLogger(CMISObjectService.class.getName()).log(Level.SEVERE, null, ex);
+            }   
 	}
 
 	@Override
 	public void deleteContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		
+            final App app = StructrApp.getInstance(securityContext);
+            
+            try (final Tx tx = app.tx()) {
+
+                final FileBase file = get(app, FileBase.class, objectId.getValue());
+                
+                try (PrintWriter writer = new PrintWriter(file.getOutputStream())) {
+                //    writer.print("");
+                    writer.close();
+                }
+                    
+            } catch (FrameworkException fex) {
+
+		throw new CmisConstraintException(fex.getMessage(), fex);
+            }
 	}
 
 	@Override
