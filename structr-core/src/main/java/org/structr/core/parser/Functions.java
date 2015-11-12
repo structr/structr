@@ -171,10 +171,12 @@ public class Functions {
 	public static final String ERROR_MESSAGE_GT                                  = "Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}";
 	public static final String ERROR_MESSAGE_LTE                                 = "Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}";
 	public static final String ERROR_MESSAGE_GTE                                 = "Usage: ${gte(value1, value2)}. Example: ${if(gte(this.children, 2), \"Equal to or more than two\", \"Less than two\")}";
-	public static final String ERROR_MESSAGE_SUBT                                = "Usage: ${subt(value1, value)}. Example: ${subt(5, 2)}";
-	public static final String ERROR_MESSAGE_MULT                                = "Usage: ${mult(value1, value)}. Example: ${mult(5, 2)}";
-	public static final String ERROR_MESSAGE_QUOT                                = "Usage: ${quot(value1, value)}. Example: ${quot(5, 2)}";
-	public static final String ERROR_MESSAGE_MODULO                              = "Usage: ${mod(value1, value)}. Example: ${mod(17, 5)}";
+	public static final String ERROR_MESSAGE_SUBT                                = "Usage: ${subt(value1, value2)}. Example: ${subt(5, 2)}";
+	public static final String ERROR_MESSAGE_MULT                                = "Usage: ${mult(value1, value2)}. Example: ${mult(5, 2)}";
+	public static final String ERROR_MESSAGE_QUOT                                = "Usage: ${quot(value1, value2)}. Example: ${quot(5, 2)}";
+	public static final String ERROR_MESSAGE_MODULO                              = "Usage: ${mod(value1, value2)}. Example: ${mod(17, 5)}";
+	public static final String ERROR_MESSAGE_FLOOR                               = "Usage: ${floor(value)}. Example: ${floor(32.4)}";
+	public static final String ERROR_MESSAGE_CEIL                                = "Usage: ${ceil(value)}. Example: ${ceil(32.4)}";
 	public static final String ERROR_MESSAGE_ROUND                               = "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
 	public static final String ERROR_MESSAGE_MAX                                 = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
 	public static final String ERROR_MESSAGE_MIN                                 = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
@@ -2217,6 +2219,72 @@ public class Functions {
 			@Override
 			public String shortDescription() {
 				return "Returns the remainder of the division";
+			}
+		});
+		functions.put("floor", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "floor()";
+			}
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					return (int)Math.floor(Double.parseDouble(sources[0].toString()));
+
+				} else {
+
+					return usage(ctx.isJavaScriptContext());
+
+				}
+
+			}
+
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_FLOOR;
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the largest integer that is less than or equal to the argument";
+			}
+		});
+		functions.put("ceil", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "ceil()";
+			}
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					return (int)Math.ceil(Double.parseDouble(sources[0].toString()));
+
+				} else {
+
+					return usage(ctx.isJavaScriptContext());
+
+				}
+
+			}
+
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_CEIL;
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the smallest integer that is greater than or equal to the argument";
 			}
 		});
 		functions.put("round", new Function<Object, Object>() {
