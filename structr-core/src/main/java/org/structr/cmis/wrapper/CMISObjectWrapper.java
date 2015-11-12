@@ -245,6 +245,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		return null;
 	}
 
+        //!
 	@Override
 	public Acl getAcl() {
 		return this;
@@ -332,6 +333,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	}
 
 	// ----- interface Acl -----
+        //!
 	@Override
 	public List<Ace> getAces() {
 		return aces;

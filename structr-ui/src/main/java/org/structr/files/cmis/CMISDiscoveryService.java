@@ -42,11 +42,13 @@ public class CMISDiscoveryService extends AbstractStructrCmisService implements 
 
 	@Override
 	public ObjectList query(String repositoryId, String statement, Boolean searchAllVersions, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
-		return new CMISObjectListWrapper(maxItems, skipCount);
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                //return new CMISObjectListWrapper(maxItems, skipCount);
 	}
 
 	@Override
 	public ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken, Boolean includeProperties, String filter, Boolean includePolicyIds, Boolean includeAcl, BigInteger maxItems, ExtensionsData extension) {
-		return new CMISObjectListWrapper(maxItems, BigInteger.ZERO);
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                //return new CMISObjectListWrapper(maxItems, BigInteger.ZERO);
 	}
 }

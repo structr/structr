@@ -105,7 +105,8 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 
 	@Override
 	public CapabilityQuery getQueryCapability() {
-		return CapabilityQuery.METADATAONLY;
+                //temporary
+		return CapabilityQuery.NONE;
 	}
 
 	@Override
@@ -115,7 +116,8 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 
 	@Override
 	public CapabilityAcl getAclCapability() {
-		return CapabilityAcl.MANAGE;
+		//temporary
+                return CapabilityAcl.NONE;
 	}
 
 	@Override

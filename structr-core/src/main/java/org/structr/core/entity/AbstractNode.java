@@ -1794,6 +1794,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return entries;
 	}
 
+        //!
 	// ----- nested classes -----
 	private static class AceEntry extends CMISExtensionsData implements Ace, org.apache.chemistry.opencmis.commons.data.Principal {
 

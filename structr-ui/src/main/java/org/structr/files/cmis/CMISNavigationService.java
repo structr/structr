@@ -19,7 +19,6 @@
 package org.structr.files.cmis;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -337,17 +336,15 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 		}
 	}
 
-                private List<AbstractFile> getChildrenRootFolder(App app) throws FrameworkException {
+        /**
+         * Gets all content of the root folder except thumbnails 
+         */
+        private List<AbstractFile> getChildrenRootFolder(App app) throws FrameworkException {
 
-                //query all files from the root-folder of the filesystem except images
-                final List<AbstractFile> files = app.nodeQuery(AbstractFile.class).and(Folder.parent, null).not().and(Image.isThumbnail, false).getAsList();
-                //query all images, but not thumbnails
-                final List<AbstractFile> images = app.nodeQuery(AbstractFile.class).and(Folder.parent, null).and(Image.isThumbnail, false).getAsList();
-
-                //merge the two lists to get wished list
-                List<AbstractFile> children = new ArrayList<>();
-                children.addAll(files);
-                children.addAll(images);
+                final List<AbstractFile> children = app.nodeQuery(AbstractFile.class).sort(AbstractFile.name)
+                        .and(AbstractFile.hasParent, false) //.and(AbstractFile.parent, null) doesn't work here
+                        .not().and(Image.isThumbnail, true)
+                        .getAsList();
 
                 return children;
         }
