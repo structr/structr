@@ -38,7 +38,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipFactory;
 
 /**
  *
@@ -57,9 +56,8 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 	@Override
 	public Iterable<T> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
-		final RelationshipFactory relFactory = new RelationshipFactory<>(securityContext);
-		final NodeFactory<T> nodeFactory     = new NodeFactory<>(securityContext);
-		final Iterable<Relationship> rels    = getRawSource(securityContext, node.getNode(), predicate);
+		final NodeFactory<T> nodeFactory  = new NodeFactory<>(securityContext);
+		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rels != null) {
 
@@ -67,14 +65,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 				@Override
 				public T apply(Relationship from) throws RuntimeException {
-
-					final Node endNode              = from.getEndNode();
-					final T value                   = nodeFactory.adapt(endNode);
-
-					// store path in node proxy (disable caching)
-					value.setRelationshipPathSegment(relFactory.adapt(from));
-
-					return value;
+					return nodeFactory.instantiate(from.getEndNode(), from);
 				}
 
 			}, sort(rels));

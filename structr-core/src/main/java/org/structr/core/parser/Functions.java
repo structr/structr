@@ -77,6 +77,7 @@ import org.mozilla.javascript.ScriptableObject;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
+import org.structr.common.AccessMode;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.MailHelper;
 import org.structr.common.Permission;
@@ -173,6 +174,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_SUBT                                = "Usage: ${subt(value1, value)}. Example: ${subt(5, 2)}";
 	public static final String ERROR_MESSAGE_MULT                                = "Usage: ${mult(value1, value)}. Example: ${mult(5, 2)}";
 	public static final String ERROR_MESSAGE_QUOT                                = "Usage: ${quot(value1, value)}. Example: ${quot(5, 2)}";
+	public static final String ERROR_MESSAGE_MODULO                              = "Usage: ${mod(value1, value)}. Example: ${mod(17, 5)}";
 	public static final String ERROR_MESSAGE_ROUND                               = "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
 	public static final String ERROR_MESSAGE_MAX                                 = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
 	public static final String ERROR_MESSAGE_MIN                                 = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
@@ -233,6 +235,11 @@ public class Functions {
 	public static final String ERROR_MESSAGE_GRANT_JS                            = "Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}";
 	public static final String ERROR_MESSAGE_REVOKE                              = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
 	public static final String ERROR_MESSAGE_REVOKE_JS                           = "Usage: ${{Structr.revoke(principal, node, permissions)}}. Example: ${{Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}}";
+
+	public static final String ERROR_MESSAGE_IS_ALLOWED                          = "Usage: ${is_allowed(principal, node, permissions)}. Example: ${is_allowed(me, this, 'write, delete'))}";
+	public static final String ERROR_MESSAGE_IS_ALLOWED_JS                       = "Usage: ${{Structr.is_allowed(principal, node, permissions)}}. Example: ${{Structr.is_allowed(Structr.('me'), Structr.this, 'write, delete'))}}";
+
+
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE     = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once, this}";
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS  = "Usage: ${{Structr.unlock_readonly_properties_once(node)}}. Example ${{Structr.unlock_readonly_properties_once, Structr.get('this')}}";
 	public static final String ERROR_MESSAGE_CALL                                = "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
@@ -2168,6 +2175,47 @@ public class Functions {
 			@Override
 			public String shortDescription() {
 				return "Divides the first argument by the second argument";
+			}
+		});
+		functions.put("mod", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "mod()";
+			}
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					try {
+
+						return ((int)Double.parseDouble(sources[0].toString())) % ((int)Double.parseDouble(sources[1].toString()));
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				} else {
+
+					return usage(ctx.isJavaScriptContext());
+
+				}
+
+			}
+
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_MODULO;
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the remainder of the division";
 			}
 		});
 		functions.put("round", new Function<Object, Object>() {
@@ -4883,6 +4931,79 @@ public class Functions {
 			@Override
 			public String shortDescription() {
 				return "Revokes the given permissions on the given entity from a user";
+			}
+		});
+		functions.put("is_allowed", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "is_allowed()";
+			}
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 3)) {
+
+					if (sources[0] instanceof Principal) {
+
+						final Principal principal = (Principal) sources[0];
+
+						if (sources[1] instanceof AbstractNode) {
+
+							final AbstractNode node = (AbstractNode) sources[1];
+
+							if (sources[2] instanceof String) {
+
+								final String[] parts = ((String) sources[2]).split("[,]+");
+								for (final String part : parts) {
+
+									final String trimmedPart = part.trim();
+									if (trimmedPart.length() > 0) {
+
+										final Permission permission = Permissions.valueOf(trimmedPart);
+										if (permission != null) {
+
+											return node.isGranted(permission, SecurityContext.getInstance(principal, AccessMode.Backend));
+
+										} else {
+
+											return "Error: unknown permission " + trimmedPart;
+										}
+									}
+								}
+
+								return "";
+
+							} else {
+
+								return "Error: third argument is not a string.";
+							}
+
+						} else {
+
+							return "Error: second argument is not a node.";
+						}
+
+					} else {
+
+						return "Error: first argument is not of type Principal.";
+					}
+
+				} else {
+
+					return usage(ctx.isJavaScriptContext());
+				}
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_GRANT_JS : ERROR_MESSAGE_GRANT);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Grants the given permissions on the given entity to a user";
 			}
 		});
 		functions.put("unlock_readonly_properties_once", new Function<Object, Object>() {

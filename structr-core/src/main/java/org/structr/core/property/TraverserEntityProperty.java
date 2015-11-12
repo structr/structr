@@ -25,7 +25,6 @@ import java.util.List;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -93,15 +92,10 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 
 		for(Node n : nodes) {
 
-			try {
-				T abstractNode = nodeFactory.instantiate(n);
-				if(abstractNode != null) {
+			T abstractNode = nodeFactory.instantiate(n);
+			if(abstractNode != null) {
 
-					nodeList.add(abstractNode);
-				}
-
-			} catch (FrameworkException fex) {
-
+				nodeList.add(abstractNode);
 			}
 		}
 

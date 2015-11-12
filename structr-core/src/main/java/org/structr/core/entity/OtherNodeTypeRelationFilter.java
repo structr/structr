@@ -21,7 +21,6 @@ package org.structr.core.entity;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 
@@ -45,16 +44,9 @@ public class OtherNodeTypeRelationFilter implements Predicate<Relation> {
 	@Override
 	public boolean accept(final Relation rel) {
 
-		try {
-			final NodeInterface otherNode = nodeFactory.instantiate(rel.getRelationship().getOtherNode(thisNode));
-			final Class otherNodeType     = otherNode.getClass();
+		final NodeInterface otherNode = nodeFactory.instantiate(rel.getRelationship().getOtherNode(thisNode));
+		final Class otherNodeType     = otherNode.getClass();
 
-			return desiredType.isAssignableFrom(otherNodeType) || otherNodeType.isAssignableFrom(desiredType);
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
-
-		return false;
+		return desiredType.isAssignableFrom(otherNodeType) || otherNodeType.isAssignableFrom(desiredType);
 	}
 }
