@@ -174,6 +174,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_SUBT                                = "Usage: ${subt(value1, value)}. Example: ${subt(5, 2)}";
 	public static final String ERROR_MESSAGE_MULT                                = "Usage: ${mult(value1, value)}. Example: ${mult(5, 2)}";
 	public static final String ERROR_MESSAGE_QUOT                                = "Usage: ${quot(value1, value)}. Example: ${quot(5, 2)}";
+	public static final String ERROR_MESSAGE_MODULO                              = "Usage: ${mod(value1, value)}. Example: ${mod(17, 5)}";
 	public static final String ERROR_MESSAGE_ROUND                               = "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
 	public static final String ERROR_MESSAGE_MAX                                 = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
 	public static final String ERROR_MESSAGE_MIN                                 = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
@@ -2175,6 +2176,47 @@ public class Functions {
 			@Override
 			public String shortDescription() {
 				return "Divides the first argument by the second argument";
+			}
+		});
+		functions.put("mod", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "mod()";
+			}
+
+			@Override
+			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					try {
+
+						return ((int)Double.parseDouble(sources[0].toString())) % ((int)Double.parseDouble(sources[1].toString()));
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				} else {
+
+					return usage(ctx.isJavaScriptContext());
+
+				}
+
+			}
+
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return ERROR_MESSAGE_MODULO;
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the remainder of the division";
 			}
 		});
 		functions.put("round", new Function<Object, Object>() {
