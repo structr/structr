@@ -294,11 +294,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String getSignature() {
-				return "";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_RENDER_JS : ERROR_MESSAGE_RENDER);
 			}
@@ -438,11 +433,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String getSignature() {
-				return "";
-			}
-
-			@Override
 			public String shortDescription() {
 				return "Includes the content of the node with the given name";
 			}
@@ -462,11 +452,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					? sources[0].toString().replaceAll("\\<.*?>", "")
 					: "";
 
-			}
-
-			@Override
-			public String getSignature() {
-				return "";
 			}
 
 			@Override
@@ -554,11 +539,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String getSignature() {
-				return "address";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_POST_JS : ERROR_MESSAGE_POST);
 			}
@@ -635,11 +615,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String getSignature() {
-				return "address";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_GET_JS : ERROR_MESSAGE_GET);
 			}
@@ -686,11 +661,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 
 				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String getSignature() {
-				return "address";
 			}
 
 			@Override
@@ -741,11 +711,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 
 				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String getSignature() {
-				return "";
 			}
 
 			@Override
@@ -841,11 +806,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String getSignature() {
-				return "";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_TO_JSON_JS : ERROR_MESSAGE_TO_JSON);
 			}
@@ -920,11 +880,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String getSignature() {
-				return "";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_FROM_JSON_JS : ERROR_MESSAGE_FROM_JSON);
 			}
@@ -956,11 +911,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 
 				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String getSignature() {
-				return "key, value";
 			}
 
 			@Override
@@ -1032,11 +982,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String getSignature() {
-				return "action, message";
-			}
-
-			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
 			}
@@ -1074,11 +1019,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 
 				return false;
-			}
-
-			@Override
-			public String getSignature() {
-				return "";
 			}
 
 			@Override

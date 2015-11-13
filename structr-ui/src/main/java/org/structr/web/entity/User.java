@@ -152,7 +152,7 @@ public class User extends AbstractUser {
 
 					// create home directory
 					final App app     = StructrApp.getInstance();
-					Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").getFirst();
+					Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").and(Folder.parent, null).getFirst();
 
 					if (homeFolder == null) {
 

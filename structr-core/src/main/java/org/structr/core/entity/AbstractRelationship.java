@@ -375,91 +375,37 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public T getTargetNode() {
-
-		try {
-
-			NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
-			return nodeFactory.instantiate(dbRelationship.getEndNode());
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
+		return nodeFactory.instantiate(dbRelationship.getEndNode());
 	}
 
 	@Override
 	public T getTargetNodeAsSuperUser() {
-
-		try {
-
-			NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
-			return nodeFactory.instantiate(dbRelationship.getEndNode());
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+		return nodeFactory.instantiate(dbRelationship.getEndNode());
 	}
 
 	@Override
 	public S getSourceNode() {
-
-		try {
-
-			NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
-			return nodeFactory.instantiate(dbRelationship.getStartNode());
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
+		return nodeFactory.instantiate(dbRelationship.getStartNode());
 	}
 
 	@Override
 	public S getSourceNodeAsSuperUser() {
-
-		try {
-
-			NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
-			return nodeFactory.instantiate(dbRelationship.getStartNode());
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+		return nodeFactory.instantiate(dbRelationship.getStartNode());
 	}
 
 	@Override
 	public NodeInterface getOtherNode(final NodeInterface node) {
-
-		try {
-
-			NodeFactory nodeFactory = new NodeFactory(securityContext);
-			return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory nodeFactory = new NodeFactory(securityContext);
+		return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 	}
 
 	public NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
-
-		try {
-
-			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+		return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 	}
 
 	@Override

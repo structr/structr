@@ -23,6 +23,7 @@ var zoomLevel = parseFloat(LSWrapper.getItem(localStorageSuffix + 'zoomLevel')) 
 var remotePropertyKeys = [];
 var hiddenSchemaNodes = [];
 var hiddenSchemaNodesKey = 'structrHiddenSchemaNodes_' + port;
+var selectedRel, relhHighlightColor = 'red';
 
 $(document).ready(function() {
 
@@ -190,8 +191,13 @@ var _Schema = {
 
 					_Schema.setZoom(zoomLevel, instance, [0,0], $('#schema-graph')[0]);
 
-					$('._jsPlumb_connector').click(function() {
-						$(this).nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ});
+					canvas.click(function() {
+						_Schema.deselectRel();
+					});
+
+					$('._jsPlumb_connector').click(function(e) {
+						e.stopPropagation();
+						_Schema.selectRel($(this));
 					});
 
 					_Schema.resize();
@@ -205,6 +211,25 @@ var _Schema = {
 			_Schema.resize();
 		});
 
+	},
+	selectRel: function ($rel) {
+		if (selectedRel) {
+			_Schema.deselectRel();
+		}
+		$rel.css({zIndex: ++maxZ});
+		selectedRel = $rel;
+		pathElements = selectedRel.find('path');
+		pathElements.css({stroke: relhHighlightColor});
+		$(pathElements[1]).css({fill: relhHighlightColor});
+		selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ});
+	},
+	deselectRel: function() {
+		if (selectedRel) {
+			pathElements = selectedRel.find('path');
+			pathElements.css('stroke', '');
+			$(pathElements[1]).css('fill', '');
+			selectedRel = undefined;
+		}
 	},
 	onload: function() {
 		_Schema.init();
@@ -2345,11 +2370,95 @@ var _Schema = {
 		var toolsTable = $('#admin-tools-table');
 		toolsTable.append('<tr><td><button id="rebuild-index"><img src="icon/arrow_refresh.png"> Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
 		toolsTable.append('<tr><td><button id="clear-schema"><img src="icon/delete.png"> Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
-		toolsTable.append('<tr><td><button id="save-layout"><img src="icon/database.png"> Save Layout</button></td><td><label for"save-layout">Save current positions to backend.</label></td></tr>');
 		toolsTable.append('<tr><td><select id="node-type-selector"><option value="">-- Select Node Type --</option></select><!--select id="rel-type-selector"><option>-- Select Relationship Type --</option></select--><button id="add-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
 
-		$('#save-layout', toolsTable).on('click', function() {
+		toolsTable.append('<tr><td><button id="save-layout"><img src="icon/database.png"> Save Schema Layout</button></td><td><label for"save-layout">Save current positions to backend.</label></td></tr>');
+		toolsTable.append('<tr><td><button id="export-layout">Export Schema Layout</button></td><td><label for"export-layout">Export current schema positions as a JSON string</label></td></tr>');
+		toolsTable.append('<tr id="schema-layout-export-row"><td></td><td><textarea id="schema-layout-export-textarea"></textarea><button class="btn" id="copy-schema-layout-export" data-clipboard-target="#schema-layout-export-textarea" data-clipboard-action="cut">Copy</button></td></tr>');
+		toolsTable.append('<tr><td><button id="import-layout">Import Schema Layout</button></td><td><label for"import-layout">Read schema positions from JSON string</label></td></tr>');
+		toolsTable.append('<tr id="schema-layout-import-row"><td></td><td><textarea id="schema-layout-import-textarea"></textarea><button class="btn" id="import-schema-layout-export">Import</button></td></tr>');
+
+		$('#save-layout', toolsTable).click(function() {
 			Structr.saveLocalStorage();
+		});
+
+		$('#schema-layout-export-row').hide();
+		$('#schema-layout-import-row').hide();
+
+		new Clipboard('#copy-schema-layout-export', {
+			target: function () {
+				window.setTimeout(function () {
+					$('#schema-layout-export-row').hide();
+				}, 1000);
+				return document.getElementById('schema-layout-export-textarea');
+			}
+		});
+
+		$('#export-layout', toolsTable).click(function() {
+			var url = rootUrl + 'schema_nodes';
+			$.ajax({
+				url: url,
+				dataType: 'json',
+				contentType: 'application/json; charset=utf-8',
+				success: function(data) {
+					var res = {};
+					data.result.forEach(function (entity, idx) {
+						var pos = _Schema.getPosition(entity.name);
+						if (pos) {
+							res[entity.name] = {position: pos};
+						}
+					});
+					console.log(res);
+					$('#schema-layout-export-textarea').val(JSON.stringify(res));
+					$('#schema-layout-export-row').show();
+				}
+			});
+
+		});
+
+		$('#import-layout', toolsTable).click(function() {
+			$('#schema-layout-import-row').show();
+		});
+
+		$('#import-schema-layout-export').click(function () {
+
+			var jsonString = $('#schema-layout-import-textarea').val();
+			var obj;
+
+			try {
+				obj = JSON.parse(jsonString);
+			} catch (e) {
+				alert ("Unreadable JSON - please make sure you are using JSON exported from this dialog!");
+			}
+
+			if (obj) {
+				Object.keys(obj).forEach(function (type) {
+					LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj[type]));
+				});
+
+				$('#schema-graph .node').each(function(i, n) {
+					var node = $(n);
+					var type = node.text();
+
+					if (obj[type]) {
+						node.css('top', obj[type].position.top);
+						node.css('left', obj[type].position.left);
+					}
+				});
+
+				Structr.saveLocalStorage();
+
+				instance.repaintEverything();
+
+				$('#schema-layout-import-textarea').val('Import successful - imported ' + Object.keys(obj).length + ' positions.');
+
+				window.setTimeout(function () {
+					$('#schema-layout-import-row').hide();
+					$('#schema-layout-import-textarea').val('');
+				}, 2000);
+
+			}
+
 		});
 
 		var nodeTypeSelector = $('#node-type-selector');

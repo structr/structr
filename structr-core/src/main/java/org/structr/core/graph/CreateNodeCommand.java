@@ -93,7 +93,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			final boolean isCreation         = true;
 
 			// Create node with type
-			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
+			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, null, isCreation);
 			if (node != null) {
 
 				// very first action: set UUID

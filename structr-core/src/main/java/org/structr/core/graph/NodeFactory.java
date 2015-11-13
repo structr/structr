@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 
 import java.util.*;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.LruMap;
 import org.structr.common.AccessControllable;
@@ -66,10 +67,15 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public T instantiate(final Node node) throws FrameworkException {
+	public T instantiate(final Node node) {
+		return instantiate(node, null);
+	}
+
+	@Override
+	public T instantiate(final Node node, final Relationship pathSegment) {
 
 		if (TransactionCommand.isDeleted(node)) {
-			return (T)instantiateWithType(node, null, false);
+			return (T)instantiateWithType(node, null, pathSegment, false);
 		}
 
 		Class type = idTypeMap.get(node.getId());
@@ -82,11 +88,11 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			}
 		}
 
-		return (T) instantiateWithType(node, type, false);
+		return (T) instantiateWithType(node, type, pathSegment, false);
 	}
 
 	@Override
-	public T instantiateWithType(final Node node, final Class<T> nodeClass, boolean isCreation) throws FrameworkException {
+	public T instantiateWithType(final Node node, final Class<T> nodeClass, final Relationship pathSegment, boolean isCreation) {
 
 		// cannot instantiate node without type
 		if (nodeClass == null) {
@@ -108,6 +114,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		}
 
 		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, isCreation);
+		newNode.setRawPathSegment(pathSegment);
 		newNode.onNodeInstantiation();
 
 		// check access

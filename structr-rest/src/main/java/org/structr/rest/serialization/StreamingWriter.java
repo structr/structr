@@ -35,6 +35,7 @@ import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.PermissionResolutionMask;
 import org.structr.common.PropertyView;
+import org.structr.common.QueryRange;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -52,7 +53,7 @@ import org.structr.core.property.PropertyMap;
 public abstract class StreamingWriter {
 
 	private static final Logger logger                   = Logger.getLogger(StreamingWriter.class.getName());
-	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
+	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(300);
 	private static final Set<PropertyKey> idNameOnly     = new LinkedHashSet<>();
 
 	static {
@@ -439,8 +440,14 @@ public abstract class StreamingWriter {
 
 						if (permissionResolutionMask == null || permissionResolutionMask.allowsProperty(key)) {
 
-							final Predicate predicate  = writer.getSecurityContext().getRange(key.jsonName());
-							final Object value         = source.getProperty(key, predicate);
+							final QueryRange range     = writer.getSecurityContext().getRange(key.jsonName());
+							
+							if (range != null) {
+								// Reset count for each key
+								range.resetCount();
+							}
+							
+							final Object value         = source.getProperty(key, range);
 							final PropertyKey localKey = key;
 
 							if (value != null) {

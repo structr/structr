@@ -1373,6 +1373,16 @@ var Structr = {
 	doDeselectAllTabs: function () {
 		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]:checked').click();
 	},
+	doSelectTabs: function (types) {
+		types.forEach(function(type) {
+			$('#resourceTabsMenu li:not(.last) a[href="#' + type + '"] input[type="checkbox"]:not(:checked)').click();
+		});
+	},
+	doDeselectTabs: function (types) {
+		types.forEach(function(type) {
+			$('#resourceTabsMenu li:not(.last) a[href="#' + type + '"] input[type="checkbox"]:checked').click();
+		});
+	},
 	getId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;
 	},

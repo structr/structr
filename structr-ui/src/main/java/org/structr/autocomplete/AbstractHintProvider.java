@@ -193,11 +193,6 @@ public abstract class AbstractHintProvider {
 			}
 
 			@Override
-			public String getSignature() {
-				return signature;
-			}
-
-			@Override
 			public String getName() {
 				return name;
 			}
