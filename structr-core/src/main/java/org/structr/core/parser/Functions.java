@@ -5119,11 +5119,11 @@ public class Functions {
 
 					if (sources.length > 1) {
 
-						Actions.call(key, Arrays.copyOfRange(sources, 1, sources.length));
+						return Actions.call(key, Arrays.copyOfRange(sources, 1, sources.length));
 
 					} else {
 
-						Actions.call(key);
+						return Actions.call(key);
 					}
 				}
 
