@@ -20,6 +20,7 @@ package org.structr.web.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -75,6 +76,7 @@ import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.util.Base64;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -163,8 +165,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Authenticator auth = config.getAuthenticator();
-		final SecurityContext securityContext;
+		final Authenticator auth        = config.getAuthenticator();
+		SecurityContext securityContext = null;
 		final App app;
 
 		try {
@@ -304,25 +306,34 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				// Still nothing found, do error handling
+				// look for pages with HTTP Basic Authentication (must be done as superuser)
 				if (rootElement == null) {
 
-					// Check if security context has set an 401 status
-					if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
+					final HttpBasicAuthResult authResult = checkHttpBasicAuth(request, response, path);
 
-						try {
+					switch (authResult.authState()) {
 
-							UiAuthenticator.writeUnauthorized(response);
+						// Page with Basic Auth found and authentication succeeded
+						case Authenticated:
+							rootElement     = authResult.getRootElement();
+							securityContext = authResult.getSecurityContext();
+							renderContext.pushSecurityContext(securityContext);
+							break;
 
-						} catch (IllegalStateException ise) {
-						}
+						// Page with Basic Auth found but not yet authenticated
+						case MustAuthenticate:
+							return;
 
-					} else {
-
-						rootElement = notFound(response, securityContext);
-
+						// no Basic Auth for given path, go on
+						case NoBasicAuth:
+							break;
 					}
 
+				}
+
+				// Still nothing found, do error handling
+				if (rootElement == null) {
+					rootElement = notFound(response, securityContext);
 				}
 
 				if (rootElement == null) {
@@ -346,9 +357,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						return;
 					}
 
-				}
-
-				if (securityContext.isVisible(rootElement)) {
+				} else {
 
 					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
 
@@ -485,11 +494,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							}
 						}
 					}
-
-				} else {
-
-					notFound(response, securityContext);
-
 				}
 
 				tx.success();
@@ -518,7 +522,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) {
 
 		final Authenticator auth = config.getAuthenticator();
-		final SecurityContext securityContext;
+		SecurityContext securityContext;
 		final App app;
 
 		try {
@@ -642,6 +646,31 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						}
 
+					}
+
+				}
+
+				// look for pages with HTTP Basic Authentication (must be done as superuser)
+				if (rootElement == null) {
+
+					final HttpBasicAuthResult authResult = checkHttpBasicAuth(request, response, path);
+
+					switch (authResult.authState()) {
+
+						// Page with Basic Auth found and authentication succeeded
+						case Authenticated:
+							rootElement     = authResult.getRootElement();
+							securityContext = authResult.getSecurityContext();
+							renderContext.pushSecurityContext(securityContext);
+							break;
+
+						// Page with Basic Auth found but not yet authenticated
+						case MustAuthenticate:
+							return;
+
+						// no Basic Auth for given path, go on
+						case NoBasicAuth:
+							break;
 					}
 
 				}
@@ -1477,6 +1506,141 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					logger.log(Level.WARNING, "Unable to find type {0} defined in key {1} used for object resolution.", new Object[] { className, possiblePropertyName } );
 				}
 			}
+		}
+	}
+
+	private HttpBasicAuthResult checkHttpBasicAuth(final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException, FrameworkException {
+
+		// Look for renderable objects using a SuperUserSecurityContext,
+		// but dont actually render the page. We're only interested in
+		// the authentication settings.
+		Page possiblePage = null;
+
+		// try the different methods..
+		if (possiblePage == null) {
+			possiblePage = StructrApp.getInstance().nodeQuery(Page.class).and(Page.path, path).and(Page.enableBasicAuth, true).sort(Page.position).getFirst();
+		}
+
+		if (possiblePage == null) {
+			possiblePage = StructrApp.getInstance().nodeQuery(Page.class).and(Page.name, PathHelper.getName(path)).and(Page.enableBasicAuth, true).sort(Page.position).getFirst();
+		}
+
+		if (possiblePage != null) {
+
+			String realm = possiblePage.getProperty(Page.basicAuthRealm);
+			if (realm == null) {
+
+				realm = possiblePage.getName();
+			}
+
+			// check Http Basic Authentication headers
+			final Principal principal = getPrincipalForAuthorizationHeader(request.getHeader("Authorization"));
+			if (principal != null) {
+
+				final SecurityContext securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);
+				if (securityContext != null) {
+
+					// find and instantiate the page again so that the SuperUserSecurityContext
+					// can not leak into any of the children of the given page. This is dangerous..
+					final Page page = StructrApp.getInstance(securityContext).get(Page.class, possiblePage.getUuid());
+					if (page != null) {
+
+						securityContext.setRequest(request);
+						securityContext.setResponse(response);
+
+						return new HttpBasicAuthResult(AuthState.Authenticated, securityContext, page);
+					}
+				}
+			}
+
+			// fallback: the following code will be executed if no Authorization
+			// header was sent, OR if the authentication failed
+			response.setHeader("WWW-Authenticate", "BASIC realm=\"" + realm + "\"");
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+
+			// no Authorization header sent by client
+			return HttpBasicAuthResult.MUST_AUTHENTICATE;
+		}
+
+		// no Http Basic Auth enabled for any page
+		return HttpBasicAuthResult.NO_BASIC_AUTH;
+	}
+
+	private Principal getPrincipalForAuthorizationHeader(final String authHeader) {
+
+		if (authHeader != null) {
+
+			final String[] authParts = authHeader.split(" ");
+			if (authParts.length == 2) {
+
+				final String authType  = authParts[0];
+				final String authValue = authParts[1];
+				String username        = null;
+				String password        = null;
+
+				if ("Basic".equals(authType)) {
+
+					final String value   = new String(Base64.decode(authValue), Charset.forName("utf-8"));
+					final String[] parts = value.split(":");
+
+					if (parts.length == 2) {
+
+						username = parts[0];
+						password = parts[1];
+					}
+				}
+
+				if (StringUtils.isNoneBlank(username, password)) {
+
+					try {
+						return AuthHelper.getPrincipalForPassword(Principal.name, username, password);
+
+					} catch (Throwable t) {
+						// ignore
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	// ----- nested classes -----
+	private enum AuthState {
+		NoBasicAuth, MustAuthenticate, Authenticated
+	}
+
+	private static class HttpBasicAuthResult {
+
+		// use singletons for the most common cases
+		public static final HttpBasicAuthResult MUST_AUTHENTICATE = new HttpBasicAuthResult(AuthState.MustAuthenticate);
+		public static final HttpBasicAuthResult NO_BASIC_AUTH     = new HttpBasicAuthResult(AuthState.NoBasicAuth);
+
+		private SecurityContext securityContext = null;
+		private DOMNode rootElement             = null;
+		private AuthState authState             = null;
+
+		public HttpBasicAuthResult(final AuthState authState) {
+			this(authState, null, null);
+		}
+
+		public HttpBasicAuthResult(final AuthState authState, final SecurityContext securityContext, final DOMNode rootElement) {
+
+			this.securityContext = securityContext;
+			this.rootElement     = rootElement;
+			this.authState       = authState;
+		}
+
+		public SecurityContext getSecurityContext() {
+			return securityContext;
+		}
+
+		public AuthState authState() {
+			return authState;
+		}
+
+		public DOMNode getRootElement() {
+			return rootElement;
 		}
 	}
 }

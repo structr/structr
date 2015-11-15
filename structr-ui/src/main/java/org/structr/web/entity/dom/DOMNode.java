@@ -57,6 +57,7 @@ import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.security.auth.x500.X500Principal;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -206,6 +207,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
 	public static final String ERROR_MESSAGE_ADD_HEADER = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
+	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER = "Usage: ${set_response_header(field, value)}. Example: ${set_response_header('X-User', 'johndoe')}";
+	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value)}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe')}}";
 	public static final String ERROR_MESSAGE_IS_LOCALE = "Usage: ${is_locale(locales...)}";
 	public static final String ERROR_MESSAGE_IS_LOCALE_JS = "Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}";
 
@@ -924,6 +927,48 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 		});
 
+		Functions.functions.put("set_response_header", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "set_response_header()";
+			}
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+
+				if (sources != null && sources.length == 2) {
+
+					final String name = sources[0].toString();
+					final String value = sources[1].toString();
+
+					final SecurityContext securityContext = ctx.getSecurityContext();
+					if (securityContext != null) {
+
+						final HttpServletResponse response = securityContext.getResponse();
+						if (response != null) {
+
+							response.addHeader(name, value);
+						}
+					}
+
+					return "";
+				}
+
+				return usage(ctx.isJavaScriptContext());
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_SET_RESPONSE_HEADER_JS : ERROR_MESSAGE_SET_RESPONSE_HEADER);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Adds the given header field and value to the response of the current rendering run";
+			}
+		});
+
 		Functions.functions.put("log_event", new Function<Object, Object>() {
 
 			@Override
@@ -1189,11 +1234,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			@Override
-			public String getSignature() {
-				return "";
-			}
-
-			@Override
 			public String shortDescription() {
 				return "Creates a signed JAR file from the given contents.";
 			}
@@ -1219,11 +1259,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			@Override
 			public String usage(boolean inJavaScriptContext) {
 				return "jar_entry()";
-			}
-
-			@Override
-			public String getSignature() {
-				return "";
 			}
 
 			@Override

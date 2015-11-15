@@ -942,18 +942,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 					applyCurrentStep(propagation, mask);
 
-					if (mask.allowsPermission(permission)) {
+					AccessPathCache.put(startNode, this, mask);
 
-						AccessPathCache.put(startNode, this, mask);
+					if (mask.allowsPermission(permission)) {
 
 						return true;
 					}
+
+				} else {
+
+					// store an empty mask to signal that we already evaluated the path
+					AccessPathCache.put(startNode, this, new PermissionResolutionMask());
 				}
 
 			} else {
 
-				final String relTypes                = getPermissionPropagationRelTypes();
-				final Map<String, Object> params     = new HashMap<>();
+				final String relTypes            = getPermissionPropagationRelTypes();
+				final Map<String, Object> params = new HashMap<>();
 
 				params.put("id1", startNode.getId());
 				params.put("id2", this.getId());
@@ -1023,12 +1028,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 						AccessPathCache.put(startNode, this, mask);
 
 						return true;
-
-					} else {
-
-						AccessPathCache.put(startNode, this, new PermissionResolutionMask());
 					}
 				}
+
+				AccessPathCache.put(startNode, this, new PermissionResolutionMask());
 			}
 
 		} catch (Throwable t) {
