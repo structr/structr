@@ -58,7 +58,7 @@ var _Schema = {
 			var type = node.text();
 			var obj = {position: node.position()};
 			obj.position.left /= zoomLevel;
-			obj.position.top = (obj.position.top - $('#schema-graph').offset().top) / zoomLevel;
+			obj.position.top = (obj.position.top - canvas.offset().top) / zoomLevel;
 			LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
 		});
 	},
@@ -212,7 +212,7 @@ var _Schema = {
 					});
 
 					canvas.on('mouseup', function (e) {
-						_Schema.selectionStop(e);
+						_Schema.selectionStop();
 					});
 
 					_Schema.resize();
@@ -241,6 +241,7 @@ var _Schema = {
 	clearSelection: function() {
 		// deselect selected node
 		$('.node', canvas).removeClass('selected');
+		_Schema.selectionStop();
 
 		// deselect selected Relationship
 		if (selectedRel) {
@@ -263,7 +264,7 @@ var _Schema = {
 			_Schema.drawSelectElem();
 		}
 	},
-	selectionStop: function (e) {
+	selectionStop: function () {
 		selectionInProgress = false;
 		if (selectBox) {
 			selectBox.remove();
@@ -272,9 +273,13 @@ var _Schema = {
 		selectedNodes = [];
 		$('.node.selected', canvas).each(function (idx, el) {
 			$el = $(el);
+			var offset = $el.offset();
 			selectedNodes.push({
 				nodeId: $el.attr('id'),
-				pos: $el.offset()
+				pos: {
+					top: (offset.top  - canvas.offset().top),
+					left: offset.left
+				}
 			});
 		});
 
@@ -287,10 +292,10 @@ var _Schema = {
 		}
 		var cssRect = {
 			position: 'absolute',
-			top: Math.min(mouseDownCoords.y, mouseUpCoords.y) - canvas.offset().top,
-			left: Math.min(mouseDownCoords.x, mouseUpCoords.x),
-			width: Math.abs(mouseDownCoords.x - mouseUpCoords.x),
-			height: Math.abs(mouseDownCoords.y - mouseUpCoords.y)
+			top: (Math.min(mouseDownCoords.y, mouseUpCoords.y) - canvas.offset().top) / zoomLevel,
+			left: Math.min(mouseDownCoords.x, mouseUpCoords.x) / zoomLevel,
+			width: Math.abs(mouseDownCoords.x - mouseUpCoords.x)  / zoomLevel,
+			height: Math.abs(mouseDownCoords.y - mouseUpCoords.y) / zoomLevel
 		};
 		selectBox.css(cssRect);
 		selectBox.find('path').attr('d', 'm 0 0 h ' + cssRect.width + ' v ' + cssRect.height + ' h ' + (-cssRect.width) + ' v ' + (-cssRect.height) + ' z');
@@ -313,10 +318,12 @@ var _Schema = {
 	},
 	isElemInSelection: function ($el, selectionRect) {
 		var elPos = $el.offset();
+		elPos.top /= zoomLevel;
+		elPos.left /= zoomLevel;
 		return !(
-			(elPos.top) > (selectionRect.top + canvas.offset().top + selectionRect.height) ||
+			(elPos.top) > (selectionRect.top + canvas.offset().top / zoomLevel + selectionRect.height) ||
 			elPos.left > (selectionRect.left + selectionRect.width) ||
-			(elPos.top + $el.innerHeight()) < (selectionRect.top + canvas.offset().top) ||
+			(elPos.top + $el.innerHeight()) < (selectionRect.top + canvas.offset().top / zoomLevel) ||
 			(elPos.left + $el.innerWidth()) < selectionRect.left
 		);
 	},
@@ -443,25 +450,37 @@ var _Schema = {
 
 					instance.draggable(id, {
 						containment: true,
-						start: function (obj) {
-							nodeDragStartpoint = $(obj.el).offset();
-						},
-						drag: function (obj) {
-							var posDelta = {
-								top: nodeDragStartpoint.top - (obj.pos[1] + canvas.offset().top),
-								left: nodeDragStartpoint.left - obj.pos[0]
+						start: function (ui) {
+							var tmp = $(ui.el).offset();
+							nodeDragStartpoint = {
+								top: (tmp.top - canvas.offset().top),
+								left: tmp.left
 							};
+						},
+						drag: function (ui) {
 
-							selectedNodes.forEach(function (selectedNode) {
-								if (selectedNode.nodeId !== $(obj.el).attr('id')) {
-									$('#' + selectedNode.nodeId).offset({
-										top:(selectedNode.pos.top - posDelta.top > canvas.offset().top ) ? selectedNode.pos.top - posDelta.top : canvas.offset().top,
-										left:(selectedNode.pos.left - posDelta.left > 0 ) ? selectedNode.pos.left - posDelta.left : 0
-									});
-								}
-							});
+							if (!$(ui.el).hasClass('selected')) {
 
-							instance.repaintEverything();
+								_Schema.clearSelection();
+
+							} else {
+								var posDelta = {
+									top: nodeDragStartpoint.top - (ui.pos[1] * zoomLevel + canvas.offset().top),
+									left: nodeDragStartpoint.left - ui.pos[0] * zoomLevel
+								};
+
+								selectedNodes.forEach(function (selectedNode) {
+									if (selectedNode.nodeId !== $(ui.el).attr('id')) {
+										$('#' + selectedNode.nodeId).offset({
+											top:(selectedNode.pos.top - posDelta.top > (canvas.offset().top) ) ? (selectedNode.pos.top - posDelta.top) : canvas.offset().top,
+											left:(selectedNode.pos.left - posDelta.left > 0 ) ? (selectedNode.pos.left - posDelta.left) : 0
+										});
+									}
+								});
+
+								instance.repaintEverything();
+
+							}
 						},
 						stop: function() {
 							_Schema.storePositions();
