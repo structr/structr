@@ -24,6 +24,12 @@ var remotePropertyKeys = [];
 var hiddenSchemaNodes = [];
 var hiddenSchemaNodesKey = 'structrHiddenSchemaNodes_' + port;
 var selectedRel, relhHighlightColor = 'red';
+var selectionInProgress = false;
+var mouseDownCoords = {x:0, y:0};
+var mouseUpCoords = {x:0, y:0};
+var selectBox, nodeDragStartpoint;
+var selectedNodes = [];
+
 
 $(document).ready(function() {
 
@@ -52,7 +58,7 @@ var _Schema = {
 			var type = node.text();
 			var obj = {position: node.position()};
 			obj.position.left /= zoomLevel;
-			obj.position.top = (obj.position.top - $('#schema-graph').offset().top) / zoomLevel;
+			obj.position.top = (obj.position.top - canvas.offset().top) / zoomLevel;
 			LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
 		});
 	},
@@ -191,13 +197,22 @@ var _Schema = {
 
 					_Schema.setZoom(zoomLevel, instance, [0,0], $('#schema-graph')[0]);
 
-					canvas.click(function() {
-						_Schema.deselectRel();
-					});
-
 					$('._jsPlumb_connector').click(function(e) {
 						e.stopPropagation();
 						_Schema.selectRel($(this));
+					});
+
+					canvas.on('mousedown', function(e) {
+						_Schema.clearSelection();
+						_Schema.selectionStart(e);
+					});
+
+					canvas.on('mousemove', function (e) {
+						_Schema.selectionDrag(e);
+					});
+
+					canvas.on('mouseup', function (e) {
+						_Schema.selectionStop();
 					});
 
 					_Schema.resize();
@@ -213,23 +228,104 @@ var _Schema = {
 
 	},
 	selectRel: function ($rel) {
-		if (selectedRel) {
-			_Schema.deselectRel();
-		}
+		_Schema.clearSelection();
+
 		$rel.css({zIndex: ++maxZ});
+		$rel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ});
+
 		selectedRel = $rel;
 		pathElements = selectedRel.find('path');
 		pathElements.css({stroke: relhHighlightColor});
 		$(pathElements[1]).css({fill: relhHighlightColor});
-		selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ});
 	},
-	deselectRel: function() {
+	clearSelection: function() {
+		// deselect selected node
+		$('.node', canvas).removeClass('selected');
+		_Schema.selectionStop();
+
+		// deselect selected Relationship
 		if (selectedRel) {
 			pathElements = selectedRel.find('path');
 			pathElements.css('stroke', '');
 			$(pathElements[1]).css('fill', '');
 			selectedRel = undefined;
 		}
+	},
+	selectionStart: function (e) {
+		canvas.addClass('noselect');
+		selectionInProgress = true;
+		mouseDownCoords.x = e.pageX;
+		mouseDownCoords.y = e.pageY;
+	},
+	selectionDrag: function (e) {
+		if (selectionInProgress === true) {
+			mouseUpCoords.x = e.pageX;
+			mouseUpCoords.y = e.pageY;
+			_Schema.drawSelectElem();
+		}
+	},
+	selectionStop: function () {
+		selectionInProgress = false;
+		if (selectBox) {
+			selectBox.remove();
+			selectBox = undefined;
+		}
+		selectedNodes = [];
+		$('.node.selected', canvas).each(function (idx, el) {
+			$el = $(el);
+			var offset = $el.offset();
+			selectedNodes.push({
+				nodeId: $el.attr('id'),
+				pos: {
+					top: (offset.top  - canvas.offset().top),
+					left: offset.left
+				}
+			});
+		});
+
+		canvas.removeClass('noselect');
+	},
+	drawSelectElem: function () {
+		if (!selectBox || !selectBox.length) {
+			canvas.append('<svg id="schema-graph-select-box"><path version="1.1" xmlns="http://www.w3.org/1999/xhtml" fill="none" stroke="#aaa" stroke-width="5"></path></svg>');
+			selectBox = $('#schema-graph-select-box');
+		}
+		var cssRect = {
+			position: 'absolute',
+			top: (Math.min(mouseDownCoords.y, mouseUpCoords.y) - canvas.offset().top) / zoomLevel,
+			left: Math.min(mouseDownCoords.x, mouseUpCoords.x) / zoomLevel,
+			width: Math.abs(mouseDownCoords.x - mouseUpCoords.x)  / zoomLevel,
+			height: Math.abs(mouseDownCoords.y - mouseUpCoords.y) / zoomLevel
+		};
+		selectBox.css(cssRect);
+		selectBox.find('path').attr('d', 'm 0 0 h ' + cssRect.width + ' v ' + cssRect.height + ' h ' + (-cssRect.width) + ' v ' + (-cssRect.height) + ' z');
+		_Schema.selectNodesInRect(cssRect);
+	},
+	selectNodesInRect: function (selectionRect) {
+		var selectedElements = [];
+
+		$('.node', canvas).each(function (idx, el) {
+			var $el = $(el);
+			if (_Schema.isElemInSelection($el, selectionRect)) {
+				selectedElements.push($el);
+				$el.addClass('selected');
+			} else {
+				$el.removeClass('selected');
+			}
+		});
+
+		// console.log(selectedElements.map(function($el) { return $el.find('b').text();}));
+	},
+	isElemInSelection: function ($el, selectionRect) {
+		var elPos = $el.offset();
+		elPos.top /= zoomLevel;
+		elPos.left /= zoomLevel;
+		return !(
+			(elPos.top) > (selectionRect.top + canvas.offset().top / zoomLevel + selectionRect.height) ||
+			elPos.left > (selectionRect.left + selectionRect.width) ||
+			(elPos.top + $el.innerHeight()) < (selectionRect.top + canvas.offset().top / zoomLevel) ||
+			(elPos.left + $el.innerWidth()) < selectionRect.left
+		);
 	},
 	onload: function() {
 		_Schema.init();
@@ -354,6 +450,38 @@ var _Schema = {
 
 					instance.draggable(id, {
 						containment: true,
+						start: function (ui) {
+							var tmp = $(ui.el).offset();
+							nodeDragStartpoint = {
+								top: (tmp.top - canvas.offset().top),
+								left: tmp.left
+							};
+						},
+						drag: function (ui) {
+
+							if (!$(ui.el).hasClass('selected')) {
+
+								_Schema.clearSelection();
+
+							} else {
+								var posDelta = {
+									top: nodeDragStartpoint.top - (ui.pos[1] * zoomLevel + canvas.offset().top),
+									left: nodeDragStartpoint.left - ui.pos[0] * zoomLevel
+								};
+
+								selectedNodes.forEach(function (selectedNode) {
+									if (selectedNode.nodeId !== $(ui.el).attr('id')) {
+										$('#' + selectedNode.nodeId).offset({
+											top:(selectedNode.pos.top - posDelta.top > (canvas.offset().top) ) ? (selectedNode.pos.top - posDelta.top) : canvas.offset().top,
+											left:(selectedNode.pos.left - posDelta.left > 0 ) ? (selectedNode.pos.left - posDelta.left) : 0
+										});
+									}
+								});
+
+								instance.repaintEverything();
+
+							}
+						},
 						stop: function() {
 							_Schema.storePositions();
 							_Schema.resize();
@@ -2408,7 +2536,6 @@ var _Schema = {
 							res[entity.name] = {position: pos};
 						}
 					});
-					console.log(res);
 					$('#schema-layout-export-textarea').val(JSON.stringify(res));
 					$('#schema-layout-export-row').show();
 				}
