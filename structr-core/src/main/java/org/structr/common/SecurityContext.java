@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +70,7 @@ public class SecurityContext {
 	private Authenticator authenticator                                              = null;
 	private Principal cachedUser                                                     = null;
 	private HttpServletRequest request                                               = null;
+	private HttpServletResponse response                                             = null;
 	private Set<String> customView                                                   = null;
 	private String cachedUserName                                                    = null;
 	private String cachedUserId                                                      = null;
@@ -295,6 +297,12 @@ public class SecurityContext {
 	public HttpServletRequest getRequest() {
 
 		return request;
+
+	}
+
+	public HttpServletResponse getResponse() {
+
+		return response;
 
 	}
 
@@ -577,6 +585,12 @@ public class SecurityContext {
 	public void setRequest(HttpServletRequest request) {
 
 		this.request = request;
+
+	}
+
+	public void setResponse(HttpServletResponse response) {
+
+		this.response = response;
 
 	}
 
