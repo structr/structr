@@ -260,8 +260,6 @@ public class Functions {
 	public static final String ERROR_MESSAGE_DISABLE_NOTIFICATIONS_JS            = "Usage: ${Structr.disableNotifications()}";
 	public static final String ERROR_MESSAGE_ENABLE_NOTIFICATIONS                = "Usage: ${enable_notifications()}";
 	public static final String ERROR_MESSAGE_ENABLE_NOTIFICATIONS_JS             = "Usage: ${Structr.enableNotifications()}";
-	public static final String ERROR_MESSAGE_ADD_RESPONSE_HEADER                 = "Usage: ${add_response_header(key, value)}. Example ${add_response_header('Set-Cookie', 'Cookie')}";
-	public static final String ERROR_MESSAGE_ADD_RESPONSE_HEADER_JS              = "Usage: ${Structr.addResponseHeader(key, value)}. Example ${Structr.addResponseHeader('Set-Cookie', 'Cookie')}";
 	
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INSTANTIATE                         = "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
@@ -5443,44 +5441,6 @@ public class Functions {
 				return "schema_property()";
 			}
 
-		});
-		functions.put("add_response_header", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "add_response_header()";
-			}
-
-			@Override
-			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-
-					if (ctx.getSecurityContext().getResponse() != null) {
-
-						ctx.getSecurityContext().getResponse().addHeader(sources[0].toString(), sources[1].toString());
-
-					}
-
-				} else {
-
-					return this.usage(ctx.isJavaScriptContext());
-
-				}
-
-				return "";
-
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_ADD_RESPONSE_HEADER_JS : ERROR_MESSAGE_ADD_RESPONSE_HEADER);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Adds a custom response header field";
-			}
 		});
 		functions.put("disable_notifications", new Function<Object, Object>() {
 
