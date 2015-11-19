@@ -1106,10 +1106,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 							final PrivateKey privateKey = getOrCreatePrivateKey(keygenAlgorithm, srngAlgorithm, signAlgorithm);
 							final X509Certificate cert  = getOrCreateCertificate(keygenAlgorithm, srngAlgorithm, signAlgorithm);
 
-
-
-
-							System.out.println(hex(cert));
+							System.out.println("This is the fingerprint of the keystore: " + hex(cert));
 
 //							if (false) {
 //
