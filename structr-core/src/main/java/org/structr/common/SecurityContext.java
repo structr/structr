@@ -299,6 +299,12 @@ public class SecurityContext {
 
 	}
 
+	public HttpServletResponse getResponse() {
+
+		return response;
+
+	}
+
 	public String getCachedUserId() {
 		return cachedUserId;
 	}
@@ -580,10 +586,6 @@ public class SecurityContext {
 
 	public void setResponse(HttpServletResponse response) {
 		this.response = response;
-	}
-
-	public HttpServletResponse getResponse() {
-		return response;
 	}
 
 	public static void setResourceFlag(final String resource, long flag) {
