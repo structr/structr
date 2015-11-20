@@ -67,7 +67,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while evaluating read function in Function property '{0}'.", jsonName());
+			logger.log(Level.WARNING, "Exception while evaluating read function in Function property {0}.", jsonName());
 
 			t.printStackTrace();
 		}

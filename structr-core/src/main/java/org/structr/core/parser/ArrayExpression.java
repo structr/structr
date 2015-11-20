@@ -88,7 +88,12 @@ public class ArrayExpression extends Expression {
 
 			if (value instanceof Collection || value.getClass().isArray()) {
 
-				return CollectionUtils.get(value, index);
+				try {
+
+					// silently ignore array index errors
+					return CollectionUtils.get(value, index);
+
+				} catch (ArrayIndexOutOfBoundsException ignore) {}
 
 			} else {
 
@@ -99,5 +104,7 @@ public class ArrayExpression extends Expression {
 
 			throw new FrameworkException(422, "Invalid expression: invalid array index: null.");
 		}
+
+		return null;
 	}
 }
