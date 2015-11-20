@@ -35,14 +35,63 @@ public class PermissionResolutionMask {
 	private final int WRITE                           = 0x00000002;
 	private final int DELETE                          = 0x00000004;
 	private final int ACCESS_CONTROL                  = 0x00000008;
-	private int value                                 = 0;
+	private int checked                               = 0;	// bitmask, encodes the permissions for which this mask was checked
+	private int value                                 = 0;  // bitmask, encodes the permissions of this mask
 
 	public PermissionResolutionMask() {}
 
 	public PermissionResolutionMask(final PermissionResolutionMask toCopy) {
 
 		removedProperties.addAll(toCopy.removedProperties);
-		this.value = toCopy.value;
+		this.value   = toCopy.value;
+		this.checked = toCopy.checked;
+	}
+
+	@Override
+	public String toString() {
+		return "mask: " + Integer.toBinaryString(value) + ", checked: " + Integer.toBinaryString(checked);
+	}
+
+	public boolean alreadyChecked(final Permission permission) {
+
+		if (Permission.read.equals(permission)) {
+			return (checked & READ) != 0;
+		}
+
+		if (Permission.write.equals(permission)) {
+			return (checked & WRITE) != 0;
+		}
+
+		if (Permission.delete.equals(permission)) {
+			return (checked & DELETE) != 0;
+		}
+
+		if (Permission.accessControl.equals(permission)) {
+			return (checked & ACCESS_CONTROL) != 0;
+		}
+
+		return false;
+	}
+
+	public boolean setChecked(final Permission permission) {
+
+		if (Permission.read.equals(permission)) {
+			checked |= READ;
+		}
+
+		if (Permission.write.equals(permission)) {
+			checked |= WRITE;
+		}
+
+		if (Permission.delete.equals(permission)) {
+			checked |= DELETE;
+		}
+
+		if (Permission.accessControl.equals(permission)) {
+			checked |= ACCESS_CONTROL;
+		}
+
+		return false;
 	}
 
 	public boolean allowsPermission(final Permission permission) {
@@ -91,6 +140,7 @@ public class PermissionResolutionMask {
 
 	public void addRead() {
 		value |= READ;
+
 	}
 
 	public void removeRead() {

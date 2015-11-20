@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -72,6 +73,7 @@ import org.structr.schema.parser.Validator;
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	private static final Logger logger                              = Logger.getLogger(SchemaRelationshipNode.class.getName());
+	private static final Set<String> propagatingRelTypes            = new TreeSet<>();
 	private static final Pattern ValidKeyPattern                    = Pattern.compile("[a-zA-Z_]+");
 
 	public static final Property<SchemaNode> sourceNode             = new StartNode<>("sourceNode", SchemaRelationshipSourceNode.class);
@@ -128,6 +130,20 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	);
 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
+
+
+	public static void registerPropagatingRelationshipType(final String type) {
+		propagatingRelTypes.add(type);
+	}
+
+	public static void clearPropagatingRelationshipTypes() {
+		propagatingRelTypes.clear();
+	}
+
+	public static Set<String> getPropagatingRelationshipTypes() {
+		return propagatingRelTypes;
+	}
+
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
@@ -478,6 +494,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 
 		src.append(" {\n\n");
+
+		if (!Direction.None.equals(getProperty(permissionPropagation))) {
+			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(\"").append(getRelationshipType()).append("\");\n\t}\n\n");
+		}
 
 		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, errorBuffer));
 		src.append(SchemaHelper.extractViews(this, viewProperties, errorBuffer));

@@ -64,16 +64,16 @@ public class SecurityContext {
 	private boolean dontModifyAccessTime                 = false;
 
 	//~--- fields ---------------------------------------------------------
-	private final Map<String, QueryRange> ranges                                     = new ConcurrentHashMap<>();
-	private final Map<String, Object> attrs                                          = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
-	private AccessMode accessMode                                                    = AccessMode.Frontend;
-	private Authenticator authenticator                                              = null;
-	private Principal cachedUser                                                     = null;
-	private HttpServletRequest request                                               = null;
-	private HttpServletResponse response                                             = null;
-	private Set<String> customView                                                   = null;
-	private String cachedUserName                                                    = null;
-	private String cachedUserId                                                      = null;
+	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
+	private final Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+	private AccessMode accessMode                = AccessMode.Frontend;
+	private Authenticator authenticator          = null;
+	private Principal cachedUser                 = null;
+	private HttpServletRequest request           = null;
+	private HttpServletResponse response         = null;
+	private Set<String> customView               = null;
+	private String cachedUserName                = null;
+	private String cachedUserId                  = null;
 
 	//~--- constructors ---------------------------------------------------
 	private SecurityContext() {
@@ -256,7 +256,6 @@ public class SecurityContext {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
 		return new SuperUserSecurityContext(request);
 	}
@@ -581,17 +580,12 @@ public class SecurityContext {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public void setRequest(HttpServletRequest request) {
-
 		this.request = request;
-
 	}
 
 	public void setResponse(HttpServletResponse response) {
-
 		this.response = response;
-
 	}
 
 	public static void setResourceFlag(final String resource, long flag) {

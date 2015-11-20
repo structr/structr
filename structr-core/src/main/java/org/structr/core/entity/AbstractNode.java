@@ -42,6 +42,7 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.PropertyContainer;
@@ -82,6 +83,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
@@ -779,16 +781,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	// ----- interface AccessControllable -----
-	private String indent(final String str, final int length) {
-
-		final StringBuilder buf = new StringBuilder("    ");
-
-		buf.append(StringUtils.leftPad("", length+1));
-		buf.append(str);
-
-		return buf.toString();
-	}
-
 	@Override
 	public boolean isGranted(final Permission permission, final SecurityContext context) {
 
@@ -880,17 +872,34 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return false;
 	}
 
-	private boolean hasEffectivePermissions(final NodeInterface startNode, final Permission permission) {
+	private boolean hasEffectivePermissions(final Principal principal, final Permission permission) {
 
-		final RelationshipFactory relFactory = new RelationshipFactory(SecurityContext.getSuperUserInstance());
-		PermissionResolutionMask mask        = AccessPathCache.get(startNode, this);
+		// don't check relationship propagation if there are no propagating relationships
+		if (SchemaRelationshipNode.getPropagatingRelationshipTypes().isEmpty()) {
+			return false;
+		}
 
-		// use cached result?
-		if (mask != null) {
+		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
+		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
+		PermissionResolutionMask mask          = AccessPathCache.get(principal, this);
+
+		// use cached result only when it was already checked for the given permission
+		if (mask != null && mask.alreadyChecked(permission)) {
 			return mask.allowsPermission(permission);
 		}
 
 		try {
+
+			if (mask == null) {
+
+				// store only a single mask for every node
+				mask = new PermissionResolutionMask();
+				AccessPathCache.put(principal, this, mask);
+			}
+
+			// store all check attempts in the cache
+			mask.setChecked(permission);
 
 			// we only need to check the last path segment if it is set
 			if (rawPathSegment != null) {
@@ -899,9 +908,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				if (r instanceof PermissionPropagation) {
 
 					// update cache with relationship type
-					AccessPathCache.update(startNode, this, rawPathSegment);
+					AccessPathCache.update(principal, this, rawPathSegment);
 
-					mask                                                        = new PermissionResolutionMask();
 					final PermissionPropagation propagation                     = (PermissionPropagation)r;
 					final long startNodeId                                      = rawPathSegment.getStartNode().getId();
 					final long thisId                                           = getId();
@@ -944,7 +952,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 					if (mask.allowsPermission(permission)) {
 
-						AccessPathCache.put(startNode, this, mask);
+						AccessPathCache.put(principal, this, mask);
 
 						return true;
 					}
@@ -952,81 +960,98 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			} else {
 
-				final String relTypes                = getPermissionPropagationRelTypes();
-				final Map<String, Object> params     = new HashMap<>();
+				final GraphDatabaseService db    = StructrApp.getInstance().getGraphDatabaseService();
+				final String relTypes            = getPermissionPropagationRelTypes();
+				final Map<String, Object> params = new HashMap<>();
+				final long principalId           = principal.getId();
 
-				params.put("id1", startNode.getId());
+				params.put("id1", principalId);
 				params.put("id2", this.getId());
 
-				final String query  = "MATCH n, m, p = allShortestPaths(n-[" + relTypes + "]-m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
-				final Result result = StructrApp.getInstance().getGraphDatabaseService().execute(query, params);
+				// FIXME: make fixed path length of 5 configurable
+				for (int i=1; i<5; i++) {
 
-				while (result.hasNext()) {
+					final String query  = "MATCH n, m, p = (n-[" + relTypes + "*.." + i + "]-m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
+					final Result result = db.execute(query, params);
 
-					mask                          = new PermissionResolutionMask();
-					final Map<String, Object> row = result.next();
-					final Path path               = (Path)row.get("p");
-					Node previousNode             = null;
-					boolean arrived               = true;
+					while (result.hasNext()) {
 
-					for (final PropertyContainer container : path) {
+						final Map<String, Object> row = result.next();
+						final Path path               = (Path)row.get("p");
+						Node previousNode             = null;
+						boolean arrived               = true;
 
-						if (container instanceof Node) {
+						for (final PropertyContainer container : path) {
 
-							// store previous node to determine relationship direction
-							previousNode = (Node)container;
+							if (container instanceof Node) {
 
-							AccessPathCache.update(startNode, this, previousNode);
+								// store previous node to determine relationship direction
+								previousNode = (Node)container;
+								AccessPathCache.update(principal, this, previousNode);
 
-						} else {
+								if (previousNode.getId() != principalId) {
 
-							final Relationship rel        = (Relationship)container;
-							final RelationshipInterface r = relFactory.instantiate(rel);
+									// don't let information get lost, cache access path steps as well
+									final NodeInterface pathNode = nodeFactory.instantiate(previousNode);
+									if (AccessPathCache.get(principal, pathNode) == null) {
 
-							if (r instanceof PermissionPropagation) {
-
-								// update cache with relationship type
-								AccessPathCache.update(startNode, this, rel);
-
-								final PermissionPropagation propagation                     = (PermissionPropagation)r;
-								final long startNodeId                                      = rel.getStartNode().getId();
-								final long thisId                                           = previousNode.getId();
-								final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
-								final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
-
-								// check propagation direction
-								if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
-
-									if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
-										arrived = false;
-										break;
-									}
-
-									if (!relDirection.equals(propagationDirection)) {
-										arrived = false;
-										break;
+										AccessPathCache.put(principal, pathNode, mask.copy());
 									}
 								}
 
-								applyCurrentStep(propagation, mask);
-
 							} else {
 
-								arrived = false;
-								break;
+								final Relationship rel        = (Relationship)container;
+								final RelationshipInterface r = relFactory.instantiate(rel);
+
+								if (r instanceof PermissionPropagation) {
+
+									// update cache with relationship type
+									AccessPathCache.update(principal, this, rel);
+
+									final PermissionPropagation propagation                     = (PermissionPropagation)r;
+									final long startNodeId                                      = rel.getStartNode().getId();
+									final long thisId                                           = previousNode.getId();
+									final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
+									final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
+
+									// check propagation direction
+									if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
+
+										if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+											arrived = false;
+											break;
+										}
+
+										if (!relDirection.equals(propagationDirection)) {
+											arrived = false;
+											break;
+										}
+									}
+
+									applyCurrentStep(propagation, mask);
+
+									// break early
+									if (!mask.allowsPermission(permission)) {
+
+										arrived = false;
+										break;
+									}
+
+								} else {
+
+									arrived = false;
+									break;
+								}
 							}
 						}
-					}
 
-					if (arrived && mask.allowsPermission(permission)) {
+						if (arrived && mask.allowsPermission(permission)) {
 
-						AccessPathCache.put(startNode, this, mask);
+							AccessPathCache.put(principal, this, mask);
 
-						return true;
-
-					} else {
-
-						AccessPathCache.put(startNode, this, new PermissionResolutionMask());
+							return true;
+						}
 					}
 				}
 			}
@@ -1618,7 +1643,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	private String getPermissionPropagationRelTypes() {
-		return "*";
+		return ":" + StringUtils.join(SchemaRelationshipNode.getPropagatingRelationshipTypes(), "|");
 	}
 
 	// ----- Cloud synchronization and replication -----

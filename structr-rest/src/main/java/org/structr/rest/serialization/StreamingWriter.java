@@ -32,15 +32,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.util.ConcurrentHashSet;
-import org.neo4j.helpers.Predicate;
 import org.structr.common.PermissionResolutionMask;
 import org.structr.common.PropertyView;
 import org.structr.common.QueryRange;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
@@ -55,11 +56,16 @@ public abstract class StreamingWriter {
 	private static final Logger logger                   = Logger.getLogger(StreamingWriter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(300);
 	private static final Set<PropertyKey> idNameOnly     = new LinkedHashSet<>();
+	private static final Set<PropertyKey> structrGraph   = new LinkedHashSet<>();
 
 	static {
 
 		idNameOnly.add(GraphObject.id);
 		idNameOnly.add(AbstractNode.name);
+
+		structrGraph.add(GraphObject.id);
+		structrGraph.add(AbstractNode.type);
+		structrGraph.add(AbstractNode.name);
 	}
 
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
@@ -436,26 +442,37 @@ public abstract class StreamingWriter {
 						keys = idNameOnly;
 					}
 
-					for (PropertyKey key : keys) {
+					for (final PropertyKey key : keys) {
 
 						if (permissionResolutionMask == null || permissionResolutionMask.allowsProperty(key)) {
 
-							final QueryRange range     = writer.getSecurityContext().getRange(key.jsonName());
-							
+							final QueryRange range = writer.getSecurityContext().getRange(key.jsonName());
 							if (range != null) {
 								// Reset count for each key
 								range.resetCount();
 							}
-							
-							final Object value         = source.getProperty(key, range);
-							final PropertyKey localKey = key;
 
+							// special handling for the _structr_graph view: replace name with
+							// the name property from the ui view, in case it was overwritten
+							PropertyKey localKey = key;
+
+							if (View.INTERNAL_GRAPH_VIEW.equals(localPropertyView)) {
+
+								if (AbstractNode.name.equals(localKey)) {
+
+									// replace key
+									localKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(source.getClass(), AbstractNode.name.jsonName(), false);
+								}
+							}
+
+
+							final Object value = source.getProperty(localKey, range);
 							if (value != null) {
 
 								if (!(reduceRedundancy && visitedObjects.contains(value.hashCode()))) {
 
-									writer.name(localKey.jsonName());
-									serializeProperty(writer, key, value, localPropertyView, depth+1);
+									writer.name(key.jsonName());
+									serializeProperty(writer, localKey, value, localPropertyView, depth+1);
 								}
 
 							} else {

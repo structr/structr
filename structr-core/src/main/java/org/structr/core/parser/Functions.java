@@ -3,18 +3,13 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.parser;
 
@@ -369,7 +364,6 @@ public class Functions {
 					break;
 
 				case ']':
-
 					if (current == null) {
 						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket before " + lastToken);
 					}
@@ -483,12 +477,12 @@ public class Functions {
 				if (entity != null) {
 
 					entityType = entity.getClass();
-					type       = entity.getType();
+					type = entity.getType();
 
 				} else {
 
 					entityType = GraphObject.class;
-					type       = "Base";
+					type = "Base";
 
 				}
 
@@ -613,12 +607,12 @@ public class Functions {
 
 					if (sources[0] instanceof Collection) {
 
-						return StringUtils.join((Collection) sources[0], sources[1].toString());
+						return StringUtils.join((Collection)sources[0], sources[1].toString());
 					}
 
 					if (sources[0].getClass().isArray()) {
 
-						return StringUtils.join((Object[]) sources[0], sources[1].toString());
+						return StringUtils.join((Object[])sources[0], sources[1].toString());
 					}
 				}
 
@@ -655,11 +649,11 @@ public class Functions {
 
 						if (source instanceof Collection) {
 
-							list.addAll((Collection) source);
+							list.addAll((Collection)source);
 
 						} else if (source.getClass().isArray()) {
 
-							list.addAll(Arrays.asList((Object[]) source));
+							list.addAll(Arrays.asList((Object[])source));
 
 						} else {
 
@@ -888,7 +882,7 @@ public class Functions {
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					if (sources[0] instanceof Number) {
-						return ((Number) sources[0]).intValue();
+						return ((Number)sources[0]).intValue();
 					}
 
 					try {
@@ -926,7 +920,7 @@ public class Functions {
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number) {
 
 					try {
-						return RandomStringUtils.randomAlphanumeric(((Number) sources[0]).intValue());
+						return RandomStringUtils.randomAlphanumeric(((Number)sources[0]).intValue());
 
 					} catch (Throwable t) {
 						// ignore
@@ -960,7 +954,7 @@ public class Functions {
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number) {
 
 					try {
-						return new Random(System.currentTimeMillis()).nextInt(((Number) sources[0]).intValue());
+						return new Random(System.currentTimeMillis()).nextInt(((Number)sources[0]).intValue());
 
 					} catch (Throwable t) {
 						// ignore
@@ -1034,12 +1028,12 @@ public class Functions {
 
 					} else if (sources[0] instanceof Collection) {
 
-						final Collection collection = (Collection) sources[0];
+						final Collection collection = (Collection)sources[0];
 						return collection.contains(sources[1]);
 
 					} else if (sources[0].getClass().isArray()) {
 
-						return ArrayUtils.contains((Object[]) sources[0], sources[1]);
+						return ArrayUtils.contains((Object[])sources[0], sources[1]);
 					}
 				}
 
@@ -1140,15 +1134,15 @@ public class Functions {
 					GraphObject node = null;
 
 					if (sources[1] instanceof GraphObject) {
-						node = (GraphObject) sources[1];
+						node = (GraphObject)sources[1];
 					}
 
 					if (sources[1] instanceof List) {
 
-						final List list = (List) sources[1];
+						final List list = (List)sources[1];
 						if (list.size() == 1 && list.get(0) instanceof GraphObject) {
 
-							node = (GraphObject) list.get(0);
+							node = (GraphObject)list.get(0);
 						}
 					}
 
@@ -1192,7 +1186,7 @@ public class Functions {
 
 						final List<String> cleanList = new LinkedList<>();
 
-						for (final Object obj : (Collection) sources[0]) {
+						for (final Object obj : (Collection)sources[0]) {
 
 							if (StringUtils.isBlank(obj.toString())) {
 
@@ -1498,7 +1492,6 @@ public class Functions {
 				return ERROR_MESSAGE_ADD;
 			}
 
-
 			@Override
 			public String shortDescription() {
 				return "Returns the sum of the given arguments";
@@ -1520,7 +1513,7 @@ public class Functions {
 
 					if (sources[0] instanceof Collection) {
 
-						for (final Number num : (Collection<Number>) sources[0]) {
+						for (final Number num : (Collection<Number>)sources[0]) {
 
 							result += num.doubleValue();
 						}
@@ -1559,7 +1552,7 @@ public class Functions {
 
 					if (sources[0] instanceof Collection) {
 
-						for (final Number num : (Collection<Number>) sources[0]) {
+						for (final Number num : (Collection<Number>)sources[0]) {
 
 							result += num.intValue();
 						}
@@ -1659,11 +1652,11 @@ public class Functions {
 
 						final List extraction = new LinkedList();
 
-						for (final Object obj : (Collection) sources[0]) {
+						for (final Object obj : (Collection)sources[0]) {
 
 							if (obj instanceof Collection) {
 
-								extraction.addAll((Collection) obj);
+								extraction.addAll((Collection)obj);
 							}
 						}
 
@@ -1676,14 +1669,14 @@ public class Functions {
 
 						final ConfigurationProvider config = StructrApp.getConfiguration();
 						final List extraction = new LinkedList();
-						final String keyName = (String) sources[1];
+						final String keyName = (String)sources[1];
 
-						for (final Object obj : (Collection) sources[0]) {
+						for (final Object obj : (Collection)sources[0]) {
 
 							if (obj instanceof GraphObject) {
 
 								final PropertyKey key = config.getPropertyKeyForJSONName(obj.getClass(), keyName);
-								final Object value = ((GraphObject) obj).getProperty(key);
+								final Object value = ((GraphObject)obj).getProperty(key);
 								if (value != null) {
 
 									extraction.add(value);
@@ -1726,7 +1719,7 @@ public class Functions {
 					if (source instanceof Collection) {
 
 						// filter null objects
-						for (Object obj : (Collection) source) {
+						for (Object obj : (Collection)source) {
 
 							if (obj != null) {
 
@@ -1769,7 +1762,7 @@ public class Functions {
 
 				if (sources[0] instanceof Collection) {
 
-					sourceSet.addAll((Collection) sources[0]);
+					sourceSet.addAll((Collection)sources[0]);
 
 					for (int cnt = 1; cnt < sources.length; cnt++) {
 
@@ -1777,7 +1770,7 @@ public class Functions {
 
 						if (source instanceof Collection) {
 
-							sourceSet.removeAll((Collection) source);
+							sourceSet.removeAll((Collection)source);
 
 						} else if (source != null) {
 
@@ -1821,12 +1814,12 @@ public class Functions {
 					if (source instanceof Collection) {
 
 						// filter null objects
-						for (Object obj : (Collection) source) {
+						for (Object obj : (Collection)source) {
 							if (obj != null) {
 
 								if (obj instanceof Collection) {
 
-									for (final Object elem : (Collection) obj) {
+									for (final Object elem : (Collection)obj) {
 
 										if (elem != null) {
 
@@ -1876,7 +1869,7 @@ public class Functions {
 
 					if (sources[0] instanceof List && sources[1] instanceof String) {
 
-						final List list = (List) sources[0];
+						final List list = (List)sources[0];
 						final String sortKey = sources[1].toString();
 						final Iterator iterator = list.iterator();
 
@@ -1891,7 +1884,7 @@ public class Functions {
 
 								if (key != null) {
 
-									List<GraphObject> sortCollection = (List<GraphObject>) list;
+									List<GraphObject> sortCollection = (List<GraphObject>)list;
 									Collections.sort(sortCollection, new GraphObjectComparator(key, descending));
 
 									return sortCollection;
@@ -2313,7 +2306,7 @@ public class Functions {
 						double f2 = Math.pow(10, (Double.parseDouble(sources[1].toString())));
 						long r = Math.round(f1 * f2);
 
-						return (double) r / f2;
+						return (double)r / f2;
 
 					} catch (Throwable t) {
 
@@ -2477,15 +2470,13 @@ public class Functions {
 
 					if (sources[0] instanceof Date) {
 
-						date = (Date) sources[0];
+						date = (Date)sources[0];
 
 					} else if (sources[0] instanceof Number) {
 
-						date = new Date(((Number) sources[0]).longValue());
+						date = new Date(((Number)sources[0]).longValue());
 
 					} else if (sources[0] instanceof ScriptableObject) {
-
-
 
 					} else {
 
@@ -2629,7 +2620,7 @@ public class Functions {
 					final String name = sources[0].toString();
 					final String locale = sources[1].toString();
 					final MailTemplate template = app.nodeQuery(MailTemplate.class).andName(name).and(MailTemplate.locale, locale).getFirst();
-					final AbstractNode templateInstance = (AbstractNode) sources[2];
+					final AbstractNode templateInstance = (AbstractNode)sources[2];
 
 					if (template != null) {
 
@@ -2811,19 +2802,19 @@ public class Functions {
 				final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					final String keyName   = sources[1].toString();
+					final String keyName = sources[1].toString();
 					GraphObject dataObject = null;
 
 					// handle GraphObject
 					if (sources[0] instanceof GraphObject) {
-						dataObject = (GraphObject) sources[0];
+						dataObject = (GraphObject)sources[0];
 					}
 
 					// handle first element of a list of graph objects
 					if (sources[0] instanceof List) {
 
-						final List list = (List) sources[0];
-						final int size  = list.size();
+						final List list = (List)sources[0];
+						final int size = list.size();
 
 						if (size == 1) {
 
@@ -2832,7 +2823,7 @@ public class Functions {
 
 								if (value instanceof GraphObject) {
 
-									dataObject = (GraphObject) list.get(0);
+									dataObject = (GraphObject)list.get(0);
 
 								} else {
 
@@ -2912,15 +2903,15 @@ public class Functions {
 					GraphObject dataObject = null;
 
 					if (sources[0] instanceof GraphObject) {
-						dataObject = (GraphObject) sources[0];
+						dataObject = (GraphObject)sources[0];
 					}
 
 					if (sources[0] instanceof List) {
 
-						final List list = (List) sources[0];
+						final List list = (List)sources[0];
 						if (list.size() == 1 && list.get(0) instanceof GraphObject) {
 
-							dataObject = (GraphObject) list.get(0);
+							dataObject = (GraphObject)list.get(0);
 						}
 					}
 
@@ -2976,7 +2967,7 @@ public class Functions {
 						if (source instanceof Collection) {
 
 							// filter null objects
-							for (Object obj : (Collection) source) {
+							for (Object obj : (Collection)source) {
 								if (obj != null && !NULL_STRING.equals(obj)) {
 
 									list.add(obj);
@@ -2985,7 +2976,7 @@ public class Functions {
 
 						} else if (source.getClass().isArray()) {
 
-							list.addAll(Arrays.asList((Object[]) source));
+							list.addAll(Arrays.asList((Object[])source));
 
 						} else if (source != null && !NULL_STRING.equals(source)) {
 
@@ -3022,13 +3013,13 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
-						return ((List) sources[0]).get(0);
+					if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
+						return ((List)sources[0]).get(0);
 					}
 
 					if (sources[0].getClass().isArray()) {
 
-						final Object[] arr = (Object[]) sources[0];
+						final Object[] arr = (Object[])sources[0];
 						if (arr.length > 0) {
 
 							return arr[0];
@@ -3062,15 +3053,15 @@ public class Functions {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+					if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 
-						final List list = (List) sources[0];
+						final List list = (List)sources[0];
 						return list.get(list.size() - 1);
 					}
 
 					if (sources[0].getClass().isArray()) {
 
-						final Object[] arr = (Object[]) sources[0];
+						final Object[] arr = (Object[])sources[0];
 						if (arr.length > 0) {
 
 							return arr[arr.length - 1];
@@ -3107,9 +3098,9 @@ public class Functions {
 
 					final int pos = Double.valueOf(sources[1].toString()).intValue();
 
-					if (sources[0] instanceof List && !((List) sources[0]).isEmpty()) {
+					if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 
-						final List list = (List) sources[0];
+						final List list = (List)sources[0];
 						final int size = list.size();
 
 						if (pos >= size) {
@@ -3123,7 +3114,7 @@ public class Functions {
 
 					if (sources[0].getClass().isArray()) {
 
-						final Object[] arr = (Object[]) sources[0];
+						final Object[] arr = (Object[])sources[0];
 						if (pos <= arr.length) {
 
 							return arr[pos];
@@ -3257,8 +3248,8 @@ public class Functions {
 
 					final ConfigurationProvider config = StructrApp.getConfiguration();
 					final Set<PropertyKey> mergeKeys = new LinkedHashSet<>();
-					final GraphObject source = (GraphObject) sources[0];
-					final GraphObject target = (GraphObject) sources[1];
+					final GraphObject source = (GraphObject)sources[0];
+					final GraphObject target = (GraphObject)sources[1];
 					final int paramCount = sources.length;
 
 					for (int i = 2; i < paramCount; i++) {
@@ -3307,7 +3298,7 @@ public class Functions {
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject) {
 
 					final Set<String> keys = new LinkedHashSet<>();
-					final GraphObject source = (GraphObject) sources[0];
+					final GraphObject source = (GraphObject)sources[0];
 
 					for (final PropertyKey key : source.getPropertyKeys(sources[1].toString())) {
 						keys.add(key.jsonName());
@@ -3317,11 +3308,11 @@ public class Functions {
 
 				} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof GraphObjectMap) {
 
-					return new LinkedList<>(((GraphObjectMap) sources[0]).keySet());
+					return new LinkedList<>(((GraphObjectMap)sources[0]).keySet());
 
 				} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Map) {
 
-					return new LinkedList<>(((Map) sources[0]).keySet());
+					return new LinkedList<>(((Map)sources[0]).keySet());
 
 				}
 
@@ -3637,7 +3628,7 @@ public class Functions {
 						final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 						if (builder != null) {
 
-							final String xml = (String) sources[0];
+							final String xml = (String)sources[0];
 							final StringReader reader = new StringReader(xml);
 							final InputSource src = new InputSource(reader);
 
@@ -3713,7 +3704,7 @@ public class Functions {
 
 					if (sources[0] instanceof GraphObject) {
 
-						final GraphObject source = (GraphObject) sources[0];
+						final GraphObject source = (GraphObject)sources[0];
 						final Map<String, Object> properties = new LinkedHashMap<>();
 						final SecurityContext securityContext = source.getSecurityContext();
 						final Gson gson = new GsonBuilder().create();
@@ -3934,7 +3925,7 @@ public class Functions {
 					// extension for native javascript objects
 					if (sources.length == 2 && sources[1] instanceof Map) {
 
-						query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map) sources[1]));
+						query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
 
 					} else {
 
@@ -4016,7 +4007,7 @@ public class Functions {
 					// extension for native javascript objects
 					if (sources.length == 2 && sources[1] instanceof Map) {
 
-						final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, (Map) sources[1]);
+						final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
 						for (final Entry<PropertyKey, Object> entry : map.entrySet()) {
 
 							query.and(entry.getKey(), entry.getValue(), false);
@@ -4108,7 +4099,7 @@ public class Functions {
 					// extension for native javascript objects
 					if (sources.length == 2 && sources[1] instanceof Map) {
 
-						propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map) sources[1]);
+						propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
 
 					} else {
 
@@ -4176,13 +4167,13 @@ public class Functions {
 
 						if (obj instanceof NodeInterface) {
 
-							app.delete((NodeInterface) obj);
+							app.delete((NodeInterface)obj);
 							continue;
 						}
 
 						if (obj instanceof RelationshipInterface) {
 
-							app.delete((RelationshipInterface) obj);
+							app.delete((RelationshipInterface)obj);
 							continue;
 						}
 					}
@@ -4219,13 +4210,13 @@ public class Functions {
 
 					if (source instanceof NodeInterface) {
 
-						final NodeInterface node = (NodeInterface) source;
+						final NodeInterface node = (NodeInterface)source;
 						if (sources.length > 1) {
 
 							final Object relType = sources[1];
 							if (relType != null && relType instanceof String) {
 
-								final String relTypeName = (String) relType;
+								final String relTypeName = (String)relType;
 								return factory.instantiate(node.getNode().getRelationships(Direction.INCOMING, DynamicRelationshipType.withName(relTypeName)));
 							}
 
@@ -4298,13 +4289,13 @@ public class Functions {
 
 					if (source instanceof NodeInterface) {
 
-						final NodeInterface node = (NodeInterface) source;
+						final NodeInterface node = (NodeInterface)source;
 						if (sources.length > 1) {
 
 							final Object relType = sources[1];
 							if (relType != null && relType instanceof String) {
 
-								final String relTypeName = (String) relType;
+								final String relTypeName = (String)relType;
 								return factory.instantiate(node.getNode().getRelationships(Direction.OUTGOING, DynamicRelationshipType.withName(relTypeName)));
 							}
 
@@ -4353,8 +4344,8 @@ public class Functions {
 
 					if (source instanceof AbstractNode && target instanceof AbstractNode) {
 
-						sourceNode = (AbstractNode) source;
-						targetNode = (AbstractNode) target;
+						sourceNode = (AbstractNode)source;
+						targetNode = (AbstractNode)target;
 
 					} else {
 
@@ -4378,7 +4369,7 @@ public class Functions {
 					} else if (sources.length == 3) {
 
 						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
-						final String relType = (String) sources[2];
+						final String relType = (String)sources[2];
 
 						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
@@ -4431,8 +4422,8 @@ public class Functions {
 
 					if (source instanceof AbstractNode && target instanceof AbstractNode) {
 
-						sourceNode = (AbstractNode) source;
-						targetNode = (AbstractNode) target;
+						sourceNode = (AbstractNode)source;
+						targetNode = (AbstractNode)target;
 
 					} else {
 
@@ -4456,7 +4447,7 @@ public class Functions {
 					} else if (sources.length == 3) {
 
 						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
-						final String relType = (String) sources[2];
+						final String relType = (String)sources[2];
 
 						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
@@ -4509,8 +4500,8 @@ public class Functions {
 
 					if (source instanceof AbstractNode && target instanceof AbstractNode) {
 
-						sourceNode = (AbstractNode) source;
-						targetNode = (AbstractNode) target;
+						sourceNode = (AbstractNode)source;
+						targetNode = (AbstractNode)target;
 
 					} else {
 
@@ -4534,7 +4525,7 @@ public class Functions {
 					} else if (sources.length == 3) {
 
 						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
-						final String relType = (String) sources[2];
+						final String relType = (String)sources[2];
 
 						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
@@ -4589,8 +4580,8 @@ public class Functions {
 
 					if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
-						sourceNode = (NodeInterface) source;
-						targetNode = (NodeInterface) target;
+						sourceNode = (NodeInterface)source;
+						targetNode = (NodeInterface)target;
 
 					} else {
 
@@ -4614,7 +4605,7 @@ public class Functions {
 					} else if (sources.length == 3) {
 
 						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
-						final String relType = (String) sources[2];
+						final String relType = (String)sources[2];
 
 						for (final AbstractRelationship rel : sourceNode.getRelationships()) {
 
@@ -4668,8 +4659,8 @@ public class Functions {
 
 					if (source instanceof AbstractNode && target instanceof AbstractNode) {
 
-						sourceNode = (AbstractNode) source;
-						targetNode = (AbstractNode) target;
+						sourceNode = (AbstractNode)source;
+						targetNode = (AbstractNode)target;
 
 					} else {
 
@@ -4693,7 +4684,7 @@ public class Functions {
 					} else if (sources.length == 3) {
 
 						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
-						final String relType = (String) sources[2];
+						final String relType = (String)sources[2];
 
 						for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
@@ -4747,8 +4738,8 @@ public class Functions {
 
 					if (source instanceof AbstractNode && target instanceof AbstractNode) {
 
-						sourceNode = (AbstractNode) source;
-						targetNode = (AbstractNode) target;
+						sourceNode = (AbstractNode)source;
+						targetNode = (AbstractNode)target;
 
 					} else {
 
@@ -4772,7 +4763,7 @@ public class Functions {
 					} else if (sources.length == 3) {
 
 						// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
-						final String relType = (String) sources[2];
+						final String relType = (String)sources[2];
 
 						for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
 
@@ -4818,15 +4809,15 @@ public class Functions {
 
 					final Object source = sources[0];
 					final Object target = sources[1];
-					final String relType = (String) sources[2];
+					final String relType = (String)sources[2];
 
 					AbstractNode sourceNode = null;
 					AbstractNode targetNode = null;
 
 					if (source instanceof AbstractNode && target instanceof AbstractNode) {
 
-						sourceNode = (AbstractNode) source;
-						targetNode = (AbstractNode) target;
+						sourceNode = (AbstractNode)source;
+						targetNode = (AbstractNode)target;
 
 					} else {
 
@@ -4874,15 +4865,15 @@ public class Functions {
 
 					if (sources[0] instanceof Principal) {
 
-						final Principal principal = (Principal) sources[0];
+						final Principal principal = (Principal)sources[0];
 
 						if (sources[1] instanceof AbstractNode) {
 
-							final AbstractNode node = (AbstractNode) sources[1];
+							final AbstractNode node = (AbstractNode)sources[1];
 
 							if (sources[2] instanceof String) {
 
-								final String[] parts = ((String) sources[2]).split("[,]+");
+								final String[] parts = ((String)sources[2]).split("[,]+");
 								for (final String part : parts) {
 
 									final String trimmedPart = part.trim();
@@ -4947,15 +4938,15 @@ public class Functions {
 
 					if (sources[0] instanceof Principal) {
 
-						final Principal principal = (Principal) sources[0];
+						final Principal principal = (Principal)sources[0];
 
 						if (sources[1] instanceof AbstractNode) {
 
-							final AbstractNode node = (AbstractNode) sources[1];
+							final AbstractNode node = (AbstractNode)sources[1];
 
 							if (sources[2] instanceof String) {
 
-								final String[] parts = ((String) sources[2]).split("[,]+");
+								final String[] parts = ((String)sources[2]).split("[,]+");
 								for (final String part : parts) {
 
 									final String trimmedPart = part.trim();
@@ -5093,7 +5084,7 @@ public class Functions {
 
 					if (sources[0] instanceof AbstractNode) {
 
-						((AbstractNode) sources[0]).unlockReadOnlyPropertiesOnce();
+						((AbstractNode)sources[0]).unlockReadOnlyPropertiesOnce();
 
 					} else {
 
@@ -5274,7 +5265,7 @@ public class Functions {
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					final Map<String, Object> params = new LinkedHashMap<>();
-					final String query               = sources[0].toString();
+					final String query = sources[0].toString();
 
 					// parameters?
 					if (sources.length > 1 && sources[1] != null && sources[1] instanceof Map) {
@@ -5308,7 +5299,7 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				if ( arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2) ) {
+				if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
 					final SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
 					Query query = StructrApp.getInstance(superUserSecurityContext).nodeQuery(Localization.class).and(Localization.locale, ctx.getLocale().toString()).and(Localization.name, sources[0].toString());
@@ -5394,7 +5385,7 @@ public class Functions {
 
 					final ConfigurationProvider config = StructrApp.getConfiguration();
 					final String typeName = sources[0].toString();
-					final String keyName  = sources[1].toString();
+					final String keyName = sources[1].toString();
 
 					Class type = config.getNodeEntityClass(typeName);
 					if (type == null) {
@@ -5454,7 +5445,7 @@ public class Functions {
 
 				ctx.getSecurityContext().setDoTransactionNotifications(false);
 
-				return  "";
+				return "";
 			}
 
 			@Override
@@ -5479,7 +5470,7 @@ public class Functions {
 
 				ctx.getSecurityContext().setDoTransactionNotifications(true);
 
-				return  "";
+				return "";
 			}
 
 			@Override
@@ -5495,8 +5486,7 @@ public class Functions {
 	}
 
 	/**
-	 * Test if the given object array has a minimum length and all its
-	 * elements are not null.
+	 * Test if the given object array has a minimum length and all its elements are not null.
 	 *
 	 * @param array
 	 * @param minLength If null, don't do length check
@@ -5521,8 +5511,7 @@ public class Functions {
 	}
 
 	/**
-	 * Test if the given object array has a minimum length and all its
-	 * elements are not null.
+	 * Test if the given object array has a minimum length and all its elements are not null.
 	 *
 	 * @param array
 	 * @param minLength
@@ -5548,8 +5537,7 @@ public class Functions {
 	}
 
 	/**
-	 * Test if the given object array has exact the given length and all its
-	 * elements are not null.
+	 * Test if the given object array has exact the given length and all its elements are not null.
 	 *
 	 * @param array
 	 * @param length
@@ -5587,17 +5575,17 @@ public class Functions {
 
 		if (source instanceof Integer) {
 
-			return ((Integer) source);
+			return ((Integer)source);
 		}
 
 		if (source instanceof Number) {
 
-			return ((Number) source).intValue();
+			return ((Number)source).intValue();
 		}
 
 		if (source instanceof String) {
 
-			return Integer.parseInt((String) source);
+			return Integer.parseInt((String)source);
 		}
 
 		return null;
@@ -5621,7 +5609,7 @@ public class Functions {
 
 		if (obj instanceof Number) {
 
-			return ((Number) obj).doubleValue();
+			return ((Number)obj).doubleValue();
 
 		} else {
 
@@ -5643,11 +5631,11 @@ public class Functions {
 
 			if (obj instanceof Date) {
 
-				return (double) ((Date) obj).getTime();
+				return (double)((Date)obj).getTime();
 
 			} else if (obj instanceof Number) {
 
-				return ((Number) obj).doubleValue();
+				return ((Number)obj).doubleValue();
 
 			} else {
 
@@ -5655,7 +5643,7 @@ public class Functions {
 
 				if (date != null) {
 
-					return (double) (date).getTime();
+					return (double)(date).getTime();
 				}
 
 				return Double.parseDouble(obj.toString());
@@ -5768,7 +5756,7 @@ public class Functions {
 
 			if (value instanceof Map) {
 
-				final Map<String, Object> map = (Map<String, Object>) value;
+				final Map<String, Object> map = (Map<String, Object>)value;
 				final GraphObjectMap obj = new GraphObjectMap();
 
 				destination.put(new StringProperty(key), obj);
@@ -5778,7 +5766,7 @@ public class Functions {
 			} else if (value instanceof Collection) {
 
 				final List list = new LinkedList();
-				final Collection collection = (Collection) value;
+				final Collection collection = (Collection)value;
 
 				for (final Object obj : collection) {
 
@@ -5787,7 +5775,7 @@ public class Functions {
 						final GraphObjectMap container = new GraphObjectMap();
 						list.add(container);
 
-						recursivelyConvertMapToGraphObjectMap(container, (Map<String, Object>) obj, depth + 1);
+						recursivelyConvertMapToGraphObjectMap(container, (Map<String, Object>)obj, depth + 1);
 
 					} else {
 
@@ -5826,8 +5814,8 @@ public class Functions {
 
 	private static int compareBooleanBoolean(final Object o1, final Object o2) {
 
-		final Boolean value1 = (Boolean) o1;
-		final Boolean value2 = (Boolean) o2;
+		final Boolean value1 = (Boolean)o1;
+		final Boolean value2 = (Boolean)o2;
 
 		return value1.compareTo(value2);
 	}
@@ -5842,32 +5830,32 @@ public class Functions {
 
 	private static int compareStringString(final Object o1, final Object o2) {
 
-		final String value1 = (String) o1;
-		final String value2 = (String) o2;
+		final String value1 = (String)o1;
+		final String value2 = (String)o2;
 
 		return value1.compareTo(value2);
 	}
 
 	private static int compareDateDate(final Object o1, final Object o2) {
 
-		final Date value1 = (Date) o1;
-		final Date value2 = (Date) o2;
+		final Date value1 = (Date)o1;
+		final Date value2 = (Date)o2;
 
 		return value1.compareTo(value2);
 	}
 
 	private static int compareDateString(final Object o1, final Object o2) {
 
-		final String value1 = DatePropertyParser.format((Date) o1, DateProperty.DEFAULT_FORMAT);
-		final String value2 = (String) o2;
+		final String value1 = DatePropertyParser.format((Date)o1, DateProperty.DEFAULT_FORMAT);
+		final String value2 = (String)o2;
 
 		return value1.compareTo(value2);
 	}
 
 	private static int compareStringDate(final Object o1, final Object o2) {
 
-		final String value1 = (String) o1;
-		final String value2 = DatePropertyParser.format((Date) o2, DateProperty.DEFAULT_FORMAT);
+		final String value1 = (String)o1;
+		final String value2 = DatePropertyParser.format((Date)o2, DateProperty.DEFAULT_FORMAT);
 
 		return value1.compareTo(value2);
 	}

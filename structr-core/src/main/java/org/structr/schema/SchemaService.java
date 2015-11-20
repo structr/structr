@@ -129,6 +129,9 @@ public class SchemaService implements Service {
 					// this is a very critical section :)
 					synchronized (SchemaService.class) {
 
+						// clear propagating relationship cache (test)
+						SchemaRelationshipNode.clearPropagatingRelationshipTypes();
+
 						// compile all classes at once and register
 						Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
 
