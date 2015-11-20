@@ -1147,7 +1147,7 @@ var _Graph = {
 		});
 
 	},
-	filterNodeTypes: function(types, callback) {console.log('filter node types')
+	filterNodeTypes: function(types, callback) {
 		types.forEach(function(type) {
 			engine.graph.nodes().forEach(function(node) {
 				if (node.type === type) {
