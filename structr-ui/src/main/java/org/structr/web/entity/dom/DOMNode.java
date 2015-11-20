@@ -831,49 +831,52 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				if (sources != null && sources.length > 0) {
 
-					try {
+					if (sources[0] != null) {
 
-						final String source = sources[0].toString();
-						final Gson gson = new GsonBuilder().create();
-						List<Map<String, Object>> objects = new LinkedList<>();
+						try {
 
-						if (StringUtils.startsWith(source, "[")) {
+							final String source = sources[0].toString();
+							final Gson gson = new GsonBuilder().create();
+							List<Map<String, Object>> objects = new LinkedList<>();
 
-							final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {
-							}.getType());
-							final List<GraphObjectMap> elements = new LinkedList<>();
+							if (StringUtils.startsWith(source, "[")) {
 
-							if (list != null) {
+								final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {
+								}.getType());
+								final List<GraphObjectMap> elements = new LinkedList<>();
 
-								objects.addAll(list);
-							}
+								if (list != null) {
 
-							for (final Map<String, Object> src : objects) {
+									objects.addAll(list);
+								}
 
+								for (final Map<String, Object> src : objects) {
+
+									final GraphObjectMap destination = new GraphObjectMap();
+									elements.add(destination);
+
+									Functions.recursivelyConvertMapToGraphObjectMap(destination, src, 0);
+								}
+
+								return elements;
+
+							} else if (StringUtils.startsWith(source, "{")) {
+
+								final Map<String, Object> value = gson.fromJson(source, new TypeToken<Map<String, Object>>() {
+								}.getType());
 								final GraphObjectMap destination = new GraphObjectMap();
-								elements.add(destination);
 
-								Functions.recursivelyConvertMapToGraphObjectMap(destination, src, 0);
+								if (value != null) {
+
+									Functions.recursivelyConvertMapToGraphObjectMap(destination, value, 0);
+								}
+
+								return destination;
 							}
 
-							return elements;
-
-						} else if (StringUtils.startsWith(source, "{")) {
-
-							final Map<String, Object> value = gson.fromJson(source, new TypeToken<Map<String, Object>>() {
-							}.getType());
-							final GraphObjectMap destination = new GraphObjectMap();
-
-							if (value != null) {
-
-								Functions.recursivelyConvertMapToGraphObjectMap(destination, value, 0);
-							}
-
-							return destination;
+						} catch (Throwable t) {
+							t.printStackTrace();
 						}
-
-					} catch (Throwable t) {
-						t.printStackTrace();
 					}
 
 					return "";
