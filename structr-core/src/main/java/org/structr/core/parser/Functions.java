@@ -3927,6 +3927,30 @@ public class Functions {
 
 						query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
 
+					} else if (sources.length == 2) {
+
+						// special case: second parameter is a UUID
+						final PropertyKey key = config.getPropertyKeyForJSONName(type, "id");
+
+						query.and(key, sources[1].toString());
+						
+						final int resultCount = query.getResult().size();
+
+						if (resultCount == 1) {
+
+							return query.getFirst();
+
+						} else if (resultCount == 0) {
+
+							throw new FrameworkException(400, "No Object found for id!");
+
+						} else {
+
+							throw new FrameworkException(400, "Multiple Objects found for id!");
+
+						}
+
+
 					} else {
 
 						final Integer parameter_count = sources.length;
