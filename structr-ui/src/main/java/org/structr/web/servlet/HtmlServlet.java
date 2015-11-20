@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -100,14 +101,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
-	public static final String RESET_PASSWORD_PAGE = "/reset-password";
+	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
 	public static final String POSSIBLE_ENTRY_POINTS_KEY = "possibleEntryPoints";
-	public static final String DOWNLOAD_AS_FILENAME_KEY = "filename";
-	public static final String DOWNLOAD_AS_DATA_URL_KEY = "as-data-url";
-	public static final String CONFIRM_KEY_KEY = "key";
-	public static final String TARGET_PAGE_KEY = "target";
-	public static final String ERROR_PAGE_KEY = "onerror";
-
+	public static final String DOWNLOAD_AS_FILENAME_KEY  = "filename";
+	public static final String RANGE_KEY                 = "range";
+	public static final String DOWNLOAD_AS_DATA_URL_KEY  = "as-data-url";
+	public static final String CONFIRM_KEY_KEY           = "key";
+	public static final String TARGET_PAGE_KEY           = "target";
+	public static final String ERROR_PAGE_KEY            = "onerror";
+	
 	public static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
 	public static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
 
@@ -1379,11 +1381,47 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					response.setContentType("application/octet-stream");
 				}
 
-				response.setStatus(HttpServletResponse.SC_OK);
+				final String range = request.getHeader("Range");
 
 				try {
+				
+					if (StringUtils.isNotEmpty(range)) {
+						
+						final long len = file.getSize();
+						long start     = 0;
+						long end       = len - 1;
 
-					IOUtils.copy(in, out);
+						final Matcher matcher = Pattern.compile("bytes=(?<start>\\d*)-(?<end>\\d*)").matcher(range);
+
+						if (matcher.matches()) {
+							String startGroup = matcher.group("start");
+							start = startGroup.isEmpty() ? start : Long.valueOf(startGroup);
+							start = Math.max(0, start);
+
+							String endGroup = matcher.group("end");
+							end = endGroup.isEmpty() ? end : Long.valueOf(endGroup);
+							end = end > len - 1 ? len - 1 : end;
+						}
+
+						long contentLength = end - start + 1;
+
+						// Tell the client that we support byte ranges
+						response.setHeader("Accept-Ranges", "bytes");
+						response.setHeader("Content-Range", String.format("bytes %s-%s/%s", start, end, len));
+						response.setHeader("Content-Length", String.format("%s", contentLength));
+
+						response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+
+						IOUtils.copyLarge(in, out, start, contentLength);
+
+					} else {
+
+						response.setStatus(HttpServletResponse.SC_OK);
+						
+						IOUtils.copyLarge(in, out);
+
+					}
+					
 
 				} catch (Throwable t) {
 
