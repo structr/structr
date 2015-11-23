@@ -281,8 +281,9 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 
 		dynamicPropertyMap = info.getDynamicProperties();
 
-		//allowableActions gets defined now in specific wrappers
-		//allowableActions   = info.getAllowableActions();
+		if(includeActions) {
+			allowableActions = info.getAllowableActions();
+		}
 
 		if(includeAcl) {
 			aces = info.getAccessControlEntries();

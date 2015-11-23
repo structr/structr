@@ -62,7 +62,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.cmis.config.StructrFileActions;
+import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.files.text.FulltextIndexingTask;
 import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;
@@ -686,9 +686,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 	@Override
 	public AllowableActions getAllowableActions() {
-		//thinks always is superadmin at cmis workbench? fix?
-		//stub
-		return new StructrFileActions(isImmutable(), getAccessControlEntries(), null);
+		return new StructrFileActions(isImmutable(), getAccessControlEntries(), getSecurityContext().getUser(false).getName());
 	}
 
 	@Override

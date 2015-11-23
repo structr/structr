@@ -290,7 +290,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	@Override
 	public ObjectData getObject(final String repositoryId, final String objectId, final String propertyFilter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePolicyIds, final Boolean includeAcl, final ExtensionsData extension) {
 
-		final App app = StructrApp.getInstance();
+		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 

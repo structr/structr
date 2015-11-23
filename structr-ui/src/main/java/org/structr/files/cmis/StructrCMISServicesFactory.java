@@ -39,7 +39,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
 import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServiceWrapper;
-import org.structr.cmis.config.CurrentCMISUser;
 
 /**
  *
@@ -123,7 +122,6 @@ public class StructrCMISServicesFactory implements CmisServiceFactory {
 				} else {
 					//! gets automatically accessmode to backend?
 					securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
-					CurrentCMISUser.getInstance(username);
 				}
 			}
 

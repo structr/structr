@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cmis.config;
+package org.structr.files.cmis.config;
 
 import java.util.LinkedHashSet;
 import java.util.List;
