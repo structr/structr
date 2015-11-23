@@ -16,27 +16,29 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.files.cmis.config;
+package org.structr.cmis.config;
 
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
-import org.apache.chemistry.opencmis.commons.data.AllowableActions;
+import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.structr.cmis.common.CMISExtensionsData;
 
 /**
  *
  *
  */
 
-public class StructrFolderActions extends CMISExtensionsData implements AllowableActions {
+public class StructrFolderActions extends AbstractStructrActions {
 
-	private static final StructrFolderActions INSTANCE = new StructrFolderActions();
-	private static final Set<Action> actions           = new LinkedHashSet<>();
+	public StructrFolderActions(List<Ace> aces, String username) {
 
-	static {
+	    super(aces, username);
+	}
 
-		actions.add(Action.CAN_DELETE_OBJECT);
+	@Override
+	protected void setDefaultPermissions() {
+
+	    	actions.add(Action.CAN_DELETE_OBJECT);
 		actions.add(Action.CAN_UPDATE_PROPERTIES);
 		actions.add(Action.CAN_GET_FOLDER_TREE);
 		actions.add(Action.CAN_GET_PROPERTIES);
@@ -54,29 +56,57 @@ public class StructrFolderActions extends CMISExtensionsData implements Allowabl
 //		actions.add(Action.CAN_ADD_OBJECT_TO_FOLDER);
 //		actions.add(Action.CAN_REMOVE_OBJECT_FROM_FOLDER);
 //		actions.add(Action.CAN_GET_CONTENT_STREAM);
-		actions.add(Action.CAN_APPLY_POLICY);
-		actions.add(Action.CAN_GET_APPLIED_POLICIES);
-		actions.add(Action.CAN_REMOVE_POLICY);
+		//actions.add(Action.CAN_APPLY_POLICY);
+		//actions.add(Action.CAN_GET_APPLIED_POLICIES);
+		//actions.add(Action.CAN_REMOVE_POLICY);
 		actions.add(Action.CAN_GET_CHILDREN);
 		actions.add(Action.CAN_CREATE_DOCUMENT);
 		actions.add(Action.CAN_CREATE_FOLDER);
-		actions.add(Action.CAN_CREATE_RELATIONSHIP);
-		actions.add(Action.CAN_CREATE_ITEM);
+		//actions.add(Action.CAN_CREATE_RELATIONSHIP);
+		//actions.add(Action.CAN_CREATE_ITEM);
 		actions.add(Action.CAN_DELETE_TREE);
-		actions.add(Action.CAN_GET_RENDITIONS);
+		//actions.add(Action.CAN_GET_RENDITIONS);
 		actions.add(Action.CAN_GET_ACL);
 		actions.add(Action.CAN_APPLY_ACL);
 	}
 
-	private StructrFolderActions() {
+	@Override
+	protected void setReadPermissions() {
+
+		actions.add(Action.CAN_GET_FOLDER_TREE);
+		actions.add(Action.CAN_GET_PROPERTIES);
+		actions.add(Action.CAN_GET_OBJECT_RELATIONSHIPS);
+		actions.add(Action.CAN_GET_OBJECT_PARENTS);
+		actions.add(Action.CAN_GET_FOLDER_PARENT);
+		actions.add(Action.CAN_GET_DESCENDANTS);
+		actions.add(Action.CAN_GET_CHILDREN);
+		actions.add(Action.CAN_GET_ACL);
+	}
+
+	@Override
+	protected void setWritePermissions() {
+
+		actions.add(Action.CAN_MOVE_OBJECT);
+		actions.add(Action.CAN_UPDATE_PROPERTIES);
+		actions.add(Action.CAN_CREATE_DOCUMENT);
+		actions.add(Action.CAN_CREATE_FOLDER);
+	}
+
+	@Override
+	protected void setDeletePermissions() {
+
+		actions.add(Action.CAN_DELETE_OBJECT);
+	}
+
+	@Override
+	protected void setAccessControlPermissions() {
+
+		actions.add(Action.CAN_APPLY_ACL);
 	}
 
 	@Override
 	public Set<Action> getAllowableActions() {
-		return actions;
-	}
 
-	public static StructrFolderActions getInstance() {
-		return INSTANCE;
+		return actions;
 	}
 }

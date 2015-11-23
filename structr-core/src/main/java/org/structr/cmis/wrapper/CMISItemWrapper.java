@@ -30,7 +30,7 @@ import org.structr.common.error.FrameworkException;
 public class CMISItemWrapper extends CMISObjectWrapper<CMISItemInfo> {
 
 	public CMISItemWrapper(final String propertyFilter, final Boolean includeAllowableActions) {
-		super(BaseTypeId.CMIS_ITEM, propertyFilter, includeAllowableActions);
+		super(BaseTypeId.CMIS_ITEM, propertyFilter, includeAllowableActions, false);
 	}
 
 	@Override

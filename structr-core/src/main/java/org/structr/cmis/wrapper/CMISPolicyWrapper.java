@@ -30,7 +30,7 @@ import org.structr.common.error.FrameworkException;
 public class CMISPolicyWrapper extends CMISObjectWrapper<CMISPolicyInfo> {
 
 	public CMISPolicyWrapper(final String propertyFilter, final Boolean includeAllowableActions) {
-		super(BaseTypeId.CMIS_POLICY, propertyFilter, includeAllowableActions);
+		super(BaseTypeId.CMIS_POLICY, propertyFilter, includeAllowableActions, false);
 	}
 
 	@Override

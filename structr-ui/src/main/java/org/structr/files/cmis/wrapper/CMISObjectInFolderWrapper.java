@@ -24,7 +24,6 @@ import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderDataImpl;
-import org.neo4j.graphdb.PropertyContainer;
 import org.structr.core.GraphObject;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
 import org.structr.common.error.FrameworkException;
@@ -60,16 +59,9 @@ public class CMISObjectInFolderWrapper extends CMISPagingListWrapper<ObjectInFol
 	}
 
 	public ObjectData wrapGraphObject(final GraphObject item) throws FrameworkException {
-		return CMISObjectWrapper.wrap(item, propertyFilter, includeAllowableActions);
+		return CMISObjectWrapper.wrap(item, propertyFilter, includeAllowableActions, false);
 	}
 
-	/**
-	 * Collects every file in the parent folder (except thumbnails) from the 
-	 * database and adds it to the wrapper, which will be sent to the CMIS 
-	 * framework. 
-         * @param list of Objects, which will be shown in the CMIS client. 
-	 * Thumbnails will be ignored.
-	 */
 	public void wrap(final List<? extends GraphObject> list) throws FrameworkException {
 
 		for (final GraphObject element : list) {

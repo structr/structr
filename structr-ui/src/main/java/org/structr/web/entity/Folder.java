@@ -44,7 +44,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.files.cmis.config.StructrFolderActions;
+import org.structr.cmis.config.StructrFolderActions;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
@@ -203,12 +203,12 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 	@Override
 	public AllowableActions getAllowableActions() {
-		return StructrFolderActions.getInstance();
+		//stub
+		return new StructrFolderActions(getAccessControlEntries(), null);
 	}
 
 	@Override
 	public String getChangeToken() {
-
 		// versioning not supported yet.
 		return null;
 	}

@@ -63,6 +63,7 @@ import org.structr.core.property.PropertyMap;
 public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISExtensionsData implements ObjectData, Acl {
 
 	protected AllowableActions allowableActions      = null;
+	protected Acl acl				 = null;
 	protected List<Ace> aces                         = null;
 	protected PropertyMap dynamicPropertyMap         = null;
 	protected GregorianCalendar lastModificationDate = null;
@@ -76,12 +77,14 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	protected String name                            = null;
 	protected String id                              = null;
 	protected boolean includeActions                 = false;
+	protected boolean includeAcl			 = false;
 
 	public abstract void createProperties(final BindingsObjectFactory factory, final FilteredPropertyList properties);
 
-	public CMISObjectWrapper(final BaseTypeId baseTypeId, final String propertyFilter, final Boolean includeActions) {
+	public CMISObjectWrapper(final BaseTypeId baseTypeId, final String propertyFilter, final Boolean includeActions, final Boolean includeAcl) {
 
 		this.includeActions     = includeActions != null && includeActions;
+		this.includeAcl		= includeAcl != null && includeAcl;
 		this.propertyFilter     = propertyFilter;
 		this.baseTypeId         = baseTypeId;
 	}
@@ -253,7 +256,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 
 	@Override
 	public Boolean isExactAcl() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -277,12 +280,17 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		setLastModificationDate(info.getLastModificationDate());
 
 		dynamicPropertyMap = info.getDynamicProperties();
-		allowableActions   = info.getAllowableActions();
-		aces               = info.getAccessControlEntries();
+
+		//allowableActions gets defined now in specific wrappers
+		//allowableActions   = info.getAllowableActions();
+
+		if(includeAcl) {
+			aces = info.getAccessControlEntries();
+		}
 	}
 
 	// ----- public static methods -----
-	public static CMISObjectWrapper wrap(final GraphObject source, final String propertyFilter, final Boolean includeAllowableActions) throws FrameworkException {
+	public static CMISObjectWrapper wrap(final GraphObject source, final String propertyFilter, final Boolean includeAllowableActions, final Boolean includeAcl) throws FrameworkException {
 
 		CMISObjectWrapper wrapper = null;
 		if (source != null) {
@@ -296,12 +304,12 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 					switch (baseTypeId) {
 
 						case CMIS_DOCUMENT:
-							wrapper = new CMISDocumentWrapper(propertyFilter, includeAllowableActions);
+							wrapper = new CMISDocumentWrapper(propertyFilter, includeAllowableActions, includeAcl);
 							wrapper.initializeFrom(cmisInfo.getDocumentInfo());
 							break;
 
 						case CMIS_FOLDER:
-							wrapper = new CMISFolderWrapper(propertyFilter, includeAllowableActions);
+							wrapper = new CMISFolderWrapper(propertyFilter, includeAllowableActions, includeAcl);
 							wrapper.initializeFrom(cmisInfo.getFolderInfo());
 							break;
 
@@ -341,7 +349,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 
 	@Override
 	public Boolean isExact() {
-		return true;
+		return false;
 	}
 
 	// ----- public static methods -----

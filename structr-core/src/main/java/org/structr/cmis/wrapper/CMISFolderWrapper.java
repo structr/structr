@@ -23,6 +23,8 @@ import org.structr.cmis.info.CMISFolderInfo;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
 import org.structr.cmis.CMISInfo;
+import org.structr.cmis.config.CurrentCMISUser;
+import org.structr.cmis.config.StructrFolderActions;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -35,8 +37,8 @@ public class CMISFolderWrapper extends CMISObjectWrapper<CMISFolderInfo> {
 	private String parentId    = null;
 	private String path        = null;
 
-	public CMISFolderWrapper(final String propertyFilter, final Boolean includeAllowableActions) {
-		super(BaseTypeId.CMIS_FOLDER, propertyFilter, includeAllowableActions);
+	public CMISFolderWrapper(final String propertyFilter, final Boolean includeAllowableActions, final Boolean includeAcl) {
+		super(BaseTypeId.CMIS_FOLDER, propertyFilter, includeAllowableActions, includeAcl);
 	}
 
 	public void setParentId(String parentId) {
@@ -67,6 +69,10 @@ public class CMISFolderWrapper extends CMISObjectWrapper<CMISFolderInfo> {
 	public void initializeFrom(final CMISFolderInfo info) throws FrameworkException {
 
 		super.initializeFrom(info);
+
+		if(includeActions) {
+			allowableActions = new StructrFolderActions(aces, CurrentCMISUser.getInstance(null).getUsername());
+		}
 
 		this.changeToken = info.getChangeToken();
 		this.parentId    = info.getParentId();

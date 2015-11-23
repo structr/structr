@@ -18,10 +18,12 @@
  */
 package org.structr.cmis.wrapper;
 
+import org.structr.cmis.config.StructrFileActions;
 import java.math.BigInteger;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
+import org.structr.cmis.config.CurrentCMISUser;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.common.error.FrameworkException;
 
@@ -36,8 +38,8 @@ public class CMISDocumentWrapper extends CMISObjectWrapper<CMISDocumentInfo> {
 	private String contentType  = null;
 	private BigInteger fileSize = null;
 
-	public CMISDocumentWrapper(final String propertyFilter, final Boolean includeAllowableActions) {
-		super(BaseTypeId.CMIS_DOCUMENT, propertyFilter, includeAllowableActions);
+	public CMISDocumentWrapper(final String propertyFilter, final Boolean includeAllowableActions, final Boolean includeAcl) {
+		super(BaseTypeId.CMIS_DOCUMENT, propertyFilter, includeAllowableActions, includeAcl);
 	}
 
 	@Override
@@ -70,6 +72,10 @@ public class CMISDocumentWrapper extends CMISObjectWrapper<CMISDocumentInfo> {
 	public void initializeFrom(final CMISDocumentInfo info) throws FrameworkException {
 
 		super.initializeFrom(info);
+
+		if(includeActions) {
+			allowableActions = new StructrFileActions(true, aces, CurrentCMISUser.getInstance(null).getUsername());
+		}
 
 		this.contentType = info.getContentType();
 		this.changeToken = info.getChangeToken();

@@ -90,7 +90,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 		final App app = StructrApp.getInstance(securityContext);
 		File newFile  = null;
 		String uuid   = null;
-                
+
 		try (final Tx tx = app.tx()) {
 
 			final String objectTypeId = getStringValue(properties, PropertyIds.OBJECT_TYPE_ID);
@@ -297,7 +297,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			final GraphObject obj = app.get(objectId);
 			if (obj != null) {
 
-				final ObjectData data = CMISObjectWrapper.wrap(obj, propertyFilter, includeAllowableActions);
+				final ObjectData data = CMISObjectWrapper.wrap(obj, propertyFilter, includeAllowableActions, includeAcl);
 
 				tx.success();
 
@@ -346,7 +346,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			final AbstractFile file = app.nodeQuery(AbstractFile.class).and(AbstractFile.path, path).getFirst();
 			if (file != null) {
 
-				result = CMISObjectWrapper.wrap(file, propertyFilter, includeAllowableActions);
+				result = CMISObjectWrapper.wrap(file, propertyFilter, includeAllowableActions, includeAcl);
 			}
 
 			tx.success();
@@ -597,60 +597,60 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	public void setContentStream(String repositoryId, Holder<String> objectId, Boolean overwriteFlag, Holder<String> changeToken, ContentStream contentStream, ExtensionsData extension) {
 
             final App app = StructrApp.getInstance(securityContext);
-            
+
             try (final Tx tx = app.tx()) {
 
                 final FileBase file = get(app, FileBase.class, objectId.getValue());
-                
+
                 if (contentStream != null) {
 
                     final InputStream inputNewContent = contentStream.getStream();
                     final InputStream inputOldContent = file.getInputStream();
-                    
+
                     //only put new content stream into the file, if file is empty or overwriteflag is set on true
                     if((inputOldContent.available() == 0) || (inputOldContent.available() != 0 && overwriteFlag)) {
-                    
+
                         if (inputNewContent != null) {
 
-                            try (final OutputStream outputStream = file.getOutputStream(false)) {     
+                            try (final OutputStream outputStream = file.getOutputStream(false)) {
                                 IOUtils.copy(inputNewContent, outputStream);
-                            } 
-                        
+                            }
+
                             inputOldContent.close();
                             inputNewContent.close();
                         }
-                        
+
                     } else {
                                 inputOldContent.close();
                                 inputNewContent.close();
                                 throw new CmisInvalidArgumentException("Content Stream is not empty. You have to overwrite it.");
                             }
                 }
-                
+
                 tx.success();
-                
+
                 } catch (FrameworkException fex) {
 
 		throw new CmisConstraintException(fex.getMessage(), fex);
             } catch (IOException ex) {
                 Logger.getLogger(CMISObjectService.class.getName()).log(Level.SEVERE, null, ex);
-            }   
+            }
 	}
 
 	@Override
 	public void deleteContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken, ExtensionsData extension) {
-		
+
             final App app = StructrApp.getInstance(securityContext);
-            
+
             try (final Tx tx = app.tx()) {
 
                 final FileBase file = get(app, FileBase.class, objectId.getValue());
-                
+
                 try (PrintWriter writer = new PrintWriter(file.getOutputStream())) {
                 //    writer.print("");
                     writer.close();
                 }
-                    
+
             } catch (FrameworkException fex) {
 
 		throw new CmisConstraintException(fex.getMessage(), fex);

@@ -59,7 +59,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			final GraphObject node = app.get(objectId);
 			if (node != null) {
 
-				return CMISObjectWrapper.wrap(node, null, false);
+				return CMISObjectWrapper.wrap(node, null, false, true);
 			}
 
 			tx.success();
@@ -98,7 +98,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 					// process add ACL entries
 					for (final Ace toAdd : acl.getAces()) {
-						applyAce(node, toAdd, false);
+						applyAce(node, toAdd, false, aclPropagation);
 					}
 
 				} else {
@@ -110,13 +110,13 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			tx.success();
 
 			// return the wrapper which implements the Acl interface
-			return CMISObjectWrapper.wrap(obj, null, false);
+			return CMISObjectWrapper.wrap(obj, null, false, true);
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
-		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
+		throw new CmisObjectNotFoundException("You don't have permission to change ACE for the object" + objectId);
 	}
 
 	@Override
@@ -135,12 +135,12 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 					// process remove ACL entries first
 					for (final Ace toRemove : removeAces.getAces()) {
-						applyAce( node, toRemove, true);
+						applyAce( node, toRemove, true, aclPropagation);
 					}
 
 					// process add ACL entries
 					for (final Ace toAdd : addAces.getAces()) {
-						applyAce(node, toAdd, false);
+						applyAce(node, toAdd, false, aclPropagation);
 					}
 
 				} else {
@@ -152,7 +152,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			tx.success();
 
 			// return the wrapper which implements the Acl interface
-			return CMISObjectWrapper.wrap(obj, null, false);
+			return CMISObjectWrapper.wrap(obj, null, false, true);
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -162,10 +162,24 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 	}
 
 	// ----- private methods -----
-	private void applyAce(final AccessControllable node, final Ace toAdd, final boolean revoke) throws FrameworkException {
+	private void applyAce(final AccessControllable node, final Ace toAdd, final boolean revoke, final AclPropagation aclPropagation) throws FrameworkException {
 
 		final String principalId       = toAdd.getPrincipalId();
 		final List<String> permissions = toAdd.getPermissions();
+
+		//checks which flag set the user in cmis workbench
+		//no further implementation yet
+		boolean objectOnly;
+		if(aclPropagation.value().equals(AclPropagation.REPOSITORYDETERMINED.value())) {
+
+		    objectOnly = false;
+		} else if(aclPropagation.value().equals(AclPropagation.OBJECTONLY.value())) {
+
+		    objectOnly = true;
+		} else {
+
+		    throw new CmisInvalidArgumentException("Only 'repository determined' and 'objectonly' available.");
+		}
 
 		final Principal principal = CMISObjectWrapper.translateUsernameToPrincipal(principalId);
 		if (principal != null) {

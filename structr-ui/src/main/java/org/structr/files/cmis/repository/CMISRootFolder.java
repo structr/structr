@@ -39,9 +39,9 @@ public class CMISRootFolder extends CMISFolderWrapper {
 
 	private MutableTypeDefinition typeDefinition = null;
 
-	public CMISRootFolder(final String propertyFilter, final Boolean includeAllowableActions) {
+	public CMISRootFolder(final String propertyFilter, final Boolean includeAllowableActions, final Boolean includeAcl) {
 
-		super(propertyFilter, includeAllowableActions);
+		super(propertyFilter, includeAllowableActions, includeAcl);
 
 		typeDefinition = TypeDefinitionFactory.newInstance().createBaseFolderTypeDefinition(CmisVersion.CMIS_1_1);
 

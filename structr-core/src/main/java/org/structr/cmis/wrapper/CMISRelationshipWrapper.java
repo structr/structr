@@ -30,7 +30,7 @@ import org.structr.common.error.FrameworkException;
 public class CMISRelationshipWrapper extends CMISObjectWrapper<CMISRelationshipInfo> {
 
 	public CMISRelationshipWrapper(final String propertyFilter, final Boolean includeAllowableActions) {
-		super(BaseTypeId.CMIS_RELATIONSHIP, propertyFilter, includeAllowableActions);
+		super(BaseTypeId.CMIS_RELATIONSHIP, propertyFilter, includeAllowableActions, false);
 	}
 
 	@Override

@@ -66,14 +66,14 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	@Override
 	public ObjectInFolderList getChildren(final String repositoryId, final String folderId, final String propertyFilter, final String orderBy, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePathSegment, final BigInteger maxItems, final BigInteger skipCount, final ExtensionsData extension) {
 
-		final App app = StructrApp.getInstance();
+		final App app = StructrApp.getInstance(securityContext);
 
 		if (folderId != null && folderId.equals(CMISInfo.ROOT_FOLDER_ID)) {
 
 			try (final Tx tx = app.tx()) {
 
-				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);                             
-                 
+				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
+
                                 wrapper.wrap(getChildrenRootFolder(app));
 
 				tx.success();
@@ -118,7 +118,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	public List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId, BigInteger depth, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment, ExtensionsData extension) {
 
 		final List<ObjectInFolderContainer> result = new LinkedList<>();
-		final App app                              = StructrApp.getInstance();
+		final App app                              = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
@@ -167,7 +167,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	public List<ObjectInFolderContainer> getFolderTree(final String repositoryId, final String folderId, final BigInteger depth, final String filter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePathSegment, final ExtensionsData extension) {
 
 		final List<ObjectInFolderContainer> result = new LinkedList<>();
-		final App app                              = StructrApp.getInstance();
+		final App app                              = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
@@ -215,7 +215,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	@Override
 	public List<ObjectParentData> getObjectParents(String repositoryId, String objectId, String propertyFilter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, Boolean includeRelativePathSegment, ExtensionsData extension) {
 
-		final App app  = StructrApp.getInstance();
+		final App app  = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
@@ -225,7 +225,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			if (graphObject instanceof AbstractFile) {
 
 				final Folder parent             = ((AbstractFile)graphObject).getProperty(AbstractFile.parent);
-				final ObjectData element        = parent != null ? CMISObjectWrapper.wrap(parent, propertyFilter, includeAllowableActions) : new CMISRootFolder(propertyFilter, includeAllowableActions);
+				final ObjectData element        = parent != null ? CMISObjectWrapper.wrap(parent, propertyFilter, includeAllowableActions, false) : new CMISRootFolder(propertyFilter, includeAllowableActions, false);
 				final ObjectParentDataImpl impl = new ObjectParentDataImpl(element);
 
 				impl.setRelativePathSegment(graphObject.getProperty(AbstractNode.name));
@@ -246,7 +246,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	@Override
 	public ObjectData getFolderParent(final String repositoryId, final String folderId, final String propertyFilter, final ExtensionsData extension) {
 
-		final App app     = StructrApp.getInstance();
+		final App app     = StructrApp.getInstance(securityContext);
 		ObjectData result = null;
 
 		try (final Tx tx = app.tx()) {
@@ -258,7 +258,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				final Folder parent = ((AbstractFile)graphObject).getProperty(AbstractFile.parent);
 				if (parent != null) {
 
-					result = CMISObjectWrapper.wrap(parent, propertyFilter, false);
+					result = CMISObjectWrapper.wrap(parent, propertyFilter, false, false);
 				}
 			}
 
@@ -337,7 +337,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	}
 
         /**
-         * Gets all content of the root folder except thumbnails 
+         * Gets all content of the root folder except thumbnails
          */
         private List<AbstractFile> getChildrenRootFolder(App app) throws FrameworkException {
 
