@@ -1,4 +1,4 @@
-Structr runs on any platform with Java JDK 7 installed. All you need is contained in a single distribution file.
+Structr runs on any platform with Java JDK 8 installed. All you need is contained in a single distribution file.
 
 1. Download the binary distribution file (-dist.tar.gz) from Maven Central (~ 100 MB): [https://oss.sonatype.org/content/repositories/releases/org/structr/structr-ui/](https://oss.sonatype.org/content/repositories/releases/org/structr/structr-ui/)
 2. Extract the file and enter the created directory (with bin, lib and the .jar file)

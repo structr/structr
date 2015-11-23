@@ -74,7 +74,10 @@ public class CreateOperation extends InvertibleModificationOperation {
 
 			if (parent != null && !parent.isSynced()) {
 
-				sourcePage.adoptNode(newNode);
+				if (sourcePage != null) {
+					sourcePage.adoptNode(newNode);
+				}
+				
 				parent.insertBefore(newNode, sibling);
 
 				// make existing node known to other operations

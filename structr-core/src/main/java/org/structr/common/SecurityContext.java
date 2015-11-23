@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,15 +64,16 @@ public class SecurityContext {
 	private boolean dontModifyAccessTime                 = false;
 
 	//~--- fields ---------------------------------------------------------
-	private final Map<String, QueryRange> ranges                                     = new ConcurrentHashMap<>();
-	private final Map<String, Object> attrs                                          = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
-	private AccessMode accessMode                                                    = AccessMode.Frontend;
-	private Authenticator authenticator                                              = null;
-	private Principal cachedUser                                                     = null;
-	private HttpServletRequest request                                               = null;
-	private Set<String> customView                                                   = null;
-	private String cachedUserName                                                    = null;
-	private String cachedUserId                                                      = null;
+	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
+	private final Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+	private AccessMode accessMode                = AccessMode.Frontend;
+	private Authenticator authenticator          = null;
+	private Principal cachedUser                 = null;
+	private HttpServletRequest request           = null;
+	private HttpServletResponse response         = null;
+	private Set<String> customView               = null;
+	private String cachedUserName                = null;
+	private String cachedUserId                  = null;
 
 	//~--- constructors ---------------------------------------------------
 	private SecurityContext() {
@@ -254,7 +256,6 @@ public class SecurityContext {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
 		return new SuperUserSecurityContext(request);
 	}
@@ -295,6 +296,12 @@ public class SecurityContext {
 	public HttpServletRequest getRequest() {
 
 		return request;
+
+	}
+
+	public HttpServletResponse getResponse() {
+
+		return response;
 
 	}
 
@@ -573,11 +580,12 @@ public class SecurityContext {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public void setRequest(HttpServletRequest request) {
-
 		this.request = request;
+	}
 
+	public void setResponse(HttpServletResponse response) {
+		this.response = response;
 	}
 
 	public static void setResourceFlag(final String resource, long flag) {
