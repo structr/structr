@@ -255,7 +255,7 @@ public class Functions {
 	public static final String ERROR_MESSAGE_DISABLE_NOTIFICATIONS_JS            = "Usage: ${Structr.disableNotifications()}";
 	public static final String ERROR_MESSAGE_ENABLE_NOTIFICATIONS                = "Usage: ${enable_notifications()}";
 	public static final String ERROR_MESSAGE_ENABLE_NOTIFICATIONS_JS             = "Usage: ${Structr.enableNotifications()}";
-	
+
 	// Special functions for relationships
 	public static final String ERROR_MESSAGE_INSTANTIATE                         = "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
 	public static final String ERROR_MESSAGE_INCOMING                            = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
@@ -3933,7 +3933,7 @@ public class Functions {
 						final PropertyKey key = config.getPropertyKeyForJSONName(type, "id");
 
 						query.and(key, sources[1].toString());
-						
+
 						final int resultCount = query.getResult().size();
 
 						if (resultCount == 1) {
@@ -3942,14 +3942,13 @@ public class Functions {
 
 						} else if (resultCount == 0) {
 
-							throw new FrameworkException(400, "No Object found for id!");
+							return null;
 
 						} else {
 
-							throw new FrameworkException(400, "Multiple Objects found for id!");
+							throw new FrameworkException(400, "Multiple Objects found for id! [" + sources[1].toString() + "]");
 
 						}
-
 
 					} else {
 
