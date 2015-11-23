@@ -77,6 +77,17 @@ public class SaveNodeCommand extends AbstractCommand {
 					
 				}
 
+				// use shared component(s) if exist
+				final DOMNode sharedSourceComponent = sourceNode.getProperty(DOMNode.sharedComponent);
+				if (sharedSourceComponent != null) {
+					sourceNode = sharedSourceComponent;
+				}
+
+				final DOMNode sharedTargetComponent = targetNode.getProperty(DOMNode.sharedComponent);
+				if (sharedTargetComponent != null) {
+					targetNode = sharedTargetComponent;
+				}
+		
 				final List<InvertibleModificationOperation> changeSet = Importer.diffNodes(sourceNode, targetNode);
 
 				for (final InvertibleModificationOperation op : changeSet) {
