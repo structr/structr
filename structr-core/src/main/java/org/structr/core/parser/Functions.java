@@ -1920,14 +1920,7 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				String result = "";
-
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-
-					return lt(sources[0], sources[1]);
-				}
-
-				return result;
+				return lt(sources[0], sources[1]);
 
 			}
 
@@ -1952,15 +1945,7 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				String result = "";
-
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-
-					return gt(sources[0], sources[1]);
-				}
-
-				return result;
-
+				return gt(sources[0], sources[1]);
 			}
 
 
@@ -1984,15 +1969,7 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				String result = "";
-
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-
-					return lte(sources[0], sources[1]);
-				}
-
-				return result;
-
+				return lte(sources[0], sources[1]);
 			}
 
 
@@ -2016,16 +1993,7 @@ public class Functions {
 			@Override
 			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-				String result = "";
-
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-
-					return gte(sources[0], sources[1]);
-
-				}
-
-				return result;
-
+				return gte(sources[0], sources[1]);
 			}
 
 
@@ -5893,21 +5861,43 @@ public class Functions {
 
 	private static int compareNumberString(final Number o1, final String o2) {
 
+		
 		final Double value1 = getDoubleForComparison(o1);
-		final Double value2 = Double.parseDouble(o2);
+		Double value2;
+		try {
+			value2 = Double.parseDouble(o2);
+
+		} catch (NumberFormatException nfe) {
+			value2 = Double.NEGATIVE_INFINITY;
+		}
 
 		return value1.compareTo(value2);
+		
+
 	}
 
 	private static int compareStringNumber(final String o1, final Number o2) {
 
-		final Double value1 = Double.parseDouble(o1);
+		Double value1;
+		try {
+			value1 = Double.parseDouble(o1);
+		} catch (NumberFormatException nfe) {
+			value1 = Double.NEGATIVE_INFINITY;
+		}
 		final Double value2 = getDoubleForComparison(o2);
 
 		return value1.compareTo(value2);
 	}
 
 	private static boolean gt(final Object o1, final Object o2) {
+
+		if (o1 != null && o2 == null) {
+			return true;
+		}
+		
+		if ((o1 == null && o2 != null) || (o1 == null && o2 == null)) {
+			return false;
+		}
 
 		if (o1 instanceof Number && o2 instanceof Number) {
 
@@ -5954,6 +5944,14 @@ public class Functions {
 
 	private static boolean lt(final Object o1, final Object o2) {
 
+		if (o1 == null && o2 != null) {
+			return true;
+		}
+		
+		if ((o1 != null && o2 == null) || (o1 == null && o2 == null)) {
+			return false;
+		}
+
 		if (o1 instanceof Number && o2 instanceof Number) {
 
 			return compareNumberNumber(o1, o2) < 0;
@@ -5999,46 +5997,62 @@ public class Functions {
 
 	private static boolean eq(final Object o1, final Object o2) {
 
-		if (o1 instanceof Number && o2 instanceof Number) {
+		if (o1 == null && o2 == null) {
+			return true;
+		}
+		
+		if ((o1 == null && o2 != null) || (o1 != null && o2 == null)) {
+			return false;
+		}
+		
+		try {
+		
+			if (o1 instanceof Number && o2 instanceof Number) {
 
-			return compareNumberNumber(o1, o2) == 0;
+				return compareNumberNumber(o1, o2) == 0;
 
-		} else if (o1 instanceof String && o2 instanceof String) {
+			} else if (o1 instanceof String && o2 instanceof String) {
 
-			return compareStringString(o1, o2) == 0;
+				return compareStringString(o1, o2) == 0;
 
-		} else if (o1 instanceof Date && o2 instanceof Date) {
+			} else if (o1 instanceof Date && o2 instanceof Date) {
 
-			return compareDateDate(o1, o2) == 0;
+				return compareDateDate(o1, o2) == 0;
 
-		} else if (o1 instanceof Date && o2 instanceof String) {
+			} else if (o1 instanceof Date && o2 instanceof String) {
 
-			return compareDateString(o1, o2) == 0;
+				return compareDateString(o1, o2) == 0;
 
-		} else if (o1 instanceof String && o2 instanceof Date) {
+			} else if (o1 instanceof String && o2 instanceof Date) {
 
-			return compareStringDate(o1, o2) == 0;
+				return compareStringDate(o1, o2) == 0;
 
-		} else if (o1 instanceof Boolean && o2 instanceof String) {
+			} else if (o1 instanceof Boolean && o2 instanceof String) {
 
-			return compareBooleanString((Boolean)o1, (String)o2) == 0;
+				return compareBooleanString((Boolean)o1, (String)o2) == 0;
 
-		} else if (o1 instanceof String && o2 instanceof Boolean) {
+			} else if (o1 instanceof String && o2 instanceof Boolean) {
 
-			return compareStringBoolean((String)o1, (Boolean)o2) == 0;
+				return compareStringBoolean((String)o1, (Boolean)o2) == 0;
 
-		} else if (o1 instanceof Number && o2 instanceof String) {
+			} else if (o1 instanceof Number && o2 instanceof String) {
 
-			return compareNumberString((Number)o1, (String)o2) == 0;
+				return compareNumberString((Number)o1, (String)o2) == 0;
 
-		} else if (o1 instanceof String && o2 instanceof Number) {
+			} else if (o1 instanceof String && o2 instanceof Number) {
 
-			return compareStringNumber((String)o1, (Number)o2) == 0;
+				return compareStringNumber((String)o1, (Number)o2) == 0;
 
-		} else {
+			} else {
 
-			return compareStringString(o1.toString(), o2.toString()) == 0;
+				return compareStringString(o1.toString(), o2.toString()) == 0;
 
+			}
+			
+		} catch (NumberFormatException nfe) {
+			
+			return false;
+			
 		}
 	}
 
