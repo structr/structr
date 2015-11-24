@@ -477,7 +477,14 @@ var _Elements = {
 		});
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
-		_Entities.appendEditSourceIcon(div, entity);
+		
+		if (entity.sharedComponent) {
+			Command.get(entity.sharedComponent, function(obj) {
+				_Entities.appendEditSourceIcon(div, obj);
+			});
+		} else {
+			_Entities.appendEditSourceIcon(div, entity);
+		}
 		_Entities.appendEditPropertiesIcon(div, entity);
 		//_Entities.appendDataIcon(div, entity);
 

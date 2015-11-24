@@ -45,8 +45,8 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 
 	protected InsertPosition findInsertPosition(final Page sourcePage, final String parentHash, final List<String> siblingHashes, final DOMNode newNode) {
 
-		DOMNode newParent  = hashMappedExistingNodes.get(parentHash);
-		DOMNode newSibling = null;
+		final DOMNode newParent  = hashMappedExistingNodes.get(parentHash);
+		DOMNode newSibling       = null;
 
 		// we need to check the whole list of siblings here because
 		// when inserting the first element of a list of elements,
@@ -85,7 +85,7 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 		if (node == null) {
 			return;
 		}
-
+		
 		Integer pos  = childIndexMap.get(depth);
 		if (pos == null) {
 

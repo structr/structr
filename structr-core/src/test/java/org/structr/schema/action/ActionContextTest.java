@@ -76,7 +76,13 @@ public class ActionContextTest extends StructrTest {
 		TestFour testFour                 = null;
 		List<TestSix> testSixs            = null;
 		int index                         = 0;
-
+		final Object nullValue1           = null;
+		final Object nullValue2           = null;
+		final String nullString1          = null;
+		final String nullString2          = null;
+		final String emptyString1         = "";
+		final String emptyString2         = "";
+		
 		try (final Tx tx = app.tx()) {
 
 			testOne        = createTestNode(TestOne.class);
@@ -392,6 +398,16 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.aBoolean, true)}"));
 			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(this.aBoolean, false)}"));
 			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.anEnum, 'One')}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq('', '')}"));
+			
+			// eq with empty string and number
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(3, '')}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq('', 12.3456)}"));
+			
+			// eq with null
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(this.alwaysNull, 'xyz')}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq('xyz', this.alwaysNull)}"));
 
 			// if + eq
 			assertEquals("Invalid if(eq()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(eq(this.id, this.id), \"true\", \"false\")}"));
@@ -458,13 +474,18 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(12.0, 3.0), \"true\", \"false\")}"));
 			assertEquals("Invalid if(lt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lt(12000000.0, 3000000.0), \"true\", \"false\")}"));
 
-			// comparision of wrongly typed values
+			// compare numbers written as strings as numbers
 			assertEquals("Invalid if(lt()) result", "true", Scripting.replaceVariables(ctx, testOne, "${lt(\"1200\", \"30\")}"));
 
+			// lt with numbers and empty string
+			assertEquals("Invalid lt() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${lt(10, '')}"));
+			assertEquals("Invalid lt() result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${lt('', 11)}"));
+			assertEquals("Invalid lt() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${lt('', '')}"));
+			
 			// lt with null
-			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid lt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lt(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid lt() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${lt(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid lt() result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${lt(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid lt() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${lt(this.alwaysNull, this.alwaysNull)}"));
 
 			// if + gt
 			assertEquals("Invalid if(gt()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(gt(\"2\", \"2\"), \"true\", \"false\")}"));
@@ -488,9 +509,14 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid if(gt()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gt(12000000.0, 3000000.0), \"true\", \"false\")}"));
 
 			// gt with null
-			assertEquals("Invalid gt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gt(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid gt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gt(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid gt() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gt(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid gt() result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${gt(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid gt() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${gt(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid gt() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${gt(this.alwaysNull, this.alwaysNull)}"));
+
+			// gt with numbers and empty string
+			assertEquals("Invalid gt() result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${gt(10, '')}"));
+			assertEquals("Invalid gt() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${gt('', 11)}"));
+			assertEquals("Invalid gt() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${gt('', '')}"));
 
 			// if + lte
 			assertEquals("Invalid if(lte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(lte(\"2\", \"2\"), \"true\", \"false\")}"));
@@ -514,9 +540,9 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid if(lte()) result", "false", Scripting.replaceVariables(ctx, testOne, "${if(lte(12000000.0, 3000000.0), \"true\", \"false\")}"));
 
 			// lte with null
-			assertEquals("Invalid lte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lte(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid lte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lte(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid lte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${lte(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid lte() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${lte(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid lte() result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${lte(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid lte() result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${lte(this.alwaysNull, this.alwaysNull)}"));
 
 			// if + gte
 			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(\"2\", \"2\"), \"true\", \"false\")}"));
@@ -540,9 +566,9 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid if(gte()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(gte(12000000.0, 3000000.0), \"true\", \"false\")}"));
 
 			// gte with null
-			assertEquals("Invalid gte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gte(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid gte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gte(this.alwaysNull, \"11\")}"));
-			assertEquals("Invalid gte() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${gte(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid gte() result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${gte(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid gte() result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${gte(this.alwaysNull, \"11\")}"));
+			assertEquals("Invalid gte() result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${gte(this.alwaysNull, this.alwaysNull)}"));
 
 			// if + equal + subt
 			assertEquals("Invalid if(equal(subt())) result", "true", Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", subt(\"3\", \"1\")), \"true\", \"false\")}"));
