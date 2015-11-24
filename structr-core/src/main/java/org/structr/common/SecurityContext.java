@@ -378,6 +378,10 @@ public class SecurityContext {
 
 	}
 
+	public boolean hasParameter(final String name) {
+		return request != null && request.getParameter(name) != null;
+	}
+
 	public StringBuilder getBaseURI() {
 
 		final StringBuilder uriBuilder = new StringBuilder(200);
