@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
@@ -71,7 +70,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final Logger logger = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();
 
-	public static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(1000);	// use LURMap here to avoid infinite growing
@@ -196,42 +194,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		return false;
 	}
 
-//	@Override
-//	public Node cloneNode(final boolean deep) {
-//
-//		if (deep) {
-//
-//			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
-//
-//		} else {
-//
-//			Node node = super.cloneNode(deep);
-//
-//			for (Iterator<PropertyKey> it = getPropertyKeys(htmlView.name()).iterator(); it.hasNext();) {
-//
-//				PropertyKey key = it.next();
-//
-//				// omit system properties (except type), parent/children and page relationships
-//				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
-//					&& !key.equals(GraphObject.id)
-//					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
-//					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
-//					&& !key.equals(DOMElement.syncedNodes)
-//					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
-//
-//					try {
-//						((DOMNode) node).setProperty(key, getProperty(key));
-//					} catch (FrameworkException ex) {
-//						logger.log(Level.WARNING, "Could not set property " + key + " while cloning DOMElement " + this, ex);
-//					}
-//				}
-//			}
-//			return node;
-//
-//		}
-//
-//	}
-
 	@Override
 	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 
@@ -318,10 +280,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 */
 	@Override
 	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
-
-		if (renderContext.hasTimeout(RENDER_TIMEOUT)) {
-			return;
-		}
 
 		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
 			return;

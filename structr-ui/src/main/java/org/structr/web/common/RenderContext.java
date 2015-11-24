@@ -52,7 +52,6 @@ public class RenderContext extends ActionContext {
 
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
-	private final long renderStartTime                 = System.currentTimeMillis();
 	private EditMode editMode                          = EditMode.NONE;
 	private AsyncBuffer buffer                         = new AsyncBuffer();
 	private int depth                                  = 0;
@@ -185,7 +184,7 @@ public class RenderContext extends ActionContext {
 	}
 
 	public void popSecurityContext() {
-		
+
 		if (!scStack.isEmpty()) {
 			this.securityContext = scStack.pop();
 		}
@@ -350,10 +349,6 @@ public class RenderContext extends ActionContext {
 	public boolean returnRawValue() {
 		final EditMode editMode = getEditMode(securityContext.getUser(false));
 		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
-	}
-
-	public boolean hasTimeout(final long timeout) {
-		return System.currentTimeMillis() > (renderStartTime + timeout);
 	}
 
 	@Override
