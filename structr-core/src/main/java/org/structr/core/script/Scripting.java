@@ -19,10 +19,8 @@
 package org.structr.core.script;
 
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -56,7 +54,7 @@ public class Scripting {
 
 			if (!actionContext.returnRawValue()) {
 
-				final Map<String, String> replacements = new LinkedHashMap<>();
+				final List<Tuple> replacements = new LinkedList<>();
 
 				for (final String expression : extractScripts(value)) {
 
@@ -65,7 +63,7 @@ public class Scripting {
 
 					if (partValue != null) {
 
-						replacements.put(expression, partValue);
+						replacements.add(new Tuple(expression, partValue));
 
 					} else {
 
@@ -74,18 +72,16 @@ public class Scripting {
 						// and avoid something like ... selected="" ... which is interpreted as selected==true by
 						// all browsers
 						if (!value.equals(expression)) {
-							replacements.put(expression, "");
+							replacements.add(new Tuple(expression, ""));
 						}
 					}
 				}
 
 				// apply replacements
-				for (final Map.Entry<String, String> entry : replacements.entrySet()) {
+				for (final Tuple tuple : replacements) {
 
-					final String group = entry.getKey();
-					final String replacement = entry.getValue();
-
-					value = value.replace(group, replacement);
+					// only replace a single occurrence at a time!
+					value = StringUtils.replaceOnce(value, tuple.key, tuple.value);
 				}
 			}
 
@@ -312,4 +308,15 @@ public class Scripting {
 
 	}
 
+	// ----- nested classes -----
+	private static class Tuple {
+
+		public String key = null;
+		public String value = null;
+
+		public Tuple(final String key, final String value) {
+			this.key = key;
+			this.value = value;
+		}
+	}
 }
