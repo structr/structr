@@ -94,6 +94,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		commonRequestParameters.add(REQUEST_PARAMETER_OFFSET_ID);
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_KEY);
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_ORDER);
+		commonRequestParameters.add("debugLoggingEnabled");
 
 		// cross reference here, but these need to be added as well..
 		commonRequestParameters.add(SearchCommand.DISTANCE_SEARCH_KEYWORD);
