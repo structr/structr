@@ -686,7 +686,8 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 	@Override
 	public AllowableActions getAllowableActions() {
-		return new StructrFileActions(isImmutable(), getAccessControlEntries(), getSecurityContext().getUser(false).getName());
+
+		return getAllowableActionsHelper();
 	}
 
 	@Override

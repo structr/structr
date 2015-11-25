@@ -98,6 +98,10 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 					// process add ACL entries
 					for (final Ace toAdd : acl.getAces()) {
+
+						//if anonymous gets applied, gets thrown because of not known id?
+						//here is the part to work on for making acl-editor to work properly
+
 						applyAce(node, toAdd, false, aclPropagation);
 					}
 
@@ -167,50 +171,79 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 		final String principalId       = toAdd.getPrincipalId();
 		final List<String> permissions = toAdd.getPermissions();
 
+		if(null != principalId)
+
 		//checks which flag set the user in cmis workbench
 		//no further implementation yet
-		boolean objectOnly;
+		/*boolean objectOnly;
 		if(aclPropagation.value().equals(AclPropagation.REPOSITORYDETERMINED.value())) {
-
-		    objectOnly = false;
+		objectOnly = false;
 		} else if(aclPropagation.value().equals(AclPropagation.OBJECTONLY.value())) {
-
-		    objectOnly = true;
+		objectOnly = true;
 		} else {
+		throw new CmisInvalidArgumentException("Only 'repository determined' and 'objectonly' available.");
+		}*/
+		//!
 
-		    throw new CmisInvalidArgumentException("Only 'repository determined' and 'objectonly' available.");
-		}
+		switch (principalId) {
 
-		final Principal principal = CMISObjectWrapper.translateUsernameToPrincipal(principalId);
-		if (principal != null) {
+			case Principal.ANONYMOUS:
+				//Only allow read-Permission here!!!
+				//Don't accept other flags!!
+				if(permissions.size() == 1 && permissions.get(0).equals("read")) {
 
-			for (final String permissionString : permissions) {
-
-				final Permission permission = Permissions.valueOf(permissionString);
-				if (permission != null) {
-
-					if (revoke) {
-
-						node.revoke(permission, principal);
-
-					} else {
-
-						node.grant(permission, principal);
-					}
+					//set or unset here the visibleToPublicUsers-Flag for the object
 
 				} else {
 
-					throw new CmisInvalidArgumentException("Permission with ID " + permissionString + " does not exist");
+					throw new CmisInvalidArgumentException("'anonymous' and 'anyone' accept only the read permission.");
 				}
-			}
 
-		} else {
+				break;
 
-			throw new CmisObjectNotFoundException("Principal with ID " + principalId + " does not exist");
+			case Principal.ANYONE:
+
+				int stub = 0;
+				break;
+
+			default:
+				applyDefaultAce(principalId, permissions, revoke, node);
+				break;
+
 		}
 
+	}
 
+	private void applyDefaultAce(String principalId, List<String> permissions, boolean revoke, AccessControllable node) throws FrameworkException {
 
+		final Principal principal = CMISObjectWrapper.translateUsernameToPrincipal(principalId);
 
+			if (principal != null) {
+
+				for (final String permissionString : permissions) {
+
+					final Permission permission = Permissions.valueOf(permissionString);
+
+					if (permission != null) {
+
+						if (revoke) {
+
+							node.revoke(permission, principal);
+
+						} else {
+
+							node.grant(permission, principal);
+						}
+
+					} else {
+
+						throw new CmisInvalidArgumentException("Permission with ID " + permissionString + " does not exist");
+					}
+				}
+
+			} else {
+
+				throw new CmisObjectNotFoundException("Principal with ID " + principalId + " does not exist");
+			}
 	}
 }

@@ -61,14 +61,16 @@ public class StructrCMISServicesFactory implements CmisServiceFactory {
 	@Override
 	public CmisService getService(final CallContext cc) {
 
-	    StructrCMISService service = new StructrCMISService(checkAuthentication(cc));
+		//Probably more performant, if Services dont get newly created
+		//all the time? -> see getService() in example CMIS Server-> Threadlocal
+		StructrCMISService service = new StructrCMISService(checkAuthentication(cc));
 
-	    //The wrapper catches invalid CMIS requests and sets default values
-	    //for parameters that have not been provided by the client
-	    ConformanceCmisServiceWrapper wrapperService =
-		new ConformanceCmisServiceWrapper(service, BigInteger.TEN, BigInteger.TEN, BigInteger.ZERO, BigInteger.ZERO);
+		//The wrapper catches invalid CMIS requests and sets default values
+		//for parameters that have not been provided by the client
+		ConformanceCmisServiceWrapper wrapperService =
+			new ConformanceCmisServiceWrapper(service, BigInteger.TEN, BigInteger.TEN, BigInteger.ZERO, BigInteger.ZERO);
 
-	    return wrapperService;
+		return wrapperService;
 	}
 
 	@Override
@@ -107,23 +109,32 @@ public class StructrCMISServicesFactory implements CmisServiceFactory {
 
 		try (final Tx tx = app.tx()) {
 
+			SecurityContext securityContext = null;
 			final String username           = callContext.getUsername();
 			final String password           = callContext.getPassword();
-			final Principal principal       = AuthHelper.getPrincipalForPassword(Principal.name, username, password);
-			SecurityContext securityContext = null;
 
-			if (principal != null) {
+			if(username.isEmpty() && password.isEmpty()) {
 
+				//gets logged in as anonymous
+				securityContext = SecurityContext.getInstance(null, AccessMode.Backend);
 
-				if (principal instanceof SuperUser) {
+			} else {
 
-					securityContext = SecurityContext.getSuperUserInstance();
+				final Principal principal = AuthHelper.getPrincipalForPassword(Principal.name, username, password);
 
-				} else {
-					//! gets automatically accessmode to backend?
-					securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+				if (principal != null) {
+
+					if (principal instanceof SuperUser) {
+
+						securityContext = SecurityContext.getSuperUserInstance();
+
+					} else {
+						//! gets automatically accessmode to backend?
+						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+					}
 				}
 			}
+
 
 			tx.success();
 

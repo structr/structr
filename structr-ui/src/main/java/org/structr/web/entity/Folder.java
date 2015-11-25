@@ -36,7 +36,10 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import static org.structr.core.GraphObject.visibleToAuthenticatedUsers;
+import static org.structr.core.GraphObject.visibleToPublicUsers;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
@@ -203,7 +206,8 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 	@Override
 	public AllowableActions getAllowableActions() {
-		return new StructrFolderActions(getAccessControlEntries(), getSecurityContext().getUser(false).getName());
+
+		return getAllowableActionsHelper();
 	}
 
 	@Override

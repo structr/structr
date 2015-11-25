@@ -1816,6 +1816,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 		}
 
+		//add here the anonymous and anyone information into the ace
+		boolean visibleToAuthUsers = visibleToAuthenticatedUsers.getProperty(securityContext, this, true);
+		boolean visibleToPubUsers = visibleToPublicUsers.getProperty(securityContext, this, true);
+
+		//visibleToPub = true -> Anonymous has ACE Entry: Read
+		//visibleToAuth = true -> Anyone has ACE Entry: Read
+
+		if(visibleToAuthUsers) {
+
+			entries.add(new AceEntry(Principal.ANYONE));
+		}
+
+		if(visibleToPubUsers) {
+
+			entries.add(new AceEntry(Principal.ANONYMOUS));
+		}
+
 		return entries;
 	}
 
@@ -1832,6 +1849,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		 *
 		 * @param security
 		 */
+
+		/**
+		 * Gets called, when an ACE with anyone or anonymous gets created
+		 * @param principalId is "anonymous" or "anyone"
+		 */
+		public AceEntry(String principalId) {
+
+			this.principalId = principalId;
+			permissions.add(Permission.read.name());
+		}
+
 		public AceEntry(final Security security) {
 
 			final Principal principal = security.getSourceNode();

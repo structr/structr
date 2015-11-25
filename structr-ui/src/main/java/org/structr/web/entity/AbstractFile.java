@@ -20,11 +20,16 @@ package org.structr.web.entity;
 
 
 import java.util.List;
+import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import static org.structr.core.GraphObject.visibleToAuthenticatedUsers;
+import static org.structr.core.GraphObject.visibleToPublicUsers;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -32,6 +37,8 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
+import org.structr.files.cmis.config.StructrFileActions;
+import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.web.entity.relation.FileChildren;
 import org.structr.web.entity.relation.FileSiblings;
 import org.structr.web.entity.relation.FolderChildren;
@@ -70,5 +77,38 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	@Override
 	public Class<FileSiblings> getSiblingLinkType() {
 		return FileSiblings.class;
+	}
+
+	/**
+	 * Gets called here to prevent redundant code in FileBase.java and
+	 * Folder.java (and probably later in other subclasses for cmis::item)
+	 * @return -
+	*/
+	protected AllowableActions getAllowableActionsHelper() {
+
+		boolean visibleToAuthUsers = visibleToAuthenticatedUsers.getProperty(securityContext, this, true);
+		boolean visibleToPubUsers = visibleToPublicUsers.getProperty(securityContext, this, true);
+
+		String username = null;
+		Principal user = getSecurityContext().getUser(false);
+
+		//if anonymous user is logged in 'username' stays null
+		if(user != null) {
+
+			username = user.getName();
+		}
+
+		if(this instanceof Folder) {
+
+			return new StructrFolderActions(getAccessControlEntries(), username,
+				visibleToPubUsers, visibleToAuthUsers);
+		} else if(this instanceof FileBase) {
+
+			return new StructrFileActions(getAccessControlEntries(), username,
+				visibleToPubUsers, visibleToAuthUsers);
+		} else {
+
+			return null;
+		}
 	}
 }
