@@ -115,6 +115,10 @@ public class PermissionResolutionMask {
 		return false;
 	}
 
+	public void clear() {
+		value = 0;
+	}
+
 	public boolean allowsProperty(final PropertyKey key) {
 
 		final String name = key.jsonName();

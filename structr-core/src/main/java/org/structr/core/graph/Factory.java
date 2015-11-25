@@ -430,10 +430,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 				} else {
 
-					logger.log(Level.INFO, "Fetched {0} elements for instantiation", rawCount);
 
-					final long t0 = System.currentTimeMillis();
-					threadCount   = 8;
+					final double t0 = System.nanoTime();
+					threadCount     = 8;
 
 					// submit workers, use multithreading
 					for (int i=0; i<threadCount; i++) {
@@ -442,6 +441,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 						worker.setProcessedItems(processedItems);
 						worker.setOverallCount(overallCount);
 						worker.setKeepRunning(keepRunning);
+
+						// first worker logs
+						worker.pleaseLog(i == 0);
 
 						futures.add(service.submit(worker));
 					}
@@ -458,8 +460,10 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 						}
 					}
 
-					final long t1 = System.currentTimeMillis();
-					logger.log(Level.INFO, "Instantiated {0} out of {1} elements in {2} s using {3} threads.", new Object[] { nodes.size(), rawCount, (t1-t0) / 1000, threadCount } );
+					final double t1 = System.nanoTime();
+					if (t1-t0 > 1000000000) {
+						logger.log(Level.INFO, "Instantiated {0} out of {1} elements in {2} s using {3} threads.", new Object[] { nodes.size(), rawCount, (t1-t0) / 1000000000.0, threadCount } );
+					}
 				}
 
 			}
@@ -493,6 +497,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		private AtomicInteger overallCount   = null;
 		private AtomicBoolean keepRunning    = null;
 		private boolean dontCheckCount       = false;
+		private boolean doLogOutput          = false;
 		private int pageSize                 = 0;
 		private int offset                   = 0;
 
@@ -523,6 +528,8 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		private void doRun() {
 
+			final long t0 = System.currentTimeMillis();
+			long t1       = t0;
 			Item<S> item;
 
 			do {
@@ -549,6 +556,13 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 					}
 				}
 
+				// log output if desired
+				if (doLogOutput && System.currentTimeMillis() - t1 > 2000) {
+
+					t1 = System.currentTimeMillis();
+					logger.log(Level.INFO, "Parallel instantiation: checked {0} nodes so far", processedItems.get());
+				}
+
 			} while (item != null && keepRunning.get());
 		}
 
@@ -562,6 +576,10 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		public void setOverallCount(final AtomicInteger overallCount) {
 			this.overallCount = overallCount;
+		}
+
+		public void pleaseLog(final boolean doLogOutput) {
+			this.doLogOutput = doLogOutput;
 		}
 	}
 
