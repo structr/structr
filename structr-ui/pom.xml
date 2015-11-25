@@ -30,7 +30,7 @@
     <properties>
         <netbeans.hint.license>structr-agpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <neo4j.version>2.2.6</neo4j.version>
+        <neo4j.version>2.2.7</neo4j.version>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     </properties>
     <repositories>
