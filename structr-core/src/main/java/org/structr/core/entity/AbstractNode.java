@@ -873,24 +873,60 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private boolean hasEffectivePermissions(final Principal principal, final Permission permission) {
 
+		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
+
 		// don't check relationship propagation if there are no propagating relationships
 		if (SchemaRelationshipNode.getPropagatingRelationshipTypes().isEmpty()) {
 			return false;
 		}
 
+		if (doLog) {
+			System.out.println("Resolving " + permission.name() + " for user " + principal.getName() + " to " + this.getType() + " (" + this.getUuid() + ")");
+		}
+
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
+		PermissionResolutionMask mask          = AccessPathCache.get(principal, this);
 
 		// current path segment has precedence over path based permission resolution mask
 		if (rawPathSegment != null) {
-			return checkPathSegment(permission, relFactory);
+
+			final boolean result = checkPathSegment(principal, permission, relFactory);
+
+			if (doLog) {
+
+				if (result) {
+
+					System.out.println("        " + permission.name() + " ALLOWED by path segment " + rawPathSegment.getType().name());
+
+				} else {
+
+					System.out.println("        " + permission.name() + " DENIED by path segment " + rawPathSegment.getType().name());
+				}
+			}
+
+			if (result) {
+				return true;
+			}
 		}
 
 		// use cached result only when it was already checked for the given permission
-		PermissionResolutionMask mask = AccessPathCache.get(principal, this);
 		if (mask != null && mask.alreadyChecked(permission)) {
 
-			return mask.allowsPermission(permission);
+			final boolean result = mask.allowsPermission(permission);
+
+			if (doLog) {
+				if (result) {
+
+					System.out.println("        " + permission.name() + " ALLOWED by cached mask " + mask);
+
+				} else {
+
+					System.out.println("        " + permission.name() + " DENIED by cached mask " + mask);
+				}
+			}
+
+			return result;
 		}
 
 		try {
@@ -954,12 +990,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 								if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
 
 									if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+
 										mask.clear();
 										arrived = false;
 										break;
 									}
 
 									if (!relDirection.equals(propagationDirection)) {
+
 										mask.clear();
 										arrived = false;
 										break;
@@ -971,11 +1009,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 								// break early
 								if (!mask.allowsPermission(permission)) {
 
+									if (doLog) {
+										System.out.println("        " + permission.name() + " DENIED by " + path);
+									}
+
 									arrived = false;
 									break;
 								}
 
 							} else {
+
+								if (doLog) {
+									System.out.println("        " + permission.name() + " DENIED by " + path);
+								}
 
 								arrived = false;
 								break;
@@ -983,7 +1029,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 						}
 					}
 
+
 					if (arrived && mask.allowsPermission(permission)) {
+
+						if (doLog) {
+							System.out.println("        " + permission.name() + " ALLOWED by " + path);
+						}
+
+						AccessPathCache.put(principal, this, mask);
 						return true;
 					}
 				}
@@ -993,10 +1046,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			t.printStackTrace();
 		}
 
+		mask.clear();
+		AccessPathCache.put(principal, this, mask);
+
 		return false;
 	}
 
-	private boolean checkPathSegment(final Permission permission, final RelationshipFactory relFactory) {
+	private boolean checkPathSegment(final Principal principal, final Permission permission, final RelationshipFactory relFactory) {
 
 		final RelationshipInterface r = relFactory.instantiate(rawPathSegment);
 		if (r instanceof PermissionPropagation) {
@@ -1042,7 +1098,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			applyCurrentStep(propagation, mask);
 
-			return mask.allowsPermission(permission);
+			if (mask.allowsPermission(permission)) {
+
+				mask.setChecked(permission);
+				AccessPathCache.put(principal, this, mask);
+
+				return true;
+			}
 		}
 
 		return false;
