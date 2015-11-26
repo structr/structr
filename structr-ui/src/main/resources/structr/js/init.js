@@ -690,7 +690,7 @@ var Structr = {
 	},
 	errorFromResponse: function(response, url) {
 		var errorText = '';
-        
+
 		if (response.errors && response.errors.length) {
 
 			$.each(response.errors, function(i, err) {
@@ -1684,11 +1684,13 @@ function setPosition(parentId, nodeUrl, pos) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-$(window).unload(function() {
-	log('########################################### unload #####################################################');
-	// Remove dialog data in case of page reload
-	LSWrapper.removeItem(dialogDataKey);
-	Structr.saveLocalStorage();
+$(window).on('unload', function(event) {
+	if (event.target === document) {
+		log('########################################### unload #####################################################');
+		// Remove dialog data in case of page reload
+		LSWrapper.removeItem(dialogDataKey);
+		Structr.saveLocalStorage();
+	}
 });
 
 function showLoadingSpinner() {
