@@ -300,6 +300,7 @@ public class SchemaHelper {
 		try {
 
 			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			
 			if (grant == null) {
 
 				// create new grant
@@ -307,13 +308,20 @@ public class SchemaHelper {
 					new NodeAttribute(DynamicResourceAccess.signature, signature),
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
+			}
 
+			ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, "_schema/" + signature).getFirst();
+			if (schemaGrant == null) {
 				// create additional grant for the _schema resource
 				grants.add(app.create(DynamicResourceAccess.class,
 					new NodeAttribute(DynamicResourceAccess.signature, "_schema/" + signature),
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
+			}
 
+			ResourceAccess uiViewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature + "/_Ui").getFirst();
+			if (uiViewGrant == null) {
+			
 				// create additional grant for the Ui view
 				grants.add(app.create(DynamicResourceAccess.class,
 					new NodeAttribute(DynamicResourceAccess.signature, signature + "/_Ui"),
