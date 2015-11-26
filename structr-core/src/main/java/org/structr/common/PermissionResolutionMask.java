@@ -94,6 +94,59 @@ public class PermissionResolutionMask {
 		return false;
 	}
 
+	public boolean setPermission(final Permission permission, final boolean isAllowed) {
+
+		if (Permission.read.equals(permission)) {
+
+			if (isAllowed) {
+
+				value |= READ;
+
+			} else {
+
+				value &= ~READ;
+			}
+		}
+
+		if (Permission.write.equals(permission)) {
+
+			if (isAllowed) {
+
+				value |= WRITE;
+
+			} else {
+
+				value &= ~WRITE;
+			}
+		}
+
+		if (Permission.delete.equals(permission)) {
+
+			if (isAllowed) {
+
+				value |= DELETE;
+
+			} else {
+
+				value &= ~DELETE;
+			}
+		}
+
+		if (Permission.accessControl.equals(permission)) {
+
+			if (isAllowed) {
+
+				value |= ACCESS_CONTROL;
+
+			} else {
+
+				value &= ~ACCESS_CONTROL;
+			}
+		}
+
+		return false;
+	}
+
 	public boolean allowsPermission(final Permission permission) {
 
 		if (Permission.read.equals(permission)) {
@@ -148,7 +201,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeRead() {
-		value ^= READ;
+		value &= ~READ;
 	}
 
 	public void addWrite() {
@@ -156,7 +209,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeWrite() {
-		value ^= WRITE;
+		value &= ~WRITE;
 	}
 
 	public void addDelete() {
@@ -164,7 +217,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeDelete() {
-		value ^= DELETE;
+		value &= ~DELETE;
 	}
 
 	public void addAccessControl() {
@@ -172,7 +225,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeAccessControl() {
-		value ^= ACCESS_CONTROL;
+		value &= ~ACCESS_CONTROL;
 	}
 
 	public void handleProperties(final String delta) {

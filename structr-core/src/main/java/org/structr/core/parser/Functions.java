@@ -5010,6 +5010,8 @@ public class Functions {
 							if (sources[2] instanceof String) {
 
 								final String[] parts = ((String) sources[2]).split("[,]+");
+								boolean allowed      = true;
+
 								for (final String part : parts) {
 
 									final String trimmedPart = part.trim();
@@ -5018,7 +5020,7 @@ public class Functions {
 										final Permission permission = Permissions.valueOf(trimmedPart);
 										if (permission != null) {
 
-											return node.isGranted(permission, SecurityContext.getInstance(principal, AccessMode.Backend));
+											allowed &= node.isGranted(permission, SecurityContext.getInstance(principal, AccessMode.Backend));
 
 										} else {
 
@@ -5027,7 +5029,7 @@ public class Functions {
 									}
 								}
 
-								return "";
+								return allowed;
 
 							} else {
 
@@ -5052,12 +5054,12 @@ public class Functions {
 
 			@Override
 			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_GRANT_JS : ERROR_MESSAGE_GRANT);
+				return (inJavaScriptContext ? ERROR_MESSAGE_IS_ALLOWED_JS : ERROR_MESSAGE_IS_ALLOWED);
 			}
 
 			@Override
 			public String shortDescription() {
-				return "Grants the given permissions on the given entity to a user";
+				return "Returns whether the principal has all of the permission(s) on the given node.";
 			}
 		});
 		functions.put("unlock_readonly_properties_once", new Function<Object, Object>() {
@@ -5860,7 +5862,7 @@ public class Functions {
 
 	private static int compareNumberString(final Number o1, final String o2) {
 
-		
+
 		final Double value1 = getDoubleForComparison(o1);
 		Double value2;
 		try {
@@ -5871,7 +5873,7 @@ public class Functions {
 		}
 
 		return value1.compareTo(value2);
-		
+
 
 	}
 
@@ -5893,7 +5895,7 @@ public class Functions {
 		if (o1 != null && o2 == null) {
 			return true;
 		}
-		
+
 		if ((o1 == null && o2 != null) || (o1 == null && o2 == null)) {
 			return false;
 		}
@@ -5946,7 +5948,7 @@ public class Functions {
 		if (o1 == null && o2 != null) {
 			return true;
 		}
-		
+
 		if ((o1 != null && o2 == null) || (o1 == null && o2 == null)) {
 			return false;
 		}
@@ -5999,13 +6001,13 @@ public class Functions {
 		if (o1 == null && o2 == null) {
 			return true;
 		}
-		
+
 		if ((o1 == null && o2 != null) || (o1 != null && o2 == null)) {
 			return false;
 		}
-		
+
 		try {
-		
+
 			if (o1 instanceof Number && o2 instanceof Number) {
 
 				return compareNumberNumber(o1, o2) == 0;
@@ -6047,11 +6049,11 @@ public class Functions {
 				return compareStringString(o1.toString(), o2.toString()) == 0;
 
 			}
-			
+
 		} catch (NumberFormatException nfe) {
-			
+
 			return false;
-			
+
 		}
 	}
 

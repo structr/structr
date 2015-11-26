@@ -297,10 +297,15 @@ var Structr = {
 		$('#logout_').html('Logout <span class="username">' + user + '</span>');
 		Structr.loadInitialModule();
 		Structr.startPing();
-		var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
-		//console.log('Dialog data after init', dialogData);
-		if (dialogData) {
-			Structr.restoreDialog(dialogData);
+		
+		if (!dialogText.text().length) {
+			LSWrapper.removeItem(dialogDataKey);
+		} else {
+			var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
+			//console.log('Dialog data after init', dialogData, dialogText.text().length);
+			if (dialogData) {
+				Structr.restoreDialog(dialogData);
+			}
 		}
 		hideLoadingSpinner();
 	},
@@ -690,7 +695,7 @@ var Structr = {
 	},
 	errorFromResponse: function(response, url) {
 		var errorText = '';
-        
+
 		if (response.errors && response.errors.length) {
 
 			$.each(response.errors, function(i, err) {
@@ -1684,11 +1689,13 @@ function setPosition(parentId, nodeUrl, pos) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-$(window).unload(function() {
-	log('########################################### unload #####################################################');
-	// Remove dialog data in case of page reload
-	LSWrapper.removeItem(dialogDataKey);
-	Structr.saveLocalStorage();
+$(window).on('unload', function(event) {
+	if (event.target === document) {
+		log('########################################### unload #####################################################');
+		// Remove dialog data in case of page reload
+		LSWrapper.removeItem(dialogDataKey);
+		Structr.saveLocalStorage();
+	}
 });
 
 function showLoadingSpinner() {
