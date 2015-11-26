@@ -1046,8 +1046,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			t.printStackTrace();
 		}
 
-		// permission is not granted here
-		mask.setPermission(permission, false);
+		mask.clear();
 		AccessPathCache.put(principal, this, mask);
 
 		return false;
@@ -1063,12 +1062,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			final long thisId                                           = getId();
 			final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.In : SchemaRelationshipNode.Direction.Out;
 			final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
-			PermissionResolutionMask mask                               = AccessPathCache.get(principal, this);
-
-			// create new
-			if (mask == null) {
-				mask = new PermissionResolutionMask();
-			}
+			final PermissionResolutionMask mask                         = new PermissionResolutionMask();
 
 			// check propagation direction
 			if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
@@ -1083,9 +1077,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 			// we can safely assume here that we arrived at this node with
-			// the given permission, because otherwise the node would not
+			// the read permission, because otherwise the node would not
 			// have been visible.
-			mask.setPermission(permission, true);
+			mask.setPermission(Permission.read, true);
 
 			// apply current
 			applyCurrentStep(propagation, mask);
