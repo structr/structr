@@ -950,7 +950,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			params.put("id2", this.getId());
 
 			// FIXME: make fixed path length of 8 configurable
-			for (int i=1; i<8; i++) {
+			for (int i=1; i<10; i++) {
 
 				final String query  = "MATCH n, m, p = allShortestPaths(n-[" + relTypes + "*.." + i + "]-m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
 				final Result result = db.execute(query, params);
@@ -1046,7 +1046,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			t.printStackTrace();
 		}
 
-		mask.clear();
+		// permission is not granted here
+		mask.setPermission(permission, false);
 		AccessPathCache.put(principal, this, mask);
 
 		return false;
@@ -1062,7 +1063,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			final long thisId                                           = getId();
 			final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.In : SchemaRelationshipNode.Direction.Out;
 			final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
-			final PermissionResolutionMask mask                         = new PermissionResolutionMask();
+			PermissionResolutionMask mask                               = AccessPathCache.get(principal, this);
+
+			// create new
+			if (mask == null) {
+				mask = new PermissionResolutionMask();
+			}
 
 			// check propagation direction
 			if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
@@ -1076,26 +1082,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				}
 			}
 
-			// if we arrived here with read, read was allowed
-			if (permission.equals(Permission.read)) {
-				mask.addRead();
-			}
+			// we can safely assume here that we arrived at this node with
+			// the given permission, because otherwise the node would not
+			// have been visible.
+			mask.setPermission(permission, true);
 
-			// if we arrived here with write, write was allowed
-			if (permission.equals(Permission.write)) {
-				mask.addWrite();
-			}
-
-			// if we arrived here with delete, delete was allowed
-			if (permission.equals(Permission.delete)) {
-				mask.addDelete();
-			}
-
-			// if we arrived here with read, read was allowed
-			if (permission.equals(Permission.accessControl)) {
-				mask.addAccessControl();
-			}
-
+			// apply current
 			applyCurrentStep(propagation, mask);
 
 			if (mask.allowsPermission(permission)) {
