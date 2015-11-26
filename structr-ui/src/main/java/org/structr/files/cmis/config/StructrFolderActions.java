@@ -30,9 +30,9 @@ import org.apache.chemistry.opencmis.commons.enums.Action;
 
 public class StructrFolderActions extends AbstractStructrActions {
 
-	public StructrFolderActions(List<Ace> aces, String username, boolean visibleToPubUsers, boolean visibleToAuthUsers) {
+	public StructrFolderActions(List<Ace> aces, String username) {
 
-	    super(aces, username, visibleToPubUsers, visibleToAuthUsers);
+	    super(aces, username);
 	}
 
 	@Override

@@ -20,14 +20,11 @@ package org.structr.web.entity;
 
 
 import java.util.List;
-import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import static org.structr.core.GraphObject.visibleToAuthenticatedUsers;
-import static org.structr.core.GraphObject.visibleToPublicUsers;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.BooleanProperty;
@@ -86,26 +83,24 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	*/
 	protected AllowableActions getAllowableActionsHelper() {
 
-		boolean visibleToAuthUsers = visibleToAuthenticatedUsers.getProperty(securityContext, this, true);
-		boolean visibleToPubUsers = visibleToPublicUsers.getProperty(securityContext, this, true);
-
 		String username = null;
 		Principal user = getSecurityContext().getUser(false);
 
-		//if anonymous user is logged in 'username' stays null
-		if(user != null) {
+		//if anonymous user is logged in 'user' is null
+		if(user == null) {
+
+			username = Principal.ANONYMOUS;
+		} else {
 
 			username = user.getName();
 		}
 
 		if(this instanceof Folder) {
 
-			return new StructrFolderActions(getAccessControlEntries(), username,
-				visibleToPubUsers, visibleToAuthUsers);
+			return new StructrFolderActions(getAccessControlEntries(), username);
 		} else if(this instanceof FileBase) {
 
-			return new StructrFileActions(getAccessControlEntries(), username,
-				visibleToPubUsers, visibleToAuthUsers);
+			return new StructrFileActions(getAccessControlEntries(), username);
 		} else {
 
 			return null;

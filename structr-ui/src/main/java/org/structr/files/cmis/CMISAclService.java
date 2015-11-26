@@ -87,22 +87,21 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject obj = app.get(objectId);
-			if (obj != null) {
+			final GraphObject graphNode = app.get(objectId);
+			if (graphNode != null) {
 
-				if (obj instanceof AbstractNode) {
+				if (graphNode instanceof AbstractNode) {
 
-					final AbstractNode node = (AbstractNode)obj;
+					final AbstractNode node = (AbstractNode)graphNode;
 
+					graphNode.setProperty(GraphObject.visibleToAuthenticatedUsers, false);
+					graphNode.setProperty(GraphObject.visibleToPublicUsers, false);
 					node.revokeAll();
 
 					// process add ACL entries
 					for (final Ace toAdd : acl.getAces()) {
 
-						//if anonymous gets applied, gets thrown because of not known id?
-						//here is the part to work on for making acl-editor to work properly
-
-						applyAce(node, toAdd, false, aclPropagation);
+						applyAce(graphNode, toAdd, false, aclPropagation);
 					}
 
 				} else {
@@ -114,7 +113,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			tx.success();
 
 			// return the wrapper which implements the Acl interface
-			return CMISObjectWrapper.wrap(obj, null, false, true);
+			return CMISObjectWrapper.wrap(graphNode, null, false, true);
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -130,33 +129,33 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject obj = app.get(objectId);
-			if (obj != null) {
+			final GraphObject graphNode = app.get(objectId);
 
-				if (obj instanceof AccessControllable) {
+			if (graphNode != null) {
 
-					final AccessControllable node = (AccessControllable)obj;
+				if (graphNode instanceof AbstractNode) {
 
 					// process remove ACL entries first
 					for (final Ace toRemove : removeAces.getAces()) {
-						applyAce( node, toRemove, true, aclPropagation);
+						applyAce(graphNode, toRemove, true, aclPropagation);
 					}
 
 					// process add ACL entries
 					for (final Ace toAdd : addAces.getAces()) {
-						applyAce(node, toAdd, false, aclPropagation);
+						applyAce(graphNode, toAdd, false, aclPropagation);
 					}
 
 				} else {
 
 					throw new CmisInvalidArgumentException("Object with ID " + objectId + " is not access controllable");
 				}
+
 			}
 
 			tx.success();
 
 			// return the wrapper which implements the Acl interface
-			return CMISObjectWrapper.wrap(obj, null, false, true);
+			return CMISObjectWrapper.wrap(graphNode, null, false, true);
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -166,14 +165,12 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 	}
 
 	// ----- private methods -----
-	private void applyAce(final AccessControllable node, final Ace toAdd, final boolean revoke, final AclPropagation aclPropagation) throws FrameworkException {
+	private void applyAce(final GraphObject graphNode, final Ace toAdd, final boolean revoke, final AclPropagation aclPropagation) throws FrameworkException {
 
 		final String principalId       = toAdd.getPrincipalId();
 		final List<String> permissions = toAdd.getPermissions();
 
-		if(null != principalId)
-
-		//checks which flag set the user in cmis workbench
+		//checks which flag sets the user in the acl editor
 		//no further implementation yet
 		/*boolean objectOnly;
 		if(aclPropagation.value().equals(AclPropagation.REPOSITORYDETERMINED.value())) {
@@ -188,11 +185,18 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 		switch (principalId) {
 
 			case Principal.ANONYMOUS:
+
 				//Only allow read-Permission here!!!
 				//Don't accept other flags!!
 				if(permissions.size() == 1 && permissions.get(0).equals("read")) {
 
-					//set or unset here the visibleToPublicUsers-Flag for the object
+					if(revoke) {
+
+						graphNode.setProperty(GraphObject.visibleToPublicUsers, false);
+					} else {
+
+						graphNode.setProperty(GraphObject.visibleToPublicUsers, true);
+					}
 
 				} else {
 
@@ -203,13 +207,30 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 			case Principal.ANYONE:
 
-				int stub = 0;
+				//Only allow read-Permission here!!!
+				//Don't accept other flags!!
+				if(permissions.size() == 1 && permissions.get(0).equals("read")) {
+
+					if(revoke) {
+
+						graphNode.setProperty(GraphObject.visibleToAuthenticatedUsers, false);
+					} else {
+
+						graphNode.setProperty(GraphObject.visibleToAuthenticatedUsers, true);
+					}
+
+				} else {
+
+					throw new CmisInvalidArgumentException("'anonymous' and 'anyone' accept only the read permission.");
+				}
+
 				break;
 
 			default:
+
+				final AccessControllable node = (AccessControllable)graphNode;
 				applyDefaultAce(principalId, permissions, revoke, node);
 				break;
-
 		}
 
 	}

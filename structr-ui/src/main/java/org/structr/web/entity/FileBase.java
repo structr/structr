@@ -62,7 +62,6 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.files.text.FulltextIndexingTask;
 import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;

@@ -39,6 +39,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
 import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServiceWrapper;
+import org.structr.web.entity.User;
 
 /**
  *
@@ -129,8 +130,14 @@ public class StructrCMISServicesFactory implements CmisServiceFactory {
 						securityContext = SecurityContext.getSuperUserInstance();
 
 					} else {
-						//! gets automatically accessmode to backend?
-						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+
+						Boolean isBackendUser = principal.getProperty(User.backendUser);
+						Boolean isAdmin	      = principal.getProperty(Principal.isAdmin);
+
+						if(isBackendUser || isAdmin) {
+
+							securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+						}
 					}
 				}
 			}

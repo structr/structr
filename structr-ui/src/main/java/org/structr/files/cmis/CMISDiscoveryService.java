@@ -26,7 +26,6 @@ import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.spi.DiscoveryService;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.structr.common.SecurityContext;
-import org.structr.files.cmis.wrapper.CMISObjectListWrapper;
 
 /**
  *

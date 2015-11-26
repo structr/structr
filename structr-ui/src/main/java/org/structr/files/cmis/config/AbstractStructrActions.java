@@ -39,51 +39,55 @@ public abstract class AbstractStructrActions extends CMISExtensionsData implemen
 
     protected final Set<Action> actions = new LinkedHashSet<>();
 
-    public AbstractStructrActions(List <Ace> aces, String username, boolean visibleToPubUsers, boolean visibleToAuthUsers) {
+    public AbstractStructrActions(List <Ace> aces, String username) {
 
-	if(username == null) {
+	//represents the two flags, which are also used in the Structr filesystem
+	boolean visibleToPublic = false;
+	boolean visibleToAuth = false;
 
-		//anonymous user logged in!
-		if(visibleToPubUsers) {
+	List<String> permissions = null;
+	boolean readFlag = false;
 
-			setReadPermissions();
+	for(Ace ace : aces) {
+
+		Principal p = ace.getPrincipal(); //Principal from CMIS Framework
+
+		if(p.getId().equals(org.structr.core.entity.Principal.ANONYMOUS)) {
+
+			visibleToPublic = true;
 		}
 
-	} else {
+		if(p.getId().equals(org.structr.core.entity.Principal.ANYONE)) {
 
-		List<String> permissions = null;
-		boolean readFlag = false;
+			visibleToAuth = true;
+		}
 
-		for(Ace ace : aces) {
+		if(username.equals(p.getId())) {
 
-			Principal p = ace.getPrincipal(); //Principal from CMIS Framework
+			permissions = ace.getPermissions();
+		}
+	}
 
-			if(username.equals(p.getId())) {
+	if(permissions != null) {
 
-				permissions = ace.getPermissions();
-				break;
+		for(String pm : permissions) {
+			switch (pm) {
+
+				case "read": { setReadPermissions(); readFlag = true; break; }
+				case "write": { setWritePermissions(); break; }
+				case "delete": { setDeletePermissions(); break; }
+				case "accessControl": { setAccessControlPermissions(); break; }
+				default: throw new CmisInvalidArgumentException("A problem occured setting allowable actions.");
 			}
 		}
+	}
 
-		if(permissions != null) {
+	//readFlag is false, if the current user doesn't have any
+	//individual read-rights
+	if(!readFlag) {
 
-			for(String pm : permissions) {
-				switch (pm) {
-
-					case "read": { setReadPermissions(); readFlag = true; break; }
-					case "write": { setWritePermissions(); break; }
-					case "delete": { setDeletePermissions(); break; }
-					case "accessControl": { setAccessControlPermissions(); break; }
-					default: throw new CmisInvalidArgumentException("A problem occured setting allowable actions.");
-				}
-			}
-		}
-
-		//if the accessControl-read-Flag is NOT set
-		//AND
-		//if visibleToPubUsers-flag OR visibleToAuthUsers-flag is true,
-		//set readPermissions for the auth user
-		if(!readFlag && (visibleToPubUsers || visibleToAuthUsers)) {
+		//check if any visible-flag is set instead
+		if(visibleToAuth || visibleToPublic) {
 
 			setReadPermissions();
 		}
