@@ -104,7 +104,7 @@ public class PermissionResolutionMask {
 
 			} else {
 
-				value ^= READ;
+				value &= ~READ;
 			}
 		}
 
@@ -116,7 +116,7 @@ public class PermissionResolutionMask {
 
 			} else {
 
-				value ^= WRITE;
+				value &= ~WRITE;
 			}
 		}
 
@@ -128,7 +128,7 @@ public class PermissionResolutionMask {
 
 			} else {
 
-				value ^= DELETE;
+				value &= ~DELETE;
 			}
 		}
 
@@ -140,7 +140,7 @@ public class PermissionResolutionMask {
 
 			} else {
 
-				value ^= ACCESS_CONTROL;
+				value &= ~ACCESS_CONTROL;
 			}
 		}
 
@@ -201,7 +201,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeRead() {
-		value ^= READ;
+		value &= ~READ;
 	}
 
 	public void addWrite() {
@@ -209,7 +209,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeWrite() {
-		value ^= WRITE;
+		value &= ~WRITE;
 	}
 
 	public void addDelete() {
@@ -217,7 +217,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeDelete() {
-		value ^= DELETE;
+		value &= ~DELETE;
 	}
 
 	public void addAccessControl() {
@@ -225,7 +225,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeAccessControl() {
-		value ^= ACCESS_CONTROL;
+		value &= ~ACCESS_CONTROL;
 	}
 
 	public void handleProperties(final String delta) {

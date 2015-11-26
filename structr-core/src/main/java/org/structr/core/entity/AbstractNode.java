@@ -881,7 +881,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		if (doLog) {
-			System.out.println("Resolving " + permission.name() + " for user " + principal.getName() + " to " + this.getType() + " (" + this.getUuid() + ")");
+			System.out.println("\n#######################################################\nResolving " + permission.name() + " for user " + principal.getName() + " to " + this.getType() + " (" + this.getUuid() + ")");
 		}
 
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
@@ -936,6 +936,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				// store only a single mask for every node
 				mask = new PermissionResolutionMask();
 				AccessPathCache.put(principal, this, mask);
+
+				if (doLog) {
+					System.out.println("        Storing initial mask: " + mask);
+				}
 			}
 
 			// store all check attempts in the cache
@@ -1034,9 +1038,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 						if (doLog) {
 							System.out.println("        " + permission.name() + " ALLOWED by " + path);
+							System.out.println("        Storing mask from path: " + mask);
 						}
 
 						AccessPathCache.put(principal, this, mask);
+
 						return true;
 					}
 				}
@@ -1046,14 +1052,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			t.printStackTrace();
 		}
 
-		mask.clear();
+		mask.setPermission(permission, false);
 		AccessPathCache.put(principal, this, mask);
+
+		if (doLog) {
+			System.out.println("        Storing mask from unsuccessful path: " + mask);
+		}
 
 		return false;
 	}
 
 	private boolean checkPathSegment(final Principal principal, final Permission permission, final RelationshipFactory relFactory) {
 
+		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
 		final RelationshipInterface r = relFactory.instantiate(rawPathSegment);
 		if (r instanceof PermissionPropagation) {
 
@@ -1089,6 +1100,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				mask.setChecked(permission);
 				AccessPathCache.put(principal, this, mask);
 
+				if (doLog) {
+					System.out.println("Storing mask from path segment: " + mask);
+				}
+
 				return true;
 			}
 		}
@@ -1098,27 +1113,61 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private void applyCurrentStep(final PermissionPropagation rel, PermissionResolutionMask mask) {
 
+		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
+
 		switch (rel.getReadPropagation()) {
-			case Add:    mask.addRead(); break;
-			case Remove: mask.removeRead(); break;
+			case Add:
+				mask.addRead();
+				if (doLog) { System.out.println("                add read"); }
+				break;
+
+			case Remove:
+				mask.removeRead();
+				if (doLog) { System.out.println("                remove read"); }
+				break;
+
 			default: break;
 		}
 
 		switch (rel.getWritePropagation()) {
-			case Add:    mask.addWrite(); break;
-			case Remove: mask.removeWrite(); break;
+			case Add:
+				mask.addWrite();
+				if (doLog) { System.out.println("                add write"); }
+				break;
+
+			case Remove:
+				mask.removeWrite();
+				if (doLog) { System.out.println("                remove write"); }
+				break;
+
 			default: break;
 		}
 
 		switch (rel.getDeletePropagation()) {
-			case Add:    mask.addDelete(); break;
-			case Remove: mask.removeDelete(); break;
+			case Add:
+				mask.addDelete();
+				if (doLog) { System.out.println("                add delete"); }
+				break;
+
+			case Remove:
+				mask.removeDelete();
+				if (doLog) { System.out.println("                remove delete"); }
+				break;
+
 			default: break;
 		}
 
 		switch (rel.getAccessControlPropagation()) {
-			case Add:    mask.addAccessControl(); break;
-			case Remove: mask.removeAccessControl(); break;
+			case Add:
+				mask.addAccessControl();
+				if (doLog) { System.out.println("                add accessControl"); }
+				break;
+
+			case Remove:
+				mask.removeAccessControl();
+				if (doLog) { System.out.println("                remove accessControl"); }
+				break;
+
 			default: break;
 		}
 
