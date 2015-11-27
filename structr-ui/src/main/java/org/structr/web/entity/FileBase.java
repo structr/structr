@@ -54,7 +54,6 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
@@ -74,13 +73,10 @@ import org.structr.web.entity.relation.Folders;
  *
  *
  */
-public class FileBase extends AbstractFile implements Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo {
+public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo {
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
-	public static final Property<String> indexedContent          = new StringProperty("indexedContent").indexed(NodeService.NodeIndex.fulltext);
-	public static final Property<String> extractedContent        = new StringProperty("extractedContent");
-	public static final Property<String> indexedWords            = new StringProperty("indexedWords");
 	public static final Property<String> contentType             = new StringProperty("contentType").indexedWhenEmpty();
 	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").readOnly();
 	public static final Property<Long> size                      = new LongProperty("size").indexed().readOnly();
@@ -371,34 +367,6 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		return null;
 	}
 
-	private int flushWordBuffer(final StringBuilder lineBuffer, final StringBuilder wordBuffer, final boolean prepend) {
-
-		int wordCount = 0;
-
-		if (wordBuffer.length() > 0) {
-
-			final String word = wordBuffer.toString().replaceAll("[\\n\\t]+", " ");
-			if (StringUtils.isNotBlank(word)) {
-
-				if (prepend) {
-
-					lineBuffer.insert(0, word);
-
-				} else {
-
-					lineBuffer.append(word);
-				}
-
-				// increase word count
-				wordCount = 1;
-			}
-
-			wordBuffer.setLength(0);
-		}
-
-		return wordCount;
-	}
-
 	public void notifyUploadCompletion() {
 		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
 	}
@@ -415,12 +383,14 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 	}
 
+	@Override
 	public String getContentType() {
 
 		return getProperty(FileBase.contentType);
 
 	}
 
+	@Override
 	public Long getSize() {
 
 		return getProperty(size);
@@ -462,6 +432,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		}
 	}
 
+	@Override
 	public InputStream getInputStream() {
 
 		final String path = getRelativeFilePath();
@@ -608,6 +579,34 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		}
 
 		return workingOrHomeDir;
+	}
+
+	private int flushWordBuffer(final StringBuilder lineBuffer, final StringBuilder wordBuffer, final boolean prepend) {
+
+		int wordCount = 0;
+
+		if (wordBuffer.length() > 0) {
+
+			final String word = wordBuffer.toString().replaceAll("[\\n\\t]+", " ");
+			if (StringUtils.isNotBlank(word)) {
+
+				if (prepend) {
+
+					lineBuffer.insert(0, word);
+
+				} else {
+
+					lineBuffer.append(word);
+				}
+
+				// increase word count
+				wordCount = 1;
+			}
+
+			wordBuffer.setLength(0);
+		}
+
+		return wordCount;
 	}
 
 	// ----- interface Syncable -----

@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
@@ -40,7 +40,7 @@ import org.structr.core.graph.Tx;
  *
  *
  */
-public abstract class Agent<T extends AbstractNode> extends Thread implements StatusInfo {
+public abstract class Agent<T extends NodeInterface> extends Thread implements StatusInfo {
 
 	public static final String AVERAGE_EXECUTION_TIME = "average_execution_time";
 	public static final String EXECUTION_STATUS       = "execution_status";
