@@ -21,15 +21,15 @@ package org.structr.agent;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Delayed;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * A task that an {@link Agent} can operate on.
 
  *
  */
-public interface Task<T extends AbstractNode> extends Delayed, StatusInfo {
+public interface Task<T extends NodeInterface> extends Delayed, StatusInfo {
 
     /**
      * Principal to process the task as
