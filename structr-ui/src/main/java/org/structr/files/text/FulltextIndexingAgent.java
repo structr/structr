@@ -47,24 +47,25 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.FileBase;
 import static org.structr.web.entity.FileBase.extractedContent;
+import org.structr.web.entity.Indexable;
 import org.structr.web.entity.User;
 
 /**
  *
  *
  */
-public class FulltextIndexingAgent extends Agent<FileBase> {
+public class FulltextIndexingAgent extends Agent<Indexable> {
 
 	private static final Logger logger = Logger.getLogger(FulltextIndexingAgent.class.getName());
 	private static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
 	public static final String TASK_NAME                              = "FulltextIndexing";
 
 	@Override
-	public ReturnValue processTask(final Task<FileBase> task) throws Throwable {
+	public ReturnValue processTask(final Task<Indexable> task) throws Throwable {
 
 		if (TASK_NAME.equals(task.getType())) {
 
-			for (final FileBase file : task.getNodes()) {
+			for (final Indexable file : task.getNodes()) {
 
 				doIndexing(file);
 			}
@@ -87,7 +88,7 @@ public class FulltextIndexingAgent extends Agent<FileBase> {
 	}
 
 	// ----- private methods -----
-	private void doIndexing(final FileBase file) {
+	private void doIndexing(final Indexable file) {
 
 		boolean parsingSuccessful         = false;
 		InputStream inputStream           = null;

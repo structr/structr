@@ -25,14 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
  *
  */
-public class AbstractTask<T extends AbstractNode> implements Task<T> {
+public class AbstractTask<T extends NodeInterface> implements Task<T> {
 
 	private final Map<String, Object> statusProperties = new LinkedHashMap<>();
 	private final List<T> nodes                        = new LinkedList<>();

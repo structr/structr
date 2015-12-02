@@ -192,7 +192,11 @@ public class GraphObjectModificationState implements ModificationEvent {
 			}
 		}
 
-		updateCache();
+		// only update cache if key, prev and new values are null
+		// because that's when a relationship has been created / removed
+		if (key == null && previousValue == null && newValue == null) {
+			updateCache();
+		}
 	}
 
 	public void delete(boolean passive) {

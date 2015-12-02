@@ -247,6 +247,16 @@ public class Importer {
 	}
 
 	// ----- public static methods -----
+	public static HttpClient getHttpClient() {
+
+		final HttpClient client = new HttpClient();
+
+		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
+		client.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
+
+		return client;
+	}
+
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
 
 		return parsePageFromSource(securityContext, source, name, false);
@@ -916,13 +926,4 @@ public class Importer {
 		}
 	}
 
-	private HttpClient getHttpClient() {
-
-		final HttpClient client = new HttpClient();
-
-		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-		client.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
-
-		return client;
-	}
 }

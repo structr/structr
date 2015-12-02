@@ -49,7 +49,8 @@ public class DefaultResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("public"),		ViewFilterResource.class);		// public view (default)
 
 		resourceMap.put(Pattern.compile("log"),			LogResource.class);			// log resource
-
+		resourceMap.put(Pattern.compile("resolver"),		EntityResolverResource.class);		// resolves [] of UUIDs to complete result
+		
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterResource.class);	// maintenance parameter
 
 		resourceMap.put(Pattern.compile("_schema"),		SchemaResource.class);			// special resource for schema information
