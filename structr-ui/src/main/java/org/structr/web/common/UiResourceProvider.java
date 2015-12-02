@@ -70,6 +70,7 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile(PropertyView.Html), ViewFilterResource.class);        // html attributes view
 
 		resourceMap.put(Pattern.compile("log"), LogResource.class);                           // log resource
+		resourceMap.put(Pattern.compile("resolver"), EntityResolverResource.class);		// resolves [] of UUIDs to complete result
 
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"), MaintenanceParameterResource.class);    // maintenance parameter
 		resourceMap.put(Pattern.compile("[0-9]+"), UuidResource.class);                       // this matches the ID resource
