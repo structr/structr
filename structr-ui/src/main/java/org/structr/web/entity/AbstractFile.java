@@ -84,6 +84,8 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	protected AllowableActions getAllowableActionsHelper() {
 
 		String username = null;
+		boolean isAdmin = false;
+		boolean isOwner = false;
 		Principal user = getSecurityContext().getUser(false);
 
 		//if anonymous user is logged in 'user' is null
@@ -93,14 +95,25 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		} else {
 
 			username = user.getName();
+			isAdmin = user.getProperty(Principal.isAdmin);
+
+			Principal ownerOfNode = getProperty(owner);
+
+			if(ownerOfNode != null) {
+
+				if(ownerOfNode.getName().equals(username)) {
+
+					isOwner = true;
+				}
+			}
 		}
 
 		if(this instanceof Folder) {
 
-			return new StructrFolderActions(getAccessControlEntries(), username);
+			return new StructrFolderActions(getAccessControlEntries(), username, isAdmin, isOwner);
 		} else if(this instanceof FileBase) {
 
-			return new StructrFileActions(getAccessControlEntries(), username);
+			return new StructrFileActions(getAccessControlEntries(), username, isAdmin, isOwner);
 		} else {
 
 			return null;

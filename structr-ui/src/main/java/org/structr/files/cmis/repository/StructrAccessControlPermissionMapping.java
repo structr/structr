@@ -47,7 +47,7 @@ public class StructrAccessControlPermissionMapping extends CMISExtensionsData im
 		//permissions.add(PermissionMapping.CAN_GET_FOLDER_PARENT_OBJECT);
 		//permissions.add(PermissionMapping.CAN_CREATE_DOCUMENT_FOLDER);
 		//permissions.add(PermissionMapping.CAN_CREATE_FOLDER_FOLDER);
-		permissions.add(PermissionMapping.CAN_CREATE_POLICY_FOLDER);
+		//permissions.add(PermissionMapping.CAN_CREATE_POLICY_FOLDER);
 		permissions.add(PermissionMapping.CAN_CREATE_RELATIONSHIP_SOURCE);
 		permissions.add(PermissionMapping.CAN_CREATE_RELATIONSHIP_TARGET);
 		//permissions.add(PermissionMapping.CAN_GET_PROPERTIES_OBJECT);
@@ -69,11 +69,11 @@ public class StructrAccessControlPermissionMapping extends CMISExtensionsData im
 		//permissions.add(PermissionMapping.CAN_CHECKIN_DOCUMENT);
 		//permissions.add(PermissionMapping.CAN_GET_ALL_VERSIONS_VERSION_SERIES);
 		//permissions.add(PermissionMapping.CAN_GET_OBJECT_RELATIONSHIPS_OBJECT);
-		permissions.add(PermissionMapping.CAN_ADD_POLICY_OBJECT);
-		permissions.add(PermissionMapping.CAN_ADD_POLICY_POLICY);
-		permissions.add(PermissionMapping.CAN_REMOVE_POLICY_OBJECT);
-		permissions.add(PermissionMapping.CAN_REMOVE_POLICY_POLICY);
-		permissions.add(PermissionMapping.CAN_GET_APPLIED_POLICIES_OBJECT);
+		//permissions.add(PermissionMapping.CAN_ADD_POLICY_OBJECT);
+		//permissions.add(PermissionMapping.CAN_ADD_POLICY_POLICY);
+		//permissions.add(PermissionMapping.CAN_REMOVE_POLICY_OBJECT);
+		//permissions.add(PermissionMapping.CAN_REMOVE_POLICY_POLICY);
+		//permissions.add(PermissionMapping.CAN_GET_APPLIED_POLICIES_OBJECT);
 		permissions.add(PermissionMapping.CAN_GET_ACL_OBJECT);
 		permissions.add(PermissionMapping.CAN_APPLY_ACL_OBJECT);
 

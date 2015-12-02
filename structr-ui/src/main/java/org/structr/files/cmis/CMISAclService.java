@@ -83,6 +83,8 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 	 */
 	public Acl applyAcl(final String repositoryId, final String objectId, final Acl acl, final AclPropagation aclPropagation) {
 
+		checkMacro(acl);
+
 		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
@@ -124,6 +126,9 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 	@Override
 	public Acl applyAcl(final String repositoryId, final String objectId, final Acl addAces, final Acl removeAces, final AclPropagation aclPropagation, final ExtensionsData extension) {
+
+		checkMacro(addAces);
+		checkMacro(removeAces);
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -167,8 +172,8 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 	// ----- private methods -----
 	private void applyAce(final GraphObject graphNode, final Ace toAdd, final boolean revoke, final AclPropagation aclPropagation) throws FrameworkException {
 
-		final String principalId       = toAdd.getPrincipalId();
-		final List<String> permissions = toAdd.getPermissions();
+		final String principalId	        = toAdd.getPrincipalId();
+		final List<String> permissions		= toAdd.getPermissions();
 
 		//checks which flag sets the user in the acl editor
 		//no further implementation yet
@@ -188,7 +193,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 				//Only allow read-Permission here!!!
 				//Don't accept other flags!!
-				if(permissions.size() == 1 && permissions.get(0).equals("read")) {
+				if(permissions.size() == 1 && permissions.get(0).equals(Permission.read.name())) {
 
 					if(revoke) {
 
@@ -209,7 +214,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 				//Only allow read-Permission here!!!
 				//Don't accept other flags!!
-				if(permissions.size() == 1 && permissions.get(0).equals("read")) {
+				if(permissions.size() == 1 && permissions.get(0).equals(Permission.read.name())) {
 
 					if(revoke) {
 
@@ -266,5 +271,26 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 				throw new CmisObjectNotFoundException("Principal with ID " + principalId + " does not exist");
 			}
+	}
+
+	/**
+	* "The CMIS specification also defines the principal ID cmis:user . Repositories
+	* that support this macro replace this principal ID with the principal ID
+	* of the current user when an ACL is applied."
+	* Didn't find a way to disable the macro yet. Implementing it complicates
+	* things only.
+	* The function checks, if Macro was chosen by user and throw a exception.
+	*/
+	private void checkMacro(final Acl acl) {
+
+		for (final Ace ace : acl.getAces()) {
+
+			String principalId = ace.getPrincipalId();
+
+			if(principalId.equals("cmis:user")) {
+
+				throw new CmisInvalidArgumentException("This macro is not supported in Structr. Use your login name as principal instead");
+			}
+		}
 	}
 }

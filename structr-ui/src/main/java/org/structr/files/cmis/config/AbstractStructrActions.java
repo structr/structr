@@ -27,6 +27,7 @@ import org.apache.chemistry.opencmis.commons.data.Principal;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.structr.cmis.common.CMISExtensionsData;
+import org.structr.common.Permission;
 
 /**
  * Abstract class which maps allowable actions to specific objects like
@@ -39,7 +40,22 @@ public abstract class AbstractStructrActions extends CMISExtensionsData implemen
 
     protected final Set<Action> actions = new LinkedHashSet<>();
 
-    public AbstractStructrActions(List <Ace> aces, String username) {
+    public AbstractStructrActions(List <Ace> aces, String username, boolean isAdmin, boolean IsOwner) {
+
+	//Set instantly all permissions
+	if(isAdmin || IsOwner) {
+
+		setReadPermissions();
+		setWritePermissions();
+		setDeletePermissions();
+		setAccessControlPermissions();
+	} else {
+
+		setPermissionsForUser(aces, username);
+	}
+    }
+
+    private void setPermissionsForUser(List <Ace> aces, String username) {
 
 	//represents the two flags, which are also used in the Structr filesystem
 	boolean visibleToPublic = false;
@@ -71,13 +87,22 @@ public abstract class AbstractStructrActions extends CMISExtensionsData implemen
 	if(permissions != null) {
 
 		for(String pm : permissions) {
-			switch (pm) {
 
-				case "read": { setReadPermissions(); readFlag = true; break; }
-				case "write": { setWritePermissions(); break; }
-				case "delete": { setDeletePermissions(); break; }
-				case "accessControl": { setAccessControlPermissions(); break; }
-				default: throw new CmisInvalidArgumentException("A problem occured setting allowable actions.");
+			if(pm.equals(Permission.read.name())) {
+
+				setReadPermissions(); readFlag = true;
+			} else if(pm.equals(Permission.write.name())) {
+
+				setWritePermissions();
+			} else if(pm.equals(Permission.delete.name())) {
+
+				setDeletePermissions();
+			} else if(pm.equals(Permission.accessControl.name())) {
+
+				setAccessControlPermissions();
+			} else {
+
+				throw new CmisInvalidArgumentException("A problem occured setting allowable actions.");
 			}
 		}
 	}

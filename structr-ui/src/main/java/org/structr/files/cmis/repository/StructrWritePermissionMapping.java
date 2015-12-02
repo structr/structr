@@ -47,7 +47,7 @@ public class StructrWritePermissionMapping extends CMISExtensionsData implements
 		//permissions.add(PermissionMapping.CAN_GET_FOLDER_PARENT_OBJECT);
 		permissions.add(PermissionMapping.CAN_CREATE_DOCUMENT_FOLDER);
 		permissions.add(PermissionMapping.CAN_CREATE_FOLDER_FOLDER);
-		permissions.add(PermissionMapping.CAN_CREATE_POLICY_FOLDER);
+		//permissions.add(PermissionMapping.CAN_CREATE_POLICY_FOLDER);
 		permissions.add(PermissionMapping.CAN_CREATE_RELATIONSHIP_SOURCE);
 		permissions.add(PermissionMapping.CAN_CREATE_RELATIONSHIP_TARGET);
 		//permissions.add(PermissionMapping.CAN_GET_PROPERTIES_OBJECT);

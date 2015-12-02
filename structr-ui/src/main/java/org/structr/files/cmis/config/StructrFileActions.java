@@ -30,9 +30,9 @@ import org.apache.chemistry.opencmis.commons.enums.Action;
 
 public class StructrFileActions extends AbstractStructrActions  {
 
-	public StructrFileActions(List<Ace> aces, String username) {
+	public StructrFileActions(List<Ace> aces, String username, boolean isAdmin, boolean isOwner) {
 
-		super(aces, username);
+		super(aces, username, isAdmin, isOwner);
 
 		//isImmutable important?
 	}
@@ -50,7 +50,6 @@ public class StructrFileActions extends AbstractStructrActions  {
 		//actions.add(Action.CAN_GET_ALL_VERSIONS);
 		//actions.add(Action.CAN_GET_CHILDREN);
 		actions.add(Action.CAN_GET_CONTENT_STREAM);
-		actions.add(Action.CAN_GET_ACL);
 	}
 
 	@Override
@@ -59,6 +58,7 @@ public class StructrFileActions extends AbstractStructrActions  {
 		actions.add(Action.CAN_MOVE_OBJECT);
 		actions.add(Action.CAN_UPDATE_PROPERTIES);
 		actions.add(Action.CAN_SET_CONTENT_STREAM);
+		actions.add(Action.CAN_ADD_OBJECT_TO_FOLDER);
 	}
 
 	@Override
@@ -71,6 +71,7 @@ public class StructrFileActions extends AbstractStructrActions  {
 	@Override
 	protected void setAccessControlPermissions() {
 
+		actions.add(Action.CAN_GET_ACL);
 		actions.add(Action.CAN_APPLY_ACL);
 	}
 

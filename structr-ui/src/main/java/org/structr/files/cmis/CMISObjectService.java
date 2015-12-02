@@ -87,6 +87,8 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	@Override
 	public String createDocument(final String repositoryId, final Properties properties, final String folderId, final ContentStream contentStream, final VersioningState versioningState, final List<String> policies, final Acl addAces, final Acl removeAces, final ExtensionsData extension) {
 
+		checkAnonymous();
+
 		final App app = StructrApp.getInstance(securityContext);
 		File newFile  = null;
 		String uuid   = null;
@@ -168,6 +170,8 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	@Override
 	public String createDocumentFromSource(String repositoryId, String sourceId, Properties properties, String folderId, VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
 
+		checkAnonymous();
+
 		// copy existing document
 		final App app = StructrApp.getInstance(securityContext);
 		String uuid   = null;
@@ -205,6 +209,8 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 	@Override
 	public String createFolder(final String repositoryId, final Properties properties, final String folderId, final List<String> policies, final Acl addAces, final Acl removeAces, final ExtensionsData extension) {
+
+		checkAnonymous();
 
 		final App app = StructrApp.getInstance(securityContext);
 		String uuid   = null;
@@ -700,5 +706,19 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 		}
 
 		throw new CmisObjectNotFoundException("Object with ID " + id + " does not exist");
+	}
+
+	/**
+	 * Gets called, and checks if anonymous is logged in.
+	 * Anonymous has no permission for example at creating documents and
+	 * folders and the method throws a exception.
+	 */
+	private void checkAnonymous() {
+
+		if(securityContext.getCachedUser() == null) {
+
+			throw new CmisPermissionDeniedException("Anonymous has no right to create new Documents.");
+		}
+
 	}
 }

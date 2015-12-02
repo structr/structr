@@ -1889,7 +1889,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public List<Ace> getAccessControlEntries() {
 
 		final List<Ace> entries = new LinkedList<>();
-
 		for (final Security security : getIncomingRelationshipsAsSuperUser(Security.class)) {
 
 			if (security != null) {
@@ -1918,19 +1917,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return entries;
 	}
 
-        //!
 	// ----- nested classes -----
 	private static class AceEntry extends CMISExtensionsData implements Ace, org.apache.chemistry.opencmis.commons.data.Principal {
 
 		private final List<String> permissions = new LinkedList<>();
 		private String principalId             = null;
-
-		/**
-		 * Construct a new AceEntry from the given Security relationship. This
-		 * method assumes that is is called in a transaction.
-		 *
-		 * @param security
-		 */
 
 		/**
 		 * Gets called, when an ACE with anyone or anonymous gets created
@@ -1941,6 +1932,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			this.principalId = principalId;
 			permissions.add(Permission.read.name());
 		}
+
+		/**
+		 * Construct a new AceEntry from the given Security relationship. This
+		 * method assumes that is is called in a transaction.
+		 *
+		 * @param security
+		 */
 
 		public AceEntry(final Security security) {
 
