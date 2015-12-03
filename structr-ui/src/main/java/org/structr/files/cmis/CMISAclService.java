@@ -18,6 +18,7 @@
  */
 package org.structr.files.cmis;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -36,7 +37,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
 /**
@@ -89,6 +92,14 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 		try (final Tx tx = app.tx()) {
 
+			Principal user = securityContext.getCachedUser();
+			boolean isAdmin = user.getProperty(Principal.isAdmin);
+
+			//Special limitations not for admins necessary
+			if(!isAdmin) {
+				checkPermission(acl, user);
+			}
+
 			final GraphObject graphNode = app.get(objectId);
 			if (graphNode != null) {
 
@@ -133,6 +144,15 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
+
+			Principal user = securityContext.getCachedUser();
+			boolean isAdmin = user.getProperty(Principal.isAdmin);
+
+			//Special limitations not for admins necessary
+			if(!isAdmin) {
+				checkPermission(addAces, user);
+				checkPermission(removeAces, user);
+			}
 
 			final GraphObject graphNode = app.get(objectId);
 
@@ -278,18 +298,74 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 	* that support this macro replace this principal ID with the principal ID
 	* of the current user when an ACL is applied."
 	* Didn't find a way to disable the macro yet. Implementing it complicates
-	* things only.
+	* things only. Implementation probably for later.
 	* The function checks, if Macro was chosen by user and throw a exception.
 	*/
 	private void checkMacro(final Acl acl) {
 
 		for (final Ace ace : acl.getAces()) {
 
-			String principalId = ace.getPrincipalId();
-
-			if(principalId.equals("cmis:user")) {
+			if(ace.getPrincipalId().equals("cmis:user")) {
 
 				throw new CmisInvalidArgumentException("This macro is not supported in Structr. Use your login name as principal instead");
+			}
+		}
+	}
+
+
+	/**
+	 * Users can only grant or revoke permissions to themself and their owned groups.
+	 * Granting or revoking other principals permissions results into a exception.
+	*/
+	private void checkPermission(Acl acl, Principal user) {
+
+		if(user != null) {
+
+			//Could use filter to get only ownedGroups, but dont know how exactly
+			//Get all ownedNodes by the user and extract owned Groups out of it
+			List<NodeInterface> ownedNodes = user.getProperty(Principal.ownedNodes);
+			List<Group> ownedGroups = new ArrayList<>();
+
+			for(NodeInterface node : ownedNodes) {
+
+				if(node instanceof Group) {
+
+					Group group = (Group)node;
+					ownedGroups.add(group);
+				}
+			}
+
+			for(Ace ace : acl.getAces()) {
+
+				boolean principalAllowed = false;
+				String principalToGrant = ace.getPrincipalId();
+
+				for(Group group : ownedGroups) {
+
+					//principal is in owned Groups
+					if(principalToGrant.equals(group.getName())) {
+
+						principalAllowed = true;
+					}
+
+					//Anyone and anonymous can be also always manipulated
+					if(principalToGrant.equals(Principal.ANONYMOUS) || principalToGrant.equals(Principal.ANONYMOUS)) {
+
+						principalAllowed = true;
+					}
+
+					//Can also manipulate himself
+					if(principalToGrant.equals(user.getName())) {
+
+						principalAllowed = true;
+					}
+				}
+
+				if(!principalAllowed) {
+
+					//Found a new added principal, which the user cant grant access
+					throw new CmisInvalidArgumentException("You have no permission to manipulate this user.");
+				}
 			}
 		}
 	}

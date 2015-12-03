@@ -39,8 +39,14 @@ import org.structr.common.Permission;
 public abstract class AbstractStructrActions extends CMISExtensionsData implements AllowableActions {
 
     protected final Set<Action> actions = new LinkedHashSet<>();
+    protected boolean isAnonymous = false;
 
     public AbstractStructrActions(List <Ace> aces, String username, boolean isAdmin, boolean IsOwner) {
+
+	if(username.equals(org.structr.core.entity.Principal.ANONYMOUS)) {
+
+		isAnonymous = true;
+	}
 
 	//Set instantly all permissions
 	if(isAdmin || IsOwner) {

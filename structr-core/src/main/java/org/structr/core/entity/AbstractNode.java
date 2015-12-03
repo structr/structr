@@ -1889,7 +1889,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public List<Ace> getAccessControlEntries() {
 
 		final List<Ace> entries = new LinkedList<>();
-		for (final Security security : getIncomingRelationshipsAsSuperUser(Security.class)) {
+		for (final Security security : getIncomingRelationships(Security.class)) {
 
 			if (security != null) {
 

@@ -45,7 +45,13 @@ public class StructrFolderActions extends AbstractStructrActions {
 		actions.add(Action.CAN_GET_FOLDER_PARENT);
 		actions.add(Action.CAN_GET_DESCENDANTS);
 		actions.add(Action.CAN_GET_CHILDREN);
-		actions.add(Action.CAN_GET_ACL);
+
+		//authenticated users can create documents and folders
+		//with only readPermission. Anonymous cannot.
+		if(!isAnonymous) {
+			actions.add(Action.CAN_CREATE_DOCUMENT);
+			actions.add(Action.CAN_CREATE_FOLDER);
+		}
 	}
 
 	@Override
@@ -53,8 +59,6 @@ public class StructrFolderActions extends AbstractStructrActions {
 
 		actions.add(Action.CAN_MOVE_OBJECT);
 		actions.add(Action.CAN_UPDATE_PROPERTIES);
-		actions.add(Action.CAN_CREATE_DOCUMENT);
-		actions.add(Action.CAN_CREATE_FOLDER);
 	}
 
 	@Override
@@ -66,6 +70,7 @@ public class StructrFolderActions extends AbstractStructrActions {
 	@Override
 	protected void setAccessControlPermissions() {
 
+		actions.add(Action.CAN_GET_ACL);
 		actions.add(Action.CAN_APPLY_ACL);
 	}
 
