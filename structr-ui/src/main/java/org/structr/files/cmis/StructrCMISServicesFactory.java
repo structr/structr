@@ -111,8 +111,18 @@ public class StructrCMISServicesFactory implements CmisServiceFactory {
 		try (final Tx tx = app.tx()) {
 
 			SecurityContext securityContext = null;
+
 			final String username           = callContext.getUsername();
 			final String password           = callContext.getPassword();
+
+			//temporary solution
+			if((username == null) && (password == null)) {
+
+				//temporary
+				securityContext = SecurityContext.getInstance(null, AccessMode.Backend);
+
+				return securityContext;
+			}
 
 			if(username.isEmpty() && password.isEmpty()) {
 
