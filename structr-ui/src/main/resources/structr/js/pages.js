@@ -632,7 +632,7 @@ var _Pages = {
 		});
 
 		_Entities.appendEditPropertiesIcon(div, entity);
-		_Entities.appendEditSourceIcon(div, entity);
+		//_Entities.appendEditSourceIcon(div, entity);
 
 		div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="icon/page_copy.png">');
 		$('.clone_icon', div).on('click', function(e) {
