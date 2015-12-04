@@ -741,183 +741,182 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		Result result                   = null;
 		Resource resource               = null;
 
-		try {
-
-			// first thing to do!
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=utf-8");
-
-			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
-
-			final App app = StructrApp.getInstance(securityContext);
-
-			// set default value for property view
-			propertyView.set(securityContext, config.getDefaultPropertyView());
-
-			// evaluate constraints and measure query time
-			double queryTimeStart    = System.nanoTime();
-
-			// isolate resource authentication
-			try (final Tx tx = app.tx()) {
-
-				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView)), propertyView);
-				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
-				tx.success();
-			}
-
-			// add sorting & paging
-			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
-			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize		 = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-			String baseUrl           = request.getRequestURI();
-			PropertyKey sortKey      = null;
-
-			// set sort key
-			if (sortKeyName != null) {
-
-				Class<? extends GraphObject> type = resource.getEntityClass();
-				if (type == null) {
-
-					// fallback to default implementation
-					// if no type can be determined
-					type = AbstractNode.class;
-				}
-
-				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
-			}
-
-			// isolate doGet
-			boolean retry = true;
-			while (retry) {
-
-				try (final Tx tx = app.tx()) {
-					result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
-					tx.success();
-					retry = false;
-
-				} catch (DeadlockDetectedException ddex) {
-					retry = true;
-				}
-			}
-
-			if (returnContent) {
-
-				result.setIsCollection(resource.isCollectionResource());
-				result.setIsPrimitiveArray(resource.isPrimitiveArray());
-
-				PagingHelper.addPagingParameter(result, pageSize, page);
-
-				// timing..
-				double queryTimeEnd = System.nanoTime();
-
-				// store property view that will be used to render the results
-				result.setPropertyView(propertyView.get(securityContext));
-
-				// allow resource to modify result set
-				resource.postProcessResultSet(result);
-
-				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
-
-				String accept = request.getHeader("Accept");
-
-				if (accept != null && accept.contains("text/html")) {
-
-					final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
-
-					// isolate write output
-					try (final Tx tx = app.tx()) {
-
-						response.setContentType("text/html; charset=utf-8");
-
-						try (final Writer writer = response.getWriter()) {
-
-							htmlStreamer.stream(securityContext, writer, result, baseUrl);
-							writer.append("\n");    // useful newline
-						}
-
-						tx.success();
-					}
-
-				} else {
-
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
-
-					// isolate write output
-					try (final Tx tx = app.tx()) {
-
-						response.setContentType("application/json; charset=utf-8");
-						try (final Writer writer = response.getWriter()) {
-
-							jsonStreamer.stream(securityContext, writer, result, baseUrl);
-							writer.append("\n");    // useful newline
-						}
-
-						tx.success();
-					}
-
-				}
-			}
-
-			response.setStatus(HttpServletResponse.SC_OK);
-
-		} catch (FrameworkException frameworkException) {
-
-			// set status & write JSON output
-			response.setStatus(frameworkException.getStatus());
-			gson.get().toJson(frameworkException, response.getWriter());
-			response.getWriter().println();
-
-		} catch (JsonSyntaxException jsex) {
-
-			logger.log(Level.WARNING, "JsonSyntaxException in GET", jsex);
-
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Json syntax exception in GET: " + jsex.getMessage()));
-
-		} catch (JsonParseException jpex) {
-
-			logger.log(Level.WARNING, "JsonParseException in GET", jpex);
-
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Parser exception in GET: " + jpex.getMessage()));
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Exception in GET", t);
-
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
-
-		} finally {
+		// Important: Even though the Servlet Specification says in 5.4 to call setCharacterEncoding before calling response.getWriter() we do it the other way around because that gets rid of a bug which stops the body from being rendered.
+		try (final Writer responseWriter = response.getWriter()) {
 
 			try {
-				//response.getWriter().flush();
-				response.getWriter().close();
+
+				// first thing to do!
+				request.setCharacterEncoding("UTF-8");
+				response.setCharacterEncoding("UTF-8");
+				response.setContentType("application/json; charset=utf-8");
+
+				// isolate request authentication in a transaction
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					authenticator = config.getAuthenticator();
+					securityContext = authenticator.initializeAndExamineRequest(request, response);
+					tx.success();
+				}
+
+				final App app = StructrApp.getInstance(securityContext);
+
+				// set default value for property view
+				propertyView.set(securityContext, config.getDefaultPropertyView());
+
+				// evaluate constraints and measure query time
+				double queryTimeStart    = System.nanoTime();
+
+				// isolate resource authentication
+				try (final Tx tx = app.tx()) {
+
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView)), propertyView);
+					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					tx.success();
+				}
+
+				// add sorting & paging
+				String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+				String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+				String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
+				String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+				String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+				boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
+				int pageSize		 = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+				int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+				String baseUrl           = request.getRequestURI();
+				PropertyKey sortKey      = null;
+
+				// set sort key
+				if (sortKeyName != null) {
+
+					Class<? extends GraphObject> type = resource.getEntityClass();
+					if (type == null) {
+
+						// fallback to default implementation
+						// if no type can be determined
+						type = AbstractNode.class;
+					}
+
+					sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
+				}
+
+				// isolate doGet
+				boolean retry = true;
+				while (retry) {
+
+					try (final Tx tx = app.tx()) {
+						result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+						tx.success();
+						retry = false;
+
+					} catch (DeadlockDetectedException ddex) {
+						retry = true;
+					}
+				}
+
+				if (returnContent) {
+
+					result.setIsCollection(resource.isCollectionResource());
+					result.setIsPrimitiveArray(resource.isPrimitiveArray());
+
+					PagingHelper.addPagingParameter(result, pageSize, page);
+
+					// timing..
+					double queryTimeEnd = System.nanoTime();
+
+					// store property view that will be used to render the results
+					result.setPropertyView(propertyView.get(securityContext));
+
+					// allow resource to modify result set
+					resource.postProcessResultSet(result);
+
+					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+
+					String accept = request.getHeader("Accept");
+
+					if (accept != null && accept.contains("text/html")) {
+
+						final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
+
+						// isolate write output
+						try (final Tx tx = app.tx()) {
+
+							response.setContentType("text/html; charset=utf-8");
+
+							htmlStreamer.stream(securityContext, responseWriter, result, baseUrl);
+							responseWriter.append("\n");    // useful newline
+
+							tx.success();
+						}
+
+					} else {
+
+						final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
+
+						// isolate write output
+						try (final Tx tx = app.tx()) {
+
+							response.setContentType("application/json; charset=utf-8");
+							jsonStreamer.stream(securityContext, responseWriter, result, baseUrl);
+							responseWriter.append("\n");    // useful newline
+
+							tx.success();
+						}
+
+					}
+				}
+
+				response.setStatus(HttpServletResponse.SC_OK);
+
+			} catch (FrameworkException frameworkException) {
+
+				// set status & write JSON output
+				response.setStatus(frameworkException.getStatus());
+				gson.get().toJson(frameworkException, responseWriter);
+				responseWriter.append("\n");
+
+			} catch (JsonSyntaxException jsex) {
+
+				logger.log(Level.WARNING, "JsonSyntaxException in GET", jsex);
+
+				int code = HttpServletResponse.SC_BAD_REQUEST;
+
+				response.setStatus(code);
+				responseWriter.append(RestMethodResult.jsonError(code, "Json syntax exception in GET: " + jsex.getMessage()));
+
+			} catch (JsonParseException jpex) {
+
+				logger.log(Level.WARNING, "JsonParseException in GET", jpex);
+
+				int code = HttpServletResponse.SC_BAD_REQUEST;
+
+				response.setStatus(code);
+				responseWriter.append(RestMethodResult.jsonError(code, "Parser exception in GET: " + jpex.getMessage()));
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
-			}
+				logger.log(Level.WARNING, "Exception in GET", t);
 
+				int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+
+				response.setStatus(code);
+				responseWriter.append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
+
+			} finally {
+
+				try {
+					//responseWriter.flush();
+					responseWriter.close();
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+				}
+
+			}
 		}
+
 	}
 
 	// </editor-fold>
