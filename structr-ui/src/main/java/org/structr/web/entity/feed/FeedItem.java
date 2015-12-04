@@ -54,8 +54,8 @@ public class FeedItem extends AbstractNode implements Indexable {
 
 	public static final Property<DataFeed> feed                  = new StartNode<>("feed", FeedItems.class);
 	
-	public static final View publicView = new View(FeedItem.class, PropertyView.Public, type, name, contentType, url, owner);
-	public static final View uiView = new View(FeedItem.class, PropertyView.Ui, type, contentType, url, checksum, version, cacheForSeconds, owner, extractedContent, indexedWords);
+	public static final View publicView = new View(FeedItem.class, PropertyView.Public, type, name, contentType, url, owner, feed);
+	public static final View uiView     = new View(FeedItem.class, PropertyView.Ui, type, contentType, url, checksum, version, cacheForSeconds, owner, extractedContent, indexedWords, feed);
 
 	@Override
 	public void afterCreation(SecurityContext securityContext) {

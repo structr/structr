@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -52,6 +54,13 @@ public class DataFeed extends AbstractNode {
 	public static final Property<List<FeedItem>> items  = new EndNodes<>("items", FeedItems.class);
 	public static final Property<String>         url    = new StringProperty("url");
 	
+	public static final View defaultView = new View(DataFeed.class, PropertyView.Public, id, type, url, items);
+
+	public static final View uiView = new View(DataFeed.class, PropertyView.Ui,
+		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate,
+                url, items
+	);
+        
 	
 	@Override
 	public void afterCreation(final SecurityContext securityContext) {
@@ -80,7 +89,7 @@ public class DataFeed extends AbstractNode {
 				final SyndFeed feed = feedFetcher.retrieveFeed(new URL(remoteUrl));
 				final List<SyndEntry> entries = feed.getEntries();
 				
-				final List<FeedItem> items = new LinkedList<>();
+				final List<FeedItem> newItems = new LinkedList<>();
 				
 				for (final SyndEntry entry : entries) {
 					
@@ -90,7 +99,9 @@ public class DataFeed extends AbstractNode {
 					final FeedItem item = app.create(FeedItem.class, title);
 					item.setProperty(FeedItem.url, link);
 										
-					items.add(item);
+					newItems.add(item);
+                                        
+                                        setProperty(items, newItems);
 										
 				}
 				
