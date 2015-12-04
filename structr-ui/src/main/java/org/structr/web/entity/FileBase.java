@@ -65,8 +65,10 @@ import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.files.text.FulltextIndexingTask;
 import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;
+import org.structr.web.common.DownloadHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
+import static org.structr.web.entity.Indexable.extractedContent;
 import org.structr.web.entity.relation.Folders;
 
 /**
@@ -217,151 +219,13 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	}
 
 	@Export
+	@Override
 	public GraphObject getSearchContext(final String searchTerm, final int contextLength) {
 
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
-			final String[] searchParts         = searchTerm.split("[\\s]+");
-			final GenericProperty contextKey   = new GenericProperty("context");
-			final GraphObjectMap contextObject = new GraphObjectMap();
-			final Set<String> contextValues    = new LinkedHashSet<>();
-
-			for (final String searchString : searchParts) {
-
-				final String lowerCaseSearchString = searchString.toLowerCase();
-				final String lowerCaseText         = text.toLowerCase();
-				final StringBuilder wordBuffer     = new StringBuilder();
-				final StringBuilder lineBuffer     = new StringBuilder();
-				final int textLength               = text.length();
-
-				/*
-				 * we take an average word length of 8 characters, multiply
-				 * it by the desired prefix and suffix word count, add 20%
-				 * and try to extract up to prefixLength words.
-				 */
-
-				// modify these parameters to tune prefix and suffix word extraction
-				// loop variables
-				int newlineCount = 0;
-				int wordCount    = 0;	// wordCount starts at 1 because we include the matching word
-				int pos          = -1;
-
-				do {
-
-					// find next occurrence
-					pos = lowerCaseText.indexOf(lowerCaseSearchString, pos + 1);
-					if (pos > 0) {
-
-						lineBuffer.setLength(0);
-						wordBuffer.setLength(0);
-
-						wordCount    = 0;
-						newlineCount = 0;
-
-						// fetch context words before search hit
-						for (int i=pos; i>=0; i--) {
-
-							final char c = text.charAt(i);
-
-							if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
-
-								wordCount += flushWordBuffer(lineBuffer, wordBuffer, true);
-
-								// store character in buffer
-								wordBuffer.insert(0, c);
-
-								if (c == '\n') {
-
-									// increase newline count
-									newlineCount++;
-
-								} else {
-
-									// reset newline count
-									newlineCount = 0;
-								}
-
-								// paragraph boundary reached
-								if (newlineCount > 1) {
-									break;
-								}
-
-								// stop if we collected half of the desired word count
-								if (wordCount > contextLength / 2) {
-									break;
-								}
-
-
-							} else {
-
-								// store character in buffer
-								wordBuffer.insert(0, c);
-
-								// reset newline count
-								newlineCount = 0;
-							}
-						}
-
-						wordCount += flushWordBuffer(lineBuffer, wordBuffer, true);
-
-						wordBuffer.setLength(0);
-
-						// fetch context words after search hit
-						for (int i=pos+1; i<textLength; i++) {
-
-							final char c = text.charAt(i);
-
-							if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
-
-								wordCount += flushWordBuffer(lineBuffer, wordBuffer, false);
-
-								// store character in buffer
-								wordBuffer.append(c);
-
-								if (c == '\n') {
-
-									// increase newline count
-									newlineCount++;
-
-								} else {
-
-									// reset newline count
-									newlineCount = 0;
-								}
-
-								// paragraph boundary reached
-								if (newlineCount > 1) {
-									break;
-								}
-
-								// stop if we collected enough words
-								if (wordCount > contextLength) {
-									break;
-								}
-
-							} else {
-
-								// store character in buffer
-								wordBuffer.append(c);
-
-								// reset newline count
-								newlineCount = 0;
-							}
-						}
-
-						wordCount += flushWordBuffer(lineBuffer, wordBuffer, false);
-
-						// replace single newlines with space
-						contextValues.add(lineBuffer.toString().trim());
-					}
-
-				} while (pos >= 0);
-			}
-
-			contextObject.put(contextKey, contextValues);
-
-			return contextObject;
+			return DownloadHelper.getContextObject(searchTerm, text, contextLength);
 		}
 
 		return null;

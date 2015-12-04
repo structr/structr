@@ -38,7 +38,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 	private static final Logger logger = Logger.getLogger(BooleanProperty.class.getName());
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
-
+	
 	public BooleanProperty(final String name) {
 		super(name);
 	}
@@ -68,23 +68,27 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 
 	@Override
-	public PropertyConverter<Boolean, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Boolean, ?> databaseConverter(final SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<Boolean, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Boolean, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+		this.securityContext = securityContext;
+		this.entity          = entity;
 		return new DatabaseConverter(securityContext);
 	}
 
 	@Override
-	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Boolean> inputConverter(final SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
 
 	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public Object fixDatabaseProperty(final Object value) {
 
+		final Boolean fixedValue;
+		
 		if (value != null) {
 
 			if (value instanceof Boolean) {
@@ -93,10 +97,20 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 			if (value instanceof String) {
 
-				return TRUE_VALUES.contains(value.toString().toLowerCase());
+				fixedValue = TRUE_VALUES.contains(value.toString().toLowerCase());
+				
+				if (entity != null) {
+					try {
+						setProperty(securityContext, entity, fixedValue);
+					} catch (FrameworkException fex) {
+						logger.log(Level.SEVERE, "Cound not set fixed property {0} on graph object {1}", new Object[]{fixedValue, entity});
+					}
+				}
 			}
 		}
 
+		
+		
 		return false;
 	}
 
@@ -109,7 +123,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	// ----- nested classes -----
 	protected class DatabaseConverter extends PropertyConverter<Boolean, Object> {
 
-		public DatabaseConverter(SecurityContext securityContext) {
+		public DatabaseConverter(final SecurityContext securityContext) {
 			super(securityContext);
 		}
 
@@ -133,7 +147,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		}
 
 		@Override
-		public Boolean convert(Boolean source) {
+		public Boolean convert(final Boolean source) {
 
 			if (source != null) {
 				return source;
@@ -145,12 +159,12 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 	protected class InputConverter extends PropertyConverter<Object, Boolean> {
 
-		public InputConverter(SecurityContext securityContext) {
+		public InputConverter(final SecurityContext securityContext) {
 			super(securityContext);
 		}
 
 		@Override
-		public Object revert(Boolean source) throws FrameworkException {
+		public Object revert(final Boolean source) throws FrameworkException {
 
 			if (source != null) {
 				return source;
@@ -160,7 +174,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		}
 
 		@Override
-		public Boolean convert(Object source) {
+		public Boolean convert(final Object source) {
 
 			boolean returnValue = false;
 
