@@ -20,32 +20,33 @@ package org.structr.web.entity.relation;
 
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.web.entity.feed.DataFeed;
 import org.structr.web.entity.feed.FeedItem;
+import org.structr.web.entity.feed.FeedItemContent;
 
 /**
  *
  *
  */
-public class FeedItems extends OneToMany<DataFeed, FeedItem> {
+public class FeedItemContents extends OneToMany<FeedItem, FeedItemContent> {
 
 	@Override
-	public Class<DataFeed> getSourceType() {
-		return DataFeed.class;
-	}
-
-	@Override
-	public Class<FeedItem> getTargetType() {
+	public Class<FeedItem> getSourceType() {
 		return FeedItem.class;
 	}
 
 	@Override
+	public Class<FeedItemContent> getTargetType() {
+		return FeedItemContent.class;
+	}
+
+	@Override
 	public String name() {
-		return "HAS_FEED_ITEMS";
+		return "FEED_ITEM_CONTENTS";
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
 	}
+	
 }
