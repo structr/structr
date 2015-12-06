@@ -309,104 +309,116 @@ var _Security = {
 			return;
 		}
 
-		var delIcon;
-		var div = Structr.node(user.id);
-
-		if (user.groups && user.groups.length) {
-
-			var group = user.groups[0];
-
-			var groupId = group.id;
-
-			if (!isExpanded(groupId)) {
-				return;
+		if (user.groups && user.groups.length > 0) {
+			for (i=0; i < user.groups.length; i++) {
+				var groupElement = Structr.node(user.groups[i].id);
+				if (groupElement) {
+					// at least one of the users groups is visible
+					return _Security.appendUserToGroup(user, user.groups[i], groupElement);
+				}
 			}
-
-			var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" '
-				+ 'alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">';
-
-			var parent = Structr.node(groupId);
-
-			log('parent, div', parent, div);
-
-			if (div && div.length) {
-				parent.append(div.css({
-					top: 0,
-					left: 0
-				}));
-				delIcon = $('.delete_icon', div);
-				delIcon.replaceWith(newDelIcon);
-
-				log('################ disable delete icon');
-
-			} else {
-
-				log('### new user, appending to ', parent);
-
-				parent.append('<div id="id_' + user.id + '" class="node user">'
-					+ '<img class="typeIcon" src="icon/user.png">'
-					//				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
-					+ ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
-					+ '</div>');
-				div = Structr.node(user.id);
-				div.append(newDelIcon);
-
-			}
-			delIcon = $('.delete_icon', div);
-			delIcon.on('click', function(e) {
-				e.stopPropagation();
-				Command.removeSourceFromTarget(user.id, groupId);
-			});
-
-			// disable delete icon on parent
-			disable($('.delete_icon', parent)[0]);
-
-			div.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
-
-		} else {
-
-			users.append('<div id="id_' + user.id + '" class="node user">'
-				+ '<img class="typeIcon" src="icon/user.png">'
-				//				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
-				+ ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
-				+ '</div>');
-			div = Structr.node(user.id);
-			if (!div || !div.length) return;
-
-			newDelIcon = '<img title="Delete user \'' + user.name + '\'" '
-			+ 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
-			delIcon = $('.delete_icon', div);
-
-			if (delIcon && delIcon.length) {
-				delIcon.replaceWith(newDelIcon);
-			} else {
-				div.append(newDelIcon);
-				delIcon = $('.delete_icon', div);
-			}
-
-			delIcon.on('click', function(e) {
-				e.stopPropagation();
-				_Security.deleteUser(this, user);
-			});
-
-			div.draggable({
-				revert: 'invalid',
-				helper: 'clone',
-				//containment: '#main',
-				stack: '.node',
-				appendTo: '#main',
-				zIndex: 99
-//                stop : function(e,ui) {
-//                    $('#pages_').droppable('enable').removeClass('nodeHover');
-//                }
-			});
-
 		}
+
+		// none of the users groups is visible (or user has no groups)
+		return _Security.appendUserToUserList(user);
+	},
+	appendUserToUserList: function (user) {
+		users.append(_Security.getUserElementMarkup(user));
+		var div = Structr.node(user.id);
+		if (!div || !div.length) return;
+
+		var newDelIcon = '<img title="Delete user \'' + user.name + '\'" alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+		var delIcon = $('.delete_icon', div);
+
+		if (delIcon && delIcon.length) {
+			delIcon.replaceWith(newDelIcon);
+		} else {
+			div.append(newDelIcon);
+			delIcon = $('.delete_icon', div);
+		}
+
+		delIcon.on('click', function(e) {
+			e.stopPropagation();
+			_Security.deleteUser(this, user);
+		});
+
+		div.draggable({
+			revert: 'invalid',
+			helper: 'clone',
+			//containment: '#main',
+			stack: '.node',
+			appendTo: '#main',
+			zIndex: 99
+//			stop : function(e,ui) {
+//				$('#pages_').droppable('enable').removeClass('nodeHover');
+//			}
+		});
+
 		_Entities.appendEditPropertiesIcon(div, user);
 		_Entities.setMouseOver(div);
 
 		return div;
+	},
+	appendUserToGroup: function (user, group, parent) {
+		var delIcon;
+		var div = Structr.node(user.id);
+		var group = user.groups[0];
 
+		var groupId = group.id;
+
+		if (!isExpanded(groupId)) {
+			return;
+		}
+
+		var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">';
+
+		log('parent, div', parent, div);
+
+		if (div && div.length) {
+			parent.append(div.css({
+				top: 0,
+				left: 0
+			}));
+			delIcon = $('.delete_icon', div);
+			delIcon.replaceWith(newDelIcon);
+
+			log('################ disable delete icon');
+
+		} else {
+
+			log('### new user, appending to ', parent);
+
+			if (parent) {
+				parent.append(_Security.getUserElementMarkup(user));
+				div = Structr.node(user.id);
+				div.append(newDelIcon);
+			} else {
+				// group is not visible
+				div = _Security.appendUserToUserList(user);
+			}
+
+		}
+		delIcon = $('.delete_icon', div);
+		delIcon.on('click', function(e) {
+			e.stopPropagation();
+			Command.removeSourceFromTarget(user.id, groupId);
+		});
+
+		// disable delete icon on parent
+		disable($('.delete_icon', parent)[0]);
+
+		div.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
+
+		_Entities.appendEditPropertiesIcon(div, user);
+		_Entities.setMouseOver(div);
+
+		return div;
+	},
+	getUserElementMarkup:function (user) {
+		return '<div id="id_' + user.id + '" class="node user">'
+			+ '<img class="typeIcon" src="icon/user.png">'
+			+ ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
+			+ '</div>';
 	},
 	resize: function() {
 
