@@ -321,7 +321,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							if (result instanceof Page) {
 
 								rootElement = (DOMNode)result;
-								renderContext.pushSecurityContext(authResult.getSecurityContext());
+								securityContext = authResult.getSecurityContext();
+								renderContext.pushSecurityContext(securityContext);
 
 							} else if (result instanceof File) {
 
