@@ -136,6 +136,7 @@ function StructrApp(baseUrl) {
 				s.resetPasswordAction(btn, id, attrs, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else {
+				var data = s.collectData(btn, id, attrs, type, suffix);
 				s.customAction(btn, id, type, btn.attr('data-structr-confirm') === 'true', action, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn);});
 			}
 		});
@@ -210,10 +211,10 @@ function StructrApp(baseUrl) {
 
 			var el = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'attr');
 			var f = s.field(el);
-			
+
 			// ignore invalid fields
 			if (!f) return;
-			
+
 			f.id = id;
 			if (!s.data[id]) s.data[id] = {};
 			s.data[id][key] = f.val;

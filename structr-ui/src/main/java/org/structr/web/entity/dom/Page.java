@@ -114,8 +114,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
 	public static final Property<Boolean> pageCreatesRawData = new BooleanProperty("pageCreatesRawData").defaultValue(false);
-	public static final Property<Boolean> enableBasicAuth    = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed();
-	public static final Property<String> basicAuthRealm      = new StringProperty("basicAuthRealm");
 
 
         public static final Property<String> path = new StringProperty("path").indexed();
