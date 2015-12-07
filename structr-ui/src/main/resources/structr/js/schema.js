@@ -23,7 +23,7 @@ var zoomLevel = parseFloat(LSWrapper.getItem(localStorageSuffix + 'zoomLevel')) 
 var remotePropertyKeys = [];
 var hiddenSchemaNodes = [];
 var hiddenSchemaNodesKey = 'structrHiddenSchemaNodes_' + port;
-var selectedRel, relhHighlightColor = 'red';
+var selectedRel, relHighlightColor = 'red';
 var selectionInProgress = false;
 var mouseDownCoords = {x:0, y:0};
 var mouseUpCoords = {x:0, y:0};
@@ -230,13 +230,12 @@ var _Schema = {
 	selectRel: function ($rel) {
 		_Schema.clearSelection();
 
-		$rel.css({zIndex: ++maxZ});
-		$rel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ});
-
 		selectedRel = $rel;
+		selectedRel.css({zIndex: ++maxZ});
+		selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ, borderColor:relHighlightColor});
 		pathElements = selectedRel.find('path');
-		pathElements.css({stroke: relhHighlightColor});
-		$(pathElements[1]).css({fill: relhHighlightColor});
+		pathElements.css({stroke: relHighlightColor});
+		$(pathElements[1]).css({fill: relHighlightColor});
 	},
 	clearSelection: function() {
 		// deselect selected node
@@ -245,6 +244,7 @@ var _Schema = {
 
 		// deselect selected Relationship
 		if (selectedRel) {
+			selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({borderColor:''});
 			pathElements = selectedRel.find('path');
 			pathElements.css('stroke', '');
 			$(pathElements[1]).css('fill', '');

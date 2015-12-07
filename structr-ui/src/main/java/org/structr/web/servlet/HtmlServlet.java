@@ -29,9 +29,11 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TimeZone;
@@ -109,7 +111,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String CONFIRM_KEY_KEY           = "key";
 	public static final String TARGET_PAGE_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
-	
+
 	public static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
 	public static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
 
@@ -301,11 +303,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						if (rootElement == null && dataNode instanceof DOMNode) {
 
 							rootElement = ((DOMNode) dataNode);
-
 						}
-
 					}
-
 				}
 
 				// look for pages with HTTP Basic Authentication (must be done as superuser)
@@ -315,11 +314,21 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					switch (authResult.authState()) {
 
-						// Page with Basic Auth found and authentication succeeded
+						// Element with Basic Auth found and authentication succeeded
 						case Authenticated:
-							rootElement     = authResult.getRootElement();
-							securityContext = authResult.getSecurityContext();
-							renderContext.pushSecurityContext(securityContext);
+							final Linkable result = authResult.getRootElement();
+							if (result instanceof Page) {
+
+								rootElement = (DOMNode)result;
+								securityContext = authResult.getSecurityContext();
+								renderContext.pushSecurityContext(securityContext);
+
+							} else if (result instanceof File) {
+
+								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
+								return;
+
+							}
 							break;
 
 						// Page with Basic Auth found but not yet authenticated
@@ -659,11 +668,20 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					switch (authResult.authState()) {
 
-						// Page with Basic Auth found and authentication succeeded
+						// Element with Basic Auth found and authentication succeeded
 						case Authenticated:
-							rootElement     = authResult.getRootElement();
-							securityContext = authResult.getSecurityContext();
-							renderContext.pushSecurityContext(securityContext);
+							final Linkable result = authResult.getRootElement();
+							if (result instanceof Page) {
+
+								rootElement = (DOMNode)result;
+								renderContext.pushSecurityContext(authResult.getSecurityContext());
+
+							} else if (result instanceof File) {
+
+								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
+								return;
+
+							}
 							break;
 
 						// Page with Basic Auth found but not yet authenticated
@@ -674,7 +692,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						case NoBasicAuth:
 							break;
 					}
-
 				}
 
 				// Still nothing found, do error handling
@@ -1335,8 +1352,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		}
 
-		final ServletOutputStream out = response.getOutputStream();
-		final String downloadAsFilename = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
+		final ServletOutputStream out         = response.getOutputStream();
+		final String downloadAsFilename       = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
+		final Map<String, Object> callbackMap = new LinkedHashMap<>();
+
+		// make edit mode available in callback method
+		callbackMap.put("editMode", edit);
+
 
 		if (downloadAsFilename != null) {
 			// Set Content-Disposition header to suggest a default filename and force a "save-as" dialog
@@ -1346,12 +1368,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			// http://tools.ietf.org/html/rfc1806
 			// http://tools.ietf.org/html/rfc2616#section-15.5 and http://tools.ietf.org/html/rfc2616#section-19.5.1
 			response.addHeader("Content-Disposition", "attachment; filename=\"" + downloadAsFilename + "\"");
+
+			callbackMap.put("requestedFileName", downloadAsFilename);
 		}
 
 		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, false)) {
 
 			out.flush();
 			out.close();
+
+			callbackMap.put("statusCode", HttpServletResponse.SC_NOT_MODIFIED);
 
 		} else {
 
@@ -1364,6 +1390,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				out.flush();
 				out.close();
+
+				callbackMap.put("statusCode", HttpServletResponse.SC_OK);
 
 			} else {
 
@@ -1384,9 +1412,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				final String range = request.getHeader("Range");
 
 				try {
-				
+
 					if (StringUtils.isNotEmpty(range)) {
-						
+
 						final long len = file.getSize();
 						long start     = 0;
 						long end       = len - 1;
@@ -1411,17 +1439,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						response.setHeader("Content-Length", String.format("%s", contentLength));
 
 						response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+						callbackMap.put("statusCode", HttpServletResponse.SC_PARTIAL_CONTENT);
 
 						IOUtils.copyLarge(in, out, start, contentLength);
 
 					} else {
 
 						response.setStatus(HttpServletResponse.SC_OK);
-						
+						callbackMap.put("statusCode", HttpServletResponse.SC_OK);
+
 						IOUtils.copyLarge(in, out);
 
 					}
-					
+
 
 				} catch (Throwable t) {
 
@@ -1444,6 +1474,20 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					response.setStatus(HttpServletResponse.SC_OK);
 				}
+			}
+		}
+
+
+		// WIDGET mode means "opened in frontend", which we don't want to count as an external download
+		if (!EditMode.WIDGET.equals(edit)) {
+
+			// call onDownload callback
+			try {
+
+				file.invokeMethod("onDownload", Collections.EMPTY_MAP, false);
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
 			}
 		}
 	}
@@ -1552,7 +1596,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		// Look for renderable objects using a SuperUserSecurityContext,
 		// but dont actually render the page. We're only interested in
 		// the authentication settings.
-		Page possiblePage = null;
+		Linkable possiblePage = null;
 
 		// try the different methods..
 		if (possiblePage == null) {
@@ -1561,6 +1605,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (possiblePage == null) {
 			possiblePage = StructrApp.getInstance().nodeQuery(Page.class).and(Page.name, PathHelper.getName(path)).and(Page.enableBasicAuth, true).sort(Page.position).getFirst();
+		}
+
+		if (possiblePage == null) {
+			possiblePage = StructrApp.getInstance().nodeQuery(File.class).and(File.path, path).and(File.enableBasicAuth, true).getFirst();
+		}
+
+		if (possiblePage == null) {
+			possiblePage = StructrApp.getInstance().nodeQuery(File.class).and(File.name, PathHelper.getName(path)).and(File.enableBasicAuth, true).getFirst();
 		}
 
 		if (possiblePage != null) {
@@ -1580,7 +1632,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					// find and instantiate the page again so that the SuperUserSecurityContext
 					// can not leak into any of the children of the given page. This is dangerous..
-					final Page page = StructrApp.getInstance(securityContext).get(Page.class, possiblePage.getUuid());
+					final Linkable page = StructrApp.getInstance(securityContext).get(Linkable.class, possiblePage.getUuid());
 					if (page != null) {
 
 						securityContext.setRequest(request);
@@ -1655,14 +1707,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		public static final HttpBasicAuthResult NO_BASIC_AUTH     = new HttpBasicAuthResult(AuthState.NoBasicAuth);
 
 		private SecurityContext securityContext = null;
-		private DOMNode rootElement             = null;
+		private Linkable rootElement            = null;
 		private AuthState authState             = null;
 
 		public HttpBasicAuthResult(final AuthState authState) {
 			this(authState, null, null);
 		}
 
-		public HttpBasicAuthResult(final AuthState authState, final SecurityContext securityContext, final DOMNode rootElement) {
+		public HttpBasicAuthResult(final AuthState authState, final SecurityContext securityContext, final Linkable rootElement) {
 
 			this.securityContext = securityContext;
 			this.rootElement     = rootElement;
@@ -1677,7 +1729,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return authState;
 		}
 
-		public DOMNode getRootElement() {
+		public Linkable getRootElement() {
 			return rootElement;
 		}
 	}
