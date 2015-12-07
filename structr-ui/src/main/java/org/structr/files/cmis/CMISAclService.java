@@ -27,6 +27,7 @@ import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.spi.AclService;
+import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
@@ -62,7 +63,15 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			final GraphObject node = app.get(objectId);
 			if (node != null) {
 
-				return CMISObjectWrapper.wrap(node, null, false, true);
+				if(node instanceof AbstractNode) {
+
+					AbstractNode aNode = (AbstractNode) node;
+
+					//Gets directly the ACEs and puts it into an ACL.
+					//The parameter "onlyBasicPermissions" must be
+					//implemented to prevent failing TCK tests
+					return new ACLEntry(aNode.getAccessControlEntries(onlyBasicPermissions));
+				}
 			}
 
 			tx.success();
@@ -314,7 +323,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 
 	/**
-	 * Users can only grant or revoke permissions to themself and their owned groups.
+	 * Users can only grant or revoke permissions to themself, their owned groups and anyone/anonymous.
 	 * Granting or revoking other principals permissions results into a exception.
 	*/
 	private void checkPermission(Acl acl, Principal user) {
@@ -346,18 +355,21 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 					if(principalToGrant.equals(group.getName())) {
 
 						principalAllowed = true;
+						break;
 					}
 
 					//Anyone and anonymous can be also always manipulated
-					if(principalToGrant.equals(Principal.ANONYMOUS) || principalToGrant.equals(Principal.ANONYMOUS)) {
+					if(principalToGrant.equals(Principal.ANONYMOUS) || principalToGrant.equals(Principal.ANYONE)) {
 
 						principalAllowed = true;
+						break;
 					}
 
 					//Can also manipulate himself
 					if(principalToGrant.equals(user.getName())) {
 
 						principalAllowed = true;
+						break;
 					}
 				}
 
@@ -369,4 +381,30 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			}
 		}
 	}
+
+	// ----- nested classes -----
+	/**
+	 * Used for delivering an ACL in getAcl()
+	 */
+	private class ACLEntry extends CMISExtensionsData implements Acl{
+
+		private List<Ace> aces;
+
+		public ACLEntry(List<Ace> aces) {
+
+			this.aces = aces;
+		}
+
+		@Override
+		public List<Ace> getAces() {
+			return aces;
+		}
+
+		@Override
+		public Boolean isExact() {
+			return true;
+		}
+	}
+
+
 }

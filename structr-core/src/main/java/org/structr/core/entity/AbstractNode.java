@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
@@ -1712,9 +1713,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			throw new FrameworkException(403, "Access control not permitted");
 		}
 
-		final App app = StructrApp.getInstance();
+		final App app = StructrApp.getInstance(securityContext);
 
-		for (final Security security : getIncomingRelationshipsAsSuperUser(Security.class)) {
+		for (final Security security : getIncomingRelationships(Security.class)) {
 			app.delete(security);
 		}
 	}
@@ -1888,12 +1889,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public List<Ace> getAccessControlEntries() {
 
+		return getAccessControlEntries(false);
+	}
+
+	/**
+	 * Gets called by getACL() directly.
+	 * @param onlyBasicPermissions: if true, translate the native permissions into CMIS basic permissions.
+	 * @return
+	 */
+	public List<Ace> getAccessControlEntries(final boolean onlyBasicPermissions) {
+
 		final List<Ace> entries = new LinkedList<>();
+
 		for (final Security security : getIncomingRelationships(Security.class)) {
 
 			if (security != null) {
 
-				entries.add(new AceEntry(security));
+				entries.add(new AceEntry(security, onlyBasicPermissions));
 			}
 		}
 
@@ -1906,19 +1918,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		if(visibleToAuthUsers) {
 
-			entries.add(new AceEntry(Principal.ANYONE));
+			entries.add(new AceEntry(Principal.ANYONE, onlyBasicPermissions));
 		}
 
 		if(visibleToPubUsers) {
 
-			entries.add(new AceEntry(Principal.ANONYMOUS));
+			entries.add(new AceEntry(Principal.ANONYMOUS, onlyBasicPermissions));
 		}
 
 		return entries;
 	}
 
 	// ----- nested classes -----
-	private static class AceEntry extends CMISExtensionsData implements Ace, org.apache.chemistry.opencmis.commons.data.Principal {
+	private class AceEntry extends CMISExtensionsData implements Ace, org.apache.chemistry.opencmis.commons.data.Principal {
+
+		private final String CMIS_READ = "cmis:read";
+		private final String CMIS_WRITE = "cmis:write";
+		private final String CMIS_ALL = "cmis:all";
 
 		private final List<String> permissions = new LinkedList<>();
 		private String principalId             = null;
@@ -1927,20 +1943,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		 * Gets called, when an ACE with anyone or anonymous gets created
 		 * @param principalId is "anonymous" or "anyone"
 		 */
-		public AceEntry(String principalId) {
+		public AceEntry(String principalId, boolean onlyBasicPermission) {
 
 			this.principalId = principalId;
-			permissions.add(Permission.read.name());
+
+			if(onlyBasicPermission) {
+				permissions.add(CMIS_READ);
+			} else {
+				permissions.add(Permission.read.name());
+			}
 		}
 
 		/**
 		 * Construct a new AceEntry from the given Security relationship. This
-		 * method assumes that is is called in a transaction.
+		 * method assumes that it is called in a transaction.
 		 *
 		 * @param security
 		 */
 
-		public AceEntry(final Security security) {
+		public AceEntry(final Security security, boolean onlyBasicPermission) {
 
 			final Principal principal = security.getSourceNode();
 			if (principal != null) {
@@ -1948,7 +1969,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				this.principalId = principal.getProperty(Principal.name);
 			}
 
-			permissions.addAll(security.getPermissions());
+			if(onlyBasicPermission) {
+
+				for(String pm : security.getPermissions()) {
+
+					if     (pm.equals(Permission.read.name()))	    permissions.add(CMIS_READ);
+					else if(pm.equals(Permission.write.name()))	    permissions.add(CMIS_WRITE);
+					else if(pm.equals(Permission.delete.name()))	    permissions.add(CMIS_ALL);
+					else if(pm.equals(Permission.accessControl.name())) permissions.add(CMIS_ALL);
+				}
+
+			} else {
+				permissions.addAll(security.getPermissions());
+			}
 		}
 
 		@Override

@@ -342,7 +342,6 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	}
 
 	// ----- interface Acl -----
-        //!
 	@Override
 	public List<Ace> getAces() {
 		return aces;

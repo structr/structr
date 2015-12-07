@@ -18,6 +18,7 @@
  */
 package org.structr.files.cmis.config;
 
+import java.util.ArrayList;
 import org.structr.cmis.common.CMISExtensionsData;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -35,14 +36,11 @@ import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
 import org.apache.chemistry.opencmis.commons.enums.SupportedPermissions;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PermissionMappingDataImpl;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.Permission;
 import org.structr.core.entity.Principal;
-import org.structr.files.cmis.repository.StructrAccessControlPermissionMapping;
-import org.structr.files.cmis.repository.StructrDeletePermissionMapping;
 import org.structr.files.cmis.repository.StructrPermissionDefinition;
-import org.structr.files.cmis.repository.StructrReadPermissionMapping;
-import org.structr.files.cmis.repository.StructrWritePermissionMapping;
 
 /**
  *
@@ -169,13 +167,58 @@ public class StructrRepositoryInfo extends CMISExtensionsData implements Reposit
 	@Override
 	public Map<String, PermissionMapping> getPermissionMapping() {
 
-		final Map<String, PermissionMapping> mapping = new LinkedHashMap<>();
+		List<PermissionMapping> list = new ArrayList<>();
 
-		mapping.put(Permission.read.name(),          new StructrReadPermissionMapping());
-		mapping.put(Permission.write.name(),         new StructrWritePermissionMapping());
-		mapping.put(Permission.delete.name(),        new StructrDeletePermissionMapping());
-		mapping.put(Permission.accessControl.name(), new StructrAccessControlPermissionMapping());
+		list.add(createMapping(PermissionMapping.CAN_GET_DESCENDENTS_FOLDER, Permission.read.name()));
+		list.add(createMapping(PermissionMapping.CAN_GET_CHILDREN_FOLDER, Permission.read.name()));
+		list.add(createMapping(PermissionMapping.CAN_GET_PARENTS_FOLDER, Permission.read.name()));
+		list.add(createMapping(PermissionMapping.CAN_GET_FOLDER_PARENT_OBJECT, Permission.read.name()));
+		list.add(createMapping(PermissionMapping.CAN_CREATE_DOCUMENT_FOLDER, Permission.read.name()));
+		list.add(createMapping(PermissionMapping.CAN_CREATE_FOLDER_FOLDER, Permission.read.name()));
+	//	list.add(createMapping(PermissionMapping.CAN_CREATE_RELATIONSHIP_SOURCE, CMIS_READ));
+	//	list.add(createMapping(PermissionMapping.CAN_CREATE_RELATIONSHIP_TARGET, CMIS_READ));
+		list.add(createMapping(PermissionMapping.CAN_GET_PROPERTIES_OBJECT, Permission.read.name()));
+		list.add(createMapping(PermissionMapping.CAN_VIEW_CONTENT_OBJECT, Permission.read.name()));
+		list.add(createMapping(PermissionMapping.CAN_UPDATE_PROPERTIES_OBJECT, Permission.write.name()));
+		list.add(createMapping(PermissionMapping.CAN_MOVE_OBJECT, Permission.write.name()));
+		list.add(createMapping(PermissionMapping.CAN_MOVE_TARGET, Permission.write.name()));
+		list.add(createMapping(PermissionMapping.CAN_MOVE_SOURCE, Permission.write.name()));
+		list.add(createMapping(PermissionMapping.CAN_DELETE_OBJECT, Permission.delete.name()));
 
-		return mapping;
+		list.add(createMapping(PermissionMapping.CAN_DELETE_TREE_FOLDER, Permission.delete.name()));
+		list.add(createMapping(PermissionMapping.CAN_SET_CONTENT_DOCUMENT, Permission.write.name()));
+		list.add(createMapping(PermissionMapping.CAN_DELETE_CONTENT_DOCUMENT, Permission.delete.name()));
+	//	list.add(createMapping(PermissionMapping.CAN_ADD_TO_FOLDER_OBJECT, CMIS_WRITE));
+	//	list.add(createMapping(PermissionMapping.CAN_REMOVE_FROM_FOLDER_OBJECT, CMIS_WRITE));
+	//	list.add(createMapping(PermissionMapping.CAN_CHECKOUT_DOCUMENT, CMIS_WRITE));
+	//	list.add(createMapping(PermissionMapping.CAN_CANCEL_CHECKOUT_DOCUMENT, CMIS_WRITE));
+
+	//	list.add(createMapping(PermissionMapping.CAN_CHECKIN_DOCUMENT, CMIS_WRITE));
+	//	list.add(createMapping(PermissionMapping.CAN_GET_ALL_VERSIONS_VERSION_SERIES, CMIS_READ));
+	//	list.add(createMapping(PermissionMapping.CAN_GET_OBJECT_RELATIONSHIPS_OBJECT, CMIS_READ));
+	//	list.add(createMapping(PermissionMapping.CAN_ADD_POLICY_OBJECT, CMIS_WRITE));
+	//	list.add(createMapping(PermissionMapping.CAN_REMOVE_POLICY_OBJECT, CMIS_WRITE));
+
+	//	list.add(createMapping(PermissionMapping.CAN_GET_APPLIED_POLICIES_OBJECT, CMIS_READ));
+		list.add(createMapping(PermissionMapping.CAN_GET_ACL_OBJECT, Permission.accessControl.name()));
+		list.add(createMapping(PermissionMapping.CAN_APPLY_ACL_OBJECT, Permission.accessControl.name()));
+
+		Map<String, PermissionMapping> map = new LinkedHashMap<>();
+
+		for (PermissionMapping pm : list) {
+			map.put(pm.getKey(), pm);
+		}
+
+		return map;
+	}
+
+	//---private methods---
+	private PermissionMapping createMapping(String key, String permission) {
+
+		PermissionMappingDataImpl pm = new PermissionMappingDataImpl();
+		pm.setKey(key);
+		pm.setPermissions(Collections.singletonList(permission));
+
+		return pm;
 	}
 }

@@ -710,8 +710,8 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 	/**
 	 * Gets called, and checks if anonymous is logged in.
-	 * Anonymous has no permission for example at creating documents and
-	 * folders and the method throws a exception.
+	 * Anonymous has no permission to create documents and
+	 * folders for example and the method throws an exception.
 	 */
 	private void checkAnonymous() {
 

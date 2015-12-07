@@ -65,6 +65,7 @@ public class StructrFolderActions extends AbstractStructrActions {
 	protected void setDeletePermissions() {
 
 		actions.add(Action.CAN_DELETE_OBJECT);
+		actions.add(Action.CAN_DELETE_TREE);
 	}
 
 	@Override
