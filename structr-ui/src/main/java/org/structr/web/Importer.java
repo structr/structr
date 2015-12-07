@@ -110,6 +110,7 @@ public class Importer {
 	private static App app;
 	private static ConfigurationProvider config;
 
+	private final static String DATA_STRUCTR_PREFIX = "data-structr-";
 	private final static String DATA_META_PREFIX = "data-structr-meta-";
 
 	static {
@@ -591,44 +592,13 @@ public class Importer {
 
 					final String key = nodeAttr.getKey();
 
-					PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNode.getClass(), key);
+					if (!key.equals("text")) { // Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 
-					if (propertyKey != null) {
-
-						final Object value = nodeAttr.getValue();
-						final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+						final String value = nodeAttr.getValue();
 						
-						if (value != null && inputConverter != null) {
-							
-							newNode.setProperty(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
-								
-						} else {
-						
-							newNode.setProperty(propertyKey, value);
-						}
-
-					} else if (!key.equals("text")) {
-						
-						 // Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
-
-						// convert data-* attributes to local camel case properties on the node,
-						// but don't convert data-structr-* attributes as they are internal
 						if (key.startsWith("data-")) {
-							String value = nodeAttr.getValue();
 
-							if (!key.startsWith(DATA_META_PREFIX)) {
-
-								if (value != null) {
-									if (value.equalsIgnoreCase("true")) {
-										newNode.setProperty(new BooleanProperty(key), true);
-									} else if (value.equalsIgnoreCase("false")) {
-										newNode.setProperty(new BooleanProperty(key), false);
-									} else {
-										newNode.setProperty(new StringProperty(key), nodeAttr.getValue());
-									}
-								}
-
-							} else {
+							if (key.startsWith(DATA_META_PREFIX)) { // convert data-structr-meta-* attributes to local camel case properties on the node,
 
 								int l = DATA_META_PREFIX.length();
 
@@ -645,11 +615,26 @@ public class Importer {
 									}
 								}
 
+							} else 
+							if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
+								
+								PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNode.getClass(), key);
+
+								if (propertyKey != null) {
+
+									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+									if (value != null && inputConverter != null) {
+
+										newNode.setProperty(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
+									} else {
+
+										newNode.setProperty(propertyKey, value);
+									}
+								}
 							}
+							
 
 						} else {
-
-							final String value = nodeAttr.getValue();
 
 							boolean notBlank = StringUtils.isNotBlank(value);
 							boolean isAnchor = notBlank && value.startsWith("#");
