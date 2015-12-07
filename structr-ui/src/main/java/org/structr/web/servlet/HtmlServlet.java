@@ -29,9 +29,11 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TimeZone;
@@ -301,11 +303,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						if (rootElement == null && dataNode instanceof DOMNode) {
 
 							rootElement = ((DOMNode) dataNode);
-
 						}
-
 					}
-
 				}
 
 				// look for pages with HTTP Basic Authentication (must be done as superuser)
@@ -1353,8 +1352,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		}
 
-		final ServletOutputStream out = response.getOutputStream();
-		final String downloadAsFilename = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
+		final ServletOutputStream out         = response.getOutputStream();
+		final String downloadAsFilename       = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
+		final Map<String, Object> callbackMap = new LinkedHashMap<>();
+
+		// make edit mode available in callback method
+		callbackMap.put("editMode", edit);
+
 
 		if (downloadAsFilename != null) {
 			// Set Content-Disposition header to suggest a default filename and force a "save-as" dialog
@@ -1364,12 +1368,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			// http://tools.ietf.org/html/rfc1806
 			// http://tools.ietf.org/html/rfc2616#section-15.5 and http://tools.ietf.org/html/rfc2616#section-19.5.1
 			response.addHeader("Content-Disposition", "attachment; filename=\"" + downloadAsFilename + "\"");
+
+			callbackMap.put("requestedFileName", downloadAsFilename);
 		}
 
 		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, false)) {
 
 			out.flush();
 			out.close();
+
+			callbackMap.put("statusCode", HttpServletResponse.SC_NOT_MODIFIED);
 
 		} else {
 
@@ -1382,6 +1390,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				out.flush();
 				out.close();
+
+				callbackMap.put("statusCode", HttpServletResponse.SC_OK);
 
 			} else {
 
@@ -1429,12 +1439,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						response.setHeader("Content-Length", String.format("%s", contentLength));
 
 						response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+						callbackMap.put("statusCode", HttpServletResponse.SC_PARTIAL_CONTENT);
 
 						IOUtils.copyLarge(in, out, start, contentLength);
 
 					} else {
 
 						response.setStatus(HttpServletResponse.SC_OK);
+						callbackMap.put("statusCode", HttpServletResponse.SC_OK);
 
 						IOUtils.copyLarge(in, out);
 
@@ -1462,6 +1474,20 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					response.setStatus(HttpServletResponse.SC_OK);
 				}
+			}
+		}
+
+
+		// WIDGET mode means "opened in frontend", which we don't want to count as an external download
+		if (!EditMode.WIDGET.equals(edit)) {
+
+			// call onDownload callback
+			try {
+
+				file.invokeMethod("onDownload", Collections.EMPTY_MAP, false);
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
 			}
 		}
 	}
