@@ -124,7 +124,6 @@ public class ImporterTest extends StructrUiTest {
 
 		assertFileNotExists("html5shiv.min.js");
 		assertFileNotExists("respond.min.js");
-		assertFileNotExists("jquery.min.js");
 
 	}
 
@@ -402,7 +401,7 @@ public class ImporterTest extends StructrUiTest {
 			final String filename = PathHelper.getName(expectedPath);
 			file = app.nodeQuery(FileBase.class).andName(filename).getFirst();
 
-			assertNull("File found", file);
+			assertNull("File " + filename + " found", file);
 
 		} catch (FrameworkException ex) {
 			ex.printStackTrace();
