@@ -504,7 +504,7 @@ public class DiffTest extends StructrUiTest {
 
 				int insert = buf.indexOf("<div ") + 5;
 
-				buf.insert(insert, "class='test' id='one'");
+				buf.insert(insert, " class='test' id='one' ");
 
 				return buf.toString();
 			}

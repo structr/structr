@@ -3,13 +3,18 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
- * General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU Affero General Public License along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web;
 
@@ -60,12 +65,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -100,7 +108,9 @@ public class Importer {
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
 	private static App app;
+	private static ConfigurationProvider config;
 
+	private final static String DATA_STRUCTR_PREFIX = "data-structr-";
 	private final static String DATA_META_PREFIX = "data-structr-meta-";
 
 	static {
@@ -130,6 +140,7 @@ public class Importer {
 		this.securityContext = securityContext;
 		this.publicVisible = publicVisible;
 		this.authVisible = authVisible;
+		this.config = StructrApp.getConfiguration();
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
@@ -461,7 +472,7 @@ public class Importer {
 
 			if (node instanceof Element) {
 
-				Element el = ((Element)node);
+				Element el = ((Element) node);
 				Set<String> classes = el.classNames();
 
 				for (String cls : classes) {
@@ -473,7 +484,7 @@ public class Importer {
 
 				String downloadAddressAttr = (ArrayUtils.contains(srcElements, tag)
 					? "src" : ArrayUtils.contains(hrefElements, tag)
-						? "href" : null);
+					? "href" : null);
 
 				if (downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
@@ -495,7 +506,7 @@ public class Importer {
 			if (/*type.equals("#data") || */type.equals("#comment")) {
 
 				tag = "";
-				comment = ((Comment)node).getData();
+				comment = ((Comment) node).getData();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(comment)) {
@@ -509,7 +520,7 @@ public class Importer {
 			} else if (type.equals("#data")) {
 
 				tag = "";
-				content = ((DataNode)node).getWholeData();
+				content = ((DataNode) node).getWholeData();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
@@ -518,17 +529,19 @@ public class Importer {
 				}
 
 			} else // Text-only nodes: Trim the text and put it into the "content" field
-			if (type.equals("#text")) {
+			{
+				if (type.equals("#text")) {
 
 //                              type    = "Content";
-				tag = "";
-				//content = ((TextNode) node).getWholeText();
-				content = ((TextNode)node).text();
+					tag = "";
+					//content = ((TextNode) node).getWholeText();
+					content = ((TextNode) node).text();
 
-				// Add content node for whitespace within <p> elements only
-				if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
+					// Add content node for whitespace within <p> elements only
+					if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
 
-					continue;
+						continue;
+					}
 				}
 			}
 
@@ -540,17 +553,17 @@ public class Importer {
 				// create comment or content node
 				if (!StringUtils.isBlank(comment)) {
 
-					newNode = (DOMNode)page.createComment(comment);
+					newNode = (DOMNode) page.createComment(comment);
 					newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
 
 				} else {
 
-					newNode = (Content)page.createTextNode(content);
+					newNode = (Content) page.createTextNode(content);
 				}
 
 			} else {
 
-				newNode = (org.structr.web.entity.dom.DOMElement)page.createElement(tag);
+				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
 			}
 
 			if (newNode != null) {
@@ -579,27 +592,13 @@ public class Importer {
 
 					final String key = nodeAttr.getKey();
 
-					// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
-					if (!key.equals("text")) {
+					if (!key.equals("text")) { // Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 
-						// convert data-* attributes to local camel case properties on the node,
-						// but don't convert data-structr-* attributes as they are internal
+						final String value = nodeAttr.getValue();
+						
 						if (key.startsWith("data-")) {
-							String value = nodeAttr.getValue();
 
-							if (!key.startsWith(DATA_META_PREFIX)) {
-
-								if (value != null) {
-									if (value.equalsIgnoreCase("true")) {
-										newNode.setProperty(new BooleanProperty(key), true);
-									} else if (value.equalsIgnoreCase("false")) {
-										newNode.setProperty(new BooleanProperty(key), false);
-									} else {
-										newNode.setProperty(new StringProperty(key), nodeAttr.getValue());
-									}
-								}
-
-							} else {
+							if (key.startsWith(DATA_META_PREFIX)) { // convert data-structr-meta-* attributes to local camel case properties on the node,
 
 								int l = DATA_META_PREFIX.length();
 
@@ -616,11 +615,26 @@ public class Importer {
 									}
 								}
 
+							} else 
+							if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
+								
+								PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNode.getClass(), key);
+
+								if (propertyKey != null) {
+
+									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+									if (value != null && inputConverter != null) {
+
+										newNode.setProperty(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
+									} else {
+
+										newNode.setProperty(propertyKey, value);
+									}
+								}
 							}
+							
 
 						} else {
-
-							final String value = nodeAttr.getValue();
 
 							boolean notBlank = StringUtils.isNotBlank(value);
 							boolean isAnchor = notBlank && value.startsWith("#");
@@ -922,7 +936,7 @@ public class Importer {
 		} else {
 
 			System.out.println("response body: " + new String(get.getResponseBody(), "utf-8"));
-			logger.log(Level.WARNING, "Unable to create file {0}: status code was {1}", new Object[] { uri, statusCode } );
+			logger.log(Level.WARNING, "Unable to create file {0}: status code was {1}", new Object[]{uri, statusCode});
 		}
 	}
 

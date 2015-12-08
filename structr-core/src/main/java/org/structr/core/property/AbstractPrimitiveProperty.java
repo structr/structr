@@ -46,6 +46,9 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	public static final String STRING_EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
 
 	private boolean internalSystemProperty = false;
+	protected GraphObject entity;
+	protected SecurityContext securityContext;
+
 
 	public AbstractPrimitiveProperty(final String name) {
 		super(name);

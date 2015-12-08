@@ -16,9 +16,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity;
+package org.structr.web.entity.feed;
 
+import org.structr.web.entity.*;
 import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
@@ -29,29 +32,45 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import static org.structr.core.graph.NodeInterface.name;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.files.text.FulltextIndexingTask;
 import org.structr.web.common.DownloadHelper;
+import org.structr.web.entity.relation.FeedItemContents;
+import org.structr.web.entity.relation.FeedItems;
 
 /**
- *
+ * Represents a single item of a data feed.
  *
  */
-public class RemoteDocument extends AbstractNode implements Indexable {
+public class FeedItem extends AbstractNode implements Indexable {
 
-	private static final Logger logger = Logger.getLogger(RemoteDocument.class.getName());
+	private static final Logger logger = Logger.getLogger(FeedItem.class.getName());
 
-	public static final Property<String> url                     = new StringProperty("url");
+	public static final Property<String> url                     = new StringProperty("url").indexed();
+	public static final Property<String> author                  = new StringProperty("author");
+	public static final Property<String> comments                = new StringProperty("comments");
+	public static final Property<List<FeedItemContent>> contents = new EndNodes<>("contents", FeedItemContents.class);
+	public static final Property<Date> pubDate                   = new ISO8601DateProperty("pubDate").indexed().unvalidated().readOnly().writeOnce();	
+	
 	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
 	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds").cmis();
 	public static final Property<Integer> version                = new IntProperty("version").indexed().readOnly();
 
-	public static final View publicView = new View(RemoteDocument.class, PropertyView.Public, type, name, contentType, url, owner);
-	public static final View uiView = new View(RemoteDocument.class, PropertyView.Ui, type, contentType, url, checksum, version, cacheForSeconds, owner, extractedContent, indexedWords);
+	public static final Property<DataFeed> feed                  = new StartNode<>("feed", FeedItems.class);
+	
+	public static final View publicView = new View(FeedItem.class, PropertyView.Public, type, name, contentType, owner, 
+		url, feed, author, comments, contents, pubDate);
+	public static final View uiView     = new View(FeedItem.class, PropertyView.Ui, type, contentType, checksum, version, cacheForSeconds, owner, extractedContent, indexedWords,
+		url, feed, author, comments, contents, pubDate);
 
+	
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 
@@ -80,22 +99,22 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 
 	public void increaseVersion() throws FrameworkException {
 
-		final Integer _version = getProperty(RemoteDocument.version);
+		final Integer _version = getProperty(FeedItem.version);
 
 		unlockReadOnlyPropertiesOnce();
 		if (_version == null) {
 
-			setProperty(RemoteDocument.version, 1);
+			setProperty(FeedItem.version, 1);
 
 		} else {
 
-			setProperty(RemoteDocument.version, _version + 1);
+			setProperty(FeedItem.version, _version + 1);
 		}
 	}
 
 	@Override
 	public InputStream getInputStream() {
-
+		
 		final String remoteUrl = getProperty(url);
 		if (StringUtils.isNotBlank(remoteUrl)) {
 			
@@ -106,6 +125,5 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 	}
 
 	// ----- private methods -----
-
 
 }
