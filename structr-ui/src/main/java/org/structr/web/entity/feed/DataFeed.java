@@ -57,7 +57,7 @@ public class DataFeed extends AbstractNode {
 	public static final Property<List<FeedItem>> items       = new EndNodes<>("items", FeedItems.class);
 	public static final Property<String>         url         = new StringProperty("url");
 	public static final Property<String>         feedType    = new StringProperty("feedType");
-	public static final Property<String>         description = new StringProperty("feedType");
+	public static final Property<String>         description = new StringProperty("description");
 	
 	public static final View defaultView = new View(DataFeed.class, PropertyView.Public, id, type, url, items, feedType, description);
 
@@ -90,34 +90,41 @@ public class DataFeed extends AbstractNode {
 				setProperty(feedType,    feed.getFeedType());
 				setProperty(description, feed.getDescription());
 				
-				
-				final List<FeedItem> newItems = new LinkedList<>();
+				final List<FeedItem> newItems = getProperty(items);
 				
 				for (final SyndEntry entry : entries) {
 					 
 					final PropertyMap props = new PropertyMap();
 
-					props.put(FeedItem.name, entry.getTitle());
-					props.put(FeedItem.url, entry.getLink());
-					props.put(FeedItem.author, entry.getAuthor());
-					props.put(FeedItem.comments, entry.getComments());
+					final String link = entry.getLink();
 					
-					final FeedItem item = app.create(FeedItem.class, props);
+					// Check if item with this link already exists
+					if (app.nodeQuery(FeedItem.class).and(FeedItem.url, link).getFirst() == null) {
+					
+						props.put(FeedItem.url, entry.getLink());
+						props.put(FeedItem.name, entry.getTitle());
+						props.put(FeedItem.author, entry.getAuthor());
+						props.put(FeedItem.comments, entry.getComments());
 
-					final List<FeedItemContent> itemContents = new LinkedList<>();
+						final FeedItem item = app.create(FeedItem.class, props);
+						item.setProperty(FeedItem.pubDate, entry.getPublishedDate());
+
+						final List<FeedItemContent> itemContents = new LinkedList<>();
+
+						final List<SyndContent> contents = entry.getContents();
+						for (final SyndContent content : contents) {
+
+							final FeedItemContent itemContent = app.create(FeedItemContent.class);
+							itemContent.setProperty(FeedItemContent.value, content.getValue());
+
+							itemContents.add(itemContent);
+						}
+
+						item.setProperty(FeedItem.contents, itemContents);
+
+						newItems.add(item);
 					
-					final List<SyndContent> contents = entry.getContents();
-					for (final SyndContent content : contents) {
-						
-						final FeedItemContent itemContent = app.create(FeedItemContent.class);
-						itemContent.setProperty(FeedItemContent.value, content.getValue());
-						
-						itemContents.add(itemContent);
 					}
-					
-					item.setProperty(FeedItem.contents, itemContents);
-										
-					newItems.add(item);
                                         
 				}
 
