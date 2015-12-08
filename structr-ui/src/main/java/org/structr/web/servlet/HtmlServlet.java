@@ -212,6 +212,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				// don't continue on redirects
 				if (response.getStatus() == 302) {
+
+					tx.success();
 					return;
 				}
 
@@ -258,6 +260,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					if (file != null) {
 
 						streamFile(securityContext, file, request, response, edit);
+						tx.success();
 						return;
 
 					}
@@ -326,6 +329,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							} else if (result instanceof File) {
 
 								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
+								tx.success();
 								return;
 
 							}
@@ -333,6 +337,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						// Page with Basic Auth found but not yet authenticated
 						case MustAuthenticate:
+							tx.success();
 							return;
 
 						// no Basic Auth for given path, go on
@@ -348,6 +353,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				}
 
 				if (rootElement == null) {
+					tx.success();
 					return;
 				}
 
@@ -365,6 +371,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					rootElement = notFound(response, securityContext);
 					if (rootElement == null) {
+
+						tx.success();
 						return;
 					}
 
@@ -681,7 +689,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 							} else if (result instanceof File) {
 
-								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
+								//streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
 								tx.success();
 								return;
 
