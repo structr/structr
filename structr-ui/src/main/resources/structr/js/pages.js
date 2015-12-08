@@ -327,7 +327,6 @@ var _Pages = {
 
 			dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
 					+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
-					+ '<tr><td><label for="timeout">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr>'
 					+ '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
 					+ '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" checked="checked" id="_authVisible" name="authVisibilty"></td></tr>'
 					+ '</table>');
@@ -351,7 +350,6 @@ var _Pages = {
 				var code = $('#_code', dialog).val();
 				var address = $('#_address', dialog).val();
 				var name = $('#_name', dialog).val();
-				var timeout = $('#_timeout', dialog).val();
 				var publicVisible = $('#_publicVisible:checked', dialog).val() === 'on';
 				var authVisible = $('#_authVisible:checked', dialog).val() === 'on';
 
