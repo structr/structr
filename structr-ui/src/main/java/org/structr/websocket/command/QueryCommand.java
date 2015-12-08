@@ -32,8 +32,8 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -110,14 +110,9 @@ public class QueryCommand extends AbstractCommand {
 		}
 
 		// for image lists, suppress thumbnails
-		if (type.equals(Image.class)) {
+		if (type.equals(Image.class) || type.equals(FileBase.class)) {
 
 			query.and(Image.isThumbnail, false);
-		}
-
-		if (type.equals(File.class)) {
-
-			query.not().and(Image.isThumbnail, true);
 		}
 
 		try {
