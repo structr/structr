@@ -665,7 +665,7 @@ public class Importer {
 							boolean notBlank = StringUtils.isNotBlank(value);
 							boolean isAnchor = notBlank && value.startsWith("#");
 							boolean isLocal = notBlank && !value.startsWith("http");
-							boolean isActive = notBlank && (value.contains("${") || value.startsWith("/${"));
+							boolean isActive = notBlank && value.contains("${");
 							boolean isStructrLib = notBlank && value.startsWith("/structr/js/");
 
 							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive) {
