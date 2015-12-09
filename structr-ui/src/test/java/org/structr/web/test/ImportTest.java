@@ -36,7 +36,7 @@ import org.structr.web.common.StructrUiTest;
  */
 public class ImportTest extends StructrUiTest {
 
-	public void testImportAndSchemaAnaylzer() {
+	public void testImportAndSchemaAnalyzer() {
 
 		final String source =
 			"== Test setup\n" +

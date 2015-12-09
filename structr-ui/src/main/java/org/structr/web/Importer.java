@@ -132,7 +132,20 @@ public class Importer {
 	private String address;
 	private String code;
 
-	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
+	/**
+	 * Construct an instance of the importer to either read the given code, or download code from the given address.
+	 * 
+	 * The importer will create a page with the given name. Visibility can be controlled by publicVisible and authVisible.
+	 * 
+	 * @param securityContext
+	 * @param code
+	 * @param address
+	 * @param name
+	 * @param timeout
+	 * @param publicVisible
+	 * @param authVisible 
+	 */
+	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible) {
 
 		this.code = code;
 		this.address = address;
@@ -151,10 +164,23 @@ public class Importer {
 		app = StructrApp.getInstance(securityContext);
 	}
 
+	/**
+	 * Parse the code previously read by {@link Importer#readPage()} and treat it as complete page.
+	 * 
+	 * @return
+	 * @throws FrameworkException 
+	 */
 	public boolean parse() throws FrameworkException {
 		return parse(false);
 	}
 
+	/**
+	 * Parse the code previously read by {@link Importer#readPage()} and treat it as page fragment.
+	 * 
+	 * @param fragment
+	 * @return
+	 * @throws FrameworkException 
+	 */
 	public boolean parse(final boolean fragment) throws FrameworkException {
 
 		init();
@@ -275,7 +301,7 @@ public class Importer {
 
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
-		final Importer importer = new Importer(securityContext, source, null, "source", 0, false, false);
+		final Importer importer = new Importer(securityContext, source, null, "source", false, false);
 		final App localAppCtx = StructrApp.getInstance(securityContext);
 		Page page = null;
 
@@ -639,7 +665,7 @@ public class Importer {
 							boolean notBlank = StringUtils.isNotBlank(value);
 							boolean isAnchor = notBlank && value.startsWith("#");
 							boolean isLocal = notBlank && !value.startsWith("http");
-							boolean isActive = notBlank && (value.startsWith("${") || value.startsWith("/${"));
+							boolean isActive = notBlank && value.contains("${");
 							boolean isStructrLib = notBlank && value.startsWith("/structr/js/");
 
 							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive) {
