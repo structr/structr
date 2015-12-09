@@ -57,6 +57,7 @@ import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.security.auth.x500.X500Principal;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
@@ -203,6 +204,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
 	public static final String ERROR_MESSAGE_ADD_HEADER = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
+	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER = "Usage: ${get_request_header(field, value)}. Example: ${get_request_header('X-User', 'johndoe')}";
+	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value)}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe')}}";
 	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER = "Usage: ${set_response_header(field, value)}. Example: ${set_response_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value)}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe')}}";
 	public static final String ERROR_MESSAGE_LOG_EVENT = "Usage: ${log_event(action, message)}. Example: ${log_event('read', 'Book has been read')}";
@@ -967,6 +970,47 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			@Override
 			public String shortDescription() {
 				return "Adds the given header field and value to the response of the current rendering run";
+			}
+		});
+
+		Functions.functions.put("get_request_header", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "get_request_header()";
+			}
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+
+				if (sources != null && arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					final SecurityContext securityContext = ctx.getSecurityContext();
+					final String name = sources[0].toString();
+					
+					if (securityContext != null) {
+
+						final HttpServletRequest request = securityContext.getRequest();
+						if (request != null) {
+
+							return request.getHeader(name);
+						}
+					}
+
+					return "";
+				}
+
+				return usage(ctx.isJavaScriptContext());
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_GET_REQUEST_HEADER_JS : ERROR_MESSAGE_GET_REQUEST_HEADER);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Returns the value of the given request header field";
 			}
 		});
 
