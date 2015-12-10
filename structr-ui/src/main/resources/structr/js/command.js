@@ -792,14 +792,13 @@ var Command = {
 	 * The server will broadcast CREATE and ADD notifications for each
 	 * node respective relationship created.
 	 */
-	importPage: function(code, address, name, timeout, publicVisible, authVisible) {
+	importPage: function(code, address, name, publicVisible, authVisible) {
 		var obj = {};
 		var data = {};
 		obj.command = 'IMPORT';
 		data.code = code;
 		data.address = address;
 		data.name = name;
-		data.timeout = parseInt(timeout);
 		data.publicVisible = publicVisible;
 		data.authVisible = authVisible;
 		obj.data = data;

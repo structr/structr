@@ -90,11 +90,8 @@ public class ListCommand extends AbstractCommand {
 				query.and(FileBase.hasParent, false);
 			}
 
-			if (FileBase.class.isAssignableFrom(type)) {
-
-				// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
-				query.not().and(Image.isThumbnail, true);
-			}
+			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
+			query.not().and(Image.isThumbnail, true);
 
 		}
 

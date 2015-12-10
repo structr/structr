@@ -222,6 +222,7 @@
                 <version>2.18.1</version>
                 <configuration>
                     <argLine>-Xmx1g</argLine>
+                    <reuseForks>false</reuseForks>
                     <systemPropertyVariables>
                         <user.timezone>UTC</user.timezone>
                     </systemPropertyVariables>

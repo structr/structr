@@ -20,6 +20,8 @@ package org.structr.web.entity;
 
 import java.io.InputStream;
 import org.structr.common.PropertyView;
+import org.structr.core.Export;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.property.Property;
@@ -42,4 +44,7 @@ public interface Indexable extends NodeInterface {
 	
 	public InputStream getInputStream();
 
+	@Export
+	public GraphObject getSearchContext(final String searchTerm, final int contextLength);
+	
 }
